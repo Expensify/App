@@ -60,6 +60,7 @@ import {
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     getApprovalChain,
     getAvailableReportFields,
+    getBillableAndTaxTotal,
     getChatByParticipants,
     getChatRoomSubtitle,
     getDefaultWorkspaceAvatar,
@@ -77,6 +78,7 @@ import {
     getParticipantsList,
     getPolicyExpenseChat,
     getPolicyIDsWithEmptyReportsForAccount,
+    getPolicyName,
     getReasonAndReportActionThatRequiresAttention,
     getReportIDFromLink,
     getReportName as getReportNameDeprecated,
@@ -86,6 +88,7 @@ import {
     getReportStatusTranslation,
     getWorkspaceIcon,
     getWorkspaceNameUpdatedMessage,
+    hasActionWithErrorsForTransaction,
     hasEmptyReportsForPolicy,
     hasReceiptError,
     isAllowedToApproveExpenseReport,
@@ -694,7 +697,7 @@ describe('ReportUtils', () => {
             } as unknown as OnyxEntry<Report>;
 
             const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails});
-            expect(name).toBe(translate(CONST.LOCALES.EN, 'workspace.common.policyExpenseChatName', {displayName: 'Ragnar Lothbrok'}));
+            expect(name).toBe(translate(CONST.LOCALES.EN, 'workspace.common.policyExpenseChatName', 'Ragnar Lothbrok'));
         });
 
         it('falls back to owner login when display name not present', () => {
@@ -704,7 +707,7 @@ describe('ReportUtils', () => {
             } as unknown as OnyxEntry<Report>;
 
             const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails});
-            expect(name).toBe(translate(CONST.LOCALES.EN, 'workspace.common.policyExpenseChatName', {displayName: 'floki'}));
+            expect(name).toBe(translate(CONST.LOCALES.EN, 'workspace.common.policyExpenseChatName', 'floki'));
         });
 
         it('returns report name when no personal details or owner', () => {
@@ -5950,6 +5953,11 @@ describe('ReportUtils', () => {
                 ...policyTest,
                 role: CONST.POLICY.ROLE.ADMIN,
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                employeeList: {
+                    [adminEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                },
                 achAccount: {
                     reimburser: reimburserEmail,
                     bankAccountID,
@@ -5990,6 +5998,11 @@ describe('ReportUtils', () => {
                 ...policyTest,
                 role: CONST.POLICY.ROLE.ADMIN,
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                employeeList: {
+                    [adminEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                },
                 achAccount: {
                     reimburser: reimburserEmail,
                     bankAccountID,
@@ -6017,6 +6030,52 @@ describe('ReportUtils', () => {
             };
 
             expect(isPayer(adminAccountID, adminEmail, report, bankAccountList, policyWithAch, false)).toBe(false);
+        });
+
+        it('should return false when user left workspace and policy is not available', async () => {
+            // Clear the policy to simulate user leaving workspace
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}left-workspace`, null);
+
+            const reportWithMissingPolicy: Report = {
+                ...createRandomReport(6, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                policyID: 'left-workspace',
+                managerID: currentUserAccountID,
+            };
+
+            // User should not be a payer when policy is not available (they likely left the workspace)
+            expect(isPayer(currentUserAccountID, currentUserEmail, reportWithMissingPolicy, undefined, undefined, false)).toBe(false);
+        });
+
+        it('should return false when user is not in employeeList of a paid group policy', async () => {
+            const otherUserEmail = 'other@test.com';
+            const policyWithoutCurrentUser: Policy = {
+                ...createRandomPolicy(2),
+                id: 'policy-without-user',
+                type: CONST.POLICY.TYPE.CORPORATE,
+                role: CONST.POLICY.ROLE.ADMIN, // Role might be stale
+                employeeList: {
+                    [otherUserEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                },
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}policy-without-user`, policyWithoutCurrentUser);
+
+            const reportForNonMember: Report = {
+                ...createRandomReport(7, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                policyID: 'policy-without-user',
+                managerID: currentUserAccountID,
+            };
+
+            // User should not be a payer even if role says admin, because they're not in employeeList
+            expect(isPayer(currentUserAccountID, currentUserEmail, reportForNonMember, undefined, policyWithoutCurrentUser, false)).toBe(false);
         });
     });
     describe('buildReportNameFromParticipantNames', () => {
@@ -6805,6 +6864,7 @@ describe('ReportUtils', () => {
             // Given a non-archived expense report that is unread with a mention
             const report: OptionData = {
                 ...createRandomReport(30000, undefined),
+                keyForList: 'SomeKey',
                 type: CONST.REPORT.TYPE.EXPENSE,
                 isUnreadWithMention: true,
             };
@@ -6821,6 +6881,7 @@ describe('ReportUtils', () => {
         it('should return HAS_UNRESOLVED_CARD_FRAUD_ALERT when report has unresolved fraud alert', async () => {
             const report: OptionData = {
                 ...createRandomReport(40000, undefined),
+                keyForList: 'someStringKey',
                 type: CONST.REPORT.TYPE.EXPENSE,
                 isUnreadWithMention: true,
             };
@@ -6844,6 +6905,7 @@ describe('ReportUtils', () => {
             // Given an archived expense report that is unread with a mention
             const report: OptionData = {
                 ...createRandomReport(30000, undefined),
+                keyForList: 'someStringKey',
                 type: CONST.REPORT.TYPE.EXPENSE,
                 isUnreadWithMention: true,
             };
@@ -11860,6 +11922,394 @@ describe('ReportUtils', () => {
                 // Then it should log a warning and not navigate
                 expect(logWarnSpy).toHaveBeenCalledWith('policyExpenseReportID is not valid during expense categorizing');
                 expect(Navigation.navigate).not.toHaveBeenCalled();
+            });
+        });
+    });
+
+    describe('hasActionWithErrorsForTransaction', () => {
+        it('should return false when reportID is undefined', () => {
+            const transaction = createRandomTransaction(1);
+            const result = hasActionWithErrorsForTransaction(undefined, transaction, undefined);
+            expect(result).toBe(false);
+        });
+
+        it('should return false when there are no report actions with errors', () => {
+            const reportID = '123';
+            const transaction = createRandomTransaction(1);
+            const reportAction = createRandomReportAction(1);
+            const reportActions = {
+                [reportAction.reportActionID]: reportAction,
+            };
+
+            const result = hasActionWithErrorsForTransaction(reportID, transaction, reportActions);
+            expect(result).toBe(false);
+        });
+
+        it('should return true when there is a report action with errors', () => {
+            const reportID = '124';
+            const transaction = createRandomTransaction(2);
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(2),
+                errors: {someError: 'This is an error'},
+            };
+            const reportActions = {
+                [reportAction.reportActionID]: reportAction,
+            };
+
+            const result = hasActionWithErrorsForTransaction(reportID, transaction, reportActions);
+            expect(result).toBe(true);
+        });
+
+        it('should return true when a money request action has errors matching the transaction', () => {
+            const reportID = '125';
+            const transaction = createRandomTransaction(3);
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(3),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUTransactionID: transaction.transactionID,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                errors: {transactionError: 'Transaction has an error'},
+            } as ReportAction;
+            const reportActions = {
+                [reportAction.reportActionID]: reportAction,
+            };
+
+            const result = hasActionWithErrorsForTransaction(reportID, transaction, reportActions);
+            expect(result).toBe(true);
+        });
+
+        it('should return false when a money request action has errors but for a different transaction', () => {
+            const reportID = '126';
+            const transaction = createRandomTransaction(4);
+            const differentTransaction = createRandomTransaction(5);
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(4),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUTransactionID: differentTransaction.transactionID,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                errors: {transactionError: 'Transaction has an error'},
+            } as ReportAction;
+            const reportActions = {
+                [reportAction.reportActionID]: reportAction,
+            };
+
+            const result = hasActionWithErrorsForTransaction(reportID, transaction, reportActions);
+            expect(result).toBe(false);
+        });
+    });
+
+    describe('getPolicyName', () => {
+        const testPolicy: Policy = {
+            ...createRandomPolicy(1),
+            id: 'policy123',
+            name: 'Test Policy Name',
+        };
+
+        const testReport: Report = {
+            ...createRandomReport(1, undefined),
+            policyID: 'policy123',
+            policyName: 'Report Policy Name',
+            oldPolicyName: 'Old Policy Name',
+        };
+
+        it('should return empty string when report is empty', () => {
+            const result = getPolicyName({report: null, returnEmptyIfNotFound: true});
+            expect(result).toBe('');
+        });
+
+        it('should return empty string when report is undefined', () => {
+            const result = getPolicyName({report: undefined, returnEmptyIfNotFound: true});
+            expect(result).toBe('');
+        });
+
+        it('should return empty string when report is an empty object', () => {
+            const result = getPolicyName({report: {} as Report, returnEmptyIfNotFound: true});
+            expect(result).toBe('');
+        });
+
+        it('should return policy name from the policy parameter', () => {
+            const result = getPolicyName({
+                report: testReport,
+                policy: testPolicy,
+            });
+            expect(result).toBe('Test Policy Name');
+        });
+
+        it('should use policy parameter even when policies array is also provided', () => {
+            const otherPolicy: Policy = {
+                ...createRandomPolicy(2),
+                id: 'policy123',
+                name: 'Other Policy Name',
+            };
+            const result = getPolicyName({
+                report: testReport,
+                policy: testPolicy,
+                policies: [otherPolicy],
+            });
+            expect(result).toBe('Test Policy Name');
+        });
+
+        it('should find policy by policyID in the policies array', () => {
+            const policies: Policy[] = [
+                {...createRandomPolicy(1), id: 'other1', name: 'Other 1'},
+                {...createRandomPolicy(2), id: 'policy123', name: 'Found In Array'},
+                {...createRandomPolicy(3), id: 'other2', name: 'Other 2'},
+            ];
+            const result = getPolicyName({
+                report: testReport,
+                policies,
+            });
+            expect(result).toBe('Found In Array');
+        });
+
+        it('should fall back to report.policyName when policy not found in array', () => {
+            const policies: Policy[] = [
+                {...createRandomPolicy(1), id: 'other1', name: 'Other 1'},
+                {...createRandomPolicy(2), id: 'other2', name: 'Other 2'},
+            ];
+            const result = getPolicyName({
+                report: testReport,
+                policies,
+            });
+            expect(result).toBe('Report Policy Name');
+        });
+
+        it('should return report.policyName when no policy is found', () => {
+            const report: Report = {
+                ...createRandomReport(1, undefined),
+                policyID: 'nonexistent',
+                policyName: 'Fallback Policy Name',
+            };
+            const result = getPolicyName({report});
+            expect(result).toBe('Fallback Policy Name');
+        });
+
+        it('should return report.oldPolicyName when policyName is not available', () => {
+            const report: Report = {
+                ...createRandomReport(1, undefined),
+                policyID: 'nonexistent',
+                policyName: undefined,
+                oldPolicyName: 'Old Fallback Name',
+            };
+            const result = getPolicyName({report});
+            expect(result).toBe('Old Fallback Name');
+        });
+
+        it('should return parent report policyName when report has no policyName', () => {
+            const parentReport: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: 'parent123',
+                policyName: 'Parent Policy Name',
+            };
+            const childReport: Report = {
+                ...createRandomReport(1, undefined),
+                policyID: 'nonexistent',
+                policyName: undefined,
+                oldPolicyName: undefined,
+                parentReportID: 'parent123',
+            };
+            const result = getPolicyName({
+                report: childReport,
+                reports: [parentReport, childReport],
+            });
+            expect(result).toBe('Parent Policy Name');
+        });
+
+        it('should handle empty policies array', () => {
+            const result = getPolicyName({
+                report: testReport,
+                policies: [],
+            });
+            expect(result).toBe('Report Policy Name');
+        });
+
+        it('should prefer policy.name over report.policyName', () => {
+            const result = getPolicyName({
+                report: testReport,
+                policy: testPolicy,
+            });
+            expect(result).toBe('Test Policy Name');
+        });
+
+        it('should find policy from allPolicies when policies array is not provided', async () => {
+            const onyxPolicy: Policy = {
+                ...createRandomPolicy(1),
+                id: 'onyxPolicy456',
+                name: 'Policy From Onyx',
+            };
+            const report: Report = {
+                ...createRandomReport(1, undefined),
+                policyID: 'onyxPolicy456',
+                policyName: undefined,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${onyxPolicy.id}`, onyxPolicy);
+            await waitForBatchedUpdates();
+
+            const result = getPolicyName({report});
+            expect(result).toBe('Policy From Onyx');
+
+            // Cleanup
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${onyxPolicy.id}`, null);
+        });
+
+        it('should return report.policyName when policies is empty array and policy not in allPolicies', async () => {
+            const report: Report = {
+                ...createRandomReport(1, undefined),
+                policyID: 'nonExistentPolicy789',
+                policyName: 'Report Fallback Name',
+            };
+
+            const result = getPolicyName({
+                report,
+                policies: [],
+            });
+            expect(result).toBe('Report Fallback Name');
+        });
+    });
+
+    describe('getBillableAndTaxTotal', () => {
+        const expenseReport: Report = {
+            ...createExpenseReport(1),
+            reportID: 'expense-1',
+            currency: CONST.CURRENCY.USD,
+        };
+
+        const chatReport: Report = {
+            ...createRandomReport(2, undefined),
+            type: CONST.REPORT.TYPE.CHAT,
+            reportID: 'chat-1',
+        };
+
+        it('should return zeros when report is undefined', () => {
+            expect(getBillableAndTaxTotal(undefined, [])).toEqual({
+                billableTotal: 0,
+                taxTotal: 0,
+            });
+        });
+
+        it('should return zeros when report is not an expense report', () => {
+            const transaction = createRandomTransaction(1);
+            expect(getBillableAndTaxTotal(chatReport, [transaction])).toEqual({
+                billableTotal: 0,
+                taxTotal: 0,
+            });
+        });
+
+        it('should return zeros when expense report has no transactions', () => {
+            expect(getBillableAndTaxTotal(expenseReport, [])).toEqual({
+                billableTotal: 0,
+                taxTotal: 0,
+            });
+        });
+
+        it('should sum billable amount and tax when transaction currency matches report currency', async () => {
+            const transaction = {
+                ...createRandomTransaction(1),
+                reportID: expenseReport.reportID,
+                amount: -100,
+                taxAmount: -10,
+                currency: CONST.CURRENCY.USD,
+                billable: true,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await waitForBatchedUpdates();
+
+            expect(getBillableAndTaxTotal(expenseReport, [transaction])).toEqual({
+                billableTotal: 100,
+                taxTotal: 10,
+            });
+        });
+
+        it('should use convertedAmount and convertedTaxAmount when transaction currency differs from report', async () => {
+            const transaction = {
+                ...createRandomTransaction(1),
+                reportID: expenseReport.reportID,
+                amount: -100,
+                taxAmount: -10,
+                currency: CONST.CURRENCY.EUR,
+                billable: true,
+                convertedAmount: -80,
+                convertedTaxAmount: -8,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await waitForBatchedUpdates();
+
+            expect(getBillableAndTaxTotal(expenseReport, [transaction])).toEqual({
+                billableTotal: 80,
+                taxTotal: 8,
+            });
+        });
+
+        it('should not add to billableTotal when billable is false', async () => {
+            const transaction = {
+                ...createRandomTransaction(1),
+                reportID: expenseReport.reportID,
+                amount: -100,
+                taxAmount: 0,
+                currency: CONST.CURRENCY.USD,
+                billable: false,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await waitForBatchedUpdates();
+
+            expect(getBillableAndTaxTotal(expenseReport, [transaction])).toEqual({
+                billableTotal: 0,
+                taxTotal: 0,
+            });
+        });
+
+        it('should not add to taxTotal when taxAmount is zero', async () => {
+            const transaction = {
+                ...createRandomTransaction(1),
+                reportID: expenseReport.reportID,
+                amount: -100,
+                taxAmount: 0,
+                currency: CONST.CURRENCY.USD,
+                billable: true,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await waitForBatchedUpdates();
+
+            expect(getBillableAndTaxTotal(expenseReport, [transaction])).toEqual({
+                billableTotal: 100,
+                taxTotal: 0,
+            });
+        });
+
+        it('should sum multiple transactions with same currency', async () => {
+            const transaction1 = {
+                ...createRandomTransaction(1),
+                reportID: expenseReport.reportID,
+                amount: -50,
+                taxAmount: -5,
+                currency: CONST.CURRENCY.USD,
+                billable: true,
+            };
+            const transaction2 = {
+                ...createRandomTransaction(2),
+                reportID: expenseReport.reportID,
+                amount: -75,
+                taxAmount: -7,
+                currency: CONST.CURRENCY.USD,
+                billable: true,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`, transaction1);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`, transaction2);
+            await waitForBatchedUpdates();
+
+            expect(getBillableAndTaxTotal(expenseReport, [transaction1, transaction2])).toEqual({
+                billableTotal: 125,
+                taxTotal: 12,
             });
         });
     });

@@ -24,6 +24,7 @@ import {
     getCompanyFeeds,
     getCustomFeedNameFromFeeds,
     getCustomOrFormattedFeedName,
+    getDefaultExpensifyCardLimitType,
     getFeedNameForDisplay,
     getFeedType,
     getFilteredCardList,
@@ -35,6 +36,7 @@ import {
     getYearFromExpirationDateString,
     hasIssuedExpensifyCard,
     hasOnlyOneCardToAssign,
+    isCSVFeedOrExpensifyCard,
     isCustomFeed as isCustomFeedCardUtils,
     isExpensifyCard,
     isExpensifyCardFullySetUp,
@@ -523,6 +525,28 @@ describe('CardUtils', () => {
         it('Should return empty object if undefined is passed', () => {
             const companyFeeds = getCompanyFeeds(undefined);
             expect(companyFeeds).toStrictEqual({});
+        });
+    });
+
+    describe('isCSVFeedOrExpensifyCard', () => {
+        it('Should return true for CSV feed keys', () => {
+            expect(isCSVFeedOrExpensifyCard('csv#123456')).toBe(true);
+        });
+
+        it('Should return true for ccupload feed keys', () => {
+            expect(isCSVFeedOrExpensifyCard(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)).toBe(true);
+        });
+
+        it('Should return true for Expensify Card feed key', () => {
+            expect(isCSVFeedOrExpensifyCard('Expensify Card')).toBe(true);
+        });
+
+        it('Should return false for a direct bank feed', () => {
+            expect(isCSVFeedOrExpensifyCard('plaid.ins_19')).toBe(false);
+        });
+
+        it('Should return false for a custom feed', () => {
+            expect(isCSVFeedOrExpensifyCard(`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}#12345`)).toBe(false);
         });
     });
 
@@ -1114,6 +1138,56 @@ describe('CardUtils', () => {
         it('should return false when both policy and cardSettings are undefined', () => {
             const result = isExpensifyCardFullySetUp(undefined, undefined);
             expect(result).toBe(false);
+        });
+    });
+
+    describe('getDefaultExpensifyCardLimitType', () => {
+        it('returns SMART when policy has approvals configured (approvalMode is ADVANCED)', () => {
+            const policy = {
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            } as Policy;
+
+            expect(getDefaultExpensifyCardLimitType(policy)).toBe(CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
+        });
+
+        it('returns SMART when policy has approvals configured (approvalMode is BASIC)', () => {
+            const policy = {
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            } as Policy;
+
+            expect(getDefaultExpensifyCardLimitType(policy)).toBe(CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
+        });
+
+        it('returns MONTHLY when policy has optional approvals (approvalMode is OPTIONAL)', () => {
+            const policy = {
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            } as Policy;
+
+            expect(getDefaultExpensifyCardLimitType(policy)).toBe(CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY);
+        });
+
+        it('returns MONTHLY when policy type is PERSONAL (approvals are always optional)', () => {
+            const policy = {
+                type: CONST.POLICY.TYPE.PERSONAL,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            } as Policy;
+
+            expect(getDefaultExpensifyCardLimitType(policy)).toBe(CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY);
+        });
+
+        it('returns SMART when policy is undefined (defaults to ADVANCED approval mode)', () => {
+            expect(getDefaultExpensifyCardLimitType(undefined)).toBe(CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
+        });
+
+        it('returns SMART when corporate policy has no approvalMode (defaults to ADVANCED)', () => {
+            const policy = {
+                type: CONST.POLICY.TYPE.CORPORATE,
+            } as Policy;
+
+            expect(getDefaultExpensifyCardLimitType(policy)).toBe(CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
         });
     });
 

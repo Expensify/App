@@ -76,7 +76,8 @@ describe('PaymentUtils', () => {
 
             expect(result.paymentType).toBe(CONST.IOU.PAYMENT_TYPE.EXPENSIFY);
             expect(result.shouldSelectPaymentMethod).toBe(true);
-            expect(result.selectedPolicy).toBeUndefined();
+            expect(result.policyFromContext).toBeUndefined();
+            expect(result.policyFromPaymentMethod).toBeUndefined();
         });
 
         it('should return VBBA payment type when paymentMethod is BUSINESS_BANK_ACCOUNT', () => {
@@ -84,7 +85,8 @@ describe('PaymentUtils', () => {
 
             expect(result.paymentType).toBe(CONST.IOU.PAYMENT_TYPE.VBBA);
             expect(result.shouldSelectPaymentMethod).toBe(true);
-            expect(result.selectedPolicy).toBeUndefined();
+            expect(result.policyFromContext).toBeUndefined();
+            expect(result.policyFromPaymentMethod).toBeUndefined();
         });
 
         it('should return ELSEWHERE payment type when paymentMethod is DEBIT_CARD', () => {
@@ -92,7 +94,8 @@ describe('PaymentUtils', () => {
 
             expect(result.paymentType).toBe(CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
             expect(result.shouldSelectPaymentMethod).toBe(true);
-            expect(result.selectedPolicy).toBeUndefined();
+            expect(result.policyFromContext).toBeUndefined();
+            expect(result.policyFromPaymentMethod).toBeUndefined();
         });
 
         it('should return ELSEWHERE payment type when paymentMethod is undefined', () => {
@@ -100,7 +103,8 @@ describe('PaymentUtils', () => {
 
             expect(result.paymentType).toBe(CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
             expect(result.shouldSelectPaymentMethod).toBe(false);
-            expect(result.selectedPolicy).toBeUndefined();
+            expect(result.policyFromContext).toBeUndefined();
+            expect(result.policyFromPaymentMethod).toBeUndefined();
         });
 
         it('should set shouldSelectPaymentMethod to true when latestBankItems is not empty', () => {
@@ -117,24 +121,34 @@ describe('PaymentUtils', () => {
             expect(result.shouldSelectPaymentMethod).toBe(false);
         });
 
-        it('should find selectedPolicy by policyID', () => {
+        it('should find policyFromContext by policyID', () => {
             const result = getActivePaymentType(undefined, [randomPolicyA, randomPolicyB], undefined, randomPolicyA.id);
 
-            expect(result.selectedPolicy).toEqual(randomPolicyA);
+            expect(result.policyFromContext).toEqual(randomPolicyA);
+            expect(result.policyFromPaymentMethod).toBeUndefined();
         });
 
-        it('should find selectedPolicy by paymentMethod when it matches policy id (Pay via workspace scenario)', () => {
+        it('should find policyFromPaymentMethod when paymentMethod matches policy id (Pay via workspace scenario)', () => {
             const result = getActivePaymentType(randomPolicyB.id, [randomPolicyA, randomPolicyB], undefined);
 
-            expect(result.selectedPolicy).toEqual(randomPolicyB);
+            expect(result.policyFromPaymentMethod).toEqual(randomPolicyB);
+            expect(result.policyFromContext).toBeUndefined();
             expect(result.paymentType).toBe(CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
             expect(result.shouldSelectPaymentMethod).toBe(false);
         });
 
-        it('should return undefined selectedPolicy when no matching policy is found', () => {
+        it('should return both policyFromContext and policyFromPaymentMethod when both match', () => {
+            const result = getActivePaymentType(randomPolicyB.id, [randomPolicyA, randomPolicyB], undefined, randomPolicyA.id);
+
+            expect(result.policyFromContext).toEqual(randomPolicyA);
+            expect(result.policyFromPaymentMethod).toEqual(randomPolicyB);
+        });
+
+        it('should return undefined policies when no matching policy is found', () => {
             const result = getActivePaymentType(undefined, [randomPolicyA], undefined, 'non-existent-policy');
 
-            expect(result.selectedPolicy).toBeUndefined();
+            expect(result.policyFromContext).toBeUndefined();
+            expect(result.policyFromPaymentMethod).toBeUndefined();
         });
     });
 });

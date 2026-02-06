@@ -732,6 +732,7 @@ function getUpdatedTransaction({
                 translateLocal,
                 (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
                 getCurrencySymbol,
+                isManualDistanceRequest(transaction),
             );
 
             updatedTransaction.amount = updatedAmount;
@@ -780,6 +781,7 @@ function getUpdatedTransaction({
                 translateLocal,
                 (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
                 getCurrencySymbol,
+                isManualDistanceRequest(transaction),
             );
 
             updatedTransaction.amount = updatedAmount;
@@ -864,6 +866,7 @@ function getUpdatedTransaction({
             translateLocal,
             (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
             getCurrencySymbol,
+            isManualDistanceRequest(transaction),
         );
 
         updatedTransaction.modifiedAmount = amount;
@@ -1133,6 +1136,7 @@ function getMerchant(transaction: OnyxInputOrEntry<Transaction>, policyParam: On
                 translateLocal,
                 (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
                 getCurrencySymbol,
+                isManualDistanceRequest(transaction),
             );
         }
     }
@@ -2564,6 +2568,13 @@ function getAllSortedTransactions(iouReportID?: string): Array<OnyxEntry<Transac
 }
 
 function isExpenseSplit(transaction: OnyxEntry<Transaction>, originalTransaction?: OnyxEntry<Transaction>): boolean {
+    const isAddedToReport = !!transaction?.reportID && transaction.reportID !== CONST.REPORT.SPLIT_REPORT_ID && transaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID;
+    if (isAddedToReport) {
+        const report = getReportOrDraftReport(transaction.reportID);
+        if (report && report.type !== CONST.REPORT.TYPE.EXPENSE) {
+            return false;
+        }
+    }
     if (!originalTransaction) {
         return !!transaction?.comment?.originalTransactionID && transaction?.comment?.source === 'split';
     }
