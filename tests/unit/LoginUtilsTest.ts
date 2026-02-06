@@ -24,9 +24,9 @@ describe('LoginUtils', () => {
         return waitForBatchedUpdates();
     });
 
-    afterEach(() => {
+    afterEach(async () => {
         jest.useRealTimers();
-        Onyx.clear();
+        await Onyx.clear();
     });
     describe('getPhoneNumberWithoutSpecialChars', () => {
         it('Should return valid phone number', () => {

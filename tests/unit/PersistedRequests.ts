@@ -27,7 +27,7 @@ beforeEach(() => {
 
 afterEach(() => {
     PersistedRequests.clear();
-    Onyx.clear();
+    return Onyx.clear();
 });
 
 describe('PersistedRequests', () => {

@@ -4612,20 +4612,24 @@ describe('OptionsListUtils', () => {
             };
 
             let reportNameValuePair: OnyxEntry<ReportNameValuePairs>;
-            Onyx.connect({
+            const reportNameValuePairConnection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`,
                 waitForCollectionCallback: false,
                 callback: (value) => {
                     reportNameValuePair = value;
                 },
             });
-            await waitForBatchedUpdates();
+            try {
+                await waitForBatchedUpdates();
 
-            const option = getReportOption(participant, reportNameValuePair?.private_isArchived, POLICY, CURRENT_USER_ACCOUNT_ID, {});
+                const option = getReportOption(participant, reportNameValuePair?.private_isArchived, POLICY, CURRENT_USER_ACCOUNT_ID, {});
 
-            expect(option.text).toBe(POLICY.name);
-            expect(option.alternateText).toBeTruthy();
-            expect(option.alternateText === translateLocal('workspace.common.workspace') || option.alternateText?.includes('Submits to')).toBe(true);
+                expect(option.text).toBe(POLICY.name);
+                expect(option.alternateText).toBeTruthy();
+                expect(option.alternateText === translateLocal('workspace.common.workspace') || option.alternateText?.includes('Submits to')).toBe(true);
+            } finally {
+                Onyx.disconnect(reportNameValuePairConnection);
+            }
         });
 
         it('should handle draft reports', async () => {
@@ -4656,18 +4660,22 @@ describe('OptionsListUtils', () => {
             };
 
             let reportNameValuePair: OnyxEntry<ReportNameValuePairs>;
-            Onyx.connect({
+            const reportNameValuePairConnection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`,
                 waitForCollectionCallback: false,
                 callback: (value) => {
                     reportNameValuePair = value;
                 },
             });
-            await waitForBatchedUpdates();
+            try {
+                await waitForBatchedUpdates();
 
-            const option = getReportOption(participant, reportNameValuePair?.private_isArchived, POLICY, CURRENT_USER_ACCOUNT_ID, {}, undefined, draftReports);
+                const option = getReportOption(participant, reportNameValuePair?.private_isArchived, POLICY, CURRENT_USER_ACCOUNT_ID, {}, undefined, draftReports);
 
-            expect(option.isDisabled).toBe(true);
+                expect(option.isDisabled).toBe(true);
+            } finally {
+                Onyx.disconnect(reportNameValuePairConnection);
+            }
         });
     });
 

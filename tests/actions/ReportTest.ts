@@ -133,6 +133,11 @@ jest.mock('@libs/actions/Welcome', () => ({
 
 const originalXHR = HttpUtils.xhr;
 OnyxUpdateManager();
+let trackedOnyxConnections: Array<ReturnType<typeof Onyx.connect>> = [];
+const trackOnyxConnection = (connection: ReturnType<typeof Onyx.connect>) => {
+    trackedOnyxConnections.push(connection);
+    return connection;
+};
 describe('actions/Report', () => {
     beforeAll(() => {
         PusherHelper.setup();
@@ -162,6 +167,10 @@ describe('actions/Report', () => {
     });
 
     afterEach(() => {
+        for (const connection of trackedOnyxConnections) {
+            Onyx.disconnect(connection);
+        }
+        trackedOnyxConnections = [];
         jest.clearAllMocks();
         PusherHelper.teardown();
     });
@@ -185,10 +194,12 @@ describe('actions/Report', () => {
         };
 
         let reportActions: OnyxEntry<OnyxTypes.ReportActions>;
-        Onyx.connect({
+        trackOnyxConnection(
+            Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
             callback: (val) => (reportActions = val),
-        });
+            }),
+        );
 
         // Set up Onyx with some test user data
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
@@ -296,10 +307,12 @@ describe('actions/Report', () => {
         const REPORT_ID = '1';
 
         let reportIsPinned: boolean;
-        Onyx.connect({
+        trackOnyxConnection(
+            Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
             callback: (val) => (reportIsPinned = val?.isPinned ?? false),
-        });
+            }),
+        );
 
         // Set up Onyx with some test user data
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
@@ -354,16 +367,20 @@ describe('actions/Report', () => {
         let report: OnyxEntry<OnyxTypes.Report>;
         let reportActionCreatedDate: string;
         let currentTime: string;
-        Onyx.connect({
+        trackOnyxConnection(
+            Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
             callback: (val) => (report = val),
-        });
+            }),
+        );
 
         let reportActions: OnyxTypes.ReportActions;
-        Onyx.connect({
+        trackOnyxConnection(
+            Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
             callback: (val) => (reportActions = val ?? {}),
-        });
+            }),
+        );
 
         const {result: ancestors, rerender} = renderHook(() => useAncestors(report));
 
@@ -740,17 +757,21 @@ describe('actions/Report', () => {
         };
 
         let reportActions: OnyxTypes.ReportActions;
-        Onyx.connect({
+        trackOnyxConnection(
+            Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
             callback: (val) => (reportActions = val ?? {}),
-        });
+            }),
+        );
         const reportActionsReactions: OnyxCollection<OnyxTypes.ReportActionReactions> = {};
-        Onyx.connect({
+        trackOnyxConnection(
+            Onyx.connect({
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS,
             callback: (val, key) => {
                 reportActionsReactions[key] = val ?? {};
             },
-        });
+            }),
+        );
         let reportAction: OnyxTypes.ReportAction | undefined;
         let reportActionID: string | undefined;
 
@@ -869,17 +890,21 @@ describe('actions/Report', () => {
         };
 
         let reportActions: OnyxTypes.ReportActions = {};
-        Onyx.connect({
+        trackOnyxConnection(
+            Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
             callback: (val) => (reportActions = val ?? {}),
-        });
+            }),
+        );
         const reportActionsReactions: OnyxCollection<OnyxTypes.ReportActionReactions> = {};
-        Onyx.connect({
+        trackOnyxConnection(
+            Onyx.connect({
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS,
             callback: (val, key) => {
                 reportActionsReactions[key] = val ?? {};
             },
-        });
+            }),
+        );
 
         let resultAction: OnyxTypes.ReportAction | undefined;
 

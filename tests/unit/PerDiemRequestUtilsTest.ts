@@ -28,9 +28,7 @@ describe('PerDiemRequestUtils', () => {
         }),
     );
 
-    beforeEach(() => {
-        Onyx.clear();
-    });
+    beforeEach(() => Onyx.clear());
 
     it('getDestinationListSections()', () => {
         const tokenizeSearch = 'Antigua Barbuda';

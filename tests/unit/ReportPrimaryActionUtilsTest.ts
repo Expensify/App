@@ -57,7 +57,7 @@ describe('getPrimaryAction', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        Onyx.clear();
+        await Onyx.clear();
         await Onyx.merge(ONYXKEYS.SESSION, SESSION);
         await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: PERSONAL_DETAILS});
     });
@@ -939,7 +939,7 @@ describe('isReviewDuplicatesAction', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        Onyx.clear();
+        await Onyx.clear();
         await Onyx.merge(ONYXKEYS.SESSION, SESSION);
         await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: PERSONAL_DETAILS});
     });
@@ -1029,7 +1029,7 @@ describe('getTransactionThreadPrimaryAction', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        Onyx.clear();
+        await Onyx.clear();
         await Onyx.merge(ONYXKEYS.SESSION, SESSION);
         await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: PERSONAL_DETAILS});
     });
@@ -1276,7 +1276,7 @@ describe('getTransactionThreadPrimaryAction', () => {
 
         beforeEach(async () => {
             jest.clearAllMocks();
-            Onyx.clear();
+            await Onyx.clear();
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: submitterAccountID});
         });
 
@@ -1383,7 +1383,7 @@ describe('getTransactionThreadPrimaryAction', () => {
         const submitterEmail = 'submitter@example.com';
         beforeEach(async () => {
             jest.clearAllMocks();
-            Onyx.clear();
+            await Onyx.clear();
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: submitterAccountID, email: submitterEmail});
         });
 

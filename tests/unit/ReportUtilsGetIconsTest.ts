@@ -105,6 +105,7 @@ const FAKE_POLICIES = {
 };
 
 const currentUserAccountID = 5;
+let privateDomainsConnection: ReturnType<typeof Onyx.connect> | undefined;
 
 beforeAll(() => {
     Onyx.init({
@@ -119,7 +120,15 @@ beforeAll(() => {
     });
     // @ts-expect-error Until we add NVP_PRIVATE_DOMAINS to ONYXKEYS, we need to mock it here
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    Onyx.connect({key: ONYXKEYS.NVP_PRIVATE_DOMAINS, callback: () => {}});
+    privateDomainsConnection = Onyx.connect({key: ONYXKEYS.NVP_PRIVATE_DOMAINS, callback: () => {}});
+});
+
+afterAll(() => {
+    if (!privateDomainsConnection) {
+        return;
+    }
+    Onyx.disconnect(privateDomainsConnection);
+    privateDomainsConnection = undefined;
 });
 
 describe('getIcons', () => {

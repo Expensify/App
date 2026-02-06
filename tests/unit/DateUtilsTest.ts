@@ -46,10 +46,10 @@ describe('DateUtils', () => {
         return waitForBatchedUpdates();
     });
 
-    afterEach(() => {
+    afterEach(async () => {
         jest.restoreAllMocks();
         jest.useRealTimers();
-        Onyx.clear();
+        await Onyx.clear();
     });
 
     const datetime = '2022-11-07 00:00:00';

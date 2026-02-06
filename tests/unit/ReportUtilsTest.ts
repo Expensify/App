@@ -4990,9 +4990,12 @@ describe('ReportUtils', () => {
 
         it('should return true for archived report', async () => {
             const reportNameValuePairs = await new Promise<OnyxEntry<ReportNameValuePairs>>((resolve) => {
-                Onyx.connect({
+                const connectionID = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`,
-                    callback: resolve,
+                    callback: (value) => {
+                        Onyx.disconnect(connectionID);
+                        resolve(value);
+                    },
                 });
             });
             expect(isArchivedReport(reportNameValuePairs)).toBe(true);
@@ -5000,9 +5003,12 @@ describe('ReportUtils', () => {
 
         it('should return false for non-archived report', async () => {
             const reportNameValuePairs = await new Promise<OnyxEntry<ReportNameValuePairs>>((resolve) => {
-                Onyx.connect({
+                const connectionID = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${nonArchivedReport.reportID}`,
-                    callback: resolve,
+                    callback: (value) => {
+                        Onyx.disconnect(connectionID);
+                        resolve(value);
+                    },
                 });
                 expect(isArchivedReport(reportNameValuePairs)).toBe(false);
             });

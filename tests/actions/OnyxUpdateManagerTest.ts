@@ -130,12 +130,21 @@ OnyxUpdateManager();
 
 describe('actions/OnyxUpdateManager', () => {
     let reportActions: OnyxEntry<OnyxTypes.ReportActions>;
+    let reportActionsConnection: ReturnType<typeof Onyx.connect> | undefined;
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
-        Onyx.connect({
+        reportActionsConnection = Onyx.connect({
             key: ONYX_KEY,
             callback: (val) => (reportActions = val),
         });
+    });
+
+    afterAll(() => {
+        if (!reportActionsConnection) {
+            return;
+        }
+        Onyx.disconnect(reportActionsConnection);
+        reportActionsConnection = undefined;
     });
 
     beforeEach(async () => {

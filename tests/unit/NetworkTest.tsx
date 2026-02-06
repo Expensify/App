@@ -155,7 +155,7 @@ describe('NetworkTests', () => {
         const NEW_AUTH_TOKEN = 'qwerty12345';
 
         let sessionState: OnyxEntry<OnyxSession>;
-        Onyx.connect({
+        const sessionConnection = Onyx.connect({
             key: ONYXKEYS.SESSION,
             callback: (val) => (sessionState = val),
         });
@@ -199,7 +199,8 @@ describe('NetworkTests', () => {
                 const callsToAuthenticate = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'Authenticate');
                 expect(callsToAuthenticate.length).toBe(2);
                 expect(sessionState?.authToken).toBe(NEW_AUTH_TOKEN);
-            });
+            })
+            .finally(() => Onyx.disconnect(sessionConnection));
     });
 
     test('failing to reauthenticate while offline should not log out user', async () => {
@@ -210,70 +211,74 @@ describe('NetworkTests', () => {
         let sessionState: OnyxEntry<OnyxSession>;
 
         // Set up listeners for session and network state changes
-        Onyx.connect({
+        const sessionConnection = Onyx.connect({
             key: ONYXKEYS.SESSION,
             callback: (val) => (sessionState = val),
         });
 
-        // Sign in test user and wait for updates
-        await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-        await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
-        await waitForBatchedUpdates();
+        try {
+            // Sign in test user and wait for updates
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
+            await waitForBatchedUpdates();
 
-        const initialAuthToken = sessionState?.authToken;
-        expect(initialAuthToken).toBeDefined();
+            const initialAuthToken = sessionState?.authToken;
+            expect(initialAuthToken).toBeDefined();
 
-        // Create a promise that we can resolve later to control the timing
-        let resolveAuthRequest: (value: unknown) => void = () => {};
-        const pendingAuthRequest = new Promise((resolve) => {
-            resolveAuthRequest = resolve;
-        });
+            // Create a promise that we can resolve later to control the timing
+            let resolveAuthRequest: (value: unknown) => void = () => {};
+            const pendingAuthRequest = new Promise((resolve) => {
+                resolveAuthRequest = resolve;
+            });
 
-        // 2. Mock Setup Phase - Configure XHR mocks for the test sequence
-        const mockedXhr = jest
-            .fn()
-            // First call: Return NOT_AUTHENTICATED to trigger reauthentication
-            .mockImplementationOnce(() =>
-                Promise.resolve({
-                    jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
-                }),
-            )
-            // Second call: Return a pending promise that we'll resolve later
-            .mockImplementationOnce(() => pendingAuthRequest);
+            // 2. Mock Setup Phase - Configure XHR mocks for the test sequence
+            const mockedXhr = jest
+                .fn()
+                // First call: Return NOT_AUTHENTICATED to trigger reauthentication
+                .mockImplementationOnce(() =>
+                    Promise.resolve({
+                        jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
+                    }),
+                )
+                // Second call: Return a pending promise that we'll resolve later
+                .mockImplementationOnce(() => pendingAuthRequest);
 
-        HttpUtils.xhr = mockedXhr;
+            HttpUtils.xhr = mockedXhr;
 
-        // 3. Test Execution Phase - Start with online network
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+            // 3. Test Execution Phase - Start with online network
+            await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
 
-        // Trigger reconnect which will fail due to expired token
-        confirmReadyToOpenApp();
-        reconnectApp();
-        await waitForBatchedUpdates();
+            // Trigger reconnect which will fail due to expired token
+            confirmReadyToOpenApp();
+            reconnectApp();
+            await waitForBatchedUpdates();
 
-        // 4. First API Call Verification - Check ReconnectApp
-        const firstCall = mockedXhr.mock.calls.at(0) as [string, Record<string, unknown>];
-        expect(firstCall[0]).toBe('ReconnectApp');
+            // 4. First API Call Verification - Check ReconnectApp
+            const firstCall = mockedXhr.mock.calls.at(0) as [string, Record<string, unknown>];
+            expect(firstCall[0]).toBe('ReconnectApp');
 
-        // 5. Authentication Start - Verify authenticate was triggered
-        await waitForBatchedUpdates();
-        const secondCall = mockedXhr.mock.calls.at(1) as [string, Record<string, unknown>];
-        expect(secondCall[0]).toBe('Authenticate');
+            // 5. Authentication Start - Verify authenticate was triggered
+            await waitForBatchedUpdates();
+            const secondCall = mockedXhr.mock.calls.at(1) as [string, Record<string, unknown>];
+            expect(secondCall[0]).toBe('Authenticate');
 
-        // 6. Network State Change - Set offline and back online while authenticate is pending
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+            // 6. Network State Change - Set offline and back online while authenticate is pending
+            await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+            await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
 
-        // 7.Trigger another reconnect due to network change
-        confirmReadyToOpenApp();
-        reconnectApp();
+            // 7.Trigger another reconnect due to network change
+            confirmReadyToOpenApp();
+            reconnectApp();
 
-        // 8. Now fail the pending authentication request
-        resolveAuthRequest(Promise.reject(new Error('Network request failed')));
-        await waitForBatchedUpdates(); // Now we wait for all updates after the auth request fails
+            // 8. Now fail the pending authentication request
+            resolveAuthRequest(Promise.reject(new Error('Network request failed')));
+            await waitForBatchedUpdates(); // Now we wait for all updates after the auth request fails
 
-        // 9. Verify the session remained intact and wasn't cleared
-        expect(sessionState?.authToken).toBe(initialAuthToken);
+            // 9. Verify the session remained intact and wasn't cleared
+            expect(sessionState?.authToken).toBe(initialAuthToken);
+        } finally {
+            Onyx.disconnect(sessionConnection);
+        }
     });
 
     test('consecutive API calls eventually succeed when authToken is expired', () => {

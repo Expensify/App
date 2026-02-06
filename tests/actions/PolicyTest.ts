@@ -1370,9 +1370,12 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             const violations = await new Promise<OnyxEntry<TransactionViolations>>((resolve) => {
-                Onyx.connect({
+                const connectionID = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-                    callback: resolve,
+                    callback: (value) => {
+                        Onyx.disconnect(connectionID);
+                        resolve(value);
+                    },
                 });
             });
 

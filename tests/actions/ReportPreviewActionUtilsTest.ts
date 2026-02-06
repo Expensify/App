@@ -55,7 +55,7 @@ describe('getReportPreviewAction', () => {
     });
 
     beforeEach(async () => {
-        Onyx.clear();
+        await Onyx.clear();
         await Onyx.merge(ONYXKEYS.SESSION, SESSION);
         await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: PERSONAL_DETAILS});
     });

@@ -36,9 +36,7 @@ describe('useReportActionAvatars', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${mockPolicy?.policyID}`, mockPolicy);
         });
 
-        afterEach(() => {
-            Onyx.clear();
-        });
+        afterEach(() => Onyx.clear());
 
         test.each(
             Object.values(CONST.REPORT.ACTIONS.TYPE)

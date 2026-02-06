@@ -731,9 +731,7 @@ describe('DebugUtils', () => {
                 keys: ONYXKEYS,
             });
         });
-        beforeEach(() => {
-            Onyx.clear();
-        });
+        beforeEach(() => Onyx.clear());
         it('returns null when report is not defined', () => {
             const reason = DebugUtils.getReasonForShowingRowInLHN({
                 report: undefined,
@@ -1001,9 +999,7 @@ describe('DebugUtils', () => {
                 keys: ONYXKEYS,
             });
         });
-        beforeEach(() => {
-            Onyx.clear();
-        });
+        beforeEach(() => Onyx.clear());
         it('returns undefined reason when report is not defined', () => {
             const {reason} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(undefined) ?? {};
             expect(reason).toBeUndefined();
@@ -1177,9 +1173,7 @@ describe('DebugUtils', () => {
             });
         });
         describe('reportAction', () => {
-            beforeEach(() => {
-                Onyx.clear();
-            });
+            beforeEach(() => Onyx.clear());
             it('returns undefined when report has no RBR', () => {
                 const {reportAction} =
                     DebugUtils.getReasonAndReportActionForRBRInLHNRow(
