@@ -314,7 +314,7 @@
     "dotenv": "^16.0.3",
     "eslint": "^9.36.0",
     "eslint-config-airbnb-typescript": "^18.0.0",
-    "eslint-config-expensify": "2.0.103",
+    "eslint-config-expensify": "github:Expensify/eslint-config-expensify#0c9aa005ceb8af5f56cb6ca77e776700bc1efd2a",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-file-progress": "3.0.1",
     "eslint-plugin-jest": "^29.0.1",
