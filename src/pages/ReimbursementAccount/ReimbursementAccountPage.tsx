@@ -199,7 +199,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep, undefined, Number(bankAccountIDParam));
             return;
         }
-        openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep, policyIDParam);
+        openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep, policyIDParam, preserveCurrentStep);
     }
 
     useEffect(() => {

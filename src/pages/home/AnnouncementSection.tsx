@@ -32,6 +32,7 @@ function AnnouncementSection() {
                     hasSubMenuItems
                     viewMode={CONST.OPTION_MODE.COMPACT}
                     rightIconWrapperStyle={styles.pl2}
+                    shouldCheckActionAllowedOnPress={false}
                 />
             ))}
         </WidgetContainer>

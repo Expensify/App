@@ -61,6 +61,7 @@ import FlagLevelThree from '@assets/images/flag_level_03.svg';
 import Folder from '@assets/images/folder.svg';
 import Fullscreen from '@assets/images/fullscreen.svg';
 import GalleryNotFound from '@assets/images/gallery-not-found.svg';
+import GalleryPlus from '@assets/images/gallery-plus.svg';
 import Gallery from '@assets/images/gallery.svg';
 import Gear from '@assets/images/gear.svg';
 import Heart from '@assets/images/heart.svg';
@@ -326,4 +327,5 @@ export {
     BillComSquare,
     CertiniaSquare,
     ZenefitsSquare,
+    GalleryPlus,
 };

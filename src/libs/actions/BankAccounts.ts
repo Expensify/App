@@ -1013,7 +1013,13 @@ function clearReimbursementAccountSendReminderForCorpaySignerInformation() {
  * @param localCurrentStep - last step on device
  * @param policyID - policy ID
  */
-function openReimbursementAccountPage(stepToOpen: ReimbursementAccountStep, subStep: ReimbursementAccountSubStep, localCurrentStep: ReimbursementAccountStep, policyID?: string, bankAccountID?: number) {
+function openReimbursementAccountPage(
+    stepToOpen: ReimbursementAccountStep,
+    subStep: ReimbursementAccountSubStep,
+    localCurrentStep: ReimbursementAccountStep,
+    policyID: string,
+    shouldPreserveDraft?: boolean,
+) {
     const onyxData: OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT> = {
         optimisticData: [
             {
@@ -1050,6 +1056,7 @@ function openReimbursementAccountPage(stepToOpen: ReimbursementAccountStep, subS
         localCurrentStep,
         policyID,
         bankAccountID,
+        shouldPreserveDraft,
     };
 
     return API.read(READ_COMMANDS.OPEN_REIMBURSEMENT_ACCOUNT_PAGE, parameters, onyxData);
