@@ -24,7 +24,7 @@ const beneficialOwnerFields = [FIRST_NAME, LAST_NAME, DOB, BENEFICIAL_STREET, BE
 
 // These fields are required by the backend and must always be included in the request
 // so that proper validation errors can be returned if they're missing
-const requiredSignerFields: string[] = [FULL_NAME, DATE_OF_BIRTH, JOB_TITLE];
+const requiredSignerFields: Set<string> = new Set([FULL_NAME, DATE_OF_BIRTH, JOB_TITLE]);
 
 function getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>, signerEmail: string, isUserBeneficialOwner: boolean) {
     const signerDetails: Record<string, string | boolean | FileObject[]> = {};
@@ -47,7 +47,7 @@ function getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft: 
 
         // Always include required fields (with empty string if not present) so Auth validation can catch them
         // For non-required fields, only include if they have a value
-        if (requiredSignerFields.includes(fieldName) || reimbursementAccountDraft?.[fieldName]) {
+        if (requiredSignerFields.has(fieldName) || reimbursementAccountDraft?.[fieldName]) {
             signerDetails[fieldName] = SafeString(reimbursementAccountDraft?.[fieldName]);
         }
     }
