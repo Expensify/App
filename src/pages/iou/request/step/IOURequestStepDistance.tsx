@@ -22,6 +22,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -93,6 +94,7 @@ function IOURequestStepDistance({
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
 
     const transactionWaypoints = transaction?.comment?.waypoints;
@@ -320,6 +322,7 @@ function IOURequestStepDistance({
             activePolicyID,
             privateIsArchived: reportNameValuePairs?.private_isArchived,
             policyTags,
+            policyForMovingExpenses,
             betas,
         });
     }, [
@@ -348,6 +351,8 @@ function IOURequestStepDistance({
         policyRecentlyUsedCurrencies,
         introSelected,
         activePolicyID,
+        reportNameValuePairs?.private_isArchived,
+        policyForMovingExpenses,
         personalPolicy?.autoReporting,
         reportID,
         betas,
