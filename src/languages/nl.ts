@@ -3937,6 +3937,7 @@ ${
             workspaceOwner: 'Eigenaar',
             workspaceType: 'Werkruimtetype',
             workspaceAvatar: 'Workspace-avatar',
+            keepMeAsAdmin: 'Houd mij als beheerder',
             mustBeOnlineToViewMembers: 'Je moet online zijn om de leden van deze workspace te bekijken.',
             moreFeatures: 'Meer functies',
             requested: 'Aangevraagd',

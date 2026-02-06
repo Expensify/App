@@ -3868,6 +3868,7 @@ ${
             clearFilter: '清除筛选器',
             workspaceName: '工作区名称',
             workspaceOwner: '所有者',
+            keepMeAsAdmin: '保留我为管理员',
             workspaceType: '工作区类型',
             workspaceAvatar: '工作区头像',
             mustBeOnlineToViewMembers: '您需要联网才能查看此工作区的成员。',

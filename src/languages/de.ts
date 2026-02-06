@@ -3950,6 +3950,7 @@ ${
             clearFilter: 'Filter zurücksetzen',
             workspaceName: 'Arbeitsbereichsname',
             workspaceOwner: 'Inhaber',
+            keepMeAsAdmin: 'Behalte mich als Administrator',
             workspaceType: 'Arbeitsbereichstyp',
             workspaceAvatar: 'Workspace-Avatar',
             mustBeOnlineToViewMembers: 'Du musst online sein, um die Mitglieder dieses Arbeitsbereichs anzeigen zu können.',
