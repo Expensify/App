@@ -31,7 +31,7 @@ function SplitListItem<TItem extends ListItem>({
     onInputFocus,
     onInputBlur,
 }: SplitListItemProps<TItem>) {
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Folder', 'Tag']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Folder', 'Tag'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
