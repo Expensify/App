@@ -8262,7 +8262,7 @@ const CONST = {
         WORKSPACE: {
             TOGGLE_SETTINGS_ROW: 'Workspace-ToggleSettingsRow',
             COMPANY_CARDS: {
-                TABLE_ITEM: 'Workspace-CompanyCardsTableItem',
+                TABLE_ITEM: 'Workspace-CompanyCards-TableItem',
             },
         },
     },
