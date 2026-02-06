@@ -62,7 +62,6 @@ import Icon from './Icon';
 import MenuItem from './MenuItem';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import getImageCompactModeStyle from './MoneyRequestConfirmationListFooter/getImageCompactModeStyle';
-import getReceiptContainerPaddingStyle from './MoneyRequestConfirmationListFooter/receiptContainerPaddingStyle';
 import PDFThumbnail from './PDFThumbnail';
 import PressableWithoutFocus from './Pressable/PressableWithoutFocus';
 import ReceiptEmptyState from './ReceiptEmptyState';
@@ -1198,7 +1197,6 @@ function MoneyRequestConfirmationListFooter({
                     style={[
                         !hasReceiptImageOrThumbnail && !showReceiptEmptyState ? undefined : styles.mv3,
                         isCompactMode && {flexShrink: 1, minHeight: 180},
-                        getReceiptContainerPaddingStyle(isCompactMode, styles.pt10),
                         isCompactMode && styles.mh5,
                     ]}
                 >

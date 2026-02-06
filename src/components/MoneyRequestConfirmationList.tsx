@@ -87,6 +87,7 @@ import UserListItem from './SelectionListWithSections/UserListItem';
 import SettlementButton from './SettlementButton';
 import Text from './Text';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
+import getContentContainerStyle from './MoneyRequestConfirmationList/getCompactModeListStyles';
 
 type MoneyRequestConfirmationListProps = {
     /** Callback to inform parent modal of success */
@@ -1243,7 +1244,7 @@ function MoneyRequestConfirmationList({
         reportID,
     ]);
 
-    const shouldRestrictHeight = useMemo(() => !showMoreFields && isScanRequest, [isScanRequest, showMoreFields]);
+    const isCompactMode = useMemo(() => !showMoreFields && isScanRequest, [isScanRequest, showMoreFields]);
 
     const listFooterContent = (
         <MoneyRequestConfirmationListFooter
@@ -1323,8 +1324,8 @@ function MoneyRequestConfirmationList({
                 containerStyle={[styles.flexBasisAuto]}
                 removeClippedSubviews={false}
                 disableKeyboardShortcuts
-                contentContainerStyle={shouldRestrictHeight ? [styles.flex1] : undefined}
-                ListFooterComponentStyle={shouldRestrictHeight ? [styles.flex1] : undefined}
+                contentContainerStyle={getContentContainerStyle(isCompactMode, styles.flex1).contentContainerStyle}
+                ListFooterComponentStyle={isCompactMode ? [styles.flex1] : undefined}
             />
         </MouseProvider>
     );
