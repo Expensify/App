@@ -2,6 +2,7 @@ import {getUnixTime} from 'date-fns';
 import lodashClone from 'lodash/clone';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {
     ChangeTransactionsReportParams,
@@ -13,7 +14,9 @@ import type {
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
+import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {rand64} from '@libs/NumberUtils';
@@ -33,7 +36,17 @@ import {
     hasViolations as hasViolationsReportUtils,
     shouldEnableNegative,
 } from '@libs/ReportUtils';
-import {isManagedCardTransaction, isOnHold, shouldClearConvertedAmount, waypointHasValidAddress} from '@libs/TransactionUtils';
+import {
+    getCurrency,
+    getDistanceInMeters,
+    hasCustomUnit,
+    isDistanceRequest,
+    isManagedCardTransaction,
+    isManualDistanceRequest,
+    isOnHold,
+    shouldClearConvertedAmount,
+    waypointHasValidAddress,
+} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -53,7 +66,7 @@ import type {
 import type {OriginalMessageIOU, OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
-import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
+import type {Comment, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import type TransactionState from '@src/types/utils/TransactionStateType';
 import {getPolicyTags} from './IOU/index';
 
@@ -762,6 +775,8 @@ type ChangeTransactionsReportProps = {
     reportNextStep?: OnyxEntry<ReportNextStepDeprecated>;
     policyCategories?: OnyxEntry<PolicyCategories>;
     allTransactions: OnyxCollection<Transaction>;
+    translate: LocaleContextProps['translate'];
+    toLocaleDigit: LocaleContextProps['toLocaleDigit'];
 };
 
 function changeTransactionsReport({
@@ -774,6 +789,8 @@ function changeTransactionsReport({
     reportNextStep,
     policyCategories,
     allTransactions,
+    translate,
+    toLocaleDigit,
 }: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -951,6 +968,45 @@ function changeTransactionsReport({
             created: oldIOUAction?.created ?? DateUtils.getDBTime(),
         };
 
+        let comment: NullishDeep<Comment> | undefined;
+        let modifiedAmount: number | undefined;
+        let modifiedMerchant: string | undefined;
+        if (isUnreported) {
+            // If the transaction is on hold, we need to unhold it because unreported transactions (on selfDM) should never remain on hold.
+            comment = {
+                hold: null,
+            };
+
+            // If the transaction has a custom unit then update it to `_FAKE_P2P_ID_` so it's no longer tied to the policy's rate which would cause the "Rate out of policy" violation to appear.
+            if (hasCustomUnit(transaction)) {
+                comment.customUnit = {
+                    customUnitID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
+                    customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
+                };
+
+                // For distance requests we also need to set the defaultP2PRate and update the amount and merchant
+                if (isDistanceRequest(transaction)) {
+                    const currency = getCurrency(transaction);
+                    const unit = transaction?.comment?.customUnit?.distanceUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+                    const distance = transaction?.comment?.customUnit?.quantity ?? 0;
+                    const defaultP2PRate = DistanceRequestUtils.getRateForP2P(currency, transaction).rate ?? 0;
+                    comment.customUnit.defaultP2PRate = defaultP2PRate;
+                    modifiedAmount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit, defaultP2PRate);
+                    modifiedMerchant = DistanceRequestUtils.getDistanceMerchant(
+                        true,
+                        getDistanceInMeters(transaction, unit),
+                        unit,
+                        defaultP2PRate,
+                        currency,
+                        translate,
+                        toLocaleDigit,
+                        getCurrencySymbol,
+                        isManualDistanceRequest(transaction),
+                    );
+                }
+            }
+        }
+
         // 1. Optimistically change the reportID on the passed transactions
         // Only set pendingAction for transactions that need convertedAmount recalculation
         optimisticData.push({
@@ -958,12 +1014,10 @@ function changeTransactionsReport({
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
                 reportID,
+                comment,
+                modifiedAmount,
+                modifiedMerchant,
                 ...(shouldClearAmount && {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
-                ...(isUnreported && {
-                    comment: {
-                        hold: null,
-                    },
-                }),
                 ...(shouldClearAmount && {convertedAmount: null}),
                 ...(oldIOUAction ? {linkedTrackedExpenseReportAction: newIOUAction} : {}),
             },
@@ -983,16 +1037,16 @@ function changeTransactionsReport({
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
                 reportID: transaction.reportID,
+                comment: transaction.comment,
+                modifiedAmount: transaction.modifiedAmount,
+                modifiedMerchant: transaction.modifiedMerchant,
                 ...(shouldClearAmount && {pendingAction: transaction.pendingAction ?? null}),
-                comment: {
-                    hold: transaction.comment?.hold,
-                },
                 ...(shouldClearAmount && {convertedAmount: transaction.convertedAmount}),
             },
         });
 
         // Optimistically clear all violations for the transaction when moving to self DM report
-        if (reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+        if (isUnreported) {
             const duplicateViolation = currentTransactionViolations?.[transaction.transactionID]?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
             const duplicateTransactionIDs = duplicateViolation?.data?.duplicates;
             if (duplicateTransactionIDs) {

@@ -153,10 +153,12 @@ function getPolicyTagsData(policyID: string | undefined) {
     return allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
 }
 
+function hasCustomUnit(transaction: OnyxEntry<Transaction> | Partial<Transaction>): boolean {
+    return transaction?.comment?.type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && !!transaction?.comment?.customUnit;
+}
+
 function hasDistanceCustomUnit(transaction: OnyxEntry<Transaction> | Partial<Transaction>): boolean {
-    const type = transaction?.comment?.type;
-    const customUnitName = transaction?.comment?.customUnit?.name;
-    return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
+    return transaction?.comment?.type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && transaction?.comment?.customUnit?.name === CONST.CUSTOM_UNITS.NAME_DISTANCE;
 }
 
 function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
@@ -2759,6 +2761,7 @@ export {
     didReceiptScanSucceed,
     getValidWaypoints,
     getValidDuplicateTransactionIDs,
+    hasCustomUnit,
     isDistanceRequest,
     isMapDistanceRequest,
     isGPSDistanceRequest,
