@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
@@ -21,7 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {openExternalLink} from '@libs/actions/Link';
-import {addMembersToWorkspace, clearWorkspaceInviteApproverDraft, clearWorkspaceInviteRoleDraft} from '@libs/actions/Policy/Member';
+import {addMembersToWorkspace, clearInviteDraft, clearWorkspaceInviteApproverDraft, clearWorkspaceInviteRoleDraft} from '@libs/actions/Policy/Member';
 import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation from '@libs/Navigation/Navigation';
@@ -66,6 +66,31 @@ function WorkspaceInviteMessageComponent({
 }: WorkspaceInviteMessageComponentProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
+    const policyName = policy?.name;
+
+    const isWorkflowApprovalExpensesFromRoute = useMemo(() => {
+        if (!backTo || typeof backTo !== 'string') {
+            return false;
+        }
+        return (backTo as string).includes(CONST.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM_ROUTE);
+    }, [backTo]);
+
+    const headerTitle = useMemo(() => {
+        if (isWorkflowApprovalExpensesFromRoute) {
+            return translate('workflowsExpensesFromPage.title');
+        }
+        return translate('workspace.inviteMessage.confirmDetails');
+    }, [isWorkflowApprovalExpensesFromRoute, translate]);
+
+    const subtitle = useMemo(() => {
+        if (isWorkflowApprovalExpensesFromRoute) {
+            return undefined;
+        }
+        return policyName;
+    }, [isWorkflowApprovalExpensesFromRoute, policyName]);
+
+    const inviteSentRef = useRef(false);
+
     const [formData, formDataResult] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM_DRAFT, {canBeMissing: true});
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
 
@@ -99,22 +124,25 @@ function WorkspaceInviteMessageComponent({
     }, [policyID]);
 
     const isOnyxLoading = isLoadingOnyxValue(workspaceInviteMessageDraftResult, invitedEmailsToAccountIDsDraftResult, formDataResult);
-    const personalDetailsOfInvitedEmails = getPersonalDetailsForAccountIDs(Object.values(invitedEmailsToAccountIDsDraft ?? {}), allPersonalDetails ?? {});
-    const memberNames = Object.values(personalDetailsOfInvitedEmails)
-        .map((personalDetail) => {
-            const displayName = getDisplayNameOrDefault(personalDetail, '', false);
-            if (displayName) {
-                return displayName;
-            }
 
-            // We don't have login details for users who are not in the database yet
-            // So we need to fallback to their login from the invitedEmailsToAccountIDsDraft
-            const accountID = personalDetail.accountID;
-            const loginFromInviteMap = Object.entries(invitedEmailsToAccountIDsDraft ?? {}).find(([, id]) => id === accountID)?.[0];
+    const memberNames = useMemo(() => {
+        const personalDetailsOfInvitedEmails = getPersonalDetailsForAccountIDs(Object.values(invitedEmailsToAccountIDsDraft ?? {}), allPersonalDetails ?? {});
+        return Object.values(personalDetailsOfInvitedEmails)
+            .map((personalDetail) => {
+                const displayName = getDisplayNameOrDefault(personalDetail, '', false);
+                if (displayName) {
+                    return displayName;
+                }
 
-            return loginFromInviteMap;
-        })
-        .join(', ');
+                // We don't have login details for users who are not in the database yet
+                // So we need to fallback to their login from the invitedEmailsToAccountIDsDraft
+                const accountID = personalDetail.accountID;
+                const loginFromInviteMap = Object.entries(invitedEmailsToAccountIDsDraft ?? {}).find(([, id]) => id === accountID)?.[0];
+
+                return loginFromInviteMap;
+            })
+            .join(', ');
+    }, [invitedEmailsToAccountIDsDraft, allPersonalDetails]);
 
     const welcomeNoteSubject = useMemo(
         () => `# ${currentUserPersonalDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`,
@@ -151,6 +179,7 @@ function WorkspaceInviteMessageComponent({
     }, [isOnyxLoading]);
 
     const sendInvitation = () => {
+        inviteSentRef.current = true;
         Keyboard.dismiss();
         const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
         // Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
@@ -172,7 +201,16 @@ function WorkspaceInviteMessageComponent({
             return;
         }
 
-        if ((backTo as string)?.endsWith('members')) {
+        // If coming from approval workflow expenses-from page, simply go back
+        // This fixes regression #78774 (invite page reopens) and #78775 (wrong navigation)
+        // by avoiding complex navigation logic and just returning to the expenses-from page
+        if (isWorkflowApprovalExpensesFromRoute) {
+            Navigation.goBack(backTo);
+            return;
+        }
+
+        const backToStr = backTo as string;
+        if (backToStr?.endsWith('members')) {
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.dismissModal());
             return;
         }
@@ -201,7 +239,6 @@ function WorkspaceInviteMessageComponent({
         return errorFields;
     };
 
-    const policyName = policy?.name;
     const invitingMemberEmail = Object.keys(invitedEmailsToAccountIDsDraft ?? {}).at(0) ?? '';
     const invitingMemberDetails = getPersonalDetailByEmail(invitingMemberEmail);
     const invitingMemberName = Str.removeSMSDomain(invitingMemberDetails?.displayName ?? '');
@@ -212,6 +249,22 @@ function WorkspaceInviteMessageComponent({
             clearWorkspaceInviteApproverDraft(policyID);
         };
     }, [policyID]);
+
+    // Clean up invite draft when backing out of the invite page without completing
+    // the invite in the approval workflow flow. This prevents stale non-member data
+    // from persisting in the draft, which fixes #78776 (workflow created with non-member submitter).
+    useEffect(() => {
+        return () => {
+            if (!isWorkflowApprovalExpensesFromRoute) {
+                return;
+            }
+            if (inviteSentRef.current) {
+                return;
+            }
+            clearInviteDraft(policyID);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isWorkflowApprovalExpensesFromRoute, policyID]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -227,8 +280,8 @@ function WorkspaceInviteMessageComponent({
             >
                 {shouldShowBackButton && (
                     <HeaderWithBackButton
-                        title={translate('workspace.inviteMessage.confirmDetails')}
-                        subtitle={policyName}
+                        title={headerTitle}
+                        subtitle={subtitle}
                         shouldShowBackButton
                         onCloseButtonPress={() => Navigation.dismissModal()}
                         onBackButtonPress={() => Navigation.goBack(backTo)}
@@ -244,7 +297,9 @@ function WorkspaceInviteMessageComponent({
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    {isInviteNewMemberStep && <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.card.issueNewCard.inviteNewMember')}</Text>}
+                    {(isInviteNewMemberStep || isWorkflowApprovalExpensesFromRoute) && (
+                        <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.card.issueNewCard.inviteNewMember')}</Text>
+                    )}
                     <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
                         <ReportActionAvatars
                             size={CONST.AVATAR_SIZE.LARGE}
@@ -325,6 +380,7 @@ function WorkspaceInviteMessageComponent({
                             shouldSaveDraft
                         />
                         <PressableWithoutFeedback
+                            sentryLabel="WorkspaceInviteMessage-Privacy"
                             onPress={openPrivacyURL}
                             role={CONST.ROLE.LINK}
                             accessibilityLabel={translate('common.privacy')}
