@@ -188,7 +188,7 @@ type CardFeedsStatusByDomainID = Record<number, CardFeedsStatus>;
 /**
  * Collection of card feeds status by domain ID
  */
-type WorkspaceCardFeedsStatus = Record<CompanyCardFeed, CardFeedsStatus>;
+type WorkspaceCardFeedsStatus = Record<CompanyCardFeedWithNumber, CardFeedsStatus>;
 
 /** Card feeds model, including domain settings */
 type CardFeeds = {

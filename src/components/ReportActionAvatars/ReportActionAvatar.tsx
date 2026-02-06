@@ -96,6 +96,7 @@ function ProfileAvatar(props: Parameters<typeof Avatar>[0] & {useProfileNavigati
             onPress={onPress}
             accessibilityLabel={translate(isWorkspace ? 'common.workspaces' : 'common.profile')}
             accessibilityRole={CONST.ROLE.BUTTON}
+            sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_AVATAR}
         >
             {/* eslint-disable-next-line react/jsx-props-no-spreading */}
             <Avatar {...{...props, useProfileNavigationWrapper: undefined}} />
