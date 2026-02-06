@@ -1171,9 +1171,29 @@ button {
         max-height: 580px;
         overflow: hidden;
         color: var(--color-text);
+        position: relative;
+
+        &::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: linear-gradient(to bottom, transparent, var(--color-highlightBG));
+            pointer-events: none;
+        }
 
         &.expanded {
             max-height: none;
+
+            &::after {
+                display: none;
+            }
+
+            ~ .ai-show-more img {
+                transform: rotate(180deg);
+            }
         }
     }
 
@@ -1190,15 +1210,20 @@ button {
     }
 
     .ai-show-more {
-        background: none;
+        background: var(--color-button-background);
         border: none;
-        color: var(--color-link);
+        border-radius: 9999px;
+        color: var(--color-text);
         cursor: pointer;
-        font-size: 13px;
-        padding: 8px 0 0;
+        font-size: 15px;
+        font-weight: 700;
+        padding: 12px 16px;
+        margin-top: 16px;
         display: flex;
         align-items: center;
-        gap: 4px;
+        align-self: center;
+        justify-content: center;
+        gap: 8px;
 
         &.hidden {
             display: none;
