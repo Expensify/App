@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {addDays, addMinutes, endOfDay, format, set, setHours, setMinutes, subDays, subHours, subMinutes, subSeconds} from 'date-fns';
+import {addDays, addMinutes, endOfDay, format, set, setHours, setMinutes, startOfDay, subDays, subHours, subMinutes, subSeconds} from 'date-fns';
 import {fromZonedTime, toZonedTime, format as tzFormat} from 'date-fns-tz';
 import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
@@ -475,6 +475,68 @@ describe('DateUtils', () => {
         it('should handle large hour values', () => {
             const result = DateUtils.formatCountdownTimer(mockTranslate, 23, 59, 59);
             expect(result).toBe('23h 59m 59s');
+        });
+    });
+
+    describe('normalizeDateToStartOfDay', () => {
+        const originalTZ = process.env.TZ;
+
+        beforeEach(() => {
+            process.env.TZ = 'UTC';
+        });
+
+        afterEach(() => {
+            process.env.TZ = originalTZ;
+        });
+
+        it('should return midnight local time as UTC in DB format when timeZone is UTC', () => {
+            const result = DateUtils.normalizeDateToStartOfDay('2024-01-15', UTC as SelectedTimezone);
+            expect(result).toBe('2024-01-15 00:00:00.000');
+        });
+
+        it('should match getDBTime of startOfDay for the parsed date', () => {
+            const dateStr = '2022-11-07';
+            const result = DateUtils.normalizeDateToStartOfDay(dateStr, UTC as SelectedTimezone);
+            const expected = DateUtils.getDBTime(fromZonedTime(startOfDay(new Date(`${dateStr}T00:00:00.000Z`)), UTC).valueOf());
+            expect(result).toBe(expected);
+        });
+
+        it('should return midnight in target timezone as UTC in DB format when timeZone is not UTC', () => {
+            // America/New_York is UTC-5 in January (EST), so 2024-01-15 00:00:00 EST = 2024-01-15 05:00:00.000 UTC
+            const americaNewYork = 'America/New_York' as SelectedTimezone;
+            const result = DateUtils.normalizeDateToStartOfDay('2024-01-15', americaNewYork);
+            expect(result).toBe('2024-01-15 05:00:00.000');
+        });
+    });
+
+    describe('normalizeDateToEndOfDay', () => {
+        const originalTZ = process.env.TZ;
+
+        beforeEach(() => {
+            process.env.TZ = 'UTC';
+        });
+
+        afterEach(() => {
+            process.env.TZ = originalTZ;
+        });
+
+        it('should return end of day local time as UTC in DB format when timeZone is UTC', () => {
+            const result = DateUtils.normalizeDateToEndOfDay('2024-01-15', UTC as SelectedTimezone);
+            expect(result).toBe('2024-01-15 23:59:59.999');
+        });
+
+        it('should match getDBTime of endOfDay for the parsed date', () => {
+            const dateStr = '2022-11-07';
+            const result = DateUtils.normalizeDateToEndOfDay(dateStr, UTC as SelectedTimezone);
+            const expected = DateUtils.getDBTime(fromZonedTime(endOfDay(new Date(`${dateStr}T00:00:00.000Z`)), UTC).valueOf());
+            expect(result).toBe(expected);
+        });
+
+        it('should return end of day in target timezone as UTC in DB format when timeZone is not UTC', () => {
+            // America/New_York is UTC-5 in January (EST), so 2024-01-15 23:59:59.999 EST = 2024-01-16 04:59:59.999 UTC
+            const americaNewYork = 'America/New_York' as SelectedTimezone;
+            const result = DateUtils.normalizeDateToEndOfDay('2024-01-15', americaNewYork);
+            expect(result).toBe('2024-01-16 04:59:59.999');
         });
     });
 });
