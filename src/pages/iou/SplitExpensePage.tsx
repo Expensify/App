@@ -194,6 +194,14 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         if (draftTransaction?.errors) {
             clearSplitTransactionDraftErrors(transactionID);
         }
+
+        const invalidSplit = splitExpenses.find((split) => Math.abs(split.amount) > Math.abs(transactionDetailsAmount));
+        if (invalidSplit) {
+            const difference = Math.abs(invalidSplit.amount) - Math.abs(transactionDetailsAmount);
+            setErrorMessage(translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)}));
+            return;
+        }
+
         if (sumOfSplitExpenses > transactionDetailsAmount) {
             const difference = sumOfSplitExpenses - transactionDetailsAmount;
             setErrorMessage(translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)}));
@@ -334,7 +342,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const displayError = errorMessage || draftTransactionError;
     const difference = sumOfSplitExpenses - transactionDetailsAmount;
     let warningMessage = '';
-    if (difference < 0) {
+
+    const invalidSplit = splitExpenses.find((split) => Math.abs(split.amount) > Math.abs(transactionDetailsAmount));
+    if (invalidSplit) {
+        // If there is an invalid split, we want to show the error message for that split
+        warningMessage = '';
+    } else if (difference < 0) {
         warningMessage = translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(-difference, transactionDetails.currency)});
     } else if (difference > 0) {
         warningMessage = translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)});
