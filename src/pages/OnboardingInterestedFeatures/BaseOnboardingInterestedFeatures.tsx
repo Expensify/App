@@ -121,7 +121,6 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 id: CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED,
                 title: translate('workspace.moreFeatures.timeTracking.title'),
                 icon: illustrations.Clock,
-                requiresUpdate: true,
             },
         ];
     }, [
