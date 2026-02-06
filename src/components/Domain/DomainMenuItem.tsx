@@ -1,4 +1,5 @@
 import React, {useMemo} from 'react';
+import type {ValueOf} from 'type-fest';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -11,6 +12,7 @@ import CONST from '@src/CONST';
 import {clearDomainErrors} from '@src/libs/actions/Domain';
 import ROUTES from '@src/ROUTES';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import DomainsListRow from './DomainsListRow';
 
 type DomainMenuItemProps = {
@@ -42,7 +44,11 @@ type DomainItem = {
 
     /** Current errors for domain */
     errors?: Errors;
-} & Pick<OfflineWithFeedbackProps, 'pendingAction'>;
+
+    /** The type of brick road indicator to show */
+    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
+} & Pick<OfflineWithFeedbackProps, 'pendingAction'> &
+    WithSentryLabel;
 
 function DomainMenuItem({item, index}: DomainMenuItemProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Globe']);
@@ -82,6 +88,7 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel="row"
                 onPress={action}
+                sentryLabel={item.sentryLabel}
             >
                 {({hovered}) => (
                     <DomainsListRow
@@ -89,6 +96,7 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
                         badgeText={isAdmin && !isValidated ? translate('domain.notVerified') : undefined}
                         isHovered={hovered}
                         menuItems={threeDotsMenuItems}
+                        brickRoadIndicator={item.brickRoadIndicator}
                     />
                 )}
             </PressableWithoutFeedback>

@@ -371,6 +371,7 @@ function BaseSelectionList<TItem extends ListItem>({
                     titleStyles={style?.listItemTitleStyles}
                     wrapperStyle={style?.listItemWrapperStyle}
                     titleContainerStyles={style?.listItemTitleContainerStyles}
+                    errorRowStyles={style?.listItemErrorRowStyles}
                     singleExecution={singleExecution}
                     shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                     shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}

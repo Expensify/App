@@ -10,6 +10,7 @@ import type CONST from '@src/CONST';
 import type {SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import type BaseListItem from './BaseListItem';
 import type InviteMemberListItem from './InviteMemberListItem';
 import type MultiSelectListItem from './MultiSelectListItem';
@@ -177,6 +178,9 @@ type CommonListItemProps<TItem extends ListItem> = {
     /** Styles for the checkbox wrapper view if select multiple option is on */
     selectMultipleStyle?: StyleProp<ViewStyle>;
 
+    /** Styles applied for the error row of the list item */
+    errorRowStyles?: StyleProp<ViewStyle>;
+
     /** Whether to wrap long text up to 2 lines */
     isMultilineSupported?: boolean;
 
@@ -200,7 +204,8 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Whether to show the right caret icon */
     shouldShowRightCaret?: boolean;
-} & TRightHandSideComponent<TItem>;
+} & TRightHandSideComponent<TItem> &
+    WithSentryLabel;
 
 type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;
 
@@ -296,6 +301,8 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     shouldShowBlueBorderOnFocus?: boolean;
     keyForList: string;
     errors?: Errors | ReceiptErrors | null;
+    /** Additional style object for the error row */
+    errorRowStyles?: StyleProp<ViewStyle>;
     pendingAction?: PendingAction | null;
     FooterComponent?: ReactElement;
     children?: ReactElement<ListItemProps<TItem>> | ((hovered: boolean) => ReactElement<ListItemProps<TItem>>);
