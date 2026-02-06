@@ -854,20 +854,16 @@ function getLastMessageTextForReport({
         return lastVisibleMessage?.lastMessageText ?? '';
     }
 
-    if (reportID && !lastMessageTextFromReport && isExpenseReport(report)) {
+    if (reportID && !lastMessageTextFromReport && reportUtilsIsMoneyRequestReport(report)) {
         const transactions = getReportTransactions(reportID);
         const scanningTransactions = transactions.filter((transaction) => isScanning(transaction));
+
         if (scanningTransactions.length > 0) {
-            return translate('iou.receiptScanning', {count: scanningTransactions.length});
-        }
-
-        if (report?.total && report?.total !== 0 && report?.currency) {
-            return lastVisibleMessage?.lastMessageText;
-        }
-
-        // Returning 'No activity yet' as message preview if report doesn't have any transaction.
-        if (report?.total === 0) {
-            return translate('report.noActivityYet');
+            lastMessageTextFromReport = translate('iou.receiptScanning', {count: scanningTransactions.length});
+        } else if (report?.transactionCount && report?.transactionCount > 0 && report?.currency) {
+            lastMessageTextFromReport = lastVisibleMessage?.lastMessageText;
+        } else if (report?.transactionCount === 0) {
+            lastMessageTextFromReport = translate('report.noActivityYet');
         }
     }
 
