@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isReceiptError, isTranslationKeyError} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import handleRetryPress from '@libs/ReceiptUploadRetryHandler';
+import CONST from '@src/CONST';
 import type {TranslationKeyError} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import ConfirmModal from './ConfirmModal';
@@ -110,6 +111,8 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
                 // eslint-disable-next-line react/no-array-index-key
                 key={index}
                 style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles]}
+                accessibilityRole={isErrorMessage ? CONST.ROLE.ALERT : undefined}
+                accessibilityLiveRegion={isErrorMessage ? 'assertive' : undefined}
             >
                 {formattedMessage}
             </Text>
