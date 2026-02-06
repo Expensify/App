@@ -219,23 +219,6 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
 
     return (
         <>
-            <Section
-                title={translate('workspace.moreFeatures.travel.travelInvoicing.travelBookingSection.title')}
-                subtitle={translate('workspace.moreFeatures.travel.travelInvoicing.travelBookingSection.subtitle')}
-                subtitleStyles={styles.mb6}
-                isCentralPane
-                subtitleMuted
-            >
-                <MenuItem
-                    title={translate('workspace.moreFeatures.travel.travelInvoicing.travelBookingSection.manageTravelLabel')}
-                    onPress={singleExecution(() => openExternalLink(CONST.FOOTER.TRAVEL_URL))}
-                    disabled={isExecuting}
-                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                    iconRight={icons.NewWindow}
-                    icon={icons.LuggageWithLines}
-                    shouldShowRightIcon
-                />
-            </Section>
             {optionItems.map(renderOptionItem)}
         </>
     );
