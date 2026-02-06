@@ -39,6 +39,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     ListItem,
     textInputOptions,
     initiallyFocusedItemKey,
+    initialScrollIndex,
     onSelectRow,
     onDismissError,
     onScrollBeginDrag,
@@ -308,7 +309,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         ref={listRef}
                         extraData={flattenedData.length}
                         getItemType={getItemType}
-                        initialScrollIndex={initialFocusedIndex}
+                        initialScrollIndex={initialScrollIndex ?? initialFocusedIndex}
                         keyExtractor={(item) => ('flatListKey' in item ? item.flatListKey : item.keyForList)}
                         onEndReached={onEndReached}
                         onEndReachedThreshold={onEndReachedThreshold}
