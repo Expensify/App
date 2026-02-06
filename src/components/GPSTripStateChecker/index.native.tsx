@@ -4,8 +4,7 @@ import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import ConfirmModal from '@components/ConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {setEndAddress, setIsTracking} from '@libs/actions/GPSDraftDetails';
-import {addressFromGpsPoint, coordinatesToString} from '@libs/GPSDraftDetailsUtils';
+import {stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID} from '@libs/ReportUtils';
 import {BACKGROUND_LOCATION_TRACKING_TASK_NAME, getBackgroundLocationTaskOptions} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
@@ -13,12 +12,14 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {useSplashScreenState} from '@src/SplashScreenStateContext';
+import useNetwork from '@hooks/useNetwork';
 import useUpdateGpsTripOnReconnect from './useUpdateGpsTripOnReconnect';
 
 function GPSTripStateChecker() {
     const {translate} = useLocalize();
     const [showContinueTripModal, setShowContinueTripModal] = useState(false);
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
+    const {isOffline} = useNetwork();
 
     const {splashScreenState} = useSplashScreenState();
 
@@ -68,28 +69,6 @@ function GPSTripStateChecker() {
         );
     };
 
-    const stopGpsTrip = async () => {
-        setIsTracking(false);
-
-        const gpsTrip = await OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS);
-
-        const lastPoint = gpsTrip?.gpsPoints?.at(-1);
-
-        if (!lastPoint) {
-            return;
-        }
-
-        const endAddress = await addressFromGpsPoint(lastPoint);
-
-        if (endAddress === null) {
-            const formattedCoordinates = coordinatesToString(lastPoint);
-            setEndAddress({value: formattedCoordinates, type: 'coordinates'});
-            return;
-        }
-
-        setEndAddress({value: endAddress, type: 'address'});
-    };
-
     const onContinueTrip = () => {
         setShowContinueTripModal(false);
         continueGpsTrip();
@@ -98,7 +77,7 @@ function GPSTripStateChecker() {
 
     const onViewTrip = () => {
         setShowContinueTripModal(false);
-        stopGpsTrip();
+        stopGpsTrip(isOffline);
         navigateToGpsScreen();
     };
 
