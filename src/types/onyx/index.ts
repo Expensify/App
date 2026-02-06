@@ -16,7 +16,7 @@ import type BillingStatus from './BillingStatus';
 import type BlockedFromConcierge from './BlockedFromConcierge';
 import type CancellationDetails from './CancellationDetails';
 import type Card from './Card';
-import type {CardList, FailedCompanyCardAssignment, FailedCompanyCardAssignments, IssueNewCard, ProvisioningCardData, WorkspaceCardsList} from './Card';
+import type {CardList, IssueNewCard, ProvisioningCardData, WorkspaceCardsList} from './Card';
 import type CardContinuousReconciliation from './CardContinuousReconciliation';
 import type CardFeeds from './CardFeeds';
 import type {
@@ -46,6 +46,8 @@ import type {
     OutstandingReportsByPolicyIDDerivedValue,
     ReportAttributesDerivedValue,
     ReportTransactionsAndViolationsDerivedValue,
+    TodoMetadata,
+    TodosDerivedValue,
 } from './DerivedValues';
 import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
@@ -188,8 +190,6 @@ export type {
     Download,
     DuplicateWorkspace,
     WorkspaceCardsList,
-    FailedCompanyCardAssignment,
-    FailedCompanyCardAssignments,
     ExpenseRule,
     ExpensifyCardSettings,
     ExpensifyCardBankAccountMetadata,
@@ -334,6 +334,8 @@ export type {
     OutstandingReportsByPolicyIDDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
+    TodosDerivedValue,
+    TodoMetadata,
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
     VacationDelegate,
