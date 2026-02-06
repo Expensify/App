@@ -58,7 +58,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     shouldShowTooltips = true,
     disableKeyboardShortcuts = false,
     disableMaintainingScrollPosition = false,
-    shouldShowTextInput,
+    shouldShowTextInput = !!textInputOptions?.label && itemsCount >= CONST.STANDARD_LIST_ITEM_LIMIT,
     shouldIgnoreFocus = false,
     shouldStopPropagation = false,
     shouldDebounceScrolling = false,

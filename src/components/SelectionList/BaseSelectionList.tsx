@@ -84,7 +84,7 @@ function BaseSelectionList<TItem extends ListItem>({
     shouldUpdateFocusedIndex = false,
     shouldSingleExecuteRowSelect = false,
     shouldPreventDefaultFocusOnSelectRow = false,
-    shouldShowTextInput = !!textInputOptions?.label,
+    shouldShowTextInput = !!textInputOptions?.label && data.length >= CONST.STANDARD_LIST_ITEM_LIMIT,
     shouldClearInputOnSelect = false,
     shouldHighlightSelectedItem = true,
     shouldUseDefaultRightHandSideCheckmark,

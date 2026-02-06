@@ -90,6 +90,7 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
             data={orderedApprovers}
             ListItem={InviteMemberListItem}
             onSelectRow={(approver) => setApprover(approver.login)}
+            shouldShowTextInput={orderedApprovers.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
             textInputOptions={textInputOptions}
             showLoadingPlaceholder={!didScreenTransitionEnd}
             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}

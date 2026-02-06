@@ -72,7 +72,7 @@ function ApproverSelectionList({
     const {translate, localeCompare} = useLocalize();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const shouldShowTextInput = shouldShowTextInputProp ?? allApprovers?.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const shouldShowTextInput = shouldShowTextInputProp ?? (allApprovers?.length ?? 0) >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const lazyIllustrations = useMemoizedLazyIllustrations(['TurtleInShell']);
 
     const selectedMembers = useMemo(() => allApprovers.filter((approver) => approver.isSelected), [allApprovers]);
