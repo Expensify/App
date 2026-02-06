@@ -216,39 +216,4 @@ platforms:
         title: Billing & Subscriptions
         icon: /assets/images/accounting.svg
         description: "Learn about billing."
-        
-        sections:
-          - href: subscription-setup-and-billing-ownership
-            title: Subscription Setup & Billing Ownership
-            articles:
-              - href: How-to-read-your-Expensify-billing-receipt
-                title: How to read your Expensify billing receipt
-              - href: what-billing-ownership-means-in-expensify
-                title: What billing ownership means in Expensify
-          
-          - href: plans-and-pricing
-            title: Plans & Pricing
-            articles:
-              - href: plan-types-and-pricing
-                title: "Expensify Plan Types and Pricing"
-              - href: plan-types-and-pricing-expensify-classic
-                title: "Expensify Classic Plan Types and Pricing"
-          
-          - href: subscription-management
-            title: Subscription Management
-            articles:
-              - href: How-to-Manage-Billing-and-Subscriptions-in-Expensify-Classic
-                title: Manage Billing & Subscriptions in Expensify Classic
-              - href: How-to-Manage-Subscriptions-and-Billing-in-New-Expensify
-                title: How to manage subscriptions and billing in New Expensify
-              - href: Managing-subscriptions-in-Expensify
-                title: Managing subscriptions in Expensify
-              - href: Deleting-workspaces-in-Expensify
-                title: Deleting a workspace in Expensify
-          
-          - href: other-billing-scenarios
-            title: Other Billing Scenarios
-            articles:
-              - href: Understanding-Out-of-Date-Billing-in-Expensify
-                title: How to fix out-of-date billing in Expensify
 
