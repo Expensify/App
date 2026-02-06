@@ -2303,12 +2303,26 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                               },
                           }
                         : {}),
-                    [currentUserEmailParam]: {
-                        submitsTo: policyOwnerEmail || currentUserEmailParam,
-                        email: currentUserEmailParam,
-                        role: CONST.POLICY.ROLE.ADMIN,
-                        errors: {},
-                    },
+                    ...(!policyOwnerEmail || policyOwnerEmail === currentUserEmailParam
+                        ? {
+                              [currentUserEmailParam]: {
+                                  submitsTo: currentUserEmailParam,
+                                  email: currentUserEmailParam,
+                                  role: CONST.POLICY.ROLE.ADMIN,
+                                  errors: {},
+                              },
+                          }
+                        : {}),
+                    ...(policyOwnerEmail && policyOwnerEmail !== currentUserEmailParam
+                        ? {
+                              [currentUserEmailParam]: {
+                                  submitsTo: policyOwnerEmail,
+                                  email: currentUserEmailParam,
+                                  role: makeMeAdmin ? CONST.POLICY.ROLE.ADMIN : CONST.POLICY.ROLE.USER,
+                                  errors: {},
+                              },
+                          }
+                        : {}),
                     ...(adminParticipant?.login
                         ? {
                               [adminParticipant.login]: {
