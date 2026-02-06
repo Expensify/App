@@ -72,7 +72,6 @@ function SearchEditMultipleMerchantPage() {
                         accessibilityLabel={translate('common.merchant')}
                         role={CONST.ROLE.PRESENTATION}
                         ref={inputCallbackRef}
-                        shouldSubmitForm
                     />
                 </View>
             </FormProvider>
