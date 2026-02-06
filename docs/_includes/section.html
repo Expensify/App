@@ -9,16 +9,20 @@
 {% assign activeSection = urlArray[3] | remove: ".html" %}
 {% assign section = hub.sections | where: "href", activeSection | first %}
 
-<h1 class="title">
-    {{ section.title }}
-</h1>
+{% if section %}
+  <h1 class="title">
+      {{ section.title }}
+  </h1>
 
-<section>
-    <div class="cards-group">
+  {% if section.articles %}
+    <section>
+      <div class="cards-group">
         {% assign sortedArticles = section.articles | sort: 'order', 'last' | default: 999 %}
         {% for article in sortedArticles %}
-            {% assign article_href = section.href | append: '/' | append: article.href %}
-            {% include article-card.html hub=hub.href href=article_href title=article.title platform=activePlatform %}
+          {% assign article_href = section.href | append: '/' | append: article.href %}
+          {% include article-card.html hub=hub.href href=article_href title=article.title platform=activePlatform %}
         {% endfor %}
-    </div>
-</section>
+      </div>
+    </section>
+  {% endif %}
+{% endif %}
