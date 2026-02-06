@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {NativeSyntheticEvent} from 'react-native';
+import type {KeyboardTypeOptions, NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -88,6 +88,9 @@ type NumberWithSymbolFormProps = {
 
     /** Callback when the user presses the submit key (Enter) */
     onSubmitEditing?: () => void;
+
+    /** Determines which keyboard to open */
+    keyboardType?: KeyboardTypeOptions;
 } & Omit<TextInputWithSymbolProps, 'formattedAmount' | 'onAmountChange' | 'placeholder' | 'onSelectionChange' | 'onKeyPress' | 'onMouseDown' | 'onMouseUp'>;
 
 type NumberWithSymbolFormRef = {
@@ -389,11 +392,11 @@ function NumberWithSymbolForm({
                 disabled={disabled}
                 prefixCharacter={symbol}
                 prefixStyle={styles.colorMuted}
-                keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
+                keyboardType={props.keyboardType ?? CONST.KEYBOARD_TYPE.DECIMAL_PAD}
                 // On android autoCapitalize="words" is necessary when keyboardType="decimal-pad" or inputMode="decimal" to prevent input lag.
                 // See https://github.com/Expensify/App/issues/51868 for more information
                 autoCapitalize="words"
-                inputMode={CONST.INPUT_MODE.DECIMAL}
+                inputMode={!props.keyboardType ? CONST.INPUT_MODE.DECIMAL : undefined}
                 errorText={errorText}
                 style={style}
                 autoFocus={props.autoFocus}
@@ -467,6 +470,7 @@ function NumberWithSymbolForm({
             toggleNegative={toggleNegative}
             onFocus={props.onFocus}
             accessibilityLabel={props.accessibilityLabel}
+            keyboardType={props.keyboardType}
         />
     );
 

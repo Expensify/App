@@ -1180,7 +1180,7 @@ function getAmountInputFontSize(amountLength: number): TextStyle {
         return {fontSize: baseFontSize};
     }
 
-    const reduction = Math.min((amountLength - 10) * 1, baseFontSize - minFontSize);
+    const reduction = Math.min((amountLength - 10) * 2, baseFontSize - minFontSize);
     return {fontSize: baseFontSize - reduction};
 }
 
