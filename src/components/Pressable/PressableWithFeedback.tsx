@@ -43,6 +43,7 @@ type PressableWithFeedbackProps = PressableProps & {
      */
     shouldBlendOpacity?: boolean;
 
+    /** Optional callback fired on wrapper's mount and layout changes */
     onWrapperLayout?: ((event: LayoutChangeEvent) => void) | undefined;
 };
 

@@ -33,6 +33,7 @@ type OpacityViewProps = {
     /** Whether the view needs to be rendered offscreen (for Android only) */
     needsOffscreenAlphaCompositing?: boolean;
 
+    /** Optional callback fired on mount and on layout changes */
     onLayout?: ((event: LayoutChangeEvent) => void) | undefined;
 };
 
