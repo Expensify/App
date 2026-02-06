@@ -152,7 +152,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const hasLoadedThreadReportActions = !!reportMetadata && (reportMetadata.hasOnceLoadedReportActions ?? reportMetadata.isLoadingInitialReportActions === false);
     const isThreadReportDeleted = (!report?.reportID && report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED) || (hasLoadedThreadReportActions && !report?.reportID);
     const hasLoadedParentReportActions =
-        !!parentReportMetadata && (parentReportMetadata?.hasOnceLoadedReportActions || parentReportMetadata?.isLoadingInitialReportActions === false || isOffline);
+        !!parentReportMetadata && ((parentReportMetadata?.hasOnceLoadedReportActions ?? parentReportMetadata?.isLoadingInitialReportActions === false) || isOffline);
     const isParentActionMissingAfterLoad = !!report?.parentReportID && !!report?.parentReportActionID && hasLoadedParentReportActions && !parentReportAction;
     const isParentActionDeleted = !!parentReportAction && (parentReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isDeletedAction(parentReportAction));
     const wasParentActionDeleted = isParentActionDeleted || isParentActionMissingAfterLoad;

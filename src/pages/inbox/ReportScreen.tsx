@@ -501,11 +501,9 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     );
     const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, {canBeMissing: true});
     const hasLoadedParentReportActions =
-        !!parentReportMetadata && (parentReportMetadata?.hasOnceLoadedReportActions || parentReportMetadata?.isLoadingInitialReportActions === false || isOffline);
+        !!parentReportMetadata && ((parentReportMetadata?.hasOnceLoadedReportActions ?? parentReportMetadata?.isLoadingInitialReportActions === false) || isOffline);
     const isParentActionMissingAfterLoad = !!report?.parentReportID && !!report?.parentReportActionID && hasLoadedParentReportActions && !parentReportAction;
-    const isParentActionDeleted =
-        !!parentReportAction &&
-        (parentReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isDeletedAction(parentReportAction));
+    const isParentActionDeleted = !!parentReportAction && (parentReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isDeletedAction(parentReportAction));
     const isDeletedTransactionThread = isReportTransactionThread(report) && (isParentActionDeleted || isParentActionMissingAfterLoad);
 
     useEffect(() => {

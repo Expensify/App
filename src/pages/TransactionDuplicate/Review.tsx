@@ -123,9 +123,9 @@ function TransactionDuplicateReview() {
         getDuplicateTransactionDetails(transactionID);
     }, [transactionID]);
 
-    const hasLoadedThreadReportActions = !!reportMetadata && (reportMetadata?.hasOnceLoadedReportActions || reportMetadata?.isLoadingInitialReportActions === false || isOffline);
+    const hasLoadedThreadReportActions = !!reportMetadata && ((reportMetadata?.hasOnceLoadedReportActions ?? reportMetadata?.isLoadingInitialReportActions === false) || isOffline);
     const hasLoadedParentReportActions =
-        !!parentReportMetadata && (parentReportMetadata?.hasOnceLoadedReportActions || parentReportMetadata?.isLoadingInitialReportActions === false || isOffline);
+        !!parentReportMetadata && ((parentReportMetadata?.hasOnceLoadedReportActions ?? parentReportMetadata?.isLoadingInitialReportActions === false) || isOffline);
     const isThreadReportDeleted = (!report?.reportID && report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED) || (hasLoadedThreadReportActions && !report?.reportID);
     const isParentActionDeleted = !reportAction?.reportActionID && (hasLoadedParentReportActions || !report?.parentReportID);
     const isReportActionPendingDelete = reportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
