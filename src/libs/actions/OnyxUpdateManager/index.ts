@@ -1,4 +1,4 @@
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {Connection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
@@ -35,22 +35,33 @@ import {
 // Therefore, SaveResponseInOnyx.js can't import and use this file directly.
 
 let lastUpdateIDAppliedToClient: number = CONST.DEFAULT_NUMBER_ID;
-// `lastUpdateIDAppliedToClient` is not dependent on any changes on the UI,
-// so it is okay to use `connectWithoutView` here.
-Onyx.connectWithoutView({
-    key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-    callback: (value) => (lastUpdateIDAppliedToClient = value ?? CONST.DEFAULT_NUMBER_ID),
-});
 
 let isLoadingApp = false;
-// `isLoadingApp` is not dependent on any changes on the UI,
-// so it is okay to use `connectWithoutView` here.
-Onyx.connectWithoutView({
-    key: ONYXKEYS.IS_LOADING_APP,
-    callback: (value) => {
-        isLoadingApp = value ?? false;
-    },
-});
+let lastUpdateIDConnection: Connection | undefined;
+let isLoadingAppConnection: Connection | undefined;
+let updatesFromServerConnection: Connection | undefined;
+
+function ensureBaseSubscriptions() {
+    if (!lastUpdateIDConnection) {
+        // `lastUpdateIDAppliedToClient` is not dependent on any changes on the UI,
+        // so it is okay to use `connectWithoutView` here.
+        lastUpdateIDConnection = Onyx.connectWithoutView({
+            key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
+            callback: (value) => (lastUpdateIDAppliedToClient = value ?? CONST.DEFAULT_NUMBER_ID),
+        });
+    }
+
+    if (!isLoadingAppConnection) {
+        // `isLoadingApp` is not dependent on any changes on the UI,
+        // so it is okay to use `connectWithoutView` here.
+        isLoadingAppConnection = Onyx.connectWithoutView({
+            key: ONYXKEYS.IS_LOADING_APP,
+            callback: (value) => {
+                isLoadingApp = value ?? false;
+            },
+        });
+    }
+}
 
 let resolveQueryPromiseWrapper: () => void;
 const createQueryPromiseWrapper = () =>
@@ -85,6 +96,8 @@ function finalizeUpdatesAndResumeQueue() {
  * @returns a promise that resolves when all Onyx updates are done being processed
  */
 function handleMissingOnyxUpdates(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromServer>, clientLastUpdateID?: number): Promise<void> {
+    ensureBaseSubscriptions();
+
     // If isLoadingApp is positive it means that OpenApp command hasn't finished yet, and in that case
     // we don't have base state of the app (reports, policies, etc.) setup. If we apply this update,
     // we'll only have them overwritten by the openApp response. So let's skip it and return.
@@ -231,10 +244,17 @@ function updateAuthTokenIfNecessary(onyxUpdatesFromServer: OnyxEntry<OnyxUpdates
 }
 
 export default () => {
+    ensureBaseSubscriptions();
+
+    if (updatesFromServerConnection) {
+        console.debug('[OnyxUpdateManager] Already listening for updates from the server');
+        return;
+    }
+
     console.debug('[OnyxUpdateManager] Listening for updates from the server');
     // `Onyx updates` are not dependent on any changes on the UI,
     // so it is okay to use `connectWithoutView` here.
-    Onyx.connectWithoutView({
+    updatesFromServerConnection = Onyx.connectWithoutView({
         key: ONYXKEYS.ONYX_UPDATES_FROM_SERVER,
         callback: (value) => {
             handleMissingOnyxUpdates(value);

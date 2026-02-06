@@ -15,11 +15,20 @@ import ONYX_DERIVED_VALUES from './ONYX_DERIVED_VALUES';
 import type {DerivedValueContext} from './types';
 import {setDerivedValue} from './utils';
 
+let isInitialized = false;
+
 /**
  * Initialize all Onyx derived values, store them in Onyx, and setup listeners to update them when dependencies change.
  * Using connectWithoutView in this function since this is only executed once while initializing the App.
  */
 function init() {
+    if (isInitialized) {
+        Log.info('[OnyxDerived] init() called multiple times, skipping duplicate subscriptions');
+        return;
+    }
+
+    isInitialized = true;
+
     for (const [key, {compute, dependencies}] of ObjectUtils.typedEntries(ONYX_DERIVED_VALUES)) {
         let areAllConnectionsSet = false;
         let connectionsEstablishedCount = 0;
