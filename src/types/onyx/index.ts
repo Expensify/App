@@ -49,6 +49,7 @@ import type {
     TodoMetadata,
     TodosDerivedValue,
 } from './DerivedValues';
+import type DeviceBiometrics from './DeviceBiometrics';
 import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Domain from './Domain';
@@ -349,4 +350,5 @@ export type {
     DomainSecurityGroup,
     CodingRuleMatchingTransaction,
     UserSecurityGroupData,
+    DeviceBiometrics,
 };

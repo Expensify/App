@@ -1,5 +1,6 @@
 import type {MultifactorAuthenticationDefaultUIConfig, MultifactorAuthenticationScenarioCustomConfig} from '@components/MultifactorAuthentication/config/types';
 import NoEligibleMethodsDescription from '@components/MultifactorAuthentication/NoEligibleMethodsDescription';
+import UnsupportedDeviceDescription from '@components/MultifactorAuthentication/UnsupportedDeviceDescription';
 // Spacing utilities are needed for icon padding configuration in outcomes defaults
 // eslint-disable-next-line no-restricted-imports
 import spacing from '@styles/utils/spacing';
@@ -47,6 +48,16 @@ const DEFAULT_CONFIG = {
             description: 'multifactorAuthentication.biometricsTest.youCouldNotBeAuthenticated',
             customDescription: NoEligibleMethodsDescription,
         },
+        unsupportedDevice: {
+            illustration: 'HumptyDumpty',
+            iconWidth: variables.humptyDumptyWidth,
+            iconHeight: variables.humptyDumptyHeight,
+            padding: spacing.p0,
+            headerTitle: 'multifactorAuthentication.biometricsTest.biometricsAuthentication',
+            title: 'multifactorAuthentication.unsupportedDevice.unsupportedDevice',
+            description: 'multifactorAuthentication.biometricsTest.youCouldNotBeAuthenticated',
+            customDescription: UnsupportedDeviceDescription,
+        },
     },
     MODALS: {
         cancelConfirmation: {
@@ -56,7 +67,6 @@ const DEFAULT_CONFIG = {
             cancelButtonText: 'common.cancel',
         },
     },
-    nativePromptTitle: 'multifactorAuthentication.letsVerifyItsYou',
 } as const satisfies MultifactorAuthenticationDefaultUIConfig;
 
 /**
@@ -90,6 +100,10 @@ function customConfig<const T extends MultifactorAuthenticationScenarioCustomCon
         noEligibleMethods: {
             ...DEFAULT_CONFIG.OUTCOMES.noEligibleMethods,
             ...config.OUTCOMES?.noEligibleMethods,
+        },
+        unsupportedDevice: {
+            ...DEFAULT_CONFIG.OUTCOMES.unsupportedDevice,
+            ...config.OUTCOMES?.unsupportedDevice,
         },
     } as const;
 
