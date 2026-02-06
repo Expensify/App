@@ -158,7 +158,7 @@ function IOURequestStepDistanceManual({
             if (action === CONST.IOU.ACTION.EDIT) {
                 if (distance !== distanceAsFloat) {
                     updateMoneyRequestDistance({
-                        transactionID: transaction?.transactionID,
+                        transaction,
                         transactionThreadReport: report,
                         parentReport,
                         distance: distanceAsFloat,
