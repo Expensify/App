@@ -29,10 +29,12 @@ import {
     isReportOwner,
     sortOutstandingReportsBySelected,
 } from '@libs/ReportUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import StepScreenWrapper from './StepScreenWrapper';
@@ -219,9 +221,16 @@ function IOURequestEditReportCommon({
             navigateBack();
             return;
         }
+
+        if (item?.policyID && shouldRestrictUserBillableActions(item.policyID)) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(item.policyID));
+            return;
+        }
+
         if (!validatePerDiemMove(item.policyID)) {
             return;
         }
+
         selectReport(item);
     };
 
