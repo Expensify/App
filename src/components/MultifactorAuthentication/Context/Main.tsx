@@ -21,6 +21,12 @@ import useNativeBiometrics from './useNativeBiometrics';
 import type {AuthorizeResult, RegisterResult} from './useNativeBiometrics';
 
 let deviceBiometricsState: OnyxEntry<DeviceBiometrics>;
+
+// Use Onyx.connectWithoutView instead of useOnyx hook to access the device biometrics state.
+// This is a non-reactive read that allows us to check the current value (hasAcceptedSoftPrompt)
+// from within the process() callback without triggering component re-renders or complicating
+// the effect's dependency list. Since we only need the latest value at specific points in the
+// MFA flow (not reactivity to changes), this is more efficient than using the useOnyx hook.
 Onyx.connectWithoutView({
     key: ONYXKEYS.DEVICE_BIOMETRICS,
     callback: (data) => {
