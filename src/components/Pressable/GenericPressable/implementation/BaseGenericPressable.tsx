@@ -149,6 +149,29 @@ function GenericPressable({
         return KeyboardShortcut.subscribe(shortcutKey, onKeyboardShortcutPressHandler, descriptionKey, modifiers, true, false, 0, false);
     }, [keyboardShortcut, onKeyboardShortcutPressHandler]);
 
+    const isRoleLink = rest.role === CONST.ROLE.LINK;
+
+    /**
+     * Handles keyboard events for the pressable element.
+     * If a custom onKeyDown handler is provided, it delegates to that handler.
+     * Otherwise, for elements with role="link", it triggers onPress when Enter is pressed
+     * to comply with W3C APG Link Pattern (https://www.w3.org/WAI/ARIA/apg/patterns/link/).
+     */
+    const handleKeyDown = useCallback(
+        (event: React.KeyboardEvent) => {
+            if (onKeyDown) {
+                onKeyDown(event as unknown as React.KeyboardEvent<Element>);
+                return;
+            }
+
+            if (isRoleLink && event.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
+                event.preventDefault();
+                onPressHandler(event.nativeEvent as unknown as KeyboardEvent);
+            }
+        },
+        [onKeyDown, isRoleLink, onPressHandler],
+    );
+
     return (
         <Pressable
             hitSlop={shouldUseAutoHitSlop ? hitSlop : undefined}
@@ -157,7 +180,7 @@ function GenericPressable({
             disabled={fullDisabled}
             onPress={!isDisabled ? singleExecution(onPressHandler) : undefined}
             onLongPress={!isDisabled && onLongPress ? onLongPressHandler : undefined}
-            onKeyDown={!isDisabled ? onKeyDown : undefined}
+            onKeyDown={!isDisabled ? handleKeyDown : undefined}
             onPressIn={!isDisabled ? onPressIn : undefined}
             onPressOut={!isDisabled ? onPressOut : undefined}
             dataSet={{...(isRoleButton ? {[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true} : {}), ...(dataSet ?? {})}}
