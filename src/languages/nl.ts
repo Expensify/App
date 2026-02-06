@@ -7540,6 +7540,10 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             endReading: 'Lezen beëindigen',
             saveForLater: 'Bewaren voor later',
             totalDistance: 'Totale afstand',
+            startTitle: 'Foto beginstand kilometerteller',
+            endTitle: 'Eindfoto kilometerteller',
+            startMessageWeb: 'Voeg een foto toe van de kilometerteller aan het <strong>begin</strong> van je reis. Sleep een bestand hierheen of kies er een om te uploaden.',
+            endMessageWeb: 'Voeg een foto toe van je kilometerteller aan het <strong>einde</strong> van je reis. Sleep hier een bestand naartoe of kies er één om te uploaden.',
         },
     },
     gps: {
@@ -7600,6 +7604,11 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             title: 'GPS-tracking bezig',
             prompt: 'Weet je zeker dat je de reis wilt annuleren en uitloggen?',
             confirm: 'Verwerpen en afmelden',
+        },
+        switchToODWarningTripInProgress: {
+            title: 'GPS-tracking bezig',
+            prompt: 'Weet je zeker dat je het volgen via gps wilt stoppen en wilt overschakelen naar Expensify Classic?',
+            confirm: 'Stoppen en overschakelen',
         },
         locationServicesRequiredModal: {
             title: 'Locatietoegang vereist',
@@ -8413,6 +8422,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             enterDomainName: 'Voer hier je domeinnaam in',
             resetDomainInfo: `Deze actie is <strong>definitief</strong> en de volgende gegevens worden verwijderd: <br/> <ul><li>Bedrijfskaartverbindingen en alle niet-gerapporteerde uitgaven van die kaarten</li> <li>SAML- en groepsinstellingen</li> </ul> Alle accounts, werkruimten, rapporten, uitgaven en andere gegevens blijven behouden. <br/><br/>Opmerking: je kunt dit domein uit je domeinlijst verwijderen door het bijbehorende e-mailadres te verwijderen uit je <a href="#">contactmethoden</a>.`,
         },
+        domainMembers: 'Domeinleden',
         members: {
             title: 'Leden',
             findMember: 'Lid zoeken',

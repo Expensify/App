@@ -7491,6 +7491,10 @@ ${reportName}
             endReading: '読み終える',
             saveForLater: '後で保存',
             totalDistance: '合計距離',
+            startTitle: '走行距離計の開始写真',
+            endTitle: '走行距離計終了時の写真',
+            startMessageWeb: '旅行の<strong>開始時</strong>のオドメーターの写真を追加してください。ここにファイルをドラッグするか、またはアップロードするファイルを選択してください。',
+            endMessageWeb: '旅行の<strong>終了時</strong>の走行距離計の写真を追加してください。ここにファイルをドラッグするか、アップロードするファイルを選択してください。',
         },
     },
     gps: {
@@ -7551,6 +7555,11 @@ ${reportName}
             title: 'GPS追跡を実行中',
             prompt: 'この旅行を破棄してサインアウトしてもよろしいですか？',
             confirm: '破棄してサインアウト',
+        },
+        switchToODWarningTripInProgress: {
+            title: 'GPS追跡を実行中',
+            prompt: 'GPS追跡を停止して、Expensify Classic に切り替えてもよろしいですか？',
+            confirm: '停止して切り替える',
         },
         locationServicesRequiredModal: {
             title: '位置情報へのアクセスが必要です',
@@ -8357,6 +8366,7 @@ ${reportName}
             enterDomainName: 'ここにドメイン名を入力してください',
             resetDomainInfo: `この操作は<strong>元に戻せません</strong>。次のデータが削除されます：<br/> <ul><li>会社カードの接続と、そのカードの未報告精算</li> <li>SAML およびグループ設定</li> </ul> すべてのアカウント、ワークスペース、レポート、経費、およびその他のデータは保持されます。<br/><br/>注：<a href="#">連絡方法</a>から関連付けられているメールアドレスを削除すると、このドメインをドメイン一覧から消去できます。`,
         },
+        domainMembers: 'ドメインメンバー',
         members: {
             title: 'メンバー',
             findMember: 'メンバーを検索',
