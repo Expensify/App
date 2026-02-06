@@ -206,10 +206,10 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
     API_RESPONSE_MAP,
     REASON,
     /**
-     * Specifically meaningful values for `multifactorAuthenticationPublicKeyIDs` in the `account` Onyx key
-     * casting `[] as string[]` is necessary to allow us to actually store the value in Onyx. Otherwise the
+     * Specifically meaningful values for `multifactorAuthenticationPublicKeyIDs` in the `account` Onyx key.
+     * Casting `[] as string[]` is necessary to allow us to actually store the value in Onyx. Otherwise the
      * `as const` would mean `[]` becomes `readonly []` (readonly empty array), which is more precise,
-     * but isn't allowed to be assigned to a `string[]` field
+     * but isn't allowed to be assigned to a `string[]` field.
      */
     PUBLIC_KEYS_PREVIOUSLY_BUT_NOT_CURRENTLY_REGISTERED: [] as string[],
     PUBLIC_KEYS_AUTHENTICATION_NEVER_REGISTERED: undefined,
