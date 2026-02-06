@@ -572,6 +572,8 @@ function ComposerWithSuggestions({
 
     const onChangeText = useCallback(
         (commentValue: string) => {
+            // When we clear the input, we set the composer height to a specific value.
+            // Upon text change, we can reset the height to allow flex layout to adjust the height.
             clearComposerHeightAfterClear();
 
             updateComment(commentValue, true);
@@ -845,8 +847,11 @@ function ComposerWithSuggestions({
             const inputHeight = e.nativeEvent.contentSize.height;
             const totalHeight = inputHeight + paddingTopAndBottom;
 
+            // When we clear the input, we set the composer height to a specific value.
+            // Upon any content size change, we can reset the height to allow flex layout to adjust the height.
             clearComposerHeightAfterClear();
 
+            // Store the default collapsed composer height, so we can later reset the height when we clear the input.
             if (emptyComposerHeightRef.current === null && totalHeight > 0 && !valueRef.current.includes('\n')) {
                 emptyComposerHeightRef.current = totalHeight;
             }
