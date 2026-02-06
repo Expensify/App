@@ -32,7 +32,7 @@ function FixCompanyCardConnection({card, policyID}: FixCompanyCardConnectionProp
         <BaseWidgetItem
             icon={icons.Connect}
             iconBackgroundColor={colors.tangerine100}
-            iconFill={colors.tangerine700}
+            iconFill={colors.tangerine500}
             title={translate('homePage.timeSensitiveSection.fixCompanyCardConnection.title', {feedName})}
             subtitle={translate('homePage.timeSensitiveSection.fixCompanyCardConnection.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.ctaFix')}
