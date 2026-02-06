@@ -134,6 +134,10 @@ function Checkbox({
             accessibilityState={{
                 checked: isIndeterminate ? ('mixed' as const) : isChecked,
             }}
+            /*  true  → checked
+                false → unchecked
+                mixed → indeterminate  */
+            aria-checked={isIndeterminate ? 'mixed' : isChecked}
             accessibilityLabel={accessibilityLabel}
             pressDimmingValue={1}
             wrapperStyle={wrapperStyle}
