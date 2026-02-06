@@ -1,11 +1,20 @@
 import {renderHook} from '@testing-library/react-native';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 jest.mock('@react-navigation/native', () => ({
     useNavigationState: jest.fn(),
 }));
 jest.mock('@libs/Navigation/helpers/getPathFromState', () => jest.fn());
+jest.mock('@src/ROUTES', () => ({
+    default: {
+        HOME: 'home',
+    },
+    DYNAMIC_ROUTES: {
+        VERIFY_ACCOUNT: {path: 'verify-account'},
+        CUSTOM_TEST_ROUTE: {path: 'custom-test-route'},
+    },
+}));
 
 const {useNavigationState} = jest.requireMock<{useNavigationState: jest.Mock}>('@react-navigation/native');
 const getPathFromStateMock: jest.Mock = jest.requireMock('@libs/Navigation/helpers/getPathFromState');
@@ -24,47 +33,54 @@ describe('useDynamicBackPath', () => {
         expect(result.current).toBe(ROUTES.HOME);
     });
 
-    it('should remove suffix when it is the last segment', () => {
-        const fullPath = 'settings/wallet/verify-account';
-        getPathFromStateMock.mockReturnValue(fullPath);
+    for (const {path} of Object.values(DYNAMIC_ROUTES)) {
+        it(`should remove suffix ${path} when it is the last segment`, () => {
+            const pathPrefix = 'settings/wallet';
+            const fullPath = `${pathPrefix}/${path}`;
+            getPathFromStateMock.mockReturnValue(fullPath);
 
-        const {result} = renderHook(() => useDynamicBackPath('verify-account'));
+            const {result} = renderHook(() => useDynamicBackPath(path));
 
-        expect(result.current).toBe('settings/wallet');
-    });
-
-    it('should remove suffix BUT preserve query parameters', () => {
-        const fullPath = 'settings/wallet/verify-account?tab=details';
-        getPathFromStateMock.mockReturnValue(fullPath);
-
-        const {result} = renderHook(() => useDynamicBackPath('verify-account'));
-
-        expect(result.current).toBe('settings/wallet?tab=details');
-    });
+            expect(result.current).toBe(pathPrefix);
+        });
+    }
 
     it('should NOT remove suffix if it is NOT the last segment', () => {
-        const fullPath = 'settings/verify-account/details';
+        const path = DYNAMIC_ROUTES.VERIFY_ACCOUNT.path;
+        const fullPath = `settings/${path}/details`;
         getPathFromStateMock.mockReturnValue(fullPath);
 
-        const {result} = renderHook(() => useDynamicBackPath('verify-account'));
+        const {result} = renderHook(() => useDynamicBackPath(path));
 
         expect(result.current).toBe(fullPath);
     });
 
-    it('should NOT remove suffix if it matches partially', () => {
-        const fullPath = 'settings/wallet/verify-account-page';
+    it('should remove suffix BUT preserve query parameters', () => {
+        const path = DYNAMIC_ROUTES.VERIFY_ACCOUNT.path;
+        const fullPath = `settings/wallet/${path}?tab=details`;
         getPathFromStateMock.mockReturnValue(fullPath);
 
-        const {result} = renderHook(() => useDynamicBackPath('verify-account'));
+        const {result} = renderHook(() => useDynamicBackPath(path));
+
+        expect(result.current).toBe('settings/wallet?tab=details');
+    });
+
+    it('should NOT remove suffix if it matches partially', () => {
+        const path = DYNAMIC_ROUTES.VERIFY_ACCOUNT.path;
+        const fullPath = `settings/wallet/${path}-page`;
+        getPathFromStateMock.mockReturnValue(fullPath);
+
+        const {result} = renderHook(() => useDynamicBackPath(path));
 
         expect(result.current).toBe(fullPath);
     });
 
     it('should handle logic when normalizePath handles trailing slashes', () => {
-        const fullPath = 'settings/wallet/verify-account/';
+        const path = DYNAMIC_ROUTES.VERIFY_ACCOUNT.path;
+        const fullPath = `settings/wallet/${path}/`;
         getPathFromStateMock.mockReturnValue(fullPath);
 
-        const {result} = renderHook(() => useDynamicBackPath('verify-account'));
+        const {result} = renderHook(() => useDynamicBackPath(path));
 
         expect(result.current).toBe('settings/wallet');
     });
