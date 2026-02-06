@@ -762,7 +762,7 @@ function getLastMessageTextForReport({
     } else if (lastReportAction?.actionName && isOldDotReportAction(lastReportAction)) {
         lastMessageTextFromReport = getMessageOfOldDotReportAction(translate, lastReportAction, false);
     } else if (isActionableJoinRequest(lastReportAction)) {
-        lastMessageTextFromReport = getJoinRequestMessage(translate, lastReportAction);
+        lastMessageTextFromReport = getJoinRequestMessage(translate, policy, lastReportAction);
     } else if (
         lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM ||
         lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_ROOM
