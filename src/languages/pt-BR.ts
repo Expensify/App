@@ -7181,6 +7181,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             label: 'Visualizar',
             table: 'Tabela',
             bar: 'Bar',
+            line: 'Linha',
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'De',
@@ -7522,6 +7523,10 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             endReading: 'Finalizar leitura',
             saveForLater: 'Salvar para depois',
             totalDistance: 'Distância total',
+            startTitle: 'Foto inicial do hodômetro',
+            endTitle: 'Foto do hodômetro final',
+            startMessageWeb: 'Adicione uma foto do hodômetro do <strong>início</strong> da sua viagem. Arraste um arquivo aqui ou escolha um para enviar.',
+            endMessageWeb: 'Adicione uma foto do hodômetro do <strong>final</strong> da sua viagem. Arraste um arquivo aqui ou escolha um para enviar.',
         },
     },
     gps: {
@@ -7582,6 +7587,11 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             title: 'Rastreamento por GPS em andamento',
             prompt: 'Tem certeza de que deseja descartar a viagem e sair?',
             confirm: 'Descartar e sair',
+        },
+        switchToODWarningTripInProgress: {
+            title: 'Rastreamento por GPS em andamento',
+            prompt: 'Tem certeza de que deseja parar o rastreamento por GPS e mudar para o Expensify Classic?',
+            confirm: 'Parar e mudar',
         },
         locationServicesRequiredModal: {
             title: 'Acesso à localização necessário',
@@ -8394,6 +8404,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             enterDomainName: 'Insira seu nome de domínio aqui',
             resetDomainInfo: `Esta ação é <strong>permanente</strong> e os seguintes dados serão excluídos: <br/> <ul><li>Conexões de cartões corporativos e quaisquer despesas não informadas desses cartões</li> <li>Configurações de SAML e de grupo</li> </ul> Todas as contas, workspaces, relatórios, despesas e outros dados serão mantidos. <br/><br/>Observação: você pode remover este domínio da sua lista de domínios removendo o e-mail associado dos seus <a href="#">métodos de contato</a>.`,
         },
+        domainMembers: 'Membros do domínio',
         members: {
             title: 'Membros',
             findMember: 'Encontrar membro',

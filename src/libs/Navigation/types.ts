@@ -20,7 +20,7 @@ import type {ReimbursementAccountStepToOpen} from '@libs/ReimbursementAccountUti
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type {AttachmentModalContainerModalProps} from '@pages/media/AttachmentModalScreen/types';
 import type CONST from '@src/CONST';
-import type {Country, IOUAction, IOUType} from '@src/CONST';
+import type {Country, IOUAction, IOUType, OdometerImageType} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
 import type {Route as ExpensifyRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -1882,6 +1882,12 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         backToReport?: string;
         reportActionID?: string;
+    };
+    [SCREENS.MONEY_REQUEST.ODOMETER_IMAGE]: {
+        action: IOUAction;
+        iouType: IOUType;
+        transactionID: string;
+        readingType: OdometerImageType;
     };
     [SCREENS.MONEY_REQUEST.CREATE]: {
         iouType: IOUType;

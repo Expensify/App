@@ -7230,6 +7230,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             label: 'Anzeigen',
             table: 'Tabelle',
             bar: 'Leiste',
+            line: 'Linie',
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'Von',
@@ -7571,6 +7572,10 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             endReading: 'Lesen beenden',
             saveForLater: 'Für später speichern',
             totalDistance: 'Gesamtdistanz',
+            startTitle: 'Foto des Kilometerzähler-Starts',
+            endTitle: 'Kilometerzähler-Endfoto',
+            startMessageWeb: 'Füge ein Foto deines Kilometerzählers vom <strong>Beginn</strong> deiner Fahrt hinzu. Ziehe eine Datei hierher oder wähle eine zum Hochladen aus.',
+            endMessageWeb: 'Fügen Sie ein Foto Ihres Kilometerzählers vom <strong>Ende</strong> Ihrer Fahrt hinzu. Ziehen Sie eine Datei hierher oder wählen Sie eine zum Hochladen aus.',
         },
     },
     gps: {
@@ -7631,6 +7636,11 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             title: 'GPS-Tracking läuft',
             prompt: 'Bist du sicher, dass du die Reise verwerfen und dich abmelden möchtest?',
             confirm: 'Verwerfen und abmelden',
+        },
+        switchToODWarningTripInProgress: {
+            title: 'GPS-Tracking läuft',
+            prompt: 'Sind Sie sicher, dass Sie die GPS-Verfolgung beenden und zu Expensify Classic wechseln möchten?',
+            confirm: 'Anhalten und wechseln',
         },
         locationServicesRequiredModal: {
             title: 'Standortzugriff erforderlich',
@@ -8447,6 +8457,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             enterDomainName: 'Gib hier deinen Domainnamen ein',
             resetDomainInfo: `Diese Aktion ist <strong>dauerhaft</strong> und die folgenden Daten werden gelöscht: <br/> <ul><li>Firmenkartenzugänge und alle nicht eingereichten Ausgaben dieser Karten</li> <li>SAML- und Gruppeneinstellungen</li> </ul> Alle Konten, Workspaces, Berichte, Ausgaben und andere Daten bleiben erhalten. <br/><br/>Hinweis: Sie können diese Domain aus Ihrer Domainliste entfernen, indem Sie die zugehörige E-Mail aus Ihren <a href="#">Kontaktmethoden</a> entfernen.`,
         },
+        domainMembers: 'Domänenmitglieder',
         members: {
             title: 'Mitglieder',
             findMember: 'Mitglied finden',

@@ -7044,6 +7044,7 @@ ${reportName}
             label: '查看',
             table: '表',
             bar: '栏',
+            line: '折线',
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: '来自',
@@ -7377,6 +7378,10 @@ ${reportName}
             endReading: '结束阅读',
             saveForLater: '稍后保存',
             totalDistance: '总距离',
+            startTitle: '里程表起始照片',
+            endTitle: '里程表结束照片',
+            startMessageWeb: '从行程<strong>开始</strong>时添加一张里程表照片。将文件拖到此处或选择一个文件上传。',
+            endMessageWeb: '在行程<strong>结束</strong>时添加一张里程表照片。将文件拖到此处或选择一个文件上传。',
         },
     },
     gps: {
@@ -7438,6 +7443,7 @@ ${reportName}
             prompt: '确定要放弃此行程并退出登录吗？',
             confirm: '放弃并退出登录',
         },
+        switchToODWarningTripInProgress: {title: '正在进行 GPS 跟踪', prompt: '您确定要停止 GPS 追踪并切换到 Expensify Classic 吗？', confirm: '停止并切换'},
         locationServicesRequiredModal: {
             title: '需要访问位置信息',
             confirm: '打开设置',
@@ -8232,6 +8238,7 @@ ${reportName}
             enterDomainName: '在此输入您的域名',
             resetDomainInfo: `此操作<strong>无法撤销</strong>，并将删除以下数据：<br/> <ul><li>公司卡关联以及这些卡上所有未报销的费用</li> <li>SAML 和群组设置</li> </ul> 所有账户、工作区、报表、费用和其他数据将保留。<br/><br/>注意：您可以通过从<a href="#">联系方法</a>中移除关联的邮箱，将此域从您的域名列表中清除。`,
         },
+        domainMembers: '域成员',
         members: {
             title: '成员',
             findMember: '查找成员',

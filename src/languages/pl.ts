@@ -7180,6 +7180,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             label: 'Pokaż',
             table: 'Tabela',
             bar: 'Bar',
+            line: 'Linia',
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'Od',
@@ -7520,6 +7521,10 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             endReading: 'Zakończ czytanie',
             saveForLater: 'Zapisz na później',
             totalDistance: 'Całkowity dystans',
+            startTitle: 'Zdjęcie początku stanu licznika',
+            endTitle: 'Zdjęcie końcowe licznika przebiegu',
+            startMessageWeb: 'Dodaj zdjęcie licznika kilometrów z <strong>początku</strong> swojej podróży. Przeciągnij tutaj plik lub wybierz go, aby przesłać.',
+            endMessageWeb: 'Dodaj zdjęcie licznika przebiegu z <strong>końca</strong> swojej podróży. Przeciągnij tutaj plik lub wybierz jeden, aby go przesłać.',
         },
     },
     gps: {
@@ -7580,6 +7585,11 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             title: 'Trwa śledzenie GPS',
             prompt: 'Czy na pewno chcesz odrzucić podróż i się wylogować?',
             confirm: 'Odrzuć i wyloguj się',
+        },
+        switchToODWarningTripInProgress: {
+            title: 'Trwa śledzenie GPS',
+            prompt: 'Czy na pewno chcesz zatrzymać śledzenie GPS i przełączyć się na Expensify Classic?',
+            confirm: 'Zatrzymaj i przełącz',
         },
         locationServicesRequiredModal: {
             title: 'Wymagany dostęp do lokalizacji',
@@ -8391,6 +8401,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             enterDomainName: 'Wprowadź tutaj swoją nazwę domeny',
             resetDomainInfo: `Ta czynność jest <strong>trwała</strong> i spowoduje usunięcie następujących danych: <br/> <ul><li>Połączeń z kartami firmowymi oraz wszystkich nierozliczonych wydatków z tych kart</li> <li>Ustawień SAML i grup</li> </ul> Wszystkie konta, przestrzenie robocze, raporty, wydatki i inne dane pozostaną bez zmian. <br/><br/>Uwaga: Możesz usunąć tę domenę z listy swoich domen, usuwając powiązany adres e-mail z <a href="#">metod kontaktu</a>.`,
         },
+        domainMembers: 'Członkowie domeny',
         members: {
             title: 'Członkowie',
             findMember: 'Znajdź członka',

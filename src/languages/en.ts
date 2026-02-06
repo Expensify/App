@@ -7171,6 +7171,7 @@ const translations = {
             label: 'View',
             table: 'Table',
             bar: 'Bar',
+            line: 'Line',
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'From',
@@ -7509,6 +7510,10 @@ const translations = {
             endReading: 'End reading',
             saveForLater: 'Save for later',
             totalDistance: 'Total distance',
+            startTitle: 'Odometer start photo',
+            endTitle: 'Odometer end photo',
+            startMessageWeb: 'Add a photo of your odometer from the <strong>start</strong> of your trip. Drag a file here or choose one to upload.',
+            endMessageWeb: 'Add a photo of your odometer from the <strong>end</strong> of your trip. Drag a file here or choose one to upload.',
         },
     },
     gps: {
@@ -7569,6 +7574,11 @@ const translations = {
             title: 'GPS tracking in progress',
             prompt: 'Are you sure you want to discard the trip and sign out?',
             confirm: 'Discard and sign out',
+        },
+        switchToODWarningTripInProgress: {
+            title: 'GPS tracking in progress',
+            prompt: 'Are you sure you want to stop GPS tracking and switch to Expensify Classic?',
+            confirm: 'Stop and switch',
         },
         locationServicesRequiredModal: {
             title: 'Location access required',
@@ -8380,6 +8390,7 @@ const translations = {
             enterDomainName: 'Enter your domain name here',
             resetDomainInfo: `This action is <strong>permanent</strong> and the following data will be deleted: <br/> <ul><li>Company card connections and any unreported expenses from those cards</li> <li>SAML and group settings</li> </ul> All accounts, workspaces, reports, expenses, and other data will remain. <br/><br/>Note: You can clear this domain from your domains list by removing the associated email from your <a href="#">contact methods</a>.`,
         },
+        domainMembers: 'Domain members',
         members: {
             title: 'Members',
             findMember: 'Find member',

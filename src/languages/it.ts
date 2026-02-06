@@ -7210,6 +7210,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             label: 'Visualizza',
             table: 'Tabella',
             bar: 'Bar',
+            line: 'Linea',
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'Da',
@@ -7551,6 +7552,10 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             endReading: 'Fine lettura',
             saveForLater: 'Salva per dopo',
             totalDistance: 'Distanza totale',
+            startTitle: 'Foto iniziale del contachilometri',
+            endTitle: 'Foto del contachilometri finale',
+            startMessageWeb: 'Aggiungi una foto del contachilometri all’<strong>inizio</strong> del tuo viaggio. Trascina qui un file oppure scegli un file da caricare.',
+            endMessageWeb: 'Aggiungi una foto del contachilometri scattata alla <strong>fine</strong> del viaggio. Trascina qui un file oppure scegli un file da caricare.',
         },
     },
     gps: {
@@ -7611,6 +7616,11 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             title: 'Monitoraggio GPS in corso',
             prompt: 'Sei sicuro di voler annullare il viaggio e disconnetterti?',
             confirm: 'Annulla e disconnetti',
+        },
+        switchToODWarningTripInProgress: {
+            title: 'Monitoraggio GPS in corso',
+            prompt: 'Sei sicuro di voler interrompere il tracciamento GPS e passare a Expensify Classic?',
+            confirm: 'Interrompi e cambia',
         },
         locationServicesRequiredModal: {
             title: 'Accesso alla posizione richiesto',
@@ -8425,6 +8435,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             enterDomainName: 'Inserisci qui il tuo nome di dominio',
             resetDomainInfo: `Questa azione è <strong>definitiva</strong> e i seguenti dati verranno eliminati: <br/> <ul><li>Connessioni alle carte aziendali e tutte le spese non rendicontate di tali carte</li> <li>Impostazioni SAML e di gruppo</li> </ul> Tutti gli account, gli spazi di lavoro, i report, le spese e gli altri dati rimarranno. <br/><br/>Nota: puoi rimuovere questo dominio dall’elenco dei tuoi domini eliminando l’email associata dalle tue <a href="#">modalità di contatto</a>.`,
         },
+        domainMembers: 'Membri del dominio',
         members: {
             title: 'Membri',
             findMember: 'Trova membro',
