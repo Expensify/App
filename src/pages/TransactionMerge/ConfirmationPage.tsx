@@ -92,7 +92,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
         performPostMergeNavigation({
             isOnSearch: !!isOnSearch,
             reportID,
-            targetTransactionReportID: targetTransaction.reportID ?? '',
+            targetTransactionReportID: targetTransaction.reportID,
         });
     };
 

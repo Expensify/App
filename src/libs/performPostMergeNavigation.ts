@@ -6,7 +6,7 @@ import ROUTES from '@src/ROUTES';
 type PerformPostMergeNavigationParams = {
     isOnSearch: boolean;
     reportID: string;
-    targetTransactionReportID: string;
+    targetTransactionReportID: string | undefined;
 };
 
 /**
@@ -20,8 +20,8 @@ function performPostMergeNavigation({isOnSearch, reportID, targetTransactionRepo
     if (!isOnSearch && reportIDToDismiss && reportID !== targetTransactionReportID) {
         if (isSearchTopmostFullScreenRoute()) {
             Navigation.dismissModal();
-            Navigation.setNavigationActionToMicrotaskQueue(() => {
-                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: reportIDToDismiss}));
+            Navigation.setNavigationActionToMicrotaskQueue((): void => {
+                void Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: reportIDToDismiss}));
             });
         } else {
             Navigation.dismissModalWithReport({reportID: reportIDToDismiss});
