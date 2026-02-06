@@ -216,4 +216,17 @@ platforms:
         title: Billing & Subscriptions
         icon: /assets/images/subscription-annual.svg
         description: "Review Expensify's subscription options, plan types, and payment methods."
+        sections:
+          - href: subscription-setup-and-billing-ownership
+            title: Subscription Setup & Billing Ownership
+            order: 1
+          - href: subscription-management
+            title: Subscription Management
+            order: 2
+          - href: plans-and-pricing
+            title: Plans & Pricing
+            order: 3
+          - href: other-billing-scenarios
+            title: Other Billing Scenarios
+            order: 4
 
