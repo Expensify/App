@@ -174,6 +174,9 @@ type CommonListItemProps<TItem extends ListItem> = {
     /** Styles for the container view */
     containerStyle?: StyleProp<ViewStyle>;
 
+    /** Styles for the error row */
+    errorRowStyles?: StyleProp<ViewStyle>;
+
     /** Styles for the checkbox wrapper view if select multiple option is on */
     selectMultipleStyle?: StyleProp<ViewStyle>;
 
