@@ -736,9 +736,9 @@ describe('areTransactionsEligibleForMerge', () => {
         it('can not merge 2 split expenses', () => {
             const splitExpenseTransaction1 = {
                 ...createRandomTransaction(1),
-                reportID: CONST.REPORT.SPLIT_REPORT_ID,
                 managedCard: false,
                 cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
+                reportID: CONST.REPORT.SPLIT_REPORT_ID,
                 comment: {
                     ...createRandomTransaction(1).comment,
                     originalTransactionID: 'original-1',
@@ -747,9 +747,9 @@ describe('areTransactionsEligibleForMerge', () => {
             } as Transaction;
             const splitExpenseTransaction2 = {
                 ...createRandomTransaction(2),
-                reportID: CONST.REPORT.SPLIT_REPORT_ID,
                 managedCard: false,
                 cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
+                reportID: CONST.REPORT.SPLIT_REPORT_ID,
                 comment: {
                     ...createRandomTransaction(2).comment,
                     originalTransactionID: 'original-2',

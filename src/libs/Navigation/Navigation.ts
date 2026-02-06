@@ -10,6 +10,7 @@ import Onyx from 'react-native-onyx';
 import type {Writable} from 'type-fest';
 import {ALL_WIDE_RIGHT_MODALS, SUPER_WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider/WIDE_RIGHT_MODALS';
 import SidePanelActions from '@libs/actions/SidePanel';
+import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {shallowCompare} from '@libs/ObjectUtils';
@@ -23,6 +24,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
 import type {Account, SidePanel} from '@src/types/onyx';
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
+import getSearchTopmostReportParams from './getSearchTopmostReportParams';
 import originalCloseRHPFlow from './helpers/closeRHPFlow';
 import getStateFromPath from './helpers/getStateFromPath';
 import getTopmostReportParams from './helpers/getTopmostReportParams';
@@ -172,6 +174,11 @@ function canNavigate(methodName: string, params: CanNavigateParams = {}): boolea
 const getTopmostReportId = (state = navigationRef.getState()) => getTopmostReportParams(state)?.reportID;
 
 /**
+ * Extracts from the topmost report its id which also include the RHP report and search money request report.
+ */
+const getSearchTopmostReportId = (state = navigationRef.getRootState()) => getSearchTopmostReportParams(state)?.reportID;
+
+/**
  * Extracts from the topmost report its action id.
  */
 const getTopmostReportActionId = (state = navigationRef.getState()) => getTopmostReportParams(state)?.reportActionID;
@@ -266,6 +273,7 @@ function isActiveRoute(routePath: Route): boolean {
  * @param options.forceReplace - If true, the navigation action will replace the current route instead of pushing a new one.
  */
 function navigate(route: Route, options?: LinkToOptions) {
+    clearSelectedText();
     if (!canNavigate('navigate', {route})) {
         if (!navigationRef.isReady()) {
             // Store intended route if the navigator is not yet available,
@@ -439,6 +447,8 @@ function goUp(backToRoute: Route, options?: GoBackOptions) {
  * @param options - Optional configuration that affects navigation logic
  */
 function goBack(backToRoute?: Route, options?: GoBackOptions) {
+    clearSelectedText();
+
     if (!canNavigate('goBack', {backToRoute})) {
         return;
     }
@@ -505,7 +515,7 @@ function resetToHome() {
               name: SCREENS.REPORT,
           }
         : undefined;
-    const payload = getInitialSplitNavigatorState({name: SCREENS.HOME}, splitNavigatorMainScreen);
+    const payload = getInitialSplitNavigatorState({name: SCREENS.INBOX}, splitNavigatorMainScreen);
     navigationRef.dispatch({payload, type: CONST.NAVIGATION.ACTION_TYPE.REPLACE, target: rootState.key});
 }
 
@@ -519,7 +529,7 @@ function goBackToHome() {
     const isNarrowLayout = getIsNarrowLayout();
 
     // This set the right split navigator.
-    goBack(ROUTES.HOME);
+    goBack(ROUTES.INBOX);
 
     // We want to keep the report screen in the split navigator on wide layout.
     if (!isNarrowLayout) {
@@ -527,7 +537,7 @@ function goBackToHome() {
     }
 
     // This set the right route in this split navigator.
-    goBack(ROUTES.HOME);
+    goBack(ROUTES.INBOX);
 }
 
 /**
@@ -693,6 +703,7 @@ function getTopmostSuperWideRHPReportID(state: NavigationState = navigationRef.g
  * see the NAVIGATION.md documentation.
  */
 const dismissModal = ({ref = navigationRef, callback}: {ref?: NavigationRef; callback?: () => void} = {}) => {
+    clearSelectedText();
     isNavigationReady().then(() => {
         if (callback) {
             const subscription = DeviceEventEmitter.addListener(CONST.MODAL_EVENTS.CLOSED, () => {
@@ -936,6 +947,7 @@ export default {
     dismissToPreviousRHP,
     dismissToSuperWideRHP,
     getTopmostSearchReportID,
+    getSearchTopmostReportId,
     getTopmostSuperWideRHPReportParams,
     getTopmostSuperWideRHPReportID,
     getTopmostSearchReportRouteParams,

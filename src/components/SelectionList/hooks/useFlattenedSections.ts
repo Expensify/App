@@ -31,6 +31,9 @@ type UseFlattenedSectionsResult<TItem extends ListItem> = {
 
     /** Index of initially focused item in flattenedData, or -1 if none */
     initialFocusedIndex: number;
+
+    /** Index of the first focusable (non-header) item in flattenedData. Returns 0 if no items exist. */
+    firstFocusableIndex: number;
 };
 
 /**
@@ -43,19 +46,21 @@ function useFlattenedSections<TItem extends ListItem>(sections: Array<Section<TI
         const selectedOptions: TItem[] = [];
         const disabledIndices: number[] = [];
         let focusedIndex = -1;
+        let firstNonHeaderIndex = -1;
         let itemsTotalCount = 0;
 
         for (const section of sections) {
-            if (section.title) {
+            const sectionDataLength = section.data?.length ?? 0;
+            itemsTotalCount += sectionDataLength;
+            if (section.title && sectionDataLength > 0) {
                 disabledIndices.push(data.length);
                 data.push({
                     type: CONST.SECTION_LIST_ITEM_TYPE.HEADER,
                     title: section.title,
-                    keyForList: `header-${section.title}`,
+                    keyForList: `header-${section.sectionIndex}`,
                     isDisabled: true,
                 });
             }
-            itemsTotalCount += section.data?.length ?? 0;
 
             for (const item of section.data ?? []) {
                 const currentIndex = data.length;
@@ -63,10 +68,15 @@ function useFlattenedSections<TItem extends ListItem>(sections: Array<Section<TI
                     ...item,
                     type: CONST.SECTION_LIST_ITEM_TYPE.ROW,
                     isDisabled: section.isDisabled === true || item.isDisabled === true,
+                    flatListKey: `${section.sectionIndex}-${item.keyForList}`,
                 } as SectionListItem<TItem>;
                 data.push(itemData);
 
-                if (item.keyForList === initiallyFocusedItemKey) {
+                if (firstNonHeaderIndex === -1) {
+                    firstNonHeaderIndex = currentIndex;
+                }
+
+                if (item.keyForList === initiallyFocusedItemKey && focusedIndex === -1) {
                     focusedIndex = currentIndex;
                 }
 
@@ -87,6 +97,7 @@ function useFlattenedSections<TItem extends ListItem>(sections: Array<Section<TI
             itemsCount: itemsTotalCount,
             selectedItems: selectedOptions,
             initialFocusedIndex: focusedIndex,
+            firstFocusableIndex: firstNonHeaderIndex === -1 ? 0 : firstNonHeaderIndex,
         };
     }, [initiallyFocusedItemKey, sections]);
 }

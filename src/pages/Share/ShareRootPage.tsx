@@ -29,11 +29,11 @@ function showErrorAlert(title: string, message: string) {
     Alert.alert(title, message, [
         {
             onPress: () => {
-                Navigation.navigate(ROUTES.HOME);
+                Navigation.navigate(ROUTES.INBOX);
             },
         },
     ]);
-    Navigation.navigate(ROUTES.HOME);
+    Navigation.navigate(ROUTES.INBOX);
 }
 
 function ShareRootPage() {
@@ -171,8 +171,7 @@ function ShareRootPage() {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnableKeyboardAvoidingView={false}
+            includeSafeAreaPaddingBottom
             shouldEnableMinHeight={canUseTouchScreen()}
             testID="ShareRootPage"
         >
@@ -180,7 +179,7 @@ function ShareRootPage() {
                 <HeaderWithBackButton
                     title={translate('share.shareToExpensify')}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.HOME)}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.INBOX)}
                 />
                 {isFileReady ? (
                     <OnyxTabNavigator

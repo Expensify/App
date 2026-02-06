@@ -1,5 +1,5 @@
 import {deepEqual} from 'fast-equals';
-import React, {useEffect} from 'react';
+import React, {useMemo} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -64,7 +64,6 @@ type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typ
 function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-
     const {reportID, transactionID, splitExpenseTransactionID, backTo} = route.params;
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -95,7 +94,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const currentReport = report ?? searchContext?.currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`];
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getIOURequestPolicyID(transaction, currentReport)}`, {canBeMissing: true});
-
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const policy = usePolicy(currentReport?.policyID);
     const currentPolicy = Object.keys(policy?.employeeList ?? {}).length
         ? policy
@@ -107,9 +106,19 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         isSplitAction(currentReport, [transaction], originalTransaction, currentUserPersonalDetails.login ?? '', currentUserPersonalDetails.accountID, currentPolicy);
 
     const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction, undefined, currentPolicy) ?? {};
-    const transactionDetailsAmount = transactionDetails?.amount ?? 0;
+
+    const transactionDetailsAmount = useMemo(() => {
+        if (typeof transactionDetails?.amount !== 'number') {
+            return 0;
+        }
+        if (splitExpenseTransactionID) {
+            return draftTransaction?.comment?.splitExpensesTotal ?? 0;
+        }
+        return transactionDetails.amount;
+    }, [transactionDetails.amount, splitExpenseTransactionID, draftTransaction?.comment?.splitExpensesTotal]);
+
     const sumOfSplitExpenses = (draftTransaction?.comment?.splitExpenses ?? []).reduce((acc, item) => acc + (item.amount ?? 0), 0);
-    const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
+    const splitExpenses = useMemo(() => draftTransaction?.comment?.splitExpenses ?? [], [draftTransaction?.comment?.splitExpenses]);
 
     const currencySymbol = getCurrencySymbol(transactionDetails.currency ?? '') ?? transactionDetails.currency ?? CONST.CURRENCY.USD;
 
@@ -129,19 +138,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const {isBetaEnabled} = usePermissions();
 
-    useEffect(() => {
-        const errorString = getLatestErrorMessage(draftTransaction ?? {});
-
-        if (errorString) {
-            setErrorMessage(errorString);
-        }
-    }, [draftTransaction, draftTransaction?.errors]);
-
-    useEffect(() => {
-        setErrorMessage('');
-    }, [sumOfSplitExpenses, splitExpenses]);
+    const currentTransactionViolations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
+    const hasDistanceRateError = currentTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
+    const draftTransactionError = useMemo(() => getLatestErrorMessage(draftTransaction ?? {}), [draftTransaction]);
 
     const onAddSplitExpense = () => {
+        setErrorMessage('');
         if (draftTransaction?.errors) {
             clearSplitTransactionDraftErrors(transactionID);
         }
@@ -156,6 +158,16 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     };
 
     const onSaveSplitExpense = () => {
+        if (hasDistanceRateError) {
+            showConfirmModal({
+                title: translate('iou.splitExpense'),
+                prompt: translate('iou.splitExpenseDistanceErrorModalDescription'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            });
+            return;
+        }
+
         if (splitExpenses.length > CONST.IOU.SPLITS_LIMIT) {
             setErrorMessage(translate('iou.error.manySplitsProvided'));
             return;
@@ -224,10 +236,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
             quickAction,
             iouReportNextStep,
+            betas,
         });
     };
 
     const onSplitExpenseValueChange = (id: string, value: number, mode: ValueOf<typeof CONST.TAB.SPLIT>) => {
+        setErrorMessage('');
         if (mode === CONST.TAB.SPLIT.AMOUNT || mode === CONST.TAB.SPLIT.DATE) {
             const amountInCents = convertToBackendAmount(value);
             updateSplitExpenseAmountField(draftTransaction, id, amountInCents);
@@ -315,18 +329,23 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         </View>
     );
 
-    const shouldShowWarningMessage = sumOfSplitExpenses < transactionDetailsAmount;
-    const warningMessage = shouldShowWarningMessage
-        ? translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(transactionDetailsAmount - sumOfSplitExpenses, transactionDetails.currency)})
-        : '';
+    const displayError = errorMessage || draftTransactionError;
+    const difference = sumOfSplitExpenses - transactionDetailsAmount;
+    let warningMessage = '';
+    if (difference < 0) {
+        warningMessage = translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(-difference, transactionDetails.currency)});
+    } else if (difference > 0) {
+        warningMessage = translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)});
+    }
+
     const footerContent = (
         <View style={[styles.ph5, styles.pb5]}>
-            {(!!errorMessage || !!warningMessage) && (
+            {(!!displayError || !!warningMessage) && (
                 <FormHelpMessage
                     style={[styles.ph1, styles.mb2]}
-                    isError={!!errorMessage}
-                    isInfo={!errorMessage && shouldShowWarningMessage}
-                    message={errorMessage || warningMessage}
+                    isError={!!displayError}
+                    isInfo={!displayError && !!warningMessage}
+                    message={displayError || warningMessage}
                 />
             )}
             <Button
@@ -401,7 +420,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         <ScreenWrapper
             testID="SplitExpensePage"
             shouldEnableMaxHeight={canUseTouchScreen()}
-            keyboardAvoidingViewBehavior="height"
             shouldDismissKeyboardBeforeClose={false}
         >
             <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(draftTransaction) || !isSplitAvailable}>
