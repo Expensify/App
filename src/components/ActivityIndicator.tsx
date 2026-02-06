@@ -5,6 +5,7 @@ import {ActivityIndicator as RNActivityIndicator} from 'react-native';
 import useTheme from '@hooks/useTheme';
 import logAppStateOnLongLoading from '@libs/AppState';
 import type {ExtraLoadingContext} from '@libs/AppState';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 
@@ -17,11 +18,14 @@ type ActivityIndicatorProps = RNActivityIndicatorProps & {
 
     /** Extra loading context to be passed to the logAppStateOnLongLoading function */
     extraLoadingContext?: ExtraLoadingContext;
+
+    /** Reason attributes for skeleton span telemetry */
+    reasonAttributes?: SkeletonSpanReasonAttributes;
 };
 
-function ActivityIndicator({timeout = CONST.TIMING.ACTIVITY_INDICATOR_TIMEOUT, extraLoadingContext, ...rest}: ActivityIndicatorProps) {
+function ActivityIndicator({timeout = CONST.TIMING.ACTIVITY_INDICATOR_TIMEOUT, extraLoadingContext, reasonAttributes, ...rest}: ActivityIndicatorProps) {
     const theme = useTheme();
-    useSkeletonSpan('ActivityIndicator');
+    useSkeletonSpan('ActivityIndicator', reasonAttributes);
 
     useEffect(() => {
         const timeoutId = setTimeout(() => {

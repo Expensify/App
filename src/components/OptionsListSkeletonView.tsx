@@ -1,6 +1,7 @@
 import React from 'react';
 import {Circle, Rect} from 'react-native-svg';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 import ItemListSkeletonView from './Skeletons/ItemListSkeletonView';
 
@@ -23,11 +24,12 @@ type OptionsListSkeletonViewProps = {
     shouldStyleAsTable?: boolean;
     fixedNumItems?: number;
     speed?: number;
+    reasonAttributes?: SkeletonSpanReasonAttributes;
 };
 
-function OptionsListSkeletonView({shouldAnimate = true, shouldStyleAsTable = false, gradientOpacityEnabled = false, fixedNumItems, speed}: OptionsListSkeletonViewProps) {
+function OptionsListSkeletonView({shouldAnimate = true, shouldStyleAsTable = false, gradientOpacityEnabled = false, fixedNumItems, speed, reasonAttributes}: OptionsListSkeletonViewProps) {
     const styles = useThemeStyles();
-    useSkeletonSpan('OptionsListSkeletonView');
+    useSkeletonSpan('OptionsListSkeletonView', reasonAttributes);
 
     return (
         <ItemListSkeletonView
