@@ -5,10 +5,10 @@ import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_
 import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
 import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
 import AnnouncementSection from './AnnouncementSection';
 import DiscoverSection from './DiscoverSection';
