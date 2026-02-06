@@ -237,11 +237,7 @@ function getForReportAction({
 
     const isReportActionOriginalMessageAnObject = reportActionOriginalMessage && typeof reportActionOriginalMessage === 'object';
     const hasModifiedAmount =
-        isReportActionOriginalMessageAnObject &&
-        'oldAmount' in reportActionOriginalMessage &&
-        'oldCurrency' in reportActionOriginalMessage &&
-        'amount' in reportActionOriginalMessage &&
-        'currency' in reportActionOriginalMessage;
+        isReportActionOriginalMessageAnObject && 'oldCurrency' in reportActionOriginalMessage && 'amount' in reportActionOriginalMessage && 'currency' in reportActionOriginalMessage;
 
     const hasModifiedMerchant = isReportActionOriginalMessageAnObject && 'oldMerchant' in reportActionOriginalMessage && 'merchant' in reportActionOriginalMessage;
 
@@ -260,7 +256,7 @@ function getForReportAction({
             return getForDistanceRequest(translateLocal, reportActionOriginalMessage?.merchant ?? '', reportActionOriginalMessage?.oldMerchant ?? '', amount, oldAmount);
         }
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        buildMessageFragmentForValue(translateLocal, amount, oldAmount, translateLocal('iou.amount'), false, setFragments, removalFragments, changeFragments);
+        buildMessageFragmentForValue(translateLocal, amount, oldAmountValue ? oldAmount : '', translateLocal('iou.amount'), false, setFragments, removalFragments, changeFragments);
     }
 
     const hasModifiedComment = isReportActionOriginalMessageAnObject && 'oldComment' in reportActionOriginalMessage && 'newComment' in reportActionOriginalMessage;
