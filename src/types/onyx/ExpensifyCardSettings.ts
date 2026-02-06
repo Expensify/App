@@ -1,7 +1,7 @@
 import type * as OnyxCommon from './OnyxCommon';
 
-/** Model of Expensify card settings for a workspace */
-type ExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<{
+/** Base settings that can appear at root level or nested under feed type */
+type ExpensifyCardSettingsBase = {
     /** Sum of all posted Expensify Card transactions */
     currentBalance?: number;
 
@@ -12,13 +12,16 @@ type ExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<{
     earnedCashback?: number;
 
     /** The date of the last settlement */
-    monthlySettlementDate: Date;
+    monthlySettlementDate?: Date;
 
     /** Whether monthly option should appear in the settlement frequency settings */
-    isMonthlySettlementAllowed: boolean;
+    isMonthlySettlementAllowed?: boolean;
 
     /** The bank account chosen for the card settlement */
-    paymentBankAccountID: number;
+    paymentBankAccountID?: number;
+
+    /** Whether the card program (e.g., Travel Invoicing) is enabled */
+    isEnabled?: boolean;
 
     /** The previous bank account chosen for the card settlement, used for reverting failed updates */
     previousPaymentBankAccountID?: number;
@@ -46,6 +49,22 @@ type ExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Number of the bank account used for the card settlement */
     paymentBankAccountNumber?: string;
-}>;
+
+    /** Credit limit for the card program */
+    limit?: number;
+
+    /** Owner email for the card program */
+    ownerEmail?: string;
+};
+
+/** Model of Expensify card settings for a workspace - can have nested feed types from backend */
+type ExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<
+    ExpensifyCardSettingsBase & {
+        /** Nested Travel Invoicing settings from backend */
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        TRAVEL_US?: ExpensifyCardSettingsBase;
+    }
+>;
 
 export default ExpensifyCardSettings;
+export type {ExpensifyCardSettingsBase};

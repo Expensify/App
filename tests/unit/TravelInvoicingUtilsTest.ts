@@ -29,22 +29,59 @@ describe('TravelInvoicingUtils', () => {
             expect(result).toBe(false);
         });
 
-        it('Should return false when paymentBankAccountID is not set', () => {
+        it('Should return false when isEnabled is explicitly false', () => {
+            const cardSettings = {isEnabled: false} as ExpensifyCardSettings;
+            const result = getIsTravelInvoicingEnabled(cardSettings);
+            expect(result).toBe(false);
+        });
+
+        it('Should return true when isEnabled is explicitly true', () => {
+            const cardSettings = {isEnabled: true} as ExpensifyCardSettings;
+            const result = getIsTravelInvoicingEnabled(cardSettings);
+            expect(result).toBe(true);
+        });
+
+        it('Should return false when isEnabled is undefined and no paymentBankAccountID (new account)', () => {
+            // Empty settings (like from loading state) should return false, not true
             const cardSettings = {} as ExpensifyCardSettings;
             const result = getIsTravelInvoicingEnabled(cardSettings);
             expect(result).toBe(false);
         });
 
-        it('Should return false when paymentBankAccountID is 0', () => {
-            const cardSettings = {paymentBankAccountID: 0} as ExpensifyCardSettings;
+        it('Should return true when isEnabled is undefined with valid paymentBankAccountID', () => {
+            const cardSettings = {paymentBankAccountID: 12345} as ExpensifyCardSettings;
+            const result = getIsTravelInvoicingEnabled(cardSettings);
+            expect(result).toBe(true);
+        });
+
+        // Tests for nested TRAVEL_US structure (backend response format)
+        it('Should return false when nested TRAVEL_US.isEnabled is false', () => {
+            const cardSettings = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                TRAVEL_US: {isEnabled: false, paymentBankAccountID: 12345},
+            } as ExpensifyCardSettings;
             const result = getIsTravelInvoicingEnabled(cardSettings);
             expect(result).toBe(false);
         });
 
-        it('Should return true when paymentBankAccountID is set to a valid value', () => {
-            const cardSettings = {paymentBankAccountID: 12345} as ExpensifyCardSettings;
+        it('Should return true when nested TRAVEL_US.isEnabled is true', () => {
+            const cardSettings = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                TRAVEL_US: {isEnabled: true, paymentBankAccountID: 12345},
+            } as ExpensifyCardSettings;
             const result = getIsTravelInvoicingEnabled(cardSettings);
             expect(result).toBe(true);
+        });
+
+        it('Should prioritize nested TRAVEL_US over root level', () => {
+            // Even if root level says enabled, nested TRAVEL_US should take precedence
+            const cardSettings = {
+                isEnabled: true,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                TRAVEL_US: {isEnabled: false},
+            } as ExpensifyCardSettings;
+            const result = getIsTravelInvoicingEnabled(cardSettings);
+            expect(result).toBe(false);
         });
     });
 

@@ -1,9 +1,10 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {OpenPolicyTravelPageParams, SetTravelInvoicingSettlementAccountParams} from '@libs/API/parameters';
+import type {OpenPolicyTravelPageParams, SetTravelInvoicingSettlementAccountParams, ToggleTravelInvoicingParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import {getDomainNameForPolicy} from '@libs/PolicyUtils';
 import {getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -66,6 +67,7 @@ function setTravelInvoicingSettlementAccount(policyID: string, workspaceAccountI
                 previousPaymentBankAccountID,
                 isLoading: true,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                errors: null,
             },
         },
     ];
@@ -119,4 +121,68 @@ function clearTravelInvoicingSettlementAccountErrors(workspaceAccountID: number,
     });
 }
 
-export {openPolicyTravelPage, setTravelInvoicingSettlementAccount, clearTravelInvoicingSettlementAccountErrors};
+/**
+ * Toggles Travel Invoicing on or off for a workspace.
+ * Sets isEnabled flag optimistically, backend confirms via onyx data.
+ */
+function toggleTravelInvoicing(policyID: string, workspaceAccountID: number, enabled: boolean) {
+    const domainName = getDomainNameForPolicy(policyID);
+    const cardSettingsKey = getTravelInvoicingCardSettingsKey(workspaceAccountID);
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: cardSettingsKey,
+            value: {
+                isEnabled: enabled,
+                isLoading: true,
+                pendingAction: enabled ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                errors: null,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: cardSettingsKey,
+            value: {
+                isLoading: false,
+                pendingAction: null,
+            },
+        },
+    ];
+
+    // On failure: revert isEnabled and show error
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: cardSettingsKey,
+            value: {
+                isEnabled: !enabled,
+                isLoading: false,
+                pendingAction: null,
+                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+            },
+        },
+    ];
+
+    const params: ToggleTravelInvoicingParams = {
+        domainName,
+        enabled,
+    };
+
+    API.write(WRITE_COMMANDS.TOGGLE_TRAVEL_INVOICING, params, {optimisticData, successData, failureData});
+}
+
+/**
+ * Clears any errors from the Travel Invoicing toggle action.
+ */
+function clearToggleTravelInvoicingErrors(workspaceAccountID: number) {
+    Onyx.merge(getTravelInvoicingCardSettingsKey(workspaceAccountID), {
+        errors: null,
+        pendingAction: null,
+    });
+}
+
+export {openPolicyTravelPage, setTravelInvoicingSettlementAccount, clearTravelInvoicingSettlementAccountErrors, toggleTravelInvoicing, clearToggleTravelInvoicingErrors};
