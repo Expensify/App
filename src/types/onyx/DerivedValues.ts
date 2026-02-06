@@ -111,11 +111,6 @@ type CardFeedErrorState = {
     shouldShowRBR: boolean;
 
     /**
-     * Whether some failed card assignments.
-     */
-    hasFailedCardAssignments: boolean;
-
-    /**
      * Whether a specific feed within a workspace/domain has errors.
      */
     hasFeedErrors: boolean;
@@ -214,6 +209,34 @@ type CardFeedErrorsDerivedValue = CardFeedErrors;
  */
 type NonPersonalAndWorkspaceCardListDerivedValue = CardList;
 
+/**
+ * Metadata for todo search results.
+ */
+type TodoMetadata = {
+    /** Total number of transactions across all reports */
+    count: number;
+    /** Sum of all report totals (in cents) */
+    total: number;
+    /** Currency of the first report, used as reference currency */
+    currency: string | undefined;
+};
+
+/**
+ * The derived value for todos.
+ */
+type TodosDerivedValue = {
+    /** Reports that need to be submitted */
+    reportsToSubmit: Report[];
+    /** Reports that need to be approved */
+    reportsToApprove: Report[];
+    /** Reports that need to be paid */
+    reportsToPay: Report[];
+    /** Reports that need to be exported */
+    reportsToExport: Report[];
+    /** Transactions grouped by report ID */
+    transactionsByReportID: Record<string, Transaction[]>;
+};
+
 export default ReportAttributesDerivedValue;
 export type {
     ReportAttributes,
@@ -224,6 +247,8 @@ export type {
     VisibleReportActionsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
+    TodosDerivedValue,
+    TodoMetadata,
     AllCardFeedErrorsMap,
     CardFeedErrorsObject,
     FeedErrors,
