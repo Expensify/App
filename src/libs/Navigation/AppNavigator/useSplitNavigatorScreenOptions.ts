@@ -2,6 +2,7 @@ import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isMobileSafari} from '@libs/Browser';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import variables from '@styles/variables';
@@ -51,10 +52,11 @@ const useSplitNavigatorScreenOptions = () => {
             ...hideKeyboardOnSwipe,
             headerShown: false,
             title: CONFIG.SITE_TITLE,
-            animation: shouldUseNarrowLayout ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
+            animation: shouldUseNarrowLayout && !isMobileSafari() ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
             animationTypeForReplace: 'pop',
             web: {
-                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true, shouldAnimateSidePanel: true}),
+                cardStyleInterpolator: (props: StackCardInterpolationProps) =>
+                    modalCardStyleInterpolator({props, isFullScreenModal: true, shouldAnimateSidePanel: true, animationEnabled: !isMobileSafari()}),
                 cardStyle: shouldUseNarrowLayout ? StyleUtils.getNavigationModalCardStyle() : themeStyles.h100,
             },
         },
