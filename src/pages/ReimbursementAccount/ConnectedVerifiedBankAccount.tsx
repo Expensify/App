@@ -2,7 +2,7 @@ import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import getBankIcon from '@components/Icon/BankIcons';
-import {Close} from '@components/Icon/Expensicons';
+import {Bank, Close} from '@components/Icon/Expensicons';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import MenuItem from '@components/MenuItem';
@@ -15,8 +15,10 @@ import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@navigation/Navigation';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
 import {requestResetBankAccount, resetReimbursementAccount} from '@userActions/ReimbursementAccount';
+import ROUTES from '@src/ROUTES';
 import type {ReimbursementAccount} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -62,6 +64,14 @@ function ConnectedVerifiedBankAccount({
     const pendingAction = reimbursementAccount?.pendingAction;
     const shouldShowResetModal = reimbursementAccount?.shouldShowResetModal ?? false;
     const {asset: ThumbsUpStars} = useMemoizedLazyAsset(() => loadIllustration('ThumbsUpStars' as IllustrationName));
+    const policyID = reimbursementAccount?.achData?.policyID;
+    const navigateToLinkExistingBankAccounts = () => {
+        if (!policyID) {
+            return;
+        }
+
+        Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policyID));
+    };
 
     return (
         <ScreenWrapper
@@ -98,6 +108,14 @@ function ConnectedVerifiedBankAccount({
                             wrapperStyle={[styles.ph0, styles.mv3, styles.h13]}
                         />
                         <Text style={[styles.mv3]}>{translate('workspace.bankAccount.accountDescriptionWithCards')}</Text>
+                        <MenuItem
+                            title={translate('workspace.bankAccount.changeBankAccount')}
+                            icon={Bank}
+                            onPress={navigateToLinkExistingBankAccounts}
+                            shouldShowRightIcon
+                            outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
+                            disabled={!!pendingAction || !isEmptyObject(errors)}
+                        />
                         <MenuItem
                             title={translate('workspace.bankAccount.disconnectBankAccount')}
                             icon={Close}
