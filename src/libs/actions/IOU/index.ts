@@ -13338,36 +13338,7 @@ function updateSplitExpenseAmountField(draftTransaction: OnyxEntry<OnyxTypes.Tra
         return splitExpense;
     });
 
-    // Find unedited splits (excluding the one being edited)
-    const uneditedSplits = splitWithUpdatedAmount.filter((split) => !split.isManuallyEdited);
-
-    // If no unedited splits remain, just save the updated amounts without redistribution
-    if (uneditedSplits.length === 0) {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
-            comment: {
-                splitExpenses: splitWithUpdatedAmount,
-            },
-        });
-        return;
-    }
-
-    // Sum amounts of manually edited splits (the updated split is already marked as edited)
-    const editedSum = splitWithUpdatedAmount.filter((split) => split.isManuallyEdited).reduce((sum, split) => sum + split.amount, 0);
-
-    // Redistribute remaining amount among unedited splits
-    const remaining = total - editedSum;
-    const lastUneditedIndex = uneditedSplits.length - 1;
-    let uneditedIndex = 0;
-
-    const redistributedSplitExpenses = splitWithUpdatedAmount.map((split) => {
-        if (split.isManuallyEdited) {
-            return split;
-        }
-        const isLast = uneditedIndex === lastUneditedIndex;
-        const newAmount = calculateIOUAmount(lastUneditedIndex, remaining, currency, isLast, true);
-        uneditedIndex += 1;
-        return {...split, amount: newAmount};
-    });
+    const redistributedSplitExpenses = redistributeSplitExpenseAmounts(splitWithUpdatedAmount, total, currency);
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
         comment: {
