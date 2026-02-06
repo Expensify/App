@@ -214,14 +214,14 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         (menuItems: MenuItemWithLink[]) => (
             <MenuItemList
                 menuItems={menuItems}
-                wrapperStyle={styles.sectionMenuItem}
+                wrapperStyle={styles.sectionMenuItemCompact}
                 icon={expensifyIcons.Bookmark}
-                iconWidth={variables.iconSizeNormal}
-                iconHeight={variables.iconSizeNormal}
+                iconWidth={variables.iconSizeSmall}
+                iconHeight={variables.iconSizeSmall}
                 shouldUseSingleExecution
             />
         ),
-        [expensifyIcons.Bookmark, styles.sectionMenuItem],
+        [expensifyIcons.Bookmark, styles.sectionMenuItemCompact],
     );
 
     const activeItemIndex = useMemo(() => {
@@ -275,9 +275,9 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                                     title={translate(item.translationPath)}
                                                     badgeStyle={styles.todoBadge}
                                                     icon={icon}
-                                                    iconWidth={variables.iconSizeNormal}
-                                                    iconHeight={variables.iconSizeNormal}
-                                                    wrapperStyle={styles.sectionMenuItem}
+                                                    iconWidth={variables.iconSizeSmall}
+                                                    iconHeight={variables.iconSizeSmall}
+                                                    wrapperStyle={styles.sectionMenuItemCompact}
                                                     badgeText={item.badgeText}
                                                     focused={focused}
                                                     onPress={onPress}

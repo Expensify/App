@@ -2817,6 +2817,13 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        sectionMenuItemCompact: {
+            borderRadius: 8,
+            paddingHorizontal: 12,
+            height: 40,
+            alignItems: 'center',
+        },
+
         sectionSelectCircle: {
             backgroundColor: theme.cardBG,
         },

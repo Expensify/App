@@ -48,6 +48,7 @@ import {
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type WORKSPACE_TO_RHP from '@navigation/linkingConfig/RELATIONS/WORKSPACE_TO_RHP';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -567,9 +568,11 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                     interactive={!hasPolicyCreationError}
                                     title={translate(item.translationKey)}
                                     icon={item.icon}
+                                    iconWidth={variables.iconSizeSmall}
+                                    iconHeight={variables.iconSizeSmall}
                                     onPress={item.action}
                                     brickRoadIndicator={item.brickRoadIndicator}
-                                    wrapperStyle={styles.sectionMenuItem}
+                                    wrapperStyle={styles.sectionMenuItemCompact}
                                     highlighted={!!item?.highlighted}
                                     focused={!!(item.screenName && activeRoute?.startsWith(item.screenName))}
                                     badgeText={item.badgeText}
