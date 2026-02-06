@@ -2758,8 +2758,7 @@ ${amount} pour ${merchant} - ${date}`,
                         5. Ajoutez vos propres catégories en haut à droite.
 
                         [Accéder aux paramètres des catégories de l’espace de travail](${workspaceCategoriesLink}).
-
-                        ![Configurer des catégories](${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)`),
+                    `),
             },
             combinedTrackSubmitExpenseTask: {
                 title: 'Soumettre une dépense',
@@ -2850,8 +2849,7 @@ ${
                         5. Ajoutez un message d’invitation personnalisé si vous le souhaitez !
 
                         [Aller aux membres de l’espace de travail](${workspaceMembersLink}).
-
-                        ![Invitez votre équipe](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`),
+                    `),
             },
             setupCategoriesAndTags: {
                 title: ({workspaceCategoriesLink, workspaceTagsLink}) => `Configurer les [catégories](${workspaceCategoriesLink}) et les [tags](${workspaceTagsLink})`,
@@ -2876,7 +2874,7 @@ ${
 
                         [Afficher plus de fonctionnalités](${workspaceMoreFeaturesLink}).
 
-                        ![Configurer les tags](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`),
+                    `),
             },
             inviteAccountantTask: {
                 title: ({workspaceMembersLink}) => `Invitez votre [comptable](${workspaceMembersLink})`,

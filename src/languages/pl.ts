@@ -2736,8 +2736,7 @@ ${amount} dla ${merchant} - ${date}`,
                         5. Dodaj własne kategorie w prawym górnym rogu.
 
                         [Przejdź do ustawień kategorii w środowisku pracy](${workspaceCategoriesLink}).
-
-                        ![Skonfiguruj kategorie](${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)`),
+                    `),
             },
             combinedTrackSubmitExpenseTask: {
                 title: 'Wyślij wydatek',
@@ -2828,8 +2827,7 @@ ${
                         5. Dodaj własną wiadomość z zaproszeniem, jeśli chcesz!
 
                         [Przejdź do członków workspace](${workspaceMembersLink}).
-
-                        ![Zaproś swój zespół](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`),
+                    `),
             },
             setupCategoriesAndTags: {
                 title: ({workspaceCategoriesLink, workspaceTagsLink}) => `Skonfiguruj [kategorie](${workspaceCategoriesLink}) i [tagi](${workspaceTagsLink})`,
@@ -2854,7 +2852,7 @@ ${
 
                         [Przejdź do dodatkowych funkcji](${workspaceMoreFeaturesLink}).
 
-                        ![Skonfiguruj tagi](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`),
+                    `),
             },
             inviteAccountantTask: {
                 title: ({workspaceMembersLink}) => `Zaproś swojego [księgowego](${workspaceMembersLink})`,

@@ -8441,7 +8441,6 @@ function buildOptimisticTaskReport(
     description?: string,
     policyID: string = CONST.POLICY.OWNER_EMAIL_FAKE,
     notificationPreference: NotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-    mediaAttributes?: Record<string, string>,
 ): OptimisticTaskReport {
     const participants: Participants = {
         [ownerAccountID]: {
@@ -8456,7 +8455,7 @@ function buildOptimisticTaskReport(
     return {
         reportID: generateReportID(),
         reportName: getParsedComment(title ?? '', undefined, undefined, [...CONST.TASK_TITLE_DISABLED_RULES]),
-        description: getParsedComment(description ?? '', {}, mediaAttributes),
+        description: getParsedComment(description ?? '', {}),
         ownerAccountID,
         participants,
         managerID: assigneeAccountID,
@@ -11398,7 +11397,6 @@ function prepareOnboardingOnyxData({
                 taskDescription,
                 targetChatPolicyID,
                 CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-                task.mediaAttributes,
             );
             const emailCreatingAction =
                 engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? (allPersonalDetails?.[actorAccountID]?.login ?? CONST.EMAIL.CONCIERGE) : CONST.EMAIL.CONCIERGE;

@@ -2744,8 +2744,7 @@ ${amount} per ${merchant} - ${date}`,
                         5. Aggiungi le tue categorie in alto a destra.
 
                         [Portami alle impostazioni delle categorie del workspace](${workspaceCategoriesLink}).
-
-                        ![Configura le categorie](${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)`),
+                    `),
             },
             combinedTrackSubmitExpenseTask: {
                 title: 'Invia una spesa',
@@ -2836,8 +2835,7 @@ ${
                         5. Aggiungi un messaggio di invito personalizzato, se vuoi!
 
                         [Portami ai membri dello spazio di lavoro](${workspaceMembersLink}).
-
-                        ![Invita il tuo team](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`),
+                    `),
             },
             setupCategoriesAndTags: {
                 title: ({workspaceCategoriesLink, workspaceTagsLink}) => `Configura [categorie](${workspaceCategoriesLink}) e [tag](${workspaceTagsLink})`,
@@ -2862,7 +2860,7 @@ ${
 
                         [Portami a More features](${workspaceMoreFeaturesLink}).
 
-                        ![Configura i tag](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`),
+                    `),
             },
             inviteAccountantTask: {
                 title: ({workspaceMembersLink}) => `Invita il tuo [commercialista](${workspaceMembersLink})`,
