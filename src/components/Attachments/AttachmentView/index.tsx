@@ -331,7 +331,7 @@ function AttachmentView({
                         // Forces remount when transitioning from blob URL (uploading) to server URL (uploaded).
                         // Prevents stale Image cache that causes "Attachment not found" errors.
                         // See: https://github.com/Expensify/App/issues/76193
-                        key={`${attachmentID}-${isHighResolution && isUploaded ? 'preview' : 'full'}`}
+                        key={imageSource}
                         attachmentID={attachmentID}
                         url={imageSource}
                         file={file}
