@@ -1513,10 +1513,6 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (policyID: string, backTo?: string) => `${getUrlWithBackToParam(`workspaces/${policyID}/invite-message/role`, backTo)}` as const,
     },
-    WORKSPACE_INVITE_MESSAGE_APPROVER: {
-        route: 'workspaces/:policyID/invite-message/approver',
-        getRoute: (policyID: string) => `workspaces/${policyID}/invite-message/approver` as const,
-    },
     WORKSPACE_OVERVIEW: {
         route: 'workspaces/:policyID/overview',
         getRoute: (policyID: string | undefined, backTo?: string) => {
@@ -2490,6 +2486,18 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/${policyID}/expensify-card/${cardID}/edit/limit-type`, backTo),
+    },
+    EXPENSIFY_CARD_EXPIRY_OPTIONS: {
+        route: 'settings/:policyID/expensify-card/:cardID/edit/expiry-options',
+
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/${policyID}/expensify-card/${cardID}/edit/expiry-options`, backTo),
+    },
+    WORKSPACE_EXPENSIFY_CARD_EXPIRY_OPTIONS: {
+        route: 'workspaces/:policyID/expensify-card/:cardID/edit/expiry-options',
+
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/expensify-card/${cardID}/edit/expiry-options`, backTo),
     },
     WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: {
         route: 'workspaces/:policyID/expensify-card/issue-new',
