@@ -768,6 +768,7 @@ function ReportActionsList({
             isReportArchived,
             reportNameValuePairs?.origin,
             reportNameValuePairs?.originalID,
+            reportActionsFromOnyx,
         ],
     );
 
