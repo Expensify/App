@@ -23,6 +23,7 @@ import type {
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {isReportOpenOrUnsubmitted} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -1178,6 +1179,7 @@ function issueExpensifyCard(domainAccountID: number, policyID: string | undefine
     }
 
     const {assigneeEmail, limit, limitType, cardTitle, cardType} = data;
+    const normalizedAssigneeEmail = addSMSDomainIfPhoneNumber(assigneeEmail);
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD>> = [
         {
@@ -1214,7 +1216,7 @@ function issueExpensifyCard(domainAccountID: number, policyID: string | undefine
     ];
 
     const parameters = {
-        assigneeEmail,
+        assigneeEmail: normalizedAssigneeEmail,
         limit,
         limitType,
         cardTitle,
