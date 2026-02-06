@@ -41,7 +41,7 @@ function SearchEditMultipleTaxPage() {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            testID={SearchEditMultipleTaxPage.displayName}
+            testID="SearchEditMultipleTaxPage"
         >
             <HeaderWithBackButton
                 title={translate('iou.taxRate')}

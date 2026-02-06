@@ -44,7 +44,7 @@ function SearchEditMultipleDatePage() {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            testID={SearchEditMultipleDatePage.displayName}
+            testID="SearchEditMultipleDatePage"
         >
             <HeaderWithBackButton
                 title={translate('common.date')}

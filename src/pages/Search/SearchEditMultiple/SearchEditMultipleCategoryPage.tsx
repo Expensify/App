@@ -41,7 +41,7 @@ function SearchEditMultipleCategoryPage() {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            testID={SearchEditMultipleCategoryPage.displayName}
+            testID="SearchEditMultipleCategoryPage"
         >
             <HeaderWithBackButton
                 title={translate('common.category')}

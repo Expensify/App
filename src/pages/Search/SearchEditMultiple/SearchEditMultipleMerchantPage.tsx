@@ -48,7 +48,7 @@ function SearchEditMultipleMerchantPage() {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            testID={SearchEditMultipleMerchantPage.displayName}
+            testID="SearchEditMultipleMerchantPage"
         >
             <HeaderWithBackButton
                 title={translate('common.merchant')}

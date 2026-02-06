@@ -64,7 +64,7 @@ function SearchEditMultipleTagPage() {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            testID={SearchEditMultipleTagPage.displayName}
+            testID="SearchEditMultipleTagPage"
         >
             <HeaderWithBackButton
                 title={headerTitle}

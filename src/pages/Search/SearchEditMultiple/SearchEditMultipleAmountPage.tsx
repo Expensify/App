@@ -100,7 +100,7 @@ function SearchEditMultipleAmountPage() {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            testID={SearchEditMultipleAmountPage.displayName}
+            testID="SearchEditMultipleAmountPage"
         >
             <HeaderWithBackButton
                 title={translate('iou.amount')}
