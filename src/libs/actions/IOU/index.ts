@@ -6116,19 +6116,31 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
 /**
  * Move multiple tracked expenses from self-DM to an IOU report
  */
-function convertBulkTrackedExpensesToIOU(
-    transactionIDs: string[],
-    iouReport: OnyxEntry<OnyxTypes.Report>,
-    chatReport: OnyxEntry<OnyxTypes.Report>,
-    isASAPSubmitBetaEnabled: boolean,
-    currentUserAccountIDParam: number,
-    currentUserEmailParam: string,
-    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
-    policyRecentlyUsedCurrencies: string[],
-    quickAction: OnyxEntry<OnyxTypes.QuickAction>,
-    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
-    betas: OnyxEntry<OnyxTypes.Beta[]>,
-) {
+function convertBulkTrackedExpensesToIOU({
+    transactionIDs,
+    iouReport,
+    chatReport,
+    isASAPSubmitBetaEnabled,
+    currentUserAccountIDParam,
+    currentUserEmailParam,
+    transactionViolations,
+    policyRecentlyUsedCurrencies,
+    quickAction,
+    personalDetails,
+    betas,
+}: {
+    transactionIDs: string[];
+    iouReport: OnyxEntry<OnyxTypes.Report>;
+    chatReport: OnyxEntry<OnyxTypes.Report>;
+    isASAPSubmitBetaEnabled: boolean;
+    currentUserAccountIDParam: number;
+    currentUserEmailParam: string;
+    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    policyRecentlyUsedCurrencies: string[];
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+}) {
     const iouReportID = iouReport?.reportID;
 
     if (!iouReport || !isMoneyRequestReportReportUtils(iouReport)) {

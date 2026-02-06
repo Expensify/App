@@ -58,19 +58,19 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             if (report && isIOUReport(report)) {
-                convertBulkTrackedExpensesToIOU(
-                    [...selectedIds],
-                    report,
+                convertBulkTrackedExpensesToIOU({
+                    transactionIDs: [...selectedIds],
+                    iouReport: report,
                     chatReport,
                     isASAPSubmitBetaEnabled,
-                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    session?.email ?? '',
+                    currentUserAccountIDParam: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    currentUserEmailParam: session?.email ?? '',
                     transactionViolations,
-                    policyRecentlyUsedCurrencies ?? [],
+                    policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     quickAction,
                     personalDetails,
                     betas,
-                );
+                });
             } else {
                 changeTransactionsReport({
                     transactionIDs: [...selectedIds],
