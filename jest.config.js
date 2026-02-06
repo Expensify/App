@@ -1,6 +1,5 @@
 const testFileExtension = 'ts?(x)';
 const workerIdleMemoryLimit = process.env.JEST_WORKER_IDLE_MEMORY_LIMIT ?? '900MB';
-
 module.exports = {
     preset: 'jest-expo',
     collectCoverageFrom: ['<rootDir>/src/**/*.{ts,tsx,js,jsx}', '!<rootDir>/src/**/__mocks__/**', '!<rootDir>/src/**/tests/**', '!**/*.d.ts'],
