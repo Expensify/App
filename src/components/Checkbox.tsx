@@ -132,7 +132,7 @@ function Checkbox({
             onKeyDown={handleSpaceOrEnterKey}
             role={CONST.ROLE.CHECKBOX}
             accessibilityState={{
-                checked: isIndeterminate ? ('mixed' as const) : isChecked,
+                checked: isIndeterminate ? 'mixed' : isChecked,
             }}
             /*  true  → checked
                 false → unchecked
