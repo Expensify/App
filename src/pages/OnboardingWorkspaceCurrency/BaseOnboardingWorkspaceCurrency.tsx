@@ -66,8 +66,12 @@ function BaseOnboardingWorkspaceCurrency({route, shouldUseNativeStyles}: BaseOnb
                 </Text>
             </View>
             <CurrencySelectionList
-                listItemWrapperStyle={onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8] : []}
-                textInputStyle={onboardingIsMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5}
+                style={{listItemWrapperStyle: onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8] : []}}
+                textInputOptions={{
+                    style: {
+                        containerStyle: onboardingIsMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5,
+                    },
+                }}
                 initiallySelectedCurrencyCode={value}
                 onSelect={updateInput}
                 searchInputLabel={translate('common.search')}

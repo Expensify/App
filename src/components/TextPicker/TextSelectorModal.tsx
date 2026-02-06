@@ -64,7 +64,7 @@ function TextSelectorModal({
             const formValue = values[rest.inputID];
 
             if (required) {
-                errors = getFieldRequiredErrors(values, [rest.inputID]);
+                errors = getFieldRequiredErrors(values, [rest.inputID], translate);
             }
 
             if (formValue.length > maxLength) {
