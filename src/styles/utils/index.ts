@@ -1169,6 +1169,22 @@ function getAmountFontSizeAndLineHeight(isSmallScreenWidth: boolean, windowWidth
 }
 
 /**
+ * Returns fitting fontSize value for the money request amount input
+ * to prevent large amounts from overflowing on small screens.
+ */
+function getAmountInputFontSize(amountLength: number): TextStyle {
+    const baseFontSize = variables.iouAmountTextSize;
+    const minFontSize = 20;
+
+    if (amountLength <= 10) {
+        return {fontSize: baseFontSize};
+    }
+
+    const reduction = Math.min((amountLength - 10) * 2, baseFontSize - minFontSize);
+    return {fontSize: baseFontSize - reduction};
+}
+
+/**
  * Get transparent color by setting alpha value 0 of the passed hex(#xxxxxx) color code
  */
 function getTransparentColor(color: string) {
@@ -1268,6 +1284,7 @@ const staticStyleUtils = {
     combineStyles,
     displayIfTrue,
     getAmountFontSizeAndLineHeight,
+    getAmountInputFontSize,
     getAutoCompleteSuggestionContainerStyle,
     getAvatarBorderRadius,
     getAvatarBorderStyle,
