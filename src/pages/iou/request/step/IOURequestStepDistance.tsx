@@ -357,8 +357,6 @@ function IOURequestStepDistance({
         activePolicyID,
         reportNameValuePairs?.private_isArchived,
         policyForMovingExpenses,
-        personalPolicy?.autoReporting,
-        reportID,
         selfDMReport,
         reportNameValuePairs?.private_isArchived,
         betas,
