@@ -6118,7 +6118,8 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
  */
 function convertBulkTrackedExpensesToIOU(
     transactionIDs: string[],
-    targetReportID: string,
+    iouReport: OnyxEntry<OnyxTypes.Report>,
+    chatReport: OnyxEntry<OnyxTypes.Report>,
     isASAPSubmitBetaEnabled: boolean,
     currentUserAccountIDParam: number,
     currentUserEmailParam: string,
@@ -6128,22 +6129,16 @@ function convertBulkTrackedExpensesToIOU(
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
     betas: OnyxEntry<OnyxTypes.Beta[]>,
 ) {
-    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`];
+    const iouReportID = iouReport?.reportID;
 
     if (!iouReport || !isMoneyRequestReportReportUtils(iouReport)) {
-        Log.warn('[convertBulkTrackedExpensesToIOU] Invalid IOU report', {targetReportID});
+        Log.warn('[convertBulkTrackedExpensesToIOU] Invalid IOU report', {iouReportID});
         return;
     }
 
-    const chatReportID = iouReport.chatReportID;
+    const chatReportID = chatReport?.reportID;
     if (!chatReportID) {
-        Log.warn('[convertBulkTrackedExpensesToIOU] No chat report found for IOU', {targetReportID});
-        return;
-    }
-
-    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
-    if (!chatReport) {
-        Log.warn('[convertBulkTrackedExpensesToIOU] Chat report not found', {chatReportID});
+        Log.warn('[convertBulkTrackedExpensesToIOU] No chat report found for IOU', {iouReportID});
         return;
     }
 
@@ -6151,7 +6146,7 @@ function convertBulkTrackedExpensesToIOU(
     const payerAccountID = participantAccountIDs.at(0);
 
     if (!payerAccountID) {
-        Log.warn('[convertBulkTrackedExpensesToIOU] No payer found', {targetReportID, participantAccountIDs});
+        Log.warn('[convertBulkTrackedExpensesToIOU] No payer found', {iouReportID, participantAccountIDs});
         return;
     }
 
@@ -6240,7 +6235,7 @@ function convertBulkTrackedExpensesToIOU(
             parentChatReport: chatReport,
             participantParams,
             transactionParams,
-            moneyRequestReportID: targetReportID,
+            moneyRequestReportID: iouReportID,
             existingTransactionID: transactionID,
             existingTransaction: transaction,
             isASAPSubmitBetaEnabled,
