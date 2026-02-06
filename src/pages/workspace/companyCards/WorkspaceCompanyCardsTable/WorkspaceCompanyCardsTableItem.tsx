@@ -113,6 +113,7 @@ function WorkspaceCompanyCardTableItem({
                 <PressableWithFeedback
                     role={isAssigned ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
                     style={[styles.mh5, styles.flexRow, styles.br3, styles.mb2, styles.highlightBG, styles.overflowHidden]}
+                    sentryLabel="workspace-company-cards-table-item"
                     accessibilityLabel="row"
                     hoverStyle={isAssigned && styles.hoveredComponentBG}
                     disabled={isCardDeleted}
