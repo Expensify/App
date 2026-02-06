@@ -1,9 +1,10 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {OnyxInputOrEntry, PersonalDetails, Policy, Report} from '@src/types/onyx';
-import type {Attendee} from '@src/types/onyx/IOU';
+import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import SafeString from '@src/utils/SafeString';
 import type {IOURequestType} from './actions/IOU';
 import {getCurrencyUnit} from './CurrencyUtils';
@@ -101,23 +102,20 @@ function calculateAmount(numberOfSplits: number, total: number, currency: string
 
 /**
  * Calculate a split amount in backend cents from a percentage of the original amount.
- * - Supports negative percentages (for cases where someone owes money back to the group)
+ * - Clamps percentage to [0, 100]
  * - Preserves decimal precision in percentage (supports 0.1 precision)
- * - Handles all sign combinations: positive/negative amounts with positive/negative percentages
+ * - Preserves the sign of the original amount (negative amounts stay negative)
  */
 function calculateSplitAmountFromPercentage(totalInCents: number, percentage: number): number {
-    // Calculate directly without clamping to support negative percentages
-    // This naturally handles all sign combinations:
-    // - Positive total × Positive % = Positive split (normal expense share)
-    // - Positive total × Negative % = Negative split (person owes money back)
-    // - Negative total × Positive % = Negative split (person gets refund share)
-    // - Negative total × Negative % = Positive split (person owes money on a refund)
-    const amount = Math.round((totalInCents * percentage) / 100);
+    const totalAbs = Math.abs(totalInCents);
+    // Clamp percentage to [0, 100] without rounding to preserve decimal precision
+    const clamped = Math.min(100, Math.max(0, percentage));
+    const amount = Math.round((totalAbs * clamped) / 100);
     // Return 0 for zero amounts to avoid -0
     if (amount === 0) {
         return 0;
     }
-    return amount;
+    return totalInCents < 0 ? -amount : amount;
 }
 
 /**
@@ -128,7 +126,6 @@ function calculateSplitAmountFromPercentage(totalInCents: number, percentage: nu
  * - The remainder needed to reach 100% goes to the last item (which should be the largest)
  * - When the sum of split amounts does not match the original total (over/under splits), percentages still reflect
  *   each amount as a percentage of the original total and may sum to something other than 100
- * - Preserves the sign of amounts (negative amounts result in negative percentages)
  */
 function calculateSplitPercentagesFromAmounts(amountsInCents: number[], totalInCents: number): number[] {
     const totalAbs = Math.abs(totalInCents);
@@ -137,45 +134,32 @@ function calculateSplitPercentagesFromAmounts(amountsInCents: number[], totalInC
         return amountsInCents.map(() => 0);
     }
 
+    const amountsAbs = amountsInCents.map((amount) => Math.abs(amount ?? 0));
+
     // Helper functions for decimal precision
     const roundToOneDecimal = (value: number): number => Math.round(value * 10) / 10;
     const floorToOneDecimal = (value: number): number => Math.floor(value * 10) / 10;
 
-    // Calculate percentages based on the relationship between amount sign and total sign
-    // When they match (both positive or both negative), show positive percentage
-    // When they differ, show negative percentage
-    const percentages = amountsInCents.map((amount) => {
-        if (totalAbs === 0) {
-            return 0;
-        }
-        let percentage = (amount / totalAbs) * 100;
-        // Flip sign if original total is negative (so user sees intuitive percentages)
-        if (totalInCents < 0) {
-            percentage = -percentage;
-        }
-        // For negative percentages, floor towards zero (Math.ceil for negative numbers)
-        return percentage < 0 ? Math.ceil(percentage * 10) / 10 : floorToOneDecimal(percentage);
-    });
+    // ALWAYS use floored percentages to guarantee equal amounts get equal percentages
+    const flooredPercentages = amountsAbs.map((amount) => (totalAbs > 0 ? floorToOneDecimal((amount / totalAbs) * 100) : 0));
 
-    // For remainder calculation, we need to work with absolute values to ensure equal amounts get equal percentages
-    const amountsAbs = amountsInCents.map((amount) => Math.abs(amount ?? 0));
     const amountsTotal = amountsAbs.reduce((sum, curr) => sum + curr, 0);
 
-    // If the split amounts don't add up to the original total, return percentages as-is
+    // If the split amounts don't add up to the original total, return floored percentages as-is
     // (the sum may not be 100, but that's expected when there's a validation error)
     if (amountsTotal !== totalAbs) {
-        return percentages;
+        return flooredPercentages;
     }
 
-    // Calculate remainder based on absolute sum and add it to the LAST item with MAXIMUM absolute amount
-    const sumOfAbsPercentages = roundToOneDecimal(percentages.map(Math.abs).reduce((sum, current) => sum + current, 0));
-    const remainder = roundToOneDecimal(100 - sumOfAbsPercentages);
+    // Calculate remainder and add it to the LAST item (which should be the largest in even splits)
+    const sumOfFlooredPercentages = roundToOneDecimal(flooredPercentages.reduce((sum, current) => sum + current, 0));
+    const remainder = roundToOneDecimal(100 - sumOfFlooredPercentages);
 
     if (remainder <= 0) {
-        return percentages;
+        return flooredPercentages;
     }
 
-    // Add remainder to the last item with the MAXIMUM absolute amount
+    // Add remainder to the last item with the MAXIMUM amount (not just the last item since that can be a new split with 0 amount)
     // This ensures 0-amount splits stay at 0%
     const maxAmount = Math.max(...amountsAbs);
     let lastMaxIndex = amountsAbs.length - 1; // fallback to last
@@ -185,10 +169,8 @@ function calculateSplitPercentagesFromAmounts(amountsInCents: number[], totalInC
         }
     }
 
-    const adjustedPercentages = [...percentages];
-    const currentPercentage = adjustedPercentages.at(lastMaxIndex) ?? 0;
-    // Add remainder with the same sign as the current percentage
-    adjustedPercentages[lastMaxIndex] = roundToOneDecimal(currentPercentage + (currentPercentage < 0 ? -remainder : remainder));
+    const adjustedPercentages = [...flooredPercentages];
+    adjustedPercentages[lastMaxIndex] = roundToOneDecimal((adjustedPercentages.at(lastMaxIndex) ?? 0) + remainder);
 
     return adjustedPercentages;
 }
@@ -376,6 +358,26 @@ function navigateToConfirmationPage(
     }
 }
 
+function calculateDefaultReimbursable({
+    iouType,
+    policy,
+    policyForMovingExpenses,
+    participant,
+    transactionReportID,
+}: {
+    iouType: ValueOf<typeof CONST.IOU.TYPE>;
+    policy?: OnyxEntry<Policy>;
+    policyForMovingExpenses?: OnyxEntry<Policy>;
+    participant?: Participant;
+    transactionReportID?: string;
+}): boolean {
+    const isCreatingTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
+    const isUnreported = transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    const isPolicyExpenseChat = !!participant?.isPolicyExpenseChat;
+    const reportPolicy = isCreatingTrackExpense || isUnreported ? policyForMovingExpenses : policy;
+    return (isPolicyExpenseChat && isPaidGroupPolicy(reportPolicy)) || isCreatingTrackExpense ? (reportPolicy?.defaultReimbursable ?? true) : true;
+}
+
 export {
     calculateAmount,
     calculateSplitAmountFromPercentage,
@@ -391,4 +393,5 @@ export {
     navigateToParticipantPage,
     shouldShowReceiptEmptyState,
     navigateToConfirmationPage,
+    calculateDefaultReimbursable,
 };

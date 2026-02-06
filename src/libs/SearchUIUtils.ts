@@ -11,6 +11,7 @@ import type {MenuItemWithLink} from '@components/MenuItemList';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import type {SingleSelectItem} from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import type {
+    GroupedItem,
     QueryFilters,
     SearchAction,
     SearchColumnType,
@@ -22,6 +23,7 @@ import type {
     SearchStatus,
     SearchView,
     SearchWithdrawalType,
+    SelectedReports,
     SelectedTransactionInfo,
     SingularSearchStatus,
     SortOrder,
@@ -344,6 +346,9 @@ function isValidExpenseStatus(status: unknown): status is ValueOf<typeof CONST.S
 }
 
 function formatBadgeText(count: number): string {
+    if (count === 0) {
+        return '';
+    }
     return count > CONST.SEARCH.TODO_BADGE_MAX_COUNT ? `${CONST.SEARCH.TODO_BADGE_MAX_COUNT}+` : count.toString();
 }
 
@@ -1081,6 +1086,15 @@ function isTransactionYearGroupListItemType(item: ListItem): item is Transaction
 
 function isTransactionQuarterGroupListItemType(item: ListItem): item is TransactionQuarterGroupListItemType {
     return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER;
+}
+
+/**
+ * Type guard that checks if a list of search items contains grouped transaction data.
+ * When a search has a groupBy parameter, all items share the same shape, so checking the first element is sufficient.
+ */
+function isGroupedItemArray(data: ListItem[]): data is GroupedItem[] {
+    const first = data.at(0);
+    return data.length === 0 || (first !== undefined && isTransactionGroupListItemType(first) && 'groupedBy' in first);
 }
 
 /**
@@ -3251,6 +3265,13 @@ function isSearchResultsEmpty(searchResults: SearchResults, groupBy?: SearchGrou
     if (groupBy) {
         return !Object.keys(searchResults?.data).some((key) => isGroupEntry(key));
     }
+
+    if (searchResults?.search?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+        return !Object.keys(searchResults?.data).some(
+            (key) => isReportEntry(key) && (searchResults?.data[key as keyof typeof searchResults.data] as OnyxTypes.Report)?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        );
+    }
+
     return !Object.keys(searchResults?.data).some(
         (key) =>
             key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) &&
@@ -4490,25 +4511,52 @@ function getTableMinWidth(columns: SearchColumnType[]) {
     return minWidth;
 }
 
-function shouldShowDeleteOption(selectedTransactions: Record<string, SelectedTransactionInfo>, currentSearchResults: SearchResults['data'] | undefined, isOffline: boolean) {
+function shouldShowDeleteOption(
+    selectedTransactions: Record<string, SelectedTransactionInfo>,
+    currentSearchResults: SearchResults['data'] | undefined,
+    isOffline: boolean,
+    selectedReports: SelectedReports[] = [],
+    searchDataType?: SearchDataTypes,
+) {
     const selectedTransactionsKeys = Object.keys(selectedTransactions);
 
     return (
         !isOffline &&
-        selectedTransactionsKeys.every((id) => {
-            const transaction = currentSearchResults?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] ?? selectedTransactions[id]?.transaction;
-            if (!transaction) {
-                return false;
-            }
-            const parentReportID = transaction.reportID;
-            const parentReport = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`] ?? selectedTransactions[id].report;
-            const reportActions = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`];
-            const parentReportAction =
-                Object.values(reportActions ?? {}).find((action) => (isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined) === id) ??
-                selectedTransactions[id].reportAction;
+        (selectedReports.length && searchDataType !== CONST.SEARCH.DATA_TYPES.EXPENSE
+            ? selectedReports.every((selectedReport) => {
+                  const fullReport = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`];
+                  if (!fullReport) {
+                      return false;
+                  }
+                  const reportActionsData = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selectedReport.reportID}`];
+                  const reportActionsArray = Object.values(reportActionsData ?? {});
+                  const reportTransactions: OnyxTypes.Transaction[] = [];
+                  const searchData = currentSearchResults ?? {};
+                  for (const key of Object.keys(searchData)) {
+                      if (!key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
+                          continue;
+                      }
+                      const item = searchData[key as keyof typeof searchData] as OnyxTypes.Transaction | undefined;
+                      if (item && 'transactionID' in item && 'reportID' in item && item.reportID === selectedReport.reportID) {
+                          reportTransactions.push(item);
+                      }
+                  }
+                  return canDeleteMoneyRequestReport(fullReport, reportTransactions, reportActionsArray);
+              })
+            : selectedTransactionsKeys.every((id) => {
+                  const transaction = currentSearchResults?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] ?? selectedTransactions[id]?.transaction;
+                  if (!transaction) {
+                      return false;
+                  }
+                  const parentReportID = transaction.reportID;
+                  const parentReport = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`] ?? selectedTransactions[id].report;
+                  const reportActions = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`];
+                  const parentReportAction =
+                      Object.values(reportActions ?? {}).find((action) => (isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined) === id) ??
+                      selectedTransactions[id].reportAction;
 
-            return canDeleteMoneyRequestReport(parentReport, [transaction], parentReportAction ? [parentReportAction] : []);
-        })
+                  return canDeleteMoneyRequestReport(parentReport, [transaction], parentReportAction ? [parentReportAction] : []);
+              }))
     );
 }
 
@@ -4532,6 +4580,7 @@ export {
     isTransactionWeekGroupListItemType,
     isTransactionYearGroupListItemType,
     isTransactionQuarterGroupListItemType,
+    isGroupedItemArray,
     isSearchResultsEmpty,
     isTransactionListItemType,
     isReportActionListItemType,
