@@ -14,6 +14,8 @@ function usePrivateIsArchivedMap(): PrivateIsArchivedMap {
         selector: privateIsArchivedMapSelector,
     });
 
+    // useDeepCompareRef prevents unnecessary rerenders when the object has same content but different reference.
+    // The selector always returns a new object instance, and useMemo cannot compare by value.
     return useDeepCompareRef(privateIsArchivedMap) ?? {};
 }
 
