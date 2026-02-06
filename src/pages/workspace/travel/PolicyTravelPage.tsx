@@ -72,10 +72,6 @@ function WorkspaceTravelPage({
     const step = getTravelStep(policy, travelSettings, isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED), policies, currentUserLogin);
 
     const mainContent = (() => {
-        // TODO: Remove this conditional when Travel Invoicing feature is fully implemented
-        if (isTravelInvoicingEnabled) {
-            return <WorkspaceTravelInvoicingSection policyID={policyID} />;
-        }
         switch (step) {
             case CONST.TRAVEL.STEPS.BOOK_OR_MANAGE_YOUR_TRIP:
                 return <BookOrManageYourTrip policyID={policyID} />;
