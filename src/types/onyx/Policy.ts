@@ -1691,7 +1691,7 @@ type CodingRuleFilter = {
     left: string;
 
     /** The operator for the filter, defined in CONST.SEARCH.SYNTAX_OPERATORS */
-    operator: string;
+    operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
 
     /** The right side of the filter condition (e.g., 'Snoop') */
     right: string;
@@ -1744,6 +1744,12 @@ type CodingRule = {
 
     /** When this rule was created */
     created?: string;
+
+    /** The type of action that's pending  */
+    pendingAction?: OnyxCommon.PendingAction;
+
+    /** Error objects keyed by field name containing errors keyed by microtime */
+    errors?: OnyxCommon.Errors;
 };
 
 /** Model of policy data */
@@ -2090,7 +2096,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the policy requires purchases to be on a company card */
         requireCompanyCardsEnabled?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
-    'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes | 'isTimeTrackingEnabled'
+    'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes | 'isTimeTrackingEnabled' | 'timeTrackingDefaultRate'
 >;
 
 /** Stages of policy connection sync */
@@ -2175,4 +2181,5 @@ export type {
     MccGroup,
     Subrate,
     ProhibitedExpenses,
+    NetSuiteConnectionData,
 };

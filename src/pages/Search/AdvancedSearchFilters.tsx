@@ -72,6 +72,11 @@ const baseFilterConfig = {
         description: 'search.groupBy' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.GROUP_BY),
     },
+    view: {
+        getTitle: getFilterViewDisplayTitle,
+        description: 'search.view.label' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.VIEW),
+    },
     status: {
         getTitle: getStatusFilterDisplayTitle,
         description: 'common.status' as const,
@@ -304,12 +309,12 @@ function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, 
 }
 
 function getFilterParticipantDisplayTitle(accountIDs: string[], personalDetails: PersonalDetailsList | undefined, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
-    const selectedPersonalDetails = accountIDs.map((id) => personalDetails?.[id]);
-
-    return selectedPersonalDetails
-        .map((personalDetail) => {
+    return accountIDs
+        .map((id) => {
+            const personalDetail = personalDetails?.[id];
             if (!personalDetail) {
-                return '';
+                // Name-only attendees are stored by displayName, not accountID
+                return id;
             }
 
             return createDisplayName(personalDetail.login ?? '', personalDetail, formatPhoneNumber);
@@ -444,7 +449,7 @@ function getFilterDisplayTitle(
             .join(', ');
     }
 
-    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE) {
+    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE) {
         return filters[key];
     }
 
@@ -488,6 +493,14 @@ function getFilterDisplayTitle(
 
     const filterValue = filters[key];
     return Array.isArray(filterValue) ? filterValue.join(', ') : filterValue;
+}
+
+function getFilterViewDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate']) {
+    const filterValue = filters[CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW];
+    if (!filterValue) {
+        return translate('search.view.table');
+    }
+    return translate(`search.view.${filterValue as ValueOf<typeof CONST.SEARCH.VIEW>}`);
 }
 
 function getStatusFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, type: SearchDataTypes, translate: LocaleContextProps['translate']) {
@@ -633,6 +646,8 @@ function AdvancedSearchFilters() {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, workspacesData);
             } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS) {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, currentType, translate);
+            } else if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW) {
+                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate);
             } else {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
             }
