@@ -52,6 +52,9 @@ const ONYXKEYS = {
     /** Keeps track if OpenApp failure modal is opened */
     IS_OPEN_APP_FAILURE_MODAL_OPEN: 'isOpenAppFailureModalOpen',
 
+    /** Keeps track if 'GPS in progress' modal is opened */
+    IS_GPS_IN_PROGRESS_MODAL_OPEN: 'isGpsInProgressModalOpen',
+
     /** Stores the PIN for an activated UK/EU Expensify card to be shown once after activation */
     ACTIVATED_CARD_PIN: 'activatedCardPin',
 
@@ -678,7 +681,6 @@ const ONYXKEYS = {
         WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
         WORKSPACE_INVITE_MESSAGE_DRAFT: 'workspaceInviteMessageDraft_',
         WORKSPACE_INVITE_ROLE_DRAFT: 'workspaceInviteRoleDraft_',
-        WORKSPACE_INVITE_APPROVER_DRAFT: 'workspaceInviteApproverDraft_',
         REPORT: 'report_',
         REPORT_NAME_VALUE_PAIRS: 'reportNameValuePairs_',
         REPORT_DRAFT: 'reportDraft_',
@@ -1005,6 +1007,7 @@ const ONYXKEYS = {
         OUTSTANDING_REPORTS_BY_POLICY_ID: 'outstandingReportsByPolicyID',
         NON_PERSONAL_AND_WORKSPACE_CARD_LIST: 'nonPersonalAndWorkspaceCardList',
         CARD_FEED_ERRORS: 'cardFeedErrors',
+        TODOS: 'todos',
     },
 
     /** Stores HybridApp specific state required to interoperate with OldDot */
@@ -1145,7 +1148,6 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT]: OnyxTypes.InvitedEmailsToAccountIDs;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT]: string;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT]: string;
-    [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT]: string;
     [ONYXKEYS.COLLECTION.REPORT]: OnyxTypes.Report;
     [ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS]: OnyxTypes.ReportNameValuePairs;
     [ONYXKEYS.COLLECTION.REPORT_DRAFT]: OnyxTypes.Report;
@@ -1219,6 +1221,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.STASHED_CREDENTIALS]: OnyxTypes.Credentials;
     [ONYXKEYS.MODAL]: OnyxTypes.Modal;
     [ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN]: boolean;
+    [ONYXKEYS.IS_GPS_IN_PROGRESS_MODAL_OPEN]: boolean;
     [ONYXKEYS.GPS_DRAFT_DETAILS]: OnyxTypes.GpsDraftDetails;
     [ONYXKEYS.FULLSCREEN_VISIBILITY]: boolean;
     [ONYXKEYS.NETWORK]: OnyxTypes.Network;
@@ -1424,6 +1427,7 @@ type OnyxDerivedValuesMapping = {
     [ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID]: OnyxTypes.OutstandingReportsByPolicyIDDerivedValue;
     [ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST]: OnyxTypes.NonPersonalAndWorkspaceCardListDerivedValue;
     [ONYXKEYS.DERIVED.CARD_FEED_ERRORS]: OnyxTypes.CardFeedErrorsDerivedValue;
+    [ONYXKEYS.DERIVED.TODOS]: OnyxTypes.TodosDerivedValue;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping & OnyxDerivedValuesMapping;

@@ -614,6 +614,7 @@ const translations: TranslationDeepObject<typeof en> = {
         exchangeRate: '為替レート',
         reimbursableTotal: '精算対象合計',
         nonReimbursableTotal: '未払い対象外の合計',
+        locked: 'ロックされています',
         month: '月',
         week: '週',
         year: '年',
@@ -5624,6 +5625,22 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 limit: '上限',
                 limitType: '上限の種類',
                 disabledApprovalForSmartLimitError: 'スマート制限を設定する前に、<strong>ワークフロー &gt; 承認を追加</strong> で承認を有効にしてください',
+                singleUse: '一回限り',
+                singleUseDescription: '1回の取引後に期限切れ',
+                validFrom: '有効開始日',
+                startDate: '開始日',
+                endDate: '終了日',
+                noExpirationHint: '有効期限のないカードは期限切れになりません',
+                validFromTo: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate}から${endDate}まで有効`,
+                validFromToWithoutText: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate}から${endDate}まで`,
+                combineWithExpiration: '追加の支出制御のために有効期限オプションと組み合わせる',
+                enterValidDate: '有効な日付を入力してください',
+                expirationDate: '有効期限',
+                limitAmount: '制限額',
+                setExpiryOptions: '有効期限オプションを設定',
+                setExpiryDate: '有効期限を設定',
+                setExpiryDateDescription: 'カードに記載されている通りにカードは期限切れになります',
+                amount: '金額',
             },
             deactivateCardModal: {
                 deactivate: '無効化',
@@ -7150,6 +7167,7 @@ ${reportName}
             label: '表示',
             table: 'テーブル',
             bar: 'バー',
+            line: '折れ線',
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: '差出人',
@@ -7184,7 +7202,7 @@ ${reportName}
         exportedTo: 'エクスポート先',
         exportAll: {
             selectAllMatchingItems: '一致する項目をすべて選択',
-            allMatchingItemsSelected: '一致するすべての項目を選択済み',
+            allMatchingItemsSelected: '一致する項目をすべて選択済み',
         },
     },
     genericErrorPage: {
@@ -7464,8 +7482,8 @@ ${reportName}
     },
     cardTransactions: {
         notActivated: '未有効化',
-        outOfPocket: '立替経費支出',
-        companySpend: '会社の支出',
+        outOfPocket: '返金可能',
+        companySpend: '返金不可',
     },
     distance: {
         addStop: '経由地を追加',
@@ -7489,6 +7507,10 @@ ${reportName}
             endReading: '読み終える',
             saveForLater: '後で保存',
             totalDistance: '合計距離',
+            startTitle: '走行距離計の開始写真',
+            endTitle: '走行距離計終了時の写真',
+            startMessageWeb: '旅行の<strong>開始時</strong>のオドメーターの写真を追加してください。ここにファイルをドラッグするか、またはアップロードするファイルを選択してください。',
+            endMessageWeb: '旅行の<strong>終了時</strong>の走行距離計の写真を追加してください。ここにファイルをドラッグするか、アップロードするファイルを選択してください。',
         },
     },
     gps: {
@@ -7549,6 +7571,11 @@ ${reportName}
             title: 'GPS追跡を実行中',
             prompt: 'この旅行を破棄してサインアウトしてもよろしいですか？',
             confirm: '破棄してサインアウト',
+        },
+        switchToODWarningTripInProgress: {
+            title: 'GPS追跡を実行中',
+            prompt: 'GPS追跡を停止して、Expensify Classic に切り替えてもよろしいですか？',
+            confirm: '停止して切り替える',
         },
         locationServicesRequiredModal: {
             title: '位置情報へのアクセスが必要です',
@@ -8355,6 +8382,7 @@ ${reportName}
             enterDomainName: 'ここにドメイン名を入力してください',
             resetDomainInfo: `この操作は<strong>元に戻せません</strong>。次のデータが削除されます：<br/> <ul><li>会社カードの接続と、そのカードの未報告精算</li> <li>SAML およびグループ設定</li> </ul> すべてのアカウント、ワークスペース、レポート、経費、およびその他のデータは保持されます。<br/><br/>注：<a href="#">連絡方法</a>から関連付けられているメールアドレスを削除すると、このドメインをドメイン一覧から消去できます。`,
         },
+        domainMembers: 'ドメインメンバー',
         members: {
             title: 'メンバー',
             findMember: 'メンバーを検索',

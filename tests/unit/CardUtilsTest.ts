@@ -24,6 +24,7 @@ import {
     getCompanyFeeds,
     getCustomFeedNameFromFeeds,
     getCustomOrFormattedFeedName,
+    getDefaultExpensifyCardLimitType,
     getFeedNameForDisplay,
     getFeedType,
     getFilteredCardList,
@@ -1137,6 +1138,56 @@ describe('CardUtils', () => {
         it('should return false when both policy and cardSettings are undefined', () => {
             const result = isExpensifyCardFullySetUp(undefined, undefined);
             expect(result).toBe(false);
+        });
+    });
+
+    describe('getDefaultExpensifyCardLimitType', () => {
+        it('returns SMART when policy has approvals configured (approvalMode is ADVANCED)', () => {
+            const policy = {
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            } as Policy;
+
+            expect(getDefaultExpensifyCardLimitType(policy)).toBe(CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
+        });
+
+        it('returns SMART when policy has approvals configured (approvalMode is BASIC)', () => {
+            const policy = {
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            } as Policy;
+
+            expect(getDefaultExpensifyCardLimitType(policy)).toBe(CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
+        });
+
+        it('returns MONTHLY when policy has optional approvals (approvalMode is OPTIONAL)', () => {
+            const policy = {
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            } as Policy;
+
+            expect(getDefaultExpensifyCardLimitType(policy)).toBe(CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY);
+        });
+
+        it('returns MONTHLY when policy type is PERSONAL (approvals are always optional)', () => {
+            const policy = {
+                type: CONST.POLICY.TYPE.PERSONAL,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            } as Policy;
+
+            expect(getDefaultExpensifyCardLimitType(policy)).toBe(CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY);
+        });
+
+        it('returns SMART when policy is undefined (defaults to ADVANCED approval mode)', () => {
+            expect(getDefaultExpensifyCardLimitType(undefined)).toBe(CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
+        });
+
+        it('returns SMART when corporate policy has no approvalMode (defaults to ADVANCED)', () => {
+            const policy = {
+                type: CONST.POLICY.TYPE.CORPORATE,
+            } as Policy;
+
+            expect(getDefaultExpensifyCardLimitType(policy)).toBe(CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
         });
     });
 
