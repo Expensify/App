@@ -5,6 +5,7 @@ import useOnyx from './hooks/useOnyx';
 import {getHybridAppSettings} from './libs/actions/HybridApp';
 import type HybridAppSettings from './libs/actions/HybridApp/types';
 import {setupNewDotAfterTransitionFromOldDot} from './libs/actions/Session';
+import Timing from './libs/actions/Timing';
 import Log from './libs/Log';
 import {endSpan, startSpan} from './libs/telemetry/activeSpans';
 import ONYXKEYS from './ONYXKEYS';
@@ -26,6 +27,7 @@ function HybridAppHandler() {
                     return;
                 }
 
+                Timing.end(CONST.TIMING.OD_ND_TRANSITION_TOTAL);
                 endSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION);
 
                 setSplashScreenState(loggedOutFromOldDot ? CONST.BOOT_SPLASH_STATE.HIDDEN : CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
@@ -47,6 +49,7 @@ function HybridAppHandler() {
             }
 
             if (hybridAppSettings.hybridApp.pressedTryNewExpensify) {
+                Timing.start(CONST.TIMING.OD_ND_TRANSITION_TOTAL);
                 startSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION, {
                     name: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION,
                     op: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION,

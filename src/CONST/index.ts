@@ -1719,6 +1719,7 @@ const CONST = {
         FAST_SEARCH_TREE_CREATION: 'fast_search_tree_creation',
         SHOW_HOVER_PREVIEW_DELAY: 270,
         SHOW_HOVER_PREVIEW_ANIMATION_DURATION: 250,
+        OD_ND_TRANSITION_TOTAL: 'od_nd_transition_total',
         ACTIVITY_INDICATOR_TIMEOUT: 10000,
     },
     TELEMETRY: {
