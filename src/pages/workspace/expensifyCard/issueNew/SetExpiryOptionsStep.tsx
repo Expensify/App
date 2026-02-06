@@ -1,10 +1,12 @@
-import React, {useState} from 'react';
+import {toZonedTime} from 'date-fns-tz';
+import React, {useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -32,6 +34,17 @@ function SetExpiryOptionsStep({policy, stepNames, startStepIndex}: SetExpiryOpti
     const styles = useThemeStyles();
     const policyID = policy?.id;
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
+    const personalDetails = usePersonalDetails();
+
+    const assigneePersonalDetails = Object.values(personalDetails ?? {}).find((detail) => detail?.login === issueNewCard?.data?.assigneeEmail);
+    const assigneeTimeZone = assigneePersonalDetails?.timezone?.selected;
+
+    const minDate = useMemo(() => {
+        if (!assigneeTimeZone) {
+            return new Date();
+        }
+        return toZonedTime(new Date(), assigneeTimeZone);
+    }, [assigneeTimeZone]);
 
     const [expirationToggle, setExpirationToggle] = useState(!!issueNewCard?.data?.validFrom);
 
@@ -115,7 +128,7 @@ function SetExpiryOptionsStep({policy, stepNames, startStepIndex}: SetExpiryOpti
                             inputID={INPUT_IDS.VALID_FROM}
                             label={translate('workspace.card.issueNewCard.startDate')}
                             maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                            minDate={new Date()}
+                            minDate={minDate}
                             defaultValue={issueNewCard?.data?.validFrom}
                         />
                         <InputWrapper
@@ -123,7 +136,7 @@ function SetExpiryOptionsStep({policy, stepNames, startStepIndex}: SetExpiryOpti
                             inputID={INPUT_IDS.VALID_THRU}
                             label={translate('workspace.card.issueNewCard.endDate')}
                             maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                            minDate={new Date()}
+                            minDate={minDate}
                             defaultValue={issueNewCard?.data?.validThru}
                         />
                     </>

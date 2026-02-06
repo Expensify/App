@@ -500,6 +500,13 @@ describe('DateUtils', () => {
             const expected = DateUtils.getDBTime(fromZonedTime(startOfDay(new Date(`${dateStr}T00:00:00.000Z`)), UTC).valueOf());
             expect(result).toBe(expected);
         });
+
+        it('should return midnight in target timezone as UTC in DB format when timeZone is not UTC', () => {
+            // America/New_York is UTC-5 in January (EST), so 2024-01-15 00:00:00 EST = 2024-01-15 05:00:00.000 UTC
+            const americaNewYork = 'America/New_York' as SelectedTimezone;
+            const result = DateUtils.normalizeDateToStartOfDay('2024-01-15', americaNewYork);
+            expect(result).toBe('2024-01-15 05:00:00.000');
+        });
     });
 
     describe('normalizeDateToEndOfDay', () => {
@@ -523,6 +530,13 @@ describe('DateUtils', () => {
             const result = DateUtils.normalizeDateToEndOfDay(dateStr, UTC as SelectedTimezone);
             const expected = DateUtils.getDBTime(fromZonedTime(endOfDay(new Date(`${dateStr}T00:00:00.000Z`)), UTC).valueOf());
             expect(result).toBe(expected);
+        });
+
+        it('should return end of day in target timezone as UTC in DB format when timeZone is not UTC', () => {
+            // America/New_York is UTC-5 in January (EST), so 2024-01-15 23:59:59.999 EST = 2024-01-16 04:59:59.999 UTC
+            const americaNewYork = 'America/New_York' as SelectedTimezone;
+            const result = DateUtils.normalizeDateToEndOfDay('2024-01-15', americaNewYork);
+            expect(result).toBe('2024-01-16 04:59:59.999');
         });
     });
 });
