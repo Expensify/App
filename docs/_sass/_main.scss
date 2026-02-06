@@ -1212,6 +1212,19 @@ button {
             opacity: 0.5;
             animation: bounce 1s ease-in-out infinite;
         }
+
+        .ai-bot-dark {
+            display: none;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .ai-bot-light {
+                display: none;
+            }
+            .ai-bot-dark {
+                display: block;
+            }
+        }
     }
 
     @keyframes bounce {
