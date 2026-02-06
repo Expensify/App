@@ -157,8 +157,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: {
             screens: {
                 [SCREENS.RIGHT_MODAL.SEARCH_ROUTER]: {
-                    path: ROUTES.SEARCH_ROUTER,
-                    exact: true,
+                    screens: {
+                        [SCREENS.SEARCH_ROUTER.ROOT]: ROUTES.SEARCH_ROUTER,
+                    },
                 },
                 [SCREENS.RIGHT_MODAL.SETTINGS]: {
                     screens: {
@@ -1453,6 +1454,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_LIMIT_TYPE]: {
                             path: ROUTES.EXPENSIFY_CARD_LIMIT_TYPE.route,
                         },
+                        [SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_EXPIRY_OPTIONS]: {
+                            path: ROUTES.EXPENSIFY_CARD_EXPIRY_OPTIONS.route,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.DOMAIN_CARD]: {
@@ -1614,6 +1618,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.STEP_DISTANCE_MANUAL]: ROUTES.MONEY_REQUEST_STEP_DISTANCE_MANUAL.route,
                         [SCREENS.MONEY_REQUEST.STEP_DISTANCE_ODOMETER]: ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.route,
                         [SCREENS.MONEY_REQUEST.STEP_DISTANCE_RATE]: ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.route,
+                        [SCREENS.MONEY_REQUEST.ODOMETER_IMAGE]: ROUTES.ODOMETER_IMAGE.route,
                         [SCREENS.MONEY_REQUEST.HOLD]: ROUTES.MONEY_REQUEST_HOLD_REASON.route,
                         [SCREENS.MONEY_REQUEST.REJECT]: ROUTES.REJECT_MONEY_REQUEST_REASON.route,
                         [SCREENS.MONEY_REQUEST.STEP_MERCHANT]: ROUTES.MONEY_REQUEST_STEP_MERCHANT.route,
