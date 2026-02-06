@@ -1,4 +1,5 @@
-import React, {useMemo} from 'react';
+import React, {useContext, useMemo} from 'react';
+import {unstable_TextAncestorContext as TextAncestorContext} from 'react-native';
 import {RenderHTMLConfigProvider, RenderHTMLSource} from 'react-native-render-html';
 import type {RenderersProps} from 'react-native-render-html';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -22,6 +23,11 @@ type RenderHTMLProps = {
 // context to RenderHTMLSource components. See https://git.io/JRcZb
 // The provider is available at src/components/HTMLEngineProvider/
 function RenderHTML({html: htmlParam, onLinkPress, isSelectable}: RenderHTMLProps) {
+    const hasTextAncestor = useContext(TextAncestorContext);
+    if (__DEV__ && hasTextAncestor) {
+        throw new Error('RenderHTML must not be rendered inside a <Text> component, as it will break the layout on iOS. Render it as a sibling instead.');
+    }
+
     const {windowWidth} = useWindowDimensions();
     const html = useMemo(() => {
         return (
