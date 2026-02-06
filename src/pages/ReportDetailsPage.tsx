@@ -622,6 +622,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         allTransactionDrafts,
         activePolicy,
         parentReport,
+        reportActionsForOriginalReportID,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
