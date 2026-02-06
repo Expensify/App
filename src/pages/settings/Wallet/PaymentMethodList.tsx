@@ -206,11 +206,13 @@ function PaymentMethodList({
                 );
 
             const assignedCardsSorted = lodashSortBy(assignedCards, getAssignedCardSortKey);
-            const assignedCardsGrouped: PaymentMethodItem[] = [];
+            const companyCardsGrouped: PaymentMethodItem[] = [];
+            const personalCardsGrouped: PaymentMethodItem[] = [];
             for (const card of assignedCardsSorted) {
                 const isDisabled = card.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                 const isUserPersonalCard = isPersonalCard(card);
                 const isCSVCard = card.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
+                const assignedCardsGrouped = isUserPersonalCard ? personalCardsGrouped : companyCardsGrouped;
 
                 let icon;
                 if (isUserPersonalCard && isCSVCard) {
@@ -354,7 +356,13 @@ function PaymentMethodList({
                     iconHeight: variables.cardIconHeight,
                 });
             }
-            return assignedCardsGrouped;
+
+            const companyCards = [translate('workspace.common.companyCards'), ...companyCardsGrouped];
+            const personalCards = [translate('workspace.common.personalCards'), ...personalCardsGrouped];
+            if (companyCardsGrouped.length > 0 && personalCardsGrouped.length > 0) {
+                return [...companyCards, ...personalCards];
+            }
+            return [...companyCardsGrouped, ...personalCardsGrouped];
         }
 
         // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
@@ -489,6 +497,8 @@ function PaymentMethodList({
         return filteredPaymentMethods;
     }, [filteredPaymentMethods, shouldShowBankAccountSections, translate]);
 
+    const filteredPaymentMethodsWithoutStrings = useMemo(() => filteredPaymentMethods.filter((method) => typeof method !== 'string'), [filteredPaymentMethods]);
+
     /**
      * Create a menuItem for each passed paymentMethod
      */
@@ -505,7 +515,7 @@ function PaymentMethodList({
                 <PaymentMethodListItem
                     item={item}
                     shouldShowDefaultBadge={shouldShowDefaultBadge(
-                        filteredPaymentMethods,
+                        filteredPaymentMethodsWithoutStrings,
                         invoiceTransferBankAccountID ? invoiceTransferBankAccountID === item.methodID : item.methodID === userWallet?.walletLinkedAccountID,
                         shouldHideDefaultBadge,
                     )}
@@ -515,7 +525,7 @@ function PaymentMethodList({
             );
         },
         [
-            filteredPaymentMethods,
+            filteredPaymentMethodsWithoutStrings,
             invoiceTransferBankAccountID,
             userWallet?.walletLinkedAccountID,
             shouldHideDefaultBadge,
