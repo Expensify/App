@@ -3,6 +3,7 @@ import React, {useEffect, useState} from 'react';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import ConfirmModal from '@components/ConfirmModal';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -12,7 +13,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {useSplashScreenState} from '@src/SplashScreenStateContext';
-import useNetwork from '@hooks/useNetwork';
 import useUpdateGpsTripOnReconnect from './useUpdateGpsTripOnReconnect';
 
 function GPSTripStateChecker() {
