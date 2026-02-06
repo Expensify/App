@@ -79,9 +79,6 @@ function SearchEditMultiplePage() {
         return transactionPolicy?.disabledFields?.reimbursable === false && !isManagedCardTransaction(transaction);
     });
 
-    // Determine policyID based on context:
-    // - If all selected transactions belong to the same policy, use that policy
-    // - Otherwise, fall back to the user's active workspace policy
     const policyID = getSearchBulkEditPolicyID(selectedTransactionIDs, activePolicyID, allTransactions, allReports);
 
     const policy = policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : undefined;

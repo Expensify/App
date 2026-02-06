@@ -21,7 +21,6 @@ function SearchEditMultipleCategoryPage() {
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
 
-    // Determine policyID based on context
     const policyID = getSearchBulkEditPolicyID(selectedTransactionIDs, activePolicyID, allTransactions, allReports);
 
     const currentCategory = draftTransaction?.category ?? '';
