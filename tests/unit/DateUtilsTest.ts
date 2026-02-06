@@ -489,15 +489,15 @@ describe('DateUtils', () => {
             process.env.TZ = originalTZ;
         });
 
-        it('should return midnight local time as UTC in DB format', () => {
-            const result = DateUtils.normalizeDateToStartOfDay('2024-01-15');
+        it('should return midnight local time as UTC in DB format when timeZone is UTC', () => {
+            const result = DateUtils.normalizeDateToStartOfDay('2024-01-15', UTC as SelectedTimezone);
             expect(result).toBe('2024-01-15 00:00:00.000');
         });
 
         it('should match getDBTime of startOfDay for the parsed date', () => {
             const dateStr = '2022-11-07';
-            const result = DateUtils.normalizeDateToStartOfDay(dateStr);
-            const expected = DateUtils.getDBTime(startOfDay(new Date(`${dateStr}T00:00:00.000Z`)).valueOf());
+            const result = DateUtils.normalizeDateToStartOfDay(dateStr, UTC as SelectedTimezone);
+            const expected = DateUtils.getDBTime(fromZonedTime(startOfDay(new Date(`${dateStr}T00:00:00.000Z`)), UTC).valueOf());
             expect(result).toBe(expected);
         });
     });
@@ -513,15 +513,15 @@ describe('DateUtils', () => {
             process.env.TZ = originalTZ;
         });
 
-        it('should return end of day local time as UTC in DB format', () => {
-            const result = DateUtils.normalizeDateToEndOfDay('2024-01-15');
+        it('should return end of day local time as UTC in DB format when timeZone is UTC', () => {
+            const result = DateUtils.normalizeDateToEndOfDay('2024-01-15', UTC as SelectedTimezone);
             expect(result).toBe('2024-01-15 23:59:59.999');
         });
 
         it('should match getDBTime of endOfDay for the parsed date', () => {
             const dateStr = '2022-11-07';
-            const result = DateUtils.normalizeDateToEndOfDay(dateStr);
-            const expected = DateUtils.getDBTime(endOfDay(new Date(`${dateStr}T00:00:00.000Z`)).valueOf());
+            const result = DateUtils.normalizeDateToEndOfDay(dateStr, UTC as SelectedTimezone);
+            const expected = DateUtils.getDBTime(fromZonedTime(endOfDay(new Date(`${dateStr}T00:00:00.000Z`)), UTC).valueOf());
             expect(result).toBe(expected);
         });
     });
