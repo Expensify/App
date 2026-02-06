@@ -52,9 +52,6 @@ const ONYXKEYS = {
     /** Keeps track if OpenApp failure modal is opened */
     IS_OPEN_APP_FAILURE_MODAL_OPEN: 'isOpenAppFailureModalOpen',
 
-    /** Stores the PIN for an activated UK/EU Expensify card to be shown once after activation */
-    ACTIVATED_CARD_PIN: 'activatedCardPin',
-
     /** Keeps track if there is a full screen currently visible or not */
     FULLSCREEN_VISIBILITY: 'fullscreenVisibility',
 
@@ -1211,7 +1208,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.RECENTLY_USED_CURRENCIES]: string[];
     [ONYXKEYS.ACTIVE_CLIENTS]: string[];
     [ONYXKEYS.DEVICE_ID]: string;
-    [ONYXKEYS.ACTIVATED_CARD_PIN]: string | undefined;
     [ONYXKEYS.IS_SIDEBAR_LOADED]: boolean;
     [ONYXKEYS.PERSISTED_REQUESTS]: OnyxTypes.AnyRequest[];
     [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: OnyxTypes.AnyRequest;
