@@ -157,7 +157,9 @@ describe('DistanceRequestUtils', () => {
     describe('getDistanceMerchant', () => {
         const toLocaleDigitMock = (dot: string): string => dot;
         const getCurrencySymbolMock = (currency: string): string | undefined => {
-            if (currency === 'USD') return '$';
+            if (currency === 'USD') {
+                return '$';
+            }
             return undefined;
         };
 
