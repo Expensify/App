@@ -167,6 +167,7 @@ import {
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyAuditor,
     isPolicyMember,
+    isPolicyMemberWithoutPendingDelete,
     isPolicyOwner,
     isSubmitAndClose,
     shouldShowPolicy,
@@ -991,7 +992,7 @@ Onyx.connectWithoutView({
 const parsedReportActionMessageCache: Record<string, string> = {};
 
 let conciergeReportIDOnyxConnect: OnyxEntry<string>;
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.CONCIERGE_REPORT_ID,
     callback: (value) => {
         conciergeReportIDOnyxConnect = value;
@@ -999,7 +1000,7 @@ Onyx.connectWithoutView({
 });
 
 const defaultAvatarBuildingIconTestID = 'SvgDefaultAvatarBuilding Icon';
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         // When signed out, val is undefined
@@ -1017,7 +1018,7 @@ Onyx.connectWithoutView({
 let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
 let allPersonalDetailLogins: string[];
 let currentUserPersonalDetails: OnyxEntry<PersonalDetails>;
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
         if (currentUserAccountID) {
@@ -1029,7 +1030,7 @@ Onyx.connectWithoutView({
 });
 
 let allReportsDraft: OnyxCollection<Report>;
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_DRAFT,
     waitForCollectionCallback: true,
     callback: (value) => (allReportsDraft = value),
@@ -1037,7 +1038,7 @@ Onyx.connectWithoutView({
 
 let allPolicies: OnyxCollection<Policy>;
 let hasPolicies: boolean;
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
     callback: (value) => {
@@ -1047,7 +1048,7 @@ Onyx.connectWithoutView({
 });
 
 let allPolicyDrafts: OnyxCollection<Policy>;
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_DRAFTS,
     waitForCollectionCallback: true,
     callback: (value) => (allPolicyDrafts = value),
@@ -1055,7 +1056,7 @@ Onyx.connectWithoutView({
 
 let allReports: OnyxCollection<Report>;
 let reportsByPolicyID: ReportByPolicyMap;
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: (value) => {
@@ -1091,14 +1092,14 @@ Onyx.connectWithoutView({
 });
 
 let betaConfiguration: OnyxEntry<BetaConfiguration> = {};
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.BETA_CONFIGURATION,
     callback: (value) => (betaConfiguration = value ?? {}),
 });
 
 let allTransactions: OnyxCollection<Transaction> = {};
 let reportsTransactions: Record<string, Transaction[]> = {};
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     waitForCollectionCallback: true,
     callback: (value) => {
@@ -1124,7 +1125,7 @@ Onyx.connectWithoutView({
 });
 
 let allReportActions: OnyxCollection<ReportActions>;
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     waitForCollectionCallback: true,
     callback: (actions) => {
@@ -1137,7 +1138,7 @@ Onyx.connectWithoutView({
 
 let allReportMetadata: OnyxCollection<ReportMetadata>;
 const allReportMetadataKeyValue: Record<string, ReportMetadata> = {};
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_METADATA,
     waitForCollectionCallback: true,
     callback: (value) => {
@@ -1158,7 +1159,7 @@ Onyx.connectWithoutView({
 });
 
 let allReportNameValuePair: OnyxCollection<ReportNameValuePairs>;
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
     waitForCollectionCallback: true,
     callback: (value) => {
@@ -1170,7 +1171,7 @@ Onyx.connectWithoutView({
 });
 
 let allReportsViolations: OnyxCollection<ReportViolations>;
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_VIOLATIONS,
     waitForCollectionCallback: true,
     callback: (value) => {
@@ -1182,13 +1183,13 @@ Onyx.connectWithoutView({
 });
 
 let onboarding: OnyxEntry<Onboarding>;
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.NVP_ONBOARDING,
     callback: (value) => (onboarding = value),
 });
 
 let delegateEmail = '';
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.ACCOUNT,
     callback: (value) => {
         delegateEmail = value?.delegatedAccess?.delegate ?? '';
@@ -1196,7 +1197,7 @@ Onyx.connectWithoutView({
 });
 
 let reportAttributesDerivedValue: ReportAttributesDerivedValue['reports'];
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
     callback: (value) => {
         reportAttributesDerivedValue = value?.reports ?? {};
@@ -1204,7 +1205,7 @@ Onyx.connectWithoutView({
 });
 
 let cachedSelfDMReportID: OnyxEntry<string>;
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.SELF_DM_REPORT_ID,
     callback: (value) => (cachedSelfDMReportID = value),
 });
@@ -1212,7 +1213,7 @@ Onyx.connectWithoutView({
 let hiddenTranslation = '';
 let unavailableTranslation = '';
 
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
     initWithStoredValues: false,
     callback: (value) => {
@@ -1885,15 +1886,12 @@ function isConciergeChatReport(report: OnyxInputOrEntry<Report>, conciergeReport
     return !!report && report?.reportID === (conciergeReportID ?? conciergeReportIDOnyxConnect);
 }
 
-function findSelfDMReportID(): string | undefined {
+function findSelfDMReportID(reports?: OnyxCollection<Report>): string | undefined {
     if (cachedSelfDMReportID) {
         return cachedSelfDMReportID;
     }
-    if (!allReports) {
-        return;
-    }
 
-    const selfDMReport = Object.values(allReports).find((report) => isSelfDM(report) && !isThread(report));
+    const selfDMReport = Object.values(reports ?? allReports ?? {}).find((report) => isSelfDM(report) && !isThread(report));
     return selfDMReport?.reportID;
 }
 
@@ -2737,7 +2735,23 @@ function isPayer(
     reportPolicy?: OnyxInputOrEntry<Policy>,
     onlyShowPayElsewhere = false,
 ) {
-    const policy = reportPolicy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`] ?? null;
+    const policy = reportPolicy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`];
+
+    // If the report belongs to a workspace, verify the user is still a member
+    // When a user leaves a workspace, they may no longer have access to the policy data,
+    // or the policy.role/employeeList may be stale
+    if (iouReport?.policyID && iouReport.policyID !== CONST.POLICY.ID_FAKE) {
+        // No policy data means user likely left the workspace
+        if (!policy) {
+            return false;
+        }
+        // For paid group policies, verify membership via employeeList (only when loaded)
+        // employeeList may be lazily loaded/partial, so only check if it's present
+        if (isPaidGroupPolicy(iouReport) && !isEmptyObject(policy?.employeeList) && !isPolicyMemberWithoutPendingDelete(currentUserEmailParam, policy)) {
+            return false;
+        }
+    }
+
     const policyType = policy?.type;
     const isAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = iouReport?.managerID === currentAccountID;
@@ -4339,6 +4353,38 @@ function getMoneyRequestSpendBreakdown(report: OnyxInputOrEntry<Report>, searchR
         nonReimbursableSpend: 0,
         reimbursableSpend: 0,
         totalDisplaySpend: 0,
+    };
+}
+
+function getBillableAndTaxTotal(report: OnyxEntry<Report>, transactions: Array<OnyxEntry<Transaction>>) {
+    let billableTotal = 0;
+    let taxTotal = 0;
+    if (!isExpenseReport(report)) {
+        return {
+            billableTotal: 0,
+            taxTotal: 0,
+        };
+    }
+    for (const transaction of transactions) {
+        const {amount = 0, taxAmount = 0, currency, billable} = getTransactionDetails(transaction) ?? {};
+        if (billable) {
+            if (currency === report?.currency) {
+                billableTotal += amount;
+            } else {
+                billableTotal -= transaction?.convertedAmount ?? 0;
+            }
+        }
+        if (taxAmount) {
+            if (currency === report?.currency) {
+                taxTotal += taxAmount;
+            } else {
+                taxTotal -= transaction?.convertedTaxAmount ?? 0;
+            }
+        }
+    }
+    return {
+        billableTotal,
+        taxTotal,
     };
 }
 
@@ -10822,12 +10868,11 @@ function getTripIDFromTransactionParentReportID(transactionParentReportID: strin
 /**
  * Checks if report contains actions with errors
  */
-function hasActionWithErrorsForTransaction(reportID: string | undefined, transaction: Transaction | undefined): boolean {
+function hasActionWithErrorsForTransaction(reportID: string | undefined, transaction: Transaction | undefined, reportActions: OnyxEntry<ReportActions> | undefined): boolean {
     if (!reportID) {
         return false;
     }
-    const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {};
-    return Object.values(reportActions)
+    return Object.values(reportActions ?? {})
         .filter(Boolean)
         .some((action) => {
             if (isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID) {
@@ -13121,6 +13166,7 @@ export {
     isOneTransactionReport,
     isTrackExpenseReportNew,
     shouldHideSingleReportField,
+    getBillableAndTaxTotal,
     getReportForHeader,
     isReportOpenOrUnsubmitted,
 };
