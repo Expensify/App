@@ -668,5 +668,47 @@ describe('ReportNameUtils', () => {
             // Then it should return "New Report"
             expect(reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
         });
+
+        it('should not return empty string for expense report with empty reportName when policy has a normal fieldList', () => {
+            // Given an expense report with empty reportName
+            const expenseReport: Report = {
+                ...createExpenseReport(201),
+                reportID: '201',
+                reportName: '',
+                policyID: '201',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                total: 0,
+                currency: 'USD',
+            };
+
+            // And a policy with a normal (non-empty) fieldList
+            const policyWithFieldList: Policy = {
+                ...createRandomPolicy(201, CONST.POLICY.TYPE.TEAM),
+                id: '201',
+                fieldList: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    text_title: {
+                        defaultValue: '{report:type} {report:startdate}',
+                        deletable: false,
+                        externalIDs: [],
+                        fieldID: 'text_title',
+                        isTax: false,
+                        name: 'title',
+                        orderWeight: 0,
+                        type: 'formula',
+                        target: 'expense',
+                        values: [],
+                        disabledOptions: [],
+                        keys: [],
+                    },
+                },
+            };
+
+            // When we get the money request report name
+            const reportName = getMoneyRequestReportName({report: expenseReport, policy: policyWithFieldList});
+
+            // Then it should NOT return empty string — it should fall through to dynamic name computation
+            expect(reportName).not.toBe('');
+        });
     });
 });
