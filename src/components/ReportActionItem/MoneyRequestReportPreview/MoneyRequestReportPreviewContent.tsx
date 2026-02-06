@@ -1,6 +1,8 @@
+import {FlashList} from '@shopify/flash-list';
+import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
 import React, {useCallback, useContext, useDeferredValue, useEffect, useMemo, useRef, useState} from 'react';
-import {FlatList, View} from 'react-native';
-import type {ListRenderItemInfo, ViewToken} from 'react-native';
+import {View} from 'react-native';
+import type {ViewToken} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming} from 'react-native-reanimated';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -74,7 +76,6 @@ import {
     isTripRoom as isTripRoomReportUtils,
     isWaitingForSubmissionFromCurrentUser as isWaitingForSubmissionFromCurrentUserReportUtils,
 } from '@libs/ReportUtils';
-import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {hasPendingUI, isManagedCardTransaction, isPending} from '@libs/TransactionUtils';
 import colors from '@styles/theme/colors';
@@ -452,7 +453,7 @@ function MoneyRequestReportPreviewContent({
     // value ensures that disabled state is applied instantly and not overridden by onViewableItemsChanged when scrolling
     // undefined makes arrow buttons react on currentIndex changes when scrolling manually
     const [optimisticIndex, setOptimisticIndex] = useState<number | undefined>(undefined);
-    const carouselRef = useRef<FlatList<Transaction> | null>(null);
+    const carouselRef = useRef<FlashListRef<Transaction> | null>(null);
     const visibleItemsOnEndCount = useMemo(() => {
         const lastItemWidth = transactions.length > 10 ? footerWidth : reportPreviewStyles.transactionPreviewCarouselStyle.width;
         const lastItemWithGap = lastItemWidth + styles.gap2.gap;
@@ -473,25 +474,26 @@ function MoneyRequestReportPreviewContent({
     }).current;
 
     const handleChange = (index: number) => {
+        const viewOffset = -(2 * styles.transactionsCarouselGap.width);
         if (index > carouselTransactions.length - visibleItemsOnEndCount) {
             setOptimisticIndex(carouselTransactions.length - visibleItemsOnEndCount);
-            carouselRef.current?.scrollToIndex({index: carouselTransactions.length - visibleItemsOnEndCount, animated: true, viewOffset: 2 * styles.gap2.gap});
+            carouselRef.current?.scrollToIndex({index: carouselTransactions.length - visibleItemsOnEndCount, animated: true, viewOffset});
             return;
         }
         if (index < 0) {
             setOptimisticIndex(0);
-            carouselRef.current?.scrollToIndex({index: 0, animated: true, viewOffset: 2 * styles.gap2.gap});
+            carouselRef.current?.scrollToIndex({index: 0, animated: true, viewOffset});
             return;
         }
         setOptimisticIndex(index);
-        carouselRef.current?.scrollToIndex({index, animated: true, viewOffset: 2 * styles.gap2.gap});
+        carouselRef.current?.scrollToIndex({index, animated: true, viewOffset});
     };
 
-    const renderFlatlistItem = (itemInfo: ListRenderItemInfo<Transaction>) => {
+    const renderItem = (itemInfo: ListRenderItemInfo<Transaction>) => {
         if (itemInfo.index > 9) {
             return (
                 <View
-                    style={[styles.flex1, styles.p5, styles.justifyContentCenter]}
+                    style={[styles.p5, styles.justifyContentCenter]}
                     onLayout={(e) => setFooterWidth(e.nativeEvent.layout.width)}
                 >
                     <Text style={{color: colors.blue600}}>
@@ -683,17 +685,13 @@ function MoneyRequestReportPreviewContent({
         ),
     };
 
-    const adjustScroll = useCallback(() => {
-        // Workaround for a known React Native bug on Android (https://github.com/facebook/react-native/issues/27504):
-        // When the FlatList is scrolled to the end and the last item is deleted, a blank space is left behind.
-        // To fix this, we detect when onEndReached is triggered due to an item deletion,
-        // and programmatically scroll to the end to fill the space.
-        if (carouselTransactions.length >= prevCarouselTransactionLength.current || !shouldAdjustScroll) {
-            return;
-        }
-        prevCarouselTransactionLength.current = carouselTransactions.length;
-        carouselRef.current?.scrollToEnd();
-    }, [carouselTransactions.length]);
+    const renderSeparator = () => <View style={styles.transactionsCarouselGap} />;
+
+    const snapOffsets = useMemo(() => {
+        const itemWidth = reportPreviewStyles.transactionPreviewCarouselStyle.width;
+        const gap = styles.transactionsCarouselGap.width;
+        return carouselTransactions.map((_, index) => index * (itemWidth + gap));
+    }, [carouselTransactions, reportPreviewStyles.transactionPreviewCarouselStyle.width, styles.transactionsCarouselGap.width]);
 
     return (
         <View
@@ -843,22 +841,22 @@ function MoneyRequestReportPreviewContent({
                                         </View>
                                     ) : (
                                         <View style={[styles.flex1, styles.flexColumn, styles.overflowVisible]}>
-                                            <FlatList
+                                            <FlashList
                                                 snapToAlignment="start"
                                                 decelerationRate="fast"
-                                                snapToInterval={reportPreviewStyles.transactionPreviewCarouselStyle.width + styles.gap2.gap}
+                                                snapToOffsets={snapOffsets}
                                                 horizontal
+                                                ItemSeparatorComponent={renderSeparator}
                                                 data={carouselTransactions}
                                                 ref={carouselRef}
                                                 nestedScrollEnabled
                                                 bounces={false}
                                                 keyExtractor={(item) => `${item.transactionID}_${reportPreviewStyles.transactionPreviewCarouselStyle.width}`}
-                                                contentContainerStyle={[styles.gap2]}
+                                                contentContainerStyle={styles.ph2}
                                                 style={reportPreviewStyles.flatListStyle}
                                                 showsHorizontalScrollIndicator={false}
-                                                renderItem={renderFlatlistItem}
+                                                renderItem={renderItem}
                                                 onViewableItemsChanged={onViewableItemsChanged}
-                                                onEndReached={adjustScroll}
                                                 viewabilityConfig={viewabilityConfig}
                                                 ListFooterComponent={<View style={styles.pl2} />}
                                                 ListHeaderComponent={<View style={styles.pr2} />}
