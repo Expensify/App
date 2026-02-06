@@ -27,14 +27,6 @@ const restrictedIconImportPatterns = [
     },
 ];
 
-const restrictedReportNameImportPaths = [
-    {
-        name: '@libs/ReportNameUtils',
-        importNames: ['computeReportName'],
-        message: 'Do not import computeReportName. Use getReportName instead, which properly uses derived report attributes.',
-    },
-];
-
 const restrictedReportNameImportPatterns = [
     {
         group: ['**/ReportNameUtils', '**/libs/ReportNameUtils'],
@@ -93,7 +85,6 @@ const config = defineConfig([
             'no-restricted-imports': [
                 'error',
                 {
-                    paths: restrictedReportNameImportPaths,
                     patterns: restrictedReportNameImportPatterns,
                 },
             ],
