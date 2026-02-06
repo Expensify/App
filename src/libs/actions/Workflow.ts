@@ -83,9 +83,7 @@ function createApprovalWorkflow({approvalWorkflow, policy, addExpenseApprovalsTa
                 employeeList: Object.fromEntries(
                     Object.keys(updatedEmployees).map((key) => [
                         key,
-                        previousEmployeeList[key]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-                            ? {pendingFields: null}
-                            : {pendingAction: null, pendingFields: null},
+                        previousEmployeeList[key]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? {pendingFields: null} : {pendingAction: null, pendingFields: null},
                     ]),
                 ),
             },
@@ -161,9 +159,7 @@ function updateApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, membersToRem
                 employeeList: Object.fromEntries(
                     Object.keys(updatedEmployees).map((key) => [
                         key,
-                        previousEmployeeList[key]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-                            ? {pendingFields: null}
-                            : {pendingAction: null, pendingFields: null},
+                        previousEmployeeList[key]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? {pendingFields: null} : {pendingAction: null, pendingFields: null},
                     ]),
                 ),
             },
