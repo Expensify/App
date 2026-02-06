@@ -276,6 +276,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             showLoadingPlaceholder={showLoadingPlaceholder}
             isLoadingNewOptions={!!isSearchingForReports}
             showListEmptyContent={shouldShowListEmptyContent}
+            disableMaintainingScrollPosition
         />
     );
 }
