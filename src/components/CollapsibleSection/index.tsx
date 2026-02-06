@@ -50,12 +50,14 @@ function CollapsibleSection({title, children, titleStyle, textStyle, wrapperStyl
                 style={[styles.pb4, styles.flexRow]}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={title}
+                sentryLabel="CollapsibleSection-Toggle"
                 hoverDimmingValue={1}
                 pressDimmingValue={0.2}
             >
                 <Text
                     style={textStyle ?? [styles.flex1, styles.textStrong, styles.userSelectNone, titleStyle]}
                     dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                    accessibilityRole="header"
                 >
                     {title}
                 </Text>
