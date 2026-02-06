@@ -13,7 +13,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Hoverable from '@components/Hoverable';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {useFullScreenContext} from '@components/VideoPlayerContexts/FullScreenContext';
-import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import {usePlaybackActionsContext, usePlaybackStateContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import type {PlaybackSpeed} from '@components/VideoPlayerContexts/types';
 import {useVideoPopoverMenuContext} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
 import {useVolumeContext} from '@components/VideoPlayerContexts/VolumeContext';
@@ -53,22 +53,8 @@ function BaseVideoPlayer({
     onTap,
 }: VideoPlayerProps & {reportID: string}) {
     const styles = useThemeStyles();
-    const {
-        pauseVideo,
-        playVideo,
-        replayVideo,
-        currentlyPlayingURL,
-        sharedElement,
-        originalParent,
-        shareVideoPlayerElements,
-        currentVideoPlayerRef,
-        currentVideoViewRef,
-        updateCurrentURLAndReportID,
-        setCurrentlyPlayingURL,
-        mountedVideoPlayersRef,
-        playerStatus,
-        updatePlayerStatus,
-    } = usePlaybackContext();
+    const {currentlyPlayingURL, sharedElement, originalParent, currentVideoPlayerRef, currentVideoViewRef, mountedVideoPlayersRef, playerStatus} = usePlaybackStateContext();
+    const {pauseVideo, playVideo, replayVideo, shareVideoPlayerElements, updateCurrentURLAndReportID, setCurrentlyPlayingURL, updatePlayerStatus} = usePlaybackActionsContext();
     const {isFullScreenRef} = useFullScreenContext();
 
     const isOffline = useNetwork().isOffline;
