@@ -159,9 +159,6 @@ type SplitExpense = {
 
     /** Whether the split expense is reimbursable (out-of-pocket) or non-reimbursable (company spend) */
     reimbursable?: boolean;
-
-    /** Whether this split has been manually edited by the user (locks the value from auto-adjustment) */
-    isManuallyEdited?: boolean;
 };
 
 /** Model of IOU request */

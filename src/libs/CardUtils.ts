@@ -278,6 +278,19 @@ function getMCardNumberString(cardNumber: string): string {
     return cardNumber.replaceAll(/\s/g, '');
 }
 
+/**
+ * Returns the default Expensify Card limit type based on policy approval workflow.
+ * When approvals are configured (not optional), defaults to SMART; otherwise MONTHLY.
+ */
+function getDefaultExpensifyCardLimitType(policy?: OnyxEntry<Policy>): ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES> {
+    let approvalMode = policy?.approvalMode ?? CONST.POLICY.APPROVAL_MODE.ADVANCED;
+    if (policy?.type === CONST.POLICY.TYPE.PERSONAL) {
+        approvalMode = CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    }
+    const areApprovalsConfigured = approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    return areApprovalsConfigured ? CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART : CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY;
+}
+
 function getTranslationKeyForLimitType(limitType: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES> | undefined): TranslationPaths | '' {
     switch (limitType) {
         case CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART:
@@ -286,6 +299,8 @@ function getTranslationKeyForLimitType(limitType: ValueOf<typeof CONST.EXPENSIFY
             return 'workspace.card.issueNewCard.fixedAmount';
         case CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY:
             return 'workspace.card.issueNewCard.monthly';
+        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.SINGLE_USE:
+            return 'workspace.card.issueNewCard.singleUse';
         default:
             return '';
     }
@@ -400,6 +415,15 @@ function isCustomFeed(feed: CompanyCardFeedWithNumber | undefined): boolean {
     return [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX].some((value) => feed.startsWith(value));
 }
 
+/**
+ * Checks if a feed key represents a CSV feed or Expensify Card.
+ * CSV feeds from Classic and Expensify Cards should not count toward the feed limit for Collect plan workspaces.
+ */
+function isCSVFeedOrExpensifyCard(feedKey: string): boolean {
+    const lowerFeedKey = feedKey.toLowerCase();
+    return lowerFeedKey.startsWith('csv') || lowerFeedKey.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV) || feedKey === CONST.EXPENSIFY_CARD.BANK;
+}
+
 function getOriginalCompanyFeeds(cardFeeds: OnyxEntry<CardFeeds>): CompanyFeeds {
     return Object.fromEntries(
         Object.entries(cardFeeds?.settings?.companyCards ?? {}).filter(([key, value]) => {
@@ -489,6 +513,69 @@ function getCustomOrFormattedFeedName(translate: LocalizedTranslate, feed?: Comp
     // Fallback to feed key name for unknown feeds
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     return customFeedName || formattedFeedName || feed;
+}
+
+/**
+ * Check if a card feed exists in the card feeds collection.
+ */
+function doesCardFeedExist(feed: CompanyCardFeed | undefined, cardFeeds: OnyxCollection<CardFeeds> | undefined): boolean {
+    if (!feed || !cardFeeds) {
+        return false;
+    }
+
+    for (const feedData of Object.values(cardFeeds)) {
+        const companyFeeds = getOriginalCompanyFeeds(feedData);
+        if (feed in companyFeeds) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Retrieve the custom nickname for a feed from the card feeds collection.
+ */
+function getCustomFeedNameFromFeeds(cardFeeds: OnyxCollection<CardFeeds> | undefined, feed: CompanyCardFeed | undefined): string | undefined {
+    if (!feed || !cardFeeds) {
+        return undefined;
+    }
+
+    for (const feedData of Object.values(cardFeeds)) {
+        const nickname = feedData?.settings?.companyCardNicknames?.[feed];
+        if (nickname) {
+            return nickname;
+        }
+    }
+
+    return undefined;
+}
+
+/**
+ * Get the feed name for display purposes.
+ * Returns "Deleted Feed" if the feed doesn't exist, otherwise returns the formatted feed name.
+ */
+function getFeedNameForDisplay(
+    translate: LocaleContextProps['translate'],
+    feed: CompanyCardFeed | undefined,
+    cardFeeds: OnyxCollection<CardFeeds> | undefined,
+    customFeedName?: string,
+    shouldAddCardsSuffix = true,
+): string {
+    // If feed is undefined or cardFeeds is not available, return empty string to avoid showing incorrect state
+    if (!feed || !cardFeeds) {
+        return '';
+    }
+
+    const feedExists = doesCardFeedExist(feed, cardFeeds);
+
+    if (!feedExists) {
+        return translate('workspace.companyCards.deletedFeed');
+    }
+
+    const customName = customFeedName ?? getCustomFeedNameFromFeeds(cardFeeds, feed);
+
+    return getCustomOrFormattedFeedName(translate, feed, customName, shouldAddCardsSuffix) ?? '';
 }
 
 function getPlaidInstitutionIconUrl(feedName?: string) {
@@ -838,13 +925,6 @@ function isPersonalCard(card?: Card) {
     return !card?.fundID || card.fundID === '0' || card?.bank === CONST.PERSONAL_CARD.BANK_NAME.CSV;
 }
 
-/**
- * Filter out personal (including cash) cards from the card list.
- */
-function filterOutPersonalCards(cards: CardList | undefined): CardList {
-    return filterObject(cards ?? {}, (_key, card) => !isPersonalCard(card));
-}
-
 type SplitMaskedCardNumberResult = {
     firstDigits?: string;
     lastDigits?: string;
@@ -916,6 +996,7 @@ function hasDisplayableAssignedCards(cardList: CardList | undefined): boolean {
 
 export {
     getAssignedCardSortKey,
+    getDefaultExpensifyCardLimitType,
     isExpensifyCard,
     getDomainCards,
     formatCardExpiration,
@@ -935,10 +1016,14 @@ export {
     isSelectedFeedExpired,
     getCompanyFeeds,
     isCustomFeed,
+    isCSVFeedOrExpensifyCard,
     getBankCardDetailsImage,
     getSelectedFeed,
     getPlaidCountry,
     getCustomOrFormattedFeedName,
+    doesCardFeedExist,
+    getCustomFeedNameFromFeeds,
+    getFeedNameForDisplay,
     isCardClosed,
     isPlaidSupportedCountry,
     getFilteredCardList,
@@ -975,7 +1060,6 @@ export {
     getCompanyCardFeed,
     getCompanyCardFeedWithDomainID,
     getEligibleBankAccountsForUkEuCard,
-    filterOutPersonalCards,
     isPersonalCard,
     COMPANY_CARD_FEED_ICON_NAMES,
     COMPANY_CARD_BANK_ICON_NAMES,
