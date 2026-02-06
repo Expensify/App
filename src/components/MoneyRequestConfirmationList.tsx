@@ -24,7 +24,6 @@ import {
     setIndividualShare,
     setMoneyRequestAmount,
     setMoneyRequestCategory,
-    setMoneyRequestDistance,
     setMoneyRequestMerchant,
     setMoneyRequestPendingFields,
     setMoneyRequestTag,
@@ -36,7 +35,6 @@ import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {isCategoryDescriptionRequired} from '@libs/CategoryUtils';
 import {convertToBackendAmount, convertToDisplayString, convertToDisplayStringWithoutCurrency, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {calculateGPSDistance} from '@libs/GPSDraftDetailsUtils';
 import {calculateAmount, insertTagIntoTransactionTagsString, isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import {validateAmount} from '@libs/MoneyRequestUtils';
@@ -311,7 +309,12 @@ function MoneyRequestConfirmationList({
     );
 
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
-    const policy = isTrackExpense ? policyForMovingExpenses : (policyReal ?? policyDraft);
+    let policy;
+    if (isTrackExpense) {
+        policy = isPolicyExpenseChat ? policyForMovingExpenses : undefined;
+    } else {
+        policy = policyReal ?? policyDraft;
+    }
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
     const defaultMileageRate = defaultMileageRateDraft ?? defaultMileageRateReal;
 
@@ -326,7 +329,7 @@ function MoneyRequestConfirmationList({
     const isTypeTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const isTypeInvoice = iouType === CONST.IOU.TYPE.INVOICE;
     const isScanRequest = useMemo(() => isScanRequestUtil(transaction), [transaction]);
-    const isCreateExpenseFlow = !!transaction?.isFromGlobalCreate && !isPerDiemRequest;
+    const isFromGlobalCreateAndCanEditParticipant = !!transaction?.isFromGlobalCreate && !isPerDiemRequest && !isTimeRequest;
 
     const transactionID = transaction?.transactionID;
     const customUnitRateID = getRateID(transaction);
@@ -347,8 +350,8 @@ function MoneyRequestConfirmationList({
             return;
         }
 
-        setCustomUnitRateID(transactionID, lastSelectedRate);
-    }, [customUnitRateID, transactionID, lastSelectedRate, isDistanceRequest, isPolicyExpenseChat, isMovingTransactionFromTrackExpense]);
+        setCustomUnitRateID(transactionID, lastSelectedRate, transaction, policy);
+    }, [customUnitRateID, transactionID, lastSelectedRate, isDistanceRequest, isPolicyExpenseChat, isMovingTransactionFromTrackExpense, transaction, policy]);
 
     const mileageRate = DistanceRequestUtils.getRate({transaction, policy, policyDraft});
     const rate = mileageRate.rate;
@@ -366,7 +369,7 @@ function MoneyRequestConfirmationList({
         ? !policy || shouldSelectPolicy || hasEnabledOptions(Object.values(policyCategories ?? {}))
         : (isPolicyExpenseChat || isTypeInvoice) && (!!iouCategory || hasEnabledOptions(Object.values(policyCategories ?? {})));
 
-    const shouldShowMerchant = (shouldShowSmartScanFields || isTypeSend) && !isDistanceRequest && !isPerDiemRequest && !isTimeRequest;
+    const shouldShowMerchant = (shouldShowSmartScanFields || isTypeSend) && !isDistanceRequest && !isPerDiemRequest && (!isTimeRequest || action !== CONST.IOU.ACTION.CREATE);
 
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
@@ -394,19 +397,6 @@ function MoneyRequestConfirmationList({
     const isDistanceRequestWithPendingRoute = isDistanceRequest && (!hasRoute || !rate) && !isMovingTransactionFromTrackExpense;
 
     const distanceRequestAmount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
-
-    // Update GPS distance whenever the current distance unit differs from the one that was used
-    // to calculate the distance stored in transaction.comment.customUnit.quantity
-    const gpsDistance = transaction?.comment?.customUnit?.quantity;
-    const gpsDistanceWithCurrentDistanceUnit = calculateGPSDistance(distance, unit);
-    const shouldUpdateGpsDistance = isGPSDistanceRequest && gpsDistance !== gpsDistanceWithCurrentDistanceUnit;
-    useEffect(() => {
-        if (!shouldUpdateGpsDistance || !transactionID || isReadOnly) {
-            return;
-        }
-
-        setMoneyRequestDistance(transactionID, gpsDistanceWithCurrentDistanceUnit, true);
-    }, [shouldUpdateGpsDistance, transactionID, isReadOnly, gpsDistanceWithCurrentDistanceUnit]);
 
     let amountToBeUsed = iouAmount;
 
@@ -514,7 +504,7 @@ function MoneyRequestConfirmationList({
         // If there is a distance rate in the policy that matches the rate and unit of the currently selected mileage rate, select it automatically
         const matchingRate = Object.values(policyRates).find((policyRate) => policyRate.rate === mileageRate.rate && policyRate.unit === mileageRate.unit);
         if (matchingRate?.customUnitRateID) {
-            setCustomUnitRateID(transactionID, matchingRate.customUnitRateID);
+            setCustomUnitRateID(transactionID, matchingRate.customUnitRateID, transaction, policy);
             return;
         }
 
@@ -531,6 +521,7 @@ function MoneyRequestConfirmationList({
         isMovingTransactionFromTrackExpense,
         setFormError,
         clearFormErrors,
+        transaction,
     ]);
 
     const routeError = Object.values(transaction?.errorFields?.route ?? {}).at(0);
@@ -803,6 +794,7 @@ function MoneyRequestConfirmationList({
                         accessibilityLabel={CONST.ROLE.BUTTON}
                         role={CONST.ROLE.BUTTON}
                         shouldUseAutoHitSlop
+                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.RESET_SPLIT_SHARES}
                     >
                         <Text style={[styles.pr5, styles.textLabelSupporting, styles.link]}>{translate('common.reset')}</Text>
                     </PressableWithFeedback>
@@ -847,8 +839,8 @@ function MoneyRequestConfirmationList({
             const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
                 ...participant,
                 isSelected: false,
-                isInteractive: isCreateExpenseFlow && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
-                shouldShowRightIcon: isCreateExpenseFlow && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
+                isInteractive: isFromGlobalCreateAndCanEditParticipant && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
+                shouldShowRightIcon: isFromGlobalCreateAndCanEditParticipant && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
             }));
             options.push({
                 title: translate('common.to'),
@@ -865,7 +857,7 @@ function MoneyRequestConfirmationList({
         getSplitSectionHeader,
         splitParticipants,
         selectedParticipants,
-        isCreateExpenseFlow,
+        isFromGlobalCreateAndCanEditParticipant,
         isTestReceipt,
         isRestrictedToPreferredPolicy,
         isTypeInvoice,
@@ -946,7 +938,7 @@ function MoneyRequestConfirmationList({
      * Navigate to the participant step
      */
     const navigateToParticipantPage = () => {
-        if (!isCreateExpenseFlow) {
+        if (!isFromGlobalCreateAndCanEditParticipant) {
             return;
         }
 

@@ -1,21 +1,13 @@
 import React, {useCallback, useMemo} from 'react';
 import {BarChart} from '@components/Charts';
-import type {BarChartDataPoint} from '@components/Charts';
-import type {
-    TransactionCardGroupListItemType,
-    TransactionCategoryGroupListItemType,
-    TransactionGroupListItemType,
-    TransactionMemberGroupListItemType,
-    TransactionWithdrawalIDGroupListItemType,
-} from '@components/SelectionListWithSections/types';
+import type {ChartDataPoint, YAxisUnitPosition} from '@components/Charts';
 import {convertToFrontendAmountAsInteger} from '@libs/CurrencyUtils';
 import type IconAsset from '@src/types/utils/IconAsset';
-
-type GroupedItem = TransactionMemberGroupListItemType | TransactionCardGroupListItemType | TransactionWithdrawalIDGroupListItemType | TransactionCategoryGroupListItemType;
+import type {GroupedItem} from './types';
 
 type SearchBarChartProps = {
     /** Grouped transaction data from search results */
-    data: TransactionGroupListItemType[];
+    data: GroupedItem[];
 
     /** Chart title */
     title: string;
@@ -29,8 +21,8 @@ type SearchBarChartProps = {
     /** Function to build filter query from grouped item */
     getFilterQuery: (item: GroupedItem) => string;
 
-    /** Callback when a bar is pressed - receives the filter query to apply */
-    onBarPress?: (filterQuery: string) => void;
+    /** Callback when a chart item is pressed - receives the filter query to apply */
+    onItemPress?: (filterQuery: string) => void;
 
     /** Whether data is loading */
     isLoading?: boolean;
@@ -39,28 +31,26 @@ type SearchBarChartProps = {
     yAxisUnit?: string;
 
     /** Position of currency symbol relative to value */
-    yAxisUnitPosition?: 'left' | 'right';
+    yAxisUnitPosition?: YAxisUnitPosition;
 };
 
-function SearchBarChart({data, title, titleIcon, getLabel, getFilterQuery, onBarPress, isLoading, yAxisUnit, yAxisUnitPosition}: SearchBarChartProps) {
+function SearchBarChart({data, title, titleIcon, getLabel, getFilterQuery, onItemPress, isLoading, yAxisUnit, yAxisUnitPosition}: SearchBarChartProps) {
     // Transform grouped transaction data to BarChart format
-    const chartData: BarChartDataPoint[] = useMemo(() => {
+    const chartData: ChartDataPoint[] = useMemo(() => {
         return data.map((item) => {
-            const groupedItem = item as GroupedItem;
-            const currency = groupedItem.currency ?? 'USD';
-            const totalInDisplayUnits = convertToFrontendAmountAsInteger(groupedItem.total ?? 0, currency);
+            const currency = item.currency ?? 'USD';
+            const totalInDisplayUnits = convertToFrontendAmountAsInteger(item.total ?? 0, currency);
 
             return {
-                label: getLabel(groupedItem),
+                label: getLabel(item),
                 total: totalInDisplayUnits,
-                currency,
             };
         });
     }, [data, getLabel]);
 
     const handleBarPress = useCallback(
-        (dataPoint: BarChartDataPoint, index: number) => {
-            if (!onBarPress) {
+        (dataPoint: ChartDataPoint, index: number) => {
+            if (!onItemPress) {
                 return;
             }
 
@@ -69,10 +59,10 @@ function SearchBarChart({data, title, titleIcon, getLabel, getFilterQuery, onBar
                 return;
             }
 
-            const filterQuery = getFilterQuery(item as GroupedItem);
-            onBarPress(filterQuery);
+            const filterQuery = getFilterQuery(item);
+            onItemPress(filterQuery);
         },
-        [data, getFilterQuery, onBarPress],
+        [data, getFilterQuery, onItemPress],
     );
 
     return (
