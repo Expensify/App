@@ -364,6 +364,7 @@ function BaseReportActionContextMenu({
                         const payload: ContextMenuActionPayload = {
                             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                             reportAction: (reportAction ?? null) as ReportAction,
+                            reportActions,
                             reportID,
                             report,
                             draftMessage,
