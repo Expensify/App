@@ -5,6 +5,7 @@ import React, {useCallback, useEffect, useMemo} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, InteractionManager, ScrollView, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -25,7 +26,7 @@ import Log from '@libs/Log';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, isMoneyRequestAction, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
-import {canEditReportAction, getReportOfflinePendingActionAndErrors, isReportTransactionThread} from '@libs/ReportUtils';
+import {canEditReportAction, getReportOfflinePendingActionAndErrors, isReportPendingDelete, isReportTransactionThread} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 import Navigation from '@navigation/Navigation';
@@ -195,6 +196,15 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
 
     if (!!(isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) || shouldWaitForTransactions) {
         return <InitialLoadingSkeleton styles={styles} />;
+    }
+
+    if (reportActions.length === 0 && isReportPendingDelete(report)) {
+        return (
+            <FullPageNotFoundView
+                shouldShow
+                subtitleKey="notFound.noAccess"
+            />
+        );
     }
 
     if (reportActions.length === 0) {

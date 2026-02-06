@@ -9940,6 +9940,15 @@ function isMoneyRequestReportPendingDeletion(reportOrID: OnyxEntry<Report> | str
     return parentReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
+/**
+ * Check if a report is pending deletion (optimistic delete).
+ * This checks both pendingAction and pendingFields.preview since deletion
+ * can be tracked via either field depending on the deletion flow.
+ */
+function isReportPendingDelete(report: OnyxEntry<Pick<Report, 'pendingAction' | 'pendingFields'>>): boolean {
+    return report?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || report?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+}
+
 function navigateToLinkedReportAction(ancestor: Ancestor, isInNarrowPaneModal: boolean, canUserPerformWrite: boolean | undefined, isOffline: boolean) {
     if (isInNarrowPaneModal) {
         Navigation.navigate(
@@ -12998,6 +13007,7 @@ export {
     isMoneyRequest,
     isMoneyRequestReport,
     isMoneyRequestReportPendingDeletion,
+    isReportPendingDelete,
     isOneOnOneChat,
     isOneTransactionThread,
     isOpenExpenseReport,

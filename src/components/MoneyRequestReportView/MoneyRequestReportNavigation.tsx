@@ -1,5 +1,6 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import PrevNextButtons from '@components/PrevNextButtons';
 import Text from '@components/Text';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
@@ -7,7 +8,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {selectFilteredReportActions} from '@libs/ReportUtils';
+import {isReportPendingDelete, selectFilteredReportActions} from '@libs/ReportUtils';
 import {getSections, getSortedSections} from '@libs/SearchUIUtils';
 import Navigation from '@navigation/Navigation';
 import {saveLastSearchParams} from '@userActions/ReportNavigation';
@@ -15,6 +16,20 @@ import {search} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isActionLoadingSetSelector} from '@src/selectors/ReportMetaData';
+import type {Report} from '@src/types/onyx';
+import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
+
+type ReportPendingFields = Pick<Report, 'pendingAction' | 'pendingFields'>;
+
+const selectReportsPendingFields = (reports: OnyxCollection<Report>) =>
+    mapOnyxCollectionItems(reports, (report: OnyxEntry<Report>): ReportPendingFields | undefined =>
+        report
+            ? {
+                  pendingAction: report.pendingAction,
+                  pendingFields: report.pendingFields,
+              }
+            : undefined,
+    );
 
 type MoneyRequestReportNavigationProps = {
     reportID?: string;
@@ -24,6 +39,7 @@ type MoneyRequestReportNavigationProps = {
 function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: MoneyRequestReportNavigationProps) {
     const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY, {canBeMissing: true});
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`, {canBeMissing: true});
+    const [liveReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true, selector: selectReportsPendingFields});
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {localeCompare, formatPhoneNumber, translate} = useLocalize();
     const [isActionLoadingSet = CONST.EMPTY_SET] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
@@ -61,7 +77,15 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
         });
         results = getSortedSections(type, status ?? '', searchData, localeCompare, translate, sortBy, sortOrder, groupBy).map((value) => value.reportID);
     }
-    const allReports = results;
+
+    const reportKeyPrefix = ONYXKEYS.COLLECTION.REPORT;
+    const allReports = results.filter((id) => {
+        if (!id) {
+            return false;
+        }
+        const liveReport = liveReports?.[`${reportKeyPrefix}${id}`];
+        return !isReportPendingDelete(liveReport);
+    });
 
     const currentIndex = allReports.indexOf(reportID);
     const allReportsCount = lastSearchQuery?.previousLengthOfResults ?? 0;
@@ -81,6 +105,14 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
             saveLastSearchParams({
                 ...lastSearchQuery,
                 allowPostSearchRecount: false,
+                previousLengthOfResults: allReports.length,
+            });
+            return;
+        }
+
+        if (allReports.length !== allReportsCount) {
+            saveLastSearchParams({
+                ...lastSearchQuery,
                 previousLengthOfResults: allReports.length,
             });
             return;
@@ -132,7 +164,7 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
             return;
         }
 
-        const prevIndex = (currentIndex - 1) % allReports.length;
+        const prevIndex = (currentIndex - 1 + allReports.length) % allReports.length;
         goToReportId(allReports.at(prevIndex));
     };
 
