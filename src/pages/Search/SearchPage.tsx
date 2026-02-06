@@ -509,7 +509,7 @@ function SearchPage({route}: SearchPageProps) {
                 const transactionsViolations = allTransactionViolations
                     ? Object.fromEntries(Object.entries(allTransactionViolations).filter((entry): entry is [string, TransactionViolations] => !!entry[1]))
                     : {};
-                bulkDeleteReports(hash, selectedTransactions, currentUserPersonalDetails.email ?? '', accountID, reportTransactions, transactionsViolations, bankAccountList);
+                bulkDeleteReports(allReports, selfDMReport, hash, selectedTransactions, currentUserPersonalDetails.email ?? '', accountID, reportTransactions, transactionsViolations, bankAccountList);
                 clearSelectedTransactions();
             });
         });
@@ -527,6 +527,8 @@ function SearchPage({route}: SearchPageProps) {
         currentUserPersonalDetails.email,
         bankAccountList,
         clearSelectedTransactions,
+        allReports,
+        selfDMReport,
     ]);
 
     const onBulkPaySelected = useCallback(
