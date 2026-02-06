@@ -3,6 +3,7 @@ title: Choosing Between Collect and Control Plans
 description: Compare Expensify's Collect and Control plans to decide which plan fits your team's size, workflow, and integration needs.
 keywords: [Collect vs Control, plan comparison, which Expensify plan, upgrade to Control, choose Expensify plan, unique members vs active members, small team vs large team]
 internalScope: Audience is billing owners and admins evaluating which plan to choose. Covers side-by-side comparison, decision factors, and when to upgrade. Does not cover pricing details (see individual plan articles) or how to switch plans.
+order: 1
 ---
 
 # Choosing Between Collect and Control Plans

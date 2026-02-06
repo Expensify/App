@@ -214,6 +214,6 @@ platforms:
     hubs:
       - href: billing
         title: Billing & Subscriptions
-        icon: /assets/images/accounting.svg
-        description: "Learn about billing."
+        icon: /assets/images/subscription-annual.svg
+        description: "Review Expensify's subscription options, plan types, and payment methods."
 

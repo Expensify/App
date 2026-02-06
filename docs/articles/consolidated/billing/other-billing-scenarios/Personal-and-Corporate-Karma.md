@@ -2,6 +2,11 @@
 title: Personal and Corporate Karma
 description: Details about Personal and Corporate Karma
 keywords: [Expensify Classic, karma points, personal karma, corporate karma]
+order: 2
+---
+
+**Note:** This article applies to Expensify Classic only.
+
 ---
 
 [Expensify.org](https://www.expensify.org/about) is built on creating a transparent and convenient way to create an emotional connection between donors, volunteers, and recipients. The funds for this organization come from Corporate Karma, Personal Karma, and monetary donations.

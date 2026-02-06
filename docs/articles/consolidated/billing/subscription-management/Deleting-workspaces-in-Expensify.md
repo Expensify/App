@@ -8,13 +8,14 @@ Overall Retrieval Score: 9.3 / 10
 -->
 
 ---
-title: Deleting a workspace in Expensify
+title: Deleting an Expensify workspace and ending billing
 description: Learn how billing owners can delete a paid workspace in Expensify and what conditions might block deletion.
 keywords: [delete workspace, remove workspace, cancel subscription, billing owner, Expensify workspace deletion, workspace not deleting]
 internalScope: Audience is billing owners. Covers workspace deletion steps, billing restrictions, and what happens after deletion. Does not cover how to cancel subscriptions or transfer billing ownership.
+order: 4
 ---
 
-# How to delete a workspace in Expensify
+# Deleting an Expensify workspace and ending billing
 
 Only the billing owner of a paid workspace can delete it. This article explains the steps to delete a workspace, when deletion may be blocked, and what happens after it's deleted.
 

@@ -1,11 +1,12 @@
 ---
-title: How to Manage Your Subscription in New Expensify
+title: How to configure your subscription in New Expensify
 description: Learn how to view your subscription details, explore available plans, and manage payment information in New Expensify.
 keywords: manage Expensify subscription, Expensify subscription settings, view Expensify subscription, change Expensify plan, update subscription payment method Expensify
 internalScope: Audience is account owners and Workspace Admins. Covers all subscription and payment management actions available in the Subscription section of New Expensify. Does not cover Classic Expensify, billing disputes, or invoices.
+order: 4
 ---
 
-# How to Manage Your Subscription in New Expensify
+# How to configure your subscription in New Expensify
 
 Your Expensify subscription controls which plan you’re on, what features are included, and how your account is billed. From the Subscription page, you can review your subscription details, explore other plans, and manage your payment method.
 

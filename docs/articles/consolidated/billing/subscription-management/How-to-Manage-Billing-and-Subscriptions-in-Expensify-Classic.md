@@ -3,6 +3,7 @@ title: Manage Billing & Subscriptions in Expensify Classic
 description: Step-by-step instructions for billing owners and Workspace Admins to manage subscriptions, resolve billing issues, delete workspaces, and transfer billing ownership in Expensify Classic.
 keywords: [Expensify Classic, billing owner, manage subscription, retry billing, take over billing, delete workspace, transfer billing ownership]
 internalScope: Step-by-step instructions for managing paid subscriptions in Expensify Classic only. Relies on the shared conceptual article for billing rules, eligibility, and constraints.
+order: 3
 ---
 
 This article explains **how to manage billing and subscriptions in Expensify Classic**.  

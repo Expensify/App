@@ -3,6 +3,7 @@ title: What billing ownership means in Expensify
 description: Understand the role of billing ownership and what it allows you to manage in your Expensify workspace.
 keywords: [billing ownership, billing owner, manage billing, manage subscription, workspace admin, transfer billing owner]
 internalScope: Audience is Workspace Admins and billing owners. Covers what billing ownership is, what the billing owner can do, and how it differs from Workspace Admin access. Does not cover how to cancel subscriptions or delete workspaces.
+order: 2
 ---
 
 # What billing ownership means in Expensify
