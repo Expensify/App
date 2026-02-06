@@ -19,8 +19,13 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
     const icons = useMemoizedLazyExpensifyIcons(['LuggageWithLines', 'NewWindow'] as const);
     const {isBetaEnabled} = usePermissions();
     const isTravelInvoicingEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_INVOICING);
+    const isPreventSpotnanaTravelEnabled = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
 
     const handleManageTravel = () => {
+        // TODO: Show the prevention modal when the beta is enabled
+        if (isPreventSpotnanaTravelEnabled) {
+            return;
+        }
         openTravelDotLink(policyID);
     };
 
