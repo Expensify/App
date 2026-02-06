@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import {MULTIFACTOR_AUTHENTICATION_PROMPT_UI} from '@components/MultifactorAuthentication/config';
@@ -39,11 +40,27 @@ function usePromptContent(promptType: MultifactorAuthenticationPromptType): Prom
     const [serverHasCredentials = false] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true, selector: serverHasRegisteredCredentials});
     const [deviceBiometricsState] = useOnyx(ONYXKEYS.DEVICE_BIOMETRICS, {canBeMissing: true});
     const hasEverAcceptedSoftPrompt = deviceBiometricsState?.hasAcceptedSoftPrompt ?? false;
+    
+    // This one's a real doozy. There's an edge case with the MFA flows where the user's keys were revoked
+    // server-side, but the client missed the onyx update clearing them, so the client launches into the authenticate
+    // flow, shows the user this screen with the "Let's authenticate you" message,
+    //  then finds out mid-flow (after requesting the authentication challenge) that we actually need to restart
+    // the whole flow and re-register. This ref is used to prevent UI jank after we clear the relevant state
+    // but haven't yet navigated to the beginning of the registration flow (magic code input)
+    // Functionally, it acts as a latch for isReturningUser, so that once it becomes true, it'll never become false
+    const wasPreviouslyRegisteredRef = useRef(false);
 
     const contentData = MULTIFACTOR_AUTHENTICATION_PROMPT_UI[promptType];
 
     // Returning user: server has credentials, but user hasn't approved soft prompt yet
-    const isReturningUser = hasEverAcceptedSoftPrompt && serverHasCredentials && !state.softPromptApproved;
+    const isReturningUser = wasPreviouslyRegisteredRef.current || (hasEverAcceptedSoftPrompt && serverHasCredentials && !state.softPromptApproved);
+
+    useEffect(() => {
+        if (!isReturningUser) {
+            return;
+        }
+        wasPreviouslyRegisteredRef.current = isReturningUser;
+    }, [isReturningUser]);
 
     let title: TranslationPaths = contentData.title;
     let subtitle: TranslationPaths | undefined = contentData.subtitle;
@@ -64,7 +81,7 @@ function usePromptContent(promptType: MultifactorAuthenticationPromptType): Prom
     // Display confirm button only for new users during their first biometric registration.
     // Hide it for: users who already approved the soft prompt, users who finished registration,
     // or returning users with existing server credentials. The button prompts users to enable biometrics.
-    const shouldDisplayConfirmButton = !hasEverAcceptedSoftPrompt || (!state.softPromptApproved && !state.isRegistrationComplete && !serverHasCredentials);
+    const shouldDisplayConfirmButton = !hasEverAcceptedSoftPrompt || (!state.softPromptApproved && !state.isRegistrationComplete && !serverHasCredentials && !wasPreviouslyRegisteredRef.current);
 
     return {
         animation: contentData.animation,
