@@ -1,7 +1,9 @@
 import * as Sentry from '@sentry/react-native';
 import AppStateMonitor from '@libs/AppStateMonitor';
 import CONST from '@src/CONST';
+import formatMemoryBreadcrumb from './formatMemoryBreadcrumb';
 import getMemoryInfo from './getMemoryInfo';
+import getMemoryLogLevel from './getMemoryLogLevel';
 
 let memoryTrackingIntervalID: ReturnType<typeof setInterval> | undefined;
 let memoryTrackingListenerCleanup: (() => void) | undefined;
@@ -15,7 +17,6 @@ function sendMemoryContext() {
         .then((memoryInfo) => {
             const freeMemoryMB = memoryInfo.freeMemoryMB;
             const usedMemoryMB = memoryInfo.usedMemoryMB;
-            let logLevel: Sentry.SeverityLevel = 'info';
 
             /**
              * Memory Threshold Strategy (based on platform capabilities):
@@ -38,51 +39,13 @@ function sendMemoryContext() {
              *   - Thresholds: >600MB error, >300MB warning (supports iPhone 8+)
              *   - Note: iPhone 8/X jetsam ~300-350MB, iPhone 11+ ~400-600MB
              */
-            if (memoryInfo.platform === 'web') {
-                // Web: Use percentage of JS heap limit
-                const usagePercent = memoryInfo.usedMemoryBytes !== null && memoryInfo.maxMemoryBytes !== null ? (memoryInfo.usedMemoryBytes / memoryInfo.maxMemoryBytes) * 100 : null;
 
-                if (usagePercent !== null) {
-                    if (usagePercent > CONST.TELEMETRY.CONFIG.MEMORY_THRESHOLD_WEB_CRITICAL) {
-                        logLevel = 'error';
-                    } else if (usagePercent > CONST.TELEMETRY.CONFIG.MEMORY_THRESHOLD_WEB_WARNING) {
-                        logLevel = 'warning';
-                    }
-                }
-            } else if (memoryInfo.platform === 'android') {
-                // Android: Use percentage of device RAM (RSS / totalMemory)
-                if (memoryInfo.usagePercentage !== null) {
-                    if (memoryInfo.usagePercentage > CONST.TELEMETRY.CONFIG.MEMORY_THRESHOLD_ANDROID_CRITICAL) {
-                        logLevel = 'error';
-                    } else if (memoryInfo.usagePercentage > CONST.TELEMETRY.CONFIG.MEMORY_THRESHOLD_ANDROID_WARNING) {
-                        logLevel = 'warning';
-                    }
-                }
-            } else if (memoryInfo.platform === 'ios') {
-                // iOS: Use absolute MB values (no reliable heap limit API)
-                if (usedMemoryMB !== null) {
-                    if (usedMemoryMB > CONST.TELEMETRY.CONFIG.MEMORY_THRESHOLD_IOS_CRITICAL_MB) {
-                        logLevel = 'error';
-                    } else if (usedMemoryMB > CONST.TELEMETRY.CONFIG.MEMORY_THRESHOLD_IOS_WARNING_MB) {
-                        logLevel = 'warning';
-                    }
-                }
-            }
+            const logLevel = getMemoryLogLevel(memoryInfo);
 
             const timestamp = Date.now();
             const timestampISO = new Date(timestamp).toISOString();
 
-            // Build breadcrumb message based on platform
-            let breadcrumbMessage: string;
-            if (memoryInfo.platform === 'web') {
-                const maxMB = memoryInfo.maxMemoryBytes ? Math.round(memoryInfo.maxMemoryBytes / (1024 * 1024)) : '?';
-                breadcrumbMessage = `RAM Check: ${usedMemoryMB ?? '?'}MB / ${maxMB}MB limit`;
-            } else if (memoryInfo.platform === 'android') {
-                const usagePercent = memoryInfo.usagePercentage?.toFixed(0) ?? '?';
-                breadcrumbMessage = `RAM Check: ${usedMemoryMB ?? '?'}MB used (${usagePercent}% device RAM)`;
-            } else {
-                breadcrumbMessage = `RAM Check: ${usedMemoryMB ?? '?'}MB used (iOS - no limit API)`;
-            }
+            const breadcrumbMessage = formatMemoryBreadcrumb(memoryInfo, usedMemoryMB);
 
             Sentry.addBreadcrumb({
                 category: 'system.memory',
