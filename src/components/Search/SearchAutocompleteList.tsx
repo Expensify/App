@@ -823,9 +823,10 @@ function SearchAutocompleteList({
         const report = getReportOrDraftReport(option.reportID);
         const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
         const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
+        const keyForList = option.keyForList ?? option.reportID ?? (option.accountID ? String(option.accountID) : undefined);
         return {
             ...option,
-            keyForList: option.keyForList ?? option.reportID ?? String(option.accountID ?? ''),
+            keyForList,
             pressableStyle: styles.br2,
             text: StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(option.text ?? '') : (option.text ?? '')),
             wrapperStyle: [styles.pr3, styles.pl3],
