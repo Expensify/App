@@ -37,11 +37,13 @@ function serverHasRegisteredCredentials(data: OnyxEntry<Account>) {
 function usePromptContent(promptType: MultifactorAuthenticationPromptType): PromptContent {
     const {state} = useMultifactorAuthenticationState();
     const [serverHasCredentials = false] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true, selector: serverHasRegisteredCredentials});
+    const [deviceBiometricsState] = useOnyx(ONYXKEYS.DEVICE_BIOMETRICS, {canBeMissing: true});
+    const hasEverAcceptedSoftPrompt = deviceBiometricsState?.hasAcceptedSoftPrompt ?? false;
 
     const contentData = MULTIFACTOR_AUTHENTICATION_PROMPT_UI[promptType];
 
     // Returning user: server has credentials, but user hasn't approved soft prompt yet
-    const isReturningUser = serverHasCredentials && !state.softPromptApproved;
+    const isReturningUser = hasEverAcceptedSoftPrompt && serverHasCredentials && !state.softPromptApproved;
 
     let title: TranslationPaths = contentData.title;
     let subtitle: TranslationPaths | undefined = contentData.subtitle;
@@ -54,7 +56,7 @@ function usePromptContent(promptType: MultifactorAuthenticationPromptType): Prom
     if (isReturningUser) {
         title = 'multifactorAuthentication.letsAuthenticateYou';
         subtitle = undefined;
-    } else if (state.isRegistrationComplete) {
+    } else if (state.isRegistrationComplete && hasEverAcceptedSoftPrompt) {
         title = 'multifactorAuthentication.nowLetsAuthenticateYou';
         subtitle = undefined;
     }
@@ -62,7 +64,7 @@ function usePromptContent(promptType: MultifactorAuthenticationPromptType): Prom
     // Display confirm button only for new users during their first biometric registration.
     // Hide it for: users who already approved the soft prompt, users who finished registration,
     // or returning users with existing server credentials. The button prompts users to enable biometrics.
-    const shouldDisplayConfirmButton = !state.softPromptApproved && !state.isRegistrationComplete && !serverHasCredentials;
+    const shouldDisplayConfirmButton = !hasEverAcceptedSoftPrompt || (!state.softPromptApproved && !state.isRegistrationComplete && !serverHasCredentials);
 
     return {
         animation: contentData.animation,
