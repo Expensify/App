@@ -8407,6 +8407,15 @@ const translations = {
                 removeMember: 'Unable to remove this user. Please try again.',
             },
         },
+        groups: {
+            title: 'Groups',
+            memberCount: () => {
+                return {
+                    one: '1 member',
+                    other: (count: number) => `${count} members`,
+                };
+            },
+        },
     },
 };
 

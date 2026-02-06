@@ -15,6 +15,7 @@ const loadDomainInitialPage = () => require<ReactComponentModule>('../../../../p
 const loadDomainSamlPage = () => require<ReactComponentModule>('../../../../pages/domain/DomainSamlPage').default;
 const loadDomainAdminsPage = () => require<ReactComponentModule>('../../../../pages/domain/Admins/DomainAdminsPage').default;
 const loadDomainMembersPage = () => require<ReactComponentModule>('../../../../pages/domain/Members/DomainMembersPage').default;
+const loadDomainGroupsPage = () => require<ReactComponentModule>('../../../../pages/domain/Groups/DomainGroupsPage').default;
 
 const Split = createSplitNavigator<DomainSplitNavigatorParamList>();
 
@@ -56,6 +57,12 @@ function DomainSplitNavigator({route, navigation}: PlatformStackScreenProps<Auth
                         key={SCREENS.DOMAIN.MEMBERS}
                         name={SCREENS.DOMAIN.MEMBERS}
                         getComponent={loadDomainMembersPage}
+                    />
+
+                    <Split.Screen
+                        key={SCREENS.DOMAIN.GROUPS}
+                        name={SCREENS.DOMAIN.GROUPS}
+                        getComponent={loadDomainGroupsPage}
                     />
                 </Split.Navigator>
             </View>

@@ -4,6 +4,7 @@ import {
     defaultSecurityGroupIDSelector,
     domainEmailSelector,
     domainSettingsPrimaryContactSelector,
+    groupsSelector,
     isSecurityGroupEntry,
     memberAccountIDsSelector,
     selectSecurityGroupForAccount,
@@ -390,6 +391,42 @@ describe('domainSelectors', () => {
         it('should return false if the value does not have a "shared" property', () => {
             const entry: [string, unknown] = [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}123`, {other: {}}];
             expect(isSecurityGroupEntry(entry)).toBe(false);
+        });
+    });
+
+    describe('groupsSelector', () => {
+        it('Should return an empty array if the domain object is undefined', () => {
+            expect(groupsSelector(undefined)).toEqual([]);
+        });
+
+        it('Should return an empty array if the domain object is empty', () => {
+            const domain = {} as OnyxEntry<Domain>;
+            expect(groupsSelector(domain)).toEqual([]);
+        });
+
+        it('Should return an array of groups when keys start with the security group prefix', () => {
+            const domain = {
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}123`]: {name: 'Group 1'},
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}456`]: {name: 'Group 2'},
+            } as unknown as OnyxEntry<Domain>;
+
+            const expectedGroups = [
+                {id: '123', details: {name: 'Group 1'}},
+                {id: '456', details: {name: 'Group 2'}},
+            ];
+
+            expect(groupsSelector(domain)).toEqual(expectedGroups);
+        });
+
+        it('Should ignore keys that do not start with the security group prefix', () => {
+            const domain = {
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}123`]: {name: 'Group 1'},
+                otherKey: 'value',
+            } as unknown as OnyxEntry<Domain>;
+
+            const expectedGroups = [{id: '123', details: {name: 'Group 1'}}];
+
+            expect(groupsSelector(domain)).toEqual(expectedGroups);
         });
     });
 });
