@@ -1605,11 +1605,12 @@ const staticStyles = (theme: ThemeColors) =>
         searchSidebar: {
             width: variables.searchSidebarWidth,
             height: '100%',
+            position: 'fixed',
+            left: variables.navigationTabBarSize,
             backgroundColor: theme.sidebar,
             justifyContent: 'space-between',
             borderRightWidth: 1,
             borderColor: theme.border,
-            marginLeft: variables.navigationTabBarSize,
         },
 
         // Sidebar Styles
