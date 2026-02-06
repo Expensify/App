@@ -24,7 +24,7 @@ let deviceBiometricsState: OnyxEntry<DeviceBiometrics>;
 
 // Use Onyx.connectWithoutView instead of useOnyx hook to access the device biometrics state.
 // This is a non-reactive read that allows us to check the current value (hasAcceptedSoftPrompt)
-// from within the process() callback without triggering calling it too many times during the 
+// from within the process() callback without triggering calling it too many times during the
 // fresh registration flow
 Onyx.connectWithoutView({
     key: ONYXKEYS.DEVICE_BIOMETRICS,
