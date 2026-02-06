@@ -852,8 +852,8 @@ function ComposerWithSuggestions({
             clearComposerHeightAfterClear();
 
             // Store the default collapsed composer height, so we can later reset the height when we clear the input.
-            if (emptyComposerHeightRef.current === null && totalHeight > 0 && !valueRef.current.includes('\n')) {
-                emptyComposerHeightRef.current = totalHeight;
+            if (emptyComposerHeightRef.current === null && inputHeight > 0 && !valueRef.current.includes('\n')) {
+                emptyComposerHeightRef.current = inputHeight;
             }
 
             const isFullComposerAvailable = totalHeight >= CONST.COMPOSER.FULL_COMPOSER_MIN_HEIGHT;
