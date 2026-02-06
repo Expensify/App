@@ -86,7 +86,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const [shouldSwitchPositionIfOverflow, setShouldSwitchPositionIfOverflow] = useState(false);
     const [isWithoutOverlay, setIsWithoutOverlay] = useState<boolean>(true);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {canBeMissing: true});
 
     const contentRef = useRef<View>(null);
     const anchorRef = useRef<View | HTMLDivElement | null>(null);
@@ -370,11 +369,11 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash);
             }
         } else if (isReportPreviewAction(reportAction)) {
-            deleteAppReport(reportAction.childReportID, email ?? '', currentUserAccountID, reportTransactions, allTransactionViolations, bankAccountList);
+            deleteAppReport(reportAction.childReportID, email ?? '', currentUserAccountID, reportTransactions, allTransactionViolations, bankAccountList, currentSearchHash);
         } else if (reportAction) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
-                deleteReportComment(reportIDRef.current, reportAction, ancestorsRef.current, isReportArchived, isOriginalReportArchived, email ?? '', visibleReportActionsData ?? undefined);
+                deleteReportComment(report, reportAction, ancestorsRef.current, isReportArchived, isOriginalReportArchived, email ?? '');
             });
         }
 
@@ -395,7 +394,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         isOriginalReportArchived,
         allTransactionViolations,
         bankAccountList,
-        visibleReportActionsData,
         currentUserAccountID,
     ]);
 
