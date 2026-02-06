@@ -1428,9 +1428,9 @@ const ROUTES = {
             `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new${backToReport ? `/${backToReport}` : ''}/distance-odometer` as const,
     },
     ODOMETER_IMAGE: {
-        route: ':action/:iouType/odometer-image/:transactionID/:readingType',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, readingType: OdometerImageType) =>
-            `${action as string}/${iouType as string}/odometer-image/${transactionID}/${readingType}` as const,
+        route: ':action/:iouType/odometer-image/:transactionID/:imageType',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, imageType: OdometerImageType) =>
+            `${action as string}/${iouType as string}/odometer-image/${transactionID}/${imageType}` as const,
     },
     IOU_SEND_ADD_BANK_ACCOUNT: 'pay/new/add-bank-account',
     IOU_SEND_ADD_DEBIT_CARD: 'pay/new/add-debit-card',
@@ -3034,14 +3034,24 @@ const ROUTES = {
 
     TRANSACTION_RECEIPT: {
         route: 'r/:reportID/transaction/:transactionID/receipt/:action?/:iouType?',
-        getRoute: (reportID: string | undefined, transactionID: string | undefined, readonly = false, mergeTransactionID?: string) => {
+        getRoute: (
+            reportID: string | undefined,
+            transactionID: string | undefined,
+            readonly = false,
+            mergeTransactionID?: string,
+            imageType?: OdometerImageType,
+            action?: IOUAction,
+            iouType?: IOUType,
+        ) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the TRANSACTION_RECEIPT route');
             }
             if (!transactionID) {
                 Log.warn('Invalid transactionID is used to build the TRANSACTION_RECEIPT route');
             }
-            return `r/${reportID}/transaction/${transactionID}/receipt?readonly=${readonly}${mergeTransactionID ? `&mergeTransactionID=${mergeTransactionID}` : ''}` as const;
+            const actionSegment = action ? `/${action}` : '';
+            const iouTypeSegment = iouType ? `/${iouType}` : '';
+            return `r/${reportID}/transaction/${transactionID}/receipt${actionSegment}${iouTypeSegment}?readonly=${readonly}${mergeTransactionID ? `&mergeTransactionID=${mergeTransactionID}` : ''}${imageType ? `&imageType=${imageType}` : ''}` as const;
         },
     },
 

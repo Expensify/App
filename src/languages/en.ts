@@ -7535,6 +7535,8 @@ const translations = {
             totalDistance: 'Total distance',
             startTitle: 'Odometer start photo',
             endTitle: 'Odometer end photo',
+            deleteOdometerPhoto: 'Delete odometer photo',
+            deleteOdometerPhotoConfirmation: 'Are you sure you want to delete this odometer photo?',
             startMessageWeb: 'Add a photo of your odometer from the <strong>start</strong> of your trip. Drag a file here or choose one to upload.',
             endMessageWeb: 'Add a photo of your odometer from the <strong>end</strong> of your trip. Drag a file here or choose one to upload.',
         },

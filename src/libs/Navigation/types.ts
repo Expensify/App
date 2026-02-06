@@ -1891,7 +1891,7 @@ type MoneyRequestNavigatorParamList = {
         action: IOUAction;
         iouType: IOUType;
         transactionID: string;
-        readingType: OdometerImageType;
+        imageType: OdometerImageType;
     };
     [SCREENS.MONEY_REQUEST.CREATE]: {
         iouType: IOUType;
@@ -2882,6 +2882,7 @@ type AttachmentModalScreensParamList = {
         action?: IOUAction;
         iouType?: IOUType;
         mergeTransactionID?: string;
+        imageType?: OdometerImageType;
     };
     [SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW]: AttachmentModalContainerModalProps & {
         reportID: string;

@@ -50,6 +50,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type Transaction from '@src/types/onyx/Transaction';
+import type {FileObject} from '@src/types/utils/Attachment';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import DiscardChangesConfirmation from './DiscardChangesConfirmation';
 import StepScreenWrapper from './StepScreenWrapper';
@@ -94,8 +95,8 @@ function IOURequestStepDistanceOdometer({
     // Track local state via refs to avoid including them in useEffect dependencies
     const startReadingRef = useRef<string>('');
     const endReadingRef = useRef<string>('');
-    const initialStartImageRef = useRef<File | string | undefined>(undefined);
-    const initialEndImageRef = useRef<File | string | undefined>(undefined);
+    const initialStartImageRef = useRef<FileObject | string | undefined>(undefined);
+    const initialEndImageRef = useRef<FileObject | string | undefined>(undefined);
     const prevSelectedTabRef = useRef<string | undefined>(undefined);
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
@@ -228,7 +229,7 @@ function IOURequestStepDistanceOdometer({
     })();
 
     // Get image source for web (blob URL) or native (URI string)
-    const getImageSource = useCallback((image: File | string | {uri?: string} | undefined): string | undefined => {
+    const getImageSource = useCallback((image: FileObject | string | {uri?: string} | undefined): string | undefined => {
         if (!image) {
             return undefined;
         }
@@ -318,6 +319,16 @@ function IOURequestStepDistanceOdometer({
             Navigation.navigate(ROUTES.ODOMETER_IMAGE.getRoute(action, iouType, transactionID, imageType));
         },
         [action, iouType, transactionID],
+    );
+
+    const handleViewOdometerImage = useCallback(
+        (imageType: OdometerImageType) => {
+            if (!reportID || !transactionID) {
+                return;
+            }
+            Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID, false, undefined, imageType, action, iouType));
+        },
+        [reportID, transactionID, action, iouType],
     );
 
     // Navigate to confirmation page helper - following Manual tab pattern
@@ -581,7 +592,13 @@ function IOURequestStepDistanceOdometer({
                             accessible={false}
                             accessibilityRole="button"
                             sentryLabel={CONST.SENTRY_LABEL.ODOMETER_EXPENSE.CAPTURE_IMAGE_START}
-                            onPress={() => handleCaptureImage(CONST.IOU.ODOMETER_IMAGE_TYPE.START)}
+                            onPress={() => {
+                                if (odometerStartImage) {
+                                    handleViewOdometerImage(CONST.IOU.ODOMETER_IMAGE_TYPE.START);
+                                } else {
+                                    handleCaptureImage(CONST.IOU.ODOMETER_IMAGE_TYPE.START);
+                                }
+                            }}
                             style={[
                                 StyleUtils.getWidthAndHeightStyle(variables.inputHeight, variables.inputHeight),
                                 StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
@@ -621,7 +638,13 @@ function IOURequestStepDistanceOdometer({
                             accessible={false}
                             accessibilityRole="button"
                             sentryLabel={CONST.SENTRY_LABEL.ODOMETER_EXPENSE.CAPTURE_IMAGE_END}
-                            onPress={() => handleCaptureImage(CONST.IOU.ODOMETER_IMAGE_TYPE.END)}
+                            onPress={() => {
+                                if (odometerEndImage) {
+                                    handleViewOdometerImage(CONST.IOU.ODOMETER_IMAGE_TYPE.END);
+                                } else {
+                                    handleCaptureImage(CONST.IOU.ODOMETER_IMAGE_TYPE.END);
+                                }
+                            }}
                             style={[
                                 StyleUtils.getWidthAndHeightStyle(variables.inputHeight, variables.inputHeight),
                                 StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
