@@ -8232,6 +8232,9 @@ const CONST = {
         NEW_CHAT: {
             SELECT_PARTICIPANT: 'NewChat-SelectParticipant',
         },
+        ONBOARDING: {
+            INTERESTED_FEATURE: 'Onboarding-InterestedFeature',
+        },
     },
 
     DOMAIN: {
