@@ -42,12 +42,15 @@ function usePromptContent(promptType: MultifactorAuthenticationPromptType): Prom
     const hasEverAcceptedSoftPrompt = deviceBiometricsState?.hasAcceptedSoftPrompt ?? false;
 
     // This one's a real doozy. There's an edge case with the MFA flows where the user's keys were revoked
-    // server-side, but the client missed the onyx update clearing them, so the client launches into the authenticate
-    // flow, shows the user this screen with the "Let's authenticate you" message,
-    //  then finds out mid-flow (after requesting the authentication challenge) that we actually need to restart
-    // the whole flow and re-register. This ref is used to prevent UI jank after we clear the relevant state
-    // but haven't yet navigated to the beginning of the registration flow (magic code input)
-    // Functionally, it acts as a latch for isReturningUser, so that once it becomes true, it'll never become false
+    // server-side, but the client missed the Onyx update to clear them locally. When the client launches the MFA
+    // flow, it thinks it is already registered, so it goes directly to authentication. When it requests an
+    // authentication challenge from the server, the server throws "400 Registration required", so we need to
+    // restart the whole flow. The registration flow clears a relevant state, which causes the prompt page to
+    // change from the authentication version to the registration version briefly before we navigate away from the
+    // page. Since there is no legitimate case for the prompt page to transition from authentication =>
+    // registration during a single flow, only the other way around, this ref prevents that from happening.
+    // Functionally, it acts as a latch for isReturningUser, so that once it becomes true, it'll never become
+    // false for the duration of the flow.
     const wasPreviouslyRegisteredRef = useRef(false);
 
     const contentData = MULTIFACTOR_AUTHENTICATION_PROMPT_UI[promptType];

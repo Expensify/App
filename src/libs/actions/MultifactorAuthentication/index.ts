@@ -195,7 +195,7 @@ function markHasAcceptedSoftPrompt() {
 
 function clearLocalMFAPublicKeyList() {
     Onyx.merge(ONYXKEYS.ACCOUNT, {
-        multifactorAuthenticationPublicKeyIDs: null,
+        multifactorAuthenticationPublicKeyIDs: [],
     });
 }
 
