@@ -35,7 +35,8 @@ function useSkeletonSpan(component: string, reasonAttributes?: SpanAttributes) {
         );
 
         return () => endSpan(spanId);
-    }, [component, reactId, reasonAttributes]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally removing reasonAttributes to prevent re-creating the span on every render if the parameters are unstable
+    }, [component, reactId]);
 }
 
 export default useSkeletonSpan;
