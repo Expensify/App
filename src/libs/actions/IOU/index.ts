@@ -1068,6 +1068,8 @@ function dismissModalAndOpenReportInInboxTab(reportID?: string, isInvoice?: bool
             }
             // When a report with one expense is opened in the wide RHP and the user adds another expense, RHP should be dismissed and ROUTES.SEARCH_MONEY_REQUEST_REPORT should be displayed.
             if (hasMultipleTransactions && reportID) {
+                // On small screens, dismiss all modals and then navigate to the right report.
+                // On large screens, dismiss to the previous RHP first, then replace the current route with the new report.
                 const isNarrowLayout = getIsNarrowLayout();
                 if (isNarrowLayout) {
                     Navigation.dismissModal();
