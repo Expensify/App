@@ -983,15 +983,30 @@ function splitMaskedCardNumber(cardNumber: string | undefined, maskChar: string 
     };
 }
 
-function isCardAlreadyAssigned(cardNumberToCheck: string, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>): boolean {
+function isCardAlreadyAssigned(cardNumberToCheck: string, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>, domainOrWorkspaceAccountID: number): boolean {
+    console.log('cardNumberToCheck', cardNumberToCheck);
+    console.log('workspaceCardFeeds', workspaceCardFeeds);
+    console.log('domainOrWorkspaceAccountID', domainOrWorkspaceAccountID);
+
     if (!cardNumberToCheck || !workspaceCardFeeds) {
         return false;
     }
 
-    return Object.values(workspaceCardFeeds).some((workspaceCards) => {
+    return Object.entries(workspaceCardFeeds).some(([key, workspaceCards]) => {
         if (!workspaceCards) {
             return false;
         }
+
+        const cardFeedKeyParts = key.split('_');
+        const feedDomainID = Number(cardFeedKeyParts.at(1));
+        if (cardFeedKeyParts.length !== 3 || cardFeedKeyParts.at(0) !== ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST || Number.isNaN(feedDomainID)) {
+            return false;
+        }
+
+        if (feedDomainID !== domainOrWorkspaceAccountID) {
+            return false;
+        }
+
         const {cardList, ...assignedCards} = workspaceCards;
         return Object.values(assignedCards).some(
             (card) => card?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && (card?.encryptedCardNumber === cardNumberToCheck || card?.cardName === cardNumberToCheck),
