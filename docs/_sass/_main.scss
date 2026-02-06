@@ -1168,10 +1168,14 @@ button {
     .ai-content {
         font-size: 15px;
         line-height: 24px;
-        max-height: 580px;
+        max-height: 320px;
         overflow: hidden;
         color: var(--color-text);
         position: relative;
+
+        @include breakpoint($breakpoint-tablet) {
+            max-height: 676px;
+        }
 
         &.has-overflow::after {
             content: '';
