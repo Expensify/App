@@ -5,6 +5,7 @@ import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import usePermissions from '@hooks/usePermissions';
@@ -44,6 +45,7 @@ const getIOUActionsSelector = (actions: OnyxEntry<ReportActions>): ReportAction[
 
 function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const {backTo, action, iouType, transactionID, reportID: reportIDFromRoute, reportActionID} = route.params;
+    const {translate, toLocaleDigit} = useLocalize();
     const [allReports] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}`, {canBeMissing: false});
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const transactionReport = Object.values(allReports ?? {}).find((report) => report?.reportID === transaction?.reportID);
@@ -168,6 +170,8 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                     reportNextStep: undefined,
                     policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
                     allTransactions,
+                    translate,
+                    toLocaleDigit,
                 });
                 removeTransaction(transaction.transactionID);
             }
@@ -210,6 +214,8 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 email: session?.email ?? '',
                 allTransactions,
+                translate,
+                toLocaleDigit,
             });
             removeTransaction(transaction.transactionID);
         });

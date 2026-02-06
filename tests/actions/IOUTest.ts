@@ -117,7 +117,7 @@ import createRandomTransaction from '../utils/collections/transaction';
 import getOnyxValue from '../utils/getOnyxValue';
 import PusherHelper from '../utils/PusherHelper';
 import type {MockFetch} from '../utils/TestHelper';
-import {getGlobalFetchMock, getOnyxData, localeCompare, setPersonalDetails, signInWithTestUser, translateLocal} from '../utils/TestHelper';
+import {getGlobalFetchMock, getOnyxData, localeCompare, setPersonalDetails, signInWithTestUser, toLocaleDigit, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
@@ -11621,6 +11621,8 @@ describe('actions/IOU', () => {
                 email: CARLOS_EMAIL,
                 newReport: result.current.report,
                 allTransactions,
+                translate: translateLocal,
+                toLocaleDigit,
             });
 
             let updatedTransaction: OnyxEntry<Transaction>;

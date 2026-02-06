@@ -56,7 +56,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     const {selectedTransactions, selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, toLocaleDigit} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP, {canBeMissing: true});
     const isRHPOnReportInSearch = isRHPOnSearchMoneyRequestReportPage();
@@ -141,6 +141,8 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                         reportNextStep,
                         policyCategories: undefined,
                         allTransactions,
+                        translate,
+                        toLocaleDigit,
                     });
 
                     // eslint-disable-next-line rulesdir/no-default-id-values
@@ -175,6 +177,8 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
             activePolicyID,
             clearSelectedTransactions,
             betas,
+            translate,
+            toLocaleDigit,
         ],
     );
 

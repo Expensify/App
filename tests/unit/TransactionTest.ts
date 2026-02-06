@@ -126,6 +126,8 @@ describe('Transaction', () => {
                 email: 'test@example.com',
                 newReport: report,
                 allTransactions,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
             const reportActions = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
@@ -173,6 +175,8 @@ describe('Transaction', () => {
                 email: 'test@example.com',
                 newReport: report,
                 allTransactions,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
             const reportActions = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
@@ -235,6 +239,8 @@ describe('Transaction', () => {
                 policy: undefined,
                 reportNextStep: mockReportNextStep,
                 allTransactions,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
 
@@ -299,6 +305,8 @@ describe('Transaction', () => {
                 policy: undefined,
                 reportNextStep: mockReportNextStep,
                 allTransactions,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
 
@@ -351,6 +359,8 @@ describe('Transaction', () => {
                 policy: undefined,
                 reportNextStep: undefined,
                 allTransactions,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
 
@@ -414,6 +424,8 @@ describe('Transaction', () => {
                 email: 'test@example.com',
                 newReport: report,
                 allTransactions,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
 
@@ -469,6 +481,8 @@ describe('Transaction', () => {
                 email: 'test@example.com',
                 newReport: report,
                 allTransactions,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
 
@@ -521,6 +535,8 @@ describe('Transaction', () => {
                 email: customEmail,
                 newReport: report,
                 allTransactions,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
 
@@ -579,6 +595,8 @@ describe('Transaction', () => {
                 email: 'test@example.com',
                 newReport: expenseReport,
                 allTransactions,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -637,6 +655,8 @@ describe('Transaction', () => {
                 email: 'test@example.com',
                 newReport: expenseReport,
                 allTransactions,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -702,6 +722,8 @@ describe('Transaction', () => {
                 email: 'test@example.com',
                 newReport: newExpenseReport,
                 allTransactions,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -766,6 +788,8 @@ describe('Transaction', () => {
                 email: 'test@example.com',
                 newReport: newExpenseReport,
                 allTransactions,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -823,6 +847,8 @@ describe('Transaction', () => {
                 email: 'test@example.com',
                 newReport: fakeReport,
                 allTransactions,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
 
@@ -882,6 +908,8 @@ describe('Transaction', () => {
                 email: 'test@example.com',
                 newReport: fakeReport,
                 allTransactions,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
 
@@ -936,6 +964,8 @@ describe('Transaction', () => {
                 reportNextStep: undefined,
                 policyCategories,
                 allTransactions,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
             });
 
             await waitForBatchedUpdates();
