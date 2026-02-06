@@ -93,6 +93,7 @@ type Action =
     | {type: 'SET_FLOW_COMPLETE'; payload: boolean}
     | {type: 'SET_AUTHENTICATION_METHOD'; payload: AuthTypeInfo | undefined}
     | {type: 'INIT'; payload: InitPayload}
+    | {type: 'REREGISTER'}
     | {type: 'RESET'};
 
 /**
@@ -153,6 +154,13 @@ function stateReducer(state: MultifactorAuthenticationState, action: Action): Mu
             };
         case 'RESET':
             return DEFAULT_STATE;
+        case 'REREGISTER':
+            return {
+                ...DEFAULT_STATE,
+                scenario: state.scenario,
+                payload: state.payload,
+                outcomePaths: state.outcomePaths,
+            };
         default:
             return state;
     }

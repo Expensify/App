@@ -193,6 +193,12 @@ function markHasAcceptedSoftPrompt() {
     });
 }
 
+function clearLocalMFAPublicKeyList() {
+    Onyx.merge(ONYXKEYS.ACCOUNT, {
+        multifactorAuthenticationPublicKeyIDs: CONST.MULTIFACTOR_AUTHENTICATION.PUBLIC_KEYS_PREVIOUSLY_BUT_NOT_CURRENTLY_REGISTERED,
+    });
+}
+
 export {
     registerAuthenticationKey,
     requestRegistrationChallenge,
@@ -200,4 +206,5 @@ export {
     troubleshootMultifactorAuthentication,
     revokeMultifactorAuthenticationCredentials,
     markHasAcceptedSoftPrompt,
+    clearLocalMFAPublicKeyList,
 };
