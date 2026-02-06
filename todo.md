@@ -16,7 +16,8 @@
 - [completed] Reduce repeated listener registration from `OnyxUpdateManager()` and `initOnyxDerivedValues()`.
 - [completed] Run targeted Jest tests for affected files.
 - [completed] Commit theory #1 fix.
-- [in_progress] Implement and commit theory #2.
+- [completed] Implement and commit theory #2.
+- [in_progress] Implement and commit theory #3.
 
 ## What I tried
 - Searched repository for:
@@ -71,6 +72,25 @@
   - Result: PASS.
 - `npm_config_cache=/tmp/.npm npx jest --runInBand --watchman=false tests/actions/OnyxUpdateManagerTest.ts tests/unit/NetworkTest.tsx -t "should trigger Onyx update gap handling|should queue request when offline"`
   - Result: PASS for matched `OnyxUpdateManager` test; no regression observed in this targeted run.
+
+## Theory #3 change to test
+- Patch `OnyxConnectionManager.connect()` / `disconnect()` (not only `Onyx.connect*`) in Jest setup.
+- Track connections by lifecycle phase:
+  - `persistentConnections`: created outside test execution (module scope / `beforeAll`).
+  - `testConnections`: created during test execution (`beforeEach` + test body + local hooks).
+- Disconnect all `testConnections` in `afterEach` to prevent in-file peak growth.
+- Disconnect `persistentConnections` in `afterAll` to prevent cross-file growth.
+
+## Theory #3 implementation notes
+- Updated `jest/setupAfterEnv.ts` to hook `OnyxConnectionManager` directly.
+- Kept `Onyx.connect()` / `connectWithoutView()` wrappers for complete coverage.
+- This remains Jest-only and does not affect app runtime code.
+
+## Theory #3 verification runs
+- `npm_config_cache=/tmp/.npm npx eslint jest/setupAfterEnv.ts`
+  - Result: PASS.
+- `npm_config_cache=/tmp/.npm npx jest --runInBand --watchman=false tests/actions/OnyxUpdateManagerTest.ts tests/actions/UserTest.ts -t "should trigger Onyx update gap handling|should"`
+  - Result: PASS (2 suites, 18 tests).
 
 ## Next theories (not yet implemented)
 - Add explicit test-only teardown hooks that disconnect registered non-UI Onyx listeners between suites.
