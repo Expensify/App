@@ -288,7 +288,7 @@ function ComposerWithSuggestions({
 
     const [selection, setSelection] = useState<TextSelection>(() => ({start: value.length, end: value.length, positionX: 0, positionY: 0}));
 
-    const [composerHeightAfterClear, setComposerHeightAfterClear] = useState<number | null>(null);
+    const [defaultComposerHeight, setDefaultComposerHeight] = useState<number | null>(null);
     const emptyComposerHeightRef = useRef<number | null>(null);
 
     const textInputRef = useRef<TextInput | null>(null);
@@ -568,18 +568,18 @@ function ComposerWithSuggestions({
      * Once we cleared the input and the composer finished rendering, we need to reset the manual height value.
      * After that, the composer will adjust it's height based on it's parent flex layout.
      */
-    const clearComposerHeightAfterClear = useCallback(() => {
-        if (composerHeightAfterClear == null) {
+    const clearComposerHeight = useCallback(() => {
+        if (defaultComposerHeight == null) {
             return;
         }
-        setComposerHeightAfterClear(null);
-    }, [composerHeightAfterClear]);
+        setDefaultComposerHeight(null);
+    }, [defaultComposerHeight]);
 
     const onChangeText = useCallback(
         (commentValue: string) => {
             // When we clear the input, we set the composer height to a specific value.
             // Upon text change, we can reset the height to allow flex layout to adjust the height.
-            clearComposerHeightAfterClear();
+            clearComposerHeight();
 
             updateComment(commentValue, true);
 
@@ -596,7 +596,7 @@ function ComposerWithSuggestions({
                 });
             }
         },
-        [clearComposerHeightAfterClear, updateComment],
+        [clearComposerHeight, updateComment],
     );
 
     const onSelectionChange = useCallback(
@@ -708,7 +708,7 @@ function ComposerWithSuggestions({
         if (!emptyComposerHeightRef.current) {
             return;
         }
-        setComposerHeightAfterClear(emptyComposerHeightRef.current);
+        setDefaultComposerHeight(emptyComposerHeightRef.current);
     }, []);
 
     const getCurrentText = useCallback(() => {
@@ -854,7 +854,7 @@ function ComposerWithSuggestions({
 
             // When we clear the input, we set the composer height to a specific value.
             // Upon any content size change, we can reset the height to allow flex layout to adjust the height.
-            clearComposerHeightAfterClear();
+            clearComposerHeight();
 
             // Store the default collapsed composer height, so we can later reset the height when we clear the input.
             if (emptyComposerHeightRef.current === null && inputHeight > 0 && !valueRef.current.includes('\n')) {
@@ -864,7 +864,7 @@ function ComposerWithSuggestions({
             const isFullComposerAvailable = totalHeight >= CONST.COMPOSER.FULL_COMPOSER_MIN_HEIGHT;
             setIsFullComposerAvailable?.(isFullComposerAvailable);
         },
-        [containerComposeStyles.paddingVertical, clearComposerHeightAfterClear, setIsFullComposerAvailable],
+        [containerComposeStyles.paddingVertical, clearComposerHeight, setIsFullComposerAvailable],
     );
 
     const handleFocus = useCallback(() => {
@@ -891,7 +891,7 @@ function ComposerWithSuggestions({
     return (
         <>
             <View
-                style={[containerComposeStyles, styles.textInputComposeBorder, composerHeightAfterClear != null && styles.textInputComposeAfterClear]}
+                style={[containerComposeStyles, styles.textInputComposeBorder, defaultComposerHeight != null && styles.textInputComposeAfterClear]}
                 onTouchEndCapture={() => {
                     isTouchEndedRef.current = true;
                 }}
@@ -909,7 +909,7 @@ function ComposerWithSuggestions({
                     style={[
                         styles.textInputCompose,
                         isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose,
-                        composerHeightAfterClear != null && {height: composerHeightAfterClear},
+                        defaultComposerHeight != null && {height: defaultComposerHeight},
                     ]}
                     maxLines={maxComposerLines}
                     onFocus={handleFocus}
