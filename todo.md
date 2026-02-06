@@ -15,7 +15,8 @@
 - [completed] Confirm whether `Onyx.clear()` disconnects listeners.
 - [completed] Reduce repeated listener registration from `OnyxUpdateManager()` and `initOnyxDerivedValues()`.
 - [completed] Run targeted Jest tests for affected files.
-- [in_progress] Commit theory #1 fix.
+- [completed] Commit theory #1 fix.
+- [in_progress] Implement and commit theory #2.
 
 ## What I tried
 - Searched repository for:
@@ -55,6 +56,21 @@
 ## Theory #1 change to test
 - Make `OnyxUpdateManager()` idempotent so it registers at most one runtime listener.
 - Make `initOnyxDerivedValues()` bounded so repeated calls do not accumulate listeners (old derived listeners are disconnected before re-init).
+
+## Theory #2 change to test
+- In Jest setup, wrap `Onyx.connect()` and `Onyx.connectWithoutView()` to track all created connections.
+- Add global `afterAll()` hook per test file to disconnect tracked connections and clear the tracking map.
+- Goal: stop cross-file subscriber accumulation within a long-lived Jest worker.
+
+## Theory #2 implementation notes
+- Added connection tracking/cleanup in `jest/setupAfterEnv.ts`.
+- This is test-only behavior and does not affect app runtime code.
+
+## Theory #2 verification runs
+- `npm_config_cache=/tmp/.npm npx eslint jest/setupAfterEnv.ts`
+  - Result: PASS.
+- `npm_config_cache=/tmp/.npm npx jest --runInBand --watchman=false tests/actions/OnyxUpdateManagerTest.ts tests/unit/NetworkTest.tsx -t "should trigger Onyx update gap handling|should queue request when offline"`
+  - Result: PASS for matched `OnyxUpdateManager` test; no regression observed in this targeted run.
 
 ## Next theories (not yet implemented)
 - Add explicit test-only teardown hooks that disconnect registered non-UI Onyx listeners between suites.
