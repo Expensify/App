@@ -276,15 +276,16 @@ function getRateForP2PInUnit(currency: string, transaction: OnyxEntry<Transactio
     }
 
     // If requested unit matches the currency's native unit, return the rate directly
-    if (unit == mileageRate.unit) {
+    if (unit === mileageRate.unit) {
         return mileageRate.rate;
     }
 
     // If units don't match, convert between km and miles
-    if (unit == 'km' && mileageRate.unit == 'mi') {
+    if (unit === 'km' && mileageRate.unit === 'mi') {
         // Convert miles rate to km rate: km rate = mile rate / CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS
         return mileageRate.rate / CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS;
-    } else if (unit == 'mi' && mileageRate.unit == 'km') {
+    }
+    if (unit === 'mi' && mileageRate.unit === 'km') {
         // Convert km rate to miles rate: mile rate = km rate * CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS
         return mileageRate.rate * CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS;
     }
