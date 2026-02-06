@@ -8396,12 +8396,15 @@ const translations = {
             findMember: 'Find member',
             addMember: 'Add member',
             email: 'Email address',
-            closeAccount: 'Close account',
             closeAccountPrompt: 'Are you sure? This action is permanent.',
             forceCloseAccount: 'Force close account',
             safeCloseAccount: 'Close account safely',
             closeAccountInfo:
                 'We recommend closing the account safely to skip closing it in case there are: <ul><li>Pending approvals</li><li>Active reimbursements</li><li>No alternative login methods</li></ul>Otherwise, you can ignore the safety precautions above and force close the selected account.',
+            closeAccount: () => ({
+                one: 'Close account',
+                other: 'Close accounts',
+            }),
             error: {
                 addMember: 'Unable to add this member. Please try again.',
                 removeMember: 'Unable to remove this user. Please try again.',

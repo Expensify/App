@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchBar from '@components/SearchBar';
-// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionList';
 import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -62,6 +61,21 @@ type BaseDomainMembersPageProps = {
 
     /** Callback fired when the user dismisses an error message for a specific row */
     onDismissError?: (item: MemberOption) => void;
+
+    /**
+     * Allow multiple members to be selected at the same time. Defaults to false.
+     */
+    canSelectMultiple?: boolean;
+
+    /**
+     * Stores list of selected members. Only works with canSelectMultiple === true.
+     */
+    selectedMembers?: string[];
+
+    /**
+     * Setter for a list of selected members. Only works with canSelectMultiple === true.
+     */
+    setSelectedMembers?: React.Dispatch<React.SetStateAction<string[]>>;
 };
 
 function BaseDomainMembersPage({
@@ -75,6 +89,9 @@ function BaseDomainMembersPage({
     getCustomRightElement,
     getCustomRowProps,
     onDismissError,
+    selectedMembers,
+    setSelectedMembers,
+    canSelectMultiple = false,
 }: BaseDomainMembersPageProps) {
     const {formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
@@ -119,13 +136,42 @@ function BaseDomainMembersPage({
 
     const [inputValue, setInputValue, filteredData] = useSearchResults(data, filterMember, sortMembers);
 
+    const toggleAllUsers =
+        canSelectMultiple && setSelectedMembers && filteredData.length
+            ? () => {
+                  const enabledAccounts = filteredData.filter((member) => !member.isDisabled && !member.isDisabledCheckbox);
+                  const enabledAccountIDs = enabledAccounts.map((member) => member.keyForList);
+                  const everySelected = enabledAccountIDs.every((accountID) => selectedMembers?.includes(accountID));
+
+                  if (everySelected) {
+                      setSelectedMembers((prevSelected) => prevSelected.filter((accountID) => !enabledAccountIDs.includes(accountID)));
+                  } else {
+                      setSelectedMembers((prevSelected) => {
+                          const newSelected = new Set([...prevSelected, ...enabledAccountIDs]);
+                          return Array.from(newSelected);
+                      });
+                  }
+              }
+            : undefined;
+
+    const toggleUser =
+        canSelectMultiple && setSelectedMembers && filteredData.length
+            ? (member: MemberOption) => {
+                  if (selectedMembers?.includes(member.keyForList)) {
+                      setSelectedMembers((prevSelected) => prevSelected.filter((accountID) => accountID !== member.keyForList));
+                  } else {
+                      setSelectedMembers((prevSelected) => [...prevSelected, member.keyForList]);
+                  }
+              }
+            : undefined;
+
     const getCustomListHeader = () => {
         if (filteredData.length === 0) {
             return null;
         }
         return (
             <CustomListHeader
-                canSelectMultiple={false}
+                canSelectMultiple={canSelectMultiple}
                 leftHeaderText={headerTitle}
             />
         );
@@ -154,6 +200,7 @@ function BaseDomainMembersPage({
                     onBackButtonPress={Navigation.popToSidebar}
                     icon={headerIcon}
                     shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldUseHeadlineHeader
                 >
                     {!shouldUseNarrowLayout && !!headerContent && <View style={[styles.flexRow, styles.gap2]}>{headerContent}</View>}
                 </HeaderWithBackButton>
@@ -163,7 +210,6 @@ function BaseDomainMembersPage({
                 <SelectionList
                     data={filteredData}
                     shouldShowRightCaret
-                    canSelectMultiple={false}
                     style={{
                         containerStyle: styles.flex1,
                         listHeaderWrapperStyle: [styles.ph9, styles.pv3, styles.pb5],
@@ -179,6 +225,10 @@ function BaseDomainMembersPage({
                     customListHeader={getCustomListHeader()}
                     customListHeaderContent={listHeaderContent}
                     disableMaintainingScrollPosition
+                    canSelectMultiple={canSelectMultiple}
+                    onSelectAll={toggleAllUsers}
+                    onCheckboxPress={toggleUser}
+                    selectedItems={selectedMembers}
                 />
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>
