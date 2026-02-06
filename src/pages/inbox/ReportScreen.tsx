@@ -57,6 +57,7 @@ import {
     getIOUActionForReportID,
     getOneTransactionThreadReportID,
     isCreatedAction,
+    isDeletedAction,
     isDeletedParentAction,
     isMoneyRequestAction,
     isSentMoneyReportAction,
@@ -182,6 +183,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
     const [reportNameValuePairsOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {canBeMissing: true, allowStaleData: true});
+    const [parentReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportOnyx?.parentReportID}`, {canBeMissing: true, allowStaleData: true});
     const [policies = getEmptyObject<NonNullable<OnyxCollection<OnyxTypes.Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, canBeMissing: false});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
@@ -498,12 +500,28 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         [currentUserAccountID, linkedAction],
     );
     const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, {canBeMissing: true});
+    const hasLoadedParentReportActions =
+        !!parentReportMetadata && (parentReportMetadata?.hasOnceLoadedReportActions || parentReportMetadata?.isLoadingInitialReportActions === false || isOffline);
+    const isParentActionMissingAfterLoad = !!report?.parentReportID && !!report?.parentReportActionID && hasLoadedParentReportActions && !parentReportAction;
+    const isParentActionDeleted =
+        !!parentReportAction &&
+        (parentReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isDeletedAction(parentReportAction));
+    const isDeletedTransactionThread = isReportTransactionThread(report) && (isParentActionDeleted || isParentActionMissingAfterLoad);
 
     useEffect(() => {
-        if (!isFocused || !deleteTransactionNavigateBackUrl) {
+        if (isFocused || !deleteTransactionNavigateBackUrl) {
             return;
         }
-        // Clear the URL after all interactions are processed to ensure all updates are completed before hiding the skeleton
+        let decodedDeleteNavigateBackUrl = deleteTransactionNavigateBackUrl;
+        try {
+            decodedDeleteNavigateBackUrl = decodeURIComponent(deleteTransactionNavigateBackUrl);
+        } catch {
+            decodedDeleteNavigateBackUrl = deleteTransactionNavigateBackUrl;
+        }
+        if (decodedDeleteNavigateBackUrl.includes('/duplicates/review')) {
+            return;
+        }
+        // Clear the URL only after we navigate away to avoid a brief Not Found flash.
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             requestAnimationFrame(() => {
@@ -528,9 +546,17 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const shouldShowNotFoundPage = useMemo((): boolean => {
         const isInvalidReportPath = !!currentReportIDFormRoute && !isValidReportIDFromPath(currentReportIDFormRoute);
         const isLoading = isLoadingApp !== false || isLoadingReportData || !!reportMetadata?.isLoadingInitialReportActions;
-        const reportExists = !!reportID || isOptimisticDelete || userLeavingStatus;
+        const reportExists = !!reportID || (!isDeletedTransactionThread && isOptimisticDelete) || userLeavingStatus;
 
         if (shouldShowNotFoundLinkedAction) {
+            return true;
+        }
+
+        if (deleteTransactionNavigateBackUrl) {
+            return false;
+        }
+
+        if (isDeletedTransactionThread) {
             return true;
         }
 
@@ -557,6 +583,8 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         userLeavingStatus,
         currentReportIDFormRoute,
         firstRender,
+        deleteTransactionNavigateBackUrl,
+        isDeletedTransactionThread,
     ]);
 
     const createOneTransactionThreadReport = useCallback(() => {

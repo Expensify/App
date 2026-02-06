@@ -57,6 +57,7 @@ import {
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import {dismissRejectUseExplanation} from '@userActions/IOU';
+import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 import {markAsCash as markAsCashAction} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -592,6 +593,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     if (!parentReportAction || !transaction) {
                         throw new Error('Data missing');
                     }
+                    const backToRoute = route.params?.backTo ?? Navigation.getActiveRoute();
+                    setDeleteTransactionNavigateBackUrl(backToRoute);
                     if (isTrackExpenseAction(parentReportAction)) {
                         deleteTrackExpense({
                             chatReportID: report?.parentReportID,

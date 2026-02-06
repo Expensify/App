@@ -16,13 +16,13 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
-import {openReport} from '@libs/actions/Report';
+import {clearDeleteTransactionNavigateBackUrl, openReport} from '@libs/actions/Report';
 import {dismissDuplicateTransactionViolation, getDuplicateTransactionDetails} from '@libs/actions/Transaction';
 import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
-import {getLinkedTransactionID, getReportAction} from '@libs/ReportActionsUtils';
+import {getLinkedTransactionID, getReportAction, isDeletedAction} from '@libs/ReportActionsUtils';
 import {isReportIDApproved, isSettled} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,9 +42,10 @@ function TransactionDuplicateReview() {
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`, {canBeMissing: true});
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${route.params.threadReportID}`, {canBeMissing: true});
+    const [parentReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.parentReportID}`, {canBeMissing: true});
+    const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, {canBeMissing: true});
     const [expenseReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: false});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: false});
-    const [parentReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.parentReportID}`, {canBeMissing: true});
     const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     const transactionID = getLinkedTransactionID(reportAction);
     const transactionViolations = useTransactionViolations(transactionID);
@@ -122,17 +123,53 @@ function TransactionDuplicateReview() {
         getDuplicateTransactionDetails(transactionID);
     }, [transactionID]);
 
-    const threadReportFinishedLoading = !!reportMetadata && (reportMetadata.isLoadingInitialReportActions === false || isOffline);
-    const parentReportFinishedLoading = !report?.parentReportID || (!!parentReportMetadata && (parentReportMetadata.isLoadingInitialReportActions === false || isOffline));
+    const hasLoadedThreadReportActions = !!reportMetadata && (reportMetadata?.hasOnceLoadedReportActions || reportMetadata?.isLoadingInitialReportActions === false || isOffline);
+    const hasLoadedParentReportActions =
+        !!parentReportMetadata && (parentReportMetadata?.hasOnceLoadedReportActions || parentReportMetadata?.isLoadingInitialReportActions === false || isOffline);
+    const isThreadReportDeleted = (!report?.reportID && report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED) || (hasLoadedThreadReportActions && !report?.reportID);
+    const isParentActionDeleted = !reportAction?.reportActionID && (hasLoadedParentReportActions || !report?.parentReportID);
+    const isReportActionPendingDelete = reportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const isReportActionDeleted = !!reportAction && isDeletedAction(reportAction);
+    const wasTransactionDeleted = isThreadReportDeleted || isParentActionDeleted || isReportActionPendingDelete || isReportActionDeleted;
+    const isLoadingPage =
+        (!report?.reportID && !hasLoadedThreadReportActions && !isThreadReportDeleted) ||
+        (!reportAction?.reportActionID && !hasLoadedParentReportActions && !isParentActionDeleted && !isThreadReportDeleted);
+    const isDeleteNavigateBackToThisReview = useMemo(() => {
+        if (!deleteTransactionNavigateBackUrl) {
+            return false;
+        }
+        let decodedDeleteNavigateBackUrl = deleteTransactionNavigateBackUrl;
+        try {
+            decodedDeleteNavigateBackUrl = decodeURIComponent(deleteTransactionNavigateBackUrl);
+        } catch {
+            decodedDeleteNavigateBackUrl = deleteTransactionNavigateBackUrl;
+        }
+        return decodedDeleteNavigateBackUrl.includes('/duplicates/review') && decodedDeleteNavigateBackUrl.includes(route.params.threadReportID);
+    }, [deleteTransactionNavigateBackUrl, route.params.threadReportID]);
+    const isNavigatingBackToDeletedReview = !!deleteTransactionNavigateBackUrl && !(isDeleteNavigateBackToThisReview && wasTransactionDeleted);
 
-    const wasTransactionDeleted = !!(route.params.threadReportID && threadReportFinishedLoading && (!report?.reportID || (parentReportFinishedLoading && !reportAction?.reportActionID)));
+    useFocusEffect(
+        useCallback(() => {
+            return () => {
+                if (!deleteTransactionNavigateBackUrl) {
+                    return;
+                }
+                clearDeleteTransactionNavigateBackUrl();
+            };
+        }, [deleteTransactionNavigateBackUrl]),
+    );
 
-    const isLoadingPage = (!report?.reportID && !threadReportFinishedLoading) || (!reportAction?.reportActionID && !wasTransactionDeleted);
+    useEffect(() => {
+        if (!isDeleteNavigateBackToThisReview || !wasTransactionDeleted) {
+            return;
+        }
+        clearDeleteTransactionNavigateBackUrl();
+    }, [isDeleteNavigateBackToThisReview, wasTransactionDeleted]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFound = wasTransactionDeleted || (!isLoadingPage && !transactionID);
+    const shouldShowNotFound = !isNavigatingBackToDeletedReview && (wasTransactionDeleted || (!isLoadingPage && !transactionID));
 
-    if (isLoadingPage && !wasTransactionDeleted) {
+    if (isLoadingPage) {
         return (
             <ScreenWrapper testID="TransactionDuplicateReview">
                 <View style={[styles.flex1]}>
