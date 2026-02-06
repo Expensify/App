@@ -15,6 +15,7 @@ import {getUpdatedTransactionTag} from '@libs/TagsOptionsListUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import getCommonDependentTag from './SearchEditMultipleUtils';
 
 function SearchEditMultipleTagPage() {
     const {translate} = useLocalize();
@@ -33,8 +34,11 @@ function SearchEditMultipleTagPage() {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
 
     const tagListIndex = Number((route.params as {tagListIndex?: string})?.tagListIndex ?? 0);
-    const transactionTag = draftTransaction?.tag ?? '';
-    const currentTag = getTagArrayFromName(transactionTag).at(tagListIndex) ?? '';
+    const selectedTransactions = selectedTransactionIDs.map((transactionID) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]);
+    const commonDependentTag = getCommonDependentTag(selectedTransactions);
+    const draftTag = draftTransaction?.tag;
+    const transactionTag = draftTag === undefined ? (commonDependentTag ?? '') : draftTag;
+    const currentTag = getTagArrayFromName(draftTag ?? '').at(tagListIndex) ?? '';
     const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTags);
 
     const tagListName = getTagList(policyTags, tagListIndex).name;

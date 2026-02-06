@@ -14,17 +14,18 @@ import {clearBulkEditDraftTransaction, initBulkEditDraftTransaction, updateMulti
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {getCleanedTagName, getTagLists} from '@libs/PolicyUtils';
+import {getCleanedTagName, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest} from '@libs/ReportUtils';
 import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
-import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
+import {hasEnabledTags, shouldShowDependentTagList} from '@libs/TagsOptionsListUtils';
 import {getTagArrayFromName, getTaxName, isDistanceRequest, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
+import getCommonDependentTag from './SearchEditMultipleUtils';
 
 function SearchEditMultiplePage() {
     const {translate} = useLocalize();
@@ -153,18 +154,34 @@ function SearchEditMultiplePage() {
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     // TODO: Currency editing and currency symbol should be handled in a separate PR
+    const selectedTransactions = selectedTransactionIDs.map((transactionID) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]);
+    const commonDependentTag = getCommonDependentTag(selectedTransactions);
+    const dependentTagSource = draftTransaction?.tag === undefined ? commonDependentTag : draftTransaction?.tag;
     const tagsArray = getTagArrayFromName(draftTransaction?.tag ?? '');
+    const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTags);
     const tagFields: Array<{description: string; title: string; route: Route; disabled?: boolean}> = areTagsEnabled
-        ? policyTagLists.map((tagList, tagListIndex) => {
+        ? policyTagLists.flatMap((tagList, tagListIndex) => {
               const tagName = tagsArray.at(tagListIndex) ?? '';
               const tagTitle = tagName ? getCleanedTagName(tagName) : '';
               const description = policyTagLists.length > 1 ? tagList.name : translate('common.tag');
-              return {
-                  description: description || translate('common.tag'),
-                  title: tagTitle,
-                  route: ROUTES.SEARCH_EDIT_MULTIPLE_TAG_RHP.getRoute(tagListIndex),
-                  disabled: false,
-              };
+              let shouldShow = true;
+
+              if (hasDependentTags) {
+                  shouldShow = shouldShowDependentTagList(tagListIndex, dependentTagSource, tagList.tags);
+              }
+
+              if (!shouldShow) {
+                  return [];
+              }
+
+              return [
+                  {
+                      description: description || translate('common.tag'),
+                      title: tagTitle,
+                      route: ROUTES.SEARCH_EDIT_MULTIPLE_TAG_RHP.getRoute(tagListIndex),
+                      disabled: false,
+                  },
+              ];
           })
         : [];
 

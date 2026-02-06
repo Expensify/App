@@ -237,6 +237,35 @@ function getTagVisibility({
 }
 
 /**
+ * Determines whether a dependent tag list should be shown based on the selected parent tag
+ * and available enabled tags for the current level.
+ */
+function shouldShowDependentTagList(tagListIndex: number, transactionTag: string | undefined, tags: PolicyTags | undefined): boolean {
+    if (tagListIndex === 0) {
+        return true;
+    }
+
+    const tagParts = getTagArrayFromName(transactionTag ?? '');
+    const previousTagValue = tagParts.at(tagListIndex - 1);
+    if (!previousTagValue) {
+        return false;
+    }
+
+    const parentTag = tagParts.slice(0, tagListIndex).join(':');
+    const availableTags = Object.values(tags ?? {}).filter((policyTag) => {
+        const filterRegex = policyTag.rules?.parentTagsFilter;
+        if (!filterRegex) {
+            return true;
+        }
+
+        const regex = new RegExp(filterRegex);
+        return regex.test(parentTag ?? '');
+    });
+
+    return availableTags.some((tag) => tag.enabled);
+}
+
+/**
  * Checks if any tag from policy tag lists exists in the transaction tag string.
  *
  * @param policyTagLists - The policy tag lists object containing tag list records
@@ -299,5 +328,5 @@ function getUpdatedTransactionTag({transactionTag, selectedTagName, currentTag, 
     return insertTagIntoTransactionTagsString(transactionTag, isSelectedTag ? '' : selectedTagName, tagListIndex, hasMultipleTagLists);
 }
 
-export {getTagsOptions, getTagListSections, hasEnabledTags, sortTags, getTagVisibility, hasMatchingTag, getUpdatedTransactionTag};
+export {getTagsOptions, getTagListSections, hasEnabledTags, sortTags, getTagVisibility, shouldShowDependentTagList, hasMatchingTag, getUpdatedTransactionTag};
 export type {SelectedTagOption, TagVisibility, TagOption};
