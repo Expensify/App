@@ -15,6 +15,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getMoneyRequestParticipantsFromReport, setMoneyRequestDistance, updateMoneyRequestDistance} from '@libs/actions/IOU';
@@ -75,6 +76,7 @@ function IOURequestStepDistanceManual({
     const personalPolicy = usePersonalPolicy();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const defaultExpensePolicy = useDefaultExpensePolicy();
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: true});
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
@@ -85,6 +87,7 @@ function IOURequestStepDistanceManual({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreatingNewRequest = !(backTo || isEditing);
@@ -197,42 +200,48 @@ function IOURequestStepDistanceManual({
                 introSelected,
                 activePolicyID,
                 privateIsArchived: reportNameValuePairs?.private_isArchived,
+                policyForMovingExpenses,
+                betas,
             });
         },
         [
             transactionID,
             isTransactionDraft,
             action,
-            backTo,
-            report,
-            isArchived,
             iouType,
-            distance,
-            transaction,
-            parentReport,
+            report,
             policy,
-            policyTags,
-            policyCategories,
-            currentUserAccountIDParam,
-            currentUserEmailParam,
-            isASAPSubmitBetaEnabled,
-            shouldSkipConfirmation,
-            personalDetails,
+            transaction,
+            reportID,
             reportAttributesDerived,
-            translate,
-            lastSelectedDistanceRates,
+            personalDetails,
+            customUnitRateID,
+            currentUserEmailParam,
+            currentUserAccountIDParam,
+            backTo,
             backToReport,
+            shouldSkipConfirmation,
+            defaultExpensePolicy,
+            isArchived,
+            personalPolicy?.autoReporting,
+            isASAPSubmitBetaEnabled,
             transactionViolations,
+            lastSelectedDistanceRates,
+            translate,
             quickAction,
             policyRecentlyUsedCurrencies,
-            customUnitRateID,
             introSelected,
             activePolicyID,
-            defaultExpensePolicy,
-            personalPolicy?.autoReporting,
-            reportID,
+            reportNameValuePairs?.private_isArchived,
+            policyForMovingExpenses,
+            distance,
+            parentReport,
+            policyTags,
+            policyCategories,
+            parentReportNextStep,
             recentWaypoints,
             currentUserPersonalDetails.accountID,
+            betas,
         ],
     );
 
@@ -240,12 +249,7 @@ function IOURequestStepDistanceManual({
         const value = numberFormRef.current?.getNumber() ?? '';
         const isP2P = isParticipantP2P(getMoneyRequestParticipantsFromReport(report, currentUserAccountIDParam).at(0));
 
-        if (isBetaEnabled(CONST.BETAS.ZERO_EXPENSES)) {
-            if (!value.length || parseFloat(value) < 0) {
-                setFormError(translate('iou.error.invalidDistance'));
-                return;
-            }
-        } else if (!value.length || parseFloat(value) <= 0) {
+        if (!value.length || parseFloat(value) < 0) {
             setFormError(translate('iou.error.invalidDistance'));
             return;
         }
@@ -256,7 +260,7 @@ function IOURequestStepDistanceManual({
         }
 
         navigateToNextPage(value);
-    }, [navigateToNextPage, translate, report, iouType, currentUserAccountIDParam, isBetaEnabled]);
+    }, [navigateToNextPage, translate, report, iouType, currentUserAccountIDParam]);
 
     useEffect(() => {
         if (isLoadingSelectedTab) {

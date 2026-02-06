@@ -106,7 +106,7 @@ function IOURequestStepParticipants({
             return translate('iou.splitExpense');
         }
         if (iouType === CONST.IOU.TYPE.PAY) {
-            return translate('iou.paySomeone', {});
+            return translate('iou.paySomeone');
         }
         if (iouType === CONST.IOU.TYPE.INVOICE) {
             return translate('workspace.invoices.sendInvoice');
@@ -441,8 +441,13 @@ function IOURequestStepParticipants({
             }
             return initialTransaction?.comment?.customUnit?.quantity === 0;
         }
+
+        if (iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN) {
+            return false;
+        }
+
         return initialTransaction?.amount !== undefined && initialTransaction?.amount !== null && initialTransaction?.amount <= 0;
-    }, [initialTransaction]);
+    }, [initialTransaction, iouRequestType]);
 
     return (
         <StepScreenWrapper
