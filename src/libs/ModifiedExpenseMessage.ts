@@ -256,7 +256,16 @@ function getForReportAction({
             return getForDistanceRequest(translateLocal, reportActionOriginalMessage?.merchant ?? '', reportActionOriginalMessage?.oldMerchant ?? '', amount, oldAmount);
         }
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        buildMessageFragmentForValue(translateLocal, amount, reportActionOriginalMessage?.oldAmount !== undefined ? oldAmount : '', translateLocal('iou.amount'), false, setFragments, removalFragments, changeFragments);
+        buildMessageFragmentForValue(
+            translateLocal,
+            amount,
+            reportActionOriginalMessage?.oldAmount !== undefined ? oldAmount : '',
+            translateLocal('iou.amount'),
+            false,
+            setFragments,
+            removalFragments,
+            changeFragments,
+        );
     }
 
     const hasModifiedComment = isReportActionOriginalMessageAnObject && 'oldComment' in reportActionOriginalMessage && 'newComment' in reportActionOriginalMessage;
