@@ -1780,6 +1780,7 @@ const CONST = {
         ATTRIBUTE_ROUTE_TO: 'route_to',
         ATTRIBUTE_MIN_DURATION: 'min_duration',
         ATTRIBUTE_FINISHED_MANUALLY: 'finished_manually',
+        ATTRIBUTE_SKELETON_PREFIX: 'skeleton.',
         CONFIG: {
             SKELETON_MIN_DURATION: 10_000,
         },
