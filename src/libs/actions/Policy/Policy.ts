@@ -2269,8 +2269,8 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                 type: workspaceType,
                 name: workspaceName,
                 role: CONST.POLICY.ROLE.ADMIN,
-                owner: currentUserEmailParam,
-                ownerAccountID: currentUserAccountIDParam,
+                owner: policyOwnerEmail || currentUserEmailParam,
+                ownerAccountID: policyOwnerEmail ? (PersonalDetailsUtils.getPersonalDetailByEmail(policyOwnerEmail)?.accountID ?? currentUserAccountIDParam) : currentUserAccountIDParam,
                 isPolicyExpenseChatEnabled: true,
                 outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -2293,8 +2293,18 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                 areConnectionsEnabled: false,
                 areExpensifyCardsEnabled: false,
                 employeeList: {
+                    ...(policyOwnerEmail && policyOwnerEmail !== currentUserEmailParam
+                        ? {
+                              [policyOwnerEmail]: {
+                                  submitsTo: policyOwnerEmail,
+                                  email: policyOwnerEmail,
+                                  role: CONST.POLICY.ROLE.ADMIN,
+                                  errors: {},
+                              },
+                          }
+                        : {}),
                     [currentUserEmailParam]: {
-                        submitsTo: currentUserEmailParam,
+                        submitsTo: policyOwnerEmail || currentUserEmailParam,
                         email: currentUserEmailParam,
                         role: CONST.POLICY.ROLE.ADMIN,
                         errors: {},
@@ -2302,7 +2312,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                     ...(adminParticipant?.login
                         ? {
                               [adminParticipant.login]: {
-                                  submitsTo: currentUserEmailParam,
+                                  submitsTo: policyOwnerEmail || currentUserEmailParam,
                                   email: adminParticipant.login,
                                   role: CONST.POLICY.ROLE.ADMIN,
                                   errors: {},
@@ -2526,7 +2536,12 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {employeeList: null, ...optimisticMccGroupData.failureData},
+            value: {
+                employeeList: null,
+                owner: policyOwnerEmail || currentUserEmailParam,
+                ownerAccountID: policyOwnerEmail ? (PersonalDetailsUtils.getPersonalDetailByEmail(policyOwnerEmail)?.accountID ?? currentUserAccountIDParam) : currentUserAccountIDParam,
+                ...optimisticMccGroupData.failureData,
+            },
         },
         {
             onyxMethod: Onyx.METHOD.SET,
