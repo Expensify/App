@@ -7,7 +7,7 @@ import Icon from '@components/Icon';
 import {DotIndicator} from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReportActionAvatars from '@components/ReportActionAvatars';
-import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';
+import ReportActionItemImageWithAspectRatio from '@components/ReportActionItem/ReportActionItemImageWithAspectRatio';
 import UserInfoCellsWithArrow from '@components/SelectionListWithSections/Search/UserInfoCellsWithArrow';
 import Text from '@components/Text';
 import TransactionPreviewSkeletonView from '@components/TransactionPreviewSkeletonView';
@@ -43,7 +43,6 @@ import type {TransactionPreviewContentProps} from './types';
 function TransactionPreviewContent({
     action,
     isWhisper,
-    isHovered,
     chatReport,
     personalDetails,
     report,
@@ -155,7 +154,7 @@ function TransactionPreviewContent({
     const isSettlementOrApprovalPartial = !!report?.pendingFields?.partial;
     const isTransactionScanning = isScanning(transaction);
     const displayAmount = isDeleted ? displayDeleteAmountText : displayAmountText;
-    const receiptImages = [{...getThumbnailAndImageURIs(transaction), transaction}];
+    const receiptImage = {...getThumbnailAndImageURIs(transaction), transaction};
     const merchantOrDescription = shouldShowMerchant ? requestMerchant : description || '';
     const participantAccountIDs = isMoneyRequestAction(action) && isBillSplit ? (getOriginalMessage(action)?.participantAccountIDs ?? []) : [managerID, ownerAccountID];
     const isCardTransaction = isCardTransactionUtils(transaction);
@@ -237,11 +236,8 @@ function TransactionPreviewContent({
                 shouldHideOnDelete={shouldHideOnDelete}
             >
                 <View style={[(isTransactionScanning || isWhisper) && [styles.reportPreviewBoxHoverBorder, styles.reportContainerBorderRadius]]}>
-                    <ReportActionItemImages
-                        images={receiptImages}
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        isHovered={isHovered || isTransactionScanning}
-                        size={1}
+                    <ReportActionItemImageWithAspectRatio
+                        image={receiptImage}
                         shouldUseAspectRatio={!isMapDistanceRequest(transaction) && !isGPSDistanceRequest(transaction)}
                     />
                     {shouldShowSkeleton ? (

@@ -4367,18 +4367,14 @@ const staticStyles = (theme: ThemeColors) =>
             gap: 16,
         },
 
-        reportActionItemImagesContainer: {
+        reportActionItemContainer: {
             margin: 4,
+            borderRadius: 12,
+            overflow: 'hidden',
         },
 
         receiptPreviewAspectRatio: {
             aspectRatio: 16 / 9,
-        },
-
-        reportActionItemImages: {
-            flexDirection: 'row',
-            borderRadius: 12,
-            overflow: 'hidden',
         },
 
         reportActionItemImage: {
