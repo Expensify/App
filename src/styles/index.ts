@@ -5472,7 +5472,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         todoBadge: {
-            width: variables.w36,
+            width: 24,
             minHeight: 20,
             height: 20,
             alignItems: 'center',
