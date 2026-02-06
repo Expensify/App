@@ -262,6 +262,8 @@ function ComposerWithSuggestions({
     const {superWideRHPRouteKeys} = useWideRHPState();
     // When SearchReport is stacked above another RHP, delay autofocus until after the transition completes to avoid animation jank
     const shouldDelayAutoFocus = superWideRHPRouteKeys.length > 0 && route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
+    const shouldDelayAutoFocusRef = useRef(shouldDelayAutoFocus);
+    shouldDelayAutoFocusRef.current = shouldDelayAutoFocus;
 
     const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
@@ -275,6 +277,7 @@ function ComposerWithSuggestions({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const maxComposerLines = shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
     const shouldAutoFocus = (shouldFocusInputOnScreenFocus || !!draftComment) && shouldShowComposeInput && areAllModalsHidden() && isFocused && !didHideComposerInput;
+    const delayedAutoFocusRouteKeyRef = useRef<string | null>(null);
 
     const valueRef = useRef(value);
     valueRef.current = value;
@@ -611,14 +614,40 @@ function ComposerWithSuggestions({
      * Focus the composer text input
      * @param [shouldDelay=false] Impose delay before focusing the composer
      */
-    const focus = useCallback(
-        (shouldDelay = false) => {
-            // If we're stacked above another RHP, wait for the transition to complete before focusing.
-            const delay = shouldDelayAutoFocus ? CONST.ANIMATED_TRANSITION : CONST.COMPOSER_FOCUS_DELAY;
-            focusComposerWithDelay(textInputRef.current, delay)(shouldDelay);
-        },
-        [shouldDelayAutoFocus],
-    );
+    const focus = useCallback((shouldDelay = false) => {
+        // If we're stacked above another RHP, wait for the transition to complete before focusing.
+        const delay = shouldDelayAutoFocusRef.current ? CONST.ANIMATED_TRANSITION : CONST.COMPOSER_FOCUS_DELAY;
+        focusComposerWithDelay(textInputRef.current, delay)(shouldDelay);
+    }, []);
+
+    /**
+     * In the stacked-RHP SearchReport case we disable the TextInput's immediate `autoFocus` to avoid jank.
+     * Make sure we still trigger a (delayed) manual focus on first render for that route.
+     */
+    useEffect(() => {
+        if (!shouldDelayAutoFocus) {
+            delayedAutoFocusRouteKeyRef.current = null;
+            return;
+        }
+
+        if (!shouldAutoFocus) {
+            return;
+        }
+
+        // Only attempt once per route key to avoid repeated focusing during state updates.
+        if (delayedAutoFocusRouteKeyRef.current === route.key) {
+            return;
+        }
+        delayedAutoFocusRouteKeyRef.current = route.key;
+
+        const task = InteractionManager.runAfterInteractions(() => {
+            focus(true);
+        });
+
+        return () => {
+            task?.cancel?.();
+        };
+    }, [focus, route.key, shouldAutoFocus, shouldDelayAutoFocus]);
 
     /**
      * Set focus callback
@@ -874,7 +903,9 @@ function ComposerWithSuggestions({
             >
                 <Composer
                     checkComposerVisibility={checkComposerVisibility}
-                    autoFocus={!!shouldAutoFocus}
+                    // In the stacked-RHP SearchReport case, we delay focus to avoid animation/layout jank.
+                    // So we must also prevent the TextInput's immediate `autoFocus` and rely on our delayed manual focus instead.
+                    autoFocus={!!shouldAutoFocus && !shouldDelayAutoFocus}
                     multiline
                     ref={setTextInputRef}
                     placeholder={inputPlaceholder}
