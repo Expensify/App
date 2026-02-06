@@ -75,7 +75,7 @@ function injectFooterCopyright() {
     footer.innerHTML = `&copy;2008-${new Date().getFullYear()} Expensify, Inc.`;
 }
 
-const SEARCH_API_URL = 'https://www.expensify.com/api/SearchHelpsite';
+const SEARCH_API_URL = 'http://localhost:8010/proxy/api/SearchHelpsite';
 
 function getTitleFromURL(url) {
     return url.split('/').pop().replace(/-/g, ' ');
@@ -177,6 +177,8 @@ function initSearchPage() {
     });
 
     document.getElementById('search-page-clear').addEventListener('click', clearSearchPage);
+
+    window.addEventListener('popstate', initSearchPage);
 }
 
 const FIXED_HEADER_HEIGHT = 80;
