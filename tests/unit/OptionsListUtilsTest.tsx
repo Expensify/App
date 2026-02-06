@@ -419,6 +419,7 @@ describe('OptionsListUtils', () => {
             accountID: 1,
             displayName: 'Mister Fantastic',
             login: 'reedrichards@expensify.com',
+            keyForList: 'reedrichards@expensify.com',
             isSelected: true,
             reportID: '1',
         },
@@ -426,42 +427,49 @@ describe('OptionsListUtils', () => {
             accountID: 2,
             displayName: 'Iron Man',
             login: 'tonystark@expensify.com',
+            keyForList: 'tonystark@expensify.com',
             reportID: '1',
         },
         '3': {
             accountID: 3,
             displayName: 'Spider-Man',
             login: 'peterparker@expensify.com',
+            keyForList: 'peterparker@expensify.com',
             reportID: '1',
         },
         '4': {
             accountID: 4,
             displayName: 'Black Panther',
             login: 'tchalla@expensify.com',
+            keyForList: 'tchalla@expensify.com',
             reportID: '1',
         },
         '5': {
             accountID: 5,
             displayName: 'Invisible Woman',
             login: 'suestorm@expensify.com',
+            keyForList: 'suestorm@expensify.com',
             reportID: '1',
         },
         '6': {
             accountID: 6,
             displayName: 'Thor',
             login: 'thor@expensify.com',
+            keyForList: 'thor@expensify.com',
             reportID: '1',
         },
         '7': {
             accountID: 7,
             displayName: 'Captain America',
             login: 'steverogers@expensify.com',
+            keyForList: 'steverogers@expensify.com',
             reportID: '1',
         },
         '8': {
             accountID: 8,
             displayName: 'Mr Sinister',
             login: 'mistersinister@marauders.com',
+            keyForList: 'mistersinister@marauders.com',
             reportID: '1',
         },
 
@@ -470,18 +478,21 @@ describe('OptionsListUtils', () => {
             accountID: 9,
             displayName: 'Black Widow',
             login: 'natasharomanoff@expensify.com',
+            keyForList: 'natasharomanoff@expensify.com',
             reportID: '',
         },
         '10': {
             accountID: 10,
             displayName: 'The Incredible Hulk',
             login: 'brucebanner@expensify.com',
+            keyForList: 'brucebanner@expensify.com',
             reportID: '',
         },
         '11': {
             accountID: 11,
             displayName: 'Timothée',
             login: 'chalamet@expensify.com',
+            keyForList: 'chalamet@expensify.com',
             reportID: '',
         },
     };
@@ -492,6 +503,7 @@ describe('OptionsListUtils', () => {
             accountID: 999,
             displayName: 'Concierge',
             login: 'concierge@expensify.com',
+            keyForList: 'concierge@expensify.com',
             reportID: '',
         },
     };
@@ -503,6 +515,7 @@ describe('OptionsListUtils', () => {
             accountID: 1000,
             displayName: 'Chronos',
             login: 'chronos@expensify.com',
+            keyForList: 'chronos@expensify.com',
             reportID: '',
         },
     };
@@ -514,6 +527,7 @@ describe('OptionsListUtils', () => {
             accountID: 1001,
             displayName: 'Receipts',
             login: 'receipts@expensify.com',
+            keyForList: 'receipts@expensify.com',
             reportID: '',
         },
     };
@@ -524,6 +538,7 @@ describe('OptionsListUtils', () => {
             accountID: 1003,
             displayName: 'Manager McTest',
             login: CONST.EMAIL.MANAGER_MCTEST,
+            keyForList: CONST.EMAIL.MANAGER_MCTEST,
             reportID: '',
         },
     };
@@ -535,6 +550,7 @@ describe('OptionsListUtils', () => {
             accountID: 1002,
             displayName: 'The Flash',
             login: 'barry.allen@expensify.com',
+            keyForList: 'barry.allen@expensify.com',
             reportID: '',
         },
     };
@@ -544,60 +560,70 @@ describe('OptionsListUtils', () => {
             reportID: '1',
             text: 'Google Workspace',
             policyID: '11',
+            keyForList: '11',
             isPolicyExpenseChat: true,
         },
         {
             reportID: '2',
             text: 'Google Drive Workspace',
             policyID: '22',
+            keyForList: '22',
             isPolicyExpenseChat: false,
         },
         {
             reportID: '3',
             text: 'Slack Team Workspace',
             policyID: '33',
+            keyForList: '33',
             isPolicyExpenseChat: false,
         },
         {
             reportID: '4',
             text: 'Slack Development Workspace',
             policyID: '44',
+            keyForList: '44',
             isPolicyExpenseChat: true,
         },
         {
             reportID: '5',
             text: 'Microsoft Teams Workspace',
             policyID: '55',
+            keyForList: '55',
             isPolicyExpenseChat: false,
         },
         {
             reportID: '6',
             text: 'Microsoft Project Workspace',
             policyID: '66',
+            keyForList: '66',
             isPolicyExpenseChat: false,
         },
         {
             reportID: '7',
             text: 'Notion Design Workspace',
             policyID: '77',
+            keyForList: '77',
             isPolicyExpenseChat: false,
         },
         {
             reportID: '8',
             text: 'Notion Workspace for Marketing',
             policyID: activePolicyID,
+            keyForList: activePolicyID,
             isPolicyExpenseChat: true,
         },
         {
             reportID: '9',
             text: 'Adana Task Workspace',
             policyID: '99',
+            keyForList: '99',
             isPolicyExpenseChat: false,
         },
         {
             reportID: '10',
             text: 'Adana Project Management',
             policyID: '1010',
+            keyForList: '1010',
             isPolicyExpenseChat: true,
         },
     ];
@@ -2303,6 +2329,209 @@ describe('OptionsListUtils', () => {
             expect(filteredOptions.personalDetails.at(0)?.login).toBe('brucebanner@expensify.com');
         });
 
+        it('should find group chat when searching by participant display name', () => {
+            // Given a group chat report with participants
+            const REPORTS_WITH_GROUP_CHAT: OnyxCollection<Report> = {
+                '18': {
+                    lastReadTime: '2021-01-14 11:25:39.302',
+                    lastVisibleActionCreated: '2022-11-22 03:26:02.022',
+                    isPinned: false,
+                    reportID: '18',
+                    participants: {
+                        2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        4: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                    reportName: 'Team Chat',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                },
+            };
+
+            const OPTIONS_WITH_GROUP_CHAT = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS_WITH_GROUP_CHAT);
+
+            // When we call getSearchOptions with a search query that matches a participant display name
+            const options = getSearchOptions({
+                options: OPTIONS_WITH_GROUP_CHAT,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                loginList,
+                betas: [CONST.BETAS.ALL],
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
+                searchQuery: 'Spider-Man',
+            });
+
+            // Then one report should be returned
+            expect(options.recentReports.length).toBe(1);
+            // Then the returned report should be the group chat
+            expect(options.recentReports.at(0)?.reportID).toBe('18');
+        });
+
+        it('should find group chat when searching by participant login', () => {
+            // Given a group chat report with participants
+            const REPORTS_WITH_GROUP_CHAT: OnyxCollection<Report> = {
+                '18': {
+                    lastReadTime: '2021-01-14 11:25:39.302',
+                    lastVisibleActionCreated: '2022-11-22 03:26:02.022',
+                    isPinned: false,
+                    reportID: '18',
+                    participants: {
+                        2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        4: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                    reportName: 'Team Chat',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                },
+            };
+
+            const OPTIONS_WITH_GROUP_CHAT = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS_WITH_GROUP_CHAT);
+
+            // When we call getSearchOptions with a search query that matches a participant login
+            const options = getSearchOptions({
+                options: OPTIONS_WITH_GROUP_CHAT,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                loginList,
+                betas: [CONST.BETAS.ALL],
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
+                searchQuery: 'peterparker@expensify.com',
+            });
+
+            // Then one report should be returned
+            expect(options.recentReports.length).toBe(1);
+            // Then the returned report should be the group chat
+            expect(options.recentReports.at(0)?.reportID).toBe('18');
+        });
+
+        it('should find group chat when searching by multiple participant names', () => {
+            // Given a group chat report with participants
+            const REPORTS_WITH_GROUP_CHAT: OnyxCollection<Report> = {
+                '18': {
+                    lastReadTime: '2021-01-14 11:25:39.302',
+                    lastVisibleActionCreated: '2022-11-22 03:26:02.022',
+                    isPinned: false,
+                    reportID: '18',
+                    participants: {
+                        2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        4: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                    reportName: 'Team Chat',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                },
+            };
+
+            const OPTIONS_WITH_GROUP_CHAT = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS_WITH_GROUP_CHAT);
+
+            // When we call getSearchOptions with a search query that matches a participant name
+            const options = getSearchOptions({
+                options: OPTIONS_WITH_GROUP_CHAT,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                loginList,
+                betas: [CONST.BETAS.ALL],
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
+                searchQuery: 'Black Panther',
+            });
+
+            // Then one report should be returned
+            expect(options.recentReports.length).toBe(1);
+            // Then the returned report should be the group chat
+            expect(options.recentReports.at(0)?.reportID).toBe('18');
+        });
+
+        it('should not find group chat when search does not match any participant', () => {
+            // Given a group chat report with participants
+            const REPORTS_WITH_GROUP_CHAT: OnyxCollection<Report> = {
+                '18': {
+                    lastReadTime: '2021-01-14 11:25:39.302',
+                    lastVisibleActionCreated: '2022-11-22 03:26:02.022',
+                    isPinned: false,
+                    reportID: '18',
+                    participants: {
+                        2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        4: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                    reportName: 'Team Chat',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                },
+            };
+
+            const OPTIONS_WITH_GROUP_CHAT = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS_WITH_GROUP_CHAT);
+
+            // When we call getSearchOptions with a search query that does not match any participant
+            const options = getSearchOptions({
+                options: OPTIONS_WITH_GROUP_CHAT,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                loginList,
+                betas: [CONST.BETAS.ALL],
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
+                searchQuery: 'Wolverine',
+            });
+
+            // Then no reports should be returned
+            expect(options.recentReports.length).toBe(0);
+        });
+
+        it('should handle group chat with empty participantsList gracefully', () => {
+            // Given a group chat report with participants but no matching personal details
+            const REPORTS_WITH_GROUP_CHAT_NO_PARTICIPANTS: OnyxCollection<Report> = {
+                '19': {
+                    lastReadTime: '2021-01-14 11:25:39.302',
+                    lastVisibleActionCreated: '2022-11-22 03:26:02.022',
+                    isPinned: false,
+                    reportID: '19',
+                    participants: {
+                        9999: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        9998: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                    reportName: 'Unknown Group',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                },
+            };
+
+            const OPTIONS_WITH_GROUP_CHAT_NO_PARTICIPANTS = createOptionList(
+                PERSONAL_DETAILS,
+                CURRENT_USER_ACCOUNT_ID,
+                EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+                REPORTS_WITH_GROUP_CHAT_NO_PARTICIPANTS,
+            );
+
+            // When we call getSearchOptions with all betas
+            const options = getSearchOptions({
+                options: OPTIONS_WITH_GROUP_CHAT_NO_PARTICIPANTS,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                loginList,
+                betas: [CONST.BETAS.ALL],
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
+            });
+
+            // When we pass the returned options to filterAndOrderOptions with any search value
+            const filteredOptions = filterAndOrderOptions(options, 'Unknown', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+
+            // Then the report should still be found by its reportName even if participantsList is empty
+            expect(filteredOptions.recentReports.length).toBe(1);
+            expect(filteredOptions.recentReports.at(0)?.reportID).toBe('19');
+        });
+
         it('should not return any options or user to invite if there are no search results and the string does not match a potential email or phone', () => {
             // Given a set of options
             const options = getValidOptions(
@@ -2909,6 +3138,7 @@ describe('OptionsListUtils', () => {
             reportID: '1',
             text: 'Google Workspace',
             policyID: '11',
+            keyForList: '11',
             isPolicyExpenseChat: true,
         };
         const LOGIN = 'johndoe@test.com';
