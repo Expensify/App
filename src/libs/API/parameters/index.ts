@@ -478,3 +478,4 @@ export type {default as TroubleshootMultifactorAuthenticationParams} from './Tro
 export type {default as RequestAuthenticationChallengeParams} from './RequestAuthenticationChallengeParams';
 export type {default as GetTransactionsMatchingCodingRuleParams} from './GetTransactionsMatchingCodingRuleParams';
 export type {default as SetPolicyTimeTrackingDefaultRateParams} from './SetPolicyTimeTrackingDefaultRateParams';
+export type {default as AuthorizeTransactionParams} from './AuthorizeTransactionParams';

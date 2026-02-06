@@ -31,6 +31,11 @@ const REASON = {
         NO_PENDING_REGISTRATION_CHALLENGE: 'No pending registration challenge',
         UNKNOWN_RESPONSE: 'Unknown response',
         REVOKE_SUCCESSFUL: 'Revoked successfully',
+        TRANSACTION_NOT_FOUND: 'Transaction not found',
+        TRANSACTION_EXPIRED: 'Transaction review period has expired',
+        TRANSACTION_ALREADY_APPROVED: 'Transaction already approved',
+        TRANSACTION_ALREADY_DENIED: 'Transaction already denied',
+        TRANSACTION_APPROVED: 'Transaction approved successfully',
     },
     CHALLENGE: {
         COULD_NOT_RETRIEVE_A_CHALLENGE: 'Could not retrieve a challenge',
@@ -117,6 +122,19 @@ const API_RESPONSE_MAP = {
     REVOKE_MULTIFACTOR_AUTHENTICATION_SETUP: {
         ...MULTIFACTOR_AUTHENTICATION_COMMAND_BASE_RESPONSE_MAP,
         200: REASON.BACKEND.REVOKE_SUCCESSFUL,
+    },
+
+    AUTHORIZE_TRANSACTION: {
+        ...MULTIFACTOR_AUTHENTICATION_COMMAND_BASE_RESPONSE_MAP,
+        200: REASON.BACKEND.TRANSACTION_APPROVED,
+        400: {
+            TRANSACTION_EXPIRED: REASON.BACKEND.TRANSACTION_EXPIRED,
+            TRANSACTION_ALREADY_APPROVED: REASON.BACKEND.TRANSACTION_ALREADY_APPROVED,
+            TRANSACTION_ALREADY_DENIED: REASON.BACKEND.TRANSACTION_ALREADY_DENIED,
+        },
+        404: {
+            TRANSACTION_NOT_FOUND: REASON.BACKEND.TRANSACTION_NOT_FOUND,
+        },
     },
 } as const;
 /* eslint-enable @typescript-eslint/naming-convention */
