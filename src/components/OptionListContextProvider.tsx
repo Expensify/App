@@ -62,12 +62,12 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
     const loadOptions = useCallback(() => {
-        const optionLists = createOptionList(personalDetails, privateIsArchivedMap, currentUserAccountID, reports, reportAttributes?.reports);
+        const optionLists = createOptionList(personalDetails, currentUserAccountID, privateIsArchivedMap, reports, reportAttributes?.reports);
         setOptions({
             reports: optionLists.reports,
             personalDetails: optionLists.personalDetails,
         });
-    }, [personalDetails, currentUserAccountID, reports, reportAttributes?.reports, privateIsArchivedMap]);
+    }, [personalDetails, currentUserAccountID, privateIsArchivedMap, reports, reportAttributes?.reports]);
 
     /**
      * This effect is responsible for generating the options list when their data is not yet initialized
@@ -191,8 +191,8 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
         if (!prevPersonalDetails) {
             const {personalDetails: newPersonalDetailsOptions, reports: newReports} = createOptionList(
                 personalDetails,
-                privateIsArchivedMap,
                 currentUserAccountID,
+                privateIsArchivedMap,
                 reports,
                 reportAttributes?.reports,
             );
@@ -238,7 +238,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
         }
 
         // since personal details are not a collection, we need to recreate the whole list from scratch
-        const newPersonalDetailsOptions = createOptionList(personalDetails, privateIsArchivedMap, currentUserAccountID, reports, reportAttributes?.reports).personalDetails;
+        const newPersonalDetailsOptions = createOptionList(personalDetails, currentUserAccountID, privateIsArchivedMap, reports, reportAttributes?.reports).personalDetails;
 
         setOptions((prevOptions) => {
             const newOptions = {...prevOptions};
