@@ -77,7 +77,7 @@ function SearchContextProvider({children}: ChildrenProps) {
     searchContextDataRef.current = searchContextData;
 
     const [snapshotSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContextData.currentSearchHash}`, {canBeMissing: true});
-    const {todoSearchResultsData} = useTodos();
+    const todoSearchResultsData = useTodos();
 
     const currentSearchKey = searchContextData.currentSearchKey;
     const currentSearchHash = searchContextData.currentSearchHash;
@@ -153,7 +153,15 @@ function SearchContextProvider({children}: ChildrenProps) {
 
         if (data.length && data.every(isTransactionReportGroupListItemType)) {
             selectedReports = data
-                .filter((item) => isMoneyRequestReport(item) && item.transactions.length > 0 && item.transactions.every(({keyForList}) => selectedTransactions[keyForList]?.isSelected))
+                .filter((item) => {
+                    if (!isMoneyRequestReport(item)) {
+                        return false;
+                    }
+                    if (item.transactions.length === 0) {
+                        return !!item.keyForList && selectedTransactions[item.keyForList]?.isSelected;
+                    }
+                    return item.transactions.every(({keyForList}) => selectedTransactions[keyForList]?.isSelected);
+                })
                 .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, total = CONST.DEFAULT_NUMBER_ID, policyID, allActions = [action], currency, chatReportID}) => ({
                     reportID,
                     action,

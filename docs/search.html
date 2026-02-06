@@ -18,6 +18,7 @@
     <div id="search-page-results" class="search-results homepage-results-container"></div>
 <script>
     if (new URLSearchParams(window.location.search).get('q')) {
+        // This is done to prevent layout jumps when first loading the page with a search query
         document.getElementById('search-page-results').style.minHeight = '500px';
     }
 </script>
