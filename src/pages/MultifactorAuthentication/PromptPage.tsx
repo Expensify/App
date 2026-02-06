@@ -1,55 +1,62 @@
 import React, {useState} from 'react';
+import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import LottieAnimations from '@components/LottieAnimations';
+import LoadingIndicator from '@components/LoadingIndicator';
+import {useMultifactorAuthentication, useMultifactorAuthenticationState, usePromptContent} from '@components/MultifactorAuthentication/Context';
 import MultifactorAuthenticationPromptContent from '@components/MultifactorAuthentication/PromptContent';
 import MultifactorAuthenticationTriggerCancelConfirmModal from '@components/MultifactorAuthentication/TriggerCancelConfirmModal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {markHasAcceptedSoftPrompt} from '@libs/actions/MultifactorAuthentication';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {MultifactorAuthenticationParamList} from '@libs/Navigation/types';
 import Navigation from '@navigation/Navigation';
-import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
-import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
-const mockedConfig = {
-    title: 'multifactorAuthentication.verifyYourself.biometrics',
-    subtitle: 'multifactorAuthentication.enableQuickVerification.biometrics',
-} as const satisfies Record<string, TranslationPaths>;
+type MultifactorAuthenticationPromptPageProps = PlatformStackScreenProps<MultifactorAuthenticationParamList, typeof SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT>;
 
-function MultifactorAuthenticationPromptPage() {
+function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationPromptPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {cancel} = useMultifactorAuthentication();
+    const {state, dispatch} = useMultifactorAuthenticationState();
+    const {isOffline} = useNetwork();
 
-    const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
+    const {animation, title, subtitle, shouldDisplayConfirmButton} = usePromptContent(route.params.promptType);
+
+    const [isCancelModalVisible, setCancelModalVisibility] = useState(false);
 
     const onConfirm = () => {
-        // Temporary navigation, expected behavior: let the MultifactorAuthentication know that the soft prompt was accepted
-        Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME.getRoute(CONST.MULTIFACTOR_AUTHENTICATION_OUTCOME_TYPE.SUCCESS));
+        markHasAcceptedSoftPrompt();
+        dispatch({type: 'SET_SOFT_PROMPT_APPROVED', payload: true});
     };
 
-    const showConfirmModal = () => {
-        setConfirmModalVisibility(true);
+    const showCancelModal = () => {
+        if (isOffline) {
+            Navigation.closeRHPFlow();
+        } else {
+            setCancelModalVisibility(true);
+        }
     };
 
-    const hideConfirmModal = () => {
-        setConfirmModalVisibility(false);
+    const hideCancelModal = () => {
+        setCancelModalVisibility(false);
     };
 
     const cancelFlow = () => {
-        if (!isConfirmModalVisible) {
-            return;
+        if (isCancelModalVisible) {
+            hideCancelModal();
         }
-
-        hideConfirmModal();
-        // Temporary navigation, expected behavior: trigger the failure from the MultifactorAuthenticationContext
-        Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME.getRoute(CONST.MULTIFACTOR_AUTHENTICATION_OUTCOME_TYPE.FAILURE));
+        cancel();
     };
 
     const focusTrapConfirmModal = () => {
-        setConfirmModalVisibility(true);
+        setCancelModalVisibility(true);
         return false;
     };
 
@@ -66,26 +73,35 @@ function MultifactorAuthenticationPromptPage() {
         >
             <HeaderWithBackButton
                 title={translate('multifactorAuthentication.letsVerifyItsYou')}
-                onBackButtonPress={showConfirmModal}
+                onBackButtonPress={showCancelModal}
                 shouldShowBackButton
             />
             <FullPageOfflineBlockingView>
                 <MultifactorAuthenticationPromptContent
-                    animation={LottieAnimations.Fingerprint}
-                    title={mockedConfig.title}
-                    subtitle={mockedConfig.subtitle}
+                    animation={animation}
+                    title={title}
+                    subtitle={subtitle}
                 />
                 <FixedFooter style={[styles.flexColumn, styles.gap3]}>
-                    <Button
-                        success
-                        onPress={onConfirm}
-                        text={translate('common.buttonConfirm')}
-                    />
+                    {shouldDisplayConfirmButton ? (
+                        <Button
+                            success
+                            large
+                            onPress={onConfirm}
+                            text={translate('common.buttonConfirm')}
+                        />
+                    ) : (
+                        <View style={[styles.w100, styles.h10]}>
+                            <LoadingIndicator />
+                        </View>
+                    )}
                 </FixedFooter>
+
                 <MultifactorAuthenticationTriggerCancelConfirmModal
-                    isVisible={isConfirmModalVisible}
+                    scenario={state.scenario}
+                    isVisible={isCancelModalVisible}
                     onConfirm={cancelFlow}
-                    onCancel={hideConfirmModal}
+                    onCancel={hideCancelModal}
                 />
             </FullPageOfflineBlockingView>
         </ScreenWrapper>

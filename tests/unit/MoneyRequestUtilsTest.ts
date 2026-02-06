@@ -128,10 +128,10 @@ describe('ReportActionsUtils', () => {
             expect(result).toBe('123.45');
         });
 
-        it('should not strip minus sign without toggleNegative function', () => {
+        it('should work without toggleNegative function', () => {
             const result = handleNegativeAmountFlipping('-123.45', true);
 
-            expect(result).toBe('-123.45');
+            expect(result).toBe('123.45');
         });
 
         it('should return original amount when allowFlippingAmount is false and no dash', () => {

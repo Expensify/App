@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import {GPS_DISTANCE_INTERVAL_METERS} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {GpsDraftDetails} from '@src/types/onyx';
 import geodesicDistance from '@src/utils/geodesicDistance';
@@ -39,24 +40,27 @@ function setIsTracking(isTracking: boolean) {
 
 type GPSPoint = GpsDraftDetails['gpsPoints'][number];
 
-function addGpsPoints(gpsDraftDetails: OnyxEntry<GpsDraftDetails>, gpsPointsToAdd: GpsDraftDetails['gpsPoints']) {
+function addGpsPoints(gpsDraftDetails: OnyxEntry<GpsDraftDetails>, newGpsPoints: GpsDraftDetails['gpsPoints']) {
     const capturedPoints = gpsDraftDetails?.gpsPoints ?? [];
 
-    const pointsToMeasureDistanceBetween: GPSPoint[] = [capturedPoints.at(-1), ...gpsPointsToAdd].filter((val): val is GPSPoint => !!val);
-
-    let previousPoint: GPSPoint | undefined;
+    let previousPoint: GPSPoint | undefined = capturedPoints.at(-1);
     let distanceToAdd = 0;
-    for (const point of pointsToMeasureDistanceBetween) {
-        if (previousPoint === undefined) {
+    const gpsPointsToAdd: GPSPoint[] = [];
+
+    for (const point of newGpsPoints) {
+        if (!previousPoint) {
             previousPoint = point;
+            gpsPointsToAdd.push(point);
             continue;
         }
 
         const distanceBetweenPoints = geodesicDistance(point, previousPoint);
 
-        distanceToAdd += distanceBetweenPoints;
-
-        previousPoint = point;
+        if (distanceBetweenPoints >= GPS_DISTANCE_INTERVAL_METERS) {
+            distanceToAdd += distanceBetweenPoints;
+            previousPoint = point;
+            gpsPointsToAdd.push(point);
+        }
     }
 
     const capturedDistance = gpsDraftDetails?.distanceInMeters ?? 0;
