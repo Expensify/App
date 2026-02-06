@@ -8323,6 +8323,7 @@ const translations = {
             disableSamlRequired: 'Disable SAML required',
             oktaWarningPrompt: 'Are you sure? This will also disable Okta SCIM.',
             requireWithEmptyMetadataError: 'Please add Identity Provider metadata below to enable',
+            pleaseDisableTwoFactorAuth: 'Please disable enforced two-factor authentication to enable SAML login.',
         },
         samlConfigurationDetails: {
             title: 'SAML configuration details',
