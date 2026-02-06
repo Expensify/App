@@ -62,4 +62,6 @@ function RenderHTML({html: htmlParam, onLinkPress, isSelectable}: RenderHTMLProp
     );
 }
 
-export default RenderHTML;
+RenderHTML.displayName = 'RenderHTML';
+
+export default React.memo(RenderHTML);

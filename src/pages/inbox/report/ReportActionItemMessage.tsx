@@ -200,4 +200,4 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
     );
 }
 
-export default ReportActionItemMessage;
+export default React.memo(ReportActionItemMessage);
