@@ -233,6 +233,7 @@ function getOnyxTargetTransactionData({
             filteredTransactionChanges,
             policy,
             shouldBuildOptimisticModifiedExpenseReportAction,
+            true,
         );
     } else {
         data = getUpdateMoneyRequestParams({
@@ -252,7 +253,7 @@ function getOnyxTargetTransactionData({
         });
     }
 
-    const onyxData = data.onyxData;
+    const {onyxData} = data;
 
     onyxData.optimisticData?.push({
         onyxMethod: Onyx.METHOD.MERGE,
