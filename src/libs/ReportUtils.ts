@@ -5376,8 +5376,7 @@ function getModifiedExpenseOriginalMessage(
     // to match how we handle the modified expense action in oldDot
     const didAmountOrCurrencyChange = 'amount' in transactionChanges || 'currency' in transactionChanges;
     if (didAmountOrCurrencyChange) {
-        const isScanning = isReceiptBeingScanned(oldTransaction) && !getTransactionDetails(oldTransaction)?.amount;
-        if (!isScanning) {
+        if (!(isReceiptBeingScanned(oldTransaction) && !getTransactionDetails(oldTransaction)?.amount)) {
             originalMessage.oldAmount = getTransactionAmount(oldTransaction, isFromExpenseReport, false, allowNegative);
         }
         originalMessage.amount = transactionChanges?.amount ?? transactionChanges.oldAmount;
