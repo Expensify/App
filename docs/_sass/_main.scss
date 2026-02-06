@@ -1215,10 +1215,10 @@ button {
     }
 
     @keyframes bounce {
-        0%, 50%, 100% {
+        0%, 100% {
             transform: translateY(0);
         }
-        25% {
+        50% {
             transform: translateY(-10px);
         }
     }
