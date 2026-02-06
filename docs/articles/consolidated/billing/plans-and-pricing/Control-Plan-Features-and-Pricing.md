@@ -1,5 +1,5 @@
 ---
-title: Expensify Control Plan: Features and Pricing
+title: "Expensify Control Plan: Features and Pricing"
 description: Learn about the Control Plan's advanced features, pricing tiers in multiple currencies, and how active member billing works for growing teams.
 keywords: [Control plan, Control plan pricing, active members, $9 per member, $18 per member, $36 per member, enterprise features, NetSuite, Sage Intacct, SAML SSO, annual subscription, Expensify Card discount]
 internalScope: Audience is billing owners and admins evaluating the Control Plan for mid-size to large teams. Covers Control Plan features, active member billing model, pricing tiers, and multi-currency pricing. Does not cover Collect Plan or how to switch plans.

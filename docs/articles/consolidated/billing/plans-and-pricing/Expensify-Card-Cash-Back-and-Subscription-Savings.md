@@ -1,5 +1,5 @@
 ---
-title: Expensify Card: Cash Back and Subscription Savings
+title: "Expensify Card: Cash Back and Subscription Savings"
 description: Learn how the Expensify Card earns 1-2% cash back, reduces your subscription cost, and unlocks the lowest Control Plan pricing tier.
 keywords: [Expensify Card, cash back, subscription discount, $9 per member, 1% cash back, 2% cash back, card benefits, reduce subscription cost, Expensify Card savings, 50% card spend]
 internalScope: Audience is billing owners and admins evaluating Expensify Card benefits. Covers cash back rates, how cash back reduces subscription costs, and the 50% card spend requirement for $9/member Control Plan pricing. Does not cover how to apply for or activate the Expensify Card.

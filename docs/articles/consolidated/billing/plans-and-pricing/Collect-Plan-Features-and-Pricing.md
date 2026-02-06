@@ -1,5 +1,5 @@
 ---
-title: Expensify Collect Plan: Features and Pricing
+title: "Expensify Collect Plan: Features and Pricing"
 description: Learn about the Collect Plan's features, pricing in multiple currencies, and how unique member billing works for small teams.
 keywords: [Collect plan, Collect plan pricing, small team pricing, unique members, $5 per member, Collect plan features, QuickBooks Online, Xero integration, month-to-month subscription]
 internalScope: Audience is billing owners and admins evaluating the Collect Plan for small teams. Covers Collect Plan features, unique member billing model, and pricing in all supported currencies. Does not cover Control Plan or how to switch plans.
