@@ -10324,6 +10324,16 @@ function approveMoneyRequest(
     return optimisticHoldReportID;
 }
 
+function determineIouReportID(chatReport: OnyxEntry<OnyxTypes.Report>, expenseReport: OnyxEntry<OnyxTypes.Report>): string | undefined {
+    const iouReportActions = getAllReportActions(chatReport?.iouReportID);
+    const expenseReportActions = getAllReportActions(expenseReport?.reportID);
+    const iouCreatedAction = Object.values(iouReportActions).find((action) => isCreatedAction(action));
+    const expenseCreatedAction = Object.values(expenseReportActions).find((action) => isCreatedAction(action));
+
+    // The report created later will become the iouReportID of the chat report
+    return (iouCreatedAction?.created ?? '') > (expenseCreatedAction?.created ?? '') ? chatReport?.iouReportID : expenseReport?.reportID;
+}
+
 function reopenReport(
     expenseReport: OnyxEntry<OnyxTypes.Report>,
     policy: OnyxEntry<OnyxTypes.Policy>,
@@ -10332,6 +10342,7 @@ function reopenReport(
     hasViolations: boolean,
     isASAPSubmitBetaEnabled: boolean,
     expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
+    chatReport: OnyxEntry<OnyxTypes.Report>,
 ) {
     if (!expenseReport) {
         return;
@@ -10476,6 +10487,24 @@ function reopenReport(
         });
     }
 
+    if (chatReport) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: {
+                // The report created later will become the iouReportID of the chat report
+                iouReportID: determineIouReportID(chatReport, expenseReport),
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: {
+                iouReportID: chatReport.iouReportID,
+            },
+        });
+    }
+
     const parameters: ReopenReportParams = {
         reportID: expenseReport.reportID,
         reportActionID: optimisticReopenedReportAction.reportActionID,
@@ -10559,16 +10588,12 @@ function retractReport(
     const optimisticData: OnyxUpdate[] = [optimisticIOUReportData, optimisticReportActionsData, optimisticNextStepData];
 
     if (chatReport) {
-        const iouReportActions = getAllReportActions(chatReport.iouReportID);
-        const expenseReportActions = getAllReportActions(expenseReport.reportID);
-        const iouCreatedAction = Object.values(iouReportActions).find((action) => isCreatedAction(action));
-        const expenseCreatedAction = Object.values(expenseReportActions).find((action) => isCreatedAction(action));
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: {
                 // The report created later will become the iouReportID of the chat report
-                iouReportID: (iouCreatedAction?.created ?? '') > (expenseCreatedAction?.created ?? '') ? chatReport?.iouReportID : expenseReport.reportID,
+                iouReportID: determineIouReportID(chatReport, expenseReport),
             },
         });
     }
