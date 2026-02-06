@@ -1,7 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type {OnyxInputOrEntry, PersonalDetailsList, Report, UserMetadata} from '@src/types/onyx';
+import type {OnyxInputOrEntry, Report, UserMetadata} from '@src/types/onyx';
 
 type FSClass = ValueOf<typeof CONST.FULLSTORY.CLASS>;
 
@@ -24,7 +24,9 @@ interface FSPageLikeConstructor {
     new (name: string, properties: PropertiesWithoutPageName): FSPageLike;
 }
 
-type GetChatFSClass = (context: OnyxEntry<PersonalDetailsList>, report: OnyxInputOrEntry<Report>) => FSClass;
+type GetChatFSClass = (report: OnyxInputOrEntry<Report>) => FSClass;
+
+type ShouldInitialize = (userMetadata: UserMetadata, envName: string) => boolean;
 
 type Fullstory = {
     /**
@@ -46,6 +48,11 @@ type Fullstory = {
      * Executes a function when the Fullstory library is ready, either by initialization or by observing the start event.
      */
     onReady: () => Promise<unknown>;
+
+    /**
+     * Whether Fullstory should be initialized.
+     */
+    shouldInitialize: ShouldInitialize;
 
     /**
      * Sets the identity consent status using the Fullstory library.
@@ -71,6 +78,11 @@ type Fullstory = {
      * Returns the current FullStory session ID.
      */
     getSessionId: () => Promise<string | undefined>;
+
+    /**
+     * Returns the current FullStory session URL.
+     */
+    getSessionURL: () => Promise<string | undefined>;
 };
 
 /**
@@ -164,4 +176,4 @@ type MultipleFSClassProps<T extends `${string}FSClass`> =
      */
     Partial<Record<T, FSClass>>;
 
-export type {FSPageLike, FSPageLikeConstructor, Fullstory, GetChatFSClass, PropertiesWithoutPageName, ForwardedFSClassProps, MultipleFSClassProps};
+export type {FSPageLike, FSPageLikeConstructor, Fullstory, GetChatFSClass, PropertiesWithoutPageName, ForwardedFSClassProps, MultipleFSClassProps, ShouldInitialize};

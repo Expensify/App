@@ -29,6 +29,4 @@ function FormScrollView({children, ref, ...rest}: FormScrollViewProps) {
     );
 }
 
-FormScrollView.displayName = 'FormScrollView';
-
 export default FormScrollView;

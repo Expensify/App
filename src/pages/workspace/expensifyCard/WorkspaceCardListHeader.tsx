@@ -81,6 +81,4 @@ function WorkspaceCardListHeader({cardSettings}: WorkspaceCardListHeaderProps) {
     );
 }
 
-WorkspaceCardListHeader.displayName = 'WorkspaceCardListHeader';
-
 export default WorkspaceCardListHeader;

@@ -1,6 +1,7 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
+import type PersonalDetails from './PersonalDetails';
 
 /** Model of Expensify card status changes */
 type CardStatusChanges = {
@@ -52,6 +53,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Card number */
     cardNumber?: string;
 
+    /** Encrypted card number */
+    encryptedCardNumber?: string;
+
     /** Current fraud state of the card */
     fraud: ValueOf<typeof CONST.EXPENSIFY_CARD.FRAUD_TYPES>;
 
@@ -66,6 +70,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Last updated time */
     lastScrape?: string;
+
+    /** Whether transactions from the card should be marked reimbursable by default */
+    reimbursable?: boolean;
 
     /** Last update result */
     lastScrapeResult?: number;
@@ -219,7 +226,25 @@ type ExpensifyCardDetails = {
     cvv: string;
 };
 
-/** Record of Expensify cards, indexed by cardID */
+/**
+ * Unified type for unassigned cards that normalizes the difference between
+ * direct feeds (Plaid/OAuth) and commercial/custom feeds (Visa/Mastercard/Amex).
+ *
+ * For direct feeds: cardName === cardID (both are the card name string)
+ * For commercial feeds: cardName is the masked card number, cardID is the encrypted value
+ */
+type UnassignedCard = {
+    /** The masked card number displayed to users (e.g., "XXXX1234" or "VISA - 1234") */
+    cardName: string;
+
+    /** The identifier sent to backend - equals cardName for direct feeds, encrypted value for commercial feeds */
+    cardID: string;
+};
+
+/** List of assignable cards */
+type AssignableCardsList = Record<string, string>;
+
+/** Record of Company or Expensify cards, indexed by cardID */
 type CardList = Record<string, Card>;
 
 /** Issue new card flow steps */
@@ -280,13 +305,56 @@ type IssueNewCard = {
 };
 
 /** List of Expensify cards */
-type WorkspaceCardsList = Record<string, Card> & {
+type WorkspaceCardsList = CardList & {
     /** List of cards to assign */
     cardList?: Record<string, string>;
 };
 
-/** Card list with only available card */
-type FilteredCardList = Record<string, string>;
+/**
+ *
+ */
+type CardAssignmentData = {
+    /**
+     * The masked card number displayed to users (e.g., "XXXX1234" or "VISA - 1234").
+     */
+    cardName: string;
+
+    /**
+     * The card identifier sent to backend.
+     * For direct feeds (Plaid/OAuth): equals cardName
+     * For commercial feeds (Visa/Mastercard/Amex): encrypted value
+     */
+    encryptedCardNumber: string;
+
+    /** User-defined name for the card (e.g., "John's card") */
+    customCardName?: string;
+
+    /** Cardholder personal details */
+    cardholder?: PersonalDetails | null;
+
+    /** Errors */
+    errors?: OnyxCommon.Errors;
+
+    /**
+     *
+     */
+    errorFields?: OnyxCommon.ErrorFields;
+
+    /** Pending action */
+    pendingAction?: OnyxCommon.PendingAction;
+};
 
 export default Card;
-export type {ExpensifyCardDetails, CardList, IssueNewCard, IssueNewCardStep, IssueNewCardData, WorkspaceCardsList, CardLimitType, FilteredCardList, ProvisioningCardData};
+export type {
+    ExpensifyCardDetails,
+    CardList,
+    IssueNewCard,
+    IssueNewCardStep,
+    IssueNewCardData,
+    WorkspaceCardsList,
+    CardAssignmentData,
+    CardLimitType,
+    ProvisioningCardData,
+    AssignableCardsList,
+    UnassignedCard,
+};

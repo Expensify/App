@@ -1,7 +1,7 @@
 import type {TransactionListItemType} from '@components/SelectionListWithSections/types';
-import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
+import {getReportIDForTransaction, hasNonReimbursableTransactions, isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportAction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 
 const policyBaseMock: Policy = {
     id: '123456789A',
@@ -16,6 +16,8 @@ const policyBaseMock: Policy = {
 const reportBaseMock: Report = {
     chatReportID: '1706144653204915',
     created: '2024-12-21 13:05:20',
+    submitted: '2024-12-21 13:05:20',
+    approved: undefined,
     currency: 'USD',
     isWaitingOnBankAccount: false,
     managerID: 100,
@@ -55,12 +57,15 @@ const transactionItemBaseMock: TransactionListItemType = {
     policy: policyBaseMock,
     reportAction: reportActionBaseMock,
     holdReportAction: undefined,
-    canDelete: true,
     cardID: undefined,
     cardName: undefined,
     category: '',
     comment: {comment: ''},
     created: '2024-12-21',
+    submitted: '2024-12-21',
+    approved: undefined,
+    posted: undefined,
+    exported: undefined,
     currency: 'USD',
     date: '2024-12-21',
     formattedFrom: 'Admin',
@@ -85,6 +90,10 @@ const transactionItemBaseMock: TransactionListItemType = {
     reportID: reportBaseMock.reportID,
     shouldShowMerchant: true,
     shouldShowYear: true,
+    shouldShowYearSubmitted: true,
+    shouldShowYearApproved: false,
+    shouldShowYearPosted: false,
+    shouldShowYearExported: false,
     isAmountColumnWide: false,
     isTaxAmountColumnWide: false,
     tag: '',
@@ -99,7 +108,6 @@ const transactionItemBaseMock: TransactionListItemType = {
     taxAmount: undefined,
     mccGroup: undefined,
     modifiedMCCGroup: undefined,
-    moneyRequestReportActionID: '789',
     errors: undefined,
     filename: undefined,
     violations: [],
@@ -133,6 +141,46 @@ describe('MoneyRequestReportUtils', () => {
             const resultID = getReportIDForTransaction(transactionItem);
 
             expect(resultID).toBe('123');
+        });
+    });
+
+    describe('isBillableEnabledOnPolicy', () => {
+        test('returns false when policy is missing', () => {
+            expect(isBillableEnabledOnPolicy(undefined)).toBe(false);
+        });
+
+        test('returns true when policy is paid group and defaultBillable is enabled', () => {
+            const policy = {type: CONST.POLICY.TYPE.TEAM, disabledFields: {defaultBillable: false}} as unknown as Policy;
+            expect(isBillableEnabledOnPolicy(policy)).toBe(true);
+        });
+
+        test('returns true when policy is paid group and defaultBillable is missing', () => {
+            const policy = {type: CONST.POLICY.TYPE.CORPORATE, disabledFields: {}} as unknown as Policy;
+            expect(isBillableEnabledOnPolicy(policy)).toBe(true);
+        });
+
+        test('returns false when policy is paid group and defaultBillable is disabled', () => {
+            const policy = {type: CONST.POLICY.TYPE.TEAM, disabledFields: {defaultBillable: true}} as unknown as Policy;
+            expect(isBillableEnabledOnPolicy(policy)).toBe(false);
+        });
+
+        test('returns false when policy is non-paid group', () => {
+            const policy = {type: CONST.POLICY.TYPE.PERSONAL, disabledFields: {defaultBillable: false}} as unknown as Policy;
+            expect(isBillableEnabledOnPolicy(policy)).toBe(false);
+        });
+    });
+
+    describe('hasNonReimbursableTransactions', () => {
+        test('returns false when all transactions are reimbursable by default', () => {
+            const t1 = {reimbursable: undefined} as unknown as Transaction;
+            const t2 = {reimbursable: true} as unknown as Transaction;
+            expect(hasNonReimbursableTransactions([t1, t2])).toBe(false);
+        });
+
+        test('returns true when any transaction is non-reimbursable', () => {
+            const reimbursable = {reimbursable: true} as unknown as Transaction;
+            const nonReimbursable = {reimbursable: false} as unknown as Transaction;
+            expect(hasNonReimbursableTransactions([reimbursable, nonReimbursable])).toBe(true);
         });
     });
 });

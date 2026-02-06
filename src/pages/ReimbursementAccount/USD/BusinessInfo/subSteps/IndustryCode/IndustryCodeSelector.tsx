@@ -84,6 +84,4 @@ function IndustryCodeSelector({onInputChange, value, errorText}: IndustryCodeSel
     );
 }
 
-IndustryCodeSelector.displayName = 'IndustryCodeSelector';
-
 export default IndustryCodeSelector;

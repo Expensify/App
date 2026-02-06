@@ -79,5 +79,4 @@ function TransactionFieldIDStep({onNext, isEditing, netSuiteCustomFieldFormValue
     );
 }
 
-TransactionFieldIDStep.displayName = 'TransactionFieldIDStep';
 export default TransactionFieldIDStep;

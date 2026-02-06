@@ -36,6 +36,4 @@ function ReportFieldText({field, close}: ReportFieldListProps) {
     );
 }
 
-ReportFieldText.displayName = 'ReportFieldText';
-
 export default ReportFieldText;

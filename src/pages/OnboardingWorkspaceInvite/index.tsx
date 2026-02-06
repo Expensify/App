@@ -15,6 +15,4 @@ function OnboardingWorkspaceInvite({...rest}: OnboardingWorkspaceInviteProps) {
     );
 }
 
-OnboardingWorkspaceInvite.displayName = 'OnboardingWorkspaceInvite';
-
 export default OnboardingWorkspaceInvite;

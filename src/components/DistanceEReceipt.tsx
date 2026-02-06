@@ -30,7 +30,7 @@ type DistanceEReceiptProps = {
 function DistanceEReceipt({transaction, hoverPreview = false}: DistanceEReceiptProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark']);
     const thumbnail = hasReceipt(transaction) ? getThumbnailAndImageURIs(transaction).thumbnail : null;
     const {amount: transactionAmount, currency: transactionCurrency, merchant: transactionMerchant, created: transactionDate} = getTransactionDetails(transaction) ?? {};
     const formattedTransactionAmount = convertToDisplayString(transactionAmount, transactionCurrency);
@@ -56,6 +56,8 @@ function DistanceEReceipt({transaction, hoverPreview = false}: DistanceEReceiptP
                         src={EReceiptBackground}
                         style={styles.eReceiptBackground}
                         pointerEvents="none"
+                        // Temporary solution only, since other cache policies are causing memory leaks on iOS
+                        cachePolicy="none"
                     />
 
                     <View style={[styles.moneyRequestViewImage, styles.mh0, styles.mt0, styles.mb5, styles.borderNone]}>
@@ -103,6 +105,8 @@ function DistanceEReceipt({transaction, hoverPreview = false}: DistanceEReceiptP
                             width={86}
                             height={19.25}
                             src={icons.ExpensifyWordmark}
+                            // Temporary solution only, since other cache policies are causing memory leaks on iOS
+                            cachePolicy="none"
                         />
 
                         <Text style={styles.eReceiptGuaranteed}>{translate('eReceipt.guaranteed')}</Text>
@@ -112,7 +116,5 @@ function DistanceEReceipt({transaction, hoverPreview = false}: DistanceEReceiptP
         </View>
     );
 }
-
-DistanceEReceipt.displayName = 'DistanceEReceipt';
 
 export default DistanceEReceipt;

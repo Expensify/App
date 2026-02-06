@@ -11,8 +11,8 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportSettingsNavigatorParamList} from '@libs/Navigation/types';
 import {goBackToDetailsPage, isArchivedNonExpenseReport} from '@libs/ReportUtils';
-import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
-import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
+import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
+import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
 import {updateRoomVisibility} from '@userActions/Report';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
@@ -68,7 +68,7 @@ function VisibilityPage({report}: VisibilityProps) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={VisibilityPage.displayName}
+            testID="VisibilityPage"
         >
             <FullPageNotFoundView shouldShow={shouldDisableVisibility}>
                 <HeaderWithBackButton
@@ -113,7 +113,5 @@ function VisibilityPage({report}: VisibilityProps) {
         </ScreenWrapper>
     );
 }
-
-VisibilityPage.displayName = 'VisibilityPage';
 
 export default withReportOrNotFound()(VisibilityPage);

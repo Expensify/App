@@ -34,7 +34,7 @@ function TaxIdBusiness({onNext, onMove, isEditing}: SubStepProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, STEP_FIELDS);
+            const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
             if (values.companyTaxID && !isValidTaxID(values.companyTaxID)) {
                 errors.companyTaxID = translate('bankAccount.error.taxID');
@@ -75,7 +75,5 @@ function TaxIdBusiness({onNext, onMove, isEditing}: SubStepProps) {
         />
     );
 }
-
-TaxIdBusiness.displayName = 'TaxIdBusiness';
 
 export default TaxIdBusiness;

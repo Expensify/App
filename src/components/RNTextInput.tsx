@@ -17,7 +17,7 @@ type RNTextInputWithRefProps = TextInputProps &
         ref?: ForwardedRef<AnimatedTextInputRef>;
     };
 
-function RNTextInputWithRef({ref, forwardedFSClass = CONST.FULLSTORY.CLASS.MASK, ...props}: RNTextInputWithRefProps) {
+function RNTextInputWithRef({ref, forwardedFSClass = CONST.FULLSTORY.CLASS.UNMASK, ...props}: RNTextInputWithRefProps) {
     const theme = useTheme();
 
     return (
@@ -25,11 +25,11 @@ function RNTextInputWithRef({ref, forwardedFSClass = CONST.FULLSTORY.CLASS.MASK,
             allowFontScaling={false}
             textBreakStrategy="simple"
             keyboardAppearance={theme.colorScheme}
-            ref={(refHandle) => {
+            ref={(refHandle: AnimatedTextInputRef) => {
                 if (typeof ref !== 'function') {
                     return;
                 }
-                ref(refHandle as AnimatedTextInputRef);
+                ref(refHandle);
             }}
             // eslint-disable-next-line react/forbid-component-props
             fsClass={forwardedFSClass}
@@ -38,8 +38,6 @@ function RNTextInputWithRef({ref, forwardedFSClass = CONST.FULLSTORY.CLASS.MASK,
         />
     );
 }
-
-RNTextInputWithRef.displayName = 'RNTextInputWithRef';
 
 export default RNTextInputWithRef;
 export type {AnimatedTextInputRef};

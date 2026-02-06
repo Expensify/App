@@ -86,7 +86,7 @@ describe('TransactionPreviewUtils', () => {
                             source: 'source.com',
                             filename: 'file_name.png',
                             action: 'replaceReceipt',
-                            retryParams: {transactionID: basicProps.transaction.transactionID, source: 'source.com'},
+                            retryParams: {transactionID: basicProps.transaction.transactionID, source: 'source.com', transactionPolicy: undefined},
                         },
                     },
                 },
@@ -106,15 +106,15 @@ describe('TransactionPreviewUtils', () => {
             expect(result.displayAmountText.text).toEqual('$0.00');
         });
 
-        it('returns merchant missing and amount missing message when appropriate', () => {
+        it('returns missing field message when appropriate', () => {
             const functionArgs = {
                 ...basicProps,
-                transaction: {...basicProps.transaction, merchant: '', amount: 0},
+                transaction: {...basicProps.transaction, created: '', amount: 100},
                 originalTransaction: undefined,
                 shouldShowRBR: true,
             };
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
-            expect(result.RBRMessage.translationPath).toEqual('violations.reviewRequired');
+            expect(result.RBRMessage.translationPath).toEqual('iou.missingMerchant');
         });
 
         it('should display showCashOrCard in previewHeaderText', () => {
@@ -129,7 +129,7 @@ describe('TransactionPreviewUtils', () => {
             const cardTransaction = getTransactionPreviewTextAndTranslationPaths(functionArgsWithCardTransaction);
             const cashTransaction = getTransactionPreviewTextAndTranslationPaths({...basicProps});
 
-            expect(cardTransaction.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'iou.card'}]));
+            expect(cardTransaction.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'common.card'}]));
             expect(cashTransaction.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'iou.cash'}]));
         });
 
@@ -140,7 +140,12 @@ describe('TransactionPreviewUtils', () => {
         });
 
         it('displays description when receipt is being scanned', () => {
-            const functionArgs = {...basicProps, transaction: {...basicProps.transaction, receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING}}, originalTransaction: undefined};
+            const functionArgs = {
+                ...basicProps,
+                transaction: {...basicProps.transaction, merchant: '(none)', receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING}},
+                originalTransaction: undefined,
+                merchant: 'Expense',
+            };
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'common.receipt'}]));
         });
@@ -155,7 +160,7 @@ describe('TransactionPreviewUtils', () => {
             const functionArgs = {
                 ...basicProps,
                 transactionDetails: {amount: 300, currency: 'EUR'},
-                transaction: {...basicProps.transaction, receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING}},
+                transaction: {...basicProps.transaction, merchant: '(none)', receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING}},
                 originalTransaction: undefined,
             };
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
@@ -222,8 +227,9 @@ describe('TransactionPreviewUtils', () => {
     });
 
     describe('createTransactionPreviewConditionals', () => {
+        const currentUserAccountID = 999;
         beforeAll(() => {
-            Onyx.merge(ONYXKEYS.SESSION, {accountID: 999});
+            Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
         });
         afterAll(() => {
             Onyx.clear([ONYXKEYS.SESSION]);
@@ -249,7 +255,7 @@ describe('TransactionPreviewUtils', () => {
                             source: 'source.com',
                             filename: 'file_name.png',
                             action: 'replaceReceipt',
-                            retryParams: {transactionID: basicProps.transaction.transactionID, source: 'source.com'},
+                            retryParams: {transactionID: basicProps.transaction.transactionID, source: 'source.com', transactionPolicy: undefined},
                         },
                     },
                 },
@@ -287,6 +293,7 @@ describe('TransactionPreviewUtils', () => {
                         type: CONST.REPORT.ACTIONS.TYPE.IOU,
                     },
                 },
+                currentUserAccountID,
             };
             const result = createTransactionPreviewConditionals(functionArgs);
             expect(result.shouldShowSplitShare).toBeTruthy();
@@ -355,6 +362,7 @@ describe('TransactionPreviewUtils', () => {
                         type: CONST.REPORT.ACTIONS.TYPE.IOU,
                     },
                 },
+                currentUserAccountID,
             };
             const result = createTransactionPreviewConditionals(functionArgs);
             expect(result.shouldShowSplitShare).toBeTruthy();
@@ -375,6 +383,14 @@ describe('TransactionPreviewUtils', () => {
         const message = 'Message';
         const reviewRequired = {translationPath: 'violations.reviewRequired'};
         const longMessage = 'x'.repeat(CONST.REPORT_VIOLATIONS.RBR_MESSAGE_MAX_CHARACTERS_FOR_PREVIEW + 1);
+
+        const receiptRequiredViolation = {name: CONST.VIOLATIONS.RECEIPT_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true, data: {formattedLimit: '$25.00'}};
+        const itemizedReceiptRequiredViolation = {
+            name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+            showInReview: true,
+            data: {formattedLimit: '$75.00'},
+        };
 
         const mockViolations = (count: number) =>
             [
@@ -405,6 +421,20 @@ describe('TransactionPreviewUtils', () => {
 
         test('returns translationPath when there are no violations but message is too long', () => {
             expect(getViolationTranslatePath(mockViolations(0), false, longMessage, false, false)).toEqual(reviewRequired);
+        });
+
+        test('returns text when both receiptRequired and itemizedReceiptRequired exist (filters to 1 violation)', () => {
+            const bothReceiptViolations = [itemizedReceiptRequiredViolation, receiptRequiredViolation];
+            // Should return text because receiptRequired is filtered out, leaving only 1 violation
+            expect(getViolationTranslatePath(bothReceiptViolations, false, message, false, false)).toEqual({text: message});
+        });
+
+        test('returns text when only itemizedReceiptRequired exists', () => {
+            expect(getViolationTranslatePath([itemizedReceiptRequiredViolation], false, message, false, false)).toEqual({text: message});
+        });
+
+        test('returns text when only receiptRequired exists', () => {
+            expect(getViolationTranslatePath([receiptRequiredViolation], false, message, false, false)).toEqual({text: message});
         });
     });
 

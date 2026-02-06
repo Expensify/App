@@ -1,4 +1,3 @@
-import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
@@ -22,8 +21,8 @@ function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateA
     const isCurrentUserAnonymous = session?.accountID === accountID && isAnonymousUser(session);
 
     const userDetails = personalDetails?.[accountID] ?? fallbackUserDetails ?? {};
-    let userDisplayName = getUserDetailTooltipText(accountID, userDetails.displayName ? userDetails.displayName.trim() : '');
-    let userLogin = !isCurrentUserAnonymous && userDetails.login?.trim() && userDetails.login !== userDetails.displayName ? Str.removeSMSDomain(userDetails.login) : '';
+    let userDisplayName = getUserDetailTooltipText(accountID, formatPhoneNumber, userDetails.displayName ? userDetails.displayName.trim() : '');
+    let userLogin = !isCurrentUserAnonymous && userDetails.login?.trim() && userDetails.login !== userDetails.displayName ? formatPhoneNumber(userDetails.login) : '';
 
     let userAvatar = userDetails.avatar;
     let userAccountID = accountID;
@@ -32,7 +31,7 @@ function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateA
     // the Copilot feature is implemented.
     if (delegateAccountID && delegateAccountID > 0) {
         const delegateUserDetails = personalDetails?.[delegateAccountID];
-        const delegateUserDisplayName = getUserDetailTooltipText(delegateAccountID);
+        const delegateUserDisplayName = getUserDetailTooltipText(delegateAccountID, formatPhoneNumber);
         userDisplayName = `${delegateUserDisplayName} (${translate('reportAction.asCopilot')} ${userDisplayName})`;
         userLogin = delegateUserDetails?.login ?? '';
         userAvatar = delegateUserDetails?.avatar;
@@ -40,7 +39,7 @@ function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateA
     }
 
     let title = String(userDisplayName).trim() ? userDisplayName : '';
-    let subtitle = userLogin.trim() && formatPhoneNumber(userLogin) !== userDisplayName ? Str.removeSMSDomain(userLogin) : '';
+    let subtitle = userLogin.trim() && formatPhoneNumber(userLogin) !== userDisplayName ? formatPhoneNumber(userLogin) : '';
     if (icon && (icon.type === CONST.ICON_TYPE_WORKSPACE || !title)) {
         title = icon.name ?? '';
 
@@ -107,7 +106,5 @@ function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateA
         </Tooltip>
     );
 }
-
-BaseUserDetailsTooltip.displayName = 'BaseUserDetailsTooltip';
 
 export default BaseUserDetailsTooltip;

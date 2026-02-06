@@ -72,7 +72,7 @@ function PolicyDistanceRateTaxReclaimableEditPage({route, policy}: PolicyDistanc
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={PolicyDistanceRateTaxReclaimableEditPage.displayName}
+                testID="PolicyDistanceRateTaxReclaimableEditPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -105,7 +105,5 @@ function PolicyDistanceRateTaxReclaimableEditPage({route, policy}: PolicyDistanc
         </AccessOrNotFoundWrapper>
     );
 }
-
-PolicyDistanceRateTaxReclaimableEditPage.displayName = 'PolicyDistanceRateTaxReclaimableEditPage';
 
 export default withPolicy(PolicyDistanceRateTaxReclaimableEditPage);

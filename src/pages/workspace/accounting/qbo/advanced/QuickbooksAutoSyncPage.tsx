@@ -47,7 +47,7 @@ function QuickbooksAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
-                testID={QuickbooksAutoSyncPage.displayName}
+                testID="QuickbooksAutoSyncPage"
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <HeaderWithBackButton
@@ -84,7 +84,5 @@ function QuickbooksAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-QuickbooksAutoSyncPage.displayName = 'QuickbooksAutoSyncPage';
 
 export default withPolicyConnections(QuickbooksAutoSyncPage);

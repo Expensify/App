@@ -58,8 +58,8 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> =>
-            getFieldRequiredErrors(values, STEP_FIELDS),
-        [STEP_FIELDS],
+            getFieldRequiredErrors(values, STEP_FIELDS, translate),
+        [STEP_FIELDS, translate],
     );
 
     const handleSelectFile = (files: FileObject[], uploadedFiles: FileObject[], inputID: string, setFiles: React.Dispatch<React.SetStateAction<FileObject[]>>) => {
@@ -216,7 +216,5 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
         </FormProvider>
     );
 }
-
-Documents.displayName = 'Documents';
 
 export default Documents;

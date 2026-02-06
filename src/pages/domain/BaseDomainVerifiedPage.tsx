@@ -14,22 +14,23 @@ import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type BaseDomainVerifiedPageProps = {
     /** The accountID of the domain */
-    accountID: number;
+    domainAccountID: number;
 
     /** Route to redirect to when trying to access the page for an unverified domain */
     redirectTo: Route;
 };
 
-function BaseDomainVerifiedPage({accountID, redirectTo}: BaseDomainVerifiedPageProps) {
+function BaseDomainVerifiedPage({domainAccountID, redirectTo}: BaseDomainVerifiedPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: false});
-    const [isAdmin, isAdminMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${accountID}`, {canBeMissing: false});
+    const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: false});
+    const [isAdmin, isAdminMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domainAccountID}`, {canBeMissing: false});
     const doesDomainExist = !!domain;
 
     useEffect(() => {
@@ -37,7 +38,7 @@ function BaseDomainVerifiedPage({accountID, redirectTo}: BaseDomainVerifiedPageP
             return;
         }
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(redirectTo, {forceReplace: true}));
-    }, [accountID, domain?.validated, doesDomainExist, redirectTo]);
+    }, [domainAccountID, domain?.validated, doesDomainExist, redirectTo]);
 
     if (isLoadingOnyxValue(domainMetadata, isAdminMetadata)) {
         return <FullScreenLoadingIndicator />;
@@ -49,7 +50,7 @@ function BaseDomainVerifiedPage({accountID, redirectTo}: BaseDomainVerifiedPageP
 
     return (
         <ScreenWrapper
-            testID={BaseDomainVerifiedPage.displayName}
+            testID="BaseDomainVerifiedPage"
             shouldShowOfflineIndicator={false}
         >
             <HeaderWithBackButton title={translate('domain.domainVerified.title')} />
@@ -64,11 +65,10 @@ function BaseDomainVerifiedPage({accountID, redirectTo}: BaseDomainVerifiedPageP
                 innerContainerStyle={styles.p10}
                 buttonText={translate('common.buttonConfirm')}
                 shouldShowButton
-                onButtonPress={() => Navigation.dismissModal()}
+                onButtonPress={() => Navigation.navigate(ROUTES.DOMAIN_INITIAL.getRoute(domainAccountID))}
             />
         </ScreenWrapper>
     );
 }
 
-BaseDomainVerifiedPage.displayName = 'BaseDomainVerifiedPage';
 export default BaseDomainVerifiedPage;

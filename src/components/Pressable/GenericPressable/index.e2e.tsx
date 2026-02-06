@@ -30,7 +30,5 @@ function E2EGenericPressableWrapper({ref, ...props}: PressableProps) {
     );
 }
 
-E2EGenericPressableWrapper.displayName = 'E2EGenericPressableWrapper';
-
 export default E2EGenericPressableWrapper;
 export {getPressableProps};

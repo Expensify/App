@@ -32,5 +32,4 @@ function MerchantOrDescriptionCell({
     );
 }
 
-MerchantOrDescriptionCell.displayName = 'MerchantOrDescriptionCell';
 export default MerchantOrDescriptionCell;

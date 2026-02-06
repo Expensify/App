@@ -40,13 +40,15 @@ function SearchFiltersGroupByPage() {
     }, []);
 
     const applyChanges = useCallback(() => {
-        updateAdvancedFilters({groupBy: selectedItem ?? null});
+        // When groupBy is cleared, also clear the view since view is only valid when groupBy is set
+        const updates = selectedItem ? {groupBy: selectedItem} : {groupBy: null, view: null};
+        updateAdvancedFilters(updates);
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     }, [selectedItem]);
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersGroupByPage.displayName}
+            testID="SearchFiltersGroupByPage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight
@@ -84,7 +86,5 @@ function SearchFiltersGroupByPage() {
         </ScreenWrapper>
     );
 }
-
-SearchFiltersGroupByPage.displayName = 'SearchFiltersGroupByPage';
 
 export default SearchFiltersGroupByPage;

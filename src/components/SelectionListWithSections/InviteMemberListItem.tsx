@@ -174,6 +174,4 @@ function InviteMemberListItem<TItem extends ListItem>({
     );
 }
 
-InviteMemberListItem.displayName = 'InviteMemberListItem';
-
 export default InviteMemberListItem;

@@ -3,7 +3,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type UsePreferencesSectionIllustration from './types';
 
 const usePreferencesSectionIllustration: UsePreferencesSectionIllustration = () => {
-    const illustrations = useMemoizedLazyIllustrations(['DjBoothReferenceHands'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['DjBoothReferenceHands']);
     const styles = useThemeStyles();
 
     return {

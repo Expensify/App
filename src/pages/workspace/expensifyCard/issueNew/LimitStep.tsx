@@ -57,7 +57,7 @@ function LimitStep({policyID, stepNames, startStepIndex}: LimitStepProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM> => {
-            const errors = getFieldRequiredErrors(values, [INPUT_IDS.LIMIT]);
+            const errors = getFieldRequiredErrors(values, [INPUT_IDS.LIMIT], translate);
 
             // We only want integers to be sent as the limit
             if (!Number(values.limit)) {
@@ -76,7 +76,7 @@ function LimitStep({policyID, stepNames, startStepIndex}: LimitStepProps) {
 
     return (
         <InteractiveStepWrapper
-            wrapperID={LimitStep.displayName}
+            wrapperID="LimitStep"
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             headerTitle={translate('workspace.card.issueCard')}
@@ -111,7 +111,5 @@ function LimitStep({policyID, stepNames, startStepIndex}: LimitStepProps) {
         </InteractiveStepWrapper>
     );
 }
-
-LimitStep.displayName = 'LimitStep';
 
 export default LimitStep;

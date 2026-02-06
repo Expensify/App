@@ -1,7 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -23,14 +23,14 @@ type CardListItem = ListItem & {
 function QuickbooksDesktopNonReimbursableDefaultVendorSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['Telescope'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const {vendors} = policy?.connections?.quickbooksDesktop?.data ?? {};
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
     const nonReimbursableBillDefaultVendor = qbdConfig?.export?.nonReimbursableBillDefaultVendor;
 
     const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
-    const sections = useMemo(() => {
-        const data: CardListItem[] =
+    const data: CardListItem[] = useMemo(
+        () =>
             vendors?.map((vendor) => ({
                 value: vendor.id,
                 text: vendor.name,
@@ -38,9 +38,9 @@ function QuickbooksDesktopNonReimbursableDefaultVendorSelectPage({policy}: WithP
                 // We use the logical OR (||) here instead of ?? because `nonReimbursableBillDefaultVendor` can be an empty string
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 isSelected: vendor.id === (nonReimbursableBillDefaultVendor || vendors.at(0)?.id),
-            })) ?? [];
-        return data.length ? [{data}] : [];
-    }, [nonReimbursableBillDefaultVendor, vendors]);
+            })) ?? [],
+        [nonReimbursableBillDefaultVendor, vendors],
+    );
 
     const selectVendor = useCallback(
         (row: CardListItem) => {
@@ -71,13 +71,13 @@ function QuickbooksDesktopNonReimbursableDefaultVendorSelectPage({policy}: WithP
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={QuickbooksDesktopNonReimbursableDefaultVendorSelectPage.displayName}
+            displayName="QuickbooksDesktopNonReimbursableDefaultVendorSelectPage"
             title="workspace.accounting.defaultVendor"
-            sections={sections}
+            data={data}
             listItem={RadioListItem}
             onSelectRow={selectVendor}
             shouldSingleExecuteRowSelect
-            initiallyFocusedOptionKey={sections.at(0)?.data.find((mode) => mode.isSelected)?.keyForList}
+            initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
             onBackButtonPress={() => Navigation.goBack()}
@@ -88,7 +88,5 @@ function QuickbooksDesktopNonReimbursableDefaultVendorSelectPage({policy}: WithP
         />
     );
 }
-
-QuickbooksDesktopNonReimbursableDefaultVendorSelectPage.displayName = 'QuickbooksDesktopNonReimbursableDefaultVendorSelectPage';
 
 export default withPolicyConnections(QuickbooksDesktopNonReimbursableDefaultVendorSelectPage);

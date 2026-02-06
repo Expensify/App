@@ -7,7 +7,7 @@ import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
 function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem}: TransactionDataCellProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Folder'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Folder']);
     const styles = useThemeStyles();
 
     const categoryForDisplay = isCategoryMissing(transactionItem?.category) ? '' : getDecodedCategoryName(transactionItem?.category ?? '');
@@ -28,5 +28,4 @@ function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem
     );
 }
 
-CategoryCell.displayName = 'CategoryCell';
 export default CategoryCell;

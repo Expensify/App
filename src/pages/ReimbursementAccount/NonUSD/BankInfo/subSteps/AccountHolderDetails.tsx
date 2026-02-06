@@ -138,6 +138,7 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
                             city: 'accountHolderCity',
                         }}
                         hint={field.id === ACCOUNT_HOLDER_NAME ? translate('bankInfoStep.accountHolderNameDescription') : undefined}
+                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     />
                 </View>
             );
@@ -160,7 +161,5 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
         </FormProvider>
     );
 }
-
-AccountHolderDetails.displayName = 'AccountHolderDetails';
 
 export default AccountHolderDetails;

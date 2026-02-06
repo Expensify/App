@@ -2,8 +2,8 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import useCurrencyList from '@hooks/useCurrencyList';
 import useOnyx from '@hooks/useOnyx';
-import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -30,6 +30,7 @@ type CurrencyPickerProps = {
 };
 
 function OnboardingCurrencyPicker({label, value, errorText, style, onInputChange, onBlur}: CurrencyPickerProps) {
+    const {getCurrencySymbol} = useCurrencyList();
     const didOpenCurrencySelector = useRef(false);
     const isFocused = useIsFocused();
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORKSPACE_DETAILS_FORM_DRAFT, {canBeMissing: true});
@@ -38,7 +39,7 @@ function OnboardingCurrencyPicker({label, value, errorText, style, onInputChange
         if (draftValues?.currency) {
             onInputChange?.(draftValues.currency);
         }
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [draftValues?.currency]);
 
     useEffect(() => {
@@ -65,5 +66,4 @@ function OnboardingCurrencyPicker({label, value, errorText, style, onInputChange
     );
 }
 
-OnboardingCurrencyPicker.displayName = 'OnboardingCurrencyPicker';
 export default OnboardingCurrencyPicker;

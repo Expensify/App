@@ -113,6 +113,5 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange}: DateSe
     );
 }
 
-DateSelectPopup.displayName = 'DateSelectPopup';
 export type {DateSelectPopupProps};
 export default DateSelectPopup;

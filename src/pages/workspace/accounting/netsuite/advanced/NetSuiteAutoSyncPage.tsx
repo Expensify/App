@@ -51,7 +51,7 @@ function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
         >
             <ScreenWrapper
                 style={[styles.defaultModalContainer]}
-                testID={NetSuiteAutoSyncPage.displayName}
+                testID="NetSuiteAutoSyncPage"
                 offlineIndicatorStyle={styles.mtAuto}
             >
                 <HeaderWithBackButton
@@ -93,7 +93,5 @@ function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-NetSuiteAutoSyncPage.displayName = 'NetSuiteAutoSyncPage';
 
 export default withPolicyConnections(NetSuiteAutoSyncPage);

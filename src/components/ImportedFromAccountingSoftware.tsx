@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -9,6 +10,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {ConnectionName} from '@src/types/onyx/Policy';
+import EmployeesSeeTagsAsText from './EmployeesSeeTagsAsText/index';
 import Icon from './Icon';
 import Text from './Text';
 import TextBlock from './TextBlock';
@@ -26,17 +28,28 @@ type ImportedFromAccountingSoftwareProps = {
 
     /** The translated text for the "imported from" message */
     translatedText: string;
+
+    /** The custom tag name */
+    customTagName?: string;
+
+    /** Whether we are displaying  tags */
+    shouldShow?: boolean;
 };
 
-function ImportedFromAccountingSoftware({policyID, currentConnectionName, translatedText, connectedIntegration}: ImportedFromAccountingSoftwareProps) {
+function ImportedFromAccountingSoftware({policyID, currentConnectionName, translatedText, connectedIntegration, customTagName, shouldShow = false}: ImportedFromAccountingSoftwareProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
-    const icon = getIntegrationIcon(connectedIntegration);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['XeroSquare', 'QBOSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare']);
+    const icon = getIntegrationIcon(connectedIntegration, expensifyIcons);
+
+    if (!customTagName && shouldShow) {
+        return null;
+    }
 
     return (
-        <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexWrap]}>
+        <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexWrap, styles.breakWord]}>
             <TextBlock
                 textStyles={[styles.textNormal, styles.colorMuted]}
                 text={`${translatedText} `}
@@ -56,11 +69,10 @@ function ImportedFromAccountingSoftware({policyID, currentConnectionName, transl
                     ) : undefined
                 }
             />
-            <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
+            <Text style={[styles.textNormal, styles.colorMuted]}>. </Text>
+            {shouldShow && !!customTagName && <EmployeesSeeTagsAsText customTagName={customTagName} />}
         </View>
     );
 }
-
-ImportedFromAccountingSoftware.displayName = 'ImportedFromAccountingSoftware';
 
 export default ImportedFromAccountingSoftware;

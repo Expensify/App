@@ -48,6 +48,4 @@ function Name({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBeingMo
     );
 }
 
-Name.displayName = 'Name';
-
 export default Name;

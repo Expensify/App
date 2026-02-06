@@ -1,5 +1,5 @@
 import isEmpty from 'lodash/isEmpty';
-import React, {useMemo} from 'react';
+import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
@@ -110,20 +110,17 @@ function ConnectionLayout({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const isConnectionEmpty = isEmpty(policy?.connections?.[connectionName]);
 
-    const renderSelectionContent = useMemo(
-        () => (
-            <ConnectionLayoutContent
-                title={title}
-                titleStyle={titleStyle}
-                titleAlreadyTranslated={titleAlreadyTranslated}
-            >
-                {children}
-            </ConnectionLayoutContent>
-        ),
-        [title, titleStyle, children, titleAlreadyTranslated],
-    );
-
     const shouldBlockByConnection = shouldLoadForEmptyConnection ? !isConnectionEmpty : isConnectionEmpty;
+
+    const selectionContent = (
+        <ConnectionLayoutContent
+            title={title}
+            titleStyle={titleStyle}
+            titleAlreadyTranslated={titleAlreadyTranslated}
+        >
+            {children}
+        </ConnectionLayoutContent>
+    );
 
     return (
         <AccessOrNotFoundWrapper
@@ -135,7 +132,6 @@ function ConnectionLayout({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 includeSafeAreaPaddingBottom={!!shouldIncludeSafeAreaPaddingBottom}
-                shouldEnableMaxHeight
                 testID={displayName}
             >
                 <HeaderWithBackButton
@@ -148,15 +144,14 @@ function ConnectionLayout({
                         contentContainerStyle={contentContainerStyle}
                         addBottomSafeAreaPadding
                     >
-                        {renderSelectionContent}
+                        {selectionContent}
                     </ScrollView>
                 ) : (
-                    <View style={contentContainerStyle}>{renderSelectionContent}</View>
+                    <View style={contentContainerStyle}>{selectionContent}</View>
                 )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }
 
-ConnectionLayout.displayName = 'ConnectionLayout';
 export default ConnectionLayout;

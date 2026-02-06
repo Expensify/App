@@ -19,7 +19,7 @@ function Name({onNext, onMove, isEditing}: SubStepProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM> => {
-            const errors = getFieldRequiredErrors(values, [inputID]);
+            const errors = getFieldRequiredErrors(values, [inputID], translate);
 
             if (values[inputID] && !isValidLegalName(String(values[inputID]))) {
                 errors[inputID] = translate('bankAccount.error.fullName');
@@ -54,7 +54,5 @@ function Name({onNext, onMove, isEditing}: SubStepProps) {
         />
     );
 }
-
-Name.displayName = 'Name';
 
 export default Name;

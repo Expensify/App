@@ -1,6 +1,6 @@
-import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import type {VideoPlayer, VideoPlayerStatus, VideoView} from 'expo-video';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
-import type {VideoWithOnFullScreenUpdate} from '@components/VideoPlayer/types';
 import {getReportOrDraftReport, isChatThread} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -16,6 +16,9 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     const [sharedElement, setSharedElement] = useState<PlaybackContextValues['sharedElement']>(null);
     const [originalParent, setOriginalParent] = useState<OriginalParent>(null);
     const [currentRouteReportID, setCurrentRouteReportID] = useState<ProtectedCurrentRouteReportID>(NO_REPORT_ID);
+    const mountedVideoPlayersRef = useRef<string[]>([]);
+    const playerStatus = useRef<VideoPlayerStatus>('loading');
+
     const resetContextProperties = () => {
         setSharedElement(null);
         setOriginalParent(null);
@@ -31,15 +34,15 @@ function PlaybackContextProvider({children}: ChildrenProps) {
                 return;
             }
 
-            if (!url) {
-                if (currentlyPlayingURL) {
-                    video.pause();
-                }
-                return;
-            }
-
             if (currentlyPlayingURL && url !== currentlyPlayingURL) {
                 video.pause();
+            }
+
+            // If there's no URL (image case), pause the player by setting currentlyPlayingURL
+            // without triggering the resetPlayerData in useEffect below
+            if (!url) {
+                setCurrentlyPlayingURL(reportID);
+                return;
             }
 
             const report = getReportOrDraftReport(reportID);
@@ -62,9 +65,14 @@ function PlaybackContextProvider({children}: ChildrenProps) {
         [currentlyPlayingURL, video],
     );
 
+    const updatePlayerStatus = useCallback((newStatus: VideoPlayerStatus) => {
+        playerStatus.current = newStatus;
+    }, []);
+
     const shareVideoPlayerElements: PlaybackContextValues['shareVideoPlayerElements'] = useCallback(
         (
-            ref: VideoWithOnFullScreenUpdate | null,
+            videoPlayerRef: VideoPlayer | null,
+            videoViewRef: VideoView | null,
             parent: View | HTMLDivElement | null,
             child: View | HTMLDivElement | null,
             shouldNotAutoPlay: boolean,
@@ -74,7 +82,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
                 return;
             }
 
-            video.updateRef(ref);
+            video.updateRefs(videoPlayerRef, videoViewRef);
             setOriginalParent(parent);
             setSharedElement(child);
             // Prevents autoplay when uploading the attachment
@@ -118,13 +126,17 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             sharedElement,
             shareVideoPlayerElements,
             setCurrentlyPlayingURL,
-            currentVideoPlayerRef: video.ref,
+            currentVideoPlayerRef: video.playerRef,
+            currentVideoViewRef: video.viewRef,
             playVideo: video.play,
             pauseVideo: video.pause,
+            replayVideo: video.replay,
             stopVideo: video.stop,
             checkIfVideoIsPlaying: video.isPlaying,
-            videoResumeTryNumberRef: video.resumeTryNumberRef,
             resetVideoPlayerData: video.resetPlayerData,
+            mountedVideoPlayersRef,
+            playerStatus,
+            updatePlayerStatus,
         }),
         [
             updateCurrentURLAndReportID,
@@ -132,14 +144,16 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             currentRouteReportID,
             originalParent,
             sharedElement,
-            video.ref,
+            shareVideoPlayerElements,
+            video.playerRef,
+            video.viewRef,
             video.play,
             video.pause,
+            video.replay,
             video.stop,
             video.isPlaying,
-            video.resumeTryNumberRef,
             video.resetPlayerData,
-            shareVideoPlayerElements,
+            updatePlayerStatus,
         ],
     );
 
@@ -153,7 +167,5 @@ function usePlaybackContext() {
     }
     return playbackContext;
 }
-
-PlaybackContextProvider.displayName = 'PlaybackContextProvider';
 
 export {Context as PlaybackContext, PlaybackContextProvider, usePlaybackContext};

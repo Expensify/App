@@ -1,17 +1,21 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import {Linking, View} from 'react-native';
 import PDF from 'react-native-pdf';
-import ActivityIndicator from '@components/ActivityIndicator';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
+import LoadingIndicator from '@components/LoadingIndicator';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {openTravelDotLink} from '@libs/openTravelDotLink';
+import {getRelativeUrl, isTravelLink} from '@libs/TravelUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import PDFPasswordForm from './PDFPasswordForm';
 import type {PDFViewNativeProps} from './types';
 
@@ -47,6 +51,8 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
     const themeStyles = useThemeStyles();
     const {isKeyboardShown} = useKeyboardState();
     const StyleUtils = useStyleUtils();
+
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
 
     useEffect(() => {
         onToggleKeyboard?.(isKeyboardShown);
@@ -104,6 +110,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
         setShouldAttemptPDFLoad(true);
         setShouldShowLoadingIndicator(true);
     };
+
     /**
      * After the PDF is successfully loaded hide PDFPasswordForm and the loading
      * indicator.
@@ -116,6 +123,21 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
         setSuccessToLoadPDF(true);
         onLoadComplete(path);
     };
+
+    /**
+     * Handle press link event on native apps.
+     */
+    const handlePressLink = useCallback(
+        (url: string) => {
+            if (isTravelLink(url) && activePolicyID) {
+                const postLoginPath = getRelativeUrl(url);
+                openTravelDotLink(activePolicyID, postLoginPath);
+                return;
+            }
+            Linking.openURL(url);
+        },
+        [activePolicyID],
+    );
 
     function renderPDFView() {
         const pdfWidth = isUsedAsChatAttachment ? LOADING_THUMBNAIL_WIDTH : windowWidth;
@@ -142,11 +164,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
                     <PDF
                         fitPolicy={0}
                         trustAllCerts={false}
-                        renderActivityIndicator={() => (
-                            <View style={loadingIndicatorStyles}>
-                                <ActivityIndicator size="large" />
-                            </View>
-                        )}
+                        renderActivityIndicator={() => <LoadingIndicator style={loadingIndicatorStyles} />}
                         source={{uri: sourceURL, cache: true, expiration: 864000}}
                         style={pdfStyles}
                         onError={handleFailureToLoadPDF}
@@ -154,6 +172,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
                         onLoadComplete={finishPDFLoad}
                         onPageSingleTap={onPress}
                         onScaleChanged={onScaleChanged}
+                        onPressLink={handlePressLink}
                     />
                 )}
                 {shouldRequestPassword && (
@@ -186,7 +205,5 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
         renderPDFView()
     );
 }
-
-PDFView.displayName = 'PDFView';
 
 export default PDFView;

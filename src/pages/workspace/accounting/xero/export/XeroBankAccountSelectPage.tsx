@@ -2,7 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
@@ -26,7 +26,7 @@ import type SCREENS from '@src/SCREENS';
 function XeroBankAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['Telescope'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const policyID = policy?.id;
     const {config} = policy?.connections?.xero ?? {};
@@ -83,8 +83,8 @@ function XeroBankAccountSelectPage({policy}: WithPolicyConnectionsProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={XeroBankAccountSelectPage.displayName}
-            sections={xeroSelectorOptions.length ? [{data: xeroSelectorOptions}] : []}
+            displayName="XeroBankAccountSelectPage"
+            data={xeroSelectorOptions}
             listItem={RadioListItem}
             onSelectRow={updateBankAccount}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
@@ -100,7 +100,5 @@ function XeroBankAccountSelectPage({policy}: WithPolicyConnectionsProps) {
         />
     );
 }
-
-XeroBankAccountSelectPage.displayName = 'XeroBankAccountSelectPage';
 
 export default withPolicyConnections(XeroBankAccountSelectPage);

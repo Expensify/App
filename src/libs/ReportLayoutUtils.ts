@@ -3,7 +3,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {GroupedTransactions} from '@src/types/onyx';
 import type Report from '@src/types/onyx/Report';
 import type Transaction from '@src/types/onyx/Transaction';
-import {isCategoryMissing} from './CategoryUtils';
+import {getDecodedCategoryName, isCategoryMissing} from './CategoryUtils';
 import isTagMissing from './TagUtils';
 import {getAmount, getCategory, getCurrency, getTag, isTransactionPendingDelete} from './TransactionUtils';
 
@@ -75,7 +75,7 @@ function groupTransactionsByCategory(transactions: Transaction[], report: OnyxEn
     const result: GroupedTransactions[] = [];
     for (const [categoryKey, transactionList] of groups) {
         result.push({
-            groupName: categoryKey,
+            groupName: categoryKey ? getDecodedCategoryName(categoryKey) : categoryKey,
             groupKey: categoryKey,
             transactions: transactionList,
             subTotalAmount: calculateGroupTotal(transactionList, reportCurrency),

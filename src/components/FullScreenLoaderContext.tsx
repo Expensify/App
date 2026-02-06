@@ -1,22 +1,20 @@
-import React, {createContext, useContext, useMemo, useState} from 'react';
+import React, {createContext, useContext, useState} from 'react';
 import type {ReactNode} from 'react';
 import FullScreenLoadingIndicator from './FullscreenLoadingIndicator';
 
-type FullScreenLoaderContextType = {
+type FullScreenLoaderStateContextType = {
     /**
      * Whether the full screen loader is visible.
      */
     isLoaderVisible: boolean;
+};
+
+type FullScreenLoaderActionsContextType = {
     /**
      * Set the full screen loader visibility.
      */
     setIsLoaderVisible: React.Dispatch<React.SetStateAction<boolean>>;
 };
-
-const FullScreenLoaderContext = createContext<FullScreenLoaderContextType>({
-    isLoaderVisible: false,
-    setIsLoaderVisible: () => {},
-});
 
 type FullScreenLoaderContextProviderProps = {
     /**
@@ -25,36 +23,46 @@ type FullScreenLoaderContextProviderProps = {
     children: ReactNode;
 };
 
+const defaultActionsContextValue: FullScreenLoaderActionsContextType = {
+    setIsLoaderVisible: () => {},
+};
+
+const FullScreenLoaderStateContext = createContext<FullScreenLoaderStateContextType>({
+    isLoaderVisible: false,
+});
+
+const FullScreenLoaderActionsContext = createContext<FullScreenLoaderActionsContextType>(defaultActionsContextValue);
+
 function FullScreenLoaderContextProvider({children}: FullScreenLoaderContextProviderProps) {
     const [isLoaderVisible, setIsLoaderVisible] = useState(false);
 
-    const loaderContext = useMemo(
-        () => ({
-            isLoaderVisible,
-            setIsLoaderVisible,
-        }),
-        [isLoaderVisible],
-    );
+    // Because of the React Compiler we don't need to memoize it manually
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
+    const actionsContextValue = {
+        setIsLoaderVisible,
+    };
+
+    // Because of the React Compiler we don't need to memoize it manually
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
+    const stateContextValue = {isLoaderVisible};
 
     return (
-        <FullScreenLoaderContext.Provider value={loaderContext}>
-            {children}
-            {isLoaderVisible && <FullScreenLoadingIndicator />}
-        </FullScreenLoaderContext.Provider>
+        <FullScreenLoaderActionsContext.Provider value={actionsContextValue}>
+            <FullScreenLoaderStateContext.Provider value={stateContextValue}>
+                {children}
+                {isLoaderVisible && <FullScreenLoadingIndicator />}
+            </FullScreenLoaderStateContext.Provider>
+        </FullScreenLoaderActionsContext.Provider>
     );
 }
 
-function useFullScreenLoader() {
-    const context = useContext(FullScreenLoaderContext);
-
-    if (!context) {
-        throw new Error('useFullScreenLoader must be used within a FullScreenLoaderContextProvider');
-    }
-
-    return context;
+function useFullScreenLoaderState(): FullScreenLoaderStateContextType {
+    return useContext(FullScreenLoaderStateContext);
 }
 
-FullScreenLoaderContextProvider.displayName = 'FullScreenLoaderContextProvider';
+function useFullScreenLoaderActions(): FullScreenLoaderActionsContextType {
+    return useContext(FullScreenLoaderActionsContext);
+}
 
 export default FullScreenLoaderContextProvider;
-export {FullScreenLoaderContext, useFullScreenLoader};
+export {useFullScreenLoaderState, useFullScreenLoaderActions};

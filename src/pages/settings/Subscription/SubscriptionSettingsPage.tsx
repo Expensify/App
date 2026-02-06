@@ -27,7 +27,7 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const subscriptionPlan = useSubscriptionPlan();
-    const illustrations = useMemoizedLazyIllustrations(['CreditCardsNew'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['CreditCardsNew']);
     useEffect(() => {
         openSubscriptionPage();
     }, []);
@@ -50,7 +50,7 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
 
     return (
         <ScreenWrapper
-            testID={SubscriptionSettingsPage.displayName}
+            testID="SubscriptionSettingsPage"
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
@@ -76,7 +76,5 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
         </ScreenWrapper>
     );
 }
-
-SubscriptionSettingsPage.displayName = 'SubscriptionSettingsPage';
 
 export default SubscriptionSettingsPage;

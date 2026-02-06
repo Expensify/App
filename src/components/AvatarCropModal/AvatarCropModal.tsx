@@ -8,7 +8,6 @@ import {interpolate, useSharedValue} from 'react-native-reanimated';
 import {scheduleOnUI} from 'react-native-worklets';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
-import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -17,8 +16,8 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -60,6 +59,8 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Zoom']);
+
     const originalImageWidth = useSharedValue<number>(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
     const originalImageHeight = useSharedValue<number>(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
     const translateY = useSharedValue(0);
@@ -71,7 +72,6 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
 
     const {translate} = useLocalize();
     const buttonText = buttonLabel ?? translate('common.save');
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     // Check if image cropping, saving or uploading is in progress
     const isLoading = useSharedValue(false);
@@ -365,9 +365,8 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom
                 shouldEnableKeyboardAvoidingView={false}
-                testID={AvatarCropModal.displayName}
+                testID="AvatarCropModal"
             >
-                {shouldUseNarrowLayout && <HeaderGap />}
                 <HeaderWithBackButton
                     title={translate('avatarCropModal.title')}
                     onBackButtonPress={onClose}
@@ -400,7 +399,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
                                 />
                                 <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow, StyleUtils.getWidthStyle(imageContainerSize)]}>
                                     <Icon
-                                        src={Expensicons.Zoom}
+                                        src={expensifyIcons.Zoom}
                                         fill={theme.icon}
                                     />
 
@@ -445,7 +444,5 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
         </Modal>
     );
 }
-
-AvatarCropModal.displayName = 'AvatarCropModal';
 
 export default AvatarCropModal;

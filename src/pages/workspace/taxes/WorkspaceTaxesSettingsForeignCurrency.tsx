@@ -51,7 +51,7 @@ function WorkspaceTaxesSettingsForeignCurrency({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={WorkspaceTaxesSettingsForeignCurrency.displayName}
+                testID="WorkspaceTaxesSettingsForeignCurrency"
                 style={styles.defaultModalContainer}
             >
                 <HeaderWithBackButton title={translate('workspace.taxes.foreignDefault')} />
@@ -69,7 +69,5 @@ function WorkspaceTaxesSettingsForeignCurrency({
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceTaxesSettingsForeignCurrency.displayName = 'WorkspaceTaxesSettingsForeignCurrency';
 
 export default withPolicyAndFullscreenLoading(WorkspaceTaxesSettingsForeignCurrency);

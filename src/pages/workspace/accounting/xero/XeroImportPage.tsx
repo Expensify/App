@@ -60,7 +60,7 @@ function XeroImportPage({policy}: WithPolicyProps) {
 
     return (
         <ConnectionLayout
-            displayName={XeroImportPage.displayName}
+            displayName="XeroImportPage"
             headerTitle="workspace.accounting.import"
             headerSubtitle={currentXeroOrganizationName}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -89,7 +89,5 @@ function XeroImportPage({policy}: WithPolicyProps) {
         </ConnectionLayout>
     );
 }
-
-XeroImportPage.displayName = 'PolicyXeroImportPage';
 
 export default withPolicy(XeroImportPage);

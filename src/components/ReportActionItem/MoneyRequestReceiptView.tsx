@@ -1,5 +1,5 @@
 import mapValues from 'lodash/mapValues';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -27,15 +27,16 @@ import {
     getCreationReportErrors,
     isInvoiceReport,
     isPaidGroupPolicy,
-    isTrackExpenseReport,
+    isTrackExpenseReportNew,
 } from '@libs/ReportUtils';
 import {
     didReceiptScanSucceed as didReceiptScanSucceedTransactionUtils,
     hasReceipt as hasReceiptTransactionUtils,
     isDistanceRequest as isDistanceRequestTransactionUtils,
+    isManualDistanceRequest,
     isScanning,
 } from '@libs/TransactionUtils';
-import ViolationsUtils from '@libs/Violations/ViolationsUtils';
+import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
 import Navigation from '@navigation/Navigation';
 import {cleanUpMoneyRequest} from '@userActions/IOU';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
@@ -59,9 +60,6 @@ type MoneyRequestReceiptViewProps = {
     /** Whether we should show Money Request with disabled all fields */
     readonly?: boolean;
 
-    /** whether or not this report is from review duplicates */
-    isFromReviewDuplicates?: boolean;
-
     /** Updated transaction to show in duplicate & merge transaction flow  */
     updatedTransaction?: OnyxEntry<OnyxTypes.Transaction>;
 
@@ -77,6 +75,7 @@ type MoneyRequestReceiptViewProps = {
 
 const receiptImageViolationNames = new Set<OnyxTypes.ViolationName>([
     CONST.VIOLATIONS.RECEIPT_REQUIRED,
+    CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED,
     CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED,
     CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT,
     CONST.VIOLATIONS.SMARTSCAN_FAILED,
@@ -91,7 +90,6 @@ function MoneyRequestReceiptView({
     report,
     readonly = false,
     updatedTransaction,
-    isFromReviewDuplicates = false,
     fillSpace = false,
     mergeTransactionID,
     isDisplayedInWideRHP = false,
@@ -108,11 +106,12 @@ function MoneyRequestReceiptView({
         canEvict: false,
         canBeMissing: true,
     });
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
 
     const [isLoading, setIsLoading] = useState(true);
     const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(parentReportAction);
-    const isTrackExpense = isTrackExpenseReport(report);
+    const isTrackExpense = !mergeTransactionID && isTrackExpenseReportNew(report, parentReport, parentReportAction);
     const moneyRequestReport = parentReport;
     const linkedTransactionID = useMemo(() => {
         if (!parentReportAction) {
@@ -140,7 +139,8 @@ function MoneyRequestReceiptView({
     const canEdit = isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, isChatReportArchived, moneyRequestReport, policy, transaction) && isEditable;
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
 
-    const canEditReceipt = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT, undefined, isChatReportArchived);
+    const canEditReceipt =
+        isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT, undefined, isChatReportArchived, undefined, transaction, moneyRequestReport, policy);
 
     const iouType = useMemo(() => {
         if (isTrackExpense) {
@@ -163,13 +163,15 @@ function MoneyRequestReceiptView({
 
     const transactionToCheck = updatedTransaction ?? transaction;
     const doesTransactionHaveReceipt = !!transactionToCheck?.receipt && !isEmptyObject(transactionToCheck?.receipt);
-    const shouldShowReceiptEmptyState = !isInvoice && !hasReceipt && !!transaction && !doesTransactionHaveReceipt;
+    // Empty state for invoices should be displayed only in WideRHP
+    const shouldShowReceiptEmptyState = (isDisplayedInWideRHP || !isInvoice) && !hasReceipt && !!transactionToCheck && !doesTransactionHaveReceipt;
 
     const [receiptImageViolations, receiptViolations] = useMemo(() => {
         const imageViolations = [];
         const allViolations = [];
+        const filteredViolations = filterReceiptViolations(transactionViolations ?? []);
 
-        for (const violation of transactionViolations ?? []) {
+        for (const violation of filteredViolations) {
             const isReceiptFieldViolation = receiptFieldViolationNames.has(violation.name);
             const isReceiptImageViolation = receiptImageViolationNames.has(violation.name);
             if (isReceiptFieldViolation || isReceiptImageViolation) {
@@ -184,12 +186,16 @@ function MoneyRequestReceiptView({
     }, [transactionViolations, translate, canEdit, companyCardPageURL]);
 
     const receiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
+    const itemizedReceiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
     const customRulesViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_RULES);
 
     // Whether to show receipt audit result (e.g.`Verified`, `Issue Found`) and messages (e.g. `Receipt not verified. Please confirm accuracy.`)
     // `!!(receiptViolations.length || didReceiptScanSucceed)` is for not showing `Verified` when `receiptViolations` is empty and `didReceiptScanSucceed` is false.
     const shouldShowAuditMessage =
-        !isTransactionScanning && (hasReceipt || !!receiptRequiredViolation || !!customRulesViolation) && !!(receiptViolations.length || didReceiptScanSucceed) && isPaidGroupPolicy(report);
+        !isTransactionScanning &&
+        (hasReceipt || !!receiptRequiredViolation || !!itemizedReceiptRequiredViolation || !!customRulesViolation) &&
+        !!(receiptViolations.length || didReceiptScanSucceed) &&
+        isPaidGroupPolicy(report);
     const shouldShowReceiptAudit = !isInvoice && (shouldShowReceiptEmptyState || hasReceipt);
 
     const errorsWithoutReportCreation = useMemo(
@@ -205,13 +211,21 @@ function MoneyRequestReceiptView({
 
     const [showConfirmDismissReceiptError, setShowConfirmDismissReceiptError] = useState(false);
 
-    const dismissReceiptError = useCallback(() => {
+    const transactionAndReportActionErrors = useMemo(
+        () => ({
+            ...transaction?.errors,
+            ...parentReportAction?.errors,
+        }),
+        [transaction?.errors, parentReportAction?.errors],
+    );
+
+    const dismissReceiptError = () => {
         if (!report?.reportID) {
             return;
         }
         if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             if (chatReport?.reportID && getCreationReportErrors(chatReport)) {
-                navigateToConciergeChatAndDeleteReport(chatReport.reportID, true, true);
+                navigateToConciergeChatAndDeleteReport(chatReport.reportID, conciergeReportID, true, true);
                 return;
             }
             if (parentReportAction) {
@@ -227,8 +241,10 @@ function MoneyRequestReceiptView({
             clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
             return;
         }
-        if (!isEmptyObject(errorsWithoutReportCreation)) {
+        if (!isEmptyObject(transactionAndReportActionErrors)) {
             revert(transaction, getLastModifiedExpense(report?.reportID));
+        }
+        if (!isEmptyObject(errorsWithoutReportCreation)) {
             clearError(transaction.transactionID);
             clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
         }
@@ -236,21 +252,9 @@ function MoneyRequestReceiptView({
             if (isInNarrowPaneModal) {
                 Navigation.goBack();
             }
-            navigateToConciergeChatAndDeleteReport(report.reportID, true, true);
+            navigateToConciergeChatAndDeleteReport(report.reportID, conciergeReportID, true, true);
         }
-    }, [
-        transaction,
-        chatReport,
-        parentReportAction,
-        linkedTransactionID,
-        report?.reportID,
-        iouReport,
-        chatIOUReport,
-        isChatIOUReportArchived,
-        errorsWithoutReportCreation,
-        reportCreationError,
-        isInNarrowPaneModal,
-    ]);
+    };
 
     let receiptStyle: StyleProp<ViewStyle>;
 
@@ -263,6 +267,8 @@ function MoneyRequestReceiptView({
     }
 
     const showBorderlessLoading = isLoading && fillSpace;
+
+    const isMapDistanceRequest = !!transaction && isDistanceRequest && !isManualDistanceRequest(transaction);
 
     const receiptAuditMessagesRow = (
         <View style={[styles.mt3, isEmptyObject(errors) && isDisplayedInWideRHP && styles.mb3]}>
@@ -301,6 +307,7 @@ function MoneyRequestReceiptView({
                         isThumbnail={!canEditReceipt}
                         isInMoneyRequestView
                         style={receiptStyle}
+                        isDisplayedInWideRHP={isDisplayedInWideRHP}
                     />
                 </OfflineWithFeedback>
             )}
@@ -329,7 +336,14 @@ function MoneyRequestReceiptView({
                     contentContainerStyle={styles.flex1}
                 >
                     {hasReceipt && (
-                        <View style={[styles.getMoneyRequestViewImage(showBorderlessLoading), receiptStyle, showBorderlessLoading && styles.flex1]}>
+                        <View
+                            style={[
+                                styles.getMoneyRequestViewImage(showBorderlessLoading),
+                                receiptStyle,
+                                showBorderlessLoading && styles.flex1,
+                                fillSpace && !shouldShowReceiptEmptyState && isMapDistanceRequest && styles.flex1,
+                            ]}
+                        >
                             <ReportActionItemImage
                                 shouldUseThumbnailImage={!fillSpace}
                                 shouldUseFullHeight={fillSpace}
@@ -342,7 +356,6 @@ function MoneyRequestReceiptView({
                                 transaction={updatedTransaction ?? transaction}
                                 enablePreviewModal
                                 readonly={readonly || !canEditReceipt}
-                                isFromReviewDuplicates={isFromReviewDuplicates}
                                 mergeTransactionID={mergeTransactionID}
                                 report={report}
                                 onLoad={() => setIsLoading(false)}
@@ -376,7 +389,5 @@ function MoneyRequestReceiptView({
         </View>
     );
 }
-
-MoneyRequestReceiptView.displayName = 'MoneyRequestReceiptView';
 
 export default MoneyRequestReceiptView;

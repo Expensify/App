@@ -8,7 +8,7 @@ import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesProvider';
-import useHandleBackButton from '@hooks/useHandleBackButton';
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -295,7 +295,7 @@ function SignInPage({ref}: SignInPageProps) {
     useImperativeHandle(ref, () => ({
         navigateBack,
     }));
-    useHandleBackButton(navigateBack);
+    useAndroidBackButtonHandler(navigateBack);
 
     return (
         <ColorSchemeWrapper>
@@ -314,8 +314,7 @@ function SignInPage({ref}: SignInPageProps) {
                     <LoginForm
                         ref={loginFormRef}
                         isVisible={shouldShowLoginForm}
-                        blurOnSubmit={isAccountValidated === false}
-                        // eslint-disable-next-line react-compiler/react-compiler
+                        submitBehavior={isAccountValidated === false ? 'blurAndSubmit' : 'submit'}
                         scrollPageToTop={signInPageLayoutRef.current?.scrollPageToTop}
                     />
                     {shouldShouldSignUpWelcomeForm && <SignUpWelcomeForm />}
@@ -354,14 +353,12 @@ function SignInPageWrapper({ref}: SignInPageProps) {
             shouldShowOfflineIndicator={false}
             shouldEnableMaxHeight
             style={[styles.signInPage, StyleUtils.getPlatformSafeAreaPadding({...safeAreaInsets, bottom: 0, top: isInNarrowPaneModal ? 0 : safeAreaInsets.top}, 1)]}
-            testID={SignInPageWrapper.displayName}
+            testID="SignInPageWrapper"
         >
             <SignInPage ref={ref} />
         </ScreenWrapper>
     );
 }
-
-SignInPageWrapper.displayName = 'SignInPageWrapper';
 
 // WithTheme is a HOC that provides theme-related contexts (e.g. to the SignInPageWrapper component since these contexts are required for variable declarations).
 function WithTheme(Component: React.ComponentType<SignInPageProps>) {

@@ -64,7 +64,7 @@ function BillingBanner({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
     const rightIconComponent = useMemo(() => {
         if (rightIcon) {
@@ -124,8 +124,6 @@ function BillingBanner({
         </View>
     );
 }
-
-BillingBanner.displayName = 'BillingBanner';
 
 export default BillingBanner;
 export type {BillingBannerProps};

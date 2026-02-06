@@ -1,12 +1,13 @@
 import {rand} from '@ngneat/falso';
 import type * as NativeNavigation from '@react-navigation/native';
+import type {PrivateIsArchivedMap} from '@selectors/ReportNameValuePairs';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
 import {createOptionList, filterAndOrderOptions, getMemberInviteOptions, getSearchOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails} from '@src/types/onyx';
+import type {PersonalDetails, Policy} from '@src/types/onyx';
 import type Report from '@src/types/onyx/Report';
 import {formatSectionsFromSearchTerm} from '../../src/libs/OptionsListUtils';
 import createCollection from '../utils/collections/createCollection';
@@ -25,6 +26,9 @@ const COUNTRY_CODE = 1;
 const PERSONAL_DETAILS_COUNT = 1000;
 const SELECTED_OPTIONS_COUNT = 1000;
 const RECENT_REPORTS_COUNT = 100;
+
+const MOCK_CURRENT_USER_ACCOUNT_ID = 1;
+const MOCK_CURRENT_USER_EMAIL = 'testuser@example.com';
 
 const reports = createCollection<Report>(
     (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
@@ -67,6 +71,19 @@ const mockedPersonalDetailsMap = getMockedPersonalDetails(PERSONAL_DETAILS_LIST_
 
 const mockedBetas = Object.values(CONST.BETAS);
 
+const allPolicies = {
+    [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: {
+        id: 'policy1',
+        name: 'Test Policy',
+        role: 'admin',
+        type: CONST.POLICY.TYPE.TEAM,
+        owner: 'test@expensify.com',
+        outputCurrency: 'USD',
+        isPolicyExpenseChatEnabled: false,
+        approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+    } as Policy,
+};
+
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof NativeNavigation>('@react-navigation/native');
     return {
@@ -77,7 +94,8 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-const options = createOptionList(personalDetails, reports);
+const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
+const options = createOptionList(personalDetails, MOCK_CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, reports);
 
 const ValidOptionsConfig = {
     betas: mockedBetas,
@@ -89,6 +107,8 @@ const ValidOptionsConfig = {
     includeSelfDM: true,
     includeOwnedWorkspaceChats: true,
 };
+
+const loginList = {};
 
 /* GetOption is the private function and is never called directly, we are testing the functions which call getOption with different params */
 describe('OptionsListUtils', () => {
@@ -110,22 +130,51 @@ describe('OptionsListUtils', () => {
     /* Testing getSearchOptions */
     test('[OptionsListUtils] getSearchOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => getSearchOptions({options, betas: mockedBetas, draftComments: {}, nvpDismissedProductTraining}));
+        await measureFunction(() =>
+            getSearchOptions({
+                options,
+                betas: mockedBetas,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                loginList,
+                currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: MOCK_CURRENT_USER_EMAIL,
+                personalDetails,
+            }),
+        );
     });
 
     /* Testing getFilteredOptions */
     test('[OptionsListUtils] getFilteredOptions with search value', async () => {
         await waitForBatchedUpdates();
-        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, {}, nvpDismissedProductTraining, ValidOptionsConfig);
+        const formattedOptions = getValidOptions(
+            {reports: options.reports, personalDetails: options.personalDetails},
+            allPolicies,
+            {},
+            nvpDismissedProductTraining,
+            loginList,
+            MOCK_CURRENT_USER_ACCOUNT_ID,
+            MOCK_CURRENT_USER_EMAIL,
+            ValidOptionsConfig,
+        );
         await measureFunction(() => {
-            filterAndOrderOptions(formattedOptions, SEARCH_VALUE, COUNTRY_CODE);
+            filterAndOrderOptions(formattedOptions, SEARCH_VALUE, COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID, personalDetails);
         });
     });
     test('[OptionsListUtils] getFilteredOptions with empty search value', async () => {
         await waitForBatchedUpdates();
-        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, {}, nvpDismissedProductTraining, ValidOptionsConfig);
+        const formattedOptions = getValidOptions(
+            {reports: options.reports, personalDetails: options.personalDetails},
+            allPolicies,
+            {},
+            nvpDismissedProductTraining,
+            loginList,
+            MOCK_CURRENT_USER_ACCOUNT_ID,
+            MOCK_CURRENT_USER_EMAIL,
+            ValidOptionsConfig,
+        );
         await measureFunction(() => {
-            filterAndOrderOptions(formattedOptions, '', COUNTRY_CODE);
+            filterAndOrderOptions(formattedOptions, '', COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID, personalDetails);
         });
     });
 
@@ -133,27 +182,48 @@ describe('OptionsListUtils', () => {
     test('[OptionsListUtils] getShareDestinationOptions', async () => {
         await waitForBatchedUpdates();
         await measureFunction(() =>
-            getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, {}, nvpDismissedProductTraining, {
-                betas: mockedBetas,
-                includeMultipleParticipantReports: true,
-                showChatPreviewLine: true,
-                forcePolicyNamePreview: true,
-                includeThreads: true,
-                includeMoneyRequests: true,
-                includeTasks: true,
-                excludeLogins: {},
-                includeOwnedWorkspaceChats: true,
-                includeSelfDM: true,
-                searchString: '',
-                includeUserToInvite: false,
-            }),
+            getValidOptions(
+                {reports: options.reports, personalDetails: options.personalDetails},
+                allPolicies,
+                {},
+                nvpDismissedProductTraining,
+                loginList,
+                MOCK_CURRENT_USER_ACCOUNT_ID,
+                MOCK_CURRENT_USER_EMAIL,
+                {
+                    betas: mockedBetas,
+                    includeMultipleParticipantReports: true,
+                    showChatPreviewLine: true,
+                    forcePolicyNamePreview: true,
+                    includeThreads: true,
+                    includeMoneyRequests: true,
+                    includeTasks: true,
+                    excludeLogins: {},
+                    includeOwnedWorkspaceChats: true,
+                    includeSelfDM: true,
+                    searchString: '',
+                    includeUserToInvite: false,
+                },
+            ),
         );
     });
 
     /* Testing getMemberInviteOptions */
     test('[OptionsListUtils] getMemberInviteOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => getMemberInviteOptions(options.personalDetails, nvpDismissedProductTraining, mockedBetas));
+        await measureFunction(() =>
+            getMemberInviteOptions(
+                options.personalDetails,
+                nvpDismissedProductTraining,
+                loginList,
+                MOCK_CURRENT_USER_ACCOUNT_ID,
+                MOCK_CURRENT_USER_EMAIL,
+                mockedBetas,
+                {},
+                false,
+                COUNTRY_CODE,
+            ),
+        );
     });
 
     test('[OptionsListUtils] worst case scenario with a search term that matches a subset of selectedOptions, filteredRecentReports, and filteredPersonalDetails', async () => {
@@ -198,6 +268,7 @@ describe('OptionsListUtils', () => {
                 Object.values(selectedOptions),
                 Object.values(filteredRecentReports),
                 Object.values(filteredPersonalDetails),
+                MOCK_CURRENT_USER_ACCOUNT_ID,
                 mockedPersonalDetails,
                 true,
             ),
@@ -210,6 +281,6 @@ describe('OptionsListUtils', () => {
         const mockedPersonalDetails = getMockedPersonalDetails(PERSONAL_DETAILS_COUNT);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], mockedPersonalDetails, true));
+        await measureFunction(() => formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], MOCK_CURRENT_USER_ACCOUNT_ID, mockedPersonalDetails, true));
     });
 });

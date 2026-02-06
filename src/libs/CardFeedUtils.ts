@@ -1,14 +1,17 @@
 import type {OnyxCollection} from 'react-native-onyx';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {AdditionalCardProps} from '@components/SelectionListWithSections/Search/CardListItem';
 import type IllustrationsType from '@styles/theme/illustrations/types';
 import CONST from '@src/CONST';
+import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardFeeds, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
+import type {CardFeedsStatus, CardFeedsStatusByDomainID, CombinedCardFeed} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {
     getBankName,
     getCardFeedIcon,
+    getCompanyCardFeedWithDomainID,
     getCustomOrFormattedFeedName,
     getOriginalCompanyFeeds,
     getPlaidInstitutionIconUrl,
@@ -17,6 +20,7 @@ import {
     isCardClosed,
     isCardHiddenFromSearch,
 } from './CardUtils';
+import type {CompanyCardFeedIcons} from './CardUtils';
 import {getDescriptionForPolicyDomainCard, getPolicy} from './PolicyUtils';
 import type {OptionData} from './ReportUtils';
 
@@ -78,10 +82,16 @@ function getWorkspaceCardFeedKey(cardFeedKey: string) {
     return cardFeedKey;
 }
 
-function createCardFilterItem(card: Card, personalDetailsList: PersonalDetailsList, selectedCards: string[], illustrations: IllustrationsType): CardFilterItem {
+function createCardFilterItem(
+    card: Card,
+    personalDetailsList: PersonalDetailsList,
+    selectedCards: string[],
+    illustrations: IllustrationsType,
+    companyCardIcons: CompanyCardFeedIcons,
+): CardFilterItem {
     const personalDetails = personalDetailsList[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const isSelected = selectedCards.includes(card.cardID.toString());
-    const icon = getCardFeedIcon(card?.bank as CompanyCardFeed, illustrations);
+    const icon = getCardFeedIcon(card?.bank as CompanyCardFeed, illustrations, companyCardIcons);
     const cardName = card?.nameValuePairs?.cardTitle;
     const text = personalDetails?.displayName ?? cardName;
     const plaidUrl = getPlaidInstitutionIconUrl(card?.bank);
@@ -110,21 +120,22 @@ function buildCardsData(
     personalDetailsList: PersonalDetailsList,
     selectedCards: string[],
     illustrations: IllustrationsType,
+    companyCardIcons: CompanyCardFeedIcons,
     isClosedCards = false,
 ): ItemsGroupedBySelection {
     // Filter condition to build different cards data for closed cards and individual cards based on the isClosedCards flag, we don't want to show closed cards in the individual cards section
     const filterCondition = (card: Card) => (isClosedCards ? isCardClosed(card) : !isCardHiddenFromSearch(card) && !isCardClosed(card) && isCard(card));
     const userAssignedCards: CardFilterItem[] = Object.values(userCardList ?? {})
         .filter((card) => filterCondition(card))
-        .map((card) => createCardFilterItem(card, personalDetailsList, selectedCards, illustrations));
+        .map((card) => createCardFilterItem(card, personalDetailsList, selectedCards, illustrations, companyCardIcons));
 
     // When user is admin of a workspace he sees all the cards of workspace under cards_ Onyx key
     const allWorkspaceCards: CardFilterItem[] = Object.values(workspaceCardFeeds)
         .filter((cardFeed) => !isEmptyObject(cardFeed))
         .flatMap((cardFeed) => {
-            return Object.values(cardFeed as Record<string, Card>)
+            return Object.values(cardFeed as CardList)
                 .filter((card) => card && isCard(card) && !userCardList?.[card.cardID] && filterCondition(card))
-                .map((card) => createCardFilterItem(card, personalDetailsList, selectedCards, illustrations));
+                .map((card) => createCardFilterItem(card, personalDetailsList, selectedCards, illustrations, companyCardIcons));
         });
 
     const allCardItems = [...userAssignedCards, ...allWorkspaceCards];
@@ -281,6 +292,7 @@ function createCardFeedItem({
     correspondingCardIDs,
     selectedCards,
     illustrations,
+    companyCardIcons,
 }: {
     cardName: string;
     bank: string;
@@ -289,11 +301,12 @@ function createCardFeedItem({
     correspondingCardIDs: string[];
     selectedCards: string[];
     illustrations: IllustrationsType;
+    companyCardIcons: CompanyCardFeedIcons;
 }): CardFilterItem {
     const isSelected = correspondingCardIDs.every((card) => selectedCards.includes(card));
     const plaidUrl = getPlaidInstitutionIconUrl(bank);
 
-    const icon = getCardFeedIcon(bank as CompanyCardFeed, illustrations);
+    const icon = getCardFeedIcon(bank as CompanyCardFeed, illustrations, companyCardIcons);
     return {
         text: cardName,
         keyForList,
@@ -315,6 +328,7 @@ function buildCardFeedsData(
     selectedCards: string[],
     translate: LocaleContextProps['translate'],
     illustrations: IllustrationsType,
+    companyCardIcons: CompanyCardFeedIcons,
 ): ItemsGroupedBySelection {
     const selectedFeeds: CardFilterItem[] = [];
     const unselectedFeeds: CardFilterItem[] = [];
@@ -334,6 +348,7 @@ function buildCardFeedsData(
             cardFeedKey,
             selectedCards,
             illustrations,
+            companyCardIcons,
         });
         if (feedItem.isSelected) {
             selectedFeeds.push(feedItem);
@@ -362,6 +377,7 @@ function buildCardFeedsData(
             keyForList: workspaceFeedKey,
             selectedCards,
             illustrations,
+            companyCardIcons,
         });
         if (feedItem.isSelected) {
             selectedFeeds.push(feedItem);
@@ -414,7 +430,7 @@ const generateSelectedCards = (
  *
  * The `allCards` parameter is only used to determine if we should add the "Expensify Card" feeds.
  */
-function getCardFeedsForDisplay(allCardFeeds: OnyxCollection<CardFeeds>, allCards: CardList): CardFeedsForDisplay {
+function getCardFeedsForDisplay(allCardFeeds: OnyxCollection<CardFeeds>, allCards: CardList | undefined, translate: LocalizedTranslate): CardFeedsForDisplay {
     const cardFeedsForDisplay = {} as CardFeedsForDisplay;
 
     for (const [domainKey, cardFeeds] of Object.entries(allCardFeeds ?? {})) {
@@ -424,25 +440,24 @@ function getCardFeedsForDisplay(allCardFeeds: OnyxCollection<CardFeeds>, allCard
             continue;
         }
 
-        // eslint-disable-next-line unicorn/no-array-for-each
-        Object.keys(getOriginalCompanyFeeds(cardFeeds)).forEach((key) => {
+        for (const key of Object.keys(getOriginalCompanyFeeds(cardFeeds))) {
             const feed = key as CompanyCardFeed;
             const id = `${fundID}_${feed}`;
 
             if (cardFeedsForDisplay[id]) {
-                return;
+                continue;
             }
 
             cardFeedsForDisplay[id] = {
                 id,
                 feed,
                 fundID,
-                name: getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames?.[feed], false) ?? feed,
+                name: getCustomOrFormattedFeedName(translate, feed, cardFeeds?.settings?.companyCardNicknames?.[feed], false) ?? feed,
             };
-        });
+        }
     }
 
-    for (const card of Object.values(allCards)) {
+    for (const card of Object.values(allCards ?? {})) {
         if (card.bank !== CONST.EXPENSIFY_CARD.BANK || !card.fundID) {
             continue;
         }
@@ -469,7 +484,7 @@ function getCardFeedsForDisplay(allCardFeeds: OnyxCollection<CardFeeds>, allCard
  *
  * Note: "Expensify Card" feeds are not included.
  */
-function getCardFeedsForDisplayPerPolicy(allCardFeeds: OnyxCollection<CardFeeds>): Record<string, CardFeedForDisplay[]> {
+function getCardFeedsForDisplayPerPolicy(allCardFeeds: OnyxCollection<CardFeeds>, translate: LocalizedTranslate): Record<string, CardFeedForDisplay[]> {
     const cardFeedsForDisplayPerPolicy = {} as Record<string, CardFeedForDisplay[]>;
 
     for (const [domainKey, cardFeeds] of Object.entries(allCardFeeds ?? {})) {
@@ -479,8 +494,7 @@ function getCardFeedsForDisplayPerPolicy(allCardFeeds: OnyxCollection<CardFeeds>
             continue;
         }
 
-        // eslint-disable-next-line unicorn/no-array-for-each
-        Object.entries(getOriginalCompanyFeeds(cardFeeds)).forEach(([key, feedData]) => {
+        for (const [key, feedData] of Object.entries(getOriginalCompanyFeeds(cardFeeds))) {
             const preferredPolicy = 'preferredPolicy' in feedData ? (feedData.preferredPolicy ?? '') : '';
             const feed = key as CompanyCardFeed;
             const id = `${fundID}_${feed}`;
@@ -489,12 +503,70 @@ function getCardFeedsForDisplayPerPolicy(allCardFeeds: OnyxCollection<CardFeeds>
                 id,
                 feed,
                 fundID,
-                name: getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames?.[feed], false) ?? feed,
+                name: getCustomOrFormattedFeedName(translate, feed, cardFeeds?.settings?.companyCardNicknames?.[feed], false) ?? feed,
             });
-        });
+        }
     }
 
     return cardFeedsForDisplayPerPolicy;
+}
+
+function getCardFeedStatus(feed: CardFeeds | undefined): CardFeedsStatus {
+    return {
+        errors: feed?.errors,
+        isLoading: feed?.isLoading,
+    };
+}
+
+function getWorkspaceCardFeedsStatus(allFeeds: OnyxCollection<CardFeeds> | undefined): CardFeedsStatusByDomainID {
+    return Object.entries(allFeeds ?? {}).reduce<CardFeedsStatusByDomainID>((acc, [onyxKey, feeds]) => {
+        const domainID = Number(onyxKey.split('_').at(-1));
+        acc[domainID] = getCardFeedStatus(feeds);
+        return acc;
+    }, {} as CardFeedsStatusByDomainID);
+}
+
+function getCombinedCardFeedsFromAllFeeds(allFeeds: OnyxCollection<CardFeeds> | undefined, includeFeedPredicate?: (feed: CombinedCardFeed) => boolean): CombinedCardFeeds {
+    return Object.entries(allFeeds ?? {}).reduce<CombinedCardFeeds>((acc, [onyxKey, feeds]) => {
+        const domainID = Number(onyxKey.split('_').at(-1));
+
+        const workspaceFeedsSettings = feeds?.settings;
+        const companyCards = workspaceFeedsSettings?.companyCards;
+
+        if (!companyCards) {
+            return acc;
+        }
+
+        for (const feedName of Object.keys(companyCards) as CompanyCardFeed[]) {
+            const feedSettings = companyCards?.[feedName];
+            const oAuthAccountDetails = workspaceFeedsSettings?.oAuthAccountDetails?.[feedName];
+            const customFeedName = workspaceFeedsSettings?.companyCardNicknames?.[feedName];
+            const status = workspaceFeedsSettings?.cardFeedsStatus?.[feedName];
+
+            if (!domainID) {
+                continue;
+            }
+
+            const combinedCardFeed: CombinedCardFeed = {
+                ...feedSettings,
+                ...oAuthAccountDetails,
+                customFeedName,
+                domainID,
+                feed: feedName,
+                status,
+            };
+
+            if (includeFeedPredicate && !includeFeedPredicate(combinedCardFeed)) {
+                continue;
+            }
+
+            const combinedFeedKey = getCompanyCardFeedWithDomainID(feedName, domainID);
+
+            acc[combinedFeedKey] = combinedCardFeed;
+        }
+
+        return acc;
+    }, {});
 }
 
 export type {CardFilterItem, CardFeedNamesWithType, CardFeedForDisplay};
@@ -511,4 +583,7 @@ export {
     getDomainFeedData,
     getCardFeedsForDisplay,
     getCardFeedsForDisplayPerPolicy,
+    getCombinedCardFeedsFromAllFeeds,
+    getCardFeedStatus,
+    getWorkspaceCardFeedsStatus,
 };

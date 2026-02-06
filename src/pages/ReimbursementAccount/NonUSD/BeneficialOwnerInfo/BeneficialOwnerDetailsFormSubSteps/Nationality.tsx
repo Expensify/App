@@ -34,9 +34,9 @@ function Nationality({onNext, isEditing, isUserEnteringHisOwnData, ownerBeingMod
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            return getFieldRequiredErrors(values, [nationalityInputID]);
+            return getFieldRequiredErrors(values, [nationalityInputID], translate);
         },
-        [nationalityInputID],
+        [nationalityInputID, translate],
     );
 
     return (
@@ -65,7 +65,5 @@ function Nationality({onNext, isEditing, isUserEnteringHisOwnData, ownerBeingMod
         </FormProvider>
     );
 }
-
-Nationality.displayName = 'Nationality';
 
 export default Nationality;

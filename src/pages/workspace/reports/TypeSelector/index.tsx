@@ -71,6 +71,4 @@ function TypeSelector({value, label = '', rightLabel, subtitle = '', errorText =
     );
 }
 
-TypeSelector.displayName = 'TypeSelector';
-
 export default TypeSelector;

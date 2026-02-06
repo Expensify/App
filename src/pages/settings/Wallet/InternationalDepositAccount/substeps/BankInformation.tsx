@@ -106,6 +106,7 @@ function BankInformation({isEditing, onNext, formValues, fieldsMap}: CustomSubSt
                                     lat: '',
                                     lng: '',
                                 }}
+                                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                             />
                         </View>
                     ))}
@@ -113,7 +114,5 @@ function BankInformation({isEditing, onNext, formValues, fieldsMap}: CustomSubSt
         </FormProvider>
     );
 }
-
-BankInformation.displayName = 'BankInformation';
 
 export default BankInformation;

@@ -70,7 +70,7 @@ function AnimatedCollapsible({
 }: AnimatedCollapsibleProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
     const contentHeight = useSharedValue(0);
     const descriptionHeight = useSharedValue(0);
     const hasExpanded = useSharedValue(isExpanded);
@@ -188,7 +188,5 @@ function AnimatedCollapsible({
         </View>
     );
 }
-
-AnimatedCollapsible.displayName = 'AnimatedCollapsible';
 
 export default AnimatedCollapsible;

@@ -1,12 +1,11 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
-import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
-import {PressableWithFeedback} from '@components/Pressable';
 import ReportActionAvatars from '@components/ReportActionAvatars';
+import type {SearchColumnType} from '@components/Search/types';
 import type {ListItem, TransactionCardGroupListItemType} from '@components/SelectionListWithSections/types';
 import TextWithTooltip from '@components/TextWithTooltip';
+import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -15,6 +14,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import type {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
+import ExpandCollapseArrowButton from './ExpandCollapseArrowButton';
+import TextCell from './TextCell';
 import TotalCell from './TotalCell';
 
 type CardListItemHeaderProps<TItem extends ListItem> = {
@@ -44,6 +45,9 @@ type CardListItemHeaderProps<TItem extends ListItem> = {
 
     /** Whether the down arrow is expanded */
     isExpanded?: boolean;
+
+    /** The visible columns for the header */
+    columns?: SearchColumnType[];
 };
 
 function CardListItemHeader<TItem extends ListItem>({
@@ -55,6 +59,7 @@ function CardListItemHeader<TItem extends ListItem>({
     isSelectAllChecked,
     isIndeterminate,
     onDownArrowClick,
+    columns,
     isExpanded,
 }: CardListItemHeaderProps<TItem>) {
     const theme = useTheme();
@@ -62,13 +67,56 @@ function CardListItemHeader<TItem extends ListItem>({
     const {isLargeScreenWidth} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
-    const formattedDisplayName = useMemo(() => formatPhoneNumber(getDisplayNameOrDefault(cardItem)), [cardItem, formatPhoneNumber]);
+    const formattedDisplayName = formatPhoneNumber(getDisplayNameOrDefault(cardItem));
     const backgroundColor =
         StyleUtils.getItemBackgroundColorStyle(!!cardItem.isSelected, !!isFocused, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
 
+    const columnComponents = {
+        [CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD]: (
+            <View
+                key={CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CARD)}
+            >
+                <View style={[styles.gapHalf, styles.flexShrink1]}>
+                    <TextWithTooltip text={cardItem.formattedCardName ?? ''} />
+                </View>
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.GROUP_FEED]: (
+            <View
+                key={CONST.SEARCH.TABLE_COLUMNS.GROUP_FEED}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FEED)}
+            >
+                <TextWithTooltip
+                    text={cardItem.formattedFeedName ?? ''}
+                    style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre]}
+                />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: (
+            <View
+                key={CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPENSES)}
+            >
+                <TextCell text={String(cardItem.count)} />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: (
+            <View
+                key={CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, false, false, false, false, false, false, false, true)}
+            >
+                <TotalCell
+                    total={cardItem.total}
+                    currency={cardItem.currency}
+                />
+            </View>
+        ),
+    };
+
     return (
         <View>
-            <View style={[styles.pv1Half, styles.pl3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart]}>
+            <View style={[styles.pv1Half, styles.pl3, styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth ? styles.gap3 : styles.justifyContentStart]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
@@ -77,57 +125,65 @@ function CardListItemHeader<TItem extends ListItem>({
                             isIndeterminate={isIndeterminate}
                             disabled={!!isDisabled || cardItem.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}
+                            style={isLargeScreenWidth && styles.mr1}
                         />
                     )}
-                    <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
-                        <ReportActionAvatars
-                            subscriptCardFeed={cardItem.bank as CompanyCardFeed}
-                            subscriptAvatarBorderColor={backgroundColor}
-                            noRightMarginOnSubscriptContainer
-                            accountIDs={[cardItem.accountID]}
-                        />
-                        <View style={[styles.gapHalf, styles.flexShrink1]}>
-                            <TextWithTooltip
-                                text={formattedDisplayName}
-                                style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
+                    {!isLargeScreenWidth && (
+                        <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
+                            <ReportActionAvatars
+                                subscriptCardFeed={cardItem.bank as CompanyCardFeed}
+                                subscriptAvatarBorderColor={backgroundColor}
+                                noRightMarginOnSubscriptContainer
+                                accountIDs={[cardItem.accountID]}
                             />
-                            <TextWithTooltip
-                                text={`${cardItem.cardName}${cardItem.lastFourPAN ? ` ${CONST.DOT_SEPARATOR} ` : ''}${cardItem.lastFourPAN}`}
-                                style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
-                            />
+                            <View style={[styles.gapHalf, styles.flexShrink1]}>
+                                <TextWithTooltip
+                                    text={formattedDisplayName}
+                                    style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
+                                />
+                                <TextWithTooltip
+                                    text={`${cardItem.cardName}${cardItem.lastFourPAN ? ` ${CONST.DOT_SEPARATOR} ` : ''}${cardItem.lastFourPAN}`}
+                                    style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                                />
+                            </View>
                         </View>
-                    </View>
+                    )}
+                    {isLargeScreenWidth && (
+                        <>
+                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR)}>
+                                <UserDetailsTooltip accountID={cardItem.accountID}>
+                                    <View>
+                                        <ReportActionAvatars
+                                            subscriptCardFeed={cardItem.bank as CompanyCardFeed}
+                                            subscriptAvatarBorderColor={backgroundColor}
+                                            noRightMarginOnSubscriptContainer
+                                            accountIDs={[cardItem.accountID]}
+                                        />
+                                    </View>
+                                </UserDetailsTooltip>
+                            </View>
+
+                            {columns?.map((column) => columnComponents[column as keyof typeof columnComponents])}
+                        </>
+                    )}
                 </View>
-                <View style={[styles.flexShrink0, styles.mr3, styles.gap1]}>
-                    <TotalCell
-                        total={cardItem.total}
-                        currency={cardItem.currency}
-                    />
-                    {!isLargeScreenWidth && !!onDownArrowClick && (
-                        <View>
-                            <PressableWithFeedback
+                {!isLargeScreenWidth && (
+                    <View style={[[styles.flexShrink0, styles.mr3, styles.gap1]]}>
+                        <TotalCell
+                            total={cardItem.total}
+                            currency={cardItem.currency}
+                        />
+                        {!!onDownArrowClick && (
+                            <ExpandCollapseArrowButton
+                                isExpanded={isExpanded}
                                 onPress={onDownArrowClick}
-                                style={[styles.pl3, styles.justifyContentCenter, styles.alignItemsEnd]}
-                                accessibilityRole={CONST.ROLE.BUTTON}
-                                accessibilityLabel={isExpanded ? CONST.ACCESSIBILITY_LABELS.COLLAPSE : CONST.ACCESSIBILITY_LABELS.EXPAND}
-                            >
-                                {({hovered}) => (
-                                    <Icon
-                                        src={isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow}
-                                        fill={theme.icon}
-                                        additionalStyles={!hovered && styles.opacitySemiTransparent}
-                                        small
-                                    />
-                                )}
-                            </PressableWithFeedback>
-                        </View>
-                    )}
-                </View>
+                            />
+                        )}
+                    </View>
+                )}
             </View>
         </View>
     );
 }
-
-CardListItemHeader.displayName = 'CardListItemHeader';
 
 export default CardListItemHeader;

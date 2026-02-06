@@ -28,7 +28,7 @@ function DebugDetailsDateTimePickerPage({
     const styles = useThemeStyles();
     const [date, setDate] = useState(() => DateUtils.extractDate(fieldValue));
     return (
-        <ScreenWrapper testID={DebugDetailsDateTimePickerPage.displayName}>
+        <ScreenWrapper testID="DebugDetailsDateTimePickerPage">
             <HeaderWithBackButton title={fieldName} />
             <ScrollView contentContainerStyle={styles.gap8}>
                 <View style={styles.ph5}>
@@ -64,7 +64,5 @@ function DebugDetailsDateTimePickerPage({
         </ScreenWrapper>
     );
 }
-
-DebugDetailsDateTimePickerPage.displayName = 'DebugDetailsDateTimePickerPage';
 
 export default DebugDetailsDateTimePickerPage;

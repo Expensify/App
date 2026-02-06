@@ -1,4 +1,5 @@
-import {getAllNonDeletedTransactions, getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
+import {getAllNonDeletedTransactions, getThreadReportIDsForTransactions, isActionVisibleOnMoneyRequestReport} from '@libs/MoneyRequestReportUtils';
+import CONST from '@src/CONST';
 import type {ReportAction, Transaction} from '@src/types/onyx';
 import {actionR14932, actionR98765} from '../../../__mocks__/reportData/actions';
 import {transactionR14932, transactionR98765} from '../../../__mocks__/reportData/transactions';
@@ -29,6 +30,24 @@ describe('getThreadReportIDsForTransactions', () => {
 
         const result = getThreadReportIDsForTransactions(reportActions, transactions);
         expect(result).toEqual([]);
+    });
+});
+
+describe('isActionVisibleOnMoneyRequestReport', () => {
+    test('hides created action by default', () => {
+        const createdAction = {
+            actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+        } as ReportAction;
+
+        expect(isActionVisibleOnMoneyRequestReport(createdAction)).toBe(false);
+    });
+
+    test('shows created action when explicitly allowed', () => {
+        const createdAction = {
+            actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+        } as ReportAction;
+
+        expect(isActionVisibleOnMoneyRequestReport(createdAction, true)).toBe(true);
     });
 });
 

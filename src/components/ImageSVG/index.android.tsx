@@ -63,5 +63,4 @@ function ImageSVG({src, width = '100%', height = '100%', fill, contentFit = 'cov
     );
 }
 
-ImageSVG.displayName = 'ImageSVG';
 export default ImageSVG;

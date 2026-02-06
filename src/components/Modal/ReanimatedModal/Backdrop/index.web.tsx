@@ -52,6 +52,7 @@ function Backdrop({
                 onPress={onBackdropPress}
                 style={[styles.userSelectNone, styles.cursorAuto]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                sentryLabel={CONST.SENTRY_LABEL.REANIMATED_MODAL.BACKDROP}
             >
                 {isBackdropVisible && (
                     <Animated.View
@@ -80,7 +81,5 @@ function Backdrop({
         )
     );
 }
-
-Backdrop.displayName = 'Backdrop';
 
 export default Backdrop;

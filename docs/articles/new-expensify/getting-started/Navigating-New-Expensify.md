@@ -18,7 +18,8 @@ The **navigation tabs** (on the left on web, and at the bottom on mobile) are pr
   - **Reports**
   - **Workspaces**
   - **Account**
-- The **Global Create** button for quick access to actions like creating reports, expenses, invoices, and chats
+- The green **Camera/Receipt** button to easily create expenses 
+- The grey **Global Create** button for additional actions like creating reports, tracking distance, sending invoices, and more.
 
 ---
 

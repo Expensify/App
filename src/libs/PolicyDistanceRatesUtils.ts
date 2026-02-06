@@ -21,7 +21,7 @@ function validateRateValue(values: FormOnyxValues<RateValueForm>, toLocaleDigit:
     const decimalSeparator = toLocaleDigit('.');
 
     // Allow one more decimal place for accuracy
-    const rateValueRegex = RegExp(String.raw`^-?\d{0,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{0,${CONST.MAX_TAX_RATE_DECIMAL_PLACES}})?$`, 'i');
+    const rateValueRegex = RegExp(String.raw`^-?\d{0,${CONST.IOU.AMOUNT_MAX_LENGTH}}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{0,${CONST.MAX_TAX_RATE_DECIMAL_PLACES}})?$`, 'i');
     if (!rateValueRegex.test(parsedRate) || parsedRate === '') {
         errors.rate = translate('common.error.invalidRateError');
     } else if (parseFloatAnyLocale(parsedRate) <= 0) {
@@ -61,7 +61,12 @@ type PolicyDistanceRateUpdateField = keyof Pick<Rate, 'name' | 'rate'> | keyof T
  * @param fieldName - The field name being updated
  * @returns Object containing optimisticData, successData, and failureData arrays
  */
-function buildOnyxDataForPolicyDistanceRateUpdates(policyID: string, customUnit: CustomUnit, customUnitRates: Rate[], fieldName: PolicyDistanceRateUpdateField): OnyxData {
+function buildOnyxDataForPolicyDistanceRateUpdates(
+    policyID: string,
+    customUnit: CustomUnit,
+    customUnitRates: Rate[],
+    fieldName: PolicyDistanceRateUpdateField,
+): OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> {
     const currentRates = customUnit.rates;
     const optimisticRates: Record<string, NullishDeep<Rate>> = {};
     const successRates: Record<string, NullishDeep<Rate>> = {};
@@ -87,7 +92,7 @@ function buildOnyxDataForPolicyDistanceRateUpdates(policyID: string, customUnit:
         }
     }
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -101,7 +106,7 @@ function buildOnyxDataForPolicyDistanceRateUpdates(policyID: string, customUnit:
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -115,7 +120,7 @@ function buildOnyxDataForPolicyDistanceRateUpdates(policyID: string, customUnit:
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,

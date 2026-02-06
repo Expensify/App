@@ -5,13 +5,11 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AddressSearch from '@components/AddressSearch';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import ConfirmModal from '@components/ConfirmModal';
+import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
-import type BaseModalProps from '@components/Modal/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useLocationBias from '@hooks/useLocationBias';
@@ -66,8 +64,6 @@ function IOURequestStepWaypoint({
     transaction,
 }: IOURequestStepWaypointProps) {
     const styles = useThemeStyles();
-    const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
-    const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
     const navigation = useNavigation();
     const isFocused = navigation.isFocused();
     const {translate} = useLocalize();
@@ -95,8 +91,6 @@ function IOURequestStepWaypoint({
 
     const locationBias = useLocationBias(allWaypoints, userLocation);
     const waypointAddress = currentWaypoint.address ?? '';
-    // Hide the menu when there is only start and finish waypoint
-    const shouldShowThreeDotsButton = waypointCount > 2 && !!waypointAddress;
     const shouldDisableEditor =
         isFocused &&
         (Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > waypointCount || (filledWaypointCount < 2 && parsedWaypointIndex >= waypointCount));
@@ -140,10 +134,10 @@ function IOURequestStepWaypoint({
         // Therefore, we're going to save the waypoint as just the address, and the lat/long will be filled in on the backend
         if (isOffline && waypointValue) {
             const waypoint = {
-                address: waypointValue ?? '',
-                name: values.name ?? '',
-                lat: values.lat ?? 0,
-                lng: values.lng ?? 0,
+                address: waypointValue,
+                name: values.name,
+                lat: values.lat,
+                lng: values.lng,
                 keyForList: `${(values.name ?? 'waypoint') as string}_${Date.now()}`,
             };
             save(waypoint);
@@ -153,19 +147,12 @@ function IOURequestStepWaypoint({
         goBack();
     };
 
-    const deleteStopAndHideModal = () => {
-        removeWaypoint(transaction, pageIndex, shouldUseTransactionDraft(action));
-        setRestoreFocusType(CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE);
-        setIsDeleteStopModalOpen(false);
-        goBack();
-    };
-
     const selectWaypoint = (values: Waypoint) => {
         const waypoint = {
-            lat: values.lat ?? 0,
-            lng: values.lng ?? 0,
-            address: values.address ?? '',
-            name: values.name ?? '',
+            lat: values.lat,
+            lng: values.lng,
+            address: values.address,
+            name: values.name,
             keyForList: `${values.name ?? 'waypoint'}_${Date.now()}`,
         };
 
@@ -177,7 +164,6 @@ function IOURequestStepWaypoint({
         if (!isSafari()) {
             return;
         }
-        // eslint-disable-next-line react-compiler/react-compiler
         textInput.current?.measureInWindow((x, y) => {
             if (y < variables.contentHeaderHeight) {
                 setCaretHidden(true);
@@ -196,39 +182,14 @@ function IOURequestStepWaypoint({
             includeSafeAreaPaddingBottom
             onEntryTransitionEnd={() => textInput.current?.focus()}
             shouldEnableMaxHeight
-            testID={IOURequestStepWaypoint.displayName}
+            testID="IOURequestStepWaypoint"
         >
             <FullPageNotFoundView shouldShow={shouldDisableEditor}>
                 <HeaderWithBackButton
                     title={translate(waypointDescriptionKey)}
                     shouldShowBackButton
                     onBackButtonPress={goBack}
-                    shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                     shouldSetModalVisibility={false}
-                    threeDotsMenuItems={[
-                        {
-                            icon: Expensicons.Trashcan,
-                            text: translate('distance.deleteWaypoint'),
-                            onSelected: () => {
-                                setRestoreFocusType(undefined);
-                                setIsDeleteStopModalOpen(true);
-                            },
-                            shouldCallAfterModalHide: true,
-                        },
-                    ]}
-                />
-                <ConfirmModal
-                    title={translate('distance.deleteWaypoint')}
-                    isVisible={isDeleteStopModalOpen}
-                    onConfirm={deleteStopAndHideModal}
-                    onCancel={() => setIsDeleteStopModalOpen(false)}
-                    shouldSetModalVisibility={false}
-                    prompt={translate('distance.deleteWaypointConfirmation')}
-                    confirmText={translate('common.delete')}
-                    cancelText={translate('common.cancel')}
-                    shouldEnableNewFocusManagement
-                    danger
-                    restoreFocusType={restoreFocusType}
                 />
                 <FormProvider
                     style={[styles.flexGrow1, styles.mh5]}
@@ -241,6 +202,20 @@ function IOURequestStepWaypoint({
                     submitButtonText={translate('common.save')}
                     shouldHideFixErrorsAlert
                     onScroll={onScroll}
+                    shouldRenderFooterAboveSubmit
+                    footerContent={
+                        !!waypointAddress && (
+                            <Button
+                                text={translate('common.remove')}
+                                style={[styles.mb3]}
+                                onPress={() => {
+                                    removeWaypoint(transaction, pageIndex, shouldUseTransactionDraft(action));
+                                    goBack();
+                                }}
+                                large
+                            />
+                        )
+                    }
                 >
                     <View>
                         <InputWrapperWithRef
@@ -279,7 +254,5 @@ function IOURequestStepWaypoint({
         </ScreenWrapper>
     );
 }
-
-IOURequestStepWaypoint.displayName = 'IOURequestStepWaypoint';
 
 export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepWaypoint), true);

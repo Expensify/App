@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import type {ComponentType} from 'react';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import YesNoStep from '@components/SubStepForms/YesNoStep';
 import useLocalize from '@hooks/useLocalize';
@@ -67,6 +67,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames}: Beneficia
     const [totalOwnedPercentage, setTotalOwnedPercentage] = useState<Record<string, number>>({});
     const companyName = reimbursementAccount?.achData?.corpay?.[COMPANY_NAME] ?? reimbursementAccountDraft?.[COMPANY_NAME] ?? '';
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const isSubmittingRef = useRef(false);
 
     const totalOwnedPercentageSum = Object.values(totalOwnedPercentage).reduce((acc, value) => acc + value, 0);
     const canAddMoreOwners = totalOwnedPercentageSum <= 75;
@@ -80,6 +81,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames}: Beneficia
             [BENEFICIAL_OWNERS]: JSON.stringify(ownerDetails),
         });
 
+        isSubmittingRef.current = true;
         saveCorpayOnboardingBeneficialOwners({
             inputs: JSON.stringify({...ownerDetails, anyIndividualOwn25PercentOrMore}),
             ...ownerFiles,
@@ -94,7 +96,9 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames}: Beneficia
             return;
         }
 
-        if (reimbursementAccount?.isSuccess) {
+        // We need to check value of local isSubmittingRef because on initial render reimbursementAccount?.isSuccess is still true after submitting the previous step
+        if (reimbursementAccount?.isSuccess && isSubmittingRef.current) {
+            isSubmittingRef.current = false;
             onSubmit();
             clearReimbursementAccountSaveCorpayOnboardingBeneficialOwners();
         }
@@ -284,7 +288,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames}: Beneficia
 
     return (
         <InteractiveStepWrapper
-            wrapperID={BeneficialOwnerInfo.displayName}
+            wrapperID="BeneficialOwnerInfo"
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('ownershipInfoStep.ownerInfo')}
             stepNames={stepNames}
@@ -293,7 +297,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames}: Beneficia
         >
             {currentSubStep === SUBSTEP.IS_USER_BENEFICIAL_OWNER && (
                 <YesNoStep
-                    title={translate('ownershipInfoStep.doYouOwn', {companyName})}
+                    title={translate('ownershipInfoStep.doYouOwn', companyName)}
                     description={translate('ownershipInfoStep.regulationsRequire')}
                     defaultValue={isUserOwner}
                     onSelectedValue={handleNextSubStep}
@@ -303,7 +307,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames}: Beneficia
 
             {currentSubStep === SUBSTEP.IS_ANYONE_ELSE_BENEFICIAL_OWNER && (
                 <YesNoStep
-                    title={translate('ownershipInfoStep.doesAnyoneOwn', {companyName})}
+                    title={translate('ownershipInfoStep.doesAnyoneOwn', companyName)}
                     description={translate('ownershipInfoStep.regulationsRequire')}
                     defaultValue={isAnyoneElseOwner}
                     onSelectedValue={handleNextSubStep}
@@ -326,7 +330,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames}: Beneficia
 
             {currentSubStep === SUBSTEP.ARE_THERE_MORE_BENEFICIAL_OWNERS && (
                 <YesNoStep
-                    title={translate('ownershipInfoStep.areThereOther', {companyName})}
+                    title={translate('ownershipInfoStep.areThereOther', companyName)}
                     description={translate('ownershipInfoStep.regulationsRequire')}
                     defaultValue={false}
                     onSelectedValue={handleNextSubStep}
@@ -344,7 +348,5 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames}: Beneficia
         </InteractiveStepWrapper>
     );
 }
-
-BeneficialOwnerInfo.displayName = 'BeneficialOwnerInfo';
 
 export default BeneficialOwnerInfo;

@@ -22,7 +22,7 @@ function SocialSecurityNumberStep({onNext, onMove, isEditing}: SubStepProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
-            const errors = getFieldRequiredErrors(values, STEP_FIELDS);
+            const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
             if (shouldAskForFullSSN) {
                 if (values.ssn && !isValidSSNFullNine(values.ssn)) {
@@ -59,10 +59,9 @@ function SocialSecurityNumberStep({onNext, onMove, isEditing}: SubStepProps) {
             defaultValue={defaultSsnLast4}
             maxLength={shouldAskForFullSSN ? CONST.BANK_ACCOUNT.MAX_LENGTH.FULL_SSN : CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
             shouldShowPatriotActLink
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
         />
     );
 }
-
-SocialSecurityNumberStep.displayName = 'SocialSecurityNumberStep';
 
 export default SocialSecurityNumberStep;

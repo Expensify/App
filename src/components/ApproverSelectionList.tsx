@@ -1,5 +1,4 @@
 import React, {useMemo} from 'react';
-import type {SectionListData} from 'react-native';
 import useDebouncedState from '@hooks/useDebouncedState';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -13,15 +12,14 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
-import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import BlockingView from './BlockingViews/BlockingView';
 import FullPageNotFoundView from './BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import ScreenWrapper from './ScreenWrapper';
-import SelectionList from './SelectionListWithSections';
-import InviteMemberListItem from './SelectionListWithSections/InviteMemberListItem';
-import type {Section} from './SelectionListWithSections/types';
+import SelectionList from './SelectionList';
+import InviteMemberListItem from './SelectionList/ListItem/InviteMemberListItem';
+import type {ListItem} from './SelectionList/types';
 
 type ApproverSelectionListPageProps = {
     testID: string;
@@ -42,20 +40,12 @@ type ApproverSelectionListPageProps = {
     onSelectApprover?: (approvers: SelectionListApprover[]) => void;
     shouldShowLoadingPlaceholder?: boolean;
     shouldEnableHeaderMaxHeight?: boolean;
+    shouldUpdateFocusedIndex?: boolean;
 };
 
-type SelectionListApprover = {
-    text: string;
-    alternateText: string;
-    keyForList: string;
-    isSelected: boolean;
-    login: string;
-    rightElement?: React.ReactNode;
-    icons: Icon[];
+type SelectionListApprover = ListItem & {
     value?: number;
 };
-
-type ApproverSection = SectionListData<SelectionListApprover, Section<SelectionListApprover>>;
 
 function ApproverSelectionList({
     testID,
@@ -76,6 +66,7 @@ function ApproverSelectionList({
     onSelectApprover,
     shouldShowLoadingPlaceholder,
     shouldEnableHeaderMaxHeight,
+    shouldUpdateFocusedIndex = true,
 }: ApproverSelectionListPageProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -89,23 +80,16 @@ function ApproverSelectionList({
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || isPendingDeletePolicy(policy) || shouldShowNotFoundViewProp;
 
-    const sections: ApproverSection[] = useMemo(() => {
+    const data = useMemo(() => {
         const filteredApprovers =
             debouncedSearchTerm !== ''
                 ? tokenizedSearch(allApprovers, getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode), (option) => [option.text ?? '', option.login ?? ''])
                 : allApprovers;
 
-        const data = sortAlphabetically(filteredApprovers, 'text', localeCompare);
-        return [
-            {
-                title: undefined,
-                data,
-                shouldShow: true,
-            },
-        ];
+        return sortAlphabetically(filteredApprovers, 'text', localeCompare);
     }, [allApprovers, debouncedSearchTerm, countryCode, localeCompare]);
 
-    const shouldShowListEmptyContent = !debouncedSearchTerm && !sections.at(0)?.data.length && shouldShowListEmptyContentProp;
+    const shouldShowListEmptyContent = !debouncedSearchTerm && !data.length && shouldShowListEmptyContentProp;
 
     const toggleApprover = (member: SelectionListApprover) => {
         const isAlreadySelected = selectedMembers.some((selectedOption) => selectedOption.login === member.login);
@@ -122,8 +106,6 @@ function ApproverSelectionList({
         }
     };
 
-    const headerMessage = useMemo(() => (searchTerm && !sections.at(0)?.data?.length ? translate('common.noResultsFound') : ''), [searchTerm, sections, translate]);
-
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
@@ -138,6 +120,16 @@ function ApproverSelectionList({
             />
         ),
         [translate, listEmptyContentSubtitle, styles.textSupporting, styles.pb10, lazyIllustrations.TurtleInShell],
+    );
+
+    const textInputOptions = useMemo(
+        () => ({
+            label: shouldShowListEmptyContent ? undefined : translate('selectionList.findMember'),
+            value: searchTerm,
+            onChangeText: setSearchTerm,
+            headerMessage: searchTerm && !data?.length ? translate('common.noResultsFound') : '',
+        }),
+        [shouldShowListEmptyContent, translate, searchTerm, setSearchTerm, data?.length],
     );
 
     return (
@@ -160,31 +152,27 @@ function ApproverSelectionList({
                 />
                 {subtitle}
                 <SelectionList
-                    canSelectMultiple={allowMultipleSelection}
-                    sections={sections}
-                    ListItem={InviteMemberListItem}
-                    textInputLabel={shouldShowListEmptyContent ? undefined : translate('selectionList.findMember')}
-                    textInputValue={searchTerm}
-                    onChangeText={setSearchTerm}
-                    headerMessage={headerMessage}
+                    data={data}
                     onSelectRow={toggleApprover}
-                    showScrollIndicator
+                    ListItem={InviteMemberListItem}
+                    textInputOptions={textInputOptions}
+                    canSelectMultiple={allowMultipleSelection}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     listEmptyContent={listEmptyContent}
-                    shouldShowListEmptyContent={shouldShowListEmptyContent}
-                    initiallyFocusedOptionKey={initiallyFocusedOptionKey}
-                    shouldUpdateFocusedIndex
+                    showListEmptyContent={shouldShowListEmptyContent}
+                    initiallyFocusedItemKey={initiallyFocusedOptionKey}
                     shouldShowTextInput={shouldShowTextInput}
-                    addBottomSafeAreaPadding
                     showLoadingPlaceholder={shouldShowLoadingPlaceholder}
                     footerContent={footerContent}
+                    addBottomSafeAreaPadding
+                    shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
+                    showScrollIndicator
+                    isRowMultilineSupported
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }
-
-ApproverSelectionList.displayName = 'ApproverSelectionList';
 
 export default ApproverSelectionList;
 

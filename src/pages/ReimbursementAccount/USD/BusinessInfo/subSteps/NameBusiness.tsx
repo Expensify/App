@@ -31,7 +31,7 @@ function NameBusiness({onNext, onMove, isEditing}: SubStepProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, STEP_FIELDS);
+            const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
             if (values.companyName && !isValidCompanyName(values.companyName)) {
                 errors.companyName = translate('bankAccount.error.companyName');
@@ -66,7 +66,5 @@ function NameBusiness({onNext, onMove, isEditing}: SubStepProps) {
         />
     );
 }
-
-NameBusiness.displayName = 'NameBusiness';
 
 export default NameBusiness;

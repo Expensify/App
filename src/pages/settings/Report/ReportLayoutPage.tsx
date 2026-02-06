@@ -58,7 +58,7 @@ function ReportLayoutPage() {
 
     return (
         <ScreenWrapper
-            testID={ReportLayoutPage.displayName}
+            testID="ReportLayoutPage"
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
         >
@@ -77,7 +77,5 @@ function ReportLayoutPage() {
         </ScreenWrapper>
     );
 }
-
-ReportLayoutPage.displayName = 'ReportLayoutPage';
 
 export default ReportLayoutPage;

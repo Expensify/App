@@ -28,9 +28,6 @@ jest.mock('@components/ImageSVG', () => {
     return (props: ViewProps) => <View {...props} />;
 });
 
-jest.unmock('react-native-reanimated');
-jest.unmock('react-native-worklets');
-
 describe('FeatureTrainingModal', () => {
     beforeAll(() => {
         Onyx.init({
@@ -57,7 +54,7 @@ describe('FeatureTrainingModal', () => {
         });
         it('renders svg image', () => {
             function Component() {
-                const illustrations = useMemoizedLazyIllustrations(['HoldExpense'] as const);
+                const illustrations = useMemoizedLazyIllustrations(['HoldExpense']);
                 return (
                     <FeatureTrainingModal
                         confirmText={CONFIRM_TEXT}

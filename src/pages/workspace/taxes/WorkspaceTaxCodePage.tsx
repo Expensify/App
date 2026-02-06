@@ -70,9 +70,9 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
                 return {};
             }
 
-            return validateTaxCode(policy, values);
+            return validateTaxCode(policy, values, translate);
         },
-        [currentTaxCode, policy],
+        [currentTaxCode, policy, translate],
     );
 
     return (
@@ -84,7 +84,7 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={WorkspaceTaxCodePage.displayName}
+                testID="WorkspaceTaxCodePage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.taxes.taxCode')}
@@ -117,7 +117,5 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceTaxCodePage.displayName = 'WorkspaceTaxCodePage';
 
 export default WorkspaceTaxCodePage;

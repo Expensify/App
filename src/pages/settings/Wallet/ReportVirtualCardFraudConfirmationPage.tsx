@@ -2,10 +2,10 @@ import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
@@ -23,6 +23,7 @@ function ReportVirtualCardFraudConfirmationPage({
 }: ReportVirtualCardFraudConfirmationPageProps) {
     const themeStyles = useThemeStyles();
     const {translate} = useLocalize();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlassSpyMouthClosed']);
 
     const close = useCallback(() => {
         Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));
@@ -33,7 +34,7 @@ function ReportVirtualCardFraudConfirmationPage({
             includeSafeAreaPaddingBottom
             includePaddingTop
             shouldEnableMaxHeight
-            testID={ReportVirtualCardFraudConfirmationPage.displayName}
+            testID="ReportVirtualCardFraudConfirmationPage"
             offlineIndicatorStyle={themeStyles.mtAuto}
         >
             <HeaderWithBackButton
@@ -45,7 +46,7 @@ function ReportVirtualCardFraudConfirmationPage({
                 <View style={[themeStyles.justifyContentCenter, themeStyles.flex1]}>
                     <ImageSVG
                         contentFit="contain"
-                        src={Expensicons.MagnifyingGlassSpyMouthClosed}
+                        src={expensifyIcons.MagnifyingGlassSpyMouthClosed}
                         style={themeStyles.alignSelfCenter}
                         width={184}
                         height={290}
@@ -68,7 +69,5 @@ function ReportVirtualCardFraudConfirmationPage({
         </ScreenWrapper>
     );
 }
-
-ReportVirtualCardFraudConfirmationPage.displayName = 'ReportVirtualCardFraudConfirmationPage';
 
 export default ReportVirtualCardFraudConfirmationPage;

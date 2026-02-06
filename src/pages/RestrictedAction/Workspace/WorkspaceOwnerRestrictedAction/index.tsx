@@ -4,11 +4,10 @@ import Badge from '@components/Badge';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -16,9 +15,10 @@ import variables from '@styles/variables';
 import ROUTES from '@src/ROUTES';
 
 function WorkspaceOwnerRestrictedAction() {
-    const illustrations = useMemoizedLazyIllustrations(['LockClosedOrange'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['LockClosedOrange']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Unlock']);
 
     const addPaymentCard = () => {
         Navigation.closeRHPFlow();
@@ -28,7 +28,7 @@ function WorkspaceOwnerRestrictedAction() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
-            testID={WorkspaceOwnerRestrictedAction.displayName}
+            testID="WorkspaceOwnerRestrictedAction"
         >
             <HeaderWithBackButton
                 title={translate('workspace.restrictedAction.restricted')}
@@ -43,7 +43,7 @@ function WorkspaceOwnerRestrictedAction() {
                             width={variables.iconHeader}
                         />
                         <Badge
-                            icon={Expensicons.Unlock}
+                            icon={expensifyIcons.Unlock}
                             success
                             text={translate('workspace.restrictedAction.addPaymentCardToUnlock')}
                             badgeStyles={styles.alignSelfStart}
@@ -62,7 +62,5 @@ function WorkspaceOwnerRestrictedAction() {
         </ScreenWrapper>
     );
 }
-
-WorkspaceOwnerRestrictedAction.displayName = 'WorkspaceOwnerRestrictedAction';
 
 export default WorkspaceOwnerRestrictedAction;

@@ -11,6 +11,4 @@ function SearchFiltersPostedPage() {
     );
 }
 
-SearchFiltersPostedPage.displayName = 'SearchFiltersPostedPage';
-
 export default SearchFiltersPostedPage;

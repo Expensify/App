@@ -1,6 +1,5 @@
 // Making an exception to this rule here since we don't need an "action" for Log and Log should just be used directly. Creating a Log
 // action would likely cause confusion about which one to use. But most other API methods should happen inside an action file.
-
 /* eslint-disable rulesdir/no-api-in-views */
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {Logger} from 'expensify-common';
@@ -15,6 +14,7 @@ import {shouldAttachLog} from './Console';
 import getPlatform from './getPlatform';
 import {post} from './Network';
 import requireParameters from './requireParameters';
+import forwardLogsToSentry from './telemetry/forwardLogsToSentry';
 
 let timeout: NodeJS.Timeout;
 let shouldCollectLogs = false;
@@ -59,6 +59,8 @@ function serverLoggingCallback(logger: Logger, params: ServerLoggingCallbackOpti
     if (requestParams.parameters) {
         requestParams.parameters = JSON.stringify(requestParams.parameters);
     }
+    // Mirror backend log payload into Telemetry logger for better context
+    forwardLogsToSentry(requestParams.logPacket);
     clearTimeout(timeout);
     timeout = setTimeout(() => logger.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
     return LogCommand(requestParams);

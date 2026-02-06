@@ -3,14 +3,16 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
-import {canSubmitReport} from '@userActions/IOU';
+import Navigation from '@libs/Navigation/Navigation';
+import {canApproveIOU, canSubmitReport} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import * as IOUUtils from '@src/libs/IOUUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import * as TransactionUtils from '@src/libs/TransactionUtils';
 import {hasAnyTransactionWithoutRTERViolation} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, Transaction, TransactionViolations} from '@src/types/onyx';
+import ROUTES from '@src/ROUTES';
+import type {Policy, Report, ReportMetadata, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
@@ -30,6 +32,11 @@ function initCurrencyList() {
     });
     return waitForBatchedUpdates();
 }
+
+jest.mock('@src/libs/Navigation/Navigation', () => ({
+    navigate: jest.fn(),
+    goBack: jest.fn(),
+}));
 
 describe('IOUUtils', () => {
     describe('isIOUReportPendingCurrencyConversion', () => {
@@ -170,6 +177,177 @@ describe('IOUUtils', () => {
                 expect(IOUUtils.calculateAmount(numberOfSplits, -1000, 'USD', true, true)).toBe(-334);
                 expect(IOUUtils.calculateAmount(numberOfSplits, -1000, 'USD', false, true)).toBe(-333);
             });
+        });
+    });
+
+    describe('calculateSplitAmountFromPercentage', () => {
+        test('Basic percentage calculation and rounding', () => {
+            expect(IOUUtils.calculateSplitAmountFromPercentage(20000, 25)).toBe(5000);
+            expect(IOUUtils.calculateSplitAmountFromPercentage(199, 50)).toBe(100);
+        });
+
+        test('Handles decimal percentages', () => {
+            expect(IOUUtils.calculateSplitAmountFromPercentage(10000, 7.7)).toBe(770);
+            expect(IOUUtils.calculateSplitAmountFromPercentage(10000, 33.3)).toBe(3330);
+            expect(IOUUtils.calculateSplitAmountFromPercentage(8900, 7.7)).toBe(685);
+        });
+
+        test('Supports negative and over-100 percentages for multi-split scenarios', () => {
+            // Negative percentages (person owes money back to the group)
+            expect(IOUUtils.calculateSplitAmountFromPercentage(20000, -10)).toBe(-2000);
+            expect(IOUUtils.calculateSplitAmountFromPercentage(20000, -25)).toBe(-5000);
+            // Over-100 percentages (person pays more than their share)
+            expect(IOUUtils.calculateSplitAmountFromPercentage(20000, 150)).toBe(30000);
+            expect(IOUUtils.calculateSplitAmountFromPercentage(20000, 125)).toBe(25000);
+        });
+
+        test('Preserves negative sign for negative amounts (negative expense splits)', () => {
+            // When the original transaction is negative, split amounts should also be negative
+            expect(IOUUtils.calculateSplitAmountFromPercentage(-20000, 25)).toBe(-5000);
+            expect(IOUUtils.calculateSplitAmountFromPercentage(-20000, 50)).toBe(-10000);
+            expect(IOUUtils.calculateSplitAmountFromPercentage(-10000, 33.3)).toBe(-3330);
+            // Edge case: 0% results in 0 amount (not -0)
+            expect(IOUUtils.calculateSplitAmountFromPercentage(-20000, 0)).toBe(0);
+            // Full amount should also be negative
+            expect(IOUUtils.calculateSplitAmountFromPercentage(-20000, 100)).toBe(-20000);
+        });
+
+        test('Handles negative percentages with negative amounts (double negative)', () => {
+            // When both the amount and percentage are negative, the result is positive
+            // This represents someone owing money back on a refund
+            expect(IOUUtils.calculateSplitAmountFromPercentage(-20000, -25)).toBe(5000);
+            expect(IOUUtils.calculateSplitAmountFromPercentage(-10000, -50)).toBe(5000);
+            expect(IOUUtils.calculateSplitAmountFromPercentage(-10000, -33.3)).toBe(3330);
+        });
+    });
+
+    describe('calculateSplitPercentagesFromAmounts', () => {
+        test('Equal amounts always have equal percentages', () => {
+            // All equal amounts should get equal floored percentages
+            const amounts = [33, 33, 35];
+            const percentages = IOUUtils.calculateSplitPercentagesFromAmounts(amounts, 101);
+
+            // First two (equal amounts) should have equal percentages
+            expect(percentages.at(0)).toBe(percentages.at(1));
+            // Last one (larger) should have the remainder
+            expect(percentages.at(2)).toBeGreaterThan(percentages.at(0) ?? 0);
+            // Sum should be 100
+            expect(Math.round(percentages.reduce((sum, p) => sum + p, 0) * 10) / 10).toBe(100);
+        });
+
+        test('Zero-amount splits stay at 0 percent', () => {
+            // Splits with 0 amount should have 0% even when there is a remainder
+            const amounts = [33, 33, 35, 0, 0];
+            const percentages = IOUUtils.calculateSplitPercentagesFromAmounts(amounts, 101);
+
+            // Zero amounts should be 0%
+            expect(percentages.at(3)).toBe(0);
+            expect(percentages.at(4)).toBe(0);
+            // First two (equal amounts) should have equal percentages
+            expect(percentages.at(0)).toBe(percentages.at(1));
+            // Sum should be 100
+            expect(Math.round(percentages.reduce((sum, p) => sum + p, 0) * 10) / 10).toBe(100);
+        });
+
+        test('Returns percentages with one decimal place', () => {
+            const totalInCents = 2300;
+            const amounts = [766, 766, 768];
+            const percentages = IOUUtils.calculateSplitPercentagesFromAmounts(amounts, totalInCents);
+
+            // First two equal amounts should have equal percentages
+            expect(percentages.at(0)).toBe(percentages.at(1));
+            // Percentages should have at most one decimal place
+            for (const p of percentages) {
+                expect(Math.round(p * 10) / 10).toBe(p);
+            }
+            // Sum should be 100
+            expect(Math.round(percentages.reduce((sum, p) => sum + p, 0) * 10) / 10).toBe(100);
+        });
+
+        test('Handles zero or empty totals by returning zeros', () => {
+            expect(IOUUtils.calculateSplitPercentagesFromAmounts([], 0)).toEqual([]);
+            expect(IOUUtils.calculateSplitPercentagesFromAmounts([0, 0], 0)).toEqual([0, 0]);
+        });
+
+        test('Preserves sign for negative amounts in multi-split scenario', () => {
+            const totalInCents = 10000;
+            const amounts = [-2500, 7500, 5000]; // -25% + 75% + 50% = 100%
+            const percentages = IOUUtils.calculateSplitPercentagesFromAmounts(amounts, totalInCents);
+
+            // First amount should be negative percentage
+            expect(percentages.at(0)).toBe(-25);
+            // Second amount should be positive
+            expect(percentages.at(1)).toBe(75);
+            // Third amount should be positive
+            expect(percentages.at(2)).toBe(50);
+            // Sum should be 100 (accounting for signs)
+            expect(Math.round(percentages.reduce((sum, p) => sum + p, 0) * 10) / 10).toBe(100);
+        });
+
+        test('Handles all negative amounts with negative total', () => {
+            const totalInCents = -2300;
+            const amounts = [-766, -766, -768];
+            const percentages = IOUUtils.calculateSplitPercentagesFromAmounts(amounts, totalInCents);
+
+            // When both total and amounts are negative (same sign), percentages should be positive
+            expect(percentages.at(0)).toBeGreaterThan(0);
+            expect(percentages.at(1)).toBeGreaterThan(0);
+            expect(percentages.at(2)).toBeGreaterThan(0);
+            // Equal amounts should have equal percentages
+            expect(percentages.at(0)).toBe(percentages.at(1));
+            // Sum should be 100 (positive)
+            expect(Math.round(percentages.reduce((sum, p) => sum + p, 0) * 10) / 10).toBe(100);
+        });
+
+        test('Returns floored percentages when split totals differ from original total', () => {
+            const originalTotalInCents = 20000;
+            const amounts = [10000, 10000, 5000]; // totals 25000, larger than original total
+            const percentages = IOUUtils.calculateSplitPercentagesFromAmounts(amounts, originalTotalInCents);
+
+            // Each amount is expressed as floored percentage of the original total
+            expect(percentages.at(0)).toBe(percentages.at(1)); // Equal amounts have equal percentages
+            // The sum can exceed 100 when splits are over the original total
+            expect(percentages.reduce((sum, current) => sum + current, 0)).toBe(125);
+        });
+
+        test('Produces normalized percentages for 13-way split of $89', () => {
+            const totalInCents = 8900;
+            const amounts = [684, 684, 684, 684, 684, 685, 685, 685, 685, 685, 685, 685, 685];
+            const percentages = IOUUtils.calculateSplitPercentagesFromAmounts(amounts, totalInCents);
+
+            // All 684s (first 5) should have equal percentages
+            const first5 = percentages.slice(0, 5);
+            expect(new Set(first5).size).toBe(1);
+
+            // All 685s except the last should have equal percentages
+            const middle7 = percentages.slice(5, 12);
+            expect(new Set(middle7).size).toBe(1);
+
+            // Base percentage should be 7.6 (floored from 7.68-7.69)
+            expect(first5.at(0)).toBe(7.6);
+
+            // Sum should be 100
+            expect(Math.round(percentages.reduce((sum, p) => sum + p, 0) * 10) / 10).toBe(100);
+        });
+
+        test('Produces normalized percentages for 12-way split of $22', () => {
+            const totalInCents = 2200;
+            const amounts = [183, 183, 183, 183, 183, 183, 183, 183, 184, 184, 184, 184];
+            const percentages = IOUUtils.calculateSplitPercentagesFromAmounts(amounts, totalInCents);
+
+            // All 183s (first 8) should have equal percentages
+            const first8 = percentages.slice(0, 8);
+            expect(new Set(first8).size).toBe(1);
+
+            // All 184s except the last should have equal percentages
+            const middle3 = percentages.slice(8, 11);
+            expect(new Set(middle3).size).toBe(1);
+
+            // Base percentage should be 8.3 (floored from 8.31-8.36)
+            expect(first8.at(0)).toBe(8.3);
+
+            // Sum should be 100
+            expect(Math.round(percentages.reduce((sum, p) => sum + p, 0) * 10) / 10).toBe(100);
         });
     });
 
@@ -337,7 +515,7 @@ describe('canSubmitReport', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithoutViolation}`, transactionWithoutViolation);
-        expect(canSubmitReport(expenseReport, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false, '')).toBe(true);
+        expect(canSubmitReport(expenseReport, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false, '', currentUserAccountID)).toBe(true);
     });
 
     test('Return true if report can be submitted after being reopened', async () => {
@@ -401,7 +579,7 @@ describe('canSubmitReport', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithoutViolation}`, transactionWithoutViolation);
-        expect(canSubmitReport(expenseReport, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false, '')).toBe(true);
+        expect(canSubmitReport(expenseReport, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false, '', currentUserAccountID)).toBe(true);
     });
 
     test('Return false if report can not be submitted', async () => {
@@ -420,7 +598,7 @@ describe('canSubmitReport', () => {
             policyID: fakePolicy.id,
         };
 
-        expect(canSubmitReport(expenseReport, fakePolicy, [], undefined, false, '')).toBe(false);
+        expect(canSubmitReport(expenseReport, fakePolicy, [], undefined, false, '', currentUserAccountID)).toBe(false);
     });
 
     it('returns false if the report is archived', async () => {
@@ -445,7 +623,7 @@ describe('canSubmitReport', () => {
 
         // Simulate how components call canModifyTask() by using the hook useReportIsArchived() to see if the report is archived
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-        expect(canSubmitReport(report, policy, [], undefined, isReportArchived.current, '')).toBe(false);
+        expect(canSubmitReport(report, policy, [], undefined, isReportArchived.current, '', currentUserAccountID)).toBe(false);
     });
 });
 
@@ -464,7 +642,7 @@ describe('Check valid amount for IOU/Expense request', () => {
     });
 
     test('Expense amount should be negative', () => {
-        const expenseReport = ReportUtils.buildOptimisticExpenseReport('212', '123', 100, 122, 'USD');
+        const expenseReport = ReportUtils.buildOptimisticExpenseReport({chatReportID: '212', policyID: '123', payeeAccountID: 100, total: 122, currency: 'USD', betas: [CONST.BETAS.ALL]});
         const expenseTransaction = TransactionUtils.buildOptimisticTransaction({
             transactionParams: {
                 amount: 100,
@@ -486,5 +664,159 @@ describe('Check valid amount for IOU/Expense request', () => {
         });
         const unreportedAmount = TransactionUtils.getAmount(unreportedTransaction, true, false);
         expect(unreportedAmount).toBeLessThan(0);
+    });
+});
+
+describe('navigateToConfirmationPage', () => {
+    const transactionID = '123';
+    const reportID = '444';
+
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('should navigate to confirmation step with SUBMIT iouType when iouType is REQUEST', () => {
+        IOUUtils.navigateToConfirmationPage(CONST.IOU.TYPE.REQUEST, transactionID, reportID, undefined);
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, undefined));
+    });
+
+    it('should navigate to confirmation step with SEND iouType when iouType is SEND and from ManualDistanceRequest', () => {
+        const backToReport = '111';
+        IOUUtils.navigateToConfirmationPage(CONST.IOU.TYPE.SEND, transactionID, reportID, backToReport, false, undefined, true);
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(
+            ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SEND, transactionID, reportID, backToReport),
+        );
+    });
+
+    it('should navigate to confirmation step with PAY iouType when iouType is SEND and not from ManualDistanceRequest', () => {
+        IOUUtils.navigateToConfirmationPage(CONST.IOU.TYPE.SEND, transactionID, reportID, undefined, false, undefined, false);
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, transactionID, reportID));
+    });
+
+    it('should navigate to confirmation step with reportIDParam if provided in default case', () => {
+        const reportIDParam = '555';
+        IOUUtils.navigateToConfirmationPage(CONST.IOU.TYPE.TRACK, transactionID, reportID, undefined, false, reportIDParam);
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(
+            ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.TRACK, transactionID, reportIDParam, undefined),
+        );
+    });
+
+    it('should navigate to confirmation step with SUBMIT iouType when shouldNavigateToSubmit = true in default case', () => {
+        IOUUtils.navigateToConfirmationPage(CONST.IOU.TYPE.CREATE, transactionID, reportID, undefined, true);
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, undefined));
+    });
+
+    it('should navigate to confirmation step with provided iouType directly when shouldNavigateToSubmit = false in default case', () => {
+        IOUUtils.navigateToConfirmationPage(CONST.IOU.TYPE.TRACK, transactionID, reportID, undefined, false);
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.TRACK, transactionID, reportID, undefined));
+    });
+});
+
+describe('canApproveIOU', () => {
+    const REPORT_ID = '1';
+    const CURRENT_USER_EMAIL = 'test@email.com';
+
+    beforeEach(async () => {
+        Onyx.init({
+            keys: ONYXKEYS,
+        });
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: CURRENT_USER_EMAIL});
+    });
+
+    afterEach(async () => {
+        await Onyx.clear();
+    });
+
+    it('should return true for DEW policy report without pending approval', async () => {
+        // Given a submitted expense report on a DEW policy without any pending approval action
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: currentUserAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: currentUserAccountID,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const policy = {
+            type: CONST.POLICY.TYPE.TEAM,
+            approver: CURRENT_USER_EMAIL,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+        } as unknown as Policy;
+
+        const reportMetadata: ReportMetadata = {};
+
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+            transactionID: '123',
+            amount: 10,
+            merchant: 'Merchant',
+            created: '2025-01-01',
+        } as unknown as Transaction;
+
+        // When checking if approve action is available
+        // Then it should return true because DEW approval is not in progress
+        expect(canApproveIOU(report, policy, reportMetadata, [transaction])).toBe(true);
+    });
+
+    it('should return false for DEW policy report with pending approval', async () => {
+        // Given a submitted expense report on a DEW policy with a pending approval action
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: currentUserAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: currentUserAccountID,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const policy = {
+            type: CONST.POLICY.TYPE.TEAM,
+            approver: CURRENT_USER_EMAIL,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+        } as unknown as Policy;
+
+        const reportMetadata: ReportMetadata = {
+            pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE,
+        };
+
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+            transactionID: '123',
+            amount: 10,
+            merchant: 'Merchant',
+            created: '2025-01-01',
+        } as unknown as Transaction;
+
+        // When checking if approve action is available while DEW approval is pending
+        // Then it should return false because DEW is already processing an approval
+        expect(canApproveIOU(report, policy, reportMetadata, [transaction])).toBe(false);
+    });
+
+    it('should return false for non-expense report', async () => {
+        // Given a non-expense report
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.CHAT,
+            ownerAccountID: currentUserAccountID,
+        } as unknown as Report;
+
+        const policy = {
+            type: CONST.POLICY.TYPE.TEAM,
+            approver: CURRENT_USER_EMAIL,
+        } as unknown as Policy;
+
+        const reportMetadata: ReportMetadata = {};
+
+        // Then canApproveIOU should return false
+        expect(canApproveIOU(report, policy, reportMetadata)).toBe(false);
     });
 });

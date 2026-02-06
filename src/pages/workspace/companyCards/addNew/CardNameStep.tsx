@@ -24,10 +24,10 @@ function CardNameStep() {
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM> => {
-        const errors = getFieldRequiredErrors(values, [INPUT_IDS.CARD_TITLE]);
+        const errors = getFieldRequiredErrors(values, [INPUT_IDS.CARD_TITLE], translate);
         const length = values.cardTitle.length;
         if (length > CONST.STANDARD_LENGTH_LIMIT) {
-            addErrorMessage(errors, INPUT_IDS.CARD_TITLE, translate('common.error.characterLimitExceedCounter', {length, limit: CONST.STANDARD_LENGTH_LIMIT}));
+            addErrorMessage(errors, INPUT_IDS.CARD_TITLE, translate('common.error.characterLimitExceedCounter', length, CONST.STANDARD_LENGTH_LIMIT));
         }
         return errors;
     };
@@ -48,7 +48,7 @@ function CardNameStep() {
 
     return (
         <ScreenWrapper
-            testID={CardNameStep.displayName}
+            testID="CardNameStep"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
@@ -82,7 +82,5 @@ function CardNameStep() {
         </ScreenWrapper>
     );
 }
-
-CardNameStep.displayName = 'CardNameStep';
 
 export default CardNameStep;

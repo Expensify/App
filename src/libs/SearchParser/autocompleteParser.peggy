@@ -23,7 +23,7 @@
 
   // List fields where you cannot prefix it with "-" to negate it
   const nonNegatableKeys = new Set([
-    "type", "keyword", "groupCurrency", "groupBy"
+    "type", "keyword", "groupCurrency", "groupBy", "columns", "limit", "view"
   ]);
 }
 
@@ -96,6 +96,7 @@ autocompleteKey "key"
       / cardID
       / feed
       / groupBy
+      / view
       / reimbursable
       / billable
       / policyID
@@ -118,6 +119,8 @@ autocompleteKey "key"
       / withdrawalID
       / title
       / reportFieldDynamic
+      / columns
+      / limit
     )
 
 filterKey

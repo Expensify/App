@@ -7,9 +7,9 @@ import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
-import type {IndicatorStatus} from '@hooks/useIndicatorStatus';
 import useIndicatorStatus from '@hooks/useIndicatorStatus';
 import useLocalize from '@hooks/useLocalize';
+import type {IndicatorStatus} from '@hooks/useNavigationTabBarIndicatorChecks';
 import useOnyx from '@hooks/useOnyx';
 import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -110,7 +110,7 @@ function DebugTabView({selectedTab, chatTabBrickRoad}: DebugTabViewProps) {
     const {orderedReportIDs} = useSidebarOrderedReports();
 
     const message = useMemo((): TranslationPaths | undefined => {
-        if (selectedTab === NAVIGATION_TABS.HOME) {
+        if (selectedTab === NAVIGATION_TABS.INBOX) {
             if (chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
                 return 'debug.indicatorStatus.theresAReportAwaitingAction';
             }
@@ -124,7 +124,7 @@ function DebugTabView({selectedTab, chatTabBrickRoad}: DebugTabViewProps) {
     }, [selectedTab, chatTabBrickRoad, status]);
 
     const indicator = useMemo(() => {
-        if (selectedTab === NAVIGATION_TABS.HOME) {
+        if (selectedTab === NAVIGATION_TABS.INBOX) {
             if (chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
                 return theme.success;
             }
@@ -140,7 +140,7 @@ function DebugTabView({selectedTab, chatTabBrickRoad}: DebugTabViewProps) {
     }, [selectedTab, chatTabBrickRoad, theme.success, theme.danger, status, indicatorColor]);
 
     const navigateTo = useCallback(() => {
-        if (selectedTab === NAVIGATION_TABS.HOME && !!chatTabBrickRoad) {
+        if (selectedTab === NAVIGATION_TABS.INBOX && !!chatTabBrickRoad) {
             const reportID = getChatTabBrickRoadReportID(orderedReportIDs, reportAttributes);
 
             if (reportID) {
@@ -156,13 +156,13 @@ function DebugTabView({selectedTab, chatTabBrickRoad}: DebugTabViewProps) {
         }
     }, [selectedTab, chatTabBrickRoad, orderedReportIDs, reportAttributes, status, reimbursementAccount, policyIDWithErrors]);
 
-    if (!([NAVIGATION_TABS.HOME, NAVIGATION_TABS.SETTINGS, NAVIGATION_TABS.WORKSPACES] as string[]).includes(selectedTab ?? '') || !indicator) {
+    if (!([NAVIGATION_TABS.INBOX, NAVIGATION_TABS.SETTINGS, NAVIGATION_TABS.WORKSPACES] as string[]).includes(selectedTab ?? '') || !indicator) {
         return null;
     }
 
     return (
         <View
-            testID={DebugTabView.displayName}
+            testID="DebugTabView"
             style={[StyleUtils.getBackgroundColorStyle(theme.cardBG), styles.p3, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}
         >
             <View style={[styles.flexRow, styles.gap2, styles.flex1, styles.alignItemsCenter]}>
@@ -179,7 +179,5 @@ function DebugTabView({selectedTab, chatTabBrickRoad}: DebugTabViewProps) {
         </View>
     );
 }
-
-DebugTabView.displayName = 'DebugTabView';
 
 export default DebugTabView;

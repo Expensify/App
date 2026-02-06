@@ -1,8 +1,8 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback} from 'react';
 import type {ValueOf} from 'type-fest';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
@@ -55,9 +55,9 @@ function SageIntacctNonReimbursableExpensesDestinationPage({policy}: WithPolicyC
 
     return (
         <SelectionScreen
-            displayName={SageIntacctNonReimbursableExpensesDestinationPage.displayName}
+            displayName="SageIntacctNonReimbursableExpensesDestinationPage"
             title="workspace.accounting.exportAs"
-            sections={[{data}]}
+            data={data}
             listItem={RadioListItem}
             onSelectRow={(selection: SelectorType) => selectDestination(selection as MenuListItem)}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
@@ -73,7 +73,5 @@ function SageIntacctNonReimbursableExpensesDestinationPage({policy}: WithPolicyC
         />
     );
 }
-
-SageIntacctNonReimbursableExpensesDestinationPage.displayName = 'SageIntacctNonReimbursableExpensesDestinationPage';
 
 export default withPolicyConnections(SageIntacctNonReimbursableExpensesDestinationPage);

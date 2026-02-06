@@ -10,7 +10,7 @@ import type {ReportLayoutGroupBy} from '@src/types/onyx';
  * Set the user's report layout group-by preference
  */
 function setReportLayoutGroupBy(groupBy: ReportLayoutGroupBy, previousValue?: string | null) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY,
@@ -18,7 +18,7 @@ function setReportLayoutGroupBy(groupBy: ReportLayoutGroupBy, previousValue?: st
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY,

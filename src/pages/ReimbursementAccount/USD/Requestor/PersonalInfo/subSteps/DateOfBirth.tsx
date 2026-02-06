@@ -7,6 +7,7 @@ import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccoun
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -46,10 +47,9 @@ function DateOfBirth({onNext, onMove, isEditing}: SubStepProps) {
             dobInputID={PERSONAL_INFO_DOB_KEY}
             dobDefaultValue={dobDefaultValue}
             footerComponent={<HelpLinks containerStyles={[styles.mt5]} />}
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
         />
     );
 }
-
-DateOfBirth.displayName = 'DateOfBirth';
 
 export default DateOfBirth;

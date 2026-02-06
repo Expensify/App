@@ -12,6 +12,4 @@ function Indicator() {
     return !!status && <View style={StyleSheet.flatten(indicatorStyles)} />;
 }
 
-Indicator.displayName = 'Indicator';
-
 export default Indicator;

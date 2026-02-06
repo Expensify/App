@@ -49,5 +49,4 @@ function DuplicateTransactionsList({transactions, onPreviewPressed}: DuplicateTr
     );
 }
 
-DuplicateTransactionsList.displayName = 'DuplicateTransactionsList';
 export default DuplicateTransactionsList;

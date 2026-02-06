@@ -148,11 +148,15 @@ jobs:
         with:
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid }}
 
+      - name: Get Java version
+        id: get-java-version
+        uses: ./.github/actions/composite/getJavaVersion
+
       - name: Setup Java
         uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12
         with:
           distribution: oracle
-          java-version: 17
+          java-version: ${{ steps.get-java-version.outputs.version }}
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244

@@ -3588,332 +3588,6 @@ function addMappingInternal(skipable, map, mapping) {
 
 /***/ }),
 
-/***/ 9105:
-/***/ ((module) => {
-
-"use strict";
-
-
-const object = {};
-const hasOwnProperty = object.hasOwnProperty;
-const forOwn = (object, callback) => {
-	for (const key in object) {
-		if (hasOwnProperty.call(object, key)) {
-			callback(key, object[key]);
-		}
-	}
-};
-
-const extend = (destination, source) => {
-	if (!source) {
-		return destination;
-	}
-	forOwn(source, (key, value) => {
-		destination[key] = value;
-	});
-	return destination;
-};
-
-const forEach = (array, callback) => {
-	const length = array.length;
-	let index = -1;
-	while (++index < length) {
-		callback(array[index]);
-	}
-};
-
-const fourHexEscape = (hex) => {
-	return '\\u' + ('0000' + hex).slice(-4);
-}
-
-const hexadecimal = (code, lowercase) => {
-	let hexadecimal = code.toString(16);
-	if (lowercase) return hexadecimal;
-	return hexadecimal.toUpperCase();
-};
-
-const toString = object.toString;
-const isArray = Array.isArray;
-const isBuffer = (value) => {
-	return typeof Buffer === 'function' && Buffer.isBuffer(value);
-};
-const isObject = (value) => {
-	// This is a very simple check, but it’s good enough for what we need.
-	return toString.call(value) == '[object Object]';
-};
-const isString = (value) => {
-	return typeof value == 'string' ||
-		toString.call(value) == '[object String]';
-};
-const isNumber = (value) => {
-	return typeof value == 'number' ||
-		toString.call(value) == '[object Number]';
-};
-const isFunction = (value) => {
-	return typeof value == 'function';
-};
-const isMap = (value) => {
-	return toString.call(value) == '[object Map]';
-};
-const isSet = (value) => {
-	return toString.call(value) == '[object Set]';
-};
-
-/*--------------------------------------------------------------------------*/
-
-// https://mathiasbynens.be/notes/javascript-escapes#single
-const singleEscapes = {
-	'\\': '\\\\',
-	'\b': '\\b',
-	'\f': '\\f',
-	'\n': '\\n',
-	'\r': '\\r',
-	'\t': '\\t'
-	// `\v` is omitted intentionally, because in IE < 9, '\v' == 'v'.
-	// '\v': '\\x0B'
-};
-const regexSingleEscape = /[\\\b\f\n\r\t]/;
-
-const regexDigit = /[0-9]/;
-const regexWhitespace = /[\xA0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]/;
-
-const escapeEverythingRegex = /([\uD800-\uDBFF][\uDC00-\uDFFF])|([\uD800-\uDFFF])|(['"`])|[^]/g;
-const escapeNonAsciiRegex = /([\uD800-\uDBFF][\uDC00-\uDFFF])|([\uD800-\uDFFF])|(['"`])|[^ !#-&\(-\[\]-_a-~]/g;
-
-const jsesc = (argument, options) => {
-	const increaseIndentation = () => {
-		oldIndent = indent;
-		++options.indentLevel;
-		indent = options.indent.repeat(options.indentLevel)
-	};
-	// Handle options
-	const defaults = {
-		'escapeEverything': false,
-		'minimal': false,
-		'isScriptContext': false,
-		'quotes': 'single',
-		'wrap': false,
-		'es6': false,
-		'json': false,
-		'compact': true,
-		'lowercaseHex': false,
-		'numbers': 'decimal',
-		'indent': '\t',
-		'indentLevel': 0,
-		'__inline1__': false,
-		'__inline2__': false
-	};
-	const json = options && options.json;
-	if (json) {
-		defaults.quotes = 'double';
-		defaults.wrap = true;
-	}
-	options = extend(defaults, options);
-	if (
-		options.quotes != 'single' &&
-		options.quotes != 'double' &&
-		options.quotes != 'backtick'
-	) {
-		options.quotes = 'single';
-	}
-	const quote = options.quotes == 'double' ?
-		'"' :
-		(options.quotes == 'backtick' ?
-			'`' :
-			'\''
-		);
-	const compact = options.compact;
-	const lowercaseHex = options.lowercaseHex;
-	let indent = options.indent.repeat(options.indentLevel);
-	let oldIndent = '';
-	const inline1 = options.__inline1__;
-	const inline2 = options.__inline2__;
-	const newLine = compact ? '' : '\n';
-	let result;
-	let isEmpty = true;
-	const useBinNumbers = options.numbers == 'binary';
-	const useOctNumbers = options.numbers == 'octal';
-	const useDecNumbers = options.numbers == 'decimal';
-	const useHexNumbers = options.numbers == 'hexadecimal';
-
-	if (json && argument && isFunction(argument.toJSON)) {
-		argument = argument.toJSON();
-	}
-
-	if (!isString(argument)) {
-		if (isMap(argument)) {
-			if (argument.size == 0) {
-				return 'new Map()';
-			}
-			if (!compact) {
-				options.__inline1__ = true;
-				options.__inline2__ = false;
-			}
-			return 'new Map(' + jsesc(Array.from(argument), options) + ')';
-		}
-		if (isSet(argument)) {
-			if (argument.size == 0) {
-				return 'new Set()';
-			}
-			return 'new Set(' + jsesc(Array.from(argument), options) + ')';
-		}
-		if (isBuffer(argument)) {
-			if (argument.length == 0) {
-				return 'Buffer.from([])';
-			}
-			return 'Buffer.from(' + jsesc(Array.from(argument), options) + ')';
-		}
-		if (isArray(argument)) {
-			result = [];
-			options.wrap = true;
-			if (inline1) {
-				options.__inline1__ = false;
-				options.__inline2__ = true;
-			}
-			if (!inline2) {
-				increaseIndentation();
-			}
-			forEach(argument, (value) => {
-				isEmpty = false;
-				if (inline2) {
-					options.__inline2__ = false;
-				}
-				result.push(
-					(compact || inline2 ? '' : indent) +
-					jsesc(value, options)
-				);
-			});
-			if (isEmpty) {
-				return '[]';
-			}
-			if (inline2) {
-				return '[' + result.join(', ') + ']';
-			}
-			return '[' + newLine + result.join(',' + newLine) + newLine +
-				(compact ? '' : oldIndent) + ']';
-		} else if (isNumber(argument)) {
-			if (json) {
-				// Some number values (e.g. `Infinity`) cannot be represented in JSON.
-				return JSON.stringify(argument);
-			}
-			if (useDecNumbers) {
-				return String(argument);
-			}
-			if (useHexNumbers) {
-				let hexadecimal = argument.toString(16);
-				if (!lowercaseHex) {
-					hexadecimal = hexadecimal.toUpperCase();
-				}
-				return '0x' + hexadecimal;
-			}
-			if (useBinNumbers) {
-				return '0b' + argument.toString(2);
-			}
-			if (useOctNumbers) {
-				return '0o' + argument.toString(8);
-			}
-		} else if (!isObject(argument)) {
-			if (json) {
-				// For some values (e.g. `undefined`, `function` objects),
-				// `JSON.stringify(value)` returns `undefined` (which isn’t valid
-				// JSON) instead of `'null'`.
-				return JSON.stringify(argument) || 'null';
-			}
-			return String(argument);
-		} else { // it’s an object
-			result = [];
-			options.wrap = true;
-			increaseIndentation();
-			forOwn(argument, (key, value) => {
-				isEmpty = false;
-				result.push(
-					(compact ? '' : indent) +
-					jsesc(key, options) + ':' +
-					(compact ? '' : ' ') +
-					jsesc(value, options)
-				);
-			});
-			if (isEmpty) {
-				return '{}';
-			}
-			return '{' + newLine + result.join(',' + newLine) + newLine +
-				(compact ? '' : oldIndent) + '}';
-		}
-	}
-
-	const regex = options.escapeEverything ? escapeEverythingRegex : escapeNonAsciiRegex;
-	result = argument.replace(regex, (char, pair, lone, quoteChar, index, string) => {
-		if (pair) {
-			if (options.minimal) return pair;
-			const first = pair.charCodeAt(0);
-			const second = pair.charCodeAt(1);
-			if (options.es6) {
-				// https://mathiasbynens.be/notes/javascript-encoding#surrogate-formulae
-				const codePoint = (first - 0xD800) * 0x400 + second - 0xDC00 + 0x10000;
-				const hex = hexadecimal(codePoint, lowercaseHex);
-				return '\\u{' + hex + '}';
-			}
-			return fourHexEscape(hexadecimal(first, lowercaseHex)) + fourHexEscape(hexadecimal(second, lowercaseHex));
-		}
-
-		if (lone) {
-			return fourHexEscape(hexadecimal(lone.charCodeAt(0), lowercaseHex));
-		}
-
-		if (
-			char == '\0' &&
-			!json &&
-			!regexDigit.test(string.charAt(index + 1))
-		) {
-			return '\\0';
-		}
-
-		if (quoteChar) {
-			if (quoteChar == quote || options.escapeEverything) {
-				return '\\' + quoteChar;
-			}
-			return quoteChar;
-		}
-
-		if (regexSingleEscape.test(char)) {
-			// no need for a `hasOwnProperty` check here
-			return singleEscapes[char];
-		}
-
-		if (options.minimal && !regexWhitespace.test(char)) {
-			return char;
-		}
-
-		const hex = hexadecimal(char.charCodeAt(0), lowercaseHex);
-		if (json || hex.length > 2) {
-			return fourHexEscape(hex);
-		}
-
-		return '\\x' + ('00' + hex).slice(-2);
-	});
-
-	if (quote == '`') {
-		result = result.replace(/\$\{/g, '\\${');
-	}
-	if (options.isScriptContext) {
-		// https://mathiasbynens.be/notes/etago
-		result = result
-			.replace(/<\/(script|style)/gi, '<\\/$1')
-			.replace(/<!--/g, json ? '\\u003C!--' : '\\x3C!--');
-	}
-	if (options.wrap) {
-		result = quote + result + quote;
-	}
-	return result;
-};
-
-jsesc.version = '3.0.2';
-
-module.exports = jsesc;
-
-
-/***/ }),
-
 /***/ 6898:
 /***/ (function(module) {
 
@@ -4171,444 +3845,461 @@ module.exports = jsesc;
 /***/ }),
 
 /***/ 7225:
-/***/ (function(__unused_webpack_module, exports) {
+/***/ (function(module, __unused_webpack_exports, __nccwpck_require__) {
 
+/* module decorator */ module = __nccwpck_require__.nmd(module);
 (function (global, factory) {
-     true ? factory(exports) :
-    0;
-})(this, (function (exports) { 'use strict';
+  if (true) {
+    factory(module);
+    module.exports = def(module);
+  } else {}
+  function def(m) { return 'default' in m.exports ? m.exports.default : m.exports; }
+})(this, (function (module) {
+"use strict";
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-    const comma = ','.charCodeAt(0);
-    const semicolon = ';'.charCodeAt(0);
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-    const intToChar = new Uint8Array(64); // 64 possible chars.
-    const charToInt = new Uint8Array(128); // z is 122 in ASCII
-    for (let i = 0; i < chars.length; i++) {
-        const c = chars.charCodeAt(i);
-        intToChar[i] = c;
-        charToInt[c] = i;
+// src/sourcemap-codec.ts
+var sourcemap_codec_exports = {};
+__export(sourcemap_codec_exports, {
+  decode: () => decode,
+  decodeGeneratedRanges: () => decodeGeneratedRanges,
+  decodeOriginalScopes: () => decodeOriginalScopes,
+  encode: () => encode,
+  encodeGeneratedRanges: () => encodeGeneratedRanges,
+  encodeOriginalScopes: () => encodeOriginalScopes
+});
+module.exports = __toCommonJS(sourcemap_codec_exports);
+
+// src/vlq.ts
+var comma = ",".charCodeAt(0);
+var semicolon = ";".charCodeAt(0);
+var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+var intToChar = new Uint8Array(64);
+var charToInt = new Uint8Array(128);
+for (let i = 0; i < chars.length; i++) {
+  const c = chars.charCodeAt(i);
+  intToChar[i] = c;
+  charToInt[c] = i;
+}
+function decodeInteger(reader, relative) {
+  let value = 0;
+  let shift = 0;
+  let integer = 0;
+  do {
+    const c = reader.next();
+    integer = charToInt[c];
+    value |= (integer & 31) << shift;
+    shift += 5;
+  } while (integer & 32);
+  const shouldNegate = value & 1;
+  value >>>= 1;
+  if (shouldNegate) {
+    value = -2147483648 | -value;
+  }
+  return relative + value;
+}
+function encodeInteger(builder, num, relative) {
+  let delta = num - relative;
+  delta = delta < 0 ? -delta << 1 | 1 : delta << 1;
+  do {
+    let clamped = delta & 31;
+    delta >>>= 5;
+    if (delta > 0) clamped |= 32;
+    builder.write(intToChar[clamped]);
+  } while (delta > 0);
+  return num;
+}
+function hasMoreVlq(reader, max) {
+  if (reader.pos >= max) return false;
+  return reader.peek() !== comma;
+}
+
+// src/strings.ts
+var bufLength = 1024 * 16;
+var td = typeof TextDecoder !== "undefined" ? /* @__PURE__ */ new TextDecoder() : typeof Buffer !== "undefined" ? {
+  decode(buf) {
+    const out = Buffer.from(buf.buffer, buf.byteOffset, buf.byteLength);
+    return out.toString();
+  }
+} : {
+  decode(buf) {
+    let out = "";
+    for (let i = 0; i < buf.length; i++) {
+      out += String.fromCharCode(buf[i]);
     }
-    function decodeInteger(reader, relative) {
-        let value = 0;
-        let shift = 0;
-        let integer = 0;
+    return out;
+  }
+};
+var StringWriter = class {
+  constructor() {
+    this.pos = 0;
+    this.out = "";
+    this.buffer = new Uint8Array(bufLength);
+  }
+  write(v) {
+    const { buffer } = this;
+    buffer[this.pos++] = v;
+    if (this.pos === bufLength) {
+      this.out += td.decode(buffer);
+      this.pos = 0;
+    }
+  }
+  flush() {
+    const { buffer, out, pos } = this;
+    return pos > 0 ? out + td.decode(buffer.subarray(0, pos)) : out;
+  }
+};
+var StringReader = class {
+  constructor(buffer) {
+    this.pos = 0;
+    this.buffer = buffer;
+  }
+  next() {
+    return this.buffer.charCodeAt(this.pos++);
+  }
+  peek() {
+    return this.buffer.charCodeAt(this.pos);
+  }
+  indexOf(char) {
+    const { buffer, pos } = this;
+    const idx = buffer.indexOf(char, pos);
+    return idx === -1 ? buffer.length : idx;
+  }
+};
+
+// src/scopes.ts
+var EMPTY = [];
+function decodeOriginalScopes(input) {
+  const { length } = input;
+  const reader = new StringReader(input);
+  const scopes = [];
+  const stack = [];
+  let line = 0;
+  for (; reader.pos < length; reader.pos++) {
+    line = decodeInteger(reader, line);
+    const column = decodeInteger(reader, 0);
+    if (!hasMoreVlq(reader, length)) {
+      const last = stack.pop();
+      last[2] = line;
+      last[3] = column;
+      continue;
+    }
+    const kind = decodeInteger(reader, 0);
+    const fields = decodeInteger(reader, 0);
+    const hasName = fields & 1;
+    const scope = hasName ? [line, column, 0, 0, kind, decodeInteger(reader, 0)] : [line, column, 0, 0, kind];
+    let vars = EMPTY;
+    if (hasMoreVlq(reader, length)) {
+      vars = [];
+      do {
+        const varsIndex = decodeInteger(reader, 0);
+        vars.push(varsIndex);
+      } while (hasMoreVlq(reader, length));
+    }
+    scope.vars = vars;
+    scopes.push(scope);
+    stack.push(scope);
+  }
+  return scopes;
+}
+function encodeOriginalScopes(scopes) {
+  const writer = new StringWriter();
+  for (let i = 0; i < scopes.length; ) {
+    i = _encodeOriginalScopes(scopes, i, writer, [0]);
+  }
+  return writer.flush();
+}
+function _encodeOriginalScopes(scopes, index, writer, state) {
+  const scope = scopes[index];
+  const { 0: startLine, 1: startColumn, 2: endLine, 3: endColumn, 4: kind, vars } = scope;
+  if (index > 0) writer.write(comma);
+  state[0] = encodeInteger(writer, startLine, state[0]);
+  encodeInteger(writer, startColumn, 0);
+  encodeInteger(writer, kind, 0);
+  const fields = scope.length === 6 ? 1 : 0;
+  encodeInteger(writer, fields, 0);
+  if (scope.length === 6) encodeInteger(writer, scope[5], 0);
+  for (const v of vars) {
+    encodeInteger(writer, v, 0);
+  }
+  for (index++; index < scopes.length; ) {
+    const next = scopes[index];
+    const { 0: l, 1: c } = next;
+    if (l > endLine || l === endLine && c >= endColumn) {
+      break;
+    }
+    index = _encodeOriginalScopes(scopes, index, writer, state);
+  }
+  writer.write(comma);
+  state[0] = encodeInteger(writer, endLine, state[0]);
+  encodeInteger(writer, endColumn, 0);
+  return index;
+}
+function decodeGeneratedRanges(input) {
+  const { length } = input;
+  const reader = new StringReader(input);
+  const ranges = [];
+  const stack = [];
+  let genLine = 0;
+  let definitionSourcesIndex = 0;
+  let definitionScopeIndex = 0;
+  let callsiteSourcesIndex = 0;
+  let callsiteLine = 0;
+  let callsiteColumn = 0;
+  let bindingLine = 0;
+  let bindingColumn = 0;
+  do {
+    const semi = reader.indexOf(";");
+    let genColumn = 0;
+    for (; reader.pos < semi; reader.pos++) {
+      genColumn = decodeInteger(reader, genColumn);
+      if (!hasMoreVlq(reader, semi)) {
+        const last = stack.pop();
+        last[2] = genLine;
+        last[3] = genColumn;
+        continue;
+      }
+      const fields = decodeInteger(reader, 0);
+      const hasDefinition = fields & 1;
+      const hasCallsite = fields & 2;
+      const hasScope = fields & 4;
+      let callsite = null;
+      let bindings = EMPTY;
+      let range;
+      if (hasDefinition) {
+        const defSourcesIndex = decodeInteger(reader, definitionSourcesIndex);
+        definitionScopeIndex = decodeInteger(
+          reader,
+          definitionSourcesIndex === defSourcesIndex ? definitionScopeIndex : 0
+        );
+        definitionSourcesIndex = defSourcesIndex;
+        range = [genLine, genColumn, 0, 0, defSourcesIndex, definitionScopeIndex];
+      } else {
+        range = [genLine, genColumn, 0, 0];
+      }
+      range.isScope = !!hasScope;
+      if (hasCallsite) {
+        const prevCsi = callsiteSourcesIndex;
+        const prevLine = callsiteLine;
+        callsiteSourcesIndex = decodeInteger(reader, callsiteSourcesIndex);
+        const sameSource = prevCsi === callsiteSourcesIndex;
+        callsiteLine = decodeInteger(reader, sameSource ? callsiteLine : 0);
+        callsiteColumn = decodeInteger(
+          reader,
+          sameSource && prevLine === callsiteLine ? callsiteColumn : 0
+        );
+        callsite = [callsiteSourcesIndex, callsiteLine, callsiteColumn];
+      }
+      range.callsite = callsite;
+      if (hasMoreVlq(reader, semi)) {
+        bindings = [];
         do {
-            const c = reader.next();
-            integer = charToInt[c];
-            value |= (integer & 31) << shift;
-            shift += 5;
-        } while (integer & 32);
-        const shouldNegate = value & 1;
-        value >>>= 1;
-        if (shouldNegate) {
-            value = -0x80000000 | -value;
-        }
-        return relative + value;
+          bindingLine = genLine;
+          bindingColumn = genColumn;
+          const expressionsCount = decodeInteger(reader, 0);
+          let expressionRanges;
+          if (expressionsCount < -1) {
+            expressionRanges = [[decodeInteger(reader, 0)]];
+            for (let i = -1; i > expressionsCount; i--) {
+              const prevBl = bindingLine;
+              bindingLine = decodeInteger(reader, bindingLine);
+              bindingColumn = decodeInteger(reader, bindingLine === prevBl ? bindingColumn : 0);
+              const expression = decodeInteger(reader, 0);
+              expressionRanges.push([expression, bindingLine, bindingColumn]);
+            }
+          } else {
+            expressionRanges = [[expressionsCount]];
+          }
+          bindings.push(expressionRanges);
+        } while (hasMoreVlq(reader, semi));
+      }
+      range.bindings = bindings;
+      ranges.push(range);
+      stack.push(range);
     }
-    function encodeInteger(builder, num, relative) {
-        let delta = num - relative;
-        delta = delta < 0 ? (-delta << 1) | 1 : delta << 1;
-        do {
-            let clamped = delta & 0b011111;
-            delta >>>= 5;
-            if (delta > 0)
-                clamped |= 0b100000;
-            builder.write(intToChar[clamped]);
-        } while (delta > 0);
-        return num;
+    genLine++;
+    reader.pos = semi + 1;
+  } while (reader.pos < length);
+  return ranges;
+}
+function encodeGeneratedRanges(ranges) {
+  if (ranges.length === 0) return "";
+  const writer = new StringWriter();
+  for (let i = 0; i < ranges.length; ) {
+    i = _encodeGeneratedRanges(ranges, i, writer, [0, 0, 0, 0, 0, 0, 0]);
+  }
+  return writer.flush();
+}
+function _encodeGeneratedRanges(ranges, index, writer, state) {
+  const range = ranges[index];
+  const {
+    0: startLine,
+    1: startColumn,
+    2: endLine,
+    3: endColumn,
+    isScope,
+    callsite,
+    bindings
+  } = range;
+  if (state[0] < startLine) {
+    catchupLine(writer, state[0], startLine);
+    state[0] = startLine;
+    state[1] = 0;
+  } else if (index > 0) {
+    writer.write(comma);
+  }
+  state[1] = encodeInteger(writer, range[1], state[1]);
+  const fields = (range.length === 6 ? 1 : 0) | (callsite ? 2 : 0) | (isScope ? 4 : 0);
+  encodeInteger(writer, fields, 0);
+  if (range.length === 6) {
+    const { 4: sourcesIndex, 5: scopesIndex } = range;
+    if (sourcesIndex !== state[2]) {
+      state[3] = 0;
     }
-    function hasMoreVlq(reader, max) {
-        if (reader.pos >= max)
-            return false;
-        return reader.peek() !== comma;
+    state[2] = encodeInteger(writer, sourcesIndex, state[2]);
+    state[3] = encodeInteger(writer, scopesIndex, state[3]);
+  }
+  if (callsite) {
+    const { 0: sourcesIndex, 1: callLine, 2: callColumn } = range.callsite;
+    if (sourcesIndex !== state[4]) {
+      state[5] = 0;
+      state[6] = 0;
+    } else if (callLine !== state[5]) {
+      state[6] = 0;
     }
+    state[4] = encodeInteger(writer, sourcesIndex, state[4]);
+    state[5] = encodeInteger(writer, callLine, state[5]);
+    state[6] = encodeInteger(writer, callColumn, state[6]);
+  }
+  if (bindings) {
+    for (const binding of bindings) {
+      if (binding.length > 1) encodeInteger(writer, -binding.length, 0);
+      const expression = binding[0][0];
+      encodeInteger(writer, expression, 0);
+      let bindingStartLine = startLine;
+      let bindingStartColumn = startColumn;
+      for (let i = 1; i < binding.length; i++) {
+        const expRange = binding[i];
+        bindingStartLine = encodeInteger(writer, expRange[1], bindingStartLine);
+        bindingStartColumn = encodeInteger(writer, expRange[2], bindingStartColumn);
+        encodeInteger(writer, expRange[0], 0);
+      }
+    }
+  }
+  for (index++; index < ranges.length; ) {
+    const next = ranges[index];
+    const { 0: l, 1: c } = next;
+    if (l > endLine || l === endLine && c >= endColumn) {
+      break;
+    }
+    index = _encodeGeneratedRanges(ranges, index, writer, state);
+  }
+  if (state[0] < endLine) {
+    catchupLine(writer, state[0], endLine);
+    state[0] = endLine;
+    state[1] = 0;
+  } else {
+    writer.write(comma);
+  }
+  state[1] = encodeInteger(writer, endColumn, state[1]);
+  return index;
+}
+function catchupLine(writer, lastLine, line) {
+  do {
+    writer.write(semicolon);
+  } while (++lastLine < line);
+}
 
-    const bufLength = 1024 * 16;
-    // Provide a fallback for older environments.
-    const td = typeof TextDecoder !== 'undefined'
-        ? /* #__PURE__ */ new TextDecoder()
-        : typeof Buffer !== 'undefined'
-            ? {
-                decode(buf) {
-                    const out = Buffer.from(buf.buffer, buf.byteOffset, buf.byteLength);
-                    return out.toString();
-                },
-            }
-            : {
-                decode(buf) {
-                    let out = '';
-                    for (let i = 0; i < buf.length; i++) {
-                        out += String.fromCharCode(buf[i]);
-                    }
-                    return out;
-                },
-            };
-    class StringWriter {
-        constructor() {
-            this.pos = 0;
-            this.out = '';
-            this.buffer = new Uint8Array(bufLength);
+// src/sourcemap-codec.ts
+function decode(mappings) {
+  const { length } = mappings;
+  const reader = new StringReader(mappings);
+  const decoded = [];
+  let genColumn = 0;
+  let sourcesIndex = 0;
+  let sourceLine = 0;
+  let sourceColumn = 0;
+  let namesIndex = 0;
+  do {
+    const semi = reader.indexOf(";");
+    const line = [];
+    let sorted = true;
+    let lastCol = 0;
+    genColumn = 0;
+    while (reader.pos < semi) {
+      let seg;
+      genColumn = decodeInteger(reader, genColumn);
+      if (genColumn < lastCol) sorted = false;
+      lastCol = genColumn;
+      if (hasMoreVlq(reader, semi)) {
+        sourcesIndex = decodeInteger(reader, sourcesIndex);
+        sourceLine = decodeInteger(reader, sourceLine);
+        sourceColumn = decodeInteger(reader, sourceColumn);
+        if (hasMoreVlq(reader, semi)) {
+          namesIndex = decodeInteger(reader, namesIndex);
+          seg = [genColumn, sourcesIndex, sourceLine, sourceColumn, namesIndex];
+        } else {
+          seg = [genColumn, sourcesIndex, sourceLine, sourceColumn];
         }
-        write(v) {
-            const { buffer } = this;
-            buffer[this.pos++] = v;
-            if (this.pos === bufLength) {
-                this.out += td.decode(buffer);
-                this.pos = 0;
-            }
-        }
-        flush() {
-            const { buffer, out, pos } = this;
-            return pos > 0 ? out + td.decode(buffer.subarray(0, pos)) : out;
-        }
+      } else {
+        seg = [genColumn];
+      }
+      line.push(seg);
+      reader.pos++;
     }
-    class StringReader {
-        constructor(buffer) {
-            this.pos = 0;
-            this.buffer = buffer;
-        }
-        next() {
-            return this.buffer.charCodeAt(this.pos++);
-        }
-        peek() {
-            return this.buffer.charCodeAt(this.pos);
-        }
-        indexOf(char) {
-            const { buffer, pos } = this;
-            const idx = buffer.indexOf(char, pos);
-            return idx === -1 ? buffer.length : idx;
-        }
+    if (!sorted) sort(line);
+    decoded.push(line);
+    reader.pos = semi + 1;
+  } while (reader.pos <= length);
+  return decoded;
+}
+function sort(line) {
+  line.sort(sortComparator);
+}
+function sortComparator(a, b) {
+  return a[0] - b[0];
+}
+function encode(decoded) {
+  const writer = new StringWriter();
+  let sourcesIndex = 0;
+  let sourceLine = 0;
+  let sourceColumn = 0;
+  let namesIndex = 0;
+  for (let i = 0; i < decoded.length; i++) {
+    const line = decoded[i];
+    if (i > 0) writer.write(semicolon);
+    if (line.length === 0) continue;
+    let genColumn = 0;
+    for (let j = 0; j < line.length; j++) {
+      const segment = line[j];
+      if (j > 0) writer.write(comma);
+      genColumn = encodeInteger(writer, segment[0], genColumn);
+      if (segment.length === 1) continue;
+      sourcesIndex = encodeInteger(writer, segment[1], sourcesIndex);
+      sourceLine = encodeInteger(writer, segment[2], sourceLine);
+      sourceColumn = encodeInteger(writer, segment[3], sourceColumn);
+      if (segment.length === 4) continue;
+      namesIndex = encodeInteger(writer, segment[4], namesIndex);
     }
-
-    const EMPTY = [];
-    function decodeOriginalScopes(input) {
-        const { length } = input;
-        const reader = new StringReader(input);
-        const scopes = [];
-        const stack = [];
-        let line = 0;
-        for (; reader.pos < length; reader.pos++) {
-            line = decodeInteger(reader, line);
-            const column = decodeInteger(reader, 0);
-            if (!hasMoreVlq(reader, length)) {
-                const last = stack.pop();
-                last[2] = line;
-                last[3] = column;
-                continue;
-            }
-            const kind = decodeInteger(reader, 0);
-            const fields = decodeInteger(reader, 0);
-            const hasName = fields & 0b0001;
-            const scope = (hasName ? [line, column, 0, 0, kind, decodeInteger(reader, 0)] : [line, column, 0, 0, kind]);
-            let vars = EMPTY;
-            if (hasMoreVlq(reader, length)) {
-                vars = [];
-                do {
-                    const varsIndex = decodeInteger(reader, 0);
-                    vars.push(varsIndex);
-                } while (hasMoreVlq(reader, length));
-            }
-            scope.vars = vars;
-            scopes.push(scope);
-            stack.push(scope);
-        }
-        return scopes;
-    }
-    function encodeOriginalScopes(scopes) {
-        const writer = new StringWriter();
-        for (let i = 0; i < scopes.length;) {
-            i = _encodeOriginalScopes(scopes, i, writer, [0]);
-        }
-        return writer.flush();
-    }
-    function _encodeOriginalScopes(scopes, index, writer, state) {
-        const scope = scopes[index];
-        const { 0: startLine, 1: startColumn, 2: endLine, 3: endColumn, 4: kind, vars } = scope;
-        if (index > 0)
-            writer.write(comma);
-        state[0] = encodeInteger(writer, startLine, state[0]);
-        encodeInteger(writer, startColumn, 0);
-        encodeInteger(writer, kind, 0);
-        const fields = scope.length === 6 ? 0b0001 : 0;
-        encodeInteger(writer, fields, 0);
-        if (scope.length === 6)
-            encodeInteger(writer, scope[5], 0);
-        for (const v of vars) {
-            encodeInteger(writer, v, 0);
-        }
-        for (index++; index < scopes.length;) {
-            const next = scopes[index];
-            const { 0: l, 1: c } = next;
-            if (l > endLine || (l === endLine && c >= endColumn)) {
-                break;
-            }
-            index = _encodeOriginalScopes(scopes, index, writer, state);
-        }
-        writer.write(comma);
-        state[0] = encodeInteger(writer, endLine, state[0]);
-        encodeInteger(writer, endColumn, 0);
-        return index;
-    }
-    function decodeGeneratedRanges(input) {
-        const { length } = input;
-        const reader = new StringReader(input);
-        const ranges = [];
-        const stack = [];
-        let genLine = 0;
-        let definitionSourcesIndex = 0;
-        let definitionScopeIndex = 0;
-        let callsiteSourcesIndex = 0;
-        let callsiteLine = 0;
-        let callsiteColumn = 0;
-        let bindingLine = 0;
-        let bindingColumn = 0;
-        do {
-            const semi = reader.indexOf(';');
-            let genColumn = 0;
-            for (; reader.pos < semi; reader.pos++) {
-                genColumn = decodeInteger(reader, genColumn);
-                if (!hasMoreVlq(reader, semi)) {
-                    const last = stack.pop();
-                    last[2] = genLine;
-                    last[3] = genColumn;
-                    continue;
-                }
-                const fields = decodeInteger(reader, 0);
-                const hasDefinition = fields & 0b0001;
-                const hasCallsite = fields & 0b0010;
-                const hasScope = fields & 0b0100;
-                let callsite = null;
-                let bindings = EMPTY;
-                let range;
-                if (hasDefinition) {
-                    const defSourcesIndex = decodeInteger(reader, definitionSourcesIndex);
-                    definitionScopeIndex = decodeInteger(reader, definitionSourcesIndex === defSourcesIndex ? definitionScopeIndex : 0);
-                    definitionSourcesIndex = defSourcesIndex;
-                    range = [genLine, genColumn, 0, 0, defSourcesIndex, definitionScopeIndex];
-                }
-                else {
-                    range = [genLine, genColumn, 0, 0];
-                }
-                range.isScope = !!hasScope;
-                if (hasCallsite) {
-                    const prevCsi = callsiteSourcesIndex;
-                    const prevLine = callsiteLine;
-                    callsiteSourcesIndex = decodeInteger(reader, callsiteSourcesIndex);
-                    const sameSource = prevCsi === callsiteSourcesIndex;
-                    callsiteLine = decodeInteger(reader, sameSource ? callsiteLine : 0);
-                    callsiteColumn = decodeInteger(reader, sameSource && prevLine === callsiteLine ? callsiteColumn : 0);
-                    callsite = [callsiteSourcesIndex, callsiteLine, callsiteColumn];
-                }
-                range.callsite = callsite;
-                if (hasMoreVlq(reader, semi)) {
-                    bindings = [];
-                    do {
-                        bindingLine = genLine;
-                        bindingColumn = genColumn;
-                        const expressionsCount = decodeInteger(reader, 0);
-                        let expressionRanges;
-                        if (expressionsCount < -1) {
-                            expressionRanges = [[decodeInteger(reader, 0)]];
-                            for (let i = -1; i > expressionsCount; i--) {
-                                const prevBl = bindingLine;
-                                bindingLine = decodeInteger(reader, bindingLine);
-                                bindingColumn = decodeInteger(reader, bindingLine === prevBl ? bindingColumn : 0);
-                                const expression = decodeInteger(reader, 0);
-                                expressionRanges.push([expression, bindingLine, bindingColumn]);
-                            }
-                        }
-                        else {
-                            expressionRanges = [[expressionsCount]];
-                        }
-                        bindings.push(expressionRanges);
-                    } while (hasMoreVlq(reader, semi));
-                }
-                range.bindings = bindings;
-                ranges.push(range);
-                stack.push(range);
-            }
-            genLine++;
-            reader.pos = semi + 1;
-        } while (reader.pos < length);
-        return ranges;
-    }
-    function encodeGeneratedRanges(ranges) {
-        if (ranges.length === 0)
-            return '';
-        const writer = new StringWriter();
-        for (let i = 0; i < ranges.length;) {
-            i = _encodeGeneratedRanges(ranges, i, writer, [0, 0, 0, 0, 0, 0, 0]);
-        }
-        return writer.flush();
-    }
-    function _encodeGeneratedRanges(ranges, index, writer, state) {
-        const range = ranges[index];
-        const { 0: startLine, 1: startColumn, 2: endLine, 3: endColumn, isScope, callsite, bindings, } = range;
-        if (state[0] < startLine) {
-            catchupLine(writer, state[0], startLine);
-            state[0] = startLine;
-            state[1] = 0;
-        }
-        else if (index > 0) {
-            writer.write(comma);
-        }
-        state[1] = encodeInteger(writer, range[1], state[1]);
-        const fields = (range.length === 6 ? 0b0001 : 0) | (callsite ? 0b0010 : 0) | (isScope ? 0b0100 : 0);
-        encodeInteger(writer, fields, 0);
-        if (range.length === 6) {
-            const { 4: sourcesIndex, 5: scopesIndex } = range;
-            if (sourcesIndex !== state[2]) {
-                state[3] = 0;
-            }
-            state[2] = encodeInteger(writer, sourcesIndex, state[2]);
-            state[3] = encodeInteger(writer, scopesIndex, state[3]);
-        }
-        if (callsite) {
-            const { 0: sourcesIndex, 1: callLine, 2: callColumn } = range.callsite;
-            if (sourcesIndex !== state[4]) {
-                state[5] = 0;
-                state[6] = 0;
-            }
-            else if (callLine !== state[5]) {
-                state[6] = 0;
-            }
-            state[4] = encodeInteger(writer, sourcesIndex, state[4]);
-            state[5] = encodeInteger(writer, callLine, state[5]);
-            state[6] = encodeInteger(writer, callColumn, state[6]);
-        }
-        if (bindings) {
-            for (const binding of bindings) {
-                if (binding.length > 1)
-                    encodeInteger(writer, -binding.length, 0);
-                const expression = binding[0][0];
-                encodeInteger(writer, expression, 0);
-                let bindingStartLine = startLine;
-                let bindingStartColumn = startColumn;
-                for (let i = 1; i < binding.length; i++) {
-                    const expRange = binding[i];
-                    bindingStartLine = encodeInteger(writer, expRange[1], bindingStartLine);
-                    bindingStartColumn = encodeInteger(writer, expRange[2], bindingStartColumn);
-                    encodeInteger(writer, expRange[0], 0);
-                }
-            }
-        }
-        for (index++; index < ranges.length;) {
-            const next = ranges[index];
-            const { 0: l, 1: c } = next;
-            if (l > endLine || (l === endLine && c >= endColumn)) {
-                break;
-            }
-            index = _encodeGeneratedRanges(ranges, index, writer, state);
-        }
-        if (state[0] < endLine) {
-            catchupLine(writer, state[0], endLine);
-            state[0] = endLine;
-            state[1] = 0;
-        }
-        else {
-            writer.write(comma);
-        }
-        state[1] = encodeInteger(writer, endColumn, state[1]);
-        return index;
-    }
-    function catchupLine(writer, lastLine, line) {
-        do {
-            writer.write(semicolon);
-        } while (++lastLine < line);
-    }
-
-    function decode(mappings) {
-        const { length } = mappings;
-        const reader = new StringReader(mappings);
-        const decoded = [];
-        let genColumn = 0;
-        let sourcesIndex = 0;
-        let sourceLine = 0;
-        let sourceColumn = 0;
-        let namesIndex = 0;
-        do {
-            const semi = reader.indexOf(';');
-            const line = [];
-            let sorted = true;
-            let lastCol = 0;
-            genColumn = 0;
-            while (reader.pos < semi) {
-                let seg;
-                genColumn = decodeInteger(reader, genColumn);
-                if (genColumn < lastCol)
-                    sorted = false;
-                lastCol = genColumn;
-                if (hasMoreVlq(reader, semi)) {
-                    sourcesIndex = decodeInteger(reader, sourcesIndex);
-                    sourceLine = decodeInteger(reader, sourceLine);
-                    sourceColumn = decodeInteger(reader, sourceColumn);
-                    if (hasMoreVlq(reader, semi)) {
-                        namesIndex = decodeInteger(reader, namesIndex);
-                        seg = [genColumn, sourcesIndex, sourceLine, sourceColumn, namesIndex];
-                    }
-                    else {
-                        seg = [genColumn, sourcesIndex, sourceLine, sourceColumn];
-                    }
-                }
-                else {
-                    seg = [genColumn];
-                }
-                line.push(seg);
-                reader.pos++;
-            }
-            if (!sorted)
-                sort(line);
-            decoded.push(line);
-            reader.pos = semi + 1;
-        } while (reader.pos <= length);
-        return decoded;
-    }
-    function sort(line) {
-        line.sort(sortComparator);
-    }
-    function sortComparator(a, b) {
-        return a[0] - b[0];
-    }
-    function encode(decoded) {
-        const writer = new StringWriter();
-        let sourcesIndex = 0;
-        let sourceLine = 0;
-        let sourceColumn = 0;
-        let namesIndex = 0;
-        for (let i = 0; i < decoded.length; i++) {
-            const line = decoded[i];
-            if (i > 0)
-                writer.write(semicolon);
-            if (line.length === 0)
-                continue;
-            let genColumn = 0;
-            for (let j = 0; j < line.length; j++) {
-                const segment = line[j];
-                if (j > 0)
-                    writer.write(comma);
-                genColumn = encodeInteger(writer, segment[0], genColumn);
-                if (segment.length === 1)
-                    continue;
-                sourcesIndex = encodeInteger(writer, segment[1], sourcesIndex);
-                sourceLine = encodeInteger(writer, segment[2], sourceLine);
-                sourceColumn = encodeInteger(writer, segment[3], sourceColumn);
-                if (segment.length === 4)
-                    continue;
-                namesIndex = encodeInteger(writer, segment[4], namesIndex);
-            }
-        }
-        return writer.flush();
-    }
-
-    exports.decode = decode;
-    exports.decodeGeneratedRanges = decodeGeneratedRanges;
-    exports.decodeOriginalScopes = decodeOriginalScopes;
-    exports.encode = encode;
-    exports.encodeGeneratedRanges = encodeGeneratedRanges;
-    exports.encodeOriginalScopes = encodeOriginalScopes;
-
-    Object.defineProperty(exports, '__esModule', { value: true });
-
+  }
+  return writer.flush();
+}
 }));
 //# sourceMappingURL=sourcemap-codec.umd.js.map
 
@@ -9400,16 +9091,6 @@ exports.Deprecation = Deprecation;
 
 /***/ }),
 
-/***/ 455:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-"use strict";
-
-module.exports = __nccwpck_require__(8487);
-
-
-/***/ }),
-
 /***/ 1621:
 /***/ ((module) => {
 
@@ -9498,6 +9179,351 @@ exports.matchToToken = function(match) {
   else if (match[12]) token.type = "whitespace"
   return token
 }
+
+
+/***/ }),
+
+/***/ 5733:
+/***/ ((module) => {
+
+"use strict";
+
+
+const object = {};
+const hasOwnProperty = object.hasOwnProperty;
+const forOwn = (object, callback) => {
+	for (const key in object) {
+		if (hasOwnProperty.call(object, key)) {
+			callback(key, object[key]);
+		}
+	}
+};
+
+const extend = (destination, source) => {
+	if (!source) {
+		return destination;
+	}
+	forOwn(source, (key, value) => {
+		destination[key] = value;
+	});
+	return destination;
+};
+
+const forEach = (array, callback) => {
+	const length = array.length;
+	let index = -1;
+	while (++index < length) {
+		callback(array[index]);
+	}
+};
+
+const fourHexEscape = (hex) => {
+	return '\\u' + ('0000' + hex).slice(-4);
+}
+
+const hexadecimal = (code, lowercase) => {
+	let hexadecimal = code.toString(16);
+	if (lowercase) return hexadecimal;
+	return hexadecimal.toUpperCase();
+};
+
+const toString = object.toString;
+const isArray = Array.isArray;
+const isBuffer = (value) => {
+	return typeof Buffer === 'function' && Buffer.isBuffer(value);
+};
+const isObject = (value) => {
+	// This is a very simple check, but it’s good enough for what we need.
+	return toString.call(value) == '[object Object]';
+};
+const isString = (value) => {
+	return typeof value == 'string' ||
+		toString.call(value) == '[object String]';
+};
+const isNumber = (value) => {
+	return typeof value == 'number' ||
+		toString.call(value) == '[object Number]';
+};
+const isBigInt = (value) => {
+  return typeof value == 'bigint';
+};
+const isFunction = (value) => {
+	return typeof value == 'function';
+};
+const isMap = (value) => {
+	return toString.call(value) == '[object Map]';
+};
+const isSet = (value) => {
+	return toString.call(value) == '[object Set]';
+};
+
+/*--------------------------------------------------------------------------*/
+
+// https://mathiasbynens.be/notes/javascript-escapes#single
+const singleEscapes = {
+	'\\': '\\\\',
+	'\b': '\\b',
+	'\f': '\\f',
+	'\n': '\\n',
+	'\r': '\\r',
+	'\t': '\\t'
+	// `\v` is omitted intentionally, because in IE < 9, '\v' == 'v'.
+	// '\v': '\\x0B'
+};
+const regexSingleEscape = /[\\\b\f\n\r\t]/;
+
+const regexDigit = /[0-9]/;
+const regexWhitespace = /[\xA0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]/;
+
+const escapeEverythingRegex = /([\uD800-\uDBFF][\uDC00-\uDFFF])|([\uD800-\uDFFF])|(['"`])|[^]/g;
+const escapeNonAsciiRegex = /([\uD800-\uDBFF][\uDC00-\uDFFF])|([\uD800-\uDFFF])|(['"`])|[^ !#-&\(-\[\]-_a-~]/g;
+
+const jsesc = (argument, options) => {
+	const increaseIndentation = () => {
+		oldIndent = indent;
+		++options.indentLevel;
+		indent = options.indent.repeat(options.indentLevel)
+	};
+	// Handle options
+	const defaults = {
+		'escapeEverything': false,
+		'minimal': false,
+		'isScriptContext': false,
+		'quotes': 'single',
+		'wrap': false,
+		'es6': false,
+		'json': false,
+		'compact': true,
+		'lowercaseHex': false,
+		'numbers': 'decimal',
+		'indent': '\t',
+		'indentLevel': 0,
+		'__inline1__': false,
+		'__inline2__': false
+	};
+	const json = options && options.json;
+	if (json) {
+		defaults.quotes = 'double';
+		defaults.wrap = true;
+	}
+	options = extend(defaults, options);
+	if (
+		options.quotes != 'single' &&
+		options.quotes != 'double' &&
+		options.quotes != 'backtick'
+	) {
+		options.quotes = 'single';
+	}
+	const quote = options.quotes == 'double' ?
+		'"' :
+		(options.quotes == 'backtick' ?
+			'`' :
+			'\''
+		);
+	const compact = options.compact;
+	const lowercaseHex = options.lowercaseHex;
+	let indent = options.indent.repeat(options.indentLevel);
+	let oldIndent = '';
+	const inline1 = options.__inline1__;
+	const inline2 = options.__inline2__;
+	const newLine = compact ? '' : '\n';
+	let result;
+	let isEmpty = true;
+	const useBinNumbers = options.numbers == 'binary';
+	const useOctNumbers = options.numbers == 'octal';
+	const useDecNumbers = options.numbers == 'decimal';
+	const useHexNumbers = options.numbers == 'hexadecimal';
+
+	if (json && argument && isFunction(argument.toJSON)) {
+		argument = argument.toJSON();
+	}
+
+	if (!isString(argument)) {
+		if (isMap(argument)) {
+			if (argument.size == 0) {
+				return 'new Map()';
+			}
+			if (!compact) {
+				options.__inline1__ = true;
+				options.__inline2__ = false;
+			}
+			return 'new Map(' + jsesc(Array.from(argument), options) + ')';
+		}
+		if (isSet(argument)) {
+			if (argument.size == 0) {
+				return 'new Set()';
+			}
+			return 'new Set(' + jsesc(Array.from(argument), options) + ')';
+		}
+		if (isBuffer(argument)) {
+			if (argument.length == 0) {
+				return 'Buffer.from([])';
+			}
+			return 'Buffer.from(' + jsesc(Array.from(argument), options) + ')';
+		}
+		if (isArray(argument)) {
+			result = [];
+			options.wrap = true;
+			if (inline1) {
+				options.__inline1__ = false;
+				options.__inline2__ = true;
+			}
+			if (!inline2) {
+				increaseIndentation();
+			}
+			forEach(argument, (value) => {
+				isEmpty = false;
+				if (inline2) {
+					options.__inline2__ = false;
+				}
+				result.push(
+					(compact || inline2 ? '' : indent) +
+					jsesc(value, options)
+				);
+			});
+			if (isEmpty) {
+				return '[]';
+			}
+			if (inline2) {
+				return '[' + result.join(', ') + ']';
+			}
+			return '[' + newLine + result.join(',' + newLine) + newLine +
+				(compact ? '' : oldIndent) + ']';
+		} else if (isNumber(argument) || isBigInt(argument)) {
+			if (json) {
+				// Some number values (e.g. `Infinity`) cannot be represented in JSON.
+				// `BigInt` values less than `-Number.MAX_VALUE` or greater than
+        // `Number.MAX_VALUE` cannot be represented in JSON so they will become
+        // `-Infinity` or `Infinity`, respectively, and then become `null` when
+        // stringified.
+				return JSON.stringify(Number(argument));
+			}
+
+      let result;
+			if (useDecNumbers) {
+				result = String(argument);
+			} else if (useHexNumbers) {
+				let hexadecimal = argument.toString(16);
+				if (!lowercaseHex) {
+					hexadecimal = hexadecimal.toUpperCase();
+				}
+				result = '0x' + hexadecimal;
+			} else if (useBinNumbers) {
+				result = '0b' + argument.toString(2);
+			} else if (useOctNumbers) {
+				result = '0o' + argument.toString(8);
+			}
+
+      if (isBigInt(argument)) {
+        return result + 'n';
+      }
+      return result;
+		} else if (isBigInt(argument)) {
+			if (json) {
+				// `BigInt` values less than `-Number.MAX_VALUE` or greater than
+        // `Number.MAX_VALUE` will become `-Infinity` or `Infinity`,
+        // respectively, and cannot be represented in JSON.
+				return JSON.stringify(Number(argument));
+			}
+      return argument + 'n';
+    } else if (!isObject(argument)) {
+			if (json) {
+				// For some values (e.g. `undefined`, `function` objects),
+				// `JSON.stringify(value)` returns `undefined` (which isn’t valid
+				// JSON) instead of `'null'`.
+				return JSON.stringify(argument) || 'null';
+			}
+			return String(argument);
+		} else { // it’s an object
+			result = [];
+			options.wrap = true;
+			increaseIndentation();
+			forOwn(argument, (key, value) => {
+				isEmpty = false;
+				result.push(
+					(compact ? '' : indent) +
+					jsesc(key, options) + ':' +
+					(compact ? '' : ' ') +
+					jsesc(value, options)
+				);
+			});
+			if (isEmpty) {
+				return '{}';
+			}
+			return '{' + newLine + result.join(',' + newLine) + newLine +
+				(compact ? '' : oldIndent) + '}';
+		}
+	}
+
+	const regex = options.escapeEverything ? escapeEverythingRegex : escapeNonAsciiRegex;
+	result = argument.replace(regex, (char, pair, lone, quoteChar, index, string) => {
+		if (pair) {
+			if (options.minimal) return pair;
+			const first = pair.charCodeAt(0);
+			const second = pair.charCodeAt(1);
+			if (options.es6) {
+				// https://mathiasbynens.be/notes/javascript-encoding#surrogate-formulae
+				const codePoint = (first - 0xD800) * 0x400 + second - 0xDC00 + 0x10000;
+				const hex = hexadecimal(codePoint, lowercaseHex);
+				return '\\u{' + hex + '}';
+			}
+			return fourHexEscape(hexadecimal(first, lowercaseHex)) + fourHexEscape(hexadecimal(second, lowercaseHex));
+		}
+
+		if (lone) {
+			return fourHexEscape(hexadecimal(lone.charCodeAt(0), lowercaseHex));
+		}
+
+		if (
+			char == '\0' &&
+			!json &&
+			!regexDigit.test(string.charAt(index + 1))
+		) {
+			return '\\0';
+		}
+
+		if (quoteChar) {
+			if (quoteChar == quote || options.escapeEverything) {
+				return '\\' + quoteChar;
+			}
+			return quoteChar;
+		}
+
+		if (regexSingleEscape.test(char)) {
+			// no need for a `hasOwnProperty` check here
+			return singleEscapes[char];
+		}
+
+		if (options.minimal && !regexWhitespace.test(char)) {
+			return char;
+		}
+
+		const hex = hexadecimal(char.charCodeAt(0), lowercaseHex);
+		if (json || hex.length > 2) {
+			return fourHexEscape(hex);
+		}
+
+		return '\\x' + ('00' + hex).slice(-2);
+	});
+
+	if (quote == '`') {
+		result = result.replace(/\$\{/g, '\\${');
+	}
+	if (options.isScriptContext) {
+		// https://mathiasbynens.be/notes/etago
+		result = result
+			.replace(/<\/(script|style)/gi, '<\\/$1')
+			.replace(/<!--/g, json ? '\\u003C!--' : '\\x3C!--');
+	}
+	if (options.wrap) {
+		result = quote + result + quote;
+	}
+	return result;
+};
+
+jsesc.version = '3.0.2';
+
+module.exports = jsesc;
 
 
 /***/ }),
@@ -16476,39 +16502,39 @@ const sometimesKeywords = new Set(["as", "async", "from", "get", "of", "set"]);
 const NEWLINE$1 = /\r\n|[\n\r\u2028\u2029]/;
 const BRACKET = /^[()[\]{}]$/;
 let tokenize;
-{
-  const JSX_TAG = /^[a-z][\w-]*$/i;
-  const getTokenType = function (token, offset, text) {
-    if (token.type === "name") {
-      if (helperValidatorIdentifier.isKeyword(token.value) || helperValidatorIdentifier.isStrictReservedWord(token.value, true) || sometimesKeywords.has(token.value)) {
-        return "keyword";
-      }
-      if (JSX_TAG.test(token.value) && (text[offset - 1] === "<" || text.slice(offset - 2, offset) === "</")) {
-        return "jsxIdentifier";
-      }
-      if (token.value[0] !== token.value[0].toLowerCase()) {
-        return "capitalized";
-      }
+const JSX_TAG = /^[a-z][\w-]*$/i;
+const getTokenType = function (token, offset, text) {
+  if (token.type === "name") {
+    const tokenValue = token.value;
+    if (helperValidatorIdentifier.isKeyword(tokenValue) || helperValidatorIdentifier.isStrictReservedWord(tokenValue, true) || sometimesKeywords.has(tokenValue)) {
+      return "keyword";
     }
-    if (token.type === "punctuator" && BRACKET.test(token.value)) {
-      return "bracket";
+    if (JSX_TAG.test(tokenValue) && (text[offset - 1] === "<" || text.slice(offset - 2, offset) === "</")) {
+      return "jsxIdentifier";
     }
-    if (token.type === "invalid" && (token.value === "@" || token.value === "#")) {
-      return "punctuator";
+    const firstChar = String.fromCodePoint(tokenValue.codePointAt(0));
+    if (firstChar !== firstChar.toLowerCase()) {
+      return "capitalized";
     }
-    return token.type;
-  };
-  tokenize = function* (text) {
-    let match;
-    while (match = jsTokens.default.exec(text)) {
-      const token = jsTokens.matchToToken(match);
-      yield {
-        type: getTokenType(token, match.index, text),
-        value: token.value
-      };
-    }
-  };
-}
+  }
+  if (token.type === "punctuator" && BRACKET.test(token.value)) {
+    return "bracket";
+  }
+  if (token.type === "invalid" && (token.value === "@" || token.value === "#")) {
+    return "punctuator";
+  }
+  return token.type;
+};
+tokenize = function* (text) {
+  let match;
+  while (match = jsTokens.default.exec(text)) {
+    const token = jsTokens.matchToToken(match);
+    yield {
+      type: getTokenType(token, match.index, text),
+      value: token.value
+    };
+  }
+};
 function highlight(text) {
   if (text === "") return "";
   const defs = getDefs(true);
@@ -17307,24 +17333,70 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.addDeprecatedGenerators = addDeprecatedGenerators;
 function addDeprecatedGenerators(PrinterClass) {
-  {
-    const deprecatedBabel7Generators = {
-      Noop() {},
-      TSExpressionWithTypeArguments(node) {
-        this.print(node.expression);
-        this.print(node.typeParameters);
-      },
-      DecimalLiteral(node) {
-        const raw = this.getPossibleRaw(node);
-        if (!this.format.minified && raw !== undefined) {
-          this.word(raw);
-          return;
-        }
-        this.word(node.value + "m");
+  const deprecatedBabel7Generators = {
+    Noop() {},
+    TSExpressionWithTypeArguments(node) {
+      this.print(node.expression);
+      this.print(node.typeParameters);
+    },
+    DecimalLiteral(node) {
+      const raw = this.getPossibleRaw(node);
+      if (!this.format.minified && raw !== undefined) {
+        this.word(raw);
+        return;
       }
-    };
-    Object.assign(PrinterClass.prototype, deprecatedBabel7Generators);
-  }
+      this.word(node.value + "m");
+    },
+    RecordExpression(node) {
+      const props = node.properties;
+      let startToken;
+      let endToken;
+      if (this.format.recordAndTupleSyntaxType === "bar") {
+        startToken = "{|";
+        endToken = "|}";
+      } else if (this.format.recordAndTupleSyntaxType !== "hash" && this.format.recordAndTupleSyntaxType != null) {
+        throw new Error(`The "recordAndTupleSyntaxType" generator option must be "bar" or "hash" (${JSON.stringify(this.format.recordAndTupleSyntaxType)} received).`);
+      } else {
+        startToken = "#{";
+        endToken = "}";
+      }
+      this.token(startToken);
+      if (props.length) {
+        this.space();
+        this.printList(props, this.shouldPrintTrailingComma(endToken), true, true);
+        this.space();
+      }
+      this.token(endToken);
+    },
+    TupleExpression(node) {
+      const elems = node.elements;
+      const len = elems.length;
+      let startToken;
+      let endToken;
+      if (this.format.recordAndTupleSyntaxType === "bar") {
+        startToken = "[|";
+        endToken = "|]";
+      } else if (this.format.recordAndTupleSyntaxType === "hash") {
+        startToken = "#[";
+        endToken = "]";
+      } else {
+        throw new Error(`${this.format.recordAndTupleSyntaxType} is not a valid recordAndTuple syntax type`);
+      }
+      this.token(startToken);
+      for (let i = 0; i < elems.length; i++) {
+        const elem = elems[i];
+        if (elem) {
+          if (i > 0) this.space();
+          this.print(elem);
+          if (i < len - 1 || this.shouldPrintTrailingComma(endToken)) {
+            this.token(",", false, i);
+          }
+        }
+      }
+      this.token(endToken);
+    }
+  };
+  Object.assign(PrinterClass.prototype, deprecatedBabel7Generators);
 }
 
 //# sourceMappingURL=deprecated.js.map
@@ -17435,11 +17507,9 @@ function NewExpression(node, parent) {
     return;
   }
   this.print(node.typeArguments);
-  {
-    this.print(node.typeParameters);
-    if (node.optional) {
-      this.token("?.");
-    }
+  this.print(node.typeParameters);
+  if (node.optional) {
+    this.token("?.");
   }
   if (node.arguments.length === 0 && this.tokenMap && !this.tokenMap.endMatches(node, ")")) {
     return;
@@ -17501,9 +17571,7 @@ function OptionalMemberExpression(node) {
 }
 function OptionalCallExpression(node) {
   this.print(node.callee);
-  {
-    this.print(node.typeParameters);
-  }
+  this.print(node.typeParameters);
   if (node.optional) {
     this.token("?.");
   }
@@ -17517,9 +17585,7 @@ function OptionalCallExpression(node) {
 function CallExpression(node) {
   this.print(node.callee);
   this.print(node.typeArguments);
-  {
-    this.print(node.typeParameters);
-  }
+  this.print(node.typeParameters);
   this.tokenChar(40);
   const exit = this.enterDelimited();
   this.printList(node.arguments, this.shouldPrintTrailingComma(")"));
@@ -18528,12 +18594,10 @@ function spaceSeparator() {
 function JSXOpeningElement(node) {
   this.tokenChar(60);
   this.print(node.name);
-  {
-    if (node.typeArguments) {
-      this.print(node.typeArguments);
-    }
-    this.print(node.typeParameters);
+  if (node.typeArguments) {
+    this.print(node.typeArguments);
   }
+  this.print(node.typeParameters);
   if (node.attributes.length > 0) {
     this.space();
     this.printJoin(node.attributes, undefined, undefined, spaceSeparator);
@@ -18857,12 +18921,14 @@ let warningShown = false;
 function _printAttributes(node, hasPreviousBrace) {
   var _node$extra;
   const {
-    importAttributesKeyword
-  } = this.format;
-  const {
-    attributes,
+    attributes
+  } = node;
+  var {
     assertions
   } = node;
+  const {
+    importAttributesKeyword
+  } = this.format;
   if (attributes && !importAttributesKeyword && node.extra && (node.extra.deprecatedAssertSyntax || node.extra.deprecatedWithLegacySyntax) && !warningShown) {
     warningShown = true;
     console.warn(`\
@@ -19377,9 +19443,7 @@ exports.TemplateLiteral = TemplateLiteral;
 exports._printTemplate = _printTemplate;
 function TaggedTemplateExpression(node) {
   this.print(node.tag);
-  {
-    this.print(node.typeParameters);
-  }
+  this.print(node.typeParameters);
   this.print(node.quasi);
 }
 function TemplateElement() {
@@ -19432,16 +19496,14 @@ exports.ObjectProperty = ObjectProperty;
 exports.PipelineBareFunction = PipelineBareFunction;
 exports.PipelinePrimaryTopicReference = PipelinePrimaryTopicReference;
 exports.PipelineTopicExpression = PipelineTopicExpression;
-exports.RecordExpression = RecordExpression;
 exports.RegExpLiteral = RegExpLiteral;
 exports.SpreadElement = exports.RestElement = RestElement;
 exports.StringLiteral = StringLiteral;
 exports.TopicReference = TopicReference;
-exports.TupleExpression = TupleExpression;
 exports.VoidPattern = VoidPattern;
 exports._getRawIdentifier = _getRawIdentifier;
 var _t = __nccwpck_require__(7912);
-var _jsesc = __nccwpck_require__(9105);
+var _jsesc = __nccwpck_require__(5733);
 const {
   isAssignmentPattern,
   isIdentifier
@@ -19531,58 +19593,6 @@ function ArrayExpression(node) {
   }
   exit();
   this.tokenChar(93);
-}
-function RecordExpression(node) {
-  const props = node.properties;
-  let startToken;
-  let endToken;
-  {
-    if (this.format.recordAndTupleSyntaxType === "bar") {
-      startToken = "{|";
-      endToken = "|}";
-    } else if (this.format.recordAndTupleSyntaxType !== "hash" && this.format.recordAndTupleSyntaxType != null) {
-      throw new Error(`The "recordAndTupleSyntaxType" generator option must be "bar" or "hash" (${JSON.stringify(this.format.recordAndTupleSyntaxType)} received).`);
-    } else {
-      startToken = "#{";
-      endToken = "}";
-    }
-  }
-  this.token(startToken);
-  if (props.length) {
-    this.space();
-    this.printList(props, this.shouldPrintTrailingComma(endToken), true, true);
-    this.space();
-  }
-  this.token(endToken);
-}
-function TupleExpression(node) {
-  const elems = node.elements;
-  const len = elems.length;
-  let startToken;
-  let endToken;
-  {
-    if (this.format.recordAndTupleSyntaxType === "bar") {
-      startToken = "[|";
-      endToken = "|]";
-    } else if (this.format.recordAndTupleSyntaxType === "hash") {
-      startToken = "#[";
-      endToken = "]";
-    } else {
-      throw new Error(`${this.format.recordAndTupleSyntaxType} is not a valid recordAndTuple syntax type`);
-    }
-  }
-  this.token(startToken);
-  for (let i = 0; i < elems.length; i++) {
-    const elem = elems[i];
-    if (elem) {
-      if (i > 0) this.space();
-      this.print(elem);
-      if (i < len - 1 || this.shouldPrintTrailingComma(endToken)) {
-        this.token(",", false, i);
-      }
-    }
-  }
-  this.token(endToken);
 }
 function RegExpLiteral(node) {
   this.word(`/${node.pattern}/${node.flags}`);
@@ -20071,15 +20081,11 @@ function TSMappedType(node) {
     this.space();
   }
   this.tokenChar(91);
-  {
-    this.word(node.typeParameter.name);
-  }
+  this.word(node.typeParameter.name);
   this.space();
   this.word("in");
   this.space();
-  {
-    this.print(node.typeParameter.constraint);
-  }
+  this.print(node.typeParameter.constraint);
   if (nameType) {
     this.space();
     this.word("as");
@@ -20189,9 +20195,7 @@ function TSTypeAssertion(node) {
 }
 function TSInstantiationExpression(node) {
   this.print(node.expression);
-  {
-    this.print(node.typeParameters);
-  }
+  this.print(node.typeParameters);
 }
 function TSEnumDeclaration(node) {
   const {
@@ -20211,9 +20215,7 @@ function TSEnumDeclaration(node) {
   this.space();
   this.print(id);
   this.space();
-  {
-    TSEnumBody.call(this, node);
-  }
+  TSEnumBody.call(this, node);
 }
 function TSEnumBody(node) {
   printBraced(this, node, () => {
@@ -20244,38 +20246,35 @@ function TSModuleDeclaration(node) {
     this.word("declare");
     this.space();
   }
-  {
-    if (!node.global) {
-      this.word(kind != null ? kind : id.type === "Identifier" ? "namespace" : "module");
-      this.space();
-    }
-    this.print(id);
-    if (!node.body) {
-      this.semicolon();
-      return;
-    }
-    let body = node.body;
-    while (body.type === "TSModuleDeclaration") {
-      this.tokenChar(46);
-      this.print(body.id);
-      body = body.body;
-    }
+  if (!node.global) {
+    this.word(kind != null ? kind : id.type === "Identifier" ? "namespace" : "module");
     this.space();
-    this.print(body);
   }
+  this.print(id);
+  if (!node.body) {
+    this.semicolon();
+    return;
+  }
+  let body = node.body;
+  while (body.type === "TSModuleDeclaration") {
+    this.tokenChar(46);
+    this.print(body.id);
+    body = body.body;
+  }
+  this.space();
+  this.print(body);
 }
 function TSModuleBlock(node) {
   printBraced(this, node, () => this.printSequence(node.body, true));
 }
 function TSImportType(node) {
   const {
-    argument,
     qualifier,
     options
   } = node;
   this.word("import");
   this.tokenChar(40);
-  this.print(argument);
+  this.print(node.argument);
   if (options) {
     this.tokenChar(44);
     this.print(options);
@@ -20403,6 +20402,7 @@ exports.generate = generate;
 var _sourceMap = __nccwpck_require__(6280);
 var _printer = __nccwpck_require__(5637);
 function normalizeOptions(code, opts, ast) {
+  var _opts$recordAndTupleS;
   if (opts.experimental_preserveFormat) {
     if (typeof code !== "string") {
       throw new Error("`experimental_preserveFormat` requires the original `code` to be passed to @babel/generator as a string");
@@ -20443,15 +20443,12 @@ function normalizeOptions(code, opts, ast) {
       wrap: true,
       minimal: false
     }, opts.jsescOption),
-    topicToken: opts.topicToken,
-    importAttributesKeyword: opts.importAttributesKeyword
+    topicToken: opts.topicToken
   };
-  {
-    var _opts$recordAndTupleS;
-    format.decoratorsBeforeExport = opts.decoratorsBeforeExport;
-    format.jsescOption.json = opts.jsonCompatibleStrings;
-    format.recordAndTupleSyntaxType = (_opts$recordAndTupleS = opts.recordAndTupleSyntaxType) != null ? _opts$recordAndTupleS : "hash";
-  }
+  format.decoratorsBeforeExport = opts.decoratorsBeforeExport;
+  format.jsescOption.json = opts.jsonCompatibleStrings;
+  format.recordAndTupleSyntaxType = (_opts$recordAndTupleS = opts.recordAndTupleSyntaxType) != null ? _opts$recordAndTupleS : "hash";
+  format.importAttributesKeyword = opts.importAttributesKeyword;
   if (format.minified) {
     format.compact = true;
     format.shouldPrintComment = format.shouldPrintComment || (() => format.comments);
@@ -20480,22 +20477,20 @@ function normalizeOptions(code, opts, ast) {
   }
   return format;
 }
-{
-  exports.CodeGenerator = class CodeGenerator {
-    constructor(ast, opts = {}, code) {
-      this._ast = void 0;
-      this._format = void 0;
-      this._map = void 0;
-      this._ast = ast;
-      this._format = normalizeOptions(code, opts, ast);
-      this._map = opts.sourceMaps ? new _sourceMap.default(opts, code) : null;
-    }
-    generate() {
-      const printer = new _printer.default(this._format, this._map);
-      return printer.generate(this._ast);
-    }
-  };
-}
+exports.CodeGenerator = class CodeGenerator {
+  constructor(ast, opts = {}, code) {
+    this._ast = void 0;
+    this._format = void 0;
+    this._map = void 0;
+    this._ast = ast;
+    this._format = normalizeOptions(code, opts, ast);
+    this._map = opts.sourceMaps ? new _sourceMap.default(opts, code) : null;
+  }
+  generate() {
+    const printer = new _printer.default(this._format, this._map);
+    return printer.generate(this._ast);
+  }
+};
 function generate(ast, opts = {}, code) {
   const format = normalizeOptions(code, opts, ast);
   const map = opts.sourceMaps ? new _sourceMap.default(opts, code) : null;
@@ -21846,9 +21841,7 @@ class Printer {
   }
 }
 Object.assign(Printer.prototype, generatorFunctions);
-{
-  (0, _deprecated.addDeprecatedGenerators)(Printer);
-}
+(0, _deprecated.addDeprecatedGenerators)(Printer);
 var _default = exports["default"] = Printer;
 function commaSeparator(occurrenceCount, last) {
   this.token(",", false, occurrenceCount);
@@ -22019,7 +22012,7 @@ class TokenMap {
       const count = occurrenceCount;
       if (count > 1) {
         const cache = this._nodesOccurrencesCountCache.get(node);
-        if (cache && cache.test === test && cache.count < count) {
+        if ((cache == null ? void 0 : cache.test) === test && cache.count < count) {
           i = cache.i + 1;
           occurrenceCount -= cache.count + 1;
         }
@@ -22063,6 +22056,7 @@ class TokenMap {
     return this.matchesOriginal(tok, test);
   }
   _getTokensIndexesOfNode(node) {
+    var _node$declaration;
     if (node.start == null || node.end == null) return [];
     const {
       first,
@@ -22070,7 +22064,7 @@ class TokenMap {
     } = this._findTokensOfNode(node, 0, this._tokens.length - 1);
     let low = first;
     const children = childrenIterator(node);
-    if ((node.type === "ExportNamedDeclaration" || node.type === "ExportDefaultDeclaration") && node.declaration && node.declaration.type === "ClassDeclaration") {
+    if ((node.type === "ExportNamedDeclaration" || node.type === "ExportDefaultDeclaration") && ((_node$declaration = node.declaration) == null ? void 0 : _node$declaration.type) === "ClassDeclaration") {
       children.next();
     }
     const indexes = [];
@@ -22149,368 +22143,6 @@ function* childrenIterator(node) {
 }
 
 //# sourceMappingURL=token-map.js.map
-
-
-/***/ }),
-
-/***/ 1097:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports["default"] = void 0;
-exports.requeueComputedKeyAndDecorators = requeueComputedKeyAndDecorators;
-{
-  exports.skipAllButComputedKey = function skipAllButComputedKey(path) {
-    path.skip();
-    if (path.node.computed) {
-      path.context.maybeQueue(path.get("key"));
-    }
-  };
-}
-function requeueComputedKeyAndDecorators(path) {
-  const {
-    context,
-    node
-  } = path;
-  if (node.computed) {
-    context.maybeQueue(path.get("key"));
-  }
-  if (node.decorators) {
-    for (const decorator of path.get("decorators")) {
-      context.maybeQueue(decorator);
-    }
-  }
-}
-const visitor = {
-  FunctionParent(path) {
-    if (path.isArrowFunctionExpression()) {
-      return;
-    } else {
-      path.skip();
-      if (path.isMethod()) {
-        requeueComputedKeyAndDecorators(path);
-      }
-    }
-  },
-  Property(path) {
-    if (path.isObjectProperty()) {
-      return;
-    }
-    path.skip();
-    requeueComputedKeyAndDecorators(path);
-  }
-};
-var _default = exports["default"] = visitor;
-
-//# sourceMappingURL=index.js.map
-
-
-/***/ }),
-
-/***/ 3968:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports["default"] = _default;
-var _template = __nccwpck_require__(3412);
-var _t = __nccwpck_require__(7912);
-const {
-  NOT_LOCAL_BINDING,
-  cloneNode,
-  identifier,
-  isAssignmentExpression,
-  isAssignmentPattern,
-  isFunction,
-  isIdentifier,
-  isLiteral,
-  isNullLiteral,
-  isObjectMethod,
-  isObjectProperty,
-  isRegExpLiteral,
-  isRestElement,
-  isTemplateLiteral,
-  isVariableDeclarator,
-  toBindingIdentifierName
-} = _t;
-function getFunctionArity(node) {
-  const count = node.params.findIndex(param => isAssignmentPattern(param) || isRestElement(param));
-  return count === -1 ? node.params.length : count;
-}
-const buildPropertyMethodAssignmentWrapper = _template.default.statement(`
-  (function (FUNCTION_KEY) {
-    function FUNCTION_ID() {
-      return FUNCTION_KEY.apply(this, arguments);
-    }
-
-    FUNCTION_ID.toString = function () {
-      return FUNCTION_KEY.toString();
-    }
-
-    return FUNCTION_ID;
-  })(FUNCTION)
-`);
-const buildGeneratorPropertyMethodAssignmentWrapper = _template.default.statement(`
-  (function (FUNCTION_KEY) {
-    function* FUNCTION_ID() {
-      return yield* FUNCTION_KEY.apply(this, arguments);
-    }
-
-    FUNCTION_ID.toString = function () {
-      return FUNCTION_KEY.toString();
-    };
-
-    return FUNCTION_ID;
-  })(FUNCTION)
-`);
-const visitor = {
-  "ReferencedIdentifier|BindingIdentifier"(path, state) {
-    if (path.node.name !== state.name) return;
-    const localDeclar = path.scope.getBindingIdentifier(state.name);
-    if (localDeclar !== state.outerDeclar) return;
-    state.selfReference = true;
-    path.stop();
-  }
-};
-function getNameFromLiteralId(id) {
-  if (isNullLiteral(id)) {
-    return "null";
-  }
-  if (isRegExpLiteral(id)) {
-    return `_${id.pattern}_${id.flags}`;
-  }
-  if (isTemplateLiteral(id)) {
-    return id.quasis.map(quasi => quasi.value.raw).join("");
-  }
-  if (id.value !== undefined) {
-    return id.value + "";
-  }
-  return "";
-}
-function wrap(state, method, id, scope) {
-  if (state.selfReference) {
-    if (scope.hasBinding(id.name) && !scope.hasGlobal(id.name)) {
-      scope.rename(id.name);
-    } else {
-      if (!isFunction(method)) return;
-      let build = buildPropertyMethodAssignmentWrapper;
-      if (method.generator) {
-        build = buildGeneratorPropertyMethodAssignmentWrapper;
-      }
-      const template = build({
-        FUNCTION: method,
-        FUNCTION_ID: id,
-        FUNCTION_KEY: scope.generateUidIdentifier(id.name)
-      }).expression;
-      const params = template.callee.body.body[0].params;
-      for (let i = 0, len = getFunctionArity(method); i < len; i++) {
-        params.push(scope.generateUidIdentifier("x"));
-      }
-      return template;
-    }
-  }
-  method.id = id;
-  scope.getProgramParent().references[id.name] = true;
-}
-function visit(node, name, scope) {
-  const state = {
-    selfAssignment: false,
-    selfReference: false,
-    outerDeclar: scope.getBindingIdentifier(name),
-    name: name
-  };
-  const binding = scope.getOwnBinding(name);
-  if (binding) {
-    if (binding.kind === "param") {
-      state.selfReference = true;
-    } else {}
-  } else if (state.outerDeclar || scope.hasGlobal(name)) {
-    scope.traverse(node, visitor, state);
-  }
-  return state;
-}
-function _default({
-  node,
-  parent,
-  scope,
-  id
-}, localBinding = false, supportUnicodeId = false) {
-  if (node.id) return;
-  if ((isObjectProperty(parent) || isObjectMethod(parent, {
-    kind: "method"
-  })) && (!parent.computed || isLiteral(parent.key))) {
-    id = parent.key;
-  } else if (isVariableDeclarator(parent)) {
-    id = parent.id;
-    if (isIdentifier(id) && !localBinding) {
-      const binding = scope.parent.getBinding(id.name);
-      if (binding && binding.constant && scope.getBinding(id.name) === binding) {
-        node.id = cloneNode(id);
-        node.id[NOT_LOCAL_BINDING] = true;
-        return;
-      }
-    }
-  } else if (isAssignmentExpression(parent, {
-    operator: "="
-  })) {
-    id = parent.left;
-  } else if (!id) {
-    return;
-  }
-  let name;
-  if (id && isLiteral(id)) {
-    name = getNameFromLiteralId(id);
-  } else if (id && isIdentifier(id)) {
-    name = id.name;
-  }
-  if (name === undefined) {
-    return;
-  }
-  if (!supportUnicodeId && isFunction(node) && /[\uD800-\uDFFF]/.test(name)) {
-    return;
-  }
-  name = toBindingIdentifierName(name);
-  const newId = identifier(name);
-  newId[NOT_LOCAL_BINDING] = true;
-  const state = visit(node, name, scope);
-  return wrap(state, node, newId, scope) || node;
-}
-
-//# sourceMappingURL=index.js.map
-
-
-/***/ }),
-
-/***/ 6934:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports["default"] = hoistVariables;
-var _t = __nccwpck_require__(7912);
-const {
-  assignmentExpression,
-  expressionStatement,
-  identifier
-} = _t;
-const visitor = {
-  Scope(path, state) {
-    if (state.kind === "let") path.skip();
-  },
-  FunctionParent(path) {
-    path.skip();
-  },
-  VariableDeclaration(path, state) {
-    if (state.kind && path.node.kind !== state.kind) return;
-    const nodes = [];
-    const declarations = path.get("declarations");
-    let firstId;
-    for (const declar of declarations) {
-      firstId = declar.node.id;
-      if (declar.node.init) {
-        nodes.push(expressionStatement(assignmentExpression("=", declar.node.id, declar.node.init)));
-      }
-      for (const name of Object.keys(declar.getBindingIdentifiers())) {
-        state.emit(identifier(name), name, declar.node.init !== null);
-      }
-    }
-    if (path.parentPath.isFor({
-      left: path.node
-    })) {
-      path.replaceWith(firstId);
-    } else {
-      path.replaceWithMultiple(nodes);
-    }
-  }
-};
-function hoistVariables(path, emit, kind = "var") {
-  path.traverse(visitor, {
-    kind,
-    emit
-  });
-}
-
-//# sourceMappingURL=index.js.map
-
-
-/***/ }),
-
-/***/ 5176:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports["default"] = splitExportDeclaration;
-var _t = __nccwpck_require__(7912);
-const {
-  cloneNode,
-  exportNamedDeclaration,
-  exportSpecifier,
-  identifier,
-  variableDeclaration,
-  variableDeclarator
-} = _t;
-function splitExportDeclaration(exportDeclaration) {
-  if (!exportDeclaration.isExportDeclaration() || exportDeclaration.isExportAllDeclaration()) {
-    throw new Error("Only default and named export declarations can be split.");
-  }
-  if (exportDeclaration.isExportDefaultDeclaration()) {
-    const declaration = exportDeclaration.get("declaration");
-    const standaloneDeclaration = declaration.isFunctionDeclaration() || declaration.isClassDeclaration();
-    const exportExpr = declaration.isFunctionExpression() || declaration.isClassExpression();
-    const scope = declaration.isScope() ? declaration.scope.parent : declaration.scope;
-    let id = declaration.node.id;
-    let needBindingRegistration = false;
-    if (!id) {
-      needBindingRegistration = true;
-      id = scope.generateUidIdentifier("default");
-      if (standaloneDeclaration || exportExpr) {
-        declaration.node.id = cloneNode(id);
-      }
-    } else if (exportExpr && scope.hasBinding(id.name)) {
-      needBindingRegistration = true;
-      id = scope.generateUidIdentifier(id.name);
-    }
-    const updatedDeclaration = standaloneDeclaration ? declaration.node : variableDeclaration("var", [variableDeclarator(cloneNode(id), declaration.node)]);
-    const updatedExportDeclaration = exportNamedDeclaration(null, [exportSpecifier(cloneNode(id), identifier("default"))]);
-    exportDeclaration.insertAfter(updatedExportDeclaration);
-    exportDeclaration.replaceWith(updatedDeclaration);
-    if (needBindingRegistration) {
-      scope.registerDeclaration(exportDeclaration);
-    }
-    return exportDeclaration;
-  } else if (exportDeclaration.get("specifiers").length > 0) {
-    throw new Error("It doesn't make sense to split exported specifiers.");
-  }
-  const declaration = exportDeclaration.get("declaration");
-  const bindingIdentifiers = declaration.getOuterBindingIdentifiers();
-  const specifiers = Object.keys(bindingIdentifiers).map(name => {
-    return exportSpecifier(identifier(name), identifier(name));
-  });
-  const aliasDeclar = exportNamedDeclaration(null, specifiers);
-  exportDeclaration.insertAfter(aliasDeclar);
-  exportDeclaration.replaceWith(declaration.node);
-  return exportDeclaration;
-}
-
-//# sourceMappingURL=index.js.map
 
 
 /***/ }),
@@ -23360,18 +22992,16 @@ function toParseErrorConstructor({
   syntaxPlugin
 }) {
   const hasMissingPlugin = reasonCode === "MissingPlugin" || reasonCode === "MissingOneOfPlugins";
-  {
-    const oldReasonCodes = {
-      AccessorCannotDeclareThisParameter: "AccesorCannotDeclareThisParameter",
-      AccessorCannotHaveTypeParameters: "AccesorCannotHaveTypeParameters",
-      ConstInitializerMustBeStringOrNumericLiteralOrLiteralEnumReference: "ConstInitiailizerMustBeStringOrNumericLiteralOrLiteralEnumReference",
-      SetAccessorCannotHaveOptionalParameter: "SetAccesorCannotHaveOptionalParameter",
-      SetAccessorCannotHaveRestParameter: "SetAccesorCannotHaveRestParameter",
-      SetAccessorCannotHaveReturnType: "SetAccesorCannotHaveReturnType"
-    };
-    if (oldReasonCodes[reasonCode]) {
-      reasonCode = oldReasonCodes[reasonCode];
-    }
+  const oldReasonCodes = {
+    AccessorCannotDeclareThisParameter: "AccesorCannotDeclareThisParameter",
+    AccessorCannotHaveTypeParameters: "AccesorCannotHaveTypeParameters",
+    ConstInitializerMustBeStringOrNumericLiteralOrLiteralEnumReference: "ConstInitiailizerMustBeStringOrNumericLiteralOrLiteralEnumReference",
+    SetAccessorCannotHaveOptionalParameter: "SetAccesorCannotHaveOptionalParameter",
+    SetAccessorCannotHaveRestParameter: "SetAccesorCannotHaveRestParameter",
+    SetAccessorCannotHaveReturnType: "SetAccesorCannotHaveReturnType"
+  };
+  if (oldReasonCodes[reasonCode]) {
+    reasonCode = oldReasonCodes[reasonCode];
   }
   return function constructor(loc, details) {
     const error = new SyntaxError();
@@ -23632,10 +23262,8 @@ var estree = superClass => class ESTreeParserMixin extends superClass {
   }
   parsePrivateName() {
     const node = super.parsePrivateName();
-    {
-      if (!this.getPluginOption("estree", "classFeatures")) {
-        return node;
-      }
+    if (!this.getPluginOption("estree", "classFeatures")) {
+      return node;
     }
     return this.convertPrivateNameToPrivateIdentifier(node);
   }
@@ -23646,18 +23274,14 @@ var estree = superClass => class ESTreeParserMixin extends superClass {
     return this.castNodeTo(node, "PrivateIdentifier");
   }
   isPrivateName(node) {
-    {
-      if (!this.getPluginOption("estree", "classFeatures")) {
-        return super.isPrivateName(node);
-      }
+    if (!this.getPluginOption("estree", "classFeatures")) {
+      return super.isPrivateName(node);
     }
     return node.type === "PrivateIdentifier";
   }
   getPrivateNameSV(node) {
-    {
-      if (!this.getPluginOption("estree", "classFeatures")) {
-        return super.getPrivateNameSV(node);
-      }
+    if (!this.getPluginOption("estree", "classFeatures")) {
+      return super.getPrivateNameSV(node);
     }
     return node.name;
   }
@@ -23705,35 +23329,25 @@ var estree = superClass => class ESTreeParserMixin extends superClass {
   }
   parseClassProperty(...args) {
     const propertyNode = super.parseClassProperty(...args);
-    {
-      if (!this.getPluginOption("estree", "classFeatures")) {
-        return propertyNode;
-      }
+    if (!this.getPluginOption("estree", "classFeatures")) {
+      return propertyNode;
     }
-    {
-      this.castNodeTo(propertyNode, "PropertyDefinition");
-    }
+    this.castNodeTo(propertyNode, "PropertyDefinition");
     return propertyNode;
   }
   parseClassPrivateProperty(...args) {
     const propertyNode = super.parseClassPrivateProperty(...args);
-    {
-      if (!this.getPluginOption("estree", "classFeatures")) {
-        return propertyNode;
-      }
+    if (!this.getPluginOption("estree", "classFeatures")) {
+      return propertyNode;
     }
-    {
-      this.castNodeTo(propertyNode, "PropertyDefinition");
-    }
+    this.castNodeTo(propertyNode, "PropertyDefinition");
     propertyNode.computed = false;
     return propertyNode;
   }
   parseClassAccessorProperty(node) {
     const accessorPropertyNode = super.parseClassAccessorProperty(node);
-    {
-      if (!this.getPluginOption("estree", "classFeatures")) {
-        return accessorPropertyNode;
-      }
+    if (!this.getPluginOption("estree", "classFeatures")) {
+      return accessorPropertyNode;
     }
     if (accessorPropertyNode.abstract && this.hasPlugin("typescript")) {
       delete accessorPropertyNode.abstract;
@@ -23790,14 +23404,11 @@ var estree = superClass => class ESTreeParserMixin extends superClass {
   finishCallExpression(unfinished, optional) {
     const node = super.finishCallExpression(unfinished, optional);
     if (node.callee.type === "Import") {
-      var _ref;
+      var _ref, _ref2;
       this.castNodeTo(node, "ImportExpression");
       node.source = node.arguments[0];
       node.options = (_ref = node.arguments[1]) != null ? _ref : null;
-      {
-        var _ref2;
-        node.attributes = (_ref2 = node.arguments[1]) != null ? _ref2 : null;
-      }
+      node.attributes = (_ref2 = node.arguments[1]) != null ? _ref2 : null;
       delete node.arguments;
       delete node.callee;
     } else if (node.type === "OptionalCallExpression") {
@@ -23921,9 +23532,7 @@ const types = {
   j_cTag: new TokContext("</tag"),
   j_expr: new TokContext("<tag>...</tag>", true)
 };
-{
-  types.template = new TokContext("`", true);
-}
+types.template = new TokContext("`", true);
 const beforeExpr = true;
 const startsExpr = true;
 const isLoop = true;
@@ -23952,9 +23561,7 @@ class ExportedTokenType {
     this.prefix = !!conf.prefix;
     this.postfix = !!conf.postfix;
     this.binop = conf.binop != null ? conf.binop : null;
-    {
-      this.updateContext = null;
-    }
+    this.updateContext = null;
   }
 }
 const keywords$1 = new Map();
@@ -24455,24 +24062,22 @@ function tokenIsTemplate(token) {
 function getExportedToken(token) {
   return tokenTypes[token];
 }
-{
-  tokenTypes[8].updateContext = context => {
+tokenTypes[8].updateContext = context => {
+  context.pop();
+};
+tokenTypes[5].updateContext = tokenTypes[7].updateContext = tokenTypes[23].updateContext = context => {
+  context.push(types.brace);
+};
+tokenTypes[22].updateContext = context => {
+  if (context[context.length - 1] === types.template) {
     context.pop();
-  };
-  tokenTypes[5].updateContext = tokenTypes[7].updateContext = tokenTypes[23].updateContext = context => {
-    context.push(types.brace);
-  };
-  tokenTypes[22].updateContext = context => {
-    if (context[context.length - 1] === types.template) {
-      context.pop();
-    } else {
-      context.push(types.template);
-    }
-  };
-  tokenTypes[143].updateContext = context => {
-    context.push(types.j_expr, types.j_oTag);
-  };
-}
+  } else {
+    context.push(types.template);
+  }
+};
+tokenTypes[143].updateContext = context => {
+  context.push(types.j_expr, types.j_oTag);
+};
 let nonASCIIidentifierStartChars = "\xaa\xb5\xba\xc0-\xd6\xd8-\xf6\xf8-\u02c1\u02c6-\u02d1\u02e0-\u02e4\u02ec\u02ee\u0370-\u0374\u0376\u0377\u037a-\u037d\u037f\u0386\u0388-\u038a\u038c\u038e-\u03a1\u03a3-\u03f5\u03f7-\u0481\u048a-\u052f\u0531-\u0556\u0559\u0560-\u0588\u05d0-\u05ea\u05ef-\u05f2\u0620-\u064a\u066e\u066f\u0671-\u06d3\u06d5\u06e5\u06e6\u06ee\u06ef\u06fa-\u06fc\u06ff\u0710\u0712-\u072f\u074d-\u07a5\u07b1\u07ca-\u07ea\u07f4\u07f5\u07fa\u0800-\u0815\u081a\u0824\u0828\u0840-\u0858\u0860-\u086a\u0870-\u0887\u0889-\u088f\u08a0-\u08c9\u0904-\u0939\u093d\u0950\u0958-\u0961\u0971-\u0980\u0985-\u098c\u098f\u0990\u0993-\u09a8\u09aa-\u09b0\u09b2\u09b6-\u09b9\u09bd\u09ce\u09dc\u09dd\u09df-\u09e1\u09f0\u09f1\u09fc\u0a05-\u0a0a\u0a0f\u0a10\u0a13-\u0a28\u0a2a-\u0a30\u0a32\u0a33\u0a35\u0a36\u0a38\u0a39\u0a59-\u0a5c\u0a5e\u0a72-\u0a74\u0a85-\u0a8d\u0a8f-\u0a91\u0a93-\u0aa8\u0aaa-\u0ab0\u0ab2\u0ab3\u0ab5-\u0ab9\u0abd\u0ad0\u0ae0\u0ae1\u0af9\u0b05-\u0b0c\u0b0f\u0b10\u0b13-\u0b28\u0b2a-\u0b30\u0b32\u0b33\u0b35-\u0b39\u0b3d\u0b5c\u0b5d\u0b5f-\u0b61\u0b71\u0b83\u0b85-\u0b8a\u0b8e-\u0b90\u0b92-\u0b95\u0b99\u0b9a\u0b9c\u0b9e\u0b9f\u0ba3\u0ba4\u0ba8-\u0baa\u0bae-\u0bb9\u0bd0\u0c05-\u0c0c\u0c0e-\u0c10\u0c12-\u0c28\u0c2a-\u0c39\u0c3d\u0c58-\u0c5a\u0c5c\u0c5d\u0c60\u0c61\u0c80\u0c85-\u0c8c\u0c8e-\u0c90\u0c92-\u0ca8\u0caa-\u0cb3\u0cb5-\u0cb9\u0cbd\u0cdc-\u0cde\u0ce0\u0ce1\u0cf1\u0cf2\u0d04-\u0d0c\u0d0e-\u0d10\u0d12-\u0d3a\u0d3d\u0d4e\u0d54-\u0d56\u0d5f-\u0d61\u0d7a-\u0d7f\u0d85-\u0d96\u0d9a-\u0db1\u0db3-\u0dbb\u0dbd\u0dc0-\u0dc6\u0e01-\u0e30\u0e32\u0e33\u0e40-\u0e46\u0e81\u0e82\u0e84\u0e86-\u0e8a\u0e8c-\u0ea3\u0ea5\u0ea7-\u0eb0\u0eb2\u0eb3\u0ebd\u0ec0-\u0ec4\u0ec6\u0edc-\u0edf\u0f00\u0f40-\u0f47\u0f49-\u0f6c\u0f88-\u0f8c\u1000-\u102a\u103f\u1050-\u1055\u105a-\u105d\u1061\u1065\u1066\u106e-\u1070\u1075-\u1081\u108e\u10a0-\u10c5\u10c7\u10cd\u10d0-\u10fa\u10fc-\u1248\u124a-\u124d\u1250-\u1256\u1258\u125a-\u125d\u1260-\u1288\u128a-\u128d\u1290-\u12b0\u12b2-\u12b5\u12b8-\u12be\u12c0\u12c2-\u12c5\u12c8-\u12d6\u12d8-\u1310\u1312-\u1315\u1318-\u135a\u1380-\u138f\u13a0-\u13f5\u13f8-\u13fd\u1401-\u166c\u166f-\u167f\u1681-\u169a\u16a0-\u16ea\u16ee-\u16f8\u1700-\u1711\u171f-\u1731\u1740-\u1751\u1760-\u176c\u176e-\u1770\u1780-\u17b3\u17d7\u17dc\u1820-\u1878\u1880-\u18a8\u18aa\u18b0-\u18f5\u1900-\u191e\u1950-\u196d\u1970-\u1974\u1980-\u19ab\u19b0-\u19c9\u1a00-\u1a16\u1a20-\u1a54\u1aa7\u1b05-\u1b33\u1b45-\u1b4c\u1b83-\u1ba0\u1bae\u1baf\u1bba-\u1be5\u1c00-\u1c23\u1c4d-\u1c4f\u1c5a-\u1c7d\u1c80-\u1c8a\u1c90-\u1cba\u1cbd-\u1cbf\u1ce9-\u1cec\u1cee-\u1cf3\u1cf5\u1cf6\u1cfa\u1d00-\u1dbf\u1e00-\u1f15\u1f18-\u1f1d\u1f20-\u1f45\u1f48-\u1f4d\u1f50-\u1f57\u1f59\u1f5b\u1f5d\u1f5f-\u1f7d\u1f80-\u1fb4\u1fb6-\u1fbc\u1fbe\u1fc2-\u1fc4\u1fc6-\u1fcc\u1fd0-\u1fd3\u1fd6-\u1fdb\u1fe0-\u1fec\u1ff2-\u1ff4\u1ff6-\u1ffc\u2071\u207f\u2090-\u209c\u2102\u2107\u210a-\u2113\u2115\u2118-\u211d\u2124\u2126\u2128\u212a-\u2139\u213c-\u213f\u2145-\u2149\u214e\u2160-\u2188\u2c00-\u2ce4\u2ceb-\u2cee\u2cf2\u2cf3\u2d00-\u2d25\u2d27\u2d2d\u2d30-\u2d67\u2d6f\u2d80-\u2d96\u2da0-\u2da6\u2da8-\u2dae\u2db0-\u2db6\u2db8-\u2dbe\u2dc0-\u2dc6\u2dc8-\u2dce\u2dd0-\u2dd6\u2dd8-\u2dde\u3005-\u3007\u3021-\u3029\u3031-\u3035\u3038-\u303c\u3041-\u3096\u309b-\u309f\u30a1-\u30fa\u30fc-\u30ff\u3105-\u312f\u3131-\u318e\u31a0-\u31bf\u31f0-\u31ff\u3400-\u4dbf\u4e00-\ua48c\ua4d0-\ua4fd\ua500-\ua60c\ua610-\ua61f\ua62a\ua62b\ua640-\ua66e\ua67f-\ua69d\ua6a0-\ua6ef\ua717-\ua71f\ua722-\ua788\ua78b-\ua7dc\ua7f1-\ua801\ua803-\ua805\ua807-\ua80a\ua80c-\ua822\ua840-\ua873\ua882-\ua8b3\ua8f2-\ua8f7\ua8fb\ua8fd\ua8fe\ua90a-\ua925\ua930-\ua946\ua960-\ua97c\ua984-\ua9b2\ua9cf\ua9e0-\ua9e4\ua9e6-\ua9ef\ua9fa-\ua9fe\uaa00-\uaa28\uaa40-\uaa42\uaa44-\uaa4b\uaa60-\uaa76\uaa7a\uaa7e-\uaaaf\uaab1\uaab5\uaab6\uaab9-\uaabd\uaac0\uaac2\uaadb-\uaadd\uaae0-\uaaea\uaaf2-\uaaf4\uab01-\uab06\uab09-\uab0e\uab11-\uab16\uab20-\uab26\uab28-\uab2e\uab30-\uab5a\uab5c-\uab69\uab70-\uabe2\uac00-\ud7a3\ud7b0-\ud7c6\ud7cb-\ud7fb\uf900-\ufa6d\ufa70-\ufad9\ufb00-\ufb06\ufb13-\ufb17\ufb1d\ufb1f-\ufb28\ufb2a-\ufb36\ufb38-\ufb3c\ufb3e\ufb40\ufb41\ufb43\ufb44\ufb46-\ufbb1\ufbd3-\ufd3d\ufd50-\ufd8f\ufd92-\ufdc7\ufdf0-\ufdfb\ufe70-\ufe74\ufe76-\ufefc\uff21-\uff3a\uff41-\uff5a\uff66-\uffbe\uffc2-\uffc7\uffca-\uffcf\uffd2-\uffd7\uffda-\uffdc";
 let nonASCIIidentifierChars = "\xb7\u0300-\u036f\u0387\u0483-\u0487\u0591-\u05bd\u05bf\u05c1\u05c2\u05c4\u05c5\u05c7\u0610-\u061a\u064b-\u0669\u0670\u06d6-\u06dc\u06df-\u06e4\u06e7\u06e8\u06ea-\u06ed\u06f0-\u06f9\u0711\u0730-\u074a\u07a6-\u07b0\u07c0-\u07c9\u07eb-\u07f3\u07fd\u0816-\u0819\u081b-\u0823\u0825-\u0827\u0829-\u082d\u0859-\u085b\u0897-\u089f\u08ca-\u08e1\u08e3-\u0903\u093a-\u093c\u093e-\u094f\u0951-\u0957\u0962\u0963\u0966-\u096f\u0981-\u0983\u09bc\u09be-\u09c4\u09c7\u09c8\u09cb-\u09cd\u09d7\u09e2\u09e3\u09e6-\u09ef\u09fe\u0a01-\u0a03\u0a3c\u0a3e-\u0a42\u0a47\u0a48\u0a4b-\u0a4d\u0a51\u0a66-\u0a71\u0a75\u0a81-\u0a83\u0abc\u0abe-\u0ac5\u0ac7-\u0ac9\u0acb-\u0acd\u0ae2\u0ae3\u0ae6-\u0aef\u0afa-\u0aff\u0b01-\u0b03\u0b3c\u0b3e-\u0b44\u0b47\u0b48\u0b4b-\u0b4d\u0b55-\u0b57\u0b62\u0b63\u0b66-\u0b6f\u0b82\u0bbe-\u0bc2\u0bc6-\u0bc8\u0bca-\u0bcd\u0bd7\u0be6-\u0bef\u0c00-\u0c04\u0c3c\u0c3e-\u0c44\u0c46-\u0c48\u0c4a-\u0c4d\u0c55\u0c56\u0c62\u0c63\u0c66-\u0c6f\u0c81-\u0c83\u0cbc\u0cbe-\u0cc4\u0cc6-\u0cc8\u0cca-\u0ccd\u0cd5\u0cd6\u0ce2\u0ce3\u0ce6-\u0cef\u0cf3\u0d00-\u0d03\u0d3b\u0d3c\u0d3e-\u0d44\u0d46-\u0d48\u0d4a-\u0d4d\u0d57\u0d62\u0d63\u0d66-\u0d6f\u0d81-\u0d83\u0dca\u0dcf-\u0dd4\u0dd6\u0dd8-\u0ddf\u0de6-\u0def\u0df2\u0df3\u0e31\u0e34-\u0e3a\u0e47-\u0e4e\u0e50-\u0e59\u0eb1\u0eb4-\u0ebc\u0ec8-\u0ece\u0ed0-\u0ed9\u0f18\u0f19\u0f20-\u0f29\u0f35\u0f37\u0f39\u0f3e\u0f3f\u0f71-\u0f84\u0f86\u0f87\u0f8d-\u0f97\u0f99-\u0fbc\u0fc6\u102b-\u103e\u1040-\u1049\u1056-\u1059\u105e-\u1060\u1062-\u1064\u1067-\u106d\u1071-\u1074\u1082-\u108d\u108f-\u109d\u135d-\u135f\u1369-\u1371\u1712-\u1715\u1732-\u1734\u1752\u1753\u1772\u1773\u17b4-\u17d3\u17dd\u17e0-\u17e9\u180b-\u180d\u180f-\u1819\u18a9\u1920-\u192b\u1930-\u193b\u1946-\u194f\u19d0-\u19da\u1a17-\u1a1b\u1a55-\u1a5e\u1a60-\u1a7c\u1a7f-\u1a89\u1a90-\u1a99\u1ab0-\u1abd\u1abf-\u1add\u1ae0-\u1aeb\u1b00-\u1b04\u1b34-\u1b44\u1b50-\u1b59\u1b6b-\u1b73\u1b80-\u1b82\u1ba1-\u1bad\u1bb0-\u1bb9\u1be6-\u1bf3\u1c24-\u1c37\u1c40-\u1c49\u1c50-\u1c59\u1cd0-\u1cd2\u1cd4-\u1ce8\u1ced\u1cf4\u1cf7-\u1cf9\u1dc0-\u1dff\u200c\u200d\u203f\u2040\u2054\u20d0-\u20dc\u20e1\u20e5-\u20f0\u2cef-\u2cf1\u2d7f\u2de0-\u2dff\u302a-\u302f\u3099\u309a\u30fb\ua620-\ua629\ua66f\ua674-\ua67d\ua69e\ua69f\ua6f0\ua6f1\ua802\ua806\ua80b\ua823-\ua827\ua82c\ua880\ua881\ua8b4-\ua8c5\ua8d0-\ua8d9\ua8e0-\ua8f1\ua8ff-\ua909\ua926-\ua92d\ua947-\ua953\ua980-\ua983\ua9b3-\ua9c0\ua9d0-\ua9d9\ua9e5\ua9f0-\ua9f9\uaa29-\uaa36\uaa43\uaa4c\uaa4d\uaa50-\uaa59\uaa7b-\uaa7d\uaab0\uaab2-\uaab4\uaab7\uaab8\uaabe\uaabf\uaac1\uaaeb-\uaaef\uaaf5\uaaf6\uabe3-\uabea\uabec\uabed\uabf0-\uabf9\ufb1e\ufe00-\ufe0f\ufe20-\ufe2f\ufe33\ufe34\ufe4d-\ufe4f\uff10-\uff19\uff3f\uff65";
 const nonASCIIidentifierStart = new RegExp("[" + nonASCIIidentifierStartChars + "]");
@@ -26331,9 +25936,7 @@ var flow = superClass => class FlowParserMixin extends superClass {
   parseClassSuper(node) {
     super.parseClassSuper(node);
     if (node.superClass && (this.match(47) || this.match(51))) {
-      {
-        node.superTypeParameters = this.flowParseTypeParameterInstantiationInExpression();
-      }
+      node.superTypeParameters = this.flowParseTypeParameterInstantiationInExpression();
     }
     if (this.isContextual(113)) {
       this.next();
@@ -28129,7 +27732,6 @@ class CommentsParser extends BaseParser {
         switch (node.type) {
           case "ObjectExpression":
           case "ObjectPattern":
-          case "RecordExpression":
             adjustInnerComments(node, node.properties, commentWS);
             break;
           case "CallExpression":
@@ -28149,7 +27751,6 @@ class CommentsParser extends BaseParser {
             break;
           case "ArrayExpression":
           case "ArrayPattern":
-          case "TupleExpression":
             adjustInnerComments(node, node.elements, commentWS);
             break;
           case "ExportNamedDeclaration":
@@ -28157,15 +27758,21 @@ class CommentsParser extends BaseParser {
             adjustInnerComments(node, node.specifiers, commentWS);
             break;
           case "TSEnumDeclaration":
-            {
-              adjustInnerComments(node, node.members, commentWS);
-            }
+            adjustInnerComments(node, node.members, commentWS);
             break;
           case "TSEnumBody":
             adjustInnerComments(node, node.members, commentWS);
             break;
           default:
             {
+              if (node.type === "RecordExpression") {
+                adjustInnerComments(node, node.properties, commentWS);
+                break;
+              }
+              if (node.type === "TupleExpression") {
+                adjustInnerComments(node, node.elements, commentWS);
+                break;
+              }
               setInnerComments(node, comments);
             }
         }
@@ -30107,19 +29714,17 @@ class Node {
   }
 }
 const NodePrototype = Node.prototype;
-{
-  NodePrototype.__clone = function () {
-    const newNode = new Node(undefined, this.start, this.loc.start);
-    const keys = Object.keys(this);
-    for (let i = 0, length = keys.length; i < length; i++) {
-      const key = keys[i];
-      if (key !== "leadingComments" && key !== "trailingComments" && key !== "innerComments") {
-        newNode[key] = this[key];
-      }
+NodePrototype.__clone = function () {
+  const newNode = new Node(undefined, this.start, this.loc.start);
+  const keys = Object.keys(this);
+  for (let i = 0, length = keys.length; i < length; i++) {
+    const key = keys[i];
+    if (key !== "leadingComments" && key !== "trailingComments" && key !== "innerComments") {
+      newNode[key] = this[key];
     }
-    return newNode;
-  };
-}
+  }
+  return newNode;
+};
 class NodeUtils extends UtilParser {
   startNode() {
     const loc = this.state.startLoc;
@@ -30971,13 +30576,9 @@ var typescript = superClass => class TypeScriptParserMixin extends superClass {
     this.expect(10);
     if (!this.match(134)) {
       this.raise(TSErrors.UnsupportedImportTypeArgument, this.state.startLoc);
-      {
-        node.argument = super.parseExprAtom();
-      }
+      node.argument = super.parseExprAtom();
     } else {
-      {
-        node.argument = this.parseStringLiteral(this.state.value);
-      }
+      node.argument = this.parseStringLiteral(this.state.value);
     }
     if (this.eat(12)) {
       node.options = this.tsParseImportTypeOptions();
@@ -30989,9 +30590,7 @@ var typescript = superClass => class TypeScriptParserMixin extends superClass {
       node.qualifier = this.tsParseEntityName(1 | 2);
     }
     if (this.match(47)) {
-      {
-        node.typeParameters = this.tsParseTypeArguments();
-      }
+      node.typeParameters = this.tsParseTypeArguments();
     }
     return this.finishNode(node, "TSImportType");
   }
@@ -31056,9 +30655,7 @@ var typescript = superClass => class TypeScriptParserMixin extends superClass {
     const node = this.startNode();
     node.typeName = this.tsParseEntityName(1);
     if (!this.hasPrecedingLineBreak() && this.match(47)) {
-      {
-        node.typeParameters = this.tsParseTypeArguments();
-      }
+      node.typeParameters = this.tsParseTypeArguments();
     }
     return this.finishNode(node, "TSTypeReference");
   }
@@ -31081,14 +30678,10 @@ var typescript = superClass => class TypeScriptParserMixin extends superClass {
     if (this.match(83)) {
       node.exprName = this.tsParseImportType();
     } else {
-      {
-        node.exprName = this.tsParseEntityName(1 | 2);
-      }
+      node.exprName = this.tsParseEntityName(1 | 2);
     }
     if (!this.hasPrecedingLineBreak() && this.match(47)) {
-      {
-        node.typeParameters = this.tsParseTypeArguments();
-      }
+      node.typeParameters = this.tsParseTypeArguments();
     }
     return this.finishNode(node, "TSTypeQuery");
   }
@@ -31309,12 +30902,10 @@ var typescript = superClass => class TypeScriptParserMixin extends superClass {
       node.readonly = true;
     }
     this.expect(0);
-    {
-      const typeParameter = this.startNode();
-      typeParameter.name = this.tsParseTypeParameterName();
-      typeParameter.constraint = this.tsExpectThenParseType(58);
-      node.typeParameter = this.finishNode(typeParameter, "TSTypeParameter");
-    }
+    const typeParameter = this.startNode();
+    typeParameter.name = this.tsParseTypeParameterName();
+    typeParameter.constraint = this.tsExpectThenParseType(58);
+    node.typeParameter = this.finishNode(typeParameter, "TSTypeParameter");
     node.nameType = this.eatContextual(93) ? this.tsParseType() : null;
     this.expect(3);
     if (this.match(53)) {
@@ -31446,11 +31037,9 @@ var typescript = superClass => class TypeScriptParserMixin extends superClass {
     return this.finishNode(node, "TSLiteralType");
   }
   tsParseTemplateLiteralType() {
-    {
-      const node = this.startNode();
-      node.literal = super.parseTemplate(false);
-      return this.finishNode(node, "TSLiteralType");
-    }
+    const node = this.startNode();
+    node.literal = super.parseTemplate(false);
+    return this.finishNode(node, "TSLiteralType");
   }
   parseTemplateSubstitution() {
     if (this.state.inType) return this.tsParseType();
@@ -31780,14 +31369,12 @@ var typescript = superClass => class TypeScriptParserMixin extends superClass {
   tsParseHeritageClause(token) {
     const originalStartLoc = this.state.startLoc;
     const delimitedList = this.tsParseDelimitedList("HeritageClauseElement", () => {
-      {
-        const node = this.startNode();
-        node.expression = this.tsParseEntityName(1 | 2);
-        if (this.match(47)) {
-          node.typeParameters = this.tsParseTypeArguments();
-        }
-        return this.finishNode(node, "TSExpressionWithTypeArguments");
+      const node = this.startNode();
+      node.expression = this.tsParseEntityName(1 | 2);
+      if (this.match(47)) {
+        node.typeParameters = this.tsParseTypeArguments();
       }
+      return this.finishNode(node, "TSExpressionWithTypeArguments");
     });
     if (!delimitedList.length) {
       this.raise(TSErrors.EmptyHeritageClauseType, originalStartLoc, {
@@ -31903,11 +31490,9 @@ var typescript = superClass => class TypeScriptParserMixin extends superClass {
     this.expectContextual(126);
     node.id = this.parseIdentifier();
     this.checkIdentifier(node.id, node.const ? 8971 : 8459);
-    {
-      this.expect(5);
-      node.members = this.tsParseDelimitedList("EnumMembers", this.tsParseEnumMember.bind(this));
-      this.expect(8);
-    }
+    this.expect(5);
+    node.members = this.tsParseDelimitedList("EnumMembers", this.tsParseEnumMember.bind(this));
+    this.expect(8);
     return this.finishNode(node, "TSEnumDeclaration");
   }
   tsParseEnumBody() {
@@ -31946,9 +31531,7 @@ var typescript = superClass => class TypeScriptParserMixin extends superClass {
   tsParseAmbientExternalModuleDeclaration(node) {
     if (this.isContextual(112)) {
       node.kind = "global";
-      {
-        node.global = true;
-      }
+      node.global = true;
       node.id = this.parseIdentifier();
     } else if (this.match(134)) {
       node.kind = "module";
@@ -31968,9 +31551,7 @@ var typescript = superClass => class TypeScriptParserMixin extends superClass {
     return this.finishNode(node, "TSModuleDeclaration");
   }
   tsParseImportEqualsDeclaration(node, maybeDefaultIdentifier, isExport) {
-    {
-      node.isExport = isExport || false;
-    }
+    node.isExport = isExport || false;
     node.id = maybeDefaultIdentifier || this.parseIdentifier();
     this.checkIdentifier(node.id, 4096);
     this.expect(29);
@@ -32292,9 +31873,7 @@ var typescript = superClass => class TypeScriptParserMixin extends superClass {
         }
         if (tokenIsTemplate(this.state.type)) {
           const result = super.parseTaggedTemplateExpression(base, startLoc, state);
-          {
-            result.typeParameters = typeArguments;
-          }
+          result.typeParameters = typeArguments;
           return result;
         }
         if (!noCalls && this.eat(10)) {
@@ -32302,9 +31881,7 @@ var typescript = superClass => class TypeScriptParserMixin extends superClass {
           node.callee = base;
           node.arguments = this.parseCallExpressionArguments();
           this.tsCheckForInvalidTypeCasts(node.arguments);
-          {
-            node.typeParameters = typeArguments;
-          }
+          node.typeParameters = typeArguments;
           if (state.optionalChainMember) {
             node.optional = isOptionalCall;
           }
@@ -32316,9 +31893,7 @@ var typescript = superClass => class TypeScriptParserMixin extends superClass {
         }
         const node = this.startNodeAt(startLoc);
         node.expression = base;
-        {
-          node.typeParameters = typeArguments;
-        }
+        node.typeParameters = typeArguments;
         return this.finishNode(node, "TSInstantiationExpression");
       });
       if (missingParenErrorLoc) {
@@ -32345,9 +31920,7 @@ var typescript = superClass => class TypeScriptParserMixin extends superClass {
       callee
     } = node;
     if (callee.type === "TSInstantiationExpression" && !((_callee$extra = callee.extra) != null && _callee$extra.parenthesized)) {
-      {
-        node.typeParameters = callee.typeParameters;
-      }
+      node.typeParameters = callee.typeParameters;
       node.callee = callee.expression;
     }
   }
@@ -32437,9 +32010,7 @@ var typescript = superClass => class TypeScriptParserMixin extends superClass {
         nodeImportEquals.importKind = "value";
       }
       const declaration = this.tsParseImportEqualsDeclaration(nodeImportEquals, maybeDefaultIdentifier, true);
-      {
-        return declaration;
-      }
+      return declaration;
     } else if (this.eat(29)) {
       const assign = node;
       assign.expression = super.parseExpression();
@@ -32793,9 +32364,7 @@ var typescript = superClass => class TypeScriptParserMixin extends superClass {
   parseClassSuper(node) {
     super.parseClassSuper(node);
     if (node.superClass && (this.match(47) || this.match(51))) {
-      {
-        node.superTypeParameters = this.tsParseTypeArgumentsInExpression();
-      }
+      node.superTypeParameters = this.tsParseTypeArgumentsInExpression();
     }
     if (this.eatContextual(113)) {
       node.implements = this.tsParseHeritageClause("implements");
@@ -33009,9 +32578,7 @@ var typescript = superClass => class TypeScriptParserMixin extends superClass {
       const typeArguments = this.tsParseTypeArgumentsInExpression();
       if (this.match(10)) {
         const call = super.parseMaybeDecoratorArguments(expr, startLoc);
-        {
-          call.typeParameters = typeArguments;
-        }
+        call.typeParameters = typeArguments;
         return call;
       }
       this.unexpected(null, 10);
@@ -33102,9 +32669,7 @@ var typescript = superClass => class TypeScriptParserMixin extends superClass {
     if (this.match(47) || this.match(51)) {
       const typeArguments = this.tsTryParseAndCatch(() => this.tsParseTypeArgumentsInExpression());
       if (typeArguments) {
-        {
-          node.typeParameters = typeArguments;
-        }
+        node.typeParameters = typeArguments;
       }
     }
     return super.jsxParseOpeningElementAfterName(node);
@@ -33552,7 +33117,8 @@ var placeholders = superClass => class PlaceholdersParserMixin extends superClas
     return false;
   }
   verifyBreakContinue(node, isBreak) {
-    if (node.label && node.label.type === "Placeholder") return;
+    var _node$label;
+    if (((_node$label = node.label) == null ? void 0 : _node$label.type) === "Placeholder") return;
     super.verifyBreakContinue(node, isBreak);
   }
   parseExpressionStatement(node, expr) {
@@ -33725,6 +33291,7 @@ function validatePlugins(pluginsMap) {
       throw new Error(`"pipelineOperator" requires "proposal" option whose value must be one of: ${proposalList}.`);
     }
     if (proposal === "hack") {
+      var _pluginsMap$get;
       if (pluginsMap.has("placeholders")) {
         throw new Error("Cannot combine placeholders plugin and Hack-style pipes.");
       }
@@ -33736,25 +33303,20 @@ function validatePlugins(pluginsMap) {
         const tokenList = TOPIC_TOKENS.map(t => `"${t}"`).join(", ");
         throw new Error(`"pipelineOperator" in "proposal": "hack" mode also requires a "topicToken" option whose value must be one of: ${tokenList}.`);
       }
-      {
-        var _pluginsMap$get;
-        if (topicToken === "#" && ((_pluginsMap$get = pluginsMap.get("recordAndTuple")) == null ? void 0 : _pluginsMap$get.syntaxType) === "hash") {
-          throw new Error(`Plugin conflict between \`["pipelineOperator", { proposal: "hack", topicToken: "#" }]\` and \`${JSON.stringify(["recordAndTuple", pluginsMap.get("recordAndTuple")])}\`.`);
-        }
+      if (topicToken === "#" && ((_pluginsMap$get = pluginsMap.get("recordAndTuple")) == null ? void 0 : _pluginsMap$get.syntaxType) === "hash") {
+        throw new Error(`Plugin conflict between \`["pipelineOperator", { proposal: "hack", topicToken: "#" }]\` and \`${JSON.stringify(["recordAndTuple", pluginsMap.get("recordAndTuple")])}\`.`);
       }
     } else if (proposal === "smart" && ((_pluginsMap$get2 = pluginsMap.get("recordAndTuple")) == null ? void 0 : _pluginsMap$get2.syntaxType) === "hash") {
       throw new Error(`Plugin conflict between \`["pipelineOperator", { proposal: "smart" }]\` and \`${JSON.stringify(["recordAndTuple", pluginsMap.get("recordAndTuple")])}\`.`);
     }
   }
   if (pluginsMap.has("moduleAttributes")) {
-    {
-      if (pluginsMap.has("deprecatedImportAssert") || pluginsMap.has("importAssertions")) {
-        throw new Error("Cannot combine importAssertions, deprecatedImportAssert and moduleAttributes plugins.");
-      }
-      const moduleAttributesVersionPluginOption = pluginsMap.get("moduleAttributes").version;
-      if (moduleAttributesVersionPluginOption !== "may-2020") {
-        throw new Error("The 'moduleAttributes' plugin requires a 'version' option," + " representing the last proposal update. Currently, the" + " only supported value is 'may-2020'.");
-      }
+    if (pluginsMap.has("deprecatedImportAssert") || pluginsMap.has("importAssertions")) {
+      throw new Error("Cannot combine importAssertions, deprecatedImportAssert and moduleAttributes plugins.");
+    }
+    const moduleAttributesVersionPluginOption = pluginsMap.get("moduleAttributes").version;
+    if (moduleAttributesVersionPluginOption !== "may-2020") {
+      throw new Error("The 'moduleAttributes' plugin requires a 'version' option," + " representing the last proposal update. Currently, the" + " only supported value is 'may-2020'.");
     }
   }
   if (pluginsMap.has("importAssertions")) {
@@ -33762,19 +33324,15 @@ function validatePlugins(pluginsMap) {
       throw new Error("Cannot combine importAssertions and deprecatedImportAssert plugins.");
     }
   }
-  if (!pluginsMap.has("deprecatedImportAssert") && pluginsMap.has("importAttributes") && pluginsMap.get("importAttributes").deprecatedAssertSyntax) {
-    {
-      pluginsMap.set("deprecatedImportAssert", {});
-    }
+  if (pluginsMap.has("deprecatedImportAssert")) ;else if (pluginsMap.has("importAttributes") && pluginsMap.get("importAttributes").deprecatedAssertSyntax) {
+    pluginsMap.set("deprecatedImportAssert", {});
   }
   if (pluginsMap.has("recordAndTuple")) {
-    {
-      const syntaxType = pluginsMap.get("recordAndTuple").syntaxType;
-      if (syntaxType != null) {
-        const RECORD_AND_TUPLE_SYNTAX_TYPES = ["hash", "bar"];
-        if (!RECORD_AND_TUPLE_SYNTAX_TYPES.includes(syntaxType)) {
-          throw new Error("The 'syntaxType' option of the 'recordAndTuple' plugin must be one of: " + RECORD_AND_TUPLE_SYNTAX_TYPES.map(p => `'${p}'`).join(", "));
-        }
+    const syntaxType = pluginsMap.get("recordAndTuple").syntaxType;
+    if (syntaxType != null) {
+      const RECORD_AND_TUPLE_SYNTAX_TYPES = ["hash", "bar"];
+      if (!RECORD_AND_TUPLE_SYNTAX_TYPES.includes(syntaxType)) {
+        throw new Error("The 'syntaxType' option of the 'recordAndTuple' plugin must be one of: " + RECORD_AND_TUPLE_SYNTAX_TYPES.map(p => `'${p}'`).join(", "));
       }
     }
   }
@@ -34474,14 +34032,12 @@ class ExpressionParser extends LValParser {
           throw this.unexpected();
         }
       default:
-        {
-          if (type === 137) {
-            return this.parseDecimalLiteral(this.state.value);
-          } else if (type === 2 || type === 1) {
-            return this.parseArrayLike(this.state.type === 2 ? 4 : 3, true);
-          } else if (type === 6 || type === 7) {
-            return this.parseObjectLike(this.state.type === 6 ? 9 : 8, false, true);
-          }
+        if (type === 137) {
+          return this.parseDecimalLiteral(this.state.value);
+        } else if (type === 2 || type === 1) {
+          return this.parseArrayLike(this.state.type === 2 ? 4 : 3, true);
+        } else if (type === 6 || type === 7) {
+          return this.parseObjectLike(this.state.type === 6 ? 9 : 8, false, true);
         }
         if (tokenIsIdentifier(type)) {
           if (this.isContextual(127) && this.lookaheadInLineCharCode() === 123) {
@@ -34606,16 +34162,12 @@ class ExpressionParser extends LValParser {
     const node = this.startNode();
     this.next();
     if (this.match(10) && !this.scope.allowDirectSuper) {
-      {
-        if (!(this.optionFlags & 16)) {
-          this.raise(Errors.SuperNotAllowed, node);
-        }
+      if (!(this.optionFlags & 16)) {
+        this.raise(Errors.SuperNotAllowed, node);
       }
     } else if (!this.scope.allowSuper) {
-      {
-        if (!(this.optionFlags & 16)) {
-          this.raise(Errors.UnexpectedSuper, node);
-        }
+      if (!(this.optionFlags & 16)) {
+        this.raise(Errors.UnexpectedSuper, node);
       }
     }
     if (!this.match(10) && !this.match(0) && !this.match(16)) {
@@ -34695,9 +34247,7 @@ class ExpressionParser extends LValParser {
     return this.parseLiteral(value, "NumericLiteral");
   }
   parseBigIntLiteral(value) {
-    {
-      return this.parseLiteral(value, "BigIntLiteral");
-    }
+    return this.parseLiteral(value, "BigIntLiteral");
   }
   parseDecimalLiteral(value) {
     return this.parseLiteral(value, "DecimalLiteral");
@@ -34917,10 +34467,8 @@ class ExpressionParser extends LValParser {
       if (isRecord && !this.isObjectProperty(prop) && prop.type !== "SpreadElement") {
         this.raise(Errors.InvalidRecordProperty, prop);
       }
-      {
-        if (prop.shorthand) {
-          this.addExtra(prop, "shorthand", true);
-        }
+      if (prop.shorthand) {
+        this.addExtra(prop, "shorthand", true);
       }
       node.properties.push(prop);
     }
@@ -35593,100 +35141,98 @@ function babel7CompatTokens(tokens, input, startIndex) {
       type
     } = token;
     if (typeof type === "number") {
-      {
-        if (type === 139) {
-          const {
-            loc,
-            start,
-            value,
-            end
-          } = token;
-          const hashEndPos = start + 1;
-          const hashEndLoc = createPositionWithColumnOffset(loc.start, 1);
-          tokens.splice(i, 1, new Token({
-            type: getExportedToken(27),
-            value: "#",
+      if (type === 139) {
+        const {
+          loc,
+          start,
+          value,
+          end
+        } = token;
+        const hashEndPos = start + 1;
+        const hashEndLoc = createPositionWithColumnOffset(loc.start, 1);
+        tokens.splice(i, 1, new Token({
+          type: getExportedToken(27),
+          value: "#",
+          start: start,
+          end: hashEndPos,
+          startLoc: loc.start,
+          endLoc: hashEndLoc
+        }), new Token({
+          type: getExportedToken(132),
+          value: value,
+          start: hashEndPos,
+          end: end,
+          startLoc: hashEndLoc,
+          endLoc: loc.end
+        }));
+        i++;
+        continue;
+      }
+      if (tokenIsTemplate(type)) {
+        const {
+          loc,
+          start,
+          value,
+          end
+        } = token;
+        const backquoteEnd = start + 1;
+        const backquoteEndLoc = createPositionWithColumnOffset(loc.start, 1);
+        let startToken;
+        if (input.charCodeAt(start - startIndex) === 96) {
+          startToken = new Token({
+            type: getExportedToken(22),
+            value: "`",
             start: start,
-            end: hashEndPos,
+            end: backquoteEnd,
             startLoc: loc.start,
-            endLoc: hashEndLoc
-          }), new Token({
-            type: getExportedToken(132),
-            value: value,
-            start: hashEndPos,
+            endLoc: backquoteEndLoc
+          });
+        } else {
+          startToken = new Token({
+            type: getExportedToken(8),
+            value: "}",
+            start: start,
+            end: backquoteEnd,
+            startLoc: loc.start,
+            endLoc: backquoteEndLoc
+          });
+        }
+        let templateValue, templateElementEnd, templateElementEndLoc, endToken;
+        if (type === 24) {
+          templateElementEnd = end - 1;
+          templateElementEndLoc = createPositionWithColumnOffset(loc.end, -1);
+          templateValue = value === null ? null : value.slice(1, -1);
+          endToken = new Token({
+            type: getExportedToken(22),
+            value: "`",
+            start: templateElementEnd,
             end: end,
-            startLoc: hashEndLoc,
+            startLoc: templateElementEndLoc,
             endLoc: loc.end
-          }));
-          i++;
-          continue;
+          });
+        } else {
+          templateElementEnd = end - 2;
+          templateElementEndLoc = createPositionWithColumnOffset(loc.end, -2);
+          templateValue = value === null ? null : value.slice(1, -2);
+          endToken = new Token({
+            type: getExportedToken(23),
+            value: "${",
+            start: templateElementEnd,
+            end: end,
+            startLoc: templateElementEndLoc,
+            endLoc: loc.end
+          });
         }
-        if (tokenIsTemplate(type)) {
-          const {
-            loc,
-            start,
-            value,
-            end
-          } = token;
-          const backquoteEnd = start + 1;
-          const backquoteEndLoc = createPositionWithColumnOffset(loc.start, 1);
-          let startToken;
-          if (input.charCodeAt(start - startIndex) === 96) {
-            startToken = new Token({
-              type: getExportedToken(22),
-              value: "`",
-              start: start,
-              end: backquoteEnd,
-              startLoc: loc.start,
-              endLoc: backquoteEndLoc
-            });
-          } else {
-            startToken = new Token({
-              type: getExportedToken(8),
-              value: "}",
-              start: start,
-              end: backquoteEnd,
-              startLoc: loc.start,
-              endLoc: backquoteEndLoc
-            });
-          }
-          let templateValue, templateElementEnd, templateElementEndLoc, endToken;
-          if (type === 24) {
-            templateElementEnd = end - 1;
-            templateElementEndLoc = createPositionWithColumnOffset(loc.end, -1);
-            templateValue = value === null ? null : value.slice(1, -1);
-            endToken = new Token({
-              type: getExportedToken(22),
-              value: "`",
-              start: templateElementEnd,
-              end: end,
-              startLoc: templateElementEndLoc,
-              endLoc: loc.end
-            });
-          } else {
-            templateElementEnd = end - 2;
-            templateElementEndLoc = createPositionWithColumnOffset(loc.end, -2);
-            templateValue = value === null ? null : value.slice(1, -2);
-            endToken = new Token({
-              type: getExportedToken(23),
-              value: "${",
-              start: templateElementEnd,
-              end: end,
-              startLoc: templateElementEndLoc,
-              endLoc: loc.end
-            });
-          }
-          tokens.splice(i, 1, startToken, new Token({
-            type: getExportedToken(20),
-            value: templateValue,
-            start: backquoteEnd,
-            end: templateElementEnd,
-            startLoc: backquoteEndLoc,
-            endLoc: templateElementEndLoc
-          }), endToken);
-          i += 2;
-          continue;
-        }
+        tokens.splice(i, 1, startToken, new Token({
+          type: getExportedToken(20),
+          value: templateValue,
+          start: backquoteEnd,
+          end: templateElementEnd,
+          startLoc: backquoteEndLoc,
+          endLoc: templateElementEndLoc
+        }), endToken);
+        i += 2;
+        continue;
       }
       token.type = getExportedToken(type);
     }
@@ -37411,9 +36957,7 @@ class StatementParser extends ExpressionParser {
   }
   maybeParseImportAttributes(node) {
     let attributes;
-    {
-      var useWith = false;
-    }
+    var useWith = false;
     if (this.match(76)) {
       if (this.hasPrecedingLineBreak() && this.lookaheadCharCode() === 40) {
         return;
@@ -37425,9 +36969,7 @@ class StatementParser extends ExpressionParser {
       } else {
         attributes = this.parseImportAttributes();
       }
-      {
-        useWith = true;
-      }
+      useWith = true;
     } else if (this.isContextual(94) && !this.hasPrecedingLineBreak()) {
       if (!this.hasPlugin("deprecatedImportAssert") && !this.hasPlugin("importAssertions")) {
         this.raise(Errors.ImportAttributesUseAssert, this.state.startLoc);
@@ -38369,10 +37911,8 @@ exports.clearScope = clearScope;
 exports.getCachedPaths = getCachedPaths;
 exports.getOrCreateCachedPaths = getOrCreateCachedPaths;
 exports.scope = exports.path = void 0;
-let pathsCache = new WeakMap();
-exports.path = pathsCache;
-let scope = new WeakMap();
-exports.scope = scope;
+let pathsCache = exports.path = new WeakMap();
+let scope = exports.scope = new WeakMap();
 function clear() {
   clearPath();
   clearScope();
@@ -38383,23 +37923,16 @@ function clearPath() {
 function clearScope() {
   exports.scope = scope = new WeakMap();
 }
-const nullHub = Object.freeze({});
-function getCachedPaths(hub, parent) {
-  var _pathsCache$get, _hub;
-  {
-    hub = null;
-  }
-  return (_pathsCache$get = pathsCache.get((_hub = hub) != null ? _hub : nullHub)) == null ? void 0 : _pathsCache$get.get(parent);
+function getCachedPaths(path) {
+  const {
+    parent,
+    parentPath
+  } = path;
+  return pathsCache.get(parent);
 }
-function getOrCreateCachedPaths(hub, parent) {
-  var _hub2, _hub3;
-  {
-    hub = null;
-  }
-  let parents = pathsCache.get((_hub2 = hub) != null ? _hub2 : nullHub);
-  if (!parents) pathsCache.set((_hub3 = hub) != null ? _hub3 : nullHub, parents = new WeakMap());
-  let paths = parents.get(parent);
-  if (!paths) parents.set(parent, paths = new Map());
+function getOrCreateCachedPaths(node, parentPath) {
+  let paths = pathsCache.get(node);
+  if (!paths) pathsCache.set(node, paths = new Map());
   return paths;
 }
 
@@ -38420,6 +37953,7 @@ Object.defineProperty(exports, "__esModule", ({
 exports["default"] = void 0;
 var _index = __nccwpck_require__(8877);
 var _t = __nccwpck_require__(7912);
+var _context = __nccwpck_require__(4108);
 const {
   VISITOR_KEYS
 } = _t;
@@ -38486,10 +38020,13 @@ class TraversalContext {
     this.priorityQueue = [];
     const visited = new WeakSet();
     let stop = false;
-    for (const path of queue) {
-      path.resync();
+    let visitIndex = 0;
+    for (; visitIndex < queue.length;) {
+      const path = queue[visitIndex];
+      visitIndex++;
+      _context.resync.call(path);
       if (path.contexts.length === 0 || path.contexts[path.contexts.length - 1] !== this) {
-        path.pushContext(this);
+        _context.pushContext.call(path, this);
       }
       if (path.key === null) continue;
       const {
@@ -38508,8 +38045,8 @@ class TraversalContext {
         if (stop) break;
       }
     }
-    for (const path of queue) {
-      path.popContext();
+    for (let i = 0; i < visitIndex; i++) {
+      _context.popContext.call(queue[i]);
     }
     this.queue = null;
     return stop;
@@ -38586,6 +38123,7 @@ Object.defineProperty(exports, "Scope", ({
   }
 }));
 exports.visitors = exports["default"] = void 0;
+__nccwpck_require__(4108);
 var visitors = __nccwpck_require__(3494);
 exports.visitors = visitors;
 var _t = __nccwpck_require__(7912);
@@ -38613,10 +38151,9 @@ function traverse(parent, opts = {}, scope, state, parentPath, visitSelf) {
     return;
   }
   visitors.explode(opts);
-  (0, _traverseNode.traverseNode)(parent, opts, scope, state, parentPath, null, visitSelf);
+  (0, _traverseNode.traverseNode)(parent, opts, scope, state, parentPath, undefined, visitSelf);
 }
-var _default = traverse;
-exports["default"] = _default;
+var _default = exports["default"] = traverse;
 traverse.visitors = visitors;
 traverse.verify = visitors.verify;
 traverse.explode = visitors.explode;
@@ -38634,25 +38171,17 @@ traverse.removeProperties = function (tree, opts) {
   traverseFast(tree, traverse.clearNode, opts);
   return tree;
 };
-function hasDenylistedType(path, state) {
-  if (path.node.type === state.type) {
-    state.has = true;
-    path.stop();
-  }
-}
 traverse.hasType = function (tree, type, denylistTypes) {
   if (denylistTypes != null && denylistTypes.includes(tree.type)) return false;
   if (tree.type === type) return true;
-  const state = {
-    has: false,
-    type: type
-  };
-  traverse(tree, {
-    noScope: true,
-    denylist: denylistTypes,
-    enter: hasDenylistedType
-  }, null, state);
-  return state.has;
+  return traverseFast(tree, function (node) {
+    if (denylistTypes != null && denylistTypes.includes(node.type)) {
+      return traverseFast.skip;
+    }
+    if (node.type === type) {
+      return traverseFast.stop;
+    }
+  });
 };
 traverse.cache = cache;
 
@@ -38797,9 +38326,7 @@ function isDescendant(maybeAncestor) {
 function inType(...candidateTypes) {
   let path = this;
   while (path) {
-    for (const type of candidateTypes) {
-      if (path.node.type === type) return true;
-    }
+    if (candidateTypes.includes(path.node.type)) return true;
     path = path.parentPath;
   }
   return false;
@@ -38852,12 +38379,10 @@ function shareCommentsWithSiblings() {
   }
 }
 function removeIfExisting(list, toRemove) {
-  if (!toRemove) return list;
-  let lastFoundIndex = -1;
+  if (!(toRemove != null && toRemove.length)) return list;
+  const set = new Set(toRemove);
   return list.filter(el => {
-    const i = toRemove.indexOf(el, lastFoundIndex);
-    if (i === -1) return true;
-    lastFoundIndex = i;
+    return !set.has(el);
   });
 }
 function addComment(type, content, line) {
@@ -38882,16 +38407,18 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports._call = _call;
+exports._forceSetScope = _forceSetScope;
 exports._getQueueContexts = _getQueueContexts;
 exports._resyncKey = _resyncKey;
 exports._resyncList = _resyncList;
 exports._resyncParent = _resyncParent;
 exports._resyncRemoved = _resyncRemoved;
 exports.call = call;
-exports.isBlacklisted = exports.isDenylisted = isDenylisted;
+exports.isDenylisted = isDenylisted;
 exports.popContext = popContext;
 exports.pushContext = pushContext;
 exports.requeue = requeue;
+exports.requeueComputedKeyAndDecorators = requeueComputedKeyAndDecorators;
 exports.resync = resync;
 exports.setContext = setContext;
 exports.setKey = setKey;
@@ -38903,15 +38430,17 @@ exports.stop = stop;
 exports.visit = visit;
 var _traverseNode = __nccwpck_require__(1250);
 var _index = __nccwpck_require__(8877);
+var _removal = __nccwpck_require__(408);
+var t = __nccwpck_require__(7912);
 function call(key) {
   const opts = this.opts;
   this.debug(key);
   if (this.node) {
-    if (this._call(opts[key])) return true;
+    if (_call.call(this, opts[key])) return true;
   }
   if (this.node) {
     var _opts$this$node$type;
-    return this._call((_opts$this$node$type = opts[this.node.type]) == null ? void 0 : _opts$this$node$type[key]);
+    return _call.call(this, (_opts$this$node$type = opts[this.node.type]) == null ? void 0 : _opts$this$node$type[key]);
   }
   return false;
 }
@@ -38936,8 +38465,9 @@ function _call(fns) {
 function isDenylisted() {
   var _this$opts$denylist;
   const denylist = (_this$opts$denylist = this.opts.denylist) != null ? _this$opts$denylist : this.opts.blacklist;
-  return denylist && denylist.indexOf(this.node.type) > -1;
+  return denylist == null ? void 0 : denylist.includes(this.node.type);
 }
+exports.isBlacklisted = isDenylisted;
 function restoreContext(path, context) {
   if (path.context !== context) {
     path.context = context;
@@ -38957,7 +38487,7 @@ function visit() {
     return false;
   }
   const currentContext = this.context;
-  if (this.shouldSkip || this.call("enter")) {
+  if (this.shouldSkip || call.call(this, "enter")) {
     this.debug("Skip...");
     return this.shouldStop;
   }
@@ -38965,7 +38495,7 @@ function visit() {
   this.debug("Recursing into...");
   this.shouldStop = (0, _traverseNode.traverseNode)(this.node, this.opts, this.scope, this.state, this, this.skipKeys);
   restoreContext(this, currentContext);
-  this.call("exit");
+  call.call(this, "exit");
   return this.shouldStop;
 }
 function skip() {
@@ -38980,8 +38510,22 @@ function skipKey(key) {
 function stop() {
   this._traverseFlags |= _index.SHOULD_SKIP | _index.SHOULD_STOP;
 }
+function _forceSetScope() {
+  var _this$scope;
+  let path = this.parentPath;
+  if ((this.key === "key" || this.listKey === "decorators") && path.isMethod() || this.key === "discriminant" && path.isSwitchStatement()) {
+    path = path.parentPath;
+  }
+  let target;
+  while (path && !target) {
+    target = path.scope;
+    path = path.parentPath;
+  }
+  this.scope = this.getScope(target);
+  (_this$scope = this.scope) == null || _this$scope.init();
+}
 function setScope() {
-  var _this$opts2, _this$scope;
+  var _this$opts2, _this$scope2;
   if ((_this$opts2 = this.opts) != null && _this$opts2.noScope) return;
   let path = this.parentPath;
   if ((this.key === "key" || this.listKey === "decorators") && path.isMethod() || this.key === "discriminant" && path.isSwitchStatement()) {
@@ -38995,7 +38539,7 @@ function setScope() {
     path = path.parentPath;
   }
   this.scope = this.getScope(target);
-  (_this$scope = this.scope) == null ? void 0 : _this$scope.init();
+  (_this$scope2 = this.scope) == null || _this$scope2.init();
 }
 function setContext(context) {
   if (this.skipKeys != null) {
@@ -39007,14 +38551,14 @@ function setContext(context) {
     this.state = context.state;
     this.opts = context.opts;
   }
-  this.setScope();
+  setScope.call(this);
   return this;
 }
 function resync() {
   if (this.removed) return;
-  this._resyncParent();
-  this._resyncList();
-  this._resyncKey();
+  _resyncParent.call(this);
+  _resyncList.call(this);
+  _resyncKey.call(this);
 }
 function _resyncParent() {
   if (this.parentPath) {
@@ -39029,14 +38573,14 @@ function _resyncKey() {
   if (Array.isArray(this.container)) {
     for (let i = 0; i < this.container.length; i++) {
       if (this.container[i] === this.node) {
-        this.setKey(i);
+        setKey.call(this, i);
         return;
       }
     }
   } else {
     for (const key of Object.keys(this.container)) {
       if (this.container[key] === this.node) {
-        this.setKey(key);
+        setKey.call(this, key);
         return;
       }
     }
@@ -39051,7 +38595,7 @@ function _resyncList() {
 }
 function _resyncRemoved() {
   if (this.key == null || !this.container || this.container[this.key] !== this.node) {
-    this._markRemoved();
+    _removal._markRemoved.call(this);
   }
 }
 function popContext() {
@@ -39070,7 +38614,7 @@ function setup(parentPath, container, listKey, key) {
   this.listKey = listKey;
   this.container = container;
   this.parentPath = parentPath || this.parentPath;
-  this.setKey(key);
+  setKey.call(this, key);
 }
 function setKey(key) {
   var _this$node;
@@ -39080,10 +38624,23 @@ function setKey(key) {
 }
 function requeue(pathToQueue = this) {
   if (pathToQueue.removed) return;
-  ;
   const contexts = this.contexts;
   for (const context of contexts) {
     context.maybeQueue(pathToQueue);
+  }
+}
+function requeueComputedKeyAndDecorators() {
+  const {
+    context,
+    node
+  } = this;
+  if (!t.isPrivate(node) && node.computed) {
+    context.maybeQueue(this.get("key"));
+  }
+  if (node.decorators) {
+    for (const decorator of this.get("decorators")) {
+      context.maybeQueue(decorator);
+    }
   }
 }
 function _getQueueContexts() {
@@ -39113,12 +38670,14 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.arrowFunctionToExpression = arrowFunctionToExpression;
 exports.ensureBlock = ensureBlock;
+exports.ensureFunctionName = ensureFunctionName;
+exports.splitExportDeclaration = splitExportDeclaration;
 exports.toComputedKey = toComputedKey;
 exports.unwrapFunctionEnvironment = unwrapFunctionEnvironment;
 var _t = __nccwpck_require__(7912);
-var _helperEnvironmentVisitor = __nccwpck_require__(1097);
-var _helperFunctionName = __nccwpck_require__(3968);
+var _template = __nccwpck_require__(3412);
 var _visitors = __nccwpck_require__(3494);
+var _context = __nccwpck_require__(4108);
 const {
   arrowFunctionExpression,
   assignmentExpression,
@@ -39144,7 +38703,18 @@ const {
   super: _super,
   thisExpression,
   toExpression,
-  unaryExpression
+  unaryExpression,
+  toBindingIdentifierName,
+  isFunction,
+  isAssignmentPattern,
+  isRestElement,
+  getFunctionName,
+  cloneNode,
+  variableDeclaration,
+  variableDeclarator,
+  exportNamedDeclaration,
+  exportSpecifier,
+  inherits
 } = _t;
 function toComputedKey() {
   let key;
@@ -39192,15 +38762,13 @@ function ensureBlock() {
   }
   this.node.body = blockStatement(statements);
   const parentPath = this.get(stringPath);
-  body.setup(parentPath, listKey ? parentPath.node[listKey] : parentPath.node, listKey, key);
+  _context.setup.call(body, parentPath, listKey ? parentPath.node[listKey] : parentPath.node, listKey, key);
   return this.node;
 }
-{
-  exports.arrowFunctionToShadowed = function () {
-    if (!this.isArrowFunctionExpression()) return;
-    this.arrowFunctionToExpression();
-  };
-}
+exports.arrowFunctionToShadowed = function () {
+  if (!this.isArrowFunctionExpression()) return;
+  this.arrowFunctionToExpression();
+};
 function unwrapFunctionEnvironment() {
   if (!this.isArrowFunctionExpression() && !this.isFunctionExpression() && !this.isFunctionDeclaration()) {
     throw this.buildCodeFrameError("Can only unwrap the environment of a function.");
@@ -39218,10 +38786,15 @@ function arrowFunctionToExpression({
   if (!this.isArrowFunctionExpression()) {
     throw this.buildCodeFrameError("Cannot convert non-arrow function to a function expression.");
   }
+  let self = this;
+  if (!noNewArrows) {
+    var _self$ensureFunctionN;
+    self = (_self$ensureFunctionN = self.ensureFunctionName(false)) != null ? _self$ensureFunctionN : self;
+  }
   const {
     thisBinding,
     fnPath: fn
-  } = hoistFunctionEnvironment(this, noNewArrows, allowInsertArrow, allowInsertArrowWithRest);
+  } = hoistFunctionEnvironment(self, noNewArrows, allowInsertArrow, allowInsertArrowWithRest);
   fn.ensureBlock();
   setType(fn, "FunctionExpression");
   if (!noNewArrows) {
@@ -39233,25 +38806,24 @@ function arrowFunctionToExpression({
       });
     }
     fn.get("body").unshiftContainer("body", expressionStatement(callExpression(this.hub.addHelper("newArrowCheck"), [thisExpression(), checkBinding ? identifier(checkBinding.name) : identifier(thisBinding)])));
-    fn.replaceWith(callExpression(memberExpression((0, _helperFunctionName.default)(this, true) || fn.node, identifier("bind")), [checkBinding ? identifier(checkBinding.name) : thisExpression()]));
+    fn.replaceWith(callExpression(memberExpression(fn.node, identifier("bind")), [checkBinding ? identifier(checkBinding.name) : thisExpression()]));
     return fn.get("callee.object");
   }
   return fn;
 }
-const getSuperCallsVisitor = (0, _visitors.merge)([{
+const getSuperCallsVisitor = (0, _visitors.environmentVisitor)({
   CallExpression(child, {
     allSuperCalls
   }) {
     if (!child.get("callee").isSuper()) return;
     allSuperCalls.push(child);
   }
-}, _helperEnvironmentVisitor.default]);
+});
 function hoistFunctionEnvironment(fnPath, noNewArrows = true, allowInsertArrow = true, allowInsertArrowWithRest = true) {
   let arrowParent;
   let thisEnvFn = fnPath.findParent(p => {
     if (p.isArrowFunctionExpression()) {
-      var _arrowParent;
-      (_arrowParent = arrowParent) != null ? _arrowParent : arrowParent = p;
+      arrowParent != null ? arrowParent : arrowParent = p;
       return false;
     }
     return p.isFunction() || p.isProgram() || p.isClassProperty({
@@ -39376,7 +38948,7 @@ function hoistFunctionEnvironment(fnPath, noNewArrows = true, allowInsertArrow =
     }
   }
   return {
-    thisBinding,
+    thisBinding: thisBinding,
     fnPath
   };
 }
@@ -39391,8 +38963,10 @@ function standardizeSuperProperty(superProp) {
     const isLogicalAssignment = isLogicalOp(op);
     if (superProp.node.computed) {
       const tmp = superProp.scope.generateDeclaredUidIdentifier("tmp");
-      const object = superProp.node.object;
-      const property = superProp.node.property;
+      const {
+        object,
+        property
+      } = superProp.node;
       assignmentPath.get("left").replaceWith(memberExpression(object, assignmentExpression("=", tmp, property), true));
       assignmentPath.get("right").replaceWith(rightExpression(isLogicalAssignment ? "=" : op, memberExpression(object, identifier(tmp.name), true), value));
     } else {
@@ -39432,7 +39006,7 @@ function standardizeSuperProperty(superProp) {
 function hasSuperClass(thisEnvFn) {
   return thisEnvFn.isClassMethod() && !!thisEnvFn.parentPath.parentPath.node.superClass;
 }
-const assignSuperThisVisitor = (0, _visitors.merge)([{
+const assignSuperThisVisitor = (0, _visitors.environmentVisitor)({
   CallExpression(child, {
     supers,
     thisBinding
@@ -39442,7 +39016,7 @@ const assignSuperThisVisitor = (0, _visitors.merge)([{
     supers.add(child.node);
     child.replaceWithMultiple([child.node, assignmentExpression("=", identifier(thisBinding), identifier("this"))]);
   }
-}, _helperEnvironmentVisitor.default]);
+});
 function getThisBinding(thisEnvFn, inConstructor) {
   return getBinding(thisEnvFn, "this", thisBinding => {
     if (!inConstructor || !hasSuperClass(thisEnvFn)) return thisExpression();
@@ -39492,7 +39066,7 @@ function getBinding(thisEnvFn, key, init) {
   }
   return data;
 }
-const getScopeInformationVisitor = (0, _visitors.merge)([{
+const getScopeInformationVisitor = (0, _visitors.environmentVisitor)({
   ThisExpression(child, {
     thisPaths
   }) {
@@ -39550,7 +39124,7 @@ const getScopeInformationVisitor = (0, _visitors.merge)([{
     })) return;
     newTargetPaths.push(child);
   }
-}, _helperEnvironmentVisitor.default]);
+});
 function getScopeInformation(fnPath) {
   const thisPaths = [];
   const argumentsPaths = [];
@@ -39571,6 +39145,129 @@ function getScopeInformation(fnPath) {
     superProps,
     superCalls
   };
+}
+function splitExportDeclaration() {
+  if (!this.isExportDeclaration() || this.isExportAllDeclaration()) {
+    throw new Error("Only default and named export declarations can be split.");
+  }
+  if (this.isExportNamedDeclaration() && this.get("specifiers").length > 0) {
+    throw new Error("It doesn't make sense to split exported specifiers.");
+  }
+  const declaration = this.get("declaration");
+  if (this.isExportDefaultDeclaration()) {
+    const standaloneDeclaration = declaration.isFunctionDeclaration() || declaration.isClassDeclaration();
+    const exportExpr = declaration.isFunctionExpression() || declaration.isClassExpression();
+    const scope = declaration.isScope() ? declaration.scope.parent : declaration.scope;
+    let id = declaration.node.id;
+    let needBindingRegistration = false;
+    if (!id) {
+      needBindingRegistration = true;
+      id = scope.generateUidIdentifier("default");
+      if (standaloneDeclaration || exportExpr) {
+        declaration.node.id = cloneNode(id);
+      }
+    } else if (exportExpr && scope.hasBinding(id.name)) {
+      needBindingRegistration = true;
+      id = scope.generateUidIdentifier(id.name);
+    }
+    const updatedDeclaration = standaloneDeclaration ? declaration.node : variableDeclaration("var", [variableDeclarator(cloneNode(id), declaration.node)]);
+    const updatedExportDeclaration = exportNamedDeclaration(null, [exportSpecifier(cloneNode(id), identifier("default"))]);
+    this.insertAfter(updatedExportDeclaration);
+    this.replaceWith(updatedDeclaration);
+    if (needBindingRegistration) {
+      scope.registerDeclaration(this);
+    }
+    return this;
+  } else if (this.get("specifiers").length > 0) {
+    throw new Error("It doesn't make sense to split exported specifiers.");
+  }
+  const bindingIdentifiers = declaration.getOuterBindingIdentifiers();
+  const specifiers = Object.keys(bindingIdentifiers).map(name => {
+    return exportSpecifier(identifier(name), identifier(name));
+  });
+  const aliasDeclar = exportNamedDeclaration(null, specifiers);
+  this.insertAfter(aliasDeclar);
+  this.replaceWith(declaration.node);
+  return this;
+}
+const refersOuterBindingVisitor = {
+  "ReferencedIdentifier|BindingIdentifier"(path, state) {
+    if (path.node.name !== state.name) return;
+    state.needsRename = true;
+    path.stop();
+  },
+  Scope(path, state) {
+    if (path.scope.hasOwnBinding(state.name)) {
+      path.skip();
+    }
+  }
+};
+function ensureFunctionName(supportUnicodeId) {
+  if (this.node.id) return this;
+  const res = getFunctionName(this.node, this.parent);
+  if (res == null) return this;
+  let {
+    name
+  } = res;
+  if (!supportUnicodeId && /[\uD800-\uDFFF]/.test(name)) {
+    return null;
+  }
+  if (name.startsWith("get ") || name.startsWith("set ")) {
+    return null;
+  }
+  name = toBindingIdentifierName(name.replace(/[/ ]/g, "_"));
+  const id = identifier(name);
+  inherits(id, res.originalNode);
+  const state = {
+    needsRename: false,
+    name
+  };
+  const {
+    scope
+  } = this;
+  const binding = scope.getOwnBinding(name);
+  if (binding) {
+    if (binding.kind === "param") {
+      state.needsRename = true;
+    } else {}
+  } else if (scope.parent.hasBinding(name) || scope.hasGlobal(name)) {
+    this.traverse(refersOuterBindingVisitor, state);
+  }
+  if (!state.needsRename) {
+    this.node.id = id;
+    scope.getProgramParent().references[id.name] = true;
+    return this;
+  }
+  if (scope.hasBinding(id.name) && !scope.hasGlobal(id.name)) {
+    scope.rename(id.name);
+    this.node.id = id;
+    scope.getProgramParent().references[id.name] = true;
+    return this;
+  }
+  if (!isFunction(this.node)) return null;
+  const key = scope.generateUidIdentifier(id.name);
+  const params = [];
+  for (let i = 0, len = getFunctionArity(this.node); i < len; i++) {
+    params.push(scope.generateUidIdentifier("x"));
+  }
+  const call = _template.default.expression.ast`
+    (function (${key}) {
+      function ${id}(${params}) {
+        return ${cloneNode(key)}.apply(this, arguments);
+      }
+
+      ${cloneNode(id)}.toString = function () {
+        return ${cloneNode(key)}.toString();
+      }
+
+      return ${cloneNode(id)};
+    })(${toExpression(this.node)})
+  `;
+  return this.replaceWith(call)[0].get("arguments.0");
+}
+function getFunctionArity(node) {
+  const count = node.params.findIndex(param => isAssignmentPattern(param) || isRestElement(param));
+  return count === -1 ? node.params.length : count;
 }
 
 //# sourceMappingURL=conversion.js.map
@@ -39705,6 +39402,23 @@ function _evaluate(path, state) {
         deopt(binding.path, state);
         return;
       }
+      const bindingPathScope = binding.path.scope;
+      if (binding.kind === "var" && bindingPathScope !== binding.scope) {
+        let hasUnsafeBlock = !bindingPathScope.path.parentPath.isBlockStatement();
+        for (let scope = bindingPathScope.parent; scope; scope = scope.parent) {
+          var _scope$path$parentPat;
+          if (scope === path.scope) {
+            if (hasUnsafeBlock) {
+              deopt(binding.path, state);
+              return;
+            }
+            break;
+          }
+          if ((_scope$path$parentPat = scope.path.parentPath) != null && _scope$path$parentPat.isBlockStatement()) {
+            hasUnsafeBlock = true;
+          }
+        }
+      }
       if (binding.hasValue) {
         return binding.value;
       }
@@ -39717,13 +39431,22 @@ function _evaluate(path, state) {
       deopt(binding.path, state);
       return;
     }
-    const resolved = path.resolve();
-    if (resolved === path) {
+    if (!binding) {
       deopt(path, state);
       return;
-    } else {
-      return evaluateCached(resolved, state);
     }
+    const bindingPath = binding.path;
+    if (!bindingPath.isVariableDeclarator()) {
+      deopt(bindingPath, state);
+      return;
+    }
+    const initPath = bindingPath.get("init");
+    const value = evaluateCached(initPath, state);
+    if (typeof value === "object" && value !== null && binding.references > 1) {
+      deopt(initPath, state);
+      return;
+    }
+    return value;
   }
   if (path.isUnaryExpression({
     prefix: true
@@ -39880,7 +39603,7 @@ function _evaluate(path, state) {
       if (object.isIdentifier() && property.isIdentifier() && isValidObjectCallee(object.node.name) && !isInvalidMethod(property.node.name)) {
         context = global[object.node.name];
         const key = property.node.name;
-        if (Object.hasOwnProperty.call(context, key)) {
+        if (hasOwnProperty.call(context, key)) {
           func = context[key];
         }
       }
@@ -39947,6 +39670,7 @@ exports._getPattern = _getPattern;
 exports.get = get;
 exports.getAllNextSiblings = getAllNextSiblings;
 exports.getAllPrevSiblings = getAllPrevSiblings;
+exports.getAssignmentIdentifiers = getAssignmentIdentifiers;
 exports.getBindingIdentifierPaths = getBindingIdentifierPaths;
 exports.getBindingIdentifiers = getBindingIdentifiers;
 exports.getCompletionRecords = getCompletionRecords;
@@ -39959,9 +39683,9 @@ exports.getSibling = getSibling;
 var _index = __nccwpck_require__(8877);
 var _t = __nccwpck_require__(7912);
 const {
+  getAssignmentIdentifiers: _getAssignmentIdentifiers,
   getBindingIdentifiers: _getBindingIdentifiers,
   getOuterBindingIdentifiers: _getOuterBindingIdentifiers,
-  isDeclaration,
   numericLiteral,
   unaryExpression
 } = _t;
@@ -40057,12 +39781,16 @@ function getStatementListCompletion(paths, context) {
           completions.push(...lastNormalCompletions);
           if (lastNormalCompletions.some(c => c.path.isDeclaration())) {
             completions.push(...statementCompletions);
-            replaceBreakStatementInBreakCompletion(statementCompletions, true);
+            if (!context.shouldPreserveBreak) {
+              replaceBreakStatementInBreakCompletion(statementCompletions, true);
+            }
           }
-          replaceBreakStatementInBreakCompletion(statementCompletions, false);
+          if (!context.shouldPreserveBreak) {
+            replaceBreakStatementInBreakCompletion(statementCompletions, false);
+          }
         } else {
           completions.push(...statementCompletions);
-          if (!context.shouldPopulateBreak) {
+          if (!context.shouldPopulateBreak && !context.shouldPreserveBreak) {
             replaceBreakStatementInBreakCompletion(statementCompletions, true);
           }
         }
@@ -40086,7 +39814,7 @@ function getStatementListCompletion(paths, context) {
   } else if (paths.length) {
     for (let i = paths.length - 1; i >= 0; i--) {
       const pathCompletions = _getCompletionRecords(paths[i], context);
-      if (pathCompletions.length > 1 || pathCompletions.length === 1 && !pathCompletions[0].path.isVariableDeclaration()) {
+      if (pathCompletions.length > 1 || pathCompletions.length === 1 && !pathCompletions[0].path.isVariableDeclaration() && !pathCompletions[0].path.isEmptyStatement()) {
         completions.push(...pathCompletions);
         break;
       }
@@ -40116,7 +39844,8 @@ function _getCompletionRecords(path, context) {
     return getStatementListCompletion(path.get("consequent"), {
       canHaveBreak: true,
       shouldPopulateBreak: false,
-      inCaseClause: true
+      inCaseClause: true,
+      shouldPreserveBreak: context.shouldPreserveBreak
     });
   } else if (path.isBreakStatement()) {
     records.push(BreakCompletion(path));
@@ -40125,11 +39854,12 @@ function _getCompletionRecords(path, context) {
   }
   return records;
 }
-function getCompletionRecords() {
+function getCompletionRecords(shouldPreserveBreak = false) {
   const records = _getCompletionRecords(this, {
     canHaveBreak: false,
     shouldPopulateBreak: false,
-    inCaseClause: false
+    inCaseClause: false,
+    shouldPreserveBreak
   });
   return records.map(r => r.path);
 }
@@ -40172,9 +39902,9 @@ function get(key, context = true) {
   if (context === true) context = this.context;
   const parts = key.split(".");
   if (parts.length === 1) {
-    return this._getKey(key, context);
+    return _getKey.call(this, key, context);
   } else {
-    return this._getPattern(parts, context);
+    return _getPattern.call(this, parts, context);
   }
 }
 function _getKey(key, context) {
@@ -40214,6 +39944,9 @@ function _getPattern(parts, context) {
   }
   return path;
 }
+function getAssignmentIdentifiers() {
+  return _getAssignmentIdentifiers(this.node);
+}
 function getBindingIdentifiers(duplicates) {
   return _getBindingIdentifiers(this.node, duplicates);
 }
@@ -40240,7 +39973,7 @@ function getBindingIdentifierPaths(duplicates = false, outerOnly = false) {
     }
     if (id.isExportDeclaration()) {
       const declaration = id.get("declaration");
-      if (isDeclaration(declaration)) {
+      if (declaration.isDeclaration()) {
         search.push(declaration);
       }
       continue;
@@ -40301,7 +40034,8 @@ var NodePath_replacement = __nccwpck_require__(8805);
 var NodePath_evaluation = __nccwpck_require__(7969);
 var NodePath_conversion = __nccwpck_require__(277);
 var NodePath_introspection = __nccwpck_require__(217);
-var NodePath_context = __nccwpck_require__(4108);
+var _context = __nccwpck_require__(4108);
+var NodePath_context = _context;
 var NodePath_removal = __nccwpck_require__(408);
 var NodePath_modification = __nccwpck_require__(7575);
 var NodePath_family = __nccwpck_require__(9853);
@@ -40311,17 +40045,13 @@ const {
   validate
 } = _t;
 const debug = _debug("babel");
-const REMOVED = 1 << 0;
-exports.REMOVED = REMOVED;
-const SHOULD_STOP = 1 << 1;
-exports.SHOULD_STOP = SHOULD_STOP;
-const SHOULD_SKIP = 1 << 2;
-exports.SHOULD_SKIP = SHOULD_SKIP;
-class NodePath {
+const REMOVED = exports.REMOVED = 1 << 0;
+const SHOULD_STOP = exports.SHOULD_STOP = 1 << 1;
+const SHOULD_SKIP = exports.SHOULD_SKIP = 1 << 2;
+const NodePath_Final = exports["default"] = class NodePath {
   constructor(hub, parent) {
     this.contexts = [];
     this.state = null;
-    this.opts = null;
     this._traverseFlags = 0;
     this.skipKeys = null;
     this.parentPath = null;
@@ -40330,11 +40060,30 @@ class NodePath {
     this.key = null;
     this.node = null;
     this.type = null;
+    this._store = null;
     this.parent = parent;
     this.hub = hub;
     this.data = null;
     this.context = null;
     this.scope = null;
+  }
+  get removed() {
+    return (this._traverseFlags & 1) > 0;
+  }
+  set removed(v) {
+    if (v) this._traverseFlags |= 1;else this._traverseFlags &= -2;
+  }
+  get shouldStop() {
+    return (this._traverseFlags & 2) > 0;
+  }
+  set shouldStop(v) {
+    if (v) this._traverseFlags |= 2;else this._traverseFlags &= -3;
+  }
+  get shouldSkip() {
+    return (this._traverseFlags & 4) > 0;
+  }
+  set shouldSkip(v) {
+    if (v) this._traverseFlags |= 4;else this._traverseFlags &= -5;
   }
   static get({
     hub,
@@ -40351,13 +40100,13 @@ class NodePath {
       throw new Error("To get a node path the parent needs to exist");
     }
     const targetNode = container[key];
-    const paths = cache.getOrCreateCachedPaths(hub, parent);
+    const paths = cache.getOrCreateCachedPaths(parent, parentPath);
     let path = paths.get(targetNode);
     if (!path) {
       path = new NodePath(hub, parent);
       if (targetNode) paths.set(targetNode, path);
     }
-    path.setup(parentPath, container, listKey, key);
+    _context.setup.call(path, parentPath, container, listKey, key);
     return path;
   }
   getScope(scope) {
@@ -40418,60 +40167,139 @@ class NodePath {
   get parentKey() {
     return this.listKey || this.key;
   }
-  get shouldSkip() {
-    return !!(this._traverseFlags & SHOULD_SKIP);
-  }
-  set shouldSkip(v) {
-    if (v) {
-      this._traverseFlags |= SHOULD_SKIP;
-    } else {
-      this._traverseFlags &= ~SHOULD_SKIP;
-    }
-  }
-  get shouldStop() {
-    return !!(this._traverseFlags & SHOULD_STOP);
-  }
-  set shouldStop(v) {
-    if (v) {
-      this._traverseFlags |= SHOULD_STOP;
-    } else {
-      this._traverseFlags &= ~SHOULD_STOP;
-    }
-  }
-  get removed() {
-    return !!(this._traverseFlags & REMOVED);
-  }
-  set removed(v) {
-    if (v) {
-      this._traverseFlags |= REMOVED;
-    } else {
-      this._traverseFlags &= ~REMOVED;
-    }
-  }
-}
-Object.assign(NodePath.prototype, NodePath_ancestry, NodePath_inference, NodePath_replacement, NodePath_evaluation, NodePath_conversion, NodePath_introspection, NodePath_context, NodePath_removal, NodePath_modification, NodePath_family, NodePath_comments);
-{
-  NodePath.prototype._guessExecutionStatusRelativeToDifferentFunctions = NodePath_introspection._guessExecutionStatusRelativeTo;
-}
+};
+const methods = {
+  findParent: NodePath_ancestry.findParent,
+  find: NodePath_ancestry.find,
+  getFunctionParent: NodePath_ancestry.getFunctionParent,
+  getStatementParent: NodePath_ancestry.getStatementParent,
+  getEarliestCommonAncestorFrom: NodePath_ancestry.getEarliestCommonAncestorFrom,
+  getDeepestCommonAncestorFrom: NodePath_ancestry.getDeepestCommonAncestorFrom,
+  getAncestry: NodePath_ancestry.getAncestry,
+  isAncestor: NodePath_ancestry.isAncestor,
+  isDescendant: NodePath_ancestry.isDescendant,
+  inType: NodePath_ancestry.inType,
+  getTypeAnnotation: NodePath_inference.getTypeAnnotation,
+  isBaseType: NodePath_inference.isBaseType,
+  couldBeBaseType: NodePath_inference.couldBeBaseType,
+  baseTypeStrictlyMatches: NodePath_inference.baseTypeStrictlyMatches,
+  isGenericType: NodePath_inference.isGenericType,
+  replaceWithMultiple: NodePath_replacement.replaceWithMultiple,
+  replaceWithSourceString: NodePath_replacement.replaceWithSourceString,
+  replaceWith: NodePath_replacement.replaceWith,
+  replaceExpressionWithStatements: NodePath_replacement.replaceExpressionWithStatements,
+  replaceInline: NodePath_replacement.replaceInline,
+  evaluateTruthy: NodePath_evaluation.evaluateTruthy,
+  evaluate: NodePath_evaluation.evaluate,
+  toComputedKey: NodePath_conversion.toComputedKey,
+  ensureBlock: NodePath_conversion.ensureBlock,
+  unwrapFunctionEnvironment: NodePath_conversion.unwrapFunctionEnvironment,
+  arrowFunctionToExpression: NodePath_conversion.arrowFunctionToExpression,
+  splitExportDeclaration: NodePath_conversion.splitExportDeclaration,
+  ensureFunctionName: NodePath_conversion.ensureFunctionName,
+  matchesPattern: NodePath_introspection.matchesPattern,
+  isStatic: NodePath_introspection.isStatic,
+  isNodeType: NodePath_introspection.isNodeType,
+  canHaveVariableDeclarationOrExpression: NodePath_introspection.canHaveVariableDeclarationOrExpression,
+  canSwapBetweenExpressionAndStatement: NodePath_introspection.canSwapBetweenExpressionAndStatement,
+  isCompletionRecord: NodePath_introspection.isCompletionRecord,
+  isStatementOrBlock: NodePath_introspection.isStatementOrBlock,
+  referencesImport: NodePath_introspection.referencesImport,
+  getSource: NodePath_introspection.getSource,
+  willIMaybeExecuteBefore: NodePath_introspection.willIMaybeExecuteBefore,
+  _guessExecutionStatusRelativeTo: NodePath_introspection._guessExecutionStatusRelativeTo,
+  resolve: NodePath_introspection.resolve,
+  isConstantExpression: NodePath_introspection.isConstantExpression,
+  isInStrictMode: NodePath_introspection.isInStrictMode,
+  isDenylisted: NodePath_context.isDenylisted,
+  visit: NodePath_context.visit,
+  skip: NodePath_context.skip,
+  skipKey: NodePath_context.skipKey,
+  stop: NodePath_context.stop,
+  setContext: NodePath_context.setContext,
+  requeue: NodePath_context.requeue,
+  requeueComputedKeyAndDecorators: NodePath_context.requeueComputedKeyAndDecorators,
+  remove: NodePath_removal.remove,
+  insertBefore: NodePath_modification.insertBefore,
+  insertAfter: NodePath_modification.insertAfter,
+  unshiftContainer: NodePath_modification.unshiftContainer,
+  pushContainer: NodePath_modification.pushContainer,
+  getOpposite: NodePath_family.getOpposite,
+  getCompletionRecords: NodePath_family.getCompletionRecords,
+  getSibling: NodePath_family.getSibling,
+  getPrevSibling: NodePath_family.getPrevSibling,
+  getNextSibling: NodePath_family.getNextSibling,
+  getAllNextSiblings: NodePath_family.getAllNextSiblings,
+  getAllPrevSiblings: NodePath_family.getAllPrevSiblings,
+  get: NodePath_family.get,
+  getAssignmentIdentifiers: NodePath_family.getAssignmentIdentifiers,
+  getBindingIdentifiers: NodePath_family.getBindingIdentifiers,
+  getOuterBindingIdentifiers: NodePath_family.getOuterBindingIdentifiers,
+  getBindingIdentifierPaths: NodePath_family.getBindingIdentifierPaths,
+  getOuterBindingIdentifierPaths: NodePath_family.getOuterBindingIdentifierPaths,
+  shareCommentsWithSiblings: NodePath_comments.shareCommentsWithSiblings,
+  addComment: NodePath_comments.addComment,
+  addComments: NodePath_comments.addComments
+};
+Object.assign(NodePath_Final.prototype, methods);
+NodePath_Final.prototype.arrowFunctionToShadowed = NodePath_conversion[String("arrowFunctionToShadowed")];
+Object.assign(NodePath_Final.prototype, {
+  has: NodePath_introspection[String("has")],
+  is: NodePath_introspection[String("is")],
+  isnt: NodePath_introspection[String("isnt")],
+  equals: NodePath_introspection[String("equals")],
+  hoist: NodePath_modification[String("hoist")],
+  updateSiblingKeys: NodePath_modification.updateSiblingKeys,
+  call: NodePath_context.call,
+  isBlacklisted: NodePath_context[String("isBlacklisted")],
+  setScope: NodePath_context.setScope,
+  resync: NodePath_context.resync,
+  popContext: NodePath_context.popContext,
+  pushContext: NodePath_context.pushContext,
+  setup: NodePath_context.setup,
+  setKey: NodePath_context.setKey
+});
+NodePath_Final.prototype._guessExecutionStatusRelativeToDifferentFunctions = NodePath_introspection._guessExecutionStatusRelativeTo;
+NodePath_Final.prototype._guessExecutionStatusRelativeToDifferentFunctions = NodePath_introspection._guessExecutionStatusRelativeTo;
+Object.assign(NodePath_Final.prototype, {
+  _getTypeAnnotation: NodePath_inference._getTypeAnnotation,
+  _replaceWith: NodePath_replacement._replaceWith,
+  _resolve: NodePath_introspection._resolve,
+  _call: NodePath_context._call,
+  _resyncParent: NodePath_context._resyncParent,
+  _resyncKey: NodePath_context._resyncKey,
+  _resyncList: NodePath_context._resyncList,
+  _resyncRemoved: NodePath_context._resyncRemoved,
+  _getQueueContexts: NodePath_context._getQueueContexts,
+  _removeFromScope: NodePath_removal._removeFromScope,
+  _callRemovalHooks: NodePath_removal._callRemovalHooks,
+  _remove: NodePath_removal._remove,
+  _markRemoved: NodePath_removal._markRemoved,
+  _assertUnremoved: NodePath_removal._assertUnremoved,
+  _containerInsert: NodePath_modification._containerInsert,
+  _containerInsertBefore: NodePath_modification._containerInsertBefore,
+  _containerInsertAfter: NodePath_modification._containerInsertAfter,
+  _verifyNodeList: NodePath_modification._verifyNodeList,
+  _getKey: NodePath_family._getKey,
+  _getPattern: NodePath_family._getPattern
+});
 for (const type of t.TYPES) {
   const typeKey = `is${type}`;
   const fn = t[typeKey];
-  NodePath.prototype[typeKey] = function (opts) {
+  NodePath_Final.prototype[typeKey] = function (opts) {
     return fn(this.node, opts);
   };
-  NodePath.prototype[`assert${type}`] = function (opts) {
+  NodePath_Final.prototype[`assert${type}`] = function (opts) {
     if (!fn(this.node, opts)) {
       throw new TypeError(`Expected node path of type ${type}`);
     }
   };
 }
-Object.assign(NodePath.prototype, NodePath_virtual_types_validator);
+Object.assign(NodePath_Final.prototype, NodePath_virtual_types_validator);
 for (const type of Object.keys(virtualTypes)) {
-  if (type[0] === "_") continue;
+  if (type.startsWith("_")) continue;
   if (!t.TYPES.includes(type)) t.TYPES.push(type);
 }
-var _default = NodePath;
-exports["default"] = _default;
 
 //# sourceMappingURL=index.js.map
 
@@ -40522,7 +40350,7 @@ function getTypeAnnotation() {
   if (type != null) {
     return type;
   }
-  type = this._getTypeAnnotation() || anyTypeAnnotation();
+  type = _getTypeAnnotation.call(this) || anyTypeAnnotation();
   if (isTypeAnnotation(type) || isTSTypeAnnotation(type)) {
     type = type.typeAnnotation;
   }
@@ -40676,7 +40504,7 @@ function getTypeAnnotationBindingConstantViolations(binding, path, name) {
   const testType = getConditionalAnnotation(binding, path, name);
   if (testType) {
     const testConstantViolations = getConstantViolationsBefore(binding, testType.ifStatement);
-    constantViolations = constantViolations.filter(path => testConstantViolations.indexOf(path) < 0);
+    constantViolations = constantViolations.filter(path => !testConstantViolations.includes(path));
     types.push(testType.typeAnnotation);
   }
   if (constantViolations.length) {
@@ -40718,7 +40546,7 @@ function inferAnnotationFromBinaryExpression(name, path) {
     if (operator === "===") {
       return target.getTypeAnnotation();
     }
-    if (BOOLEAN_NUMBER_BINARY_OPERATORS.indexOf(operator) >= 0) {
+    if (BOOLEAN_NUMBER_BINARY_OPERATORS.includes(operator)) {
       return numberTypeAnnotation();
     }
     return;
@@ -40757,7 +40585,7 @@ function getParentConditionalPath(binding, path, name) {
       return parentPath;
     }
     if (parentPath.isFunction()) {
-      if (parentPath.parentPath.scope.getBinding(name) !== binding) return;
+      if (name == null || parentPath.parentPath.scope.getBinding(name) !== binding) return;
     }
     path = parentPath;
   }
@@ -40884,19 +40712,19 @@ function UnaryExpression(node) {
   const operator = node.operator;
   if (operator === "void") {
     return voidTypeAnnotation();
-  } else if (NUMBER_UNARY_OPERATORS.indexOf(operator) >= 0) {
+  } else if (NUMBER_UNARY_OPERATORS.includes(operator)) {
     return numberTypeAnnotation();
-  } else if (STRING_UNARY_OPERATORS.indexOf(operator) >= 0) {
+  } else if (STRING_UNARY_OPERATORS.includes(operator)) {
     return stringTypeAnnotation();
-  } else if (BOOLEAN_UNARY_OPERATORS.indexOf(operator) >= 0) {
+  } else if (BOOLEAN_UNARY_OPERATORS.includes(operator)) {
     return booleanTypeAnnotation();
   }
 }
 function BinaryExpression(node) {
   const operator = node.operator;
-  if (NUMBER_BINARY_OPERATORS.indexOf(operator) >= 0) {
+  if (NUMBER_BINARY_OPERATORS.includes(operator)) {
     return numberTypeAnnotation();
-  } else if (BOOLEAN_BINARY_OPERATORS.indexOf(operator) >= 0) {
+  } else if (BOOLEAN_BINARY_OPERATORS.includes(operator)) {
     return booleanTypeAnnotation();
   } else if (operator === "+") {
     const right = this.get("right");
@@ -41028,16 +40856,14 @@ const {
   isTSType
 } = _t;
 function createUnionType(types) {
-  {
-    if (isFlowType(types[0])) {
-      if (createFlowUnionType) {
-        return createFlowUnionType(types);
-      }
-      return createUnionTypeAnnotation(types);
-    } else {
-      if (createTSUnionType) {
-        return createTSUnionType(types);
-      }
+  if (types.every(v => isFlowType(v))) {
+    if (createFlowUnionType) {
+      return createFlowUnionType(types);
+    }
+    return createUnionTypeAnnotation(types);
+  } else if (types.every(v => isTSType(v))) {
+    if (createTSUnionType) {
+      return createTSUnionType(types);
     }
   }
 }
@@ -41060,17 +40886,13 @@ exports._guessExecutionStatusRelativeTo = _guessExecutionStatusRelativeTo;
 exports._resolve = _resolve;
 exports.canHaveVariableDeclarationOrExpression = canHaveVariableDeclarationOrExpression;
 exports.canSwapBetweenExpressionAndStatement = canSwapBetweenExpressionAndStatement;
-exports.equals = equals;
 exports.getSource = getSource;
-exports.has = has;
-exports.is = void 0;
 exports.isCompletionRecord = isCompletionRecord;
 exports.isConstantExpression = isConstantExpression;
 exports.isInStrictMode = isInStrictMode;
 exports.isNodeType = isNodeType;
 exports.isStatementOrBlock = isStatementOrBlock;
 exports.isStatic = isStatic;
-exports.isnt = isnt;
 exports.matchesPattern = matchesPattern;
 exports.referencesImport = referencesImport;
 exports.resolve = resolve;
@@ -41090,25 +40912,25 @@ const {
 function matchesPattern(pattern, allowPartial) {
   return _matchesPattern(this.node, pattern, allowPartial);
 }
-function has(key) {
-  const val = this.node && this.node[key];
+exports.has = function has(key) {
+  var _this$node;
+  const val = (_this$node = this.node) == null ? void 0 : _this$node[key];
   if (val && Array.isArray(val)) {
     return !!val.length;
   } else {
     return !!val;
   }
-}
+};
 function isStatic() {
   return this.scope.isStatic(this.node);
 }
-const is = has;
-exports.is = is;
-function isnt(key) {
+exports.is = exports.has;
+exports.isnt = function isnt(key) {
   return !this.has(key);
-}
-function equals(key, value) {
+};
+exports.equals = function equals(key, value) {
   return this.node[key] === value;
-}
+};
 function isNodeType(type) {
   return isType(this.type, type);
 }
@@ -41162,7 +40984,7 @@ function referencesImport(moduleSource, importName) {
     return false;
   }
   const binding = this.scope.getBinding(this.node.name);
-  if (!binding || binding.kind !== "module") return false;
+  if ((binding == null ? void 0 : binding.kind) !== "module") return false;
   const path = binding.path;
   const parent = path.parentPath;
   if (!parent.isImportDeclaration()) return false;
@@ -41251,8 +41073,8 @@ function _guessExecutionStatusRelativeToCached(base, target, cache) {
     target: target.getAncestry(),
     this: base.getAncestry()
   };
-  if (paths.target.indexOf(base) >= 0) return "after";
-  if (paths.this.indexOf(target) >= 0) return "before";
+  if (paths.target.includes(base)) return "after";
+  if (paths.this.includes(target)) return "before";
   let commonPath;
   const commonIndex = {
     target: 0,
@@ -41332,10 +41154,11 @@ function _guessExecutionStatusRelativeToDifferentFunctionsCached(base, target, c
   return result;
 }
 function resolve(dangerous, resolved) {
-  return this._resolve(dangerous, resolved) || this;
+  return _resolve.call(this, dangerous, resolved) || this;
 }
 function _resolve(dangerous, resolved) {
-  if (resolved && resolved.indexOf(this) >= 0) return;
+  var _resolved;
+  if ((_resolved = resolved) != null && _resolved.includes(this)) return;
   resolved = resolved || [];
   resolved.push(this);
   if (this.isVariableDeclarator()) {
@@ -41406,6 +41229,18 @@ function isConstantExpression() {
     } = this.node;
     return operator !== "in" && operator !== "instanceof" && this.get("left").isConstantExpression() && this.get("right").isConstantExpression();
   }
+  if (this.isMemberExpression()) {
+    return !this.node.computed && this.get("object").isIdentifier({
+      name: "Symbol"
+    }) && !this.scope.hasBinding("Symbol", {
+      noGlobals: true
+    });
+  }
+  if (this.isCallExpression()) {
+    return this.node.arguments.length === 1 && this.get("callee").matchesPattern("Symbol.for") && !this.scope.hasBinding("Symbol", {
+      noGlobals: true
+    }) && this.get("arguments")[0].isStringLiteral();
+  }
   return false;
 }
 function isInStrictMode() {
@@ -41431,6 +41266,7 @@ function isInStrictMode() {
         return true;
       }
     }
+    return false;
   });
   return !!strictParent;
 }
@@ -41522,7 +41358,7 @@ class PathHoister {
       } else {
         break;
       }
-      if (this.breakOnScopePaths.indexOf(scope.path) >= 0) {
+      if (this.breakOnScopePaths.includes(scope.path)) {
         break;
       }
     } while (scope = scope.parent);
@@ -41584,6 +41420,7 @@ class PathHoister {
         return path;
       }
     } while (path = path.parentPath);
+    return path;
   }
   hasOwnParamBindings(scope) {
     for (const name of Object.keys(this.bindings)) {
@@ -41609,7 +41446,7 @@ class PathHoister {
       uid = jsxExpressionContainer(uid);
     }
     this.path.replaceWith(cloneNode(uid));
-    return attachTo.isVariableDeclarator() ? attached.get("init") : attached.get("declarations.0.init");
+    return attached.isVariableDeclarator() ? attached.get("init") : attached.get("declarations.0.init");
   }
 }
 exports["default"] = PathHoister;
@@ -41629,7 +41466,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.hooks = void 0;
-const hooks = [function (self, parent) {
+const hooks = exports.hooks = [function (self, parent) {
   const removeParent = self.key === "test" && (parent.isWhile() || parent.isSwitchCase()) || self.key === "declaration" && parent.isExportDeclaration() || self.key === "body" && parent.isLabeledStatement() || self.listKey === "declarations" && parent.isVariableDeclaration() && parent.node.declarations.length === 1 || self.key === "expression" && parent.isExpressionStatement();
   if (removeParent) {
     parent.remove();
@@ -41653,12 +41490,12 @@ const hooks = [function (self, parent) {
   if (parent.isIfStatement() && self.key === "consequent" || self.key === "body" && (parent.isLoop() || parent.isArrowFunctionExpression())) {
     self.replaceWith({
       type: "BlockStatement",
+      directives: [],
       body: []
     });
     return true;
   }
 }];
-exports.hooks = hooks;
 
 //# sourceMappingURL=removal-hooks.js.map
 
@@ -41722,14 +41559,14 @@ function isReferencedIdentifier(opts) {
     node,
     parent
   } = this;
-  if (!isIdentifier(node, opts) && !isJSXMemberExpression(parent, opts)) {
-    if (isJSXIdentifier(node, opts)) {
-      if (isCompatTag(node.name)) return false;
-    } else {
-      return false;
-    }
+  if (isIdentifier(node, opts)) {
+    return nodeIsReferenced(node, parent, this.parentPath.parent);
+  } else if (isJSXIdentifier(node, opts)) {
+    if (!isJSXMemberExpression(parent) && isCompatTag(node.name)) return false;
+    return nodeIsReferenced(node, parent, this.parentPath.parent);
+  } else {
+    return false;
   }
-  return nodeIsReferenced(node, parent, this.parentPath.parent);
 }
 function isReferencedMemberExpression() {
   const {
@@ -41785,7 +41622,8 @@ function isVar() {
   return nodeIsVar(this.node);
 }
 function isUser() {
-  return this.node && !!this.node.loc;
+  var _this$node;
+  return !!((_this$node = this.node) != null && _this$node.loc);
 }
 function isGenerated() {
   return !this.isUser();
@@ -41810,24 +41648,24 @@ function isFlow() {
   }
 }
 function isRestProperty() {
-  return nodeIsRestElement(this.node) && this.parentPath && this.parentPath.isObjectPattern();
+  var _this$parentPath;
+  return nodeIsRestElement(this.node) && ((_this$parentPath = this.parentPath) == null ? void 0 : _this$parentPath.isObjectPattern());
 }
 function isSpreadProperty() {
-  return nodeIsRestElement(this.node) && this.parentPath && this.parentPath.isObjectExpression();
+  var _this$parentPath2;
+  return nodeIsRestElement(this.node) && ((_this$parentPath2 = this.parentPath) == null ? void 0 : _this$parentPath2.isObjectExpression());
 }
 function isForAwaitStatement() {
   return isForOfStatement(this.node, {
     await: true
   });
 }
-{
-  exports.isExistentialTypeParam = function isExistentialTypeParam() {
-    throw new Error("`path.isExistentialTypeParam` has been renamed to `path.isExistsTypeAnnotation()` in Babel 7.");
-  };
-  exports.isNumericLiteralTypeAnnotation = function isNumericLiteralTypeAnnotation() {
-    throw new Error("`path.isNumericLiteralTypeAnnotation()` has been renamed to `path.isNumberLiteralTypeAnnotation()` in Babel 7.");
-  };
-}
+exports.isExistentialTypeParam = function isExistentialTypeParam() {
+  throw new Error("`path.isExistentialTypeParam` has been renamed to `path.isExistsTypeAnnotation()` in Babel 7.");
+};
+exports.isNumericLiteralTypeAnnotation = function isNumericLiteralTypeAnnotation() {
+  throw new Error("`path.isNumericLiteralTypeAnnotation()` has been renamed to `path.isNumberLiteralTypeAnnotation()` in Babel 7.");
+};
 
 //# sourceMappingURL=virtual-types-validator.js.map
 
@@ -41844,42 +41682,24 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.Var = exports.User = exports.Statement = exports.SpreadProperty = exports.Scope = exports.RestProperty = exports.ReferencedMemberExpression = exports.ReferencedIdentifier = exports.Referenced = exports.Pure = exports.NumericLiteralTypeAnnotation = exports.Generated = exports.ForAwaitStatement = exports.Flow = exports.Expression = exports.ExistentialTypeParam = exports.BlockScoped = exports.BindingIdentifier = void 0;
-const ReferencedIdentifier = ["Identifier", "JSXIdentifier"];
-exports.ReferencedIdentifier = ReferencedIdentifier;
-const ReferencedMemberExpression = ["MemberExpression"];
-exports.ReferencedMemberExpression = ReferencedMemberExpression;
-const BindingIdentifier = ["Identifier"];
-exports.BindingIdentifier = BindingIdentifier;
-const Statement = ["Statement"];
-exports.Statement = Statement;
-const Expression = ["Expression"];
-exports.Expression = Expression;
-const Scope = ["Scopable", "Pattern"];
-exports.Scope = Scope;
-const Referenced = null;
-exports.Referenced = Referenced;
-const BlockScoped = null;
-exports.BlockScoped = BlockScoped;
-const Var = ["VariableDeclaration"];
-exports.Var = Var;
-const User = null;
-exports.User = User;
-const Generated = null;
-exports.Generated = Generated;
-const Pure = null;
-exports.Pure = Pure;
-const Flow = ["Flow", "ImportDeclaration", "ExportDeclaration", "ImportSpecifier"];
-exports.Flow = Flow;
-const RestProperty = ["RestElement"];
-exports.RestProperty = RestProperty;
-const SpreadProperty = ["RestElement"];
-exports.SpreadProperty = SpreadProperty;
-const ExistentialTypeParam = ["ExistsTypeAnnotation"];
-exports.ExistentialTypeParam = ExistentialTypeParam;
-const NumericLiteralTypeAnnotation = ["NumberLiteralTypeAnnotation"];
-exports.NumericLiteralTypeAnnotation = NumericLiteralTypeAnnotation;
-const ForAwaitStatement = ["ForOfStatement"];
-exports.ForAwaitStatement = ForAwaitStatement;
+const ReferencedIdentifier = exports.ReferencedIdentifier = ["Identifier", "JSXIdentifier"];
+const ReferencedMemberExpression = exports.ReferencedMemberExpression = ["MemberExpression"];
+const BindingIdentifier = exports.BindingIdentifier = ["Identifier"];
+const Statement = exports.Statement = ["Statement"];
+const Expression = exports.Expression = ["Expression"];
+const Scope = exports.Scope = ["Scopable", "Pattern"];
+const Referenced = exports.Referenced = null;
+const BlockScoped = exports.BlockScoped = ["FunctionDeclaration", "ClassDeclaration", "VariableDeclaration"];
+const Var = exports.Var = ["VariableDeclaration"];
+const User = exports.User = null;
+const Generated = exports.Generated = null;
+const Pure = exports.Pure = null;
+const Flow = exports.Flow = ["Flow", "ImportDeclaration", "ExportDeclaration", "ImportSpecifier"];
+const RestProperty = exports.RestProperty = ["RestElement"];
+const SpreadProperty = exports.SpreadProperty = ["RestElement"];
+const ExistentialTypeParam = exports.ExistentialTypeParam = ["ExistsTypeAnnotation"];
+const NumericLiteralTypeAnnotation = exports.NumericLiteralTypeAnnotation = ["NumberLiteralTypeAnnotation"];
+const ForAwaitStatement = exports.ForAwaitStatement = ["ForOfStatement"];
 
 //# sourceMappingURL=virtual-types.js.map
 
@@ -41899,16 +41719,17 @@ exports._containerInsert = _containerInsert;
 exports._containerInsertAfter = _containerInsertAfter;
 exports._containerInsertBefore = _containerInsertBefore;
 exports._verifyNodeList = _verifyNodeList;
-exports.hoist = hoist;
 exports.insertAfter = insertAfter;
 exports.insertBefore = insertBefore;
 exports.pushContainer = pushContainer;
 exports.unshiftContainer = unshiftContainer;
 exports.updateSiblingKeys = updateSiblingKeys;
 var _cache = __nccwpck_require__(5069);
-var _hoister = __nccwpck_require__(1225);
 var _index = __nccwpck_require__(8877);
+var _context = __nccwpck_require__(4108);
+var _removal = __nccwpck_require__(408);
 var _t = __nccwpck_require__(7912);
+var _hoister = __nccwpck_require__(1225);
 const {
   arrowFunctionExpression,
   assertExpression,
@@ -41927,8 +41748,8 @@ const {
   thisExpression
 } = _t;
 function insertBefore(nodes_) {
-  this._assertUnremoved();
-  const nodes = this._verifyNodeList(nodes_);
+  _removal._assertUnremoved.call(this);
+  const nodes = _verifyNodeList.call(this, nodes_);
   const {
     parentPath,
     parent
@@ -41939,18 +41760,18 @@ function insertBefore(nodes_) {
     if (this.node) nodes.push(this.node);
     return this.replaceExpressionWithStatements(nodes);
   } else if (Array.isArray(this.container)) {
-    return this._containerInsertBefore(nodes);
+    return _containerInsertBefore.call(this, nodes);
   } else if (this.isStatementOrBlock()) {
     const node = this.node;
     const shouldInsertCurrentNode = node && (!this.isExpressionStatement() || node.expression != null);
-    this.replaceWith(blockStatement(shouldInsertCurrentNode ? [node] : []));
-    return this.unshiftContainer("body", nodes);
+    const [blockPath] = this.replaceWith(blockStatement(shouldInsertCurrentNode ? [node] : []));
+    return blockPath.unshiftContainer("body", nodes);
   } else {
     throw new Error("We don't know what to do with this node type. " + "We were previously a Statement but we can't fit in here?");
   }
 }
 function _containerInsert(from, nodes) {
-  this.updateSiblingKeys(from, nodes.length);
+  updateSiblingKeys.call(this, from, nodes.length);
   const paths = [];
   this.container.splice(from, 0, ...nodes);
   for (let i = 0; i < nodes.length; i++) {
@@ -41959,12 +41780,12 @@ function _containerInsert(from, nodes) {
     const path = this.getSibling(to);
     paths.push(path);
     if ((_this$context = this.context) != null && _this$context.queue) {
-      path.pushContext(this.context);
+      _context.pushContext.call(path, this.context);
     }
   }
-  const contexts = this._getQueueContexts();
+  const contexts = _context._getQueueContexts.call(this);
   for (const path of paths) {
-    path.setScope();
+    _context.setScope.call(path);
     path.debug("Inserted.");
     for (const context of contexts) {
       context.maybeQueue(path, true);
@@ -41973,10 +41794,10 @@ function _containerInsert(from, nodes) {
   return paths;
 }
 function _containerInsertBefore(nodes) {
-  return this._containerInsert(this.key, nodes);
+  return _containerInsert.call(this, this.key, nodes);
 }
 function _containerInsertAfter(nodes) {
-  return this._containerInsert(this.key + 1, nodes);
+  return _containerInsert.call(this, this.key + 1, nodes);
 }
 const last = arr => arr[arr.length - 1];
 function isHiddenInSequenceExpression(path) {
@@ -41990,11 +41811,11 @@ function isAlmostConstantAssignment(node, scope) {
   return blockScope.hasOwnBinding(node.left.name) && blockScope.getOwnBinding(node.left.name).constantViolations.length <= 1;
 }
 function insertAfter(nodes_) {
-  this._assertUnremoved();
+  _removal._assertUnremoved.call(this);
   if (this.isSequenceExpression()) {
     return last(this.get("expressions")).insertAfter(nodes_);
   }
-  const nodes = this._verifyNodeList(nodes_);
+  const nodes = _verifyNodeList.call(this, nodes_);
   const {
     parentPath,
     parent
@@ -42004,18 +41825,19 @@ function insertAfter(nodes_) {
       return isExpression(node) ? expressionStatement(node) : node;
     }));
   } else if (this.isNodeType("Expression") && !this.isJSXElement() && !parentPath.isJSXElement() || parentPath.isForStatement() && this.key === "init") {
-    if (this.node) {
-      const node = this.node;
+    const self = this;
+    if (self.node) {
+      const node = self.node;
       let {
         scope
       } = this;
       if (scope.path.isPattern()) {
         assertExpression(node);
-        this.replaceWith(callExpression(arrowFunctionExpression([], node), []));
-        this.get("callee.body").insertAfter(nodes);
-        return [this];
+        self.replaceWith(callExpression(arrowFunctionExpression([], node), []));
+        self.get("callee.body").insertAfter(nodes);
+        return [self];
       }
-      if (isHiddenInSequenceExpression(this)) {
+      if (isHiddenInSequenceExpression(self)) {
         nodes.unshift(node);
       } else if (isCallExpression(node) && isSuper(node.callee)) {
         nodes.unshift(node);
@@ -42039,21 +41861,22 @@ function insertAfter(nodes_) {
     }
     return this.replaceExpressionWithStatements(nodes);
   } else if (Array.isArray(this.container)) {
-    return this._containerInsertAfter(nodes);
+    return _containerInsertAfter.call(this, nodes);
   } else if (this.isStatementOrBlock()) {
     const node = this.node;
     const shouldInsertCurrentNode = node && (!this.isExpressionStatement() || node.expression != null);
-    this.replaceWith(blockStatement(shouldInsertCurrentNode ? [node] : []));
-    return this.pushContainer("body", nodes);
+    const [blockPath] = this.replaceWith(blockStatement(shouldInsertCurrentNode ? [node] : []));
+    return blockPath.pushContainer("body", nodes);
   } else {
     throw new Error("We don't know what to do with this node type. " + "We were previously a Statement but we can't fit in here?");
   }
 }
 function updateSiblingKeys(fromIndex, incrementBy) {
   if (!this.parent) return;
-  const paths = (0, _cache.getCachedPaths)(this.hub, this.parent) || [];
+  const paths = (0, _cache.getCachedPaths)(this);
+  if (!paths) return;
   for (const [, path] of paths) {
-    if (typeof path.key === "number" && path.key >= fromIndex) {
+    if (typeof path.key === "number" && path.container === this.container && path.key >= fromIndex) {
       path.key += incrementBy;
     }
   }
@@ -42085,34 +41908,35 @@ function _verifyNodeList(nodes) {
   return nodes;
 }
 function unshiftContainer(listKey, nodes) {
-  this._assertUnremoved();
-  nodes = this._verifyNodeList(nodes);
-  const path = _index.default.get({
-    parentPath: this,
-    parent: this.node,
-    container: this.node[listKey],
-    listKey,
-    key: 0
-  }).setContext(this.context);
-  return path._containerInsertBefore(nodes);
-}
-function pushContainer(listKey, nodes) {
-  this._assertUnremoved();
-  const verifiedNodes = this._verifyNodeList(nodes);
+  _removal._assertUnremoved.call(this);
+  const verifiedNodes = _verifyNodeList.call(this, nodes);
   const container = this.node[listKey];
   const path = _index.default.get({
     parentPath: this,
     parent: this.node,
-    container: container,
+    container,
+    listKey,
+    key: 0
+  }).setContext(this.context);
+  return _containerInsertBefore.call(path, verifiedNodes);
+}
+function pushContainer(listKey, nodes) {
+  _removal._assertUnremoved.call(this);
+  const verifiedNodes = _verifyNodeList.call(this, nodes);
+  const container = this.node[listKey];
+  const path = _index.default.get({
+    parentPath: this,
+    parent: this.node,
+    container,
     listKey,
     key: container.length
   }).setContext(this.context);
   return path.replaceWithMultiple(verifiedNodes);
 }
-function hoist(scope = this.scope) {
+exports.hoist = function hoist(scope = this.scope) {
   const hoister = new _hoister.default(this, scope);
   return hoister.run();
-}
+};
 
 //# sourceMappingURL=modification.js.map
 
@@ -42136,43 +41960,50 @@ exports._removeFromScope = _removeFromScope;
 exports.remove = remove;
 var _removalHooks = __nccwpck_require__(1587);
 var _cache = __nccwpck_require__(5069);
+var _replacement = __nccwpck_require__(8805);
 var _index = __nccwpck_require__(8877);
+var t = __nccwpck_require__(7912);
+var _modification = __nccwpck_require__(7575);
+var _context = __nccwpck_require__(4108);
 function remove() {
   var _this$opts;
-  this._assertUnremoved();
-  this.resync();
-  if (!((_this$opts = this.opts) != null && _this$opts.noScope)) {
-    this._removeFromScope();
-  }
-  if (this._callRemovalHooks()) {
-    this._markRemoved();
+  _assertUnremoved.call(this);
+  _context.resync.call(this);
+  if (_callRemovalHooks.call(this)) {
+    _markRemoved.call(this);
     return;
   }
+  if (!((_this$opts = this.opts) != null && _this$opts.noScope)) {
+    _removeFromScope.call(this);
+  }
   this.shareCommentsWithSiblings();
-  this._remove();
-  this._markRemoved();
+  _remove.call(this);
+  _markRemoved.call(this);
 }
 function _removeFromScope() {
-  const bindings = this.getBindingIdentifiers();
+  const bindings = t.getBindingIdentifiers(this.node, false, false, true);
   Object.keys(bindings).forEach(name => this.scope.removeBinding(name));
 }
 function _callRemovalHooks() {
-  for (const fn of _removalHooks.hooks) {
-    if (fn(this, this.parentPath)) return true;
+  if (this.parentPath) {
+    for (const fn of _removalHooks.hooks) {
+      if (fn(this, this.parentPath)) return true;
+    }
   }
 }
 function _remove() {
   if (Array.isArray(this.container)) {
     this.container.splice(this.key, 1);
-    this.updateSiblingKeys(this.key, -1);
+    _modification.updateSiblingKeys.call(this, this.key, -1);
   } else {
-    this._replaceWith(null);
+    _replacement._replaceWith.call(this, null);
   }
 }
 function _markRemoved() {
   this._traverseFlags |= _index.SHOULD_SKIP | _index.REMOVED;
   if (this.parent) {
-    (0, _cache.getCachedPaths)(this.hub, this.parent).delete(this.node);
+    var _getCachedPaths;
+    (_getCachedPaths = (0, _cache.getCachedPaths)(this)) == null || _getCachedPaths.delete(this.node);
   }
   this.node = null;
 }
@@ -42206,38 +42037,47 @@ var _codeFrame = __nccwpck_require__(1322);
 var _index = __nccwpck_require__(1380);
 var _index2 = __nccwpck_require__(8877);
 var _cache = __nccwpck_require__(5069);
+var _modification = __nccwpck_require__(7575);
 var _parser = __nccwpck_require__(5026);
 var _t = __nccwpck_require__(7912);
-var _helperHoistVariables = __nccwpck_require__(6934);
+var _context = __nccwpck_require__(4108);
 const {
   FUNCTION_TYPES,
   arrowFunctionExpression,
   assignmentExpression,
   awaitExpression,
   blockStatement,
+  buildUndefinedNode,
   callExpression,
   cloneNode,
+  conditionalExpression,
   expressionStatement,
+  getBindingIdentifiers,
   identifier,
   inheritLeadingComments,
   inheritTrailingComments,
   inheritsComments,
+  isBlockStatement,
+  isEmptyStatement,
   isExpression,
+  isExpressionStatement,
+  isIfStatement,
   isProgram,
   isStatement,
+  isVariableDeclaration,
   removeComments,
   returnStatement,
-  toSequenceExpression,
+  sequenceExpression,
   validate,
   yieldExpression
 } = _t;
 function replaceWithMultiple(nodes) {
   var _getCachedPaths;
-  this.resync();
-  nodes = this._verifyNodeList(nodes);
-  inheritLeadingComments(nodes[0], this.node);
-  inheritTrailingComments(nodes[nodes.length - 1], this.node);
-  (_getCachedPaths = (0, _cache.getCachedPaths)(this.hub, this.parent)) == null ? void 0 : _getCachedPaths.delete(this.node);
+  _context.resync.call(this);
+  const verifiedNodes = _modification._verifyNodeList.call(this, nodes);
+  inheritLeadingComments(verifiedNodes[0], this.node);
+  inheritTrailingComments(verifiedNodes[verifiedNodes.length - 1], this.node);
+  (_getCachedPaths = (0, _cache.getCachedPaths)(this)) == null || _getCachedPaths.delete(this.node);
   this.node = this.container[this.key] = null;
   const paths = this.insertAfter(nodes);
   if (this.node) {
@@ -42248,7 +42088,7 @@ function replaceWithMultiple(nodes) {
   return paths;
 }
 function replaceWithSourceString(replacement) {
-  this.resync();
+  _context.resync.call(this);
   let ast;
   try {
     replacement = `(${replacement})`;
@@ -42271,7 +42111,7 @@ function replaceWithSourceString(replacement) {
   return this.replaceWith(expressionAST);
 }
 function replaceWith(replacementPath) {
-  this.resync();
+  _context.resync.call(this);
   if (this.removed) {
     throw new Error("You can't replace this node, we've already removed it");
   }
@@ -42308,9 +42148,9 @@ function replaceWith(replacementPath) {
     inheritsComments(replacement, oldNode);
     removeComments(oldNode);
   }
-  this._replaceWith(replacement);
+  _replaceWith.call(this, replacement);
   this.type = replacement.type;
-  this.setScope();
+  _context.setScope.call(this);
   this.requeue();
   return [nodePath ? this.get(nodePath) : this];
 }
@@ -42325,27 +42165,30 @@ function _replaceWith(node) {
     validate(this.parent, this.key, node);
   }
   this.debug(`Replace with ${node == null ? void 0 : node.type}`);
-  (_getCachedPaths2 = (0, _cache.getCachedPaths)(this.hub, this.parent)) == null ? void 0 : _getCachedPaths2.set(node, this).delete(this.node);
-  this.node = this.container[this.key] = node;
+  (_getCachedPaths2 = (0, _cache.getCachedPaths)(this)) == null || _getCachedPaths2.set(node, this).delete(this.node);
+  this.node = node;
+  this.container[this.key] = node;
 }
 function replaceExpressionWithStatements(nodes) {
-  this.resync();
-  const nodesAsSequenceExpression = toSequenceExpression(nodes, this.scope);
-  if (nodesAsSequenceExpression) {
-    return this.replaceWith(nodesAsSequenceExpression)[0].get("expressions");
+  _context.resync.call(this);
+  const declars = [];
+  const nodesAsSingleExpression = gatherSequenceExpressions(nodes, declars);
+  if (nodesAsSingleExpression) {
+    for (const id of declars) this.scope.push({
+      id
+    });
+    return this.replaceWith(nodesAsSingleExpression)[0].get("expressions");
   }
   const functionParent = this.getFunctionParent();
-  const isParentAsync = functionParent == null ? void 0 : functionParent.is("async");
-  const isParentGenerator = functionParent == null ? void 0 : functionParent.is("generator");
+  const isParentAsync = functionParent == null ? void 0 : functionParent.node.async;
+  const isParentGenerator = functionParent == null ? void 0 : functionParent.node.generator;
   const container = arrowFunctionExpression([], blockStatement(nodes));
   this.replaceWith(callExpression(container, []));
   const callee = this.get("callee");
-  (0, _helperHoistVariables.default)(callee.get("body"), id => {
-    this.scope.push({
-      id
-    });
-  }, "var");
-  const completionRecords = this.get("callee").getCompletionRecords();
+  callee.get("body").scope.hoistVariables(id => this.scope.push({
+    id
+  }));
+  const completionRecords = callee.getCompletionRecords();
   for (const path of completionRecords) {
     if (!path.isExpressionStatement()) continue;
     const loop = path.findParent(path => path.isLoop());
@@ -42365,8 +42208,8 @@ function replaceExpressionWithStatements(nodes) {
   }
   callee.arrowFunctionToExpression();
   const newCallee = callee;
-  const needToAwaitFunction = isParentAsync && _index.default.hasType(this.get("callee.body").node, "AwaitExpression", FUNCTION_TYPES);
-  const needToYieldFunction = isParentGenerator && _index.default.hasType(this.get("callee.body").node, "YieldExpression", FUNCTION_TYPES);
+  const needToAwaitFunction = isParentAsync && _index.default.hasType(newCallee.node.body, "AwaitExpression", FUNCTION_TYPES);
+  const needToYieldFunction = isParentGenerator && _index.default.hasType(newCallee.node.body, "YieldExpression", FUNCTION_TYPES);
   if (needToAwaitFunction) {
     newCallee.set("async", true);
     if (!needToYieldFunction) {
@@ -42379,12 +42222,59 @@ function replaceExpressionWithStatements(nodes) {
   }
   return newCallee.get("body.body");
 }
+function gatherSequenceExpressions(nodes, declars) {
+  const exprs = [];
+  let ensureLastUndefined = true;
+  for (const node of nodes) {
+    if (!isEmptyStatement(node)) {
+      ensureLastUndefined = false;
+    }
+    if (isExpression(node)) {
+      exprs.push(node);
+    } else if (isExpressionStatement(node)) {
+      exprs.push(node.expression);
+    } else if (isVariableDeclaration(node)) {
+      if (node.kind !== "var") return;
+      for (const declar of node.declarations) {
+        const bindings = getBindingIdentifiers(declar);
+        for (const key of Object.keys(bindings)) {
+          declars.push(cloneNode(bindings[key]));
+        }
+        if (declar.init) {
+          exprs.push(assignmentExpression("=", declar.id, declar.init));
+        }
+      }
+      ensureLastUndefined = true;
+    } else if (isIfStatement(node)) {
+      const consequent = node.consequent ? gatherSequenceExpressions([node.consequent], declars) : buildUndefinedNode();
+      const alternate = node.alternate ? gatherSequenceExpressions([node.alternate], declars) : buildUndefinedNode();
+      if (!consequent || !alternate) return;
+      exprs.push(conditionalExpression(node.test, consequent, alternate));
+    } else if (isBlockStatement(node)) {
+      const body = gatherSequenceExpressions(node.body, declars);
+      if (!body) return;
+      exprs.push(body);
+    } else if (isEmptyStatement(node)) {
+      if (nodes.indexOf(node) === 0) {
+        ensureLastUndefined = true;
+      }
+    } else {
+      return;
+    }
+  }
+  if (ensureLastUndefined) exprs.push(buildUndefinedNode());
+  if (exprs.length === 1) {
+    return exprs[0];
+  } else {
+    return sequenceExpression(exprs);
+  }
+}
 function replaceInline(nodes) {
-  this.resync();
+  _context.resync.call(this);
   if (Array.isArray(nodes)) {
     if (Array.isArray(this.container)) {
-      nodes = this._verifyNodeList(nodes);
-      const paths = this._containerInsertAfter(nodes);
+      nodes = _modification._verifyNodeList.call(this, nodes);
+      const paths = _modification._containerInsertAfter.call(this, nodes);
       this.remove();
       return paths;
     } else {
@@ -42430,7 +42320,7 @@ class Binding {
     this.scope = scope;
     this.path = path;
     this.kind = kind;
-    if ((kind === "var" || kind === "hoisted") && isDeclaredInLoop(path)) {
+    if ((kind === "var" || kind === "hoisted") && isInitInLoop(path)) {
       this.reassign(path);
     }
     this.clearValue();
@@ -42451,13 +42341,13 @@ class Binding {
   }
   reassign(path) {
     this.constant = false;
-    if (this.constantViolations.indexOf(path) !== -1) {
+    if (this.constantViolations.includes(path)) {
       return;
     }
     this.constantViolations.push(path);
   }
   reference(path) {
-    if (this.referencePaths.indexOf(path) !== -1) {
+    if (this.referencePaths.includes(path)) {
       return;
     }
     this.referenced = true;
@@ -42470,16 +42360,17 @@ class Binding {
   }
 }
 exports["default"] = Binding;
-function isDeclaredInLoop(path) {
+function isInitInLoop(path) {
+  const isFunctionDeclarationOrHasInit = !path.isVariableDeclarator() || path.node.init;
   for (let {
     parentPath,
     key
-  } = path; parentPath; ({
+  } = path; parentPath; {
     parentPath,
     key
-  } = parentPath)) {
+  } = parentPath) {
     if (parentPath.isFunctionParent()) return false;
-    if (parentPath.isWhile() || parentPath.isForXStatement() || parentPath.isForStatement() && key === "body") {
+    if (key === "left" && parentPath.isForXStatement() || isFunctionDeclarationOrHasInit && key === "body" && parentPath.isLoop()) {
       return true;
     }
   }
@@ -42503,20 +42394,22 @@ Object.defineProperty(exports, "__esModule", ({
 exports["default"] = void 0;
 var _renamer = __nccwpck_require__(3708);
 var _index = __nccwpck_require__(1380);
+var _traverseForScope = __nccwpck_require__(4276);
 var _binding = __nccwpck_require__(1410);
-var _globals = __nccwpck_require__(455);
 var _t = __nccwpck_require__(7912);
 var t = _t;
 var _cache = __nccwpck_require__(5069);
-var _visitors = __nccwpck_require__(3494);
+const globalsBuiltinLower = __nccwpck_require__(1097),
+  globalsBuiltinUpper = __nccwpck_require__(7198);
 const {
-  NOT_LOCAL_BINDING,
+  assignmentExpression,
   callExpression,
   cloneNode,
   getBindingIdentifiers,
   identifier,
   isArrayExpression,
   isBinary,
+  isCallExpression,
   isClass,
   isClassBody,
   isClassDeclaration,
@@ -42527,6 +42420,7 @@ const {
   isIdentifier,
   isImportDeclaration,
   isLiteral,
+  isMemberExpression,
   isMethod,
   isModuleSpecifier,
   isNullLiteral,
@@ -42540,20 +42434,20 @@ const {
   isThisExpression,
   isUnaryExpression,
   isVariableDeclaration,
+  expressionStatement,
   matchesPattern,
   memberExpression,
   numericLiteral,
   toIdentifier,
   variableDeclaration,
   variableDeclarator,
-  isRecordExpression,
-  isTupleExpression,
   isObjectProperty,
   isTopicReference,
   isMetaProperty,
   isPrivateName,
   isExportDeclaration,
-  buildUndefinedNode
+  buildUndefinedNode,
+  sequenceExpression
 } = _t;
 function gatherNodeParts(node, parts) {
   switch (node == null ? void 0 : node.type) {
@@ -42613,6 +42507,7 @@ function gatherNodeParts(node, parts) {
       parts.push("super");
       break;
     case "Import":
+    case "ImportExpression":
       parts.push("import");
       break;
     case "DoExpression":
@@ -42670,6 +42565,16 @@ function gatherNodeParts(node, parts) {
       break;
   }
 }
+function resetScope(scope) {
+  scope.references = Object.create(null);
+  scope.uids = Object.create(null);
+  scope.bindings = Object.create(null);
+  scope.globals = Object.create(null);
+}
+function isAnonymousFunctionExpression(path) {
+  return path.isFunctionExpression() && !path.node.id || path.isArrowFunctionExpression();
+}
+var NOT_LOCAL_BINDING = Symbol.for("should not be considered a local binding");
 const collectorVisitor = {
   ForStatement(path) {
     const declar = path.get("init");
@@ -42692,7 +42597,15 @@ const collectorVisitor = {
     const parent = path.scope.getBlockParent();
     parent.registerDeclaration(path);
   },
+  TSImportEqualsDeclaration(path) {
+    const parent = path.scope.getBlockParent();
+    parent.registerDeclaration(path);
+  },
   ReferencedIdentifier(path, state) {
+    if (t.isTSQualifiedName(path.parent) && path.parent.right === path.node) {
+      return;
+    }
+    if (path.parentPath.isTSImportEqualsDeclaration()) return;
     state.references.push(path);
   },
   ForXStatement(path, state) {
@@ -42719,12 +42632,12 @@ const collectorVisitor = {
         const id = declar.id;
         if (!id) return;
         const binding = scope.getBinding(id.name);
-        binding == null ? void 0 : binding.reference(path);
+        binding == null || binding.reference(path);
       } else if (isVariableDeclaration(declar)) {
         for (const decl of declar.declarations) {
           for (const name of Object.keys(getBindingIdentifiers(decl))) {
             const binding = scope.getBinding(name);
-            binding == null ? void 0 : binding.reference(path);
+            binding == null || binding.reference(path);
           }
         }
       }
@@ -42763,28 +42676,32 @@ const collectorVisitor = {
     for (const param of params) {
       path.scope.registerBinding("param", param);
     }
-    if (path.isFunctionExpression() && path.has("id") && !path.get("id").node[NOT_LOCAL_BINDING]) {
+    if (path.isFunctionExpression() && path.node.id && !path.node.id[NOT_LOCAL_BINDING]) {
       path.scope.registerBinding("local", path.get("id"), path);
     }
   },
   ClassExpression(path) {
-    if (path.has("id") && !path.get("id").node[NOT_LOCAL_BINDING]) {
-      path.scope.registerBinding("local", path);
+    if (path.node.id && !path.node.id[NOT_LOCAL_BINDING]) {
+      path.scope.registerBinding("local", path.get("id"), path);
     }
+  },
+  TSTypeAnnotation(path) {
+    path.skip();
   }
 };
+let scopeVisitor;
 let uid = 0;
 class Scope {
   constructor(path) {
     this.uid = void 0;
     this.path = void 0;
     this.block = void 0;
-    this.labels = void 0;
     this.inited = void 0;
+    this.labels = void 0;
     this.bindings = void 0;
-    this.references = void 0;
+    this.referencesSet = void 0;
     this.globals = void 0;
-    this.uids = void 0;
+    this.uidsSet = void 0;
     this.data = void 0;
     this.crawling = void 0;
     const {
@@ -42800,27 +42717,39 @@ class Scope {
     this.path = path;
     this.labels = new Map();
     this.inited = false;
+    Object.defineProperties(this, {
+      references: {
+        enumerable: true,
+        configurable: true,
+        writable: true,
+        value: Object.create(null)
+      },
+      uids: {
+        enumerable: true,
+        configurable: true,
+        writable: true,
+        value: Object.create(null)
+      }
+    });
   }
   get parent() {
     var _parent;
     let parent,
       path = this.path;
     do {
+      var _path;
       const shouldSkip = path.key === "key" || path.listKey === "decorators";
       path = path.parentPath;
       if (shouldSkip && path.isMethod()) path = path.parentPath;
-      if (path && path.isScope()) parent = path;
+      if ((_path = path) != null && _path.isScope()) parent = path;
     } while (path && !parent);
     return (_parent = parent) == null ? void 0 : _parent.scope;
   }
-  get parentBlock() {
-    return this.path.parent;
+  get references() {
+    throw new Error("Scope#references is not available in Babel 8. Use Scope#referencesSet instead.");
   }
-  get hub() {
-    return this.path.hub;
-  }
-  traverse(node, opts, state) {
-    (0, _index.default)(node, opts, this, state, this.path);
+  get uids() {
+    throw new Error("Scope#uids is not available in Babel 8. Use Scope#uidsSet instead.");
   }
   generateDeclaredUidIdentifier(name) {
     const id = this.generateUidIdentifier(name);
@@ -42833,22 +42762,18 @@ class Scope {
     return identifier(this.generateUid(name));
   }
   generateUid(name = "temp") {
-    name = toIdentifier(name).replace(/^_+/, "").replace(/[0-9]+$/g, "");
+    name = toIdentifier(name).replace(/^_+/, "").replace(/\d+$/g, "");
     let uid;
-    let i = 1;
+    let i = 0;
     do {
-      uid = this._generateUid(name, i);
+      uid = `_${name}`;
+      if (i >= 11) uid += i - 1;else if (i >= 9) uid += i - 9;else if (i >= 1) uid += i + 1;
       i++;
     } while (this.hasLabel(uid) || this.hasBinding(uid) || this.hasGlobal(uid) || this.hasReference(uid));
     const program = this.getProgramParent();
     program.references[uid] = true;
     program.uids[uid] = true;
     return uid;
-  }
-  _generateUid(name, i) {
-    let id = name;
-    if (i > 1) id += i;
-    return `_${id}`;
   }
   generateUidBasedOnNode(node, defaultName) {
     const parts = [];
@@ -42893,7 +42818,7 @@ class Scope {
     if (local.kind === "local") return;
     const duplicate = kind === "let" || local.kind === "let" || local.kind === "const" || local.kind === "module" || local.kind === "param" && kind === "const";
     if (duplicate) {
-      throw this.hub.buildError(id, `Duplicate declaration "${name}"`, TypeError);
+      throw this.path.hub.buildError(id, `Duplicate declaration "${name}"`, TypeError);
     }
   }
   rename(oldName, newName) {
@@ -42901,15 +42826,7 @@ class Scope {
     if (binding) {
       newName || (newName = this.generateUidIdentifier(oldName).name);
       const renamer = new _renamer.default(binding, oldName, newName);
-      {
-        renamer.rename(arguments[2]);
-      }
-    }
-  }
-  _renameFromMap(map, oldName, newName, value) {
-    if (map[oldName]) {
-      map[newName] = value;
-      map[oldName] = null;
+      renamer.rename(arguments[2]);
     }
   }
   dump() {
@@ -42929,37 +42846,6 @@ class Scope {
       }
     } while (scope = scope.parent);
     console.log(sep);
-  }
-  toArray(node, i, arrayLikeIsIterable) {
-    if (isIdentifier(node)) {
-      const binding = this.getBinding(node.name);
-      if (binding != null && binding.constant && binding.path.isGenericType("Array")) {
-        return node;
-      }
-    }
-    if (isArrayExpression(node)) {
-      return node;
-    }
-    if (isIdentifier(node, {
-      name: "arguments"
-    })) {
-      return callExpression(memberExpression(memberExpression(memberExpression(identifier("Array"), identifier("prototype")), identifier("slice")), identifier("call")), [node]);
-    }
-    let helperName;
-    const args = [node];
-    if (i === true) {
-      helperName = "toConsumableArray";
-    } else if (typeof i === "number") {
-      args.push(numericLiteral(i));
-      helperName = "slicedToArray";
-    } else {
-      helperName = "toArray";
-    }
-    if (arrayLikeIsIterable) {
-      args.unshift(this.hub.addHelper(helperName));
-      helperName = "maybeArrayLike";
-    }
-    return callExpression(this.hub.addHelper(helperName), args);
   }
   hasLabel(name) {
     return !!this.getLabel(name);
@@ -43006,10 +42892,10 @@ class Scope {
     return buildUndefinedNode();
   }
   registerConstantViolation(path) {
-    const ids = path.getBindingIdentifiers();
+    const ids = path.getAssignmentIdentifiers();
     for (const name of Object.keys(ids)) {
       var _this$getBinding;
-      (_this$getBinding = this.getBinding(name)) == null ? void 0 : _this$getBinding.reassign(path);
+      (_this$getBinding = this.getBinding(name)) == null || _this$getBinding.reassign(path);
     }
   }
   registerBinding(kind, path, bindingPath = path) {
@@ -43032,7 +42918,7 @@ class Scope {
           this.checkBlockScopedCollisions(local, kind, name, id);
         }
         if (local) {
-          this.registerConstantViolation(bindingPath);
+          local.reassign(bindingPath);
         } else {
           this.bindings[name] = new _binding.default({
             identifier: id,
@@ -43088,12 +42974,12 @@ class Scope {
       return true;
     } else if (isBinary(node)) {
       return this.isPure(node.left, constantsOnly) && this.isPure(node.right, constantsOnly);
-    } else if (isArrayExpression(node) || isTupleExpression(node)) {
+    } else if (isArrayExpression(node) || (node == null ? void 0 : node.type) === "TupleExpression") {
       for (const elem of node.elements) {
         if (elem !== null && !this.isPure(elem, constantsOnly)) return false;
       }
       return true;
-    } else if (isObjectExpression(node) || isRecordExpression(node)) {
+    } else if (isObjectExpression(node) || (node == null ? void 0 : node.type) === "RecordExpression") {
       for (const prop of node.properties) {
         if (!this.isPure(prop, constantsOnly)) return false;
       }
@@ -43119,13 +43005,23 @@ class Scope {
       return true;
     } else if (isUnaryExpression(node)) {
       return this.isPure(node.argument, constantsOnly);
-    } else if (isTaggedTemplateExpression(node)) {
-      return matchesPattern(node.tag, "String.raw") && !this.hasBinding("String", true) && this.isPure(node.quasi, constantsOnly);
     } else if (isTemplateLiteral(node)) {
       for (const expression of node.expressions) {
         if (!this.isPure(expression, constantsOnly)) return false;
       }
       return true;
+    } else if (isTaggedTemplateExpression(node)) {
+      return matchesPattern(node.tag, "String.raw") && !this.hasBinding("String", {
+        noGlobals: true
+      }) && this.isPure(node.quasi, constantsOnly);
+    } else if (isMemberExpression(node)) {
+      return !node.computed && isIdentifier(node.object) && node.object.name === "Symbol" && isIdentifier(node.property) && node.property.name !== "for" && !this.hasBinding("Symbol", {
+        noGlobals: true
+      });
+    } else if (isCallExpression(node)) {
+      return matchesPattern(node.callee, "Symbol.for") && !this.hasBinding("Symbol", {
+        noGlobals: true
+      }) && node.arguments.length === 1 && t.isStringLiteral(node.arguments[0]);
     } else {
       return isPureish(node);
     }
@@ -43155,34 +43051,39 @@ class Scope {
   }
   crawl() {
     const path = this.path;
-    this.references = Object.create(null);
-    this.bindings = Object.create(null);
-    this.globals = Object.create(null);
-    this.uids = Object.create(null);
+    resetScope(this);
     this.data = Object.create(null);
-    const programParent = this.getProgramParent();
-    if (programParent.crawling) return;
+    let scope = this;
+    do {
+      if (scope.crawling) return;
+      if (scope.path.isProgram()) {
+        break;
+      }
+    } while (scope = scope.parent);
+    const programParent = scope;
     const state = {
       references: [],
       constantViolations: [],
       assignments: []
     };
     this.crawling = true;
-    if (path.type !== "Program" && (0, _visitors.isExplodedVisitor)(collectorVisitor)) {
-      for (const visit of collectorVisitor.enter) {
-        visit.call(state, path, state);
+    scopeVisitor || (scopeVisitor = _index.default.visitors.merge([{
+      Scope(path) {
+        resetScope(path.scope);
       }
-      const typeVisitors = collectorVisitor[path.type];
+    }, collectorVisitor]));
+    if (path.type !== "Program") {
+      const typeVisitors = scopeVisitor[path.type];
       if (typeVisitors) {
         for (const visit of typeVisitors.enter) {
           visit.call(state, path, state);
         }
       }
     }
-    path.traverse(collectorVisitor, state);
+    path.traverse(scopeVisitor, state);
     this.crawling = false;
     for (const path of state.assignments) {
-      const ids = path.getBindingIdentifiers();
+      const ids = path.getAssignmentIdentifiers();
       for (const name of Object.keys(ids)) {
         if (path.scope.getBinding(name)) continue;
         programParent.addGlobal(ids[name]);
@@ -43217,9 +43118,9 @@ class Scope {
       kind = "var",
       id
     } = opts;
-    if (!init && !unique && (kind === "var" || kind === "let") && path.isFunction() && !path.node.name && t.isCallExpression(path.parent, {
+    if (!init && !unique && (kind === "var" || kind === "let") && isAnonymousFunctionExpression(path) && isCallExpression(path.parent, {
       callee: path.node
-    }) && path.parent.arguments.length <= path.node.params.length && t.isIdentifier(id)) {
+    }) && path.parent.arguments.length <= path.node.params.length && isIdentifier(id)) {
       path.pushContainer("params", id);
       path.scope.registerBinding("param", path.get("params")[path.node.params.length - 1]);
       return;
@@ -43290,20 +43191,6 @@ class Scope {
     } while (scope);
     return ids;
   }
-  getAllBindingsOfKind(...kinds) {
-    const ids = Object.create(null);
-    for (const kind of kinds) {
-      let scope = this;
-      do {
-        for (const name of Object.keys(scope.bindings)) {
-          const binding = scope.bindings[name];
-          if (binding.kind === kind) ids[name] = binding;
-        }
-        scope = scope.parent;
-      } while (scope);
-    }
-    return ids;
-  }
   bindingIdentifierEquals(name, node) {
     return this.getBindingIdentifier(name) === node;
   }
@@ -43338,18 +43225,29 @@ class Scope {
     return !!this.getOwnBinding(name);
   }
   hasBinding(name, opts) {
-    var _opts, _opts2, _opts3;
     if (!name) return false;
-    if (this.hasOwnBinding(name)) return true;
-    {
-      if (typeof opts === "boolean") opts = {
-        noGlobals: opts
-      };
+    let noGlobals;
+    let noUids;
+    let upToScope;
+    if (typeof opts === "object") {
+      noGlobals = opts.noGlobals;
+      noUids = opts.noUids;
+      upToScope = opts.upToScope;
+    } else if (typeof opts === "boolean") {
+      noGlobals = opts;
     }
-    if (this.parentHasBinding(name, opts)) return true;
-    if (!((_opts = opts) != null && _opts.noUids) && this.hasUid(name)) return true;
-    if (!((_opts2 = opts) != null && _opts2.noGlobals) && Scope.globals.includes(name)) return true;
-    if (!((_opts3 = opts) != null && _opts3.noGlobals) && Scope.contextVariables.includes(name)) return true;
+    let scope = this;
+    do {
+      if (upToScope === scope) {
+        break;
+      }
+      if (scope.hasOwnBinding(name)) {
+        return true;
+      }
+    } while (scope = scope.parent);
+    if (!noUids && this.hasUid(name)) return true;
+    if (!noGlobals && Scope.globals.includes(name)) return true;
+    if (!noGlobals && Scope.contextVariables.includes(name)) return true;
     return false;
   }
   parentHasBinding(name, opts) {
@@ -43369,7 +43267,7 @@ class Scope {
   }
   removeBinding(name) {
     var _this$getBinding3;
-    (_this$getBinding3 = this.getBinding(name)) == null ? void 0 : _this$getBinding3.scope.removeOwnBinding(name);
+    (_this$getBinding3 = this.getBinding(name)) == null || _this$getBinding3.scope.removeOwnBinding(name);
     let scope = this;
     do {
       if (scope.uids[name]) {
@@ -43377,10 +43275,133 @@ class Scope {
       }
     } while (scope = scope.parent);
   }
+  hoistVariables(emit = id => this.push({
+    id
+  })) {
+    this.crawl();
+    const seen = new Set();
+    for (const name of Object.keys(this.bindings)) {
+      const binding = this.bindings[name];
+      if (!binding) continue;
+      const {
+        path
+      } = binding;
+      if (!path.isVariableDeclarator()) continue;
+      const {
+        parent,
+        parentPath
+      } = path;
+      if (parent.kind !== "var" || seen.has(parent)) continue;
+      seen.add(path.parent);
+      let firstId;
+      const init = [];
+      for (const decl of parent.declarations) {
+        firstId != null ? firstId : firstId = decl.id;
+        if (decl.init) {
+          init.push(assignmentExpression("=", decl.id, decl.init));
+        }
+        const ids = Object.keys(getBindingIdentifiers(decl, false, true, true));
+        for (const name of ids) {
+          emit(identifier(name), decl.init != null);
+        }
+      }
+      if (parentPath.parentPath.isForXStatement({
+        left: parent
+      })) {
+        parentPath.replaceWith(firstId);
+      } else if (init.length === 0) {
+        parentPath.remove();
+      } else {
+        const expr = init.length === 1 ? init[0] : sequenceExpression(init);
+        if (parentPath.parentPath.isForStatement({
+          init: parent
+        })) {
+          parentPath.replaceWith(expr);
+        } else {
+          parentPath.replaceWith(expressionStatement(expr));
+        }
+      }
+    }
+  }
 }
 exports["default"] = Scope;
-Scope.globals = Object.keys(_globals.builtin);
+Scope.globals = [...globalsBuiltinLower, ...globalsBuiltinUpper];
 Scope.contextVariables = ["arguments", "undefined", "Infinity", "NaN"];
+Scope.prototype._renameFromMap = function _renameFromMap(map, oldName, newName, value) {
+  if (map[oldName]) {
+    map[newName] = value;
+    map[oldName] = null;
+  }
+};
+Scope.prototype.traverse = function (node, opts, state) {
+  (0, _index.default)(node, opts, this, state, this.path);
+};
+Scope.prototype._generateUid = function _generateUid(name, i) {
+  let id = name;
+  if (i > 1) id += i;
+  return `_${id}`;
+};
+Scope.prototype.toArray = function toArray(node, i, arrayLikeIsIterable) {
+  if (isIdentifier(node)) {
+    const binding = this.getBinding(node.name);
+    if (binding != null && binding.constant && binding.path.isGenericType("Array")) {
+      return node;
+    }
+  }
+  if (isArrayExpression(node)) {
+    return node;
+  }
+  if (isIdentifier(node, {
+    name: "arguments"
+  })) {
+    return callExpression(memberExpression(memberExpression(memberExpression(identifier("Array"), identifier("prototype")), identifier("slice")), identifier("call")), [node]);
+  }
+  let helperName;
+  const args = [node];
+  if (i === true) {
+    helperName = "toConsumableArray";
+  } else if (typeof i === "number") {
+    args.push(numericLiteral(i));
+    helperName = "slicedToArray";
+  } else {
+    helperName = "toArray";
+  }
+  if (arrayLikeIsIterable) {
+    args.unshift(this.path.hub.addHelper(helperName));
+    helperName = "maybeArrayLike";
+  }
+  return callExpression(this.path.hub.addHelper(helperName), args);
+};
+Scope.prototype.getAllBindingsOfKind = function getAllBindingsOfKind(...kinds) {
+  const ids = Object.create(null);
+  for (const kind of kinds) {
+    let scope = this;
+    do {
+      for (const name of Object.keys(scope.bindings)) {
+        const binding = scope.bindings[name];
+        if (binding.kind === kind) ids[name] = binding;
+      }
+      scope = scope.parent;
+    } while (scope);
+  }
+  return ids;
+};
+Object.defineProperties(Scope.prototype, {
+  parentBlock: {
+    configurable: true,
+    enumerable: true,
+    get() {
+      return this.path.parent;
+    }
+  },
+  hub: {
+    configurable: true,
+    enumerable: true,
+    get() {
+      return this.path.hub;
+    }
+  }
+});
 
 //# sourceMappingURL=index.js.map
 
@@ -43397,11 +43418,14 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports["default"] = void 0;
-var _helperSplitExportDeclaration = __nccwpck_require__(5176);
 var t = __nccwpck_require__(7912);
-var _helperEnvironmentVisitor = __nccwpck_require__(1097);
+var _t = t;
 var _traverseNode = __nccwpck_require__(1250);
 var _visitors = __nccwpck_require__(3494);
+var _context = __nccwpck_require__(4108);
+const {
+  getAssignmentIdentifiers
+} = _t;
 const renameVisitor = {
   ReferencedIdentifier({
     node
@@ -43414,7 +43438,11 @@ const renameVisitor = {
     if (!path.scope.bindingIdentifierEquals(state.oldName, state.binding.identifier)) {
       path.skip();
       if (path.isMethod()) {
-        (0, _helperEnvironmentVisitor.requeueComputedKeyAndDecorators)(path);
+        if (!path.requeueComputedKeyAndDecorators) {
+          _context.requeueComputedKeyAndDecorators.call(path);
+        } else {
+          path.requeueComputedKeyAndDecorators();
+        }
       }
     }
   },
@@ -43433,7 +43461,7 @@ const renameVisitor = {
   },
   "AssignmentExpression|Declaration|VariableDeclarator"(path, state) {
     if (path.isVariableDeclaration()) return;
-    const ids = path.getOuterBindingIdentifiers();
+    const ids = path.isAssignmentExpression() ? getAssignmentIdentifiers(path.node) : path.getOuterBindingIdentifiers();
     for (const name in ids) {
       if (name === state.oldName) ids[name].name = state.newName;
     }
@@ -43461,7 +43489,7 @@ class Renamer {
     if (maybeExportDeclar.isExportAllDeclaration()) {
       return;
     }
-    (0, _helperSplitExportDeclaration.default)(maybeExportDeclar);
+    maybeExportDeclar.splitExportDeclaration();
   }
   maybeConvertFromClassFunctionDeclaration(path) {
     return path;
@@ -43487,9 +43515,18 @@ class Renamer {
       }
     }
     const blockToTraverse = arguments[0] || scope.block;
-    (0, _traverseNode.traverseNode)(blockToTraverse, (0, _visitors.explode)(renameVisitor), scope, this, scope.path, {
+    const skipKeys = {
       discriminant: true
-    });
+    };
+    if (t.isMethod(blockToTraverse)) {
+      if (blockToTraverse.computed) {
+        skipKeys.key = true;
+      }
+      if (!t.isObjectMethod(blockToTraverse)) {
+        skipKeys.decorators = true;
+      }
+    }
+    (0, _traverseNode.traverseNode)(blockToTraverse, (0, _visitors.explode)(renameVisitor), scope, this, scope.path, skipKeys);
     if (!arguments[0]) {
       scope.removeOwnBinding(oldName);
       scope.bindings[newName] = binding;
@@ -43508,6 +43545,80 @@ exports["default"] = Renamer;
 
 /***/ }),
 
+/***/ 4276:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = traverseForScope;
+var _t = __nccwpck_require__(7912);
+var _index = __nccwpck_require__(1380);
+var _visitors = __nccwpck_require__(3494);
+var _context = __nccwpck_require__(4108);
+const {
+  VISITOR_KEYS
+} = _t;
+function traverseForScope(path, visitors, state) {
+  const exploded = (0, _visitors.explode)(visitors);
+  if (exploded.enter || exploded.exit) {
+    throw new Error("Should not be used with enter/exit visitors.");
+  }
+  _traverse(path.parentPath, path.parent, path.node, path.container, path.key, path.listKey, path.hub, path);
+  function _traverse(parentPath, parent, node, container, key, listKey, hub, inPath) {
+    if (!node) {
+      return;
+    }
+    const path = inPath || _index.NodePath.get({
+      hub,
+      parentPath,
+      parent,
+      container,
+      listKey,
+      key
+    });
+    _context._forceSetScope.call(path);
+    const visitor = exploded[node.type];
+    if (visitor != null && visitor.enter) {
+      for (const visit of visitor.enter) {
+        visit.call(state, path, state);
+      }
+    }
+    if (path.shouldSkip) {
+      return;
+    }
+    const keys = VISITOR_KEYS[node.type];
+    if (!(keys != null && keys.length)) {
+      return;
+    }
+    for (const key of keys) {
+      const prop = node[key];
+      if (!prop) continue;
+      if (Array.isArray(prop)) {
+        for (let i = 0; i < prop.length; i++) {
+          const value = prop[i];
+          _traverse(path, node, value, prop, i, key);
+        }
+      } else {
+        _traverse(path, node, prop, node, key, null);
+      }
+    }
+    if (visitor != null && visitor.exit) {
+      for (const visit of visitor.exit) {
+        visit.call(state, path, state);
+      }
+    }
+  }
+}
+
+//# sourceMappingURL=traverseForScope.js.map
+
+
+/***/ }),
+
 /***/ 1250:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -43519,10 +43630,118 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.traverseNode = traverseNode;
 var _context = __nccwpck_require__(9089);
+var _index = __nccwpck_require__(8877);
 var _t = __nccwpck_require__(7912);
+var _context2 = __nccwpck_require__(4108);
 const {
   VISITOR_KEYS
 } = _t;
+function _visitPaths(ctx, paths) {
+  ctx.queue = paths;
+  ctx.priorityQueue = [];
+  const visited = new Set();
+  let stop = false;
+  let visitIndex = 0;
+  for (; visitIndex < paths.length;) {
+    const path = paths[visitIndex];
+    visitIndex++;
+    _context2.resync.call(path);
+    if (path.contexts.length === 0 || path.contexts[path.contexts.length - 1] !== ctx) {
+      _context2.pushContext.call(path, ctx);
+    }
+    if (path.key === null) continue;
+    const {
+      node
+    } = path;
+    if (visited.has(node)) continue;
+    if (node) visited.add(node);
+    if (_visit(ctx, path)) {
+      stop = true;
+      break;
+    }
+    if (ctx.priorityQueue.length) {
+      stop = _visitPaths(ctx, ctx.priorityQueue);
+      ctx.priorityQueue = [];
+      ctx.queue = paths;
+      if (stop) break;
+    }
+  }
+  for (let i = 0; i < visitIndex; i++) {
+    _context2.popContext.call(paths[i]);
+  }
+  ctx.queue = null;
+  return stop;
+}
+function _visit(ctx, path) {
+  var _opts$denylist;
+  const node = path.node;
+  if (!node) {
+    return false;
+  }
+  const opts = ctx.opts;
+  const denylist = (_opts$denylist = opts.denylist) != null ? _opts$denylist : opts.blacklist;
+  if (denylist != null && denylist.includes(node.type)) {
+    return false;
+  }
+  if (opts.shouldSkip != null && opts.shouldSkip(path)) {
+    return false;
+  }
+  if (path.shouldSkip) return path.shouldStop;
+  if (_context2._call.call(path, opts.enter)) return path.shouldStop;
+  if (path.node) {
+    var _opts$node$type;
+    if (_context2._call.call(path, (_opts$node$type = opts[node.type]) == null ? void 0 : _opts$node$type.enter)) return path.shouldStop;
+  }
+  path.shouldStop = _traverse(path.node, opts, path.scope, ctx.state, path, path.skipKeys);
+  if (path.node) {
+    if (_context2._call.call(path, opts.exit)) return true;
+  }
+  if (path.node) {
+    var _opts$node$type2;
+    _context2._call.call(path, (_opts$node$type2 = opts[node.type]) == null ? void 0 : _opts$node$type2.exit);
+  }
+  return path.shouldStop;
+}
+function _traverse(node, opts, scope, state, path, skipKeys, visitSelf) {
+  const keys = VISITOR_KEYS[node.type];
+  if (!(keys != null && keys.length)) return false;
+  const ctx = new _context.default(scope, opts, state, path);
+  if (visitSelf) {
+    if (skipKeys != null && skipKeys[path.parentKey]) return false;
+    return _visitPaths(ctx, [path]);
+  }
+  for (const key of keys) {
+    if (skipKeys != null && skipKeys[key]) continue;
+    const prop = node[key];
+    if (!prop) continue;
+    if (Array.isArray(prop)) {
+      if (!prop.length) continue;
+      const paths = [];
+      for (let i = 0; i < prop.length; i++) {
+        const childPath = _index.default.get({
+          parentPath: path,
+          parent: node,
+          container: prop,
+          key: i,
+          listKey: key
+        });
+        paths.push(childPath);
+      }
+      if (_visitPaths(ctx, paths)) return true;
+    } else {
+      if (_visitPaths(ctx, [_index.default.get({
+        parentPath: path,
+        parent: node,
+        container: node,
+        key,
+        listKey: null
+      })])) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
 function traverseNode(node, opts, scope, state, path, skipKeys, visitSelf) {
   const keys = VISITOR_KEYS[node.type];
   if (!keys) return false;
@@ -43554,12 +43773,15 @@ function traverseNode(node, opts, scope, state, path, skipKeys, visitSelf) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.explode = explode;
+exports.environmentVisitor = environmentVisitor;
+exports.explode = explode$1;
 exports.isExplodedVisitor = isExplodedVisitor;
 exports.merge = merge;
-exports.verify = verify;
+exports.verify = verify$1;
 var virtualTypes = __nccwpck_require__(4425);
+var virtualTypesValidators = __nccwpck_require__(4859);
 var _t = __nccwpck_require__(7912);
+var _context = __nccwpck_require__(4108);
 const {
   DEPRECATED_KEYS,
   DEPRECATED_ALIASES,
@@ -43573,7 +43795,7 @@ function isVirtualType(type) {
 function isExplodedVisitor(visitor) {
   return visitor == null ? void 0 : visitor._exploded;
 }
-function explode(visitor) {
+function explode$1(visitor) {
   if (isExplodedVisitor(visitor)) return visitor;
   visitor._exploded = true;
   for (const nodeType of Object.keys(visitor)) {
@@ -43586,7 +43808,7 @@ function explode(visitor) {
       visitor[part] = fns;
     }
   }
-  verify(visitor);
+  verify$1(visitor);
   delete visitor.__esModule;
   ensureEntranceObjects(visitor);
   ensureCallbackArrays(visitor);
@@ -43601,11 +43823,9 @@ function explode(visitor) {
     const types = virtualTypes[nodeType];
     if (types !== null) {
       for (const type of types) {
-        if (visitor[type]) {
-          mergePair(visitor[type], fns);
-        } else {
-          visitor[type] = fns;
-        }
+        var _visitor$type;
+        (_visitor$type = visitor[type]) != null ? _visitor$type : visitor[type] = {};
+        mergePair(visitor[type], fns);
       }
     } else {
       mergePair(visitor, fns);
@@ -43641,7 +43861,7 @@ function explode(visitor) {
   }
   return visitor;
 }
-function verify(visitor) {
+function verify$1(visitor) {
   if (visitor._verified) return;
   if (typeof visitor === "function") {
     throw new Error("You passed `traverse()` a function when it expected a visitor object, " + "are you sure you didn't mean `{ enter: Function }`?");
@@ -43651,8 +43871,8 @@ function verify(visitor) {
       validateVisitorMethods(nodeType, visitor[nodeType]);
     }
     if (shouldIgnoreKey(nodeType)) continue;
-    if (TYPES.indexOf(nodeType) < 0) {
-      throw new Error(`You gave us a visitor for the node type ${nodeType} but it's not a valid type`);
+    if (!TYPES.includes(nodeType)) {
+      throw new Error(`You gave us a visitor for the node type ${nodeType} but it's not a valid type in @babel/traverse ${"7.28.6"}`);
     }
     const visitors = visitor[nodeType];
     if (typeof visitors === "object") {
@@ -43676,9 +43896,18 @@ function validateVisitorMethods(path, val) {
   }
 }
 function merge(visitors, states = [], wrapper) {
-  const mergedVisitor = {};
+  const mergedVisitor = {
+    _verified: true,
+    _exploded: true
+  };
+  Object.defineProperty(mergedVisitor, "_exploded", {
+    enumerable: false
+  });
+  Object.defineProperty(mergedVisitor, "_verified", {
+    enumerable: false
+  });
   for (let i = 0; i < visitors.length; i++) {
-    const visitor = explode(visitors[i]);
+    const visitor = explode$1(visitors[i]);
     const state = states[i];
     let topVisitor = visitor;
     if (state || wrapper) {
@@ -43695,7 +43924,6 @@ function merge(visitors, states = [], wrapper) {
       mergePair(nodeVisitor, typeVisitor);
     }
   }
-  ;
   return mergedVisitor;
 }
 function wrapWithStateOrWrapper(oldVisitor, state, wrapper) {
@@ -43738,8 +43966,10 @@ function ensureCallbackArrays(obj) {
   if (obj.exit && !Array.isArray(obj.exit)) obj.exit = [obj.exit];
 }
 function wrapCheck(nodeType, fn) {
+  const fnKey = `is${nodeType}`;
+  const validator = virtualTypesValidators[fnKey];
   const newFn = function (path) {
-    if (path[`is${nodeType}`]()) {
+    if (validator.call(path)) {
       return fn.apply(this, arguments);
     }
   };
@@ -43747,15 +43977,13 @@ function wrapCheck(nodeType, fn) {
   return newFn;
 }
 function shouldIgnoreKey(key) {
-  if (key[0] === "_") return true;
+  if (key.startsWith("_")) return true;
   if (key === "enter" || key === "exit" || key === "shouldSkip") return true;
   if (key === "denylist" || key === "noScope" || key === "skipKeys") {
     return true;
   }
-  {
-    if (key === "blacklist") {
-      return true;
-    }
+  if (key === "blacklist") {
+    return true;
   }
   return false;
 }
@@ -43764,6 +43992,31 @@ function mergePair(dest, src) {
     if (!src[phase]) continue;
     dest[phase] = [].concat(dest[phase] || [], src[phase]);
   }
+}
+const _environmentVisitor = {
+  FunctionParent(path) {
+    if (path.isArrowFunctionExpression()) return;
+    path.skip();
+    if (path.isMethod()) {
+      if (!path.requeueComputedKeyAndDecorators) {
+        _context.requeueComputedKeyAndDecorators.call(path);
+      } else {
+        path.requeueComputedKeyAndDecorators();
+      }
+    }
+  },
+  Property(path) {
+    if (path.isObjectProperty()) return;
+    path.skip();
+    if (!path.requeueComputedKeyAndDecorators) {
+      _context.requeueComputedKeyAndDecorators.call(path);
+    } else {
+      path.requeueComputedKeyAndDecorators();
+    }
+  }
+};
+function environmentVisitor(visitor) {
+  return merge([_environmentVisitor, visitor]);
 }
 
 //# sourceMappingURL=visitors.js.map
@@ -48075,9 +48328,7 @@ exports.YieldExpression = exports.WithStatement = exports.WhileStatement = expor
 var b = __nccwpck_require__(9130);
 var _deprecationWarning = __nccwpck_require__(496);
 function alias(lowercase) {
-  {
-    return b[lowercase];
-  }
+  return b[lowercase];
 }
 const ArrayExpression = exports.ArrayExpression = alias("arrayExpression"),
   AssignmentExpression = exports.AssignmentExpression = alias("assignmentExpression"),
@@ -48879,10 +49130,8 @@ const INHERIT_KEYS = exports.INHERIT_KEYS = {
   optional: ["typeAnnotation", "typeParameters", "returnType"],
   force: ["start", "loc", "end"]
 };
-{
-  exports.BLOCK_SCOPED_SYMBOL = Symbol.for("var used to be block scoped");
-  exports.NOT_LOCAL_BINDING = Symbol.for("should not be considered a local binding");
-}
+exports.BLOCK_SCOPED_SYMBOL = Symbol.for("var used to be block scoped");
+exports.NOT_LOCAL_BINDING = Symbol.for("should not be considered a local binding");
 
 //# sourceMappingURL=index.js.map
 
@@ -48926,7 +49175,6 @@ var _index = __nccwpck_require__(2605);
 var _index2 = __nccwpck_require__(9380);
 var _productions = __nccwpck_require__(4157);
 var _cloneNode = __nccwpck_require__(5823);
-;
 function gatherSequenceExpressions(nodes, declars) {
   const exprs = [];
   let ensureLastUndefined = true;
@@ -49192,7 +49440,6 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports["default"] = toSequenceExpression;
 var _gatherSequenceExpressions = __nccwpck_require__(1022);
-;
 function toSequenceExpression(nodes, scope) {
   if (!(nodes != null && nodes.length)) return;
   const declars = [];
@@ -49824,7 +50071,6 @@ defineType("NumericLiteral", {
       validate: (0, _utils.chain)((0, _utils.assertValueType)("number"), Object.assign(function (node, key, val) {
         if (1 / val < 0 || !Number.isFinite(val)) {
           const error = new Error("NumericLiterals must be non-negative finite numbers. " + `You can use t.valueToNode(${val}) instead.`);
-          {}
         }
       }, {
         type: "number"
@@ -50432,12 +50678,12 @@ const importAttributes = exports.importAttributes = {
   attributes: {
     optional: true,
     validate: (0, _utils.arrayOfType)("ImportAttribute")
-  },
-  assertions: {
-    deprecated: true,
-    optional: true,
-    validate: (0, _utils.arrayOfType)("ImportAttribute")
   }
+};
+importAttributes.assertions = {
+  deprecated: true,
+  optional: true,
+  validate: (0, _utils.arrayOfType)("ImportAttribute")
 };
 defineType("ExportAllDeclaration", {
   builder: ["source"],
@@ -51185,17 +51431,15 @@ var _utils = __nccwpck_require__(4106);
   visitor: ["elements"],
   aliases: ["Expression"]
 });
-{
-  (0, _utils.default)("DecimalLiteral", {
-    builder: ["value"],
-    fields: {
-      value: {
-        validate: (0, _utils.assertValueType)("string")
-      }
-    },
-    aliases: ["Expression", "Pureish", "Literal", "Immutable"]
-  });
-}
+(0, _utils.default)("DecimalLiteral", {
+  builder: ["value"],
+  fields: {
+    value: {
+      validate: (0, _utils.assertValueType)("string")
+    }
+  },
+  aliases: ["Expression", "Pureish", "Literal", "Immutable"]
+});
 (0, _utils.default)("ModuleExpression", {
   visitor: ["body"],
   fields: {
@@ -52032,11 +52276,9 @@ var _utils = __nccwpck_require__(4106);
 var _placeholders = __nccwpck_require__(2122);
 var _core = __nccwpck_require__(1268);
 const defineType = (0, _utils.defineAliasedType)("Miscellaneous");
-{
-  defineType("Noop", {
-    visitor: []
-  });
-}
+defineType("Noop", {
+  visitor: []
+});
 defineType("Placeholder", {
   visitor: [],
   builder: ["expectedNode", "name"],
@@ -52413,16 +52655,14 @@ defineType("TSLiteralType", {
     }
   }
 });
-{
-  defineType("TSExpressionWithTypeArguments", {
-    aliases: ["TSType"],
-    visitor: ["expression", "typeParameters"],
-    fields: {
-      expression: (0, _utils.validateType)("TSEntityName"),
-      typeParameters: (0, _utils.validateOptionalType)("TSTypeParameterInstantiation")
-    }
-  });
-}
+defineType("TSExpressionWithTypeArguments", {
+  aliases: ["TSType"],
+  visitor: ["expression", "typeParameters"],
+  fields: {
+    expression: (0, _utils.validateType)("TSEntityName"),
+    typeParameters: (0, _utils.validateOptionalType)("TSTypeParameterInstantiation")
+  }
+});
 defineType("TSInterfaceDeclaration", {
   aliases: ["Statement", "Declaration"],
   visitor: ["id", "typeParameters", "extends", "body"],
@@ -52482,20 +52722,18 @@ defineType("TSEnumBody", {
     members: (0, _utils.validateArrayOfType)("TSEnumMember")
   }
 });
-{
-  defineType("TSEnumDeclaration", {
-    aliases: ["Statement", "Declaration"],
-    visitor: ["id", "members"],
-    fields: {
-      declare: (0, _utils.validateOptional)(bool),
-      const: (0, _utils.validateOptional)(bool),
-      id: (0, _utils.validateType)("Identifier"),
-      members: (0, _utils.validateArrayOfType)("TSEnumMember"),
-      initializer: (0, _utils.validateOptionalType)("Expression"),
-      body: (0, _utils.validateOptionalType)("TSEnumBody")
-    }
-  });
-}
+defineType("TSEnumDeclaration", {
+  aliases: ["Statement", "Declaration"],
+  visitor: ["id", "members"],
+  fields: {
+    declare: (0, _utils.validateOptional)(bool),
+    const: (0, _utils.validateOptional)(bool),
+    id: (0, _utils.validateType)("Identifier"),
+    members: (0, _utils.validateArrayOfType)("TSEnumMember"),
+    initializer: (0, _utils.validateOptionalType)("Expression"),
+    body: (0, _utils.validateOptionalType)("TSEnumBody")
+  }
+});
 defineType("TSEnumMember", {
   visitor: ["id", "initializer"],
   fields: {
@@ -52529,15 +52767,18 @@ defineType("TSImportType", {
   aliases: ["TSType"],
   builder: ["argument", "qualifier", "typeParameters"],
   visitor: ["argument", "options", "qualifier", "typeParameters"],
-  fields: {
-    argument: (0, _utils.validateType)("StringLiteral"),
-    qualifier: (0, _utils.validateOptionalType)("TSEntityName"),
-    ["typeParameters"]: (0, _utils.validateOptionalType)("TSTypeParameterInstantiation"),
+  fields: Object.assign({}, {
+    argument: (0, _utils.validateType)("StringLiteral")
+  }, {
+    qualifier: (0, _utils.validateOptionalType)("TSEntityName")
+  }, {
+    typeParameters: (0, _utils.validateOptionalType)("TSTypeParameterInstantiation")
+  }, {
     options: {
       validate: (0, _utils.assertNodeType)("ObjectExpression"),
       optional: true
     }
-  }
+  })
 });
 defineType("TSImportEqualsDeclaration", {
   aliases: ["Statement", "Declaration"],
@@ -53519,9 +53760,7 @@ const react = exports.react = {
   isCompatTag: _isCompatTag.default,
   buildChildren: _buildChildren.default
 };
-{
-  exports.toSequenceExpression = _toSequenceExpression.default;
-}
+exports.toSequenceExpression = _toSequenceExpression.default;
 if (process.env.BABEL_TYPES_8_BREAKING) {
   console.warn("BABEL_TYPES_8_BREAKING is not supported anymore. Use the latest Babel 8.0.0 pre-release instead!");
 }
@@ -53647,7 +53886,7 @@ function inherits(child, parent) {
     }
   }
   for (const key of Object.keys(parent)) {
-    if (key[0] === "_" && key !== "__clone") {
+    if (key.startsWith("_") && key !== "__clone") {
       child[key] = parent[key];
     }
   }
@@ -53707,7 +53946,7 @@ function removeProperties(node, opts = {}) {
     if (node[key] != null) node[key] = undefined;
   }
   for (const key of Object.keys(node)) {
-    if (key[0] === "_" && node[key] != null) node[key] = undefined;
+    if (key.startsWith("_") && node[key] != null) node[key] = undefined;
   }
   const symbols = Object.getOwnPropertySymbols(node);
   for (const sym of symbols) {
@@ -57283,13 +57522,9 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports["default"] = isLet;
 var _index = __nccwpck_require__(2605);
-{
-  var BLOCK_SCOPED_SYMBOL = Symbol.for("var used to be block scoped");
-}
+var BLOCK_SCOPED_SYMBOL = Symbol.for("var used to be block scoped");
 function isLet(node) {
-  {
-    return (0, _index.isVariableDeclaration)(node) && (node.kind !== "var" || node[BLOCK_SCOPED_SYMBOL]);
-  }
+  return (0, _index.isVariableDeclaration)(node) && (node.kind !== "var" || node[BLOCK_SCOPED_SYMBOL]);
 }
 
 //# sourceMappingURL=isLet.js.map
@@ -57442,7 +57677,7 @@ function isReferenced(node, parent, grandparent) {
       if (parent.key === node) {
         return !!parent.computed;
       }
-      return !grandparent || grandparent.type !== "ObjectPattern";
+      return (grandparent == null ? void 0 : grandparent.type) !== "ObjectPattern";
     case "ClassProperty":
     case "ClassAccessorProperty":
       if (parent.key === node) {
@@ -57640,15 +57875,11 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports["default"] = isVar;
 var _index = __nccwpck_require__(2605);
-{
-  var BLOCK_SCOPED_SYMBOL = Symbol.for("var used to be block scoped");
-}
+var BLOCK_SCOPED_SYMBOL = Symbol.for("var used to be block scoped");
 function isVar(node) {
-  {
-    return (0, _index.isVariableDeclaration)(node, {
-      kind: "var"
-    }) && !node[BLOCK_SCOPED_SYMBOL];
-  }
+  return (0, _index.isVariableDeclaration)(node, {
+    kind: "var"
+  }) && !node[BLOCK_SCOPED_SYMBOL];
 }
 
 //# sourceMappingURL=isVar.js.map
@@ -57796,11 +58027,19 @@ function validateChild(node, key, val) {
 
 /***/ }),
 
-/***/ 8487:
+/***/ 1097:
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"builtin":{"Array":false,"ArrayBuffer":false,"Atomics":false,"BigInt":false,"BigInt64Array":false,"BigUint64Array":false,"Boolean":false,"constructor":false,"DataView":false,"Date":false,"decodeURI":false,"decodeURIComponent":false,"encodeURI":false,"encodeURIComponent":false,"Error":false,"escape":false,"eval":false,"EvalError":false,"Float32Array":false,"Float64Array":false,"Function":false,"globalThis":false,"hasOwnProperty":false,"Infinity":false,"Int16Array":false,"Int32Array":false,"Int8Array":false,"isFinite":false,"isNaN":false,"isPrototypeOf":false,"JSON":false,"Map":false,"Math":false,"NaN":false,"Number":false,"Object":false,"parseFloat":false,"parseInt":false,"Promise":false,"propertyIsEnumerable":false,"Proxy":false,"RangeError":false,"ReferenceError":false,"Reflect":false,"RegExp":false,"Set":false,"SharedArrayBuffer":false,"String":false,"Symbol":false,"SyntaxError":false,"toLocaleString":false,"toString":false,"TypeError":false,"Uint16Array":false,"Uint32Array":false,"Uint8Array":false,"Uint8ClampedArray":false,"undefined":false,"unescape":false,"URIError":false,"valueOf":false,"WeakMap":false,"WeakSet":false},"es5":{"Array":false,"Boolean":false,"constructor":false,"Date":false,"decodeURI":false,"decodeURIComponent":false,"encodeURI":false,"encodeURIComponent":false,"Error":false,"escape":false,"eval":false,"EvalError":false,"Function":false,"hasOwnProperty":false,"Infinity":false,"isFinite":false,"isNaN":false,"isPrototypeOf":false,"JSON":false,"Math":false,"NaN":false,"Number":false,"Object":false,"parseFloat":false,"parseInt":false,"propertyIsEnumerable":false,"RangeError":false,"ReferenceError":false,"RegExp":false,"String":false,"SyntaxError":false,"toLocaleString":false,"toString":false,"TypeError":false,"undefined":false,"unescape":false,"URIError":false,"valueOf":false},"es2015":{"Array":false,"ArrayBuffer":false,"Boolean":false,"constructor":false,"DataView":false,"Date":false,"decodeURI":false,"decodeURIComponent":false,"encodeURI":false,"encodeURIComponent":false,"Error":false,"escape":false,"eval":false,"EvalError":false,"Float32Array":false,"Float64Array":false,"Function":false,"hasOwnProperty":false,"Infinity":false,"Int16Array":false,"Int32Array":false,"Int8Array":false,"isFinite":false,"isNaN":false,"isPrototypeOf":false,"JSON":false,"Map":false,"Math":false,"NaN":false,"Number":false,"Object":false,"parseFloat":false,"parseInt":false,"Promise":false,"propertyIsEnumerable":false,"Proxy":false,"RangeError":false,"ReferenceError":false,"Reflect":false,"RegExp":false,"Set":false,"String":false,"Symbol":false,"SyntaxError":false,"toLocaleString":false,"toString":false,"TypeError":false,"Uint16Array":false,"Uint32Array":false,"Uint8Array":false,"Uint8ClampedArray":false,"undefined":false,"unescape":false,"URIError":false,"valueOf":false,"WeakMap":false,"WeakSet":false},"es2017":{"Array":false,"ArrayBuffer":false,"Atomics":false,"Boolean":false,"constructor":false,"DataView":false,"Date":false,"decodeURI":false,"decodeURIComponent":false,"encodeURI":false,"encodeURIComponent":false,"Error":false,"escape":false,"eval":false,"EvalError":false,"Float32Array":false,"Float64Array":false,"Function":false,"hasOwnProperty":false,"Infinity":false,"Int16Array":false,"Int32Array":false,"Int8Array":false,"isFinite":false,"isNaN":false,"isPrototypeOf":false,"JSON":false,"Map":false,"Math":false,"NaN":false,"Number":false,"Object":false,"parseFloat":false,"parseInt":false,"Promise":false,"propertyIsEnumerable":false,"Proxy":false,"RangeError":false,"ReferenceError":false,"Reflect":false,"RegExp":false,"Set":false,"SharedArrayBuffer":false,"String":false,"Symbol":false,"SyntaxError":false,"toLocaleString":false,"toString":false,"TypeError":false,"Uint16Array":false,"Uint32Array":false,"Uint8Array":false,"Uint8ClampedArray":false,"undefined":false,"unescape":false,"URIError":false,"valueOf":false,"WeakMap":false,"WeakSet":false},"browser":{"AbortController":false,"AbortSignal":false,"addEventListener":false,"alert":false,"AnalyserNode":false,"Animation":false,"AnimationEffectReadOnly":false,"AnimationEffectTiming":false,"AnimationEffectTimingReadOnly":false,"AnimationEvent":false,"AnimationPlaybackEvent":false,"AnimationTimeline":false,"applicationCache":false,"ApplicationCache":false,"ApplicationCacheErrorEvent":false,"atob":false,"Attr":false,"Audio":false,"AudioBuffer":false,"AudioBufferSourceNode":false,"AudioContext":false,"AudioDestinationNode":false,"AudioListener":false,"AudioNode":false,"AudioParam":false,"AudioProcessingEvent":false,"AudioScheduledSourceNode":false,"AudioWorkletGlobalScope ":false,"AudioWorkletNode":false,"AudioWorkletProcessor":false,"BarProp":false,"BaseAudioContext":false,"BatteryManager":false,"BeforeUnloadEvent":false,"BiquadFilterNode":false,"Blob":false,"BlobEvent":false,"blur":false,"BroadcastChannel":false,"btoa":false,"BudgetService":false,"ByteLengthQueuingStrategy":false,"Cache":false,"caches":false,"CacheStorage":false,"cancelAnimationFrame":false,"cancelIdleCallback":false,"CanvasCaptureMediaStreamTrack":false,"CanvasGradient":false,"CanvasPattern":false,"CanvasRenderingContext2D":false,"ChannelMergerNode":false,"ChannelSplitterNode":false,"CharacterData":false,"clearInterval":false,"clearTimeout":false,"clientInformation":false,"ClipboardEvent":false,"close":false,"closed":false,"CloseEvent":false,"Comment":false,"CompositionEvent":false,"confirm":false,"console":false,"ConstantSourceNode":false,"ConvolverNode":false,"CountQueuingStrategy":false,"createImageBitmap":false,"Credential":false,"CredentialsContainer":false,"crypto":false,"Crypto":false,"CryptoKey":false,"CSS":false,"CSSConditionRule":false,"CSSFontFaceRule":false,"CSSGroupingRule":false,"CSSImportRule":false,"CSSKeyframeRule":false,"CSSKeyframesRule":false,"CSSMediaRule":false,"CSSNamespaceRule":false,"CSSPageRule":false,"CSSRule":false,"CSSRuleList":false,"CSSStyleDeclaration":false,"CSSStyleRule":false,"CSSStyleSheet":false,"CSSSupportsRule":false,"CustomElementRegistry":false,"customElements":false,"CustomEvent":false,"DataTransfer":false,"DataTransferItem":false,"DataTransferItemList":false,"defaultstatus":false,"defaultStatus":false,"DelayNode":false,"DeviceMotionEvent":false,"DeviceOrientationEvent":false,"devicePixelRatio":false,"dispatchEvent":false,"document":false,"Document":false,"DocumentFragment":false,"DocumentType":false,"DOMError":false,"DOMException":false,"DOMImplementation":false,"DOMMatrix":false,"DOMMatrixReadOnly":false,"DOMParser":false,"DOMPoint":false,"DOMPointReadOnly":false,"DOMQuad":false,"DOMRect":false,"DOMRectReadOnly":false,"DOMStringList":false,"DOMStringMap":false,"DOMTokenList":false,"DragEvent":false,"DynamicsCompressorNode":false,"Element":false,"ErrorEvent":false,"event":false,"Event":false,"EventSource":false,"EventTarget":false,"external":false,"fetch":false,"File":false,"FileList":false,"FileReader":false,"find":false,"focus":false,"FocusEvent":false,"FontFace":false,"FontFaceSetLoadEvent":false,"FormData":false,"frameElement":false,"frames":false,"GainNode":false,"Gamepad":false,"GamepadButton":false,"GamepadEvent":false,"getComputedStyle":false,"getSelection":false,"HashChangeEvent":false,"Headers":false,"history":false,"History":false,"HTMLAllCollection":false,"HTMLAnchorElement":false,"HTMLAreaElement":false,"HTMLAudioElement":false,"HTMLBaseElement":false,"HTMLBodyElement":false,"HTMLBRElement":false,"HTMLButtonElement":false,"HTMLCanvasElement":false,"HTMLCollection":false,"HTMLContentElement":false,"HTMLDataElement":false,"HTMLDataListElement":false,"HTMLDetailsElement":false,"HTMLDialogElement":false,"HTMLDirectoryElement":false,"HTMLDivElement":false,"HTMLDListElement":false,"HTMLDocument":false,"HTMLElement":false,"HTMLEmbedElement":false,"HTMLFieldSetElement":false,"HTMLFontElement":false,"HTMLFormControlsCollection":false,"HTMLFormElement":false,"HTMLFrameElement":false,"HTMLFrameSetElement":false,"HTMLHeadElement":false,"HTMLHeadingElement":false,"HTMLHRElement":false,"HTMLHtmlElement":false,"HTMLIFrameElement":false,"HTMLImageElement":false,"HTMLInputElement":false,"HTMLLabelElement":false,"HTMLLegendElement":false,"HTMLLIElement":false,"HTMLLinkElement":false,"HTMLMapElement":false,"HTMLMarqueeElement":false,"HTMLMediaElement":false,"HTMLMenuElement":false,"HTMLMetaElement":false,"HTMLMeterElement":false,"HTMLModElement":false,"HTMLObjectElement":false,"HTMLOListElement":false,"HTMLOptGroupElement":false,"HTMLOptionElement":false,"HTMLOptionsCollection":false,"HTMLOutputElement":false,"HTMLParagraphElement":false,"HTMLParamElement":false,"HTMLPictureElement":false,"HTMLPreElement":false,"HTMLProgressElement":false,"HTMLQuoteElement":false,"HTMLScriptElement":false,"HTMLSelectElement":false,"HTMLShadowElement":false,"HTMLSlotElement":false,"HTMLSourceElement":false,"HTMLSpanElement":false,"HTMLStyleElement":false,"HTMLTableCaptionElement":false,"HTMLTableCellElement":false,"HTMLTableColElement":false,"HTMLTableElement":false,"HTMLTableRowElement":false,"HTMLTableSectionElement":false,"HTMLTemplateElement":false,"HTMLTextAreaElement":false,"HTMLTimeElement":false,"HTMLTitleElement":false,"HTMLTrackElement":false,"HTMLUListElement":false,"HTMLUnknownElement":false,"HTMLVideoElement":false,"IDBCursor":false,"IDBCursorWithValue":false,"IDBDatabase":false,"IDBFactory":false,"IDBIndex":false,"IDBKeyRange":false,"IDBObjectStore":false,"IDBOpenDBRequest":false,"IDBRequest":false,"IDBTransaction":false,"IDBVersionChangeEvent":false,"IdleDeadline":false,"IIRFilterNode":false,"Image":false,"ImageBitmap":false,"ImageBitmapRenderingContext":false,"ImageCapture":false,"ImageData":false,"indexedDB":false,"innerHeight":false,"innerWidth":false,"InputEvent":false,"IntersectionObserver":false,"IntersectionObserverEntry":false,"Intl":false,"isSecureContext":false,"KeyboardEvent":false,"KeyframeEffect":false,"KeyframeEffectReadOnly":false,"length":false,"localStorage":false,"location":true,"Location":false,"locationbar":false,"matchMedia":false,"MediaDeviceInfo":false,"MediaDevices":false,"MediaElementAudioSourceNode":false,"MediaEncryptedEvent":false,"MediaError":false,"MediaKeyMessageEvent":false,"MediaKeySession":false,"MediaKeyStatusMap":false,"MediaKeySystemAccess":false,"MediaList":false,"MediaQueryList":false,"MediaQueryListEvent":false,"MediaRecorder":false,"MediaSettingsRange":false,"MediaSource":false,"MediaStream":false,"MediaStreamAudioDestinationNode":false,"MediaStreamAudioSourceNode":false,"MediaStreamEvent":false,"MediaStreamTrack":false,"MediaStreamTrackEvent":false,"menubar":false,"MessageChannel":false,"MessageEvent":false,"MessagePort":false,"MIDIAccess":false,"MIDIConnectionEvent":false,"MIDIInput":false,"MIDIInputMap":false,"MIDIMessageEvent":false,"MIDIOutput":false,"MIDIOutputMap":false,"MIDIPort":false,"MimeType":false,"MimeTypeArray":false,"MouseEvent":false,"moveBy":false,"moveTo":false,"MutationEvent":false,"MutationObserver":false,"MutationRecord":false,"name":false,"NamedNodeMap":false,"NavigationPreloadManager":false,"navigator":false,"Navigator":false,"NetworkInformation":false,"Node":false,"NodeFilter":false,"NodeIterator":false,"NodeList":false,"Notification":false,"OfflineAudioCompletionEvent":false,"OfflineAudioContext":false,"offscreenBuffering":false,"OffscreenCanvas":true,"onabort":true,"onafterprint":true,"onanimationend":true,"onanimationiteration":true,"onanimationstart":true,"onappinstalled":true,"onauxclick":true,"onbeforeinstallprompt":true,"onbeforeprint":true,"onbeforeunload":true,"onblur":true,"oncancel":true,"oncanplay":true,"oncanplaythrough":true,"onchange":true,"onclick":true,"onclose":true,"oncontextmenu":true,"oncuechange":true,"ondblclick":true,"ondevicemotion":true,"ondeviceorientation":true,"ondeviceorientationabsolute":true,"ondrag":true,"ondragend":true,"ondragenter":true,"ondragleave":true,"ondragover":true,"ondragstart":true,"ondrop":true,"ondurationchange":true,"onemptied":true,"onended":true,"onerror":true,"onfocus":true,"ongotpointercapture":true,"onhashchange":true,"oninput":true,"oninvalid":true,"onkeydown":true,"onkeypress":true,"onkeyup":true,"onlanguagechange":true,"onload":true,"onloadeddata":true,"onloadedmetadata":true,"onloadstart":true,"onlostpointercapture":true,"onmessage":true,"onmessageerror":true,"onmousedown":true,"onmouseenter":true,"onmouseleave":true,"onmousemove":true,"onmouseout":true,"onmouseover":true,"onmouseup":true,"onmousewheel":true,"onoffline":true,"ononline":true,"onpagehide":true,"onpageshow":true,"onpause":true,"onplay":true,"onplaying":true,"onpointercancel":true,"onpointerdown":true,"onpointerenter":true,"onpointerleave":true,"onpointermove":true,"onpointerout":true,"onpointerover":true,"onpointerup":true,"onpopstate":true,"onprogress":true,"onratechange":true,"onrejectionhandled":true,"onreset":true,"onresize":true,"onscroll":true,"onsearch":true,"onseeked":true,"onseeking":true,"onselect":true,"onstalled":true,"onstorage":true,"onsubmit":true,"onsuspend":true,"ontimeupdate":true,"ontoggle":true,"ontransitionend":true,"onunhandledrejection":true,"onunload":true,"onvolumechange":true,"onwaiting":true,"onwheel":true,"open":false,"openDatabase":false,"opener":false,"Option":false,"origin":false,"OscillatorNode":false,"outerHeight":false,"outerWidth":false,"PageTransitionEvent":false,"pageXOffset":false,"pageYOffset":false,"PannerNode":false,"parent":false,"Path2D":false,"PaymentAddress":false,"PaymentRequest":false,"PaymentRequestUpdateEvent":false,"PaymentResponse":false,"performance":false,"Performance":false,"PerformanceEntry":false,"PerformanceLongTaskTiming":false,"PerformanceMark":false,"PerformanceMeasure":false,"PerformanceNavigation":false,"PerformanceNavigationTiming":false,"PerformanceObserver":false,"PerformanceObserverEntryList":false,"PerformancePaintTiming":false,"PerformanceResourceTiming":false,"PerformanceTiming":false,"PeriodicWave":false,"Permissions":false,"PermissionStatus":false,"personalbar":false,"PhotoCapabilities":false,"Plugin":false,"PluginArray":false,"PointerEvent":false,"PopStateEvent":false,"postMessage":false,"Presentation":false,"PresentationAvailability":false,"PresentationConnection":false,"PresentationConnectionAvailableEvent":false,"PresentationConnectionCloseEvent":false,"PresentationConnectionList":false,"PresentationReceiver":false,"PresentationRequest":false,"print":false,"ProcessingInstruction":false,"ProgressEvent":false,"PromiseRejectionEvent":false,"prompt":false,"PushManager":false,"PushSubscription":false,"PushSubscriptionOptions":false,"queueMicrotask":false,"RadioNodeList":false,"Range":false,"ReadableStream":false,"registerProcessor":false,"RemotePlayback":false,"removeEventListener":false,"Request":false,"requestAnimationFrame":false,"requestIdleCallback":false,"resizeBy":false,"ResizeObserver":false,"ResizeObserverEntry":false,"resizeTo":false,"Response":false,"RTCCertificate":false,"RTCDataChannel":false,"RTCDataChannelEvent":false,"RTCDtlsTransport":false,"RTCIceCandidate":false,"RTCIceGatherer":false,"RTCIceTransport":false,"RTCPeerConnection":false,"RTCPeerConnectionIceEvent":false,"RTCRtpContributingSource":false,"RTCRtpReceiver":false,"RTCRtpSender":false,"RTCSctpTransport":false,"RTCSessionDescription":false,"RTCStatsReport":false,"RTCTrackEvent":false,"screen":false,"Screen":false,"screenLeft":false,"ScreenOrientation":false,"screenTop":false,"screenX":false,"screenY":false,"ScriptProcessorNode":false,"scroll":false,"scrollbars":false,"scrollBy":false,"scrollTo":false,"scrollX":false,"scrollY":false,"SecurityPolicyViolationEvent":false,"Selection":false,"self":false,"ServiceWorker":false,"ServiceWorkerContainer":false,"ServiceWorkerRegistration":false,"sessionStorage":false,"setInterval":false,"setTimeout":false,"ShadowRoot":false,"SharedWorker":false,"SourceBuffer":false,"SourceBufferList":false,"speechSynthesis":false,"SpeechSynthesisEvent":false,"SpeechSynthesisUtterance":false,"StaticRange":false,"status":false,"statusbar":false,"StereoPannerNode":false,"stop":false,"Storage":false,"StorageEvent":false,"StorageManager":false,"styleMedia":false,"StyleSheet":false,"StyleSheetList":false,"SubtleCrypto":false,"SVGAElement":false,"SVGAngle":false,"SVGAnimatedAngle":false,"SVGAnimatedBoolean":false,"SVGAnimatedEnumeration":false,"SVGAnimatedInteger":false,"SVGAnimatedLength":false,"SVGAnimatedLengthList":false,"SVGAnimatedNumber":false,"SVGAnimatedNumberList":false,"SVGAnimatedPreserveAspectRatio":false,"SVGAnimatedRect":false,"SVGAnimatedString":false,"SVGAnimatedTransformList":false,"SVGAnimateElement":false,"SVGAnimateMotionElement":false,"SVGAnimateTransformElement":false,"SVGAnimationElement":false,"SVGCircleElement":false,"SVGClipPathElement":false,"SVGComponentTransferFunctionElement":false,"SVGDefsElement":false,"SVGDescElement":false,"SVGDiscardElement":false,"SVGElement":false,"SVGEllipseElement":false,"SVGFEBlendElement":false,"SVGFEColorMatrixElement":false,"SVGFEComponentTransferElement":false,"SVGFECompositeElement":false,"SVGFEConvolveMatrixElement":false,"SVGFEDiffuseLightingElement":false,"SVGFEDisplacementMapElement":false,"SVGFEDistantLightElement":false,"SVGFEDropShadowElement":false,"SVGFEFloodElement":false,"SVGFEFuncAElement":false,"SVGFEFuncBElement":false,"SVGFEFuncGElement":false,"SVGFEFuncRElement":false,"SVGFEGaussianBlurElement":false,"SVGFEImageElement":false,"SVGFEMergeElement":false,"SVGFEMergeNodeElement":false,"SVGFEMorphologyElement":false,"SVGFEOffsetElement":false,"SVGFEPointLightElement":false,"SVGFESpecularLightingElement":false,"SVGFESpotLightElement":false,"SVGFETileElement":false,"SVGFETurbulenceElement":false,"SVGFilterElement":false,"SVGForeignObjectElement":false,"SVGGElement":false,"SVGGeometryElement":false,"SVGGradientElement":false,"SVGGraphicsElement":false,"SVGImageElement":false,"SVGLength":false,"SVGLengthList":false,"SVGLinearGradientElement":false,"SVGLineElement":false,"SVGMarkerElement":false,"SVGMaskElement":false,"SVGMatrix":false,"SVGMetadataElement":false,"SVGMPathElement":false,"SVGNumber":false,"SVGNumberList":false,"SVGPathElement":false,"SVGPatternElement":false,"SVGPoint":false,"SVGPointList":false,"SVGPolygonElement":false,"SVGPolylineElement":false,"SVGPreserveAspectRatio":false,"SVGRadialGradientElement":false,"SVGRect":false,"SVGRectElement":false,"SVGScriptElement":false,"SVGSetElement":false,"SVGStopElement":false,"SVGStringList":false,"SVGStyleElement":false,"SVGSVGElement":false,"SVGSwitchElement":false,"SVGSymbolElement":false,"SVGTextContentElement":false,"SVGTextElement":false,"SVGTextPathElement":false,"SVGTextPositioningElement":false,"SVGTitleElement":false,"SVGTransform":false,"SVGTransformList":false,"SVGTSpanElement":false,"SVGUnitTypes":false,"SVGUseElement":false,"SVGViewElement":false,"TaskAttributionTiming":false,"Text":false,"TextDecoder":false,"TextEncoder":false,"TextEvent":false,"TextMetrics":false,"TextTrack":false,"TextTrackCue":false,"TextTrackCueList":false,"TextTrackList":false,"TimeRanges":false,"toolbar":false,"top":false,"Touch":false,"TouchEvent":false,"TouchList":false,"TrackEvent":false,"TransitionEvent":false,"TreeWalker":false,"UIEvent":false,"URL":false,"URLSearchParams":false,"ValidityState":false,"visualViewport":false,"VisualViewport":false,"VTTCue":false,"WaveShaperNode":false,"WebAssembly":false,"WebGL2RenderingContext":false,"WebGLActiveInfo":false,"WebGLBuffer":false,"WebGLContextEvent":false,"WebGLFramebuffer":false,"WebGLProgram":false,"WebGLQuery":false,"WebGLRenderbuffer":false,"WebGLRenderingContext":false,"WebGLSampler":false,"WebGLShader":false,"WebGLShaderPrecisionFormat":false,"WebGLSync":false,"WebGLTexture":false,"WebGLTransformFeedback":false,"WebGLUniformLocation":false,"WebGLVertexArrayObject":false,"WebSocket":false,"WheelEvent":false,"window":false,"Window":false,"Worker":false,"WritableStream":false,"XMLDocument":false,"XMLHttpRequest":false,"XMLHttpRequestEventTarget":false,"XMLHttpRequestUpload":false,"XMLSerializer":false,"XPathEvaluator":false,"XPathExpression":false,"XPathResult":false,"XSLTProcessor":false},"worker":{"addEventListener":false,"applicationCache":false,"atob":false,"Blob":false,"BroadcastChannel":false,"btoa":false,"Cache":false,"caches":false,"clearInterval":false,"clearTimeout":false,"close":true,"console":false,"fetch":false,"FileReaderSync":false,"FormData":false,"Headers":false,"IDBCursor":false,"IDBCursorWithValue":false,"IDBDatabase":false,"IDBFactory":false,"IDBIndex":false,"IDBKeyRange":false,"IDBObjectStore":false,"IDBOpenDBRequest":false,"IDBRequest":false,"IDBTransaction":false,"IDBVersionChangeEvent":false,"ImageData":false,"importScripts":true,"indexedDB":false,"location":false,"MessageChannel":false,"MessagePort":false,"name":false,"navigator":false,"Notification":false,"onclose":true,"onconnect":true,"onerror":true,"onlanguagechange":true,"onmessage":true,"onoffline":true,"ononline":true,"onrejectionhandled":true,"onunhandledrejection":true,"performance":false,"Performance":false,"PerformanceEntry":false,"PerformanceMark":false,"PerformanceMeasure":false,"PerformanceNavigation":false,"PerformanceResourceTiming":false,"PerformanceTiming":false,"postMessage":true,"Promise":false,"queueMicrotask":false,"removeEventListener":false,"Request":false,"Response":false,"self":true,"ServiceWorkerRegistration":false,"setInterval":false,"setTimeout":false,"TextDecoder":false,"TextEncoder":false,"URL":false,"URLSearchParams":false,"WebSocket":false,"Worker":false,"WorkerGlobalScope":false,"XMLHttpRequest":false},"node":{"__dirname":false,"__filename":false,"Buffer":false,"clearImmediate":false,"clearInterval":false,"clearTimeout":false,"console":false,"exports":true,"global":false,"Intl":false,"module":false,"process":false,"queueMicrotask":false,"require":false,"setImmediate":false,"setInterval":false,"setTimeout":false,"TextDecoder":false,"TextEncoder":false,"URL":false,"URLSearchParams":false},"commonjs":{"exports":true,"global":false,"module":false,"require":false},"amd":{"define":false,"require":false},"mocha":{"after":false,"afterEach":false,"before":false,"beforeEach":false,"context":false,"describe":false,"it":false,"mocha":false,"run":false,"setup":false,"specify":false,"suite":false,"suiteSetup":false,"suiteTeardown":false,"teardown":false,"test":false,"xcontext":false,"xdescribe":false,"xit":false,"xspecify":false},"jasmine":{"afterAll":false,"afterEach":false,"beforeAll":false,"beforeEach":false,"describe":false,"expect":false,"fail":false,"fdescribe":false,"fit":false,"it":false,"jasmine":false,"pending":false,"runs":false,"spyOn":false,"spyOnProperty":false,"waits":false,"waitsFor":false,"xdescribe":false,"xit":false},"jest":{"afterAll":false,"afterEach":false,"beforeAll":false,"beforeEach":false,"describe":false,"expect":false,"fdescribe":false,"fit":false,"it":false,"jest":false,"pit":false,"require":false,"test":false,"xdescribe":false,"xit":false,"xtest":false},"qunit":{"asyncTest":false,"deepEqual":false,"equal":false,"expect":false,"module":false,"notDeepEqual":false,"notEqual":false,"notOk":false,"notPropEqual":false,"notStrictEqual":false,"ok":false,"propEqual":false,"QUnit":false,"raises":false,"start":false,"stop":false,"strictEqual":false,"test":false,"throws":false},"phantomjs":{"console":true,"exports":true,"phantom":true,"require":true,"WebPage":true},"couch":{"emit":false,"exports":false,"getRow":false,"log":false,"module":false,"provides":false,"require":false,"respond":false,"send":false,"start":false,"sum":false},"rhino":{"defineClass":false,"deserialize":false,"gc":false,"help":false,"importClass":false,"importPackage":false,"java":false,"load":false,"loadClass":false,"Packages":false,"print":false,"quit":false,"readFile":false,"readUrl":false,"runCommand":false,"seal":false,"serialize":false,"spawn":false,"sync":false,"toint32":false,"version":false},"nashorn":{"__DIR__":false,"__FILE__":false,"__LINE__":false,"com":false,"edu":false,"exit":false,"java":false,"Java":false,"javafx":false,"JavaImporter":false,"javax":false,"JSAdapter":false,"load":false,"loadWithNewGlobal":false,"org":false,"Packages":false,"print":false,"quit":false},"wsh":{"ActiveXObject":true,"Enumerator":true,"GetObject":true,"ScriptEngine":true,"ScriptEngineBuildVersion":true,"ScriptEngineMajorVersion":true,"ScriptEngineMinorVersion":true,"VBArray":true,"WScript":true,"WSH":true,"XDomainRequest":true},"jquery":{"$":false,"jQuery":false},"yui":{"YAHOO":false,"YAHOO_config":false,"YUI":false,"YUI_config":false},"shelljs":{"cat":false,"cd":false,"chmod":false,"config":false,"cp":false,"dirs":false,"echo":false,"env":false,"error":false,"exec":false,"exit":false,"find":false,"grep":false,"ln":false,"ls":false,"mkdir":false,"mv":false,"popd":false,"pushd":false,"pwd":false,"rm":false,"sed":false,"set":false,"target":false,"tempdir":false,"test":false,"touch":false,"which":false},"prototypejs":{"$":false,"$$":false,"$A":false,"$break":false,"$continue":false,"$F":false,"$H":false,"$R":false,"$w":false,"Abstract":false,"Ajax":false,"Autocompleter":false,"Builder":false,"Class":false,"Control":false,"Draggable":false,"Draggables":false,"Droppables":false,"Effect":false,"Element":false,"Enumerable":false,"Event":false,"Field":false,"Form":false,"Hash":false,"Insertion":false,"ObjectRange":false,"PeriodicalExecuter":false,"Position":false,"Prototype":false,"Scriptaculous":false,"Selector":false,"Sortable":false,"SortableObserver":false,"Sound":false,"Template":false,"Toggle":false,"Try":false},"meteor":{"_":false,"$":false,"Accounts":false,"AccountsClient":false,"AccountsCommon":false,"AccountsServer":false,"App":false,"Assets":false,"Blaze":false,"check":false,"Cordova":false,"DDP":false,"DDPRateLimiter":false,"DDPServer":false,"Deps":false,"EJSON":false,"Email":false,"HTTP":false,"Log":false,"Match":false,"Meteor":false,"Mongo":false,"MongoInternals":false,"Npm":false,"Package":false,"Plugin":false,"process":false,"Random":false,"ReactiveDict":false,"ReactiveVar":false,"Router":false,"ServiceConfiguration":false,"Session":false,"share":false,"Spacebars":false,"Template":false,"Tinytest":false,"Tracker":false,"UI":false,"Utils":false,"WebApp":false,"WebAppInternals":false},"mongo":{"_isWindows":false,"_rand":false,"BulkWriteResult":false,"cat":false,"cd":false,"connect":false,"db":false,"getHostName":false,"getMemInfo":false,"hostname":false,"ISODate":false,"listFiles":false,"load":false,"ls":false,"md5sumFile":false,"mkdir":false,"Mongo":false,"NumberInt":false,"NumberLong":false,"ObjectId":false,"PlanCache":false,"print":false,"printjson":false,"pwd":false,"quit":false,"removeFile":false,"rs":false,"sh":false,"UUID":false,"version":false,"WriteResult":false},"applescript":{"$":false,"Application":false,"Automation":false,"console":false,"delay":false,"Library":false,"ObjC":false,"ObjectSpecifier":false,"Path":false,"Progress":false,"Ref":false},"serviceworker":{"addEventListener":false,"applicationCache":false,"atob":false,"Blob":false,"BroadcastChannel":false,"btoa":false,"Cache":false,"caches":false,"CacheStorage":false,"clearInterval":false,"clearTimeout":false,"Client":false,"clients":false,"Clients":false,"close":true,"console":false,"ExtendableEvent":false,"ExtendableMessageEvent":false,"fetch":false,"FetchEvent":false,"FileReaderSync":false,"FormData":false,"Headers":false,"IDBCursor":false,"IDBCursorWithValue":false,"IDBDatabase":false,"IDBFactory":false,"IDBIndex":false,"IDBKeyRange":false,"IDBObjectStore":false,"IDBOpenDBRequest":false,"IDBRequest":false,"IDBTransaction":false,"IDBVersionChangeEvent":false,"ImageData":false,"importScripts":false,"indexedDB":false,"location":false,"MessageChannel":false,"MessagePort":false,"name":false,"navigator":false,"Notification":false,"onclose":true,"onconnect":true,"onerror":true,"onfetch":true,"oninstall":true,"onlanguagechange":true,"onmessage":true,"onmessageerror":true,"onnotificationclick":true,"onnotificationclose":true,"onoffline":true,"ononline":true,"onpush":true,"onpushsubscriptionchange":true,"onrejectionhandled":true,"onsync":true,"onunhandledrejection":true,"performance":false,"Performance":false,"PerformanceEntry":false,"PerformanceMark":false,"PerformanceMeasure":false,"PerformanceNavigation":false,"PerformanceResourceTiming":false,"PerformanceTiming":false,"postMessage":true,"Promise":false,"queueMicrotask":false,"registration":false,"removeEventListener":false,"Request":false,"Response":false,"self":false,"ServiceWorker":false,"ServiceWorkerContainer":false,"ServiceWorkerGlobalScope":false,"ServiceWorkerMessageEvent":false,"ServiceWorkerRegistration":false,"setInterval":false,"setTimeout":false,"skipWaiting":false,"TextDecoder":false,"TextEncoder":false,"URL":false,"URLSearchParams":false,"WebSocket":false,"WindowClient":false,"Worker":false,"WorkerGlobalScope":false,"XMLHttpRequest":false},"atomtest":{"advanceClock":false,"fakeClearInterval":false,"fakeClearTimeout":false,"fakeSetInterval":false,"fakeSetTimeout":false,"resetTimeouts":false,"waitsForPromise":false},"embertest":{"andThen":false,"click":false,"currentPath":false,"currentRouteName":false,"currentURL":false,"fillIn":false,"find":false,"findAll":false,"findWithAssert":false,"keyEvent":false,"pauseTest":false,"resumeTest":false,"triggerEvent":false,"visit":false,"wait":false},"protractor":{"$":false,"$$":false,"browser":false,"by":false,"By":false,"DartObject":false,"element":false,"protractor":false},"shared-node-browser":{"clearInterval":false,"clearTimeout":false,"console":false,"setInterval":false,"setTimeout":false,"URL":false,"URLSearchParams":false},"webextensions":{"browser":false,"chrome":false,"opr":false},"greasemonkey":{"cloneInto":false,"createObjectIn":false,"exportFunction":false,"GM":false,"GM_addStyle":false,"GM_deleteValue":false,"GM_getResourceText":false,"GM_getResourceURL":false,"GM_getValue":false,"GM_info":false,"GM_listValues":false,"GM_log":false,"GM_openInTab":false,"GM_registerMenuCommand":false,"GM_setClipboard":false,"GM_setValue":false,"GM_xmlhttpRequest":false,"unsafeWindow":false},"devtools":{"$":false,"$_":false,"$$":false,"$0":false,"$1":false,"$2":false,"$3":false,"$4":false,"$x":false,"chrome":false,"clear":false,"copy":false,"debug":false,"dir":false,"dirxml":false,"getEventListeners":false,"inspect":false,"keys":false,"monitor":false,"monitorEvents":false,"profile":false,"profileEnd":false,"queryObjects":false,"table":false,"undebug":false,"unmonitor":false,"unmonitorEvents":false,"values":false}}');
+module.exports = JSON.parse('["decodeURI","decodeURIComponent","encodeURI","encodeURIComponent","escape","eval","globalThis","isFinite","isNaN","parseFloat","parseInt","undefined","unescape"]');
+
+/***/ }),
+
+/***/ 7198:
+/***/ ((module) => {
+
+"use strict";
+module.exports = JSON.parse('["AggregateError","Array","ArrayBuffer","Atomics","BigInt","BigInt64Array","BigUint64Array","Boolean","DataView","Date","Error","EvalError","FinalizationRegistry","Float16Array","Float32Array","Float64Array","Function","Infinity","Int16Array","Int32Array","Int8Array","Intl","Iterator","JSON","Map","Math","NaN","Number","Object","Promise","Proxy","RangeError","ReferenceError","Reflect","RegExp","Set","SharedArrayBuffer","String","Symbol","SyntaxError","TypeError","Uint16Array","Uint32Array","Uint8Array","Uint8ClampedArray","URIError","WeakMap","WeakRef","WeakSet"]');
 
 /***/ }),
 

@@ -16,6 +16,4 @@ function EmbeddedDemo({url, iframeTitle, iframeProps}: EmbeddedDemoProps) {
     );
 }
 
-EmbeddedDemo.displayName = 'EmbeddedDemo';
-
 export default EmbeddedDemo;

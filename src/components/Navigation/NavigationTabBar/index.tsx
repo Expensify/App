@@ -1,13 +1,12 @@
 import {findFocusedRoute, StackActions, useNavigationState} from '@react-navigation/native';
 import reportsSelector from '@selectors/Attributes';
-import React, {memo, useCallback, useEffect, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FloatingCameraButton from '@components/FloatingCameraButton';
-import HeaderGap from '@components/HeaderGap';
+import FloatingGPSButton from '@components/FloatingGPSButton';
 import Icon from '@components/Icon';
-// import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import DebugTabView from '@components/Navigation/DebugTabView';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -38,8 +37,8 @@ import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import navigationRef from '@navigation/navigationRef';
 import type {DomainSplitNavigatorParamList, RootNavigatorParamList, SearchFullscreenNavigatorParamList, State, WorkspaceSplitNavigatorParamList} from '@navigation/types';
-import NavigationTabBarAvatar from '@pages/home/sidebar/NavigationTabBarAvatar';
-import NavigationTabBarFloatingActionButton from '@pages/home/sidebar/NavigationTabBarFloatingActionButton';
+import NavigationTabBarAvatar from '@pages/inbox/sidebar/NavigationTabBarAvatar';
+import NavigationTabBarFloatingActionButton from '@pages/inbox/sidebar/NavigationTabBarFloatingActionButton';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -52,10 +51,10 @@ import NAVIGATION_TABS from './NAVIGATION_TABS';
 type NavigationTabBarProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
     isTopLevelBar?: boolean;
-    shouldShowFloatingCameraButton?: boolean;
+    shouldShowFloatingButtons?: boolean;
 };
 
-function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatingCameraButton = true}: NavigationTabBarProps) {
+function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatingButtons = true}: NavigationTabBarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
@@ -85,10 +84,10 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
         | DomainSplitNavigatorParamList[typeof SCREENS.DOMAIN.INITIAL];
     const {typeMenuSections} = useSearchTypeMenuSections();
     const subscriptionPlan = useSubscriptionPlan();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Inbox', 'MoneySearch', 'Buildings'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Home', 'Inbox', 'MoneySearch', 'Buildings']);
 
     const paramsPolicyID = params && 'policyID' in params ? params.policyID : undefined;
-    const paramsDomainAccountID = params && 'accountID' in params ? params.accountID : undefined;
+    const paramsDomainAccountID = params && 'domainAccountID' in params ? params.domainAccountID : undefined;
 
     const lastViewedPolicySelector = useCallback(
         (policies: OnyxCollection<Policy>) => {
@@ -153,8 +152,15 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
         setChatTabBrickRoad(getChatTabBrickRoad(orderedReportIDs, reportAttributes));
     }, [orderedReportIDs, reportAttributes]);
 
-    const navigateToChats = useCallback(() => {
+    const navigateToNewDotHome = useCallback(() => {
         if (selectedTab === NAVIGATION_TABS.HOME) {
+            return;
+        }
+        Navigation.navigate(ROUTES.HOME);
+    }, [selectedTab]);
+
+    const navigateToChats = useCallback(() => {
+        if (selectedTab === NAVIGATION_TABS.INBOX) {
             return;
         }
 
@@ -162,8 +168,15 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
             name: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
             op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
         });
-        Navigation.navigate(ROUTES.HOME);
-    }, [selectedTab]);
+
+        if (!shouldUseNarrowLayout && isRoutePreloaded(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR)) {
+            // We use dispatch here because the correct screens and params are preloaded and set up in usePreloadFullScreenNavigators.
+            navigationRef.dispatch(StackActions.push(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR));
+            return;
+        }
+
+        Navigation.navigate(ROUTES.INBOX);
+    }, [selectedTab, shouldUseNarrowLayout]);
 
     const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY, {canBeMissing: true});
 
@@ -173,7 +186,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
         }
         clearSelectedText();
         interceptAnonymousUser(() => {
-            startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB, {
+            const parentSpan = startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB, {
                 name: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB,
                 op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB,
             });
@@ -181,6 +194,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
             startSpan(CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS, {
                 name: CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS,
                 op: CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS,
+                parentSpan,
             });
 
             const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
@@ -239,6 +253,10 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
         navigateToWorkspacesPage({shouldUseNarrowLayout, currentUserLogin, policy: lastViewedPolicy, domain: lastViewedDomain});
     }, [shouldUseNarrowLayout, currentUserLogin, lastViewedPolicy, lastViewedDomain]);
 
+    const inboxAccessibilityState = useMemo(() => ({selected: selectedTab === NAVIGATION_TABS.INBOX}), [selectedTab]);
+    const searchAccessibilityState = useMemo(() => ({selected: selectedTab === NAVIGATION_TABS.SEARCH}), [selectedTab]);
+    const workspacesAccessibilityState = useMemo(() => ({selected: selectedTab === NAVIGATION_TABS.WORKSPACES}), [selectedTab]);
+
     if (!shouldUseNarrowLayout) {
         return (
             <>
@@ -250,17 +268,17 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                 )}
                 <View
                     style={styles.leftNavigationTabBarContainer}
-                    testID={NavigationTabBar.displayName}
+                    testID="NavigationTabBar"
                 >
-                    <HeaderGap />
                     <View style={styles.flex1}>
                         <PressableWithFeedback
                             accessibilityRole={CONST.ROLE.BUTTON}
-                            accessibilityLabel="Home"
+                            accessibilityLabel={translate('common.home')}
                             accessible
                             testID="ExpensifyLogoButton"
                             onPress={navigateToChats}
                             wrapperStyle={styles.leftNavigationTabBarItem}
+                            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.EXPENSIFY_LOGO}
                         >
                             <ImageSVG
                                 style={StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.DEFAULT)}
@@ -268,17 +286,51 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                             />
                         </PressableWithFeedback>
                         <PressableWithFeedback
-                            onPress={navigateToChats}
-                            role={CONST.ROLE.BUTTON}
-                            accessibilityLabel={translate('common.inbox')}
+                            onPress={navigateToNewDotHome}
+                            role={CONST.ROLE.TAB}
+                            accessibilityLabel={translate('common.home')}
                             style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
+                            sentryLabel="NavigationTabBar.Home"
+                        >
+                            {({hovered}) => (
+                                <>
+                                    <View>
+                                        <Icon
+                                            src={expensifyIcons.Home}
+                                            fill={getIconFill(selectedTab === NAVIGATION_TABS.HOME, hovered)}
+                                            width={variables.iconBottomBar}
+                                            height={variables.iconBottomBar}
+                                        />
+                                    </View>
+                                    <Text
+                                        numberOfLines={2}
+                                        style={[
+                                            styles.textSmall,
+                                            styles.textAlignCenter,
+                                            styles.mt1Half,
+                                            selectedTab === NAVIGATION_TABS.HOME ? styles.textBold : styles.textSupporting,
+                                            styles.navigationTabBarLabel,
+                                        ]}
+                                    >
+                                        {translate('common.home')}
+                                    </Text>
+                                </>
+                            )}
+                        </PressableWithFeedback>
+                        <PressableWithFeedback
+                            onPress={navigateToChats}
+                            role={CONST.ROLE.TAB}
+                            accessibilityLabel={translate('common.inbox')}
+                            accessibilityState={inboxAccessibilityState}
+                            style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
+                            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
                         >
                             {({hovered}) => (
                                 <>
                                     <View>
                                         <Icon
                                             src={expensifyIcons.Inbox}
-                                            fill={getIconFill(selectedTab === NAVIGATION_TABS.HOME, hovered)}
+                                            fill={getIconFill(selectedTab === NAVIGATION_TABS.INBOX, hovered)}
                                             width={variables.iconBottomBar}
                                             height={variables.iconBottomBar}
                                         />
@@ -298,7 +350,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                                             styles.textSmall,
                                             styles.textAlignCenter,
                                             styles.mt1Half,
-                                            selectedTab === NAVIGATION_TABS.HOME ? styles.textBold : styles.textSupporting,
+                                            selectedTab === NAVIGATION_TABS.INBOX ? styles.textBold : styles.textSupporting,
                                             styles.navigationTabBarLabel,
                                         ]}
                                     >
@@ -309,9 +361,11 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                         </PressableWithFeedback>
                         <PressableWithFeedback
                             onPress={navigateToSearch}
-                            role={CONST.ROLE.BUTTON}
+                            role={CONST.ROLE.TAB}
                             accessibilityLabel={translate('common.reports')}
+                            accessibilityState={searchAccessibilityState}
                             style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
+                            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
                         >
                             {({hovered}) => (
                                 <>
@@ -340,9 +394,11 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                         </PressableWithFeedback>
                         <PressableWithFeedback
                             onPress={showWorkspaces}
-                            role={CONST.ROLE.BUTTON}
+                            role={CONST.ROLE.TAB}
                             accessibilityLabel={translate('common.workspacesTabTitle')}
+                            accessibilityState={workspacesAccessibilityState}
                             style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
+                            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.WORKSPACES}
                         >
                             {({hovered}) => (
                                 <>
@@ -402,19 +458,50 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
             )}
             <View
                 style={styles.navigationTabBarContainer}
-                testID={NavigationTabBar.displayName}
+                testID="NavigationTabBar"
             >
                 <PressableWithFeedback
-                    onPress={navigateToChats}
-                    role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={translate('common.inbox')}
+                    onPress={navigateToNewDotHome}
+                    role={CONST.ROLE.TAB}
+                    accessibilityLabel={translate('common.home')}
                     wrapperStyle={styles.flex1}
                     style={styles.navigationTabBarItem}
+                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
+                >
+                    <View>
+                        <Icon
+                            src={expensifyIcons.Home}
+                            fill={selectedTab === NAVIGATION_TABS.HOME ? theme.iconMenu : theme.icon}
+                            width={variables.iconBottomBar}
+                            height={variables.iconBottomBar}
+                        />
+                    </View>
+                    <Text
+                        numberOfLines={2}
+                        style={[
+                            styles.textSmall,
+                            styles.textAlignCenter,
+                            styles.mt1Half,
+                            selectedTab === NAVIGATION_TABS.HOME ? styles.textBold : styles.textSupporting,
+                            styles.navigationTabBarLabel,
+                        ]}
+                    >
+                        {translate('common.home')}
+                    </Text>
+                </PressableWithFeedback>
+                <PressableWithFeedback
+                    onPress={navigateToChats}
+                    role={CONST.ROLE.TAB}
+                    accessibilityLabel={translate('common.inbox')}
+                    accessibilityState={inboxAccessibilityState}
+                    wrapperStyle={styles.flex1}
+                    style={styles.navigationTabBarItem}
+                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
                 >
                     <View>
                         <Icon
                             src={expensifyIcons.Inbox}
-                            fill={selectedTab === NAVIGATION_TABS.HOME ? theme.iconMenu : theme.icon}
+                            fill={selectedTab === NAVIGATION_TABS.INBOX ? theme.iconMenu : theme.icon}
                             width={variables.iconBottomBar}
                             height={variables.iconBottomBar}
                         />
@@ -433,7 +520,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                             styles.textSmall,
                             styles.textAlignCenter,
                             styles.mt1Half,
-                            selectedTab === NAVIGATION_TABS.HOME ? styles.textBold : styles.textSupporting,
+                            selectedTab === NAVIGATION_TABS.INBOX ? styles.textBold : styles.textSupporting,
                             styles.navigationTabBarLabel,
                         ]}
                     >
@@ -442,10 +529,12 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                 </PressableWithFeedback>
                 <PressableWithFeedback
                     onPress={navigateToSearch}
-                    role={CONST.ROLE.BUTTON}
+                    role={CONST.ROLE.TAB}
                     accessibilityLabel={translate('common.reports')}
+                    accessibilityState={searchAccessibilityState}
                     wrapperStyle={styles.flex1}
                     style={styles.navigationTabBarItem}
+                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
                 >
                     <View>
                         <Icon
@@ -468,15 +557,14 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                         {translate('common.reports')}
                     </Text>
                 </PressableWithFeedback>
-                <View style={[styles.flex1, styles.navigationTabBarItem]}>
-                    <NavigationTabBarFloatingActionButton />
-                </View>
                 <PressableWithFeedback
                     onPress={showWorkspaces}
-                    role={CONST.ROLE.BUTTON}
+                    role={CONST.ROLE.TAB}
                     accessibilityLabel={translate('common.workspacesTabTitle')}
+                    accessibilityState={workspacesAccessibilityState}
                     wrapperStyle={styles.flex1}
                     style={styles.navigationTabBarItem}
+                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.WORKSPACES}
                 >
                     <View>
                         <Icon
@@ -506,11 +594,18 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                     onPress={navigateToSettings}
                 />
             </View>
-            {shouldShowFloatingCameraButton && <FloatingCameraButton />}
+
+            {shouldShowFloatingButtons && (
+                <>
+                    <View style={[styles.navigationTabBarFABItem, styles.ph0, styles.floatingActionButtonPosition]}>
+                        <NavigationTabBarFloatingActionButton />
+                    </View>
+                    <FloatingGPSButton />
+                    <FloatingCameraButton />
+                </>
+            )}
         </>
     );
 }
-
-NavigationTabBar.displayName = 'NavigationTabBar';
 
 export default memo(NavigationTabBar);

@@ -24,5 +24,4 @@ function SVGDefinitionsProvider({children}: ChildrenProps): ReactElement | null 
     );
 }
 
-SVGDefinitionsProvider.displayName = 'SVGDefinitionsProvider';
 export default SVGDefinitionsProvider;

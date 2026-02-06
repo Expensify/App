@@ -2,19 +2,17 @@
 import lodashGet from 'lodash/get';
 import lodashSet from 'lodash/set';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import CONST from '@src/CONST';
 import type {PolicyCategories} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
 import {getDecodedCategoryName} from './CategoryUtils';
-import type {OptionTree, SectionBase} from './OptionsListUtils';
+import type {OptionTree} from './OptionsListUtils';
 import tokenizedSearch from './tokenizedSearch';
 
-type CategoryTreeSection = SectionBase & {
-    data: OptionTree[];
-    indexOffset?: number;
-};
+type CategoryTreeSection = Section<OptionTree>;
 
 type Category = {
     name: string;
@@ -55,8 +53,14 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
             continue;
         }
 
-        // eslint-disable-next-line unicorn/no-array-for-each
-        option.name.split(CONST.PARENT_CHILD_SEPARATOR).forEach((optionName, index, array) => {
+        const array = option.name.split(CONST.PARENT_CHILD_SEPARATOR);
+
+        for (let index = 0; index < array.length; index++) {
+            const optionName = array.at(index);
+            if (!optionName) {
+                continue;
+            }
+
             const indents = times(index, () => CONST.INDENTS).join('');
             const isChild = array.length - 1 === index;
             const searchText = array.slice(0, index + 1).join(CONST.PARENT_CHILD_SEPARATOR);
@@ -64,7 +68,7 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
             const isParentOptionDisabled = !selectedParentOption || !selectedParentOption.enabled || selectedParentOption.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
             if (optionCollection.has(searchText)) {
-                return;
+                continue;
             }
 
             const decodedCategoryName = getDecodedCategoryName(optionName);
@@ -77,7 +81,7 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
                 isSelected: isChild ? !!option.isSelected : !!selectedParentOption,
                 pendingAction: option.pendingAction,
             });
-        });
+        }
     }
 
     return Array.from(optionCollection.values());
@@ -124,9 +128,8 @@ function getCategoryListSections({
         categorySections.push({
             // "Selected" section
             title: '',
-            shouldShow: false,
             data,
-            indexOffset: data.length,
+            sectionIndex: 0,
         });
 
         return categorySections;
@@ -144,9 +147,8 @@ function getCategoryListSections({
         categorySections.push({
             // "Search" section
             title: '',
-            shouldShow: true,
             data,
-            indexOffset: data.length,
+            sectionIndex: 0,
         });
 
         return categorySections;
@@ -157,9 +159,8 @@ function getCategoryListSections({
         categorySections.push({
             // "Selected" section
             title: '',
-            shouldShow: false,
             data,
-            indexOffset: data.length,
+            sectionIndex: 1,
         });
     }
 
@@ -171,9 +172,8 @@ function getCategoryListSections({
         categorySections.push({
             // "All" section when items amount less than the threshold
             title: '',
-            shouldShow: false,
             data,
-            indexOffset: data.length,
+            sectionIndex: 2,
         });
 
         return categorySections;
@@ -196,9 +196,8 @@ function getCategoryListSections({
         categorySections.push({
             // "Recent" section
             title: translate('common.recent'),
-            shouldShow: true,
             data,
-            indexOffset: data.length,
+            sectionIndex: 3,
         });
     }
 
@@ -206,9 +205,8 @@ function getCategoryListSections({
     categorySections.push({
         // "All" section when items amount more than the threshold
         title: translate('common.all'),
-        shouldShow: true,
         data,
-        indexOffset: data.length,
+        sectionIndex: 4,
     });
 
     return categorySections;

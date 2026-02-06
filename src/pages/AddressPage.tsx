@@ -49,7 +49,7 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
         setCurrentCountry(address.country);
         setCity(address.city);
         setZipcode(address.zip);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [address?.state, address?.country, address?.city, address?.zip]);
 
     const handleAddressChange = useCallback(
@@ -86,7 +86,7 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
     return (
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
-            testID={AddressPage.displayName}
+            testID="AddressPage"
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <HeaderWithBackButton
@@ -114,7 +114,5 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
         </ScreenWrapper>
     );
 }
-
-AddressPage.displayName = 'AddressPage';
 
 export default AddressPage;

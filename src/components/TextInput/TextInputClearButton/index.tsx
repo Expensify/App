@@ -12,9 +12,11 @@ import CONST from '@src/CONST';
 type TextInputClearButtonProps = {
     style?: StyleProp<ViewStyle>;
     onPressButton: () => void;
+    /** Label for Sentry tracking */
+    sentryLabel?: string;
 };
 
-function TextInputClearButton({style, onPressButton}: TextInputClearButtonProps) {
+function TextInputClearButton({style, onPressButton, sentryLabel}: TextInputClearButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -28,6 +30,8 @@ function TextInputClearButton({style, onPressButton}: TextInputClearButtonProps)
                     e.preventDefault();
                 }}
                 onPress={onPressButton}
+                shouldUseAutoHitSlop
+                sentryLabel={sentryLabel}
             >
                 <Icon
                     src={Expensicons.Clear}
@@ -39,7 +43,5 @@ function TextInputClearButton({style, onPressButton}: TextInputClearButtonProps)
         </Tooltip>
     );
 }
-
-TextInputClearButton.displayName = 'TextInputClearButton';
 
 export default TextInputClearButton;

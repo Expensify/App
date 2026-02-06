@@ -30,9 +30,12 @@ type TextLinkProps = (LinkProps | PressProps) &
 
         /** Callback that is called when mousedown is triggered */
         onMouseDown?: MouseEventHandler;
+
+        /** Whether to suppress the default link style */
+        suppressDefaultStyle?: boolean;
     };
 
-function TextLink({href, onPress, children, style, onMouseDown = (event) => event.preventDefault(), ref, ...rest}: TextLinkProps) {
+function TextLink({href, onPress, children, style, onMouseDown = (event) => event.preventDefault(), suppressDefaultStyle = false, ref, ...rest}: TextLinkProps) {
     const {environmentURL} = useEnvironment();
     const styles = useThemeStyles();
 
@@ -61,7 +64,7 @@ function TextLink({href, onPress, children, style, onMouseDown = (event) => even
 
     return (
         <Text
-            style={[styles.link, style]}
+            style={suppressDefaultStyle ? style : [styles.link, style]}
             role={CONST.ROLE.LINK}
             href={href}
             onPress={openLinkOnTap}
@@ -76,8 +79,6 @@ function TextLink({href, onPress, children, style, onMouseDown = (event) => even
         </Text>
     );
 }
-
-TextLink.displayName = 'TextLink';
 
 export type {LinkProps, PressProps, TextLinkProps};
 

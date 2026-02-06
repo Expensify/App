@@ -51,7 +51,7 @@ function WorkspaceTaxesSettingsWorkspaceCurrency({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={WorkspaceTaxesSettingsWorkspaceCurrency.displayName}
+                testID="WorkspaceTaxesSettingsWorkspaceCurrency"
                 style={styles.defaultModalContainer}
             >
                 <HeaderWithBackButton title={translate('workspace.taxes.workspaceDefault')} />
@@ -69,7 +69,5 @@ function WorkspaceTaxesSettingsWorkspaceCurrency({
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceTaxesSettingsWorkspaceCurrency.displayName = 'WorkspaceTaxesSettingsWorkspaceCurrency';
 
 export default withPolicyAndFullscreenLoading(WorkspaceTaxesSettingsWorkspaceCurrency);

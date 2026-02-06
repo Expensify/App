@@ -7,6 +7,4 @@ function BaseKeyboardAvoidingView(props: KeyboardAvoidingViewProps) {
     return <KeyboardAvoidingViewComponent {...props} />;
 }
 
-BaseKeyboardAvoidingView.displayName = 'BaseKeyboardAvoidingView';
-
 export default BaseKeyboardAvoidingView;

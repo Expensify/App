@@ -21,9 +21,6 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 TestHelper.setupGlobalFetchMock();
 
-jest.unmock('react-native-reanimated');
-jest.unmock('react-native-worklets');
-
 const Stack = createPlatformStackNavigator<WorkspaceSplitNavigatorParamList>();
 
 const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.TAGS, initialParams: WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.TAGS]) => {
@@ -164,7 +161,7 @@ describe('WorkspaceTags', () => {
         fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${FIRST_TAG}`));
         fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${SECOND_TAG}`));
 
-        const dropdownMenuButtonTestID = `${WorkspaceTagsPage.displayName}-header-dropdown-menu-button`;
+        const dropdownMenuButtonTestID = 'WorkspaceTagsPage-header-dropdown-menu-button';
 
         fireEvent.press(screen.getByTestId(dropdownMenuButtonTestID));
         await waitFor(() => {

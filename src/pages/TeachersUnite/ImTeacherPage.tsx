@@ -10,6 +10,4 @@ function ImTeacherPage() {
     return isLoggedInEmailPublicDomain ? <ImTeacherUpdateEmailPage /> : <IntroSchoolPrincipalPage />;
 }
 
-ImTeacherPage.displayName = 'ImTeacherPage';
-
 export default ImTeacherPage;

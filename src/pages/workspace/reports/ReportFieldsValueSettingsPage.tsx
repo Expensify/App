@@ -104,7 +104,7 @@ function ReportFieldsValueSettingsPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={styles.defaultModalContainer}
-                testID={ReportFieldsValueSettingsPage.displayName}
+                testID="ReportFieldsValueSettingsPage"
             >
                 <HeaderWithBackButton
                     title={currentValueName ?? oldValueName}
@@ -151,7 +151,5 @@ function ReportFieldsValueSettingsPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-ReportFieldsValueSettingsPage.displayName = 'ReportFieldsValueSettingsPage';
 
 export default withPolicyAndFullscreenLoading(ReportFieldsValueSettingsPage);

@@ -38,7 +38,5 @@ function Day({disabled, selected, pressed, hovered, children}: DayProps) {
     );
 }
 
-Day.displayName = 'Day';
-
 export default Day;
 export type {DayProps};

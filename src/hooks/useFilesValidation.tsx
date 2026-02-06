@@ -3,7 +3,7 @@ import React, {useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import ConfirmModal from '@components/ConfirmModal';
-import {useFullScreenLoader} from '@components/FullScreenLoaderContext';
+import {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
 import PDFThumbnail from '@components/PDFThumbnail';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -54,7 +54,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
     const [invalidFileExtension, setInvalidFileExtension] = useState('');
     const [errorQueue, setErrorQueue] = useState<ErrorObject[]>([]);
     const [currentErrorIndex, setCurrentErrorIndex] = useState(0);
-    const {setIsLoaderVisible} = useFullScreenLoader();
+    const {setIsLoaderVisible} = useFullScreenLoaderActions();
 
     const validatedPDFs = useRef<FileObject[]>([]);
     const validFiles = useRef<FileObject[]>([]);
@@ -225,9 +225,20 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
 
                         // Check if we need to resize images
                         if (convertedImages.some((file) => (file.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE)) {
-                            return Promise.all(convertedImages.map((file) => resizeImageIfNeeded(file))).then((processedFiles) => {
-                                for (const [index, resizedFile] of processedFiles.entries()) {
-                                    updateFileOrderMapping(convertedImages.at(index), resizedFile);
+                            return Promise.allSettled(convertedImages.map((file) => resizeImageIfNeeded(file))).then((results) => {
+                                const processedFiles: FileObject[] = [];
+                                for (const [index, result] of results.entries()) {
+                                    if (result.status === 'fulfilled') {
+                                        processedFiles.push(result.value);
+                                        updateFileOrderMapping(convertedImages.at(index), result.value);
+                                    } else {
+                                        const errorMessage = result.reason instanceof Error ? result.reason.message : undefined;
+                                        if (errorMessage === CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE) {
+                                            collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE});
+                                        } else {
+                                            collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED});
+                                        }
+                                    }
                                 }
                                 setIsLoaderVisible(false);
                                 return Promise.resolve({processedFiles, pdfsToLoad});
@@ -243,9 +254,20 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
                 // No conversion needed, but check if we need to resize images
                 if (otherFiles.some((file) => (file.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE)) {
                     setIsLoaderVisible(true);
-                    return Promise.all(otherFiles.map((file) => resizeImageIfNeeded(file))).then((processedFiles) => {
-                        for (const [index, resizedFile] of processedFiles.entries()) {
-                            updateFileOrderMapping(otherFiles.at(index), resizedFile);
+                    return Promise.allSettled(otherFiles.map((file) => resizeImageIfNeeded(file))).then((results) => {
+                        const processedFiles: FileObject[] = [];
+                        for (const [index, result] of results.entries()) {
+                            if (result.status === 'fulfilled') {
+                                processedFiles.push(result.value);
+                                updateFileOrderMapping(otherFiles.at(index), result.value);
+                            } else {
+                                const errorMessage = result.reason instanceof Error ? result.reason.message : undefined;
+                                if (errorMessage === CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE) {
+                                    collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE});
+                                } else {
+                                    collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED});
+                                }
+                            }
                         }
                         setIsLoaderVisible(false);
                         return Promise.resolve({processedFiles, pdfsToLoad});
@@ -387,7 +409,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         if (!fileError) {
             return '';
         }
-        const prompt = getFileValidationErrorText(fileError, {fileType: invalidFileExtension}, isValidatingReceipts === true).reason;
+        const prompt = getFileValidationErrorText(translate, fileError, {fileType: invalidFileExtension}, isValidatingReceipts === true).reason;
         if (fileError === CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE || fileError === CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE) {
             return (
                 <Text>
@@ -401,7 +423,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
 
     const ErrorModal = (
         <ConfirmModal
-            title={getFileValidationErrorText(fileError, {fileType: invalidFileExtension}, isValidatingReceipts === true).title}
+            title={getFileValidationErrorText(translate, fileError, {fileType: invalidFileExtension}, isValidatingReceipts === true).title}
             onConfirm={onConfirmError}
             onCancel={hideModalAndReset}
             isVisible={isErrorModalVisible}

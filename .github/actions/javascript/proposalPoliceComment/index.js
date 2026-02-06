@@ -12697,24 +12697,26 @@ class OpenAIUtils {
         this.client = new openai_1.default({ apiKey });
     }
     /**
-     * Prompt the Chat Completions API.
+     * Prompt the Responses API with optional prompt caching.
      */
-    async promptChatCompletions({ userPrompt, systemPrompt = '', model = 'gpt-5' }) {
-        const messages = [{ role: 'user', content: userPrompt }];
-        if (systemPrompt) {
-            messages.unshift({ role: 'system', content: systemPrompt });
-        }
-        const response = await (0, retryWithBackoff_1.default)(() => this.client.chat.completions.create({
+    async promptResponses({ input, instructions, promptCacheKey, model = 'gpt-5.1', }) {
+        const response = await (0, retryWithBackoff_1.default)(() => this.client.responses.create({
             model,
-            messages,
+            input,
+            instructions,
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            reasoning_effort: 'low',
+            prompt_cache_key: promptCacheKey,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            prompt_cache_retention: '24h',
         }), { isRetryable: (err) => OpenAIUtils.isRetryableError(err) });
-        const result = response.choices.at(0)?.message?.content?.trim();
+        const result = response.output_text?.trim();
         if (!result) {
-            throw new Error('Error getting chat completion response from OpenAI');
+            throw new Error('Error getting response from OpenAI Responses API');
         }
-        return result;
+        return {
+            text: result,
+            responseID: response.id,
+        };
     }
     /**
      * Prompt a pre-defined assistant.
@@ -12769,9 +12771,17 @@ class OpenAIUtils {
     static isRetryableError(error) {
         // Handle known/predictable API errors
         if (error instanceof openai_1.default.APIError) {
-            // Only retry 429 (rate limit) or 5xx errors
             const status = error.status;
-            return !!status && (status === 429 || status >= 500);
+            // Retry 429 (rate limit) or 5xx errors
+            if (status === 429 || status >= 500) {
+                return true;
+            }
+            // Retry conversation_locked errors (another process is still operating on this conversation)
+            // This can happen when a previous request is still being processed by OpenAI
+            if ('code' in error && error.code === 'conversation_locked') {
+                return true;
+            }
+            return false;
         }
         // Handle random/unpredictable network errors
         if (error instanceof Error) {
@@ -12790,6 +12800,9 @@ class OpenAIUtils {
         }
         return false;
     }
+    /**
+     * @deprecated Use promptResponses instead. This method exists only for backwards compatibility with proposalPoliceComment.
+     */
     parseAssistantResponse(response) {
         const sanitized = (0, sanitizeJSONStringValues_1.default)(response);
         let parsed;
@@ -20712,26 +20725,11 @@ const SessionsAPI = tslib_1.__importStar(__nccwpck_require__(13223));
 const sessions_1 = __nccwpck_require__(13223);
 const ThreadsAPI = tslib_1.__importStar(__nccwpck_require__(40997));
 const threads_1 = __nccwpck_require__(40997);
-const headers_1 = __nccwpck_require__(63591);
-const uploads_1 = __nccwpck_require__(67620);
 class ChatKit extends resource_1.APIResource {
     constructor() {
         super(...arguments);
         this.sessions = new SessionsAPI.Sessions(this._client);
         this.threads = new ThreadsAPI.Threads(this._client);
-    }
-    /**
-     * Upload a ChatKit file
-     *
-     * @example
-     * ```ts
-     * const response = await client.beta.chatkit.uploadFile({
-     *   file: fs.createReadStream('path/to/file'),
-     * });
-     * ```
-     */
-    uploadFile(body, options) {
-        return this._client.post('/chatkit/files', (0, uploads_1.maybeMultipartFormRequestOptions)({ body, ...options, headers: (0, headers_1.buildHeaders)([{ 'OpenAI-Beta': 'chatkit_beta=v1' }, options?.headers]) }, this._client));
     }
 }
 exports.ChatKit = ChatKit;
@@ -22128,20 +22126,19 @@ class Files extends resource_1.APIResource {
      * up to 512 MB, and the size of all files uploaded by one organization can be up
      * to 1 TB.
      *
-     * The Assistants API supports files up to 2 million tokens and of specific file
-     * types. See the
-     * [Assistants Tools guide](https://platform.openai.com/docs/assistants/tools) for
-     * details.
-     *
-     * The Fine-tuning API only supports `.jsonl` files. The input also has certain
-     * required formats for fine-tuning
-     * [chat](https://platform.openai.com/docs/api-reference/fine-tuning/chat-input) or
-     * [completions](https://platform.openai.com/docs/api-reference/fine-tuning/completions-input)
-     * models.
-     *
-     * The Batch API only supports `.jsonl` files up to 200 MB in size. The input also
-     * has a specific required
-     * [format](https://platform.openai.com/docs/api-reference/batch/request-input).
+     * - The Assistants API supports files up to 2 million tokens and of specific file
+     *   types. See the
+     *   [Assistants Tools guide](https://platform.openai.com/docs/assistants/tools)
+     *   for details.
+     * - The Fine-tuning API only supports `.jsonl` files. The input also has certain
+     *   required formats for fine-tuning
+     *   [chat](https://platform.openai.com/docs/api-reference/fine-tuning/chat-input)
+     *   or
+     *   [completions](https://platform.openai.com/docs/api-reference/fine-tuning/completions-input)
+     *   models.
+     * - The Batch API only supports `.jsonl` files up to 200 MB in size. The input
+     *   also has a specific required
+     *   [format](https://platform.openai.com/docs/api-reference/batch/request-input).
      *
      * Please [contact us](https://help.openai.com/) if you need to increase these
      * storage limits.
@@ -22966,6 +22963,33 @@ exports.InputItems = InputItems;
 
 /***/ }),
 
+/***/ 37133:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.InputTokens = void 0;
+const resource_1 = __nccwpck_require__(19318);
+class InputTokens extends resource_1.APIResource {
+    /**
+     * Get input token counts
+     *
+     * @example
+     * ```ts
+     * const response = await client.responses.inputTokens.count();
+     * ```
+     */
+    count(body = {}, options) {
+        return this._client.post('/responses/input_tokens', { body, ...options });
+    }
+}
+exports.InputTokens = InputTokens;
+//# sourceMappingURL=input-tokens.js.map
+
+/***/ }),
+
 /***/ 96214:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -22980,12 +23004,15 @@ const ResponseStream_1 = __nccwpck_require__(66784);
 const resource_1 = __nccwpck_require__(19318);
 const InputItemsAPI = tslib_1.__importStar(__nccwpck_require__(46867));
 const input_items_1 = __nccwpck_require__(46867);
+const InputTokensAPI = tslib_1.__importStar(__nccwpck_require__(37133));
+const input_tokens_1 = __nccwpck_require__(37133);
 const headers_1 = __nccwpck_require__(63591);
 const path_1 = __nccwpck_require__(10706);
 class Responses extends resource_1.APIResource {
     constructor() {
         super(...arguments);
         this.inputItems = new InputItemsAPI.InputItems(this._client);
+        this.inputTokens = new InputTokensAPI.InputTokens(this._client);
     }
     create(body, options) {
         return this._client.post('/responses', { body, ...options, stream: body.stream ?? false })._thenUnwrap((rsp) => {
@@ -23049,9 +23076,23 @@ class Responses extends resource_1.APIResource {
     cancel(responseID, options) {
         return this._client.post((0, path_1.path) `/responses/${responseID}/cancel`, options);
     }
+    /**
+     * Compact conversation
+     *
+     * @example
+     * ```ts
+     * const compactedResponse = await client.responses.compact({
+     *   model: 'gpt-5.2',
+     * });
+     * ```
+     */
+    compact(body, options) {
+        return this._client.post('/responses/compact', { body, ...options });
+    }
 }
 exports.Responses = Responses;
 Responses.InputItems = input_items_1.InputItems;
+Responses.InputTokens = input_tokens_1.InputTokens;
 //# sourceMappingURL=responses.js.map
 
 /***/ }),
@@ -23743,7 +23784,7 @@ tslib_1.__exportStar(__nccwpck_require__(11364), exports);
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.VERSION = void 0;
-exports.VERSION = '6.3.0'; // x-release-please-version
+exports.VERSION = '6.16.0'; // x-release-please-version
 //# sourceMappingURL=version.js.map
 
 /***/ }),

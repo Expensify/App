@@ -22,8 +22,8 @@ import {
     isSelfDM,
 } from '@libs/ReportUtils';
 import type {ReportSettingsNavigatorParamList} from '@navigation/types';
-import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
-import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
+import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
+import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -57,7 +57,7 @@ function ReportSettingsPage({report, policy, route}: ReportSettingsPageProps) {
     const shouldShowWriteCapability = !isMoneyRequestReport;
 
     return (
-        <ScreenWrapper testID={ReportSettingsPage.displayName}>
+        <ScreenWrapper testID="ReportSettingsPage">
             <FullPageNotFoundView shouldShow={shouldDisableSettings}>
                 <HeaderWithBackButton
                     title={translate('common.settings')}
@@ -127,7 +127,5 @@ function ReportSettingsPage({report, policy, route}: ReportSettingsPageProps) {
         </ScreenWrapper>
     );
 }
-
-ReportSettingsPage.displayName = 'ReportSettingsPage';
 
 export default withReportOrNotFound()(ReportSettingsPage);

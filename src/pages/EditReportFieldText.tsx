@@ -31,9 +31,12 @@ type EditReportFieldTextPageProps = {
 
     /** Policy field list for circular reference detection */
     fieldList?: FieldList;
+
+    /** Flag to indicate if the input should be disabled */
+    disabled?: boolean;
 };
 
-function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, fieldKey, fieldList}: EditReportFieldTextPageProps) {
+function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, fieldKey, fieldList, disabled = false}: EditReportFieldTextPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -64,6 +67,7 @@ function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, f
             onSubmit={onSubmit}
             validate={validate}
             submitButtonText={translate('common.save')}
+            isSubmitButtonVisible={!disabled}
             enabledWhenOffline
             shouldHideFixErrorsAlert
         >
@@ -77,12 +81,11 @@ function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, f
                     accessibilityLabel={reportFieldName}
                     role={CONST.ROLE.PRESENTATION}
                     ref={inputCallbackRef}
+                    disabled={disabled}
                 />
             </View>
         </FormProvider>
     );
 }
-
-EditReportFieldTextPage.displayName = 'EditReportFieldTextPage';
 
 export default EditReportFieldTextPage;

@@ -140,6 +140,4 @@ function ShortTermsForm(props: ShortTermsFormProps) {
     );
 }
 
-ShortTermsForm.displayName = 'ShortTermsForm';
-
 export default ShortTermsForm;

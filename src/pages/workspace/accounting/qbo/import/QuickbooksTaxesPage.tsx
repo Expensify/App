@@ -22,7 +22,7 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
     const isJournalExportEntity = qboConfig?.reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY;
     return (
         <ConnectionLayout
-            displayName={QuickbooksTaxesPage.displayName}
+            displayName="QuickbooksTaxesPage"
             headerTitle="workspace.accounting.taxes"
             title="workspace.qbo.taxesDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
@@ -45,7 +45,5 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
         </ConnectionLayout>
     );
 }
-
-QuickbooksTaxesPage.displayName = 'QuickbooksTaxesPage';
 
 export default withPolicyConnections(QuickbooksTaxesPage);

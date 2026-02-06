@@ -80,6 +80,4 @@ function BusinessTypePicker({errorText = '', value = '', wrapperStyle, onInputCh
     );
 }
 
-BusinessTypePicker.displayName = 'BusinessTypePicker';
-
 export default BusinessTypePicker;

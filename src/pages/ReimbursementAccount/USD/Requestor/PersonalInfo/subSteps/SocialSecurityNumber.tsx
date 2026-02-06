@@ -25,7 +25,7 @@ function SocialSecurityNumber({onNext, onMove, isEditing}: SubStepProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, STEP_FIELDS);
+            const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
             if (values.ssnLast4 && !isValidSSNLastFour(values.ssnLast4)) {
                 errors.ssnLast4 = translate('bankAccount.error.ssnLast4');
@@ -62,10 +62,9 @@ function SocialSecurityNumber({onNext, onMove, isEditing}: SubStepProps) {
             defaultValue={defaultSsnLast4}
             maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
             enabledWhenOffline
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
         />
     );
 }
-
-SocialSecurityNumber.displayName = 'SocialSecurityNumber';
 
 export default SocialSecurityNumber;

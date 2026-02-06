@@ -29,6 +29,4 @@ function WebCamera({itemRef, ref, ...props}: NavigationAwareCameraProps) {
     );
 }
 
-WebCamera.displayName = 'NavigationAwareCamera';
-
 export default WebCamera;

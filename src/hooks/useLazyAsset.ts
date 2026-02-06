@@ -98,7 +98,7 @@ function useMemoizedLazyAsset<T extends IconAsset>(importFn: () => {default: T} 
  * Hook for loading multiple illustrations at once
  * Loads the illustrations chunk once and returns an object keyed by illustration names
  * Uses synchronous access when chunk is cached to avoid flash
- * @param names - Array of illustration names (use `as const` for type safety)
+ * @param names - Array of illustration names
  * @returns Object with illustration names as keys and IconAsset as values
  */
 function useMemoizedLazyIllustrations<const TName extends readonly IllustrationName[]>(names: TName): Record<TName[number], IconAsset> {
@@ -162,7 +162,7 @@ function useMemoizedLazyIllustrations<const TName extends readonly IllustrationN
  * Hook for loading multiple Expensify icons at once
  * Loads the Expensify icons chunk once and returns an object keyed by icon names
  * Uses synchronous access when chunk is cached to avoid flash
- * @param names - Array of Expensify icon names (use `as const` for type safety)
+ * @param names - Array of Expensify icon names
  * @returns Object with icon names as keys and IconAsset as values
  */
 function useMemoizedLazyExpensifyIcons<const TName extends readonly ExpensifyIconName[]>(names: TName): Record<TName[number], IconAsset> {

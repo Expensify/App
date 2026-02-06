@@ -30,6 +30,7 @@ import {
     getParentNavigationSubtitle,
     getParticipantsAccountIDsForDisplay,
     getPolicyName,
+    getReportForHeader,
     getReportName,
     isExpenseReport,
     isMoneyRequestReport,
@@ -69,7 +70,7 @@ function getLogoForWorkspace(report: OnyxEntry<Report>, policy?: OnyxEntry<Polic
 }
 
 function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Download'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Cash', 'FallbackAvatar']);
     const themeStyles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -99,7 +100,10 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
         return currentUserPersonalDetails.login;
     }, [report, currentUserPersonalDetails.login, isReport, isReportArchived, isParentReportArchived, formatPhoneNumber]);
 
-    const title = isReport ? getReportName(report) : (currentUserPersonalDetails.displayName ?? '');
+    const reportForTitle = useMemo(() => getReportForHeader(report), [report]);
+
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const title = isReport ? getReportName(reportForTitle) : (currentUserPersonalDetails.displayName ?? '');
     const urlWithTrailingSlash = addTrailingForwardSlash(environmentURL);
     const url = isReport
         ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(report.reportID)}`
@@ -115,7 +119,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
     let svgLogoFillColor: string | undefined;
 
     if (!logo && policy && !policy.avatarURL) {
-        svgLogo = getDefaultWorkspaceAvatar(policy.name) || Expensicons.FallbackAvatar;
+        svgLogo = getDefaultWorkspaceAvatar(policy.name) || icons.FallbackAvatar;
 
         const defaultWorkspaceAvatarColors = StyleUtils.getDefaultWorkspaceAvatarColor(policy.id);
         logoBackgroundColor = defaultWorkspaceAvatarColors.backgroundColor?.toString();
@@ -123,7 +127,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
     }
 
     return (
-        <ScreenWrapper testID={ShareCodePage.displayName}>
+        <ScreenWrapper testID="ShareCodePage">
             <HeaderWithBackButton
                 title={translate('common.shareCode')}
                 onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID, backTo) : undefined)}
@@ -170,7 +174,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
 
                     <MenuItem
                         title={translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.buttonText`)}
-                        icon={Expensicons.Cash}
+                        icon={icons.Cash}
                         onPress={() => Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE, Navigation.getActiveRoute()))}
                         shouldShowRightIcon
                     />
@@ -179,7 +183,5 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
         </ScreenWrapper>
     );
 }
-
-ShareCodePage.displayName = 'ShareCodePage';
 
 export default ShareCodePage;

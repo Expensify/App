@@ -4,6 +4,7 @@ import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import {
     getAgeRequirementError,
+    isInvalidMerchantValue,
     isRequiredFulfilled,
     isValidAccountRoute,
     isValidDate,
@@ -216,29 +217,25 @@ describe('ValidationUtils', () => {
     describe('getAgeRequirementError', () => {
         test('Should return an empty string for a date within the specified range', () => {
             const validDate: string = format(subYears(new Date(), 30), CONST.DATE.FNS_FORMAT_STRING); // Date of birth 30 years ago
-            const error = getAgeRequirementError(validDate, 18, 150);
+            const error = getAgeRequirementError(translateLocal, validDate, 18, 150);
             expect(error).toBe('');
         });
 
         test('Should return an error message for a date before the minimum age requirement', () => {
             const invalidDate: string = format(subYears(new Date(), 17), CONST.DATE.FNS_FORMAT_STRING); // Date of birth 17 years ago
-            const error = getAgeRequirementError(invalidDate, 18, 150);
-            expect(error).toEqual(
-                translateLocal('privatePersonalDetails.error.dateShouldBeBefore', {dateString: format(startOfDay(subYears(new Date(), 18)), CONST.DATE.FNS_FORMAT_STRING)}),
-            );
+            const error = getAgeRequirementError(translateLocal, invalidDate, 18, 150);
+            expect(error).toEqual(translateLocal('privatePersonalDetails.error.dateShouldBeBefore', format(startOfDay(subYears(new Date(), 18)), CONST.DATE.FNS_FORMAT_STRING)));
         });
 
         test('Should return an error message for a date after the maximum age requirement', () => {
             const invalidDate: string = format(subYears(new Date(), 160), CONST.DATE.FNS_FORMAT_STRING); // Date of birth 160 years ago
-            const error = getAgeRequirementError(invalidDate, 18, 150);
-            expect(error).toEqual(
-                translateLocal('privatePersonalDetails.error.dateShouldBeAfter', {dateString: format(startOfDay(subYears(new Date(), 150)), CONST.DATE.FNS_FORMAT_STRING)}),
-            );
+            const error = getAgeRequirementError(translateLocal, invalidDate, 18, 150);
+            expect(error).toEqual(translateLocal('privatePersonalDetails.error.dateShouldBeAfter', format(startOfDay(subYears(new Date(), 150)), CONST.DATE.FNS_FORMAT_STRING)));
         });
 
         test('Should return an error message for an invalid date', () => {
             const invalidDate = '2023-07-32'; // Invalid date
-            const error = getAgeRequirementError(invalidDate, 18, 150);
+            const error = getAgeRequirementError(translateLocal, invalidDate, 18, 150);
             expect(error).toBe(translateLocal('common.error.dateInvalid'));
         });
     });
@@ -552,6 +549,22 @@ describe('ValidationUtils', () => {
             ])('validates Non-EU country registration number', (country, value, expected) => {
                 expect(isValidRegistrationNumber(value, country as Country)).toBe(expected);
             });
+        });
+    });
+
+    describe('isInvalidMerchantValue', () => {
+        test('Valid merchnt name', () => {
+            expect(isInvalidMerchantValue('test name')).toBe(false);
+            expect(isInvalidMerchantValue('none')).toBe(false);
+            expect(isInvalidMerchantValue('Unknown Merchant')).toBe(false);
+            expect(isInvalidMerchantValue('X Æ A test')).toBe(false);
+            expect(isInvalidMerchantValue(undefined)).toBe(false);
+        });
+
+        test('Invalid merchant name', () => {
+            expect(isInvalidMerchantValue('')).toBe(true);
+            expect(isInvalidMerchantValue('Expense')).toBe(true);
+            expect(isInvalidMerchantValue('(none)')).toBe(true);
         });
     });
 });

@@ -6,10 +6,11 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getOriginalReportID} from '@libs/ReportUtils';
-import ReportActionItem from '@pages/home/report/ReportActionItem';
-import ReportActionItemContext from '@pages/home/report/ReportActionItemContext';
+import ReportActionItem from '@pages/inbox/report/ReportActionItem';
+import ReportActionItemContext from '@pages/inbox/report/ReportActionItemContext';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
@@ -52,10 +53,13 @@ function DuplicateTransactionItem({transaction, index, allReports, policies, onP
         canBeMissing: true,
     });
 
-    const [linkedTransactionRouteError] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID}`, {
-        canBeMissing: true,
-        selector: linkedTransactionRouteErrorSelector,
-    });
+    const [linkedTransactionRouteError] = useOnyx(
+        `${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined)}`,
+        {
+            canBeMissing: true,
+            selector: linkedTransactionRouteErrorSelector,
+        },
+    );
 
     const contextValue = useMemo(() => ({shouldOpenReportInRHP: true, onPreviewPressed}), [onPreviewPressed]);
 
@@ -96,5 +100,4 @@ function DuplicateTransactionItem({transaction, index, allReports, policies, onP
     );
 }
 
-DuplicateTransactionItem.displayName = 'DuplicateTransactionItem';
 export default DuplicateTransactionItem;

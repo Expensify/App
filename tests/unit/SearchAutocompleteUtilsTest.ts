@@ -1,16 +1,6 @@
-import type {SharedValue} from 'react-native-reanimated/lib/typescript/commonTypes';
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import {parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
-
-// Mock the shared values
-const createMockSharedValue = <T>(value: T): SharedValue<T> => ({
-    get: () => value,
-    set: jest.fn(),
-    addListener: jest.fn(),
-    removeListener: jest.fn(),
-    modify: jest.fn(),
-    value,
-});
+import createSharedValueMock from '../utils/createSharedValueMock';
 
 describe('SearchAutocompleteUtils', () => {
     describe('parseForLiveMarkdown', () => {
@@ -24,10 +14,10 @@ describe('SearchAutocompleteUtils', () => {
             'policyID:ABC123': 'Test Policy',
         };
 
-        const mockUserLogins = createMockSharedValue(['john@example.com', 'jane@example.com', 'currentuser@example.com']);
-        const mockCurrencyList = createMockSharedValue(['USD', 'EUR', 'GBP']);
-        const mockCategoryList = createMockSharedValue(['Travel', 'Meals', 'Office Supplies']);
-        const mockTagList = createMockSharedValue(['Project A', 'Project B', 'Urgent']);
+        const mockUserLogins = createSharedValueMock(['john@example.com', 'jane@example.com', 'currentuser@example.com']);
+        const mockCurrencyList = createSharedValueMock(['USD', 'EUR', 'GBP']);
+        const mockCategoryList = createSharedValueMock(['Travel', 'Meals', 'Office Supplies']);
+        const mockTagList = createSharedValueMock(['Project A', 'Project B', 'Urgent']);
 
         it('should highlight valid filters with correct values', () => {
             const input = 'type:expense from:john@example.com currency:USD';
@@ -218,6 +208,60 @@ describe('SearchAutocompleteUtils', () => {
             expect(result).toEqual([]);
         });
 
+        describe('limit filter highlighting', () => {
+            it('highlights valid positive integer', () => {
+                const input = 'limit:10';
+
+                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
+
+                expect(result).toEqual([{start: 6, type: 'mention-user', length: 2}]);
+            });
+
+            it('does not highlight zero value', () => {
+                const input = 'limit:0';
+
+                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
+
+                expect(result).toEqual([]);
+            });
+
+            it('does not highlight non-integer value', () => {
+                const input = 'limit:10.5';
+
+                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
+
+                expect(result).toEqual([]);
+            });
+
+            it('does not highlight negative value', () => {
+                const input = 'limit:-5';
+
+                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
+
+                expect(result).toEqual([]);
+            });
+
+            it('highlights limit in complex query with other filters', () => {
+                const input = 'type:expense limit:50 currency:USD';
+
+                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
+
+                expect(result).toEqual([
+                    {start: 5, type: 'mention-user', length: 7}, // type:expense
+                    {start: 19, type: 'mention-user', length: 2}, // limit:50
+                    {start: 31, type: 'mention-user', length: 3}, // currency:USD
+                ]);
+            });
+
+            it('does not highlight empty limit value', () => {
+                const input = 'limit:';
+
+                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
+
+                expect(result).toEqual([]);
+            });
+        });
+
         it('should handle valid AMOUNT filters but not invalid TOTAL amounts', () => {
             const input = 'amount:-50.25';
 
@@ -228,13 +272,71 @@ describe('SearchAutocompleteUtils', () => {
             ]);
         });
 
-        it('should not highlight TOTAL filter with amounts exceeding 8 digits', () => {
-            const input = 'total:999999999';
+        it('should not highlight TOTAL filter with amounts exceeding AMOUNT_MAX_LENGTH digits', () => {
+            const input = 'total:99999999999';
 
             const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
 
-            // Total amounts with more than 8 digits fail validation
+            // Total amounts with more than AMOUNT_MAX_LENGTH digits fail validation
             expect(result).toEqual([]);
+        });
+
+        describe('view filter highlighting', () => {
+            it('highlights valid view values', () => {
+                const validViews = ['table', 'bar'];
+
+                for (const view of validViews) {
+                    const input = `view:${view}`;
+
+                    const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
+
+                    expect(result).toEqual([{start: 5, type: 'mention-user', length: view.length}]);
+                }
+            });
+
+            it('does not highlight invalid view values', () => {
+                const input = 'view:invalid';
+
+                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
+
+                expect(result).toEqual([]);
+            });
+
+            it('highlights view in complex query with other filters', () => {
+                const input = 'type:expense view:bar category:Travel';
+
+                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
+
+                expect(result).toEqual([
+                    {start: 5, type: 'mention-user', length: 7}, // type:expense
+                    {start: 18, type: 'mention-user', length: 3}, // view:bar
+                    {start: 31, type: 'mention-user', length: 6}, // category:Travel
+                ]);
+            });
+
+            it('does not highlight empty view value', () => {
+                const input = 'view:';
+
+                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
+
+                expect(result).toEqual([]);
+            });
+
+            it('highlights view:table in query', () => {
+                const input = 'view:table';
+
+                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
+
+                expect(result).toEqual([{start: 5, type: 'mention-user', length: 5}]);
+            });
+
+            it('highlights view:bar in query', () => {
+                const input = 'view:bar';
+
+                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
+
+                expect(result).toEqual([{start: 5, type: 'mention-user', length: 3}]);
+            });
         });
     });
 });

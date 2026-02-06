@@ -67,7 +67,7 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
             <ScreenWrapper
-                testID={WorkspaceSettlementFrequencyPage.displayName}
+                testID="WorkspaceSettlementFrequencyPage"
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
             >
@@ -89,7 +89,5 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceSettlementFrequencyPage.displayName = 'WorkspaceSettlementFrequencyPage';
 
 export default WorkspaceSettlementFrequencyPage;

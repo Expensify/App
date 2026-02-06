@@ -19,9 +19,9 @@ function JobTitle({onNext, onMove, isEditing}: SubStepProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM> => {
-            return getFieldRequiredErrors(values, [inputID]);
+            return getFieldRequiredErrors(values, [inputID], translate);
         },
-        [inputID],
+        [inputID, translate],
     );
 
     const handleSubmit = useEnterSignerInfoStepFormSubmit({
@@ -47,7 +47,5 @@ function JobTitle({onNext, onMove, isEditing}: SubStepProps) {
         />
     );
 }
-
-JobTitle.displayName = 'JobTitle';
 
 export default JobTitle;

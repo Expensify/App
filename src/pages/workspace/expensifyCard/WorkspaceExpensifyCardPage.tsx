@@ -1,9 +1,9 @@
 import React, {useCallback, useEffect} from 'react';
-import ActivityIndicator from '@components/ActivityIndicator';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useThemeStyles from '@hooks/useThemeStyles';
+import {updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
 import {filterInactiveCards} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -19,13 +19,13 @@ type WorkspaceExpensifyCardPageProps = PlatformStackScreenProps<WorkspaceSplitNa
 
 function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const policyID = route.params.policyID;
-    const styles = useThemeStyles();
     const defaultFundID = useDefaultFundID(policyID);
 
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`, {canBeMissing: true});
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards, canBeMissing: true});
 
     const fetchExpensifyCards = useCallback(() => {
+        updateSelectedExpensifyCardFeed(defaultFundID, policyID);
         openPolicyExpensifyCardsPage(policyID, defaultFundID);
     }, [policyID, defaultFundID]);
 
@@ -40,12 +40,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
 
     const renderContent = () => {
         if (!!isLoading && !paymentBankAccountID) {
-            return (
-                <ActivityIndicator
-                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                    style={styles.flex1}
-                />
-            );
+            return <FullScreenLoadingIndicator shouldUseGoBackButton />;
         }
         if (paymentBankAccountID) {
             return (
@@ -71,7 +66,5 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceExpensifyCardPage.displayName = 'WorkspaceExpensifyCardPage';
 
 export default WorkspaceExpensifyCardPage;

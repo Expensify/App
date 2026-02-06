@@ -1,5 +1,4 @@
 #!/usr/bin/env ts-node
-
 /**
  * Script to check if icons and illustrations are using lazy loading
  * This script scans the codebase for direct imports from deprecated eager loading files

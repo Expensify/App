@@ -5,8 +5,10 @@ import type {
     ReportFieldNegatedKey,
     ReportFieldTextKey,
     SearchAmountFilterKeys,
+    SearchCustomColumnIds,
     SearchDateFilterKeys,
     SearchGroupBy,
+    SearchView,
     SearchWithdrawalType,
 } from '@components/Search/types';
 import CONST from '@src/CONST';
@@ -28,6 +30,7 @@ const AMOUNT_FILTER_KEYS: SearchAmountFilterKeys[] = [CONST.SEARCH.SYNTAX_FILTER
 const FILTER_KEYS = {
     POLICY_ID: 'policyID',
     GROUP_BY: 'groupBy',
+    VIEW: 'view',
     TYPE: 'type',
     STATUS: 'status',
 
@@ -164,6 +167,9 @@ const FILTER_KEYS = {
     ATTENDEE_NOT: 'attendeeNot',
     ATTENDEE: 'attendee',
     REPORT_FIELD: 'reportField',
+
+    COLUMNS: 'columns',
+    LIMIT: 'limit',
 } as const;
 
 const ALLOWED_TYPE_FILTERS = {
@@ -244,6 +250,7 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.EXPORTER,
         FILTER_KEYS.EXPORTER_NOT,
         FILTER_KEYS.GROUP_BY,
+        FILTER_KEYS.VIEW,
         FILTER_KEYS.ACTION,
         FILTER_KEYS.ACTION_NOT,
         FILTER_KEYS.HAS,
@@ -261,6 +268,8 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.ATTENDEE,
         FILTER_KEYS.REPORT_FIELD,
         FILTER_KEYS.ATTENDEE_NOT,
+        FILTER_KEYS.COLUMNS,
+        FILTER_KEYS.LIMIT,
     ],
     [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT]: [
         FILTER_KEYS.TYPE,
@@ -316,6 +325,7 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.TITLE,
         FILTER_KEYS.TITLE_NOT,
         FILTER_KEYS.REPORT_FIELD,
+        FILTER_KEYS.COLUMNS,
     ],
     [CONST.SEARCH.DATA_TYPES.INVOICE]: [
         FILTER_KEYS.TYPE,
@@ -399,6 +409,7 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.TITLE,
         FILTER_KEYS.REPORT_FIELD,
         FILTER_KEYS.TITLE_NOT,
+        FILTER_KEYS.COLUMNS,
     ],
 
     [CONST.SEARCH.DATA_TYPES.TRIP]: [
@@ -476,6 +487,7 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.TITLE,
         FILTER_KEYS.TITLE_NOT,
         FILTER_KEYS.REPORT_FIELD,
+        FILTER_KEYS.COLUMNS,
     ],
 
     [CONST.SEARCH.DATA_TYPES.CHAT]: [
@@ -524,8 +536,9 @@ type SearchAdvancedFiltersForm = Form<
     SearchAdvancedFiltersKey,
     {
         [FILTER_KEYS.GROUP_BY]: SearchGroupBy;
-
+        [FILTER_KEYS.VIEW]: SearchView;
         [FILTER_KEYS.TYPE]: SearchDataTypes;
+        [FILTER_KEYS.COLUMNS]: SearchCustomColumnIds[];
 
         [FILTER_KEYS.STATUS]: string[] | string;
 
@@ -664,9 +677,8 @@ type SearchAdvancedFiltersForm = Form<
 
         [FILTER_KEYS.ATTENDEE]: string[];
         [FILTER_KEYS.ATTENDEE_NOT]: string[];
-        [FILTER_KEYS.IS]: string[];
-        [FILTER_KEYS.HAS]: string[];
         [FILTER_KEYS.REPORT_FIELD]: string;
+        [FILTER_KEYS.LIMIT]: string;
     } & Record<ReportFieldTextKey, string> &
         Record<ReportFieldDateKey, string> &
         Record<ReportFieldNegatedKey, string>

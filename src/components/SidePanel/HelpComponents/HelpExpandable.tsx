@@ -38,6 +38,4 @@ function HelpExpandable({children, styles, containerStyle, isExpanded, setIsExpa
     );
 }
 
-HelpExpandable.displayName = 'ExpandableHelp';
-
 export default HelpExpandable;

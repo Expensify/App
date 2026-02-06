@@ -139,10 +139,7 @@ function FilePicker({children}: FilePickerProps) {
             openPicker: ({onPicked, onCanceled: newOnCanceled}) => open(onPicked, newOnCanceled),
         });
 
-    // eslint-disable-next-line react-compiler/react-compiler
     return <>{renderChildren()}</>;
 }
-
-FilePicker.displayName = 'FilePicker';
 
 export default FilePicker;

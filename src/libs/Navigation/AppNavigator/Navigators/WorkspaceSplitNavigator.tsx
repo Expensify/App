@@ -32,7 +32,9 @@ const CENTRAL_PANE_WORKSPACE_SCREENS = {
     [SCREENS.WORKSPACE.PER_DIEM]: () => require<ReactComponentModule>('../../../../pages/workspace/perDiem/WorkspacePerDiemPage').default,
     [SCREENS.WORKSPACE.RECEIPT_PARTNERS]: () => require<ReactComponentModule>('../../../../pages/workspace/receiptPartners/WorkspaceReceiptPartnersPage').default,
     [SCREENS.WORKSPACE.DISTANCE_RATES]: () => require<ReactComponentModule>('../../../../pages/workspace/distanceRates/PolicyDistanceRatesPage').default,
+    [SCREENS.WORKSPACE.TRAVEL]: () => require<ReactComponentModule>('../../../../pages/workspace/travel/PolicyTravelPage').default,
     [SCREENS.WORKSPACE.RULES]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/PolicyRulesPage').default,
+    [SCREENS.WORKSPACE.TIME_TRACKING]: () => require<ReactComponentModule>('../../../../pages/workspace/timeTracking/WorkspaceTimeTrackingPage').default,
 } satisfies Screens;
 
 const Split = createSplitNavigator<WorkspaceSplitNavigatorParamList>();
@@ -73,8 +75,6 @@ function WorkspaceSplitNavigator({route, navigation}: PlatformStackScreenProps<A
         </FocusTrapForScreens>
     );
 }
-
-WorkspaceSplitNavigator.displayName = 'WorkspaceSplitNavigator';
 
 export {CENTRAL_PANE_WORKSPACE_SCREENS};
 export default WorkspaceSplitNavigator;

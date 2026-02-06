@@ -1,4 +1,5 @@
-import {hasFormulaPartsInInitialValue} from '@libs/WorkspaceReportFieldUtils';
+import {hasFormulaPartsInInitialValue, isReportFieldNameExisting} from '@libs/WorkspaceReportFieldUtils';
+import type {PolicyReportField} from '@src/types/onyx/Policy';
 
 describe('WorkspaceReportFieldUtils.hasFormulaPartsInInitialValue', () => {
     it('returns true for recognized formula tokens', () => {
@@ -37,5 +38,25 @@ describe('WorkspaceReportFieldUtils.hasFormulaPartsInInitialValue', () => {
         expect(hasFormulaPartsInInitialValue('{report:id}{report:type}')).toBe(true);
         expect(hasFormulaPartsInInitialValue('text {abc} text')).toBe(false);
         expect(hasFormulaPartsInInitialValue('text {user:email|frontPart} text')).toBe(true);
+    });
+});
+
+describe('WorkspaceReportFieldUtils.isReportFieldNameExisting', () => {
+    const fieldList: Record<string, PolicyReportField> = {
+        field1: {name: 'Field1', type: 'text'} as PolicyReportField,
+        field2: {name: 'Field2', type: 'date'} as PolicyReportField,
+    };
+
+    it('should return false when field name does not exist', () => {
+        expect(isReportFieldNameExisting(fieldList, 'Field3')).toBe(false);
+    });
+
+    it('should return true when field name exists with exact case match', () => {
+        expect(isReportFieldNameExisting(fieldList, 'Field1')).toBe(true);
+    });
+
+    it('should return true when field name exists with different case', () => {
+        expect(isReportFieldNameExisting(fieldList, 'FIELD1')).toBe(true);
+        expect(isReportFieldNameExisting(fieldList, 'field1')).toBe(true);
     });
 });

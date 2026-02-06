@@ -1,7 +1,7 @@
-import type {VideoReadyForDisplayEvent} from 'expo-av';
+import type {SourceLoadEventPayload} from 'expo-video';
 import isEmpty from 'lodash/isEmpty';
 import React, {useMemo, useState} from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import ImageSVG from '@components/ImageSVG';
@@ -11,9 +11,9 @@ import VideoPlayer from '@components/VideoPlayer';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
-import TextWithEmojiFragment from '@pages/home/report/comment/TextWithEmojiFragment';
+import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
 import CONST from '@src/CONST';
-import type {EmptyStateComponentProps, VideoLoadedEventType} from './types';
+import type {EmptyStateComponentProps} from './types';
 
 const VIDEO_ASPECT_RATIO = 400 / 225;
 
@@ -40,16 +40,14 @@ function EmptyStateComponent({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const doesSubtitleContainCustomEmojiAndMore = containsCustomEmoji(subtitle ?? '') && !containsOnlyCustomEmoji(subtitle ?? '');
 
-    const setAspectRatio = (event: VideoReadyForDisplayEvent | VideoLoadedEventType | undefined) => {
-        if (!event) {
+    const setAspectRatio = (event: SourceLoadEventPayload) => {
+        const track = event.availableVideoTracks.at(0);
+
+        if (!track) {
             return;
         }
 
-        if ('naturalSize' in event) {
-            setVideoAspectRatio(event.naturalSize.width / event.naturalSize.height);
-        } else {
-            setVideoAspectRatio(event.srcElement.videoWidth / event.srcElement.videoHeight);
-        }
+        setVideoAspectRatio(track.size.width / track.size.height);
     };
 
     const HeaderComponent = useMemo(() => {
@@ -58,9 +56,8 @@ function EmptyStateComponent({
                 return (
                     <VideoPlayer
                         url={headerMedia}
-                        videoPlayerStyle={[headerContentStyles, {aspectRatio: videoAspectRatio}]}
-                        videoStyle={styles.emptyStateVideo}
-                        onVideoLoaded={setAspectRatio}
+                        videoPlayerStyle={[headerContentStyles, styles.emptyStateVideo, {aspectRatio: videoAspectRatio}]}
+                        onSourceLoaded={setAspectRatio}
                         controlsStatus={CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW}
                         shouldUseControlsBottomMargin={false}
                         shouldPlay
@@ -80,7 +77,7 @@ function EmptyStateComponent({
             case CONST.EMPTY_STATE_MEDIA.ILLUSTRATION:
                 return (
                     <ImageSVG
-                        style={headerContentStyles}
+                        style={StyleSheet.flatten(headerContentStyles)}
                         src={headerMedia}
                     />
                 );
@@ -149,5 +146,4 @@ function EmptyStateComponent({
     );
 }
 
-EmptyStateComponent.displayName = 'EmptyStateComponent';
 export default EmptyStateComponent;

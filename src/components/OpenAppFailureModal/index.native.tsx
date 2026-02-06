@@ -29,6 +29,4 @@ function OpenAppFailureModal() {
     return <BaseOpenAppFailureModal onRefreshAndTryAgainButtonPress={retryOpenApp} />;
 }
 
-OpenAppFailureModal.displayName = 'OpenAppFailureModal';
-
 export default OpenAppFailureModal;

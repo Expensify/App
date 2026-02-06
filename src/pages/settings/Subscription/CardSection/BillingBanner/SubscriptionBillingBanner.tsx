@@ -17,7 +17,7 @@ type SubscriptionBillingBannerProps = Omit<BillingBannerProps, 'titleStyle' | 's
 function SubscriptionBillingBanner({title, subtitle, rightIcon, icon, isError = false, onRightIconPress, rightIconAccessibilityLabel}: SubscriptionBillingBannerProps) {
     const styles = useThemeStyles();
 
-    const illustrations = useMemoizedLazyIllustrations(['CreditCardEyes', 'CheckmarkCircle'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['CreditCardEyes', 'CheckmarkCircle']);
 
     const iconAsset = (icon ?? isError) ? illustrations.CreditCardEyes : illustrations.CheckmarkCircle;
 
@@ -35,7 +35,5 @@ function SubscriptionBillingBanner({title, subtitle, rightIcon, icon, isError = 
         />
     );
 }
-
-SubscriptionBillingBanner.displayName = 'SubscriptionBillingBanner';
 
 export default SubscriptionBillingBanner;

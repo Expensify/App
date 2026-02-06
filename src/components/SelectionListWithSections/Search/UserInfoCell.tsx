@@ -49,6 +49,4 @@ function UserInfoCell({avatar, accountID, displayName, avatarSize, containerStyl
     );
 }
 
-UserInfoCell.displayName = 'UserInfoCell';
-
 export default UserInfoCell;

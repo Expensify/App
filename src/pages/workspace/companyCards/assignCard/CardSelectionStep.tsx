@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -12,6 +13,7 @@ import Text from '@components/Text';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
+import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -20,26 +22,28 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import {getCardFeedIcon, getCompanyCardFeed, getFilteredCardList, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+import type {UnassignedCard} from '@src/types/onyx/Card';
 
-type CardSelectionStepProps = {
-    /** Selected feed */
-    feed: CompanyCardFeedWithDomainID;
+type CardSelectionStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION>;
 
-    /** Current policy id */
-    policyID: string | undefined;
-};
-
-function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
+function CardSelectionStep({route}: CardSelectionStepProps) {
+    const policyID = route.params.policyID;
+    const feed = route.params.feed;
+    const cardID = route.params.cardID;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
-    const lazyIllustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass'] as const);
+    const companyCardFeedIcons = useCompanyCardFeedIcons();
+    const lazyIllustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass']);
     const [searchText, setSearchText] = useState('');
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: false});
     const [list] = useCardsList(feed);
@@ -48,18 +52,18 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     const plaidUrl = getPlaidInstitutionIconUrl(feed);
 
     const isEditing = assignCard?.isEditing;
-    const assigneeDisplayName = getPersonalDetailByEmail(assignCard?.data?.email ?? '')?.displayName ?? '';
+    const assigneeDisplayName = Str.removeSMSDomain(getPersonalDetailByEmail(assignCard?.cardToAssign?.email ?? '')?.displayName ?? '');
     const filteredCardList = getFilteredCardList(list, cardFeeds?.[feed]?.accountList, workspaceCardFeeds);
 
-    const [cardSelected, setCardSelected] = useState(assignCard?.data?.encryptedCardNumber ?? '');
+    const [cardSelected, setCardSelected] = useState(assignCard?.cardToAssign?.encryptedCardNumber ?? '');
     const [shouldShowError, setShouldShowError] = useState(false);
 
-    const cardListOptions = Object.entries(filteredCardList).map(([cardNumber, encryptedCardNumber]) => ({
-        keyForList: encryptedCardNumber,
-        value: encryptedCardNumber,
-        text: maskCardNumber(cardNumber, feed),
-        alternateText: lastFourNumbersFromCardName(cardNumber),
-        isSelected: cardSelected === encryptedCardNumber,
+    const cardListOptions = filteredCardList.map((card: UnassignedCard) => ({
+        keyForList: card.cardID,
+        value: card.cardID,
+        text: maskCardNumber(card.cardName, feed),
+        alternateText: lastFourNumbersFromCardName(card.cardName),
+        isSelected: cardSelected === card.cardID,
         leftElement: plaidUrl ? (
             <PlaidCardFeedIcon
                 plaidUrl={plaidUrl}
@@ -67,7 +71,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
             />
         ) : (
             <Icon
-                src={getCardFeedIcon(getCompanyCardFeed(feed), illustrations)}
+                src={getCardFeedIcon(getCompanyCardFeed(feed), illustrations, companyCardFeedIcons)}
                 height={variables.cardIconHeight}
                 width={variables.iconSizeExtraLarge}
                 additionalStyles={[styles.mr3, styles.cardIcon]}
@@ -78,16 +82,12 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     const handleBackButtonPress = () => {
         if (isEditing) {
             setAssignCardStepAndData({
-                currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
                 isEditing: false,
             });
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute({policyID, feed, cardID}));
             return;
         }
-        if (!cardListOptions.length) {
-            Navigation.goBack();
-            return;
-        }
-        setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE});
+        Navigation.goBack();
     };
 
     const handleSelectCard = (cardNumber: string) => {
@@ -101,16 +101,22 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
             return;
         }
 
-        const cardNumber =
-            Object.entries(filteredCardList)
-                .find(([, encryptedCardNumber]) => encryptedCardNumber === cardSelected)
-                ?.at(0) ?? '';
+        // Find the card by its ID to get the display name
+        const selectedCard = filteredCardList.find((card) => card.cardID === cardSelected);
+        const cardName = selectedCard?.cardName ?? '';
+
+        const customCardName = assignCard?.cardToAssign?.customCardName ?? '';
 
         setAssignCardStepAndData({
-            currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE,
-            data: {encryptedCardNumber: cardSelected, cardNumber},
+            cardToAssign: {encryptedCardNumber: cardSelected, cardName, customCardName},
             isEditing: false,
         });
+
+        if (isEditing) {
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute({policyID, feed, cardID}));
+        } else {
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE.getRoute({policyID, feed, cardID}));
+        }
     };
 
     const searchedListOptions = useMemo(() => {
@@ -140,18 +146,14 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
             </View>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.chooseCard')}</Text>
             <View style={[styles.renderHTML, styles.ph5, styles.mv3, styles.textSupporting]}>
-                <RenderHTML
-                    html={translate('workspace.companyCards.chooseCardFor', {
-                        assignee: assigneeDisplayName,
-                    })}
-                />
+                <RenderHTML html={translate('workspace.companyCards.chooseCardFor', assigneeDisplayName)} />
             </View>
         </View>
     );
 
     return (
         <InteractiveStepWrapper
-            wrapperID={CardSelectionStep.displayName}
+            wrapperID="CardSelectionStep"
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('workspace.companyCards.assignCard')}
             headerSubtitle={assigneeDisplayName}
@@ -195,7 +197,5 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
         </InteractiveStepWrapper>
     );
 }
-
-CardSelectionStep.displayName = 'CardSelectionStep';
 
 export default CardSelectionStep;

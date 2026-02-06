@@ -1,5 +1,6 @@
 import {useCallback, useEffect} from 'react';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useSidePanel from '@hooks/useSidePanel';
 import {isChromeIOS} from '@libs/Browser';
 import CONST from '@src/CONST';
 
@@ -8,6 +9,7 @@ import CONST from '@src/CONST';
  */
 export default function useTackInputFocus(enable = false): boolean {
     const [, isInputFocusDebounced, setIsInputFocus] = useDebouncedState(false);
+    const {shouldHideSidePanel} = useSidePanel();
 
     const handleFocusIn = useCallback(
         (event: FocusEvent) => {
@@ -30,7 +32,7 @@ export default function useTackInputFocus(enable = false): boolean {
     );
 
     useEffect(() => {
-        if (!enable) {
+        if (!enable || !shouldHideSidePanel) {
             return;
         }
         // Putting the function here so a new instance of the function is created for each usage of the hook
@@ -51,7 +53,7 @@ export default function useTackInputFocus(enable = false): boolean {
             window.removeEventListener('focusout', handleFocusOut);
             window.visualViewport?.removeEventListener('scroll', resetScrollPositionOnVisualViewport);
         };
-    }, [enable, handleFocusIn, handleFocusOut]);
+    }, [enable, handleFocusIn, handleFocusOut, shouldHideSidePanel]);
 
     return isInputFocusDebounced;
 }

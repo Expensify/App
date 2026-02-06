@@ -47,6 +47,4 @@ function RoomNameInput({disabled = false, autoFocus = false, isFocused, value, o
     );
 }
 
-RoomNameInput.displayName = 'RoomNameInput';
-
 export default RoomNameInput;

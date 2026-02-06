@@ -18,7 +18,7 @@ import type {ReportNameValuePairs} from '@src/types/onyx';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption, OnboardingHelpType} from './ButtonWithDropdownMenu/types';
 // eslint-disable-next-line no-restricted-imports
-import {Close, Monitor} from './Icon/Expensicons';
+import {Close} from './Icon/Expensicons';
 
 type OnboardingHelpButtonProps = {
     /** The ID of onboarding chat report */
@@ -52,8 +52,8 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const userTimezone = currentUserPersonalDetails?.timezone?.selected ? currentUserPersonalDetails?.timezone.selected : CONST.DEFAULT_TIME_ZONE.selected;
 
-    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid'] as const);
-    const illustrations = useMemoizedLazyIllustrations(['HeadSet'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Monitor']);
+    const illustrations = useMemoizedLazyIllustrations(['HeadSet']);
 
     if (!reportID || !accountID) {
         return null;
@@ -113,7 +113,7 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
     if (shouldShowRegisterForWebinar) {
         options.push({
             text: translate('getAssistancePage.registerForWebinar'),
-            icon: Monitor,
+            icon: icons.Monitor,
             shouldShowButtonRightIcon: true,
             value: CONST.ONBOARDING_HELP.REGISTER_FOR_WEBINAR,
             onSelected: () => {

@@ -44,7 +44,7 @@ function TagApproverPage({route}: TagApproverPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={TagApproverPage.displayName}
+                testID="TagApproverPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -55,7 +55,7 @@ function TagApproverPage({route}: TagApproverPageProps) {
                     policyID={policyID}
                     selectedApprover={tagApprover ?? ''}
                     setApprover={(email) => {
-                        setPolicyTagApprover(policyID, tagName, email);
+                        setPolicyTagApprover(policy, tagName, email);
                         Navigation.setNavigationActionToMicrotaskQueue(goBack);
                     }}
                 />
@@ -63,7 +63,5 @@ function TagApproverPage({route}: TagApproverPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-TagApproverPage.displayName = 'TagApproverPage';
 
 export default TagApproverPage;

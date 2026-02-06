@@ -73,6 +73,4 @@ function EReceiptWithSizeCalculation(props: EReceiptWithSizeCalculationProps) {
     );
 }
 
-EReceiptWithSizeCalculation.displayName = 'EReceiptWithSizeCalculation';
-
 export default EReceiptWithSizeCalculation;

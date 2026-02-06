@@ -5,6 +5,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import Navigation from '@libs/Navigation/Navigation';
+import useAbsentPageSpan from '@libs/telemetry/useAbsentPageSpan';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 type NotFoundPageProps = {
@@ -19,11 +20,13 @@ function NotFoundPage({onBackButtonPress = () => Navigation.goBack(), isReportRe
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const topmostReportId = Navigation.getTopmostReportId();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${topmostReportId}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${topmostReportId}`, {canBeMissing: true});
+
+    useAbsentPageSpan();
 
     return (
         <ScreenWrapper
-            testID={NotFoundPage.displayName}
+            testID="NotFoundPage"
             shouldShowOfflineIndicator={shouldShowOfflineIndicator}
         >
             <FullPageNotFoundView
@@ -47,7 +50,5 @@ function NotFoundPage({onBackButtonPress = () => Navigation.goBack(), isReportRe
         </ScreenWrapper>
     );
 }
-
-NotFoundPage.displayName = 'NotFoundPage';
 
 export default NotFoundPage;

@@ -25,14 +25,18 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
     const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY, {canBeMissing: true});
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`, {canBeMissing: true});
     const currentUserDetails = useCurrentUserPersonalDetails();
-    const {localeCompare, formatPhoneNumber} = useLocalize();
-    const [isActionLoadingSet = new Set<string>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
+    const {localeCompare, formatPhoneNumber, translate} = useLocalize();
+    const [isActionLoadingSet = CONST.EMPTY_SET] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
 
     const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         canEvict: false,
         canBeMissing: true,
         selector: selectFilteredReportActions,
     });
+
+    const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA, {canBeMissing: true});
 
     const archivedReportsIdSet = useArchivedReportsIdSet();
 
@@ -44,14 +48,18 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
             data: currentSearchResults.data,
             currentAccountID: currentUserDetails.accountID,
             currentUserEmail: currentUserDetails.email ?? '',
+            translate,
             formatPhoneNumber,
+            bankAccountList,
             groupBy,
             reportActions: exportReportActions,
             currentSearch: lastSearchQuery?.searchKey,
             archivedReportsIDList: archivedReportsIdSet,
             isActionLoadingSet,
+            cardFeeds,
+            allReportMetadata,
         });
-        results = getSortedSections(type, status ?? '', searchData, localeCompare, sortBy, sortOrder, groupBy).map((value) => value.reportID);
+        results = getSortedSections(type, status ?? '', searchData, localeCompare, translate, sortBy, sortOrder, groupBy).map((value) => value.reportID);
     }
     const allReports = results;
 
@@ -142,7 +150,5 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
         )
     );
 }
-
-MoneyRequestReportNavigation.displayName = 'MoneyRequestReportNavigation';
 
 export default MoneyRequestReportNavigation;

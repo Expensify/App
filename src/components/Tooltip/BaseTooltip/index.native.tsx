@@ -6,6 +6,4 @@ function Tooltip({children, ref}: ChildrenProps & {ref?: unknown}) {
     return children;
 }
 
-Tooltip.displayName = 'Tooltip';
-
 export default Tooltip;

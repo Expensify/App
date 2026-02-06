@@ -13,6 +13,4 @@ function TwoFactorAuthForm({innerRef, validateInsteadOfDisable, shouldAutoFocusO
     );
 }
 
-TwoFactorAuthForm.displayName = 'TwoFactorAuthForm';
-
 export default TwoFactorAuthForm;

@@ -71,7 +71,6 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
             {} as Record<string, number>,
         );
         // getAccountIDsByLogins function uses the personalDetails data from the connection, so we need to re-run this logic when the personal detail is changed.
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [newMembers, personalDetails]);
 
@@ -87,8 +86,8 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
         }
         setIsImporting(true);
         const membersWithRole = (importedSpreadsheetMemberData ?? []).map((member) => ({...member, role: member.role || role}));
-        importPolicyMembers(policyID, membersWithRole);
-    }, [importedSpreadsheetMemberData, newMembers, policyID, role]);
+        importPolicyMembers(policy, membersWithRole);
+    }, [importedSpreadsheetMemberData, newMembers, policy, role]);
 
     const closeImportPageAndModal = () => {
         setIsClosing(true);
@@ -140,7 +139,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
         <ScreenWrapper
             shouldEnableMaxHeight
             shouldUseCachedViewportHeight
-            testID={ImportedMembersConfirmationPage.displayName}
+            testID="ImportedMembersConfirmationPage"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldShowOfflineIndicatorInWideScreen
         >
@@ -220,7 +219,5 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
         </ScreenWrapper>
     );
 }
-
-ImportedMembersConfirmationPage.displayName = 'ImportedMembersConfirmationPage';
 
 export default ImportedMembersConfirmationPage;

@@ -1,4 +1,4 @@
-name: 🧙 Check spell
+name: Spell check
 
 on:
   pull_request:
@@ -8,15 +8,48 @@ on:
 jobs:
   spellcheck:
     runs-on: ubuntu-latest
-    name: 🔍 spellcheck
     steps:
       - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
-      - uses: streetsidesoftware/cspell-action@72ae91e90fa38f2335a60e233a847a6d00a9f221
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Remove E/App version from package-lock.json
+        shell: bash
+        run: jq 'del(.version, .packages[""].version)' package-lock.json > normalized-package-lock.json
+
+      - name: Restore cspell cache
+        # v5.0.1
+        uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb
         with:
-          files: "**/*"
-          root: "."
-          config: "./cspell.json"
-          inline: error
-          strict: true
-          use_cspell_files: false
-          incremental_files_only: true
+          path: .cspellcache
+          key: cspell-${{ runner.os }}-${{ hashFiles('cspell.json', 'normalized-package-lock.json') }}-${{ github.sha }}
+          restore-keys: |
+            cspell-${{ runner.os }}-${{ hashFiles('cspell.json', 'normalized-package-lock.json') }}-
+            cspell-${{ runner.os }}-
+
+      - name: Get changed files
+        id: changed-files
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          FILES=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files --jq '.[].filename' | tr '\n' ' ')
+          echo "files=$FILES" >> "$GITHUB_OUTPUT"
+
+      - name: Filter out dot files
+        id: filtered-files
+        run: |
+          FILES=$(echo "${{ steps.changed-files.outputs.files }}" | tr ' ' '\n' | grep -v '^\.' | xargs)
+          echo "files=$FILES" >> "$GITHUB_OUTPUT"
+
+      - name: Spell check
+        if: steps.filtered-files.outputs.files != ''
+        run: npm run spell-changed -- ${{ steps.filtered-files.outputs.files }}
+
+      - name: Save cspell cache
+        # v4
+        uses: actions/cache/save@9255dc7a253b0ccc959486e2bca901246202afeb
+        if: always()
+        with:
+          path: .cspellcache
+          key: cspell-${{ runner.os }}-${{ hashFiles('cspell.json', 'normalized-package-lock.json') }}-${{ github.sha }}

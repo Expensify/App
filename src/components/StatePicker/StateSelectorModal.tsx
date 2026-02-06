@@ -81,7 +81,7 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
                 style={[styles.pb0]}
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom={false}
-                testID={StateSelectorModal.displayName}
+                testID="StateSelectorModal"
             >
                 <HeaderWithBackButton
                     title={label}
@@ -102,7 +102,5 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
         </Modal>
     );
 }
-
-StateSelectorModal.displayName = 'StateSelectorModal';
 
 export default StateSelectorModal;

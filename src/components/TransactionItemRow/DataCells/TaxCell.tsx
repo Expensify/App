@@ -20,5 +20,4 @@ function TaxCell({transactionItem, shouldShowTooltip}: TransactionDataCellProps)
     );
 }
 
-TaxCell.displayName = 'TaxCell';
 export default TaxCell;

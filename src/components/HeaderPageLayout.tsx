@@ -120,7 +120,5 @@ function HeaderPageLayout({
     );
 }
 
-HeaderPageLayout.displayName = 'HeaderPageLayout';
-
 export type {HeaderPageLayoutProps};
 export default HeaderPageLayout;

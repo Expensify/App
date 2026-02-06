@@ -134,6 +134,4 @@ function EnableGlobalReimbursements({route}: EnableGlobalReimbursementsProps) {
     }
 }
 
-EnableGlobalReimbursements.displayName = 'EnableGlobalReimbursements';
-
 export default EnableGlobalReimbursements;

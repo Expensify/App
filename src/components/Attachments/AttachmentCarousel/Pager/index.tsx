@@ -151,7 +151,6 @@ function AttachmentCarouselPager({items, activeAttachmentID, initialPage, setSho
         </AttachmentCarouselPagerContext.Provider>
     );
 }
-AttachmentCarouselPager.displayName = 'AttachmentCarouselPager';
 
 export default AttachmentCarouselPager;
 export type {AttachmentCarouselPagerHandle};

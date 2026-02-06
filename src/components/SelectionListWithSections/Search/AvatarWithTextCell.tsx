@@ -46,6 +46,4 @@ function AvatarWithTextCell({reportName, icon}: AvatarWithTextCellProps) {
     );
 }
 
-AvatarWithTextCell.displayName = 'ReportInfoCell';
-
 export default AvatarWithTextCell;

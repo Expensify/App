@@ -1,7 +1,15 @@
-import React, {useCallback, useEffect} from 'react';
+import {getReportPolicyID} from '@selectors/Report';
+import React, {useCallback, useContext, useEffect} from 'react';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchContext} from '@components/Search/SearchContext';
+import {useWideRHPState} from '@components/WideRHPContextProvider';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
+import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList, SearchReportActionsParamList} from '@libs/Navigation/types';
@@ -22,19 +30,34 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
 
     const {transactionID, reportID, backTo} = route.params;
     const {removeTransaction} = useSearchContext();
-
+    const [reportPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {canBeMissing: false, selector: getReportPolicyID});
+    const policy = usePolicy(reportPolicyID);
+    const {superWideRHPRouteKeys} = useWideRHPState();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
-        const urlToNavigateBack = rejectMoneyRequest(transactionID, reportID, values.comment);
+        if (isDelegateAccessRestricted) {
+            showDelegateNoAccessModal();
+            return;
+        }
+
+        const urlToNavigateBack = rejectMoneyRequest(transactionID, reportID, values.comment, policy, currentUserAccountID, betas);
         removeTransaction(transactionID);
-        Navigation.dismissModal();
-        if (urlToNavigateBack) {
+        // If the super wide rhp is not opened, dismiss the entire modal.
+        if (superWideRHPRouteKeys.length > 0) {
+            Navigation.dismissToSuperWideRHP();
+        } else {
+            Navigation.dismissModal();
+        }
+        if (urlToNavigateBack && getIsSmallScreenWidth()) {
             Navigation.isNavigationReady().then(() => Navigation.goBack(urlToNavigateBack));
         }
     };
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM> = getFieldRequiredErrors(values, [INPUT_IDS.COMMENT]);
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM> = getFieldRequiredErrors(values, [INPUT_IDS.COMMENT], translate);
 
             if (!values.comment) {
                 errors.comment = translate('common.error.fieldRequired');
@@ -57,7 +80,5 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
         />
     );
 }
-
-RejectReasonPage.displayName = 'RejectReasonPage';
 
 export default RejectReasonPage;

@@ -34,7 +34,7 @@ function QRShare({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowWidth} = useWindowDimensions();
     const qrCodeContainerWidth = shouldUseNarrowLayout ? windowWidth : variables.sideBarWidth;
-    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark']);
 
     const {formatPhoneNumber} = useLocalize();
 
@@ -105,7 +105,5 @@ function QRShare({
         </View>
     );
 }
-
-QRShare.displayName = 'QRShare';
 
 export default QRShare;

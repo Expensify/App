@@ -107,10 +107,10 @@ function SelectionListWithSections<TItem extends ListItem>({onScroll, shouldHide
             isRowMultilineSupported
             shouldDisableHoverStyle={shouldDisableHoverStyle}
             setShouldDisableHoverStyle={setShouldDisableHoverStyle}
+            // Web doesn't require scroll offset correction, only native does
+            shouldSkipContentHeaderHeightOffset={false}
         />
     );
 }
-
-SelectionListWithSections.displayName = 'SelectionListWithSections';
 
 export default SelectionListWithSections;

@@ -5,7 +5,6 @@ import {AttachmentContext} from '@components/AttachmentContext';
 import Checkbox from '@components/Checkbox';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -16,7 +15,9 @@ import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -31,6 +32,7 @@ import {isActiveTaskEditRoute} from '@libs/TaskUtils';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import {canActionTask, canModifyTask, clearTaskErrors, completeTask, reopenTask, setTaskReport} from '@userActions/Task';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';
 
@@ -46,11 +48,13 @@ type TaskViewProps = {
 };
 
 function TaskView({report, parentReport, action}: TaskViewProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
 
     useEffect(() => {
         setTaskReport(report);
@@ -60,7 +64,12 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     const titleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitleWithoutPre), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
     const taskTitle = `<task-title>${titleWithoutImage}</task-title>`;
 
-    const assigneeTooltipDetails = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(report?.managerID ? [report?.managerID] : [], personalDetails), false, localeCompare);
+    const assigneeTooltipDetails = getDisplayNamesWithTooltips(
+        getPersonalDetailsForAccountIDs(report?.managerID ? [report?.managerID] : [], personalDetails),
+        false,
+        localeCompare,
+        formatPhoneNumber,
+    );
 
     const isOpen = isOpenTaskReport(report);
     const isCompleted = isCompletedTaskReport(report);
@@ -96,7 +105,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                 <OfflineWithFeedback
                     shouldShowErrorMessages
                     errors={report?.errorFields?.editTask ?? report?.errorFields?.createTask}
-                    onClose={() => clearTaskErrors(report?.reportID)}
+                    onClose={() => clearTaskErrors(report, conciergeReportID)}
                     errorRowStyles={styles.ph5}
                 >
                     <Hoverable>
@@ -120,6 +129,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                 ]}
                                 accessibilityLabel={taskTitle || translate('task.task')}
                                 disabled={isDisableInteractive}
+                                sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_TITLE}
                             >
                                 {({pressed}) => (
                                     <OfflineWithFeedback pendingAction={report?.pendingFields?.reportName}>
@@ -132,9 +142,9 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                         return;
                                                     }
                                                     if (isCompleted) {
-                                                        reopenTask(report, currentUserPersonalDetails.accountID);
+                                                        reopenTask(report, parentReport, currentUserPersonalDetails.accountID);
                                                     } else {
-                                                        completeTask(report, hasOutstandingChildTask, parentReportAction);
+                                                        completeTask(report, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction);
                                                     }
                                                 })}
                                                 isChecked={isCompleted}
@@ -144,6 +154,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                 caretSize={16}
                                                 accessibilityLabel={taskTitle || translate('task.task')}
                                                 disabled={!isTaskActionable}
+                                                sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_CHECKBOX}
                                             />
                                             <View style={[styles.flexRow, styles.flex1]}>
                                                 <RenderHTML html={taskTitle} />
@@ -152,7 +163,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                 <View style={styles.taskRightIconContainer}>
                                                     <Icon
                                                         additionalStyles={[styles.alignItemsCenter]}
-                                                        src={Expensicons.ArrowRight}
+                                                        src={icons.ArrowRight}
                                                         fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false, disableState))}
                                                     />
                                                 </View>
@@ -176,6 +187,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                             numberOfLinesTitle={0}
                             interactive={!isDisableInteractive}
                             shouldUseDefaultCursorWhenDisabled
+                            sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_DESCRIPTION}
                         />
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={report?.pendingFields?.managerID}>
@@ -196,6 +208,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                 interactive={!isDisableInteractive}
                                 titleWithTooltips={assigneeTooltipDetails}
                                 shouldUseDefaultCursorWhenDisabled
+                                sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_ASSIGNEE}
                             />
                         ) : (
                             <MenuItemWithTopDescription
@@ -207,6 +220,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                 shouldGreyOutWhenDisabled={false}
                                 interactive={!isDisableInteractive}
                                 shouldUseDefaultCursorWhenDisabled
+                                sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_ASSIGNEE}
                             />
                         )}
                     </OfflineWithFeedback>
@@ -215,7 +229,5 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
         </ShowContextMenuContext.Provider>
     );
 }
-
-TaskView.displayName = 'TaskView';
 
 export default TaskView;

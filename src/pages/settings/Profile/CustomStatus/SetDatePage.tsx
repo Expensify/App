@@ -32,16 +32,19 @@ function SetDatePage() {
         Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER);
     };
 
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_CLEAR_DATE_FORM>) => {
-        const errors = getFieldRequiredErrors(values, [INPUT_IDS.DATE_TIME]);
-        const dateError = getDatePassedError(values.dateTime);
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_CLEAR_DATE_FORM>) => {
+            const errors = getFieldRequiredErrors(values, [INPUT_IDS.DATE_TIME], translate);
+            const dateError = getDatePassedError(translate, values.dateTime);
 
-        if (values.dateTime && dateError) {
-            errors.dateTime = dateError;
-        }
+            if (values.dateTime && dateError) {
+                errors.dateTime = dateError;
+            }
 
-        return errors;
-    }, []);
+            return errors;
+        },
+        [translate],
+    );
 
     if (isLoadingOnyxValue(statusDraftCustomClearAfterDateMetaData)) {
         return <FullScreenLoadingIndicator />;
@@ -50,7 +53,7 @@ function SetDatePage() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
-            testID={SetDatePage.displayName}
+            testID="SetDatePage"
         >
             <HeaderWithBackButton
                 title={translate('statusPage.date')}
@@ -78,7 +81,5 @@ function SetDatePage() {
         </ScreenWrapper>
     );
 }
-
-SetDatePage.displayName = 'SetDatePage';
 
 export default SetDatePage;

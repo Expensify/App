@@ -255,6 +255,7 @@ function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable, onFocus,
                     errorText={formError.twoFactorAuthCode ?? errorMessage}
                     ref={inputRef}
                     autoFocus={false}
+                    accessibilityLabel={translate('common.twoFactorCode')}
                     testID="twoFactorAuthCodeInput"
                 />
             )}

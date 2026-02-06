@@ -47,6 +47,4 @@ function DebugJSON({data}: DebugJSONProps) {
     );
 }
 
-DebugJSON.displayName = 'DebugJSON';
-
 export default DebugJSON;

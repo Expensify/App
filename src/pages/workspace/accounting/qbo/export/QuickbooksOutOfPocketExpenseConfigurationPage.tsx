@@ -106,7 +106,7 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
 
     return (
         <ConnectionLayout
-            displayName={QuickbooksOutOfPocketExpenseConfigurationPage.displayName}
+            displayName="QuickbooksOutOfPocketExpenseConfigurationPage"
             headerTitle="workspace.accounting.exportOutOfPocket"
             title="workspace.qbo.exportOutOfPocketExpensesDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
@@ -124,7 +124,6 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
                     key={index}
                     errors={section.errors}
                     errorRowStyles={[styles.ph5]}
-                    canDismissError={false}
                 >
                     <MenuItemWithTopDescription
                         title={section.title}
@@ -139,7 +138,5 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
         </ConnectionLayout>
     );
 }
-
-QuickbooksOutOfPocketExpenseConfigurationPage.displayName = 'QuickbooksExportOutOfPocketExpensesPage';
 
 export default withPolicyConnections(QuickbooksOutOfPocketExpenseConfigurationPage);

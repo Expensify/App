@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention, rulesdir/prefer-actions-set-data */
-import type {Meta, StoryFn} from '@storybook/react';
+import type {Meta, StoryFn} from '@storybook/react-webpack5';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import type {EReceiptProps} from '@components/EReceipt';

@@ -36,7 +36,7 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
             return;
         }
         setIsWebViewOpen(true);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (
@@ -95,7 +95,5 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
         </>
     );
 }
-
-ConnectToXeroFlow.displayName = 'ConnectToXeroFlow';
 
 export default ConnectToXeroFlow;

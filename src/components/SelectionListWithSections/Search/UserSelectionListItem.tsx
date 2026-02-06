@@ -37,7 +37,7 @@ function UserSelectionListItem<TItem extends ListItem>({
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
     const {formatPhoneNumber} = useLocalize();
 
     const handleCheckboxPress = useCallback(() => {
@@ -61,11 +61,17 @@ function UserSelectionListItem<TItem extends ListItem>({
     }, [currentUserPersonalDetails.login, item.login]);
 
     const userDisplayName = useMemo(() => {
-        return getDisplayNameForParticipant({
-            accountID: item.accountID ?? CONST.DEFAULT_NUMBER_ID,
-            formatPhoneNumber,
-        });
-    }, [formatPhoneNumber, item.accountID]);
+        /* eslint-disable @typescript-eslint/prefer-nullish-coalescing -- need || to handle empty string from getDisplayNameForParticipant */
+        return (
+            getDisplayNameForParticipant({
+                accountID: item.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                formatPhoneNumber,
+            }) ||
+            item.text ||
+            ''
+        );
+        /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
+    }, [formatPhoneNumber, item.accountID, item.text]);
 
     return (
         <BaseListItem
@@ -118,6 +124,7 @@ function UserSelectionListItem<TItem extends ListItem>({
                 <PressableWithFeedback
                     accessibilityLabel={item.text ?? ''}
                     role={CONST.ROLE.BUTTON}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.USER_SELECTION_CHECKBOX}
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     disabled={isDisabled || item.isDisabledCheckbox}
                     onPress={handleCheckboxPress}
@@ -140,7 +147,5 @@ function UserSelectionListItem<TItem extends ListItem>({
         </BaseListItem>
     );
 }
-
-UserSelectionListItem.displayName = 'UserSelectionListItem';
 
 export default UserSelectionListItem;

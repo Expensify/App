@@ -46,7 +46,8 @@ function RecordTroubleshootDataToolMenu() {
             const zipUrl = URL.createObjectURL(zipBlob);
             const link = document.createElement('a');
             link.href = zipUrl;
-            link.download = 'troubleshoot.zip';
+            const zipArchiveName = appendTimeToFileName('troubleshoot.zip');
+            link.download = zipArchiveName;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -66,7 +67,5 @@ function RecordTroubleshootDataToolMenu() {
         />
     );
 }
-
-RecordTroubleshootDataToolMenu.displayName = 'RecordTroubleshootDataToolMenu';
 
 export default RecordTroubleshootDataToolMenu;

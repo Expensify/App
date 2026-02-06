@@ -102,6 +102,4 @@ function EmojiSuggestions({
     );
 }
 
-EmojiSuggestions.displayName = 'EmojiSuggestions';
-
 export default EmojiSuggestions;

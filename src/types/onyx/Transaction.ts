@@ -75,6 +75,18 @@ type Comment = {
     /** Type of the transaction */
     type?: ValueOf<typeof CONST.TRANSACTION.TYPE>;
 
+    /** Contains information pertaining to time tracking */
+    units?: {
+        /** Count of the unit */
+        count?: number;
+
+        /** Rate of the unit in cents */
+        rate?: number;
+
+        /** Unit of the unit (e.g. 'h' for hours) */
+        unit?: ValueOf<typeof CONST.TIME_TRACKING.UNIT>;
+    };
+
     /** In custom unit transactions this holds the information of the custom unit */
     customUnit?: TransactionCustomUnit;
 
@@ -93,11 +105,33 @@ type Comment = {
     /** Total that the user currently owes for splitExpenses */
     splitExpensesTotal?: number;
 
+    /** Start date for splits */
+    splitsStartDate?: string;
+
+    /** End date for splits */
+    splitsEndDate?: string;
+
     /** Violations that were dismissed */
     dismissedViolations?: Partial<Record<ViolationName, Record<string, string | number>>>;
 
     /** Defines the type of liability for the transaction */
     liabilityType?: ValueOf<typeof CONST.TRANSACTION.LIABILITY_TYPE>;
+
+    /** Timestamp when auto-categorization was initiated (format: "YYYY-MM-DD HH:MM:SS") */
+    pendingAutoCategorizationTime?: string;
+
+    /** Odometer start reading for distance expenses */
+    odometerStart?: number;
+
+    /** Odometer end reading for distance expenses */
+    odometerEnd?: number;
+
+    /** Both image fields are needed only locally because server receives only one merged image as receipt */
+    /** Odometer start image (File object on web, URI string on native) */
+    odometerStartImage?: File | string;
+
+    /** Odometer end image (File object on web, URI string on native) */
+    odometerEndImage?: File | string;
 };
 
 /** Model of transaction custom unit */
@@ -439,18 +473,14 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Server side errors keyed by microtime */
         errorFields?: OnyxCommon.ErrorFields;
 
-        /**
-         * @deprecated - Use getReceiptFilenameFromTransaction to get filename
-         *
-         * The name of the file used for a receipt (formerly receiptFilename)
-         */
-        filename?: string;
-
         /** The transaction converted amount in `groupCurrency` currency */
         groupAmount?: number;
 
         /** The group currency if the transaction is grouped. Defaults to the active policy currency if group has no target currency */
         groupCurrency?: string;
+
+        /** The exchange rate of the transaction if the transaction is grouped. Defaults to the exchange rate against the active policy currency if group has no target currency */
+        groupExchangeRate?: number;
 
         /** Used during the creation flow before the transaction is saved to the server */
         iouRequestType?: IOURequestType;
@@ -459,7 +489,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         merchant: string;
 
         /** The edited transaction amount */
-        modifiedAmount?: number;
+        modifiedAmount?: number | string;
 
         /** The edited attendees list */
         modifiedAttendees?: Attendee[];
@@ -488,6 +518,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The receipt object associated with the transaction */
         receipt?: Receipt;
 
+        /** The transaction thread reportID - usually set for transactions in the search snapshot */
+        transactionThreadReportID?: string | undefined;
+
         /** The iouReportID associated with the transaction */
         reportID: string | undefined;
 
@@ -505,6 +538,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the transaction was created globally */
         isFromGlobalCreate?: boolean;
+
+        /** Whether the transaction was created from the FAB, including Global create button, FloatingCameraButton, QuickAction,... */
+        isFromFloatingActionButton?: boolean;
 
         /** The transaction tax rate */
         taxRate?: string | undefined;
@@ -573,6 +609,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The inserted time of the transaction */
         inserted?: string;
+
+        /** Transaction type */
+        transactionType?: string;
     },
     keyof Comment | keyof TransactionCustomUnit | 'attendees'
 >;
@@ -602,6 +641,12 @@ type AdditionalTransactionChanges = {
 
     /** Previous distance before changes */
     distance?: number;
+
+    /** Odometer start reading for distance expenses */
+    odometerStart?: number;
+
+    /** Odometer end reading for distance expenses */
+    odometerEnd?: number;
 };
 
 /** Model of transaction changes  */

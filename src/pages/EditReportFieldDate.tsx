@@ -1,10 +1,9 @@
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -30,7 +29,6 @@ type EditReportFieldDatePageProps = {
 function EditReportFieldDatePage({fieldName, isRequired, onSubmit, fieldValue, fieldKey}: EditReportFieldDatePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const inputRef = useRef<AnimatedTextInputRef>(null);
 
     const validate = useCallback(
         (value: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM>) => {
@@ -64,14 +62,11 @@ function EditReportFieldDatePage({fieldName, isRequired, onSubmit, fieldValue, f
                     role={CONST.ROLE.PRESENTATION}
                     maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                     minDate={CONST.CALENDAR_PICKER.MIN_DATE}
-                    ref={inputRef}
                     autoFocus
                 />
             </View>
         </FormProvider>
     );
 }
-
-EditReportFieldDatePage.displayName = 'EditReportFieldDatePage';
 
 export default EditReportFieldDatePage;

@@ -21,9 +21,11 @@ jobs:
         with:
           bundler-cache: true
 
-      - name: Install 1Password CLI
-        # v1
-        uses: 1password/install-cli-action@143a85f84a90555d121cde2ff5872e393a47ab9f
+      - name: Setup 1Password CLI and certificates
+        uses: Expensify/GitHub-Actions/setup-certificate-1p@main
+        with:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          SHOULD_LOAD_SSL_CERTIFICATES: 'false'
 
       - name: Load files from 1Password
         working-directory: android/app

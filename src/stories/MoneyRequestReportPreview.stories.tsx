@@ -1,4 +1,4 @@
-import type {StoryFn} from '@storybook/react';
+import type {StoryFn} from '@storybook/react-webpack5';
 import React from 'react';
 import type {ListRenderItem} from 'react-native';
 import {View} from 'react-native';

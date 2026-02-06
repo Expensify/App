@@ -7,9 +7,18 @@ import type OnyxState from '@src/types/onyx/OnyxState';
 import {maskOnyxState} from './common';
 import type {ExportOnyxStateModule, ReadFromOnyxDatabase, ShareAsFile} from './types';
 
+let onyxDb: ReturnType<typeof open> | null = null;
+
+function getOnyxDb() {
+    if (!onyxDb) {
+        onyxDb = open({name: CONST.DEFAULT_DB_NAME});
+    }
+    return onyxDb;
+}
+
 const readFromOnyxDatabase: ReadFromOnyxDatabase = () =>
     new Promise((resolve) => {
-        const db = open({name: CONST.DEFAULT_DB_NAME});
+        const db = getOnyxDb();
         const query = `SELECT * FROM ${CONST.DEFAULT_TABLE_NAME}`;
 
         db.executeAsync<OnyxSQLiteKeyValuePair>(query, []).then(({rows}) => {

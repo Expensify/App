@@ -1,12 +1,12 @@
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useMemo, useRef} from 'react';
 import useLocalize from '@hooks/useLocalize';
-import {replaceAllDigits, stripCommaFromAmount, stripSpacesFromAmount, validatePercentage} from '@libs/MoneyRequestUtils';
+import {addLeadingZero, replaceAllDigits, replaceCommasWithPeriod, stripSpacesFromAmount, validatePercentage} from '@libs/MoneyRequestUtils';
 import CONST from '@src/CONST';
 import TextInput from './TextInput';
-import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
+import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
 
-type PercentageFormProps = {
+type PercentageFormProps = BaseTextInputProps & {
     /** Amount supplied by the FormProvider */
     value?: string;
 
@@ -19,11 +19,20 @@ type PercentageFormProps = {
     /** Custom label for the TextInput */
     label?: string;
 
+    /** Whether to allow values greater than 100 (e.g. split expenses in percentage mode). */
+    allowExceedingHundred?: boolean;
+
+    /** Whether to allow one decimal place (0.1 precision) for more granular percentage splits. */
+    allowDecimal?: boolean;
+
+    /** Whether to allow negative percentages (e.g. for split expenses with negative amounts). */
+    allowNegative?: boolean;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
 };
 
-function PercentageForm({value: amount, errorText, onInputChange, label, ref, ...rest}: PercentageFormProps) {
+function PercentageForm({value: amount, errorText, onInputChange, label, allowExceedingHundred = false, allowDecimal = false, allowNegative = false, ref, ...rest}: PercentageFormProps) {
     const {toLocaleDigit, numberFormat} = useLocalize();
 
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -31,7 +40,7 @@ function PercentageForm({value: amount, errorText, onInputChange, label, ref, ..
     const currentAmount = useMemo(() => (typeof amount === 'string' ? amount : ''), [amount]);
 
     /**
-     * Sets the selection and the amount accordingly to the value passed to the input
+     * Sets the amount according to the value passed to the input
      * @param newAmount - Changed amount from user input
      */
     const setNewAmount = useCallback(
@@ -39,16 +48,16 @@ function PercentageForm({value: amount, errorText, onInputChange, label, ref, ..
             // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
             // More info: https://github.com/Expensify/App/issues/16974
             const newAmountWithoutSpaces = stripSpacesFromAmount(newAmount);
-            // Use a shallow copy of selection to trigger setSelection
-            // More info: https://github.com/Expensify/App/issues/16385
-            if (!validatePercentage(newAmountWithoutSpaces)) {
+            const withLeadingZero = addLeadingZero(newAmountWithoutSpaces, allowNegative);
+            if (!validatePercentage(withLeadingZero, allowExceedingHundred, allowDecimal, allowNegative)) {
                 return;
             }
 
-            const strippedAmount = stripCommaFromAmount(newAmountWithoutSpaces);
-            onInputChange?.(strippedAmount);
+            // Convert comma to period for internal representation (commas are used as decimal separators in some locales like Spanish)
+            const normalizedAmount = replaceCommasWithPeriod(newAmountWithoutSpaces);
+            onInputChange?.(normalizedAmount);
         },
-        [onInputChange],
+        [allowExceedingHundred, allowDecimal, allowNegative, onInputChange],
     );
 
     const formattedAmount = replaceAllDigits(currentAmount, toLocaleDigit);
@@ -78,7 +87,5 @@ function PercentageForm({value: amount, errorText, onInputChange, label, ref, ..
         />
     );
 }
-
-PercentageForm.displayName = 'PercentageForm';
 
 export default PercentageForm;

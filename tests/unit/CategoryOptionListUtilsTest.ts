@@ -80,7 +80,7 @@ describe('CategoryOptionListUtils', () => {
         const smallResultList: CategoryTreeSection[] = [
             {
                 title: '',
-                shouldShow: false,
+                sectionIndex: 2,
                 data: [
                     {
                         text: 'Employee Meals Office',
@@ -119,14 +119,12 @@ describe('CategoryOptionListUtils', () => {
                         pendingAction: 'delete',
                     },
                 ],
-                indexOffset: 4,
             },
         ];
         const smallSearchResultList: CategoryTreeSection[] = [
             {
                 title: '',
-                shouldShow: true,
-                indexOffset: 2,
+                sectionIndex: 0,
                 data: [
                     {
                         text: 'Food',
@@ -152,9 +150,8 @@ describe('CategoryOptionListUtils', () => {
         const smallWrongSearchResultList: CategoryTreeSection[] = [
             {
                 title: '',
-                shouldShow: true,
-                indexOffset: 0,
                 data: [],
+                sectionIndex: 0,
             },
         ];
         const largeCategoriesList: PolicyCategories = {
@@ -284,12 +281,38 @@ describe('CategoryOptionListUtils', () => {
                 externalID: '',
                 origin: '',
             },
+            Entertainment: {
+                enabled: true,
+                name: 'Entertainment',
+                unencodedName: 'Entertainment',
+                areCommentsRequired: false,
+                'GL Code': '',
+                externalID: '',
+                origin: '',
+            },
+            'Office Supplies': {
+                enabled: true,
+                name: 'Office Supplies',
+                unencodedName: 'Office Supplies',
+                areCommentsRequired: false,
+                'GL Code': '',
+                externalID: '',
+                origin: '',
+            },
+            Utilities: {
+                enabled: true,
+                name: 'Utilities',
+                unencodedName: 'Utilities',
+                areCommentsRequired: false,
+                'GL Code': '',
+                externalID: '',
+                origin: '',
+            },
         };
         const largeResultList: CategoryTreeSection[] = [
             {
                 title: '',
-                shouldShow: false,
-                indexOffset: 1,
+                sectionIndex: 1,
                 data: [
                     {
                         text: 'Medical',
@@ -304,8 +327,7 @@ describe('CategoryOptionListUtils', () => {
             },
             {
                 title: 'Recent',
-                shouldShow: true,
-                indexOffset: 1,
+                sectionIndex: 3,
                 data: [
                     {
                         text: 'Restaurant',
@@ -320,8 +342,7 @@ describe('CategoryOptionListUtils', () => {
             },
             {
                 title: 'All',
-                shouldShow: true,
-                indexOffset: 11,
+                sectionIndex: 4,
                 data: [
                     {
                         text: 'Cars',
@@ -351,6 +372,15 @@ describe('CategoryOptionListUtils', () => {
                         pendingAction: undefined,
                     },
                     {
+                        text: 'Entertainment',
+                        keyForList: 'Entertainment',
+                        searchText: 'Entertainment',
+                        tooltipText: 'Entertainment',
+                        isDisabled: false,
+                        isSelected: false,
+                        pendingAction: undefined,
+                    },
+                    {
                         text: 'Food',
                         keyForList: 'Food',
                         searchText: 'Food',
@@ -373,6 +403,15 @@ describe('CategoryOptionListUtils', () => {
                         keyForList: 'Food: Milk',
                         searchText: 'Food: Milk',
                         tooltipText: 'Milk',
+                        isDisabled: false,
+                        isSelected: false,
+                        pendingAction: undefined,
+                    },
+                    {
+                        text: 'Office Supplies',
+                        keyForList: 'Office Supplies',
+                        searchText: 'Office Supplies',
+                        tooltipText: 'Office Supplies',
                         isDisabled: false,
                         isSelected: false,
                         pendingAction: undefined,
@@ -422,14 +461,22 @@ describe('CategoryOptionListUtils', () => {
                         isSelected: false,
                         pendingAction: undefined,
                     },
+                    {
+                        text: 'Utilities',
+                        keyForList: 'Utilities',
+                        searchText: 'Utilities',
+                        tooltipText: 'Utilities',
+                        isDisabled: false,
+                        isSelected: false,
+                        pendingAction: undefined,
+                    },
                 ],
             },
         ];
         const largeSearchResultList: CategoryTreeSection[] = [
             {
                 title: '',
-                shouldShow: true,
-                indexOffset: 3,
+                sectionIndex: 0,
                 data: [
                     {
                         text: 'Food',
@@ -464,8 +511,7 @@ describe('CategoryOptionListUtils', () => {
         const largeWrongSearchResultList: CategoryTreeSection[] = [
             {
                 title: '',
-                shouldShow: true,
-                indexOffset: 0,
+                sectionIndex: 0,
                 data: [],
             },
         ];
@@ -473,8 +519,7 @@ describe('CategoryOptionListUtils', () => {
         const emptySelectedResultList: CategoryTreeSection[] = [
             {
                 title: '',
-                shouldShow: false,
-                indexOffset: 1,
+                sectionIndex: 0,
                 data: [
                     {
                         text: 'Medical',
@@ -492,8 +537,7 @@ describe('CategoryOptionListUtils', () => {
         const employeeSearchResultList: CategoryTreeSection[] = [
             {
                 title: '',
-                shouldShow: true,
-                indexOffset: 1,
+                sectionIndex: 0,
                 data: [
                     {
                         text: 'Employee Meals Office',

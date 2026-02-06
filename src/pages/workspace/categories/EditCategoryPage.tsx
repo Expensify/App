@@ -39,7 +39,7 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
                 errors.categoryName = translate('workspace.categories.existingCategoryError');
             } else if ([...newCategoryName].length > CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH) {
                 // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-                errors.categoryName = translate('common.error.characterLimitExceedCounter', {length: [...newCategoryName].length, limit: CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH});
+                errors.categoryName = translate('common.error.characterLimitExceedCounter', [...newCategoryName].length, CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH);
             }
             return errors;
         },
@@ -76,7 +76,7 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={EditCategoryPage.displayName}
+                testID="EditCategoryPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -99,7 +99,5 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-EditCategoryPage.displayName = 'EditCategoryPage';
 
 export default EditCategoryPage;

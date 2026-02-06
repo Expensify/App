@@ -20,6 +20,4 @@ function SelectionListWithSections<TItem extends ListItem>({shouldHideKeyboardOn
     );
 }
 
-SelectionListWithSections.displayName = 'SelectionListWithSections';
-
 export default SelectionListWithSections;

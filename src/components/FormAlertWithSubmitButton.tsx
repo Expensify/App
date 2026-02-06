@@ -161,8 +161,6 @@ function FormAlertWithSubmitButton({
     );
 }
 
-FormAlertWithSubmitButton.displayName = 'FormAlertWithSubmitButton';
-
 export default FormAlertWithSubmitButton;
 
 export type {FormAlertWithSubmitButtonProps};

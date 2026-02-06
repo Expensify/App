@@ -1,5 +1,5 @@
+import {areAllExpensifyCardsShipped} from '@selectors/Card';
 import React, {useCallback, useEffect, useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -15,11 +15,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {primaryLoginSelector} from '@src/selectors/Account';
 import type {PersonalDetailsForm} from '@src/types/form';
-import type {CardList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getSubstepValues} from './utils';
-
-const areAllCardsShippedSelector = (cardList: OnyxEntry<CardList>) => Object.values(cardList ?? {})?.every((card) => card?.state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
+import {getSubPageValues} from './utils';
 
 function MissingPersonalDetailsMagicCodePage() {
     const {translate} = useLocalize();
@@ -27,7 +24,7 @@ function MissingPersonalDetailsMagicCodePage() {
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT, {canBeMissing: false});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
-    const [areAllCardsShipped] = useOnyx(ONYXKEYS.CARD_LIST, {selector: areAllCardsShippedSelector, canBeMissing: true});
+    const [areAllCardsShipped] = useOnyx(ONYXKEYS.CARD_LIST, {selector: areAllExpensifyCardsShipped, canBeMissing: true});
     const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: primaryLoginSelector, canBeMissing: true});
 
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
@@ -52,7 +49,7 @@ function MissingPersonalDetailsMagicCodePage() {
         clearPersonalDetailsErrors();
     };
 
-    const values = useMemo(() => normalizeCountryCode(getSubstepValues(privatePersonalDetails, draftValues)) as PersonalDetailsForm, [privatePersonalDetails, draftValues]);
+    const values = useMemo(() => normalizeCountryCode(getSubPageValues(privatePersonalDetails, draftValues)) as PersonalDetailsForm, [privatePersonalDetails, draftValues]);
 
     const handleSubmitForm = useCallback(
         (validateCode: string) => {
@@ -64,7 +61,7 @@ function MissingPersonalDetailsMagicCodePage() {
     return (
         <ValidateCodeActionContent
             title={translate('cardPage.validateCardTitle')}
-            descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: primaryLogin ?? ''})}
+            descriptionPrimary={translate('cardPage.enterMagicCode', primaryLogin ?? '')}
             sendValidateCode={() => requestValidateCodeAction()}
             validateCodeActionErrorField="personalDetails"
             handleSubmitForm={handleSubmitForm}
@@ -72,13 +69,11 @@ function MissingPersonalDetailsMagicCodePage() {
             clearError={clearError}
             onClose={() => {
                 resetValidateActionCodeSent();
-                Navigation.goBack(ROUTES.MISSING_PERSONAL_DETAILS);
+                Navigation.goBack(ROUTES.MISSING_PERSONAL_DETAILS.getRoute());
             }}
             isLoading={privatePersonalDetails?.isLoading}
         />
     );
 }
-
-MissingPersonalDetailsMagicCodePage.displayName = 'MissingPersonalDetailsMagicCodePage';
 
 export default MissingPersonalDetailsMagicCodePage;

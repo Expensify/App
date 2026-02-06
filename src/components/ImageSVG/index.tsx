@@ -35,5 +35,4 @@ function ImageSVG({src, width = '100%', height = '100%', fill, hovered = false, 
     );
 }
 
-ImageSVG.displayName = 'ImageSVG';
 export default ImageSVG;

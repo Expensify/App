@@ -29,7 +29,7 @@ function OwnershipPercentage({onNext, isEditing, onMove, isUserEnteringHisOwnDat
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, [ownershipPercentageInputID]);
+            const errors = getFieldRequiredErrors(values, [ownershipPercentageInputID], translate);
 
             if (values[ownershipPercentageInputID] && !isValidOwnershipPercentage(SafeString(values[ownershipPercentageInputID]), totalOwnedPercentage, ownerBeingModifiedID)) {
                 errors[ownershipPercentageInputID] = translate('bankAccount.error.ownershipPercentage');
@@ -68,7 +68,5 @@ function OwnershipPercentage({onNext, isEditing, onMove, isUserEnteringHisOwnDat
         />
     );
 }
-
-OwnershipPercentage.displayName = 'OwnershipPercentage';
 
 export default OwnershipPercentage;

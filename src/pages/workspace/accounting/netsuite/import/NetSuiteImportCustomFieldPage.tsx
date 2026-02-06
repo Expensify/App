@@ -71,7 +71,7 @@ function NetSuiteImportCustomFieldPage({
     const policyID = policy?.id ?? '-1';
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['FolderWithPapers'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['FolderWithPapers']);
 
     const config = policy?.connections?.netsuite?.options?.config;
     const data = config?.syncOptions?.[importCustomField] ?? [];
@@ -112,7 +112,7 @@ function NetSuiteImportCustomFieldPage({
 
     return (
         <ConnectionLayout
-            displayName={NetSuiteImportCustomFieldPage.displayName}
+            displayName="NetSuiteImportCustomFieldPage"
             headerTitle={`workspace.netsuite.import.importCustomFields.${importCustomField}.title`}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
@@ -158,5 +158,4 @@ function NetSuiteImportCustomFieldPage({
     );
 }
 
-NetSuiteImportCustomFieldPage.displayName = 'NetSuiteImportCustomFieldPage';
 export default withPolicyConnections(NetSuiteImportCustomFieldPage);

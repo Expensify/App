@@ -133,6 +133,4 @@ function TaskShareDestinationSelectorModal() {
     );
 }
 
-TaskShareDestinationSelectorModal.displayName = 'TaskShareDestinationSelectorModal';
-
 export default TaskShareDestinationSelectorModal;
