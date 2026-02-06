@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {containsOnlyCustomEmoji as containsOnlyCustomEmojiUtil, containsOnlyEmojis as containsOnlyEmojisUtil, splitTextWithEmojis} from '@libs/EmojiUtils';
+import hydrateEmojiHtml from '@libs/hydrateEmojiHtml';
 import Parser from '@libs/Parser';
 import Performance from '@libs/Performance';
 import {getHtmlWithAttachmentID, getTextFromHtml} from '@libs/ReportActionsUtils';
@@ -90,19 +91,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
             if (!htmlContent.includes('<emoji>')) {
                 htmlContent = Parser.replace(htmlContent, {filterRules: ['emoji'], shouldEscapeText: false});
             }
-            htmlContent = Str.replaceAll(htmlContent, '<emoji>', '<emoji ismedium>');
-            const BLOCK_BOUNDARY_BEFORE = '(?:^|<br\\s*\\/?>|<\\/(?:div|p|blockquote|comment|h[1-6]|li|ul|ol|section|article)>)';
-            const BLOCK_BOUNDARY_AFTER = '(?:$|<br\\s*\\/?>|<(?:div|p|blockquote|comment|h[1-6]|li|ul|ol|section|article)\\b)';
-            const emojiOnSeparateLinePattern = new RegExp(`(${BLOCK_BOUNDARY_BEFORE})(\\s*)(<emoji\\b)([^>]*>[^<]*</emoji>)(\\s*)(?=${BLOCK_BOUNDARY_AFTER})`, 'gi');
-            htmlContent = htmlContent.replaceAll(
-                emojiOnSeparateLinePattern,
-                (match: string, boundaryBefore: string, wsBefore: string, emojiStart: string, emojiRest: string, wsAfter: string) => {
-                    if (!emojiStart.includes('oneline')) {
-                        return `${boundaryBefore}${wsBefore}<emoji oneline${emojiRest}${wsAfter}`;
-                    }
-                    return match;
-                },
-            );
+            htmlContent = hydrateEmojiHtml(htmlContent);
         }
 
         let htmlWithTag = editedTag ? `${htmlContent}${editedTag}` : htmlContent;
