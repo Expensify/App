@@ -252,6 +252,7 @@ function saveCurrentPathBeforeBackground() {
 let appState: AppStateStatus;
 AppState.addEventListener('change', (nextAppState) => {
     if (nextAppState.match(/inactive|background/)) {
+        Log.info('Cancelling telemetry spans as app is going inactive/background', false, {previousState: appState, nextState: nextAppState});
         cancelAllSpans();
     }
     if (nextAppState.match(/inactive|background/) && appState === 'active') {
