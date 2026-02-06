@@ -62,9 +62,7 @@ type BaseDomainMembersPageProps = {
     /** Callback fired when the user dismisses an error message for a specific row */
     onDismissError?: (item: MemberOption) => void;
 
-    /**
-     * Allow multiple members to be selected at the same time. Defaults to false.
-     */
+    /** Allow multiple members to be selected at the same time. Defaults to false. */
     canSelectMultiple?: boolean;
 
     /**

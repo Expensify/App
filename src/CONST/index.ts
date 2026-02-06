@@ -8240,8 +8240,6 @@ const CONST = {
         /** Onyx prefix for domain security groups */
         DOMAIN_SECURITY_GROUP_PREFIX: 'domain_securityGroup_',
 
-        PRIMARY_ACTIONS: {},
-
         MEMBERS_BULK_ACTION_TYPES: {
             CLOSE_ACCOUNT: 'closeAccount',
         },
