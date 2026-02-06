@@ -90,6 +90,8 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
 
     // sidePanelWidth dependency in useEffect below caused the help panel content to slide in on window resize
     useEffect(() => {
+        // We need to set transition state to false when animation starts, then back to true when it completes.
+        // This is intentional state management for coordinating with the animation lifecycle.
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setIsSidePanelTransitionEnded(false);
         Animated.parallel([
