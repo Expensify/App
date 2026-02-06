@@ -435,19 +435,14 @@ function ReportActionCompose({
 
     // Note: using JS refs is not well supported in reanimated, thus we need to store the function in a shared value
     // useSharedValue on web doesn't support functions, so we need to wrap it in an object.
-    const composerRefShared = useSharedValue<{
-        clearWorklet?: () => void;
-        resetHeight?: () => void;
-    }>({clearWorklet: undefined, resetHeight: undefined});
+    const composerRefShared = useSharedValue<Partial<ComposerRef>>({});
 
     const handleSendMessage = useCallback(() => {
         if (isSendDisabled || !debouncedValidate.flush()) {
             return;
         }
 
-        const {resetHeight} = composerRefShared.get();
-
-        resetHeight?.();
+        composerRef.current?.resetHeight();
         setIsComposerFullSize(reportID, false);
 
         scheduleOnUI(() => {
@@ -574,7 +569,6 @@ function ReportActionCompose({
                                 composerRef.current = ref ?? undefined;
                                 composerRefShared.set({
                                     clearWorklet: ref?.clearWorklet,
-                                    resetHeight: ref?.resetHeight,
                                 });
                             }}
                             suggestionsRef={suggestionsRef}
