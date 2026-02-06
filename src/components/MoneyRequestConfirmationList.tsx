@@ -77,7 +77,7 @@ import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import {DelegateNoAccessContext} from './DelegateNoAccessModalProvider';
 import FormHelpMessage from './FormHelpMessage';
 import MoneyRequestAmountInput from './MoneyRequestAmountInput';
-import getContentContainerStyle from './MoneyRequestConfirmationList/getCompactModeListStyles';
+import getContentContainerStyle from './MoneyRequestConfirmationList/getContentContainerStyles';
 import MoneyRequestConfirmationListFooter from './MoneyRequestConfirmationListFooter';
 import {PressableWithFeedback} from './Pressable';
 import {useProductTrainingContext} from './ProductTrainingContext';
