@@ -1157,6 +1157,7 @@ button {
     .ai-title {
         font-weight: 700;
         font-size: 15px;
+        color: var(--color-text);
     }
 
 
@@ -1165,6 +1166,7 @@ button {
         line-height: 24px;
         max-height: 580px;
         overflow: hidden;
+        color: var(--color-text);
 
         &.expanded {
             max-height: none;
