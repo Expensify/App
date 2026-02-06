@@ -13,9 +13,9 @@ import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
 import {useSearchContext} from '@components/Search/SearchContext';
 import SearchInputSelectionWrapper from '@components/Search/SearchInputSelectionWrapper';
 import type {SearchFilterKey, SearchQueryString} from '@components/Search/types';
+import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 import type {SearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
 import {isSearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
-import type {SelectionListHandle} from '@components/SelectionListWithSections/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -75,7 +75,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true});
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const listRef = useRef<SelectionListHandle>(null);
+    const listRef = useRef<SelectionListWithSectionsHandle>(null);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
 
     // The actual input text that the user sees
@@ -89,7 +89,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const {contextualReportID, isSearchRouterScreen} = useRootNavigationState(getContextualReportData);
 
     const getAdditionalSections: GetAdditionalSectionsCallback = useCallback(
-        ({recentReports}) => {
+        ({recentReports}, sectionIndex) => {
             if (!contextualReportID) {
                 return undefined;
             }
@@ -141,6 +141,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
             return [
                 {
+                    sectionIndex,
                     data: [
                         {
                             text: StringUtils.lineBreaksToSpaces(
@@ -226,12 +227,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     setAutocompleteSubstitutions(updatedSubstitutionsMap);
                 }
 
-                if (updatedUserQuery || textInputValue.length > 0) {
-                    listRef.current?.updateAndScrollToFocusedIndex(0);
-                } else {
-                    listRef.current?.updateAndScrollToFocusedIndex(-1);
-                }
-
                 const endTime = Date.now();
                 Log.info('[CMD_K_DEBUG] Search query change completed', false, {
                     actionId,
@@ -276,15 +271,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             setAutocompleteQueryValue('');
         },
         [autocompleteSubstitutions, onRouterClose, setTextInputValue, setShouldResetSearchQuery],
-    );
-
-    const setTextAndUpdateSelection = useCallback(
-        (text: string) => {
-            setTextInputValue(text);
-            shouldScrollRef.current = true;
-            setSelection({start: text.length, end: text.length});
-        },
-        [setSelection, setTextInputValue],
     );
 
     const onListItemPress = useCallback(
@@ -449,18 +435,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
         [autocompleteSubstitutions, onRouterClose, onSearchQueryChange, policies, reports, submitSearch, textInputValue],
     );
 
-    const updateAutocompleteSubstitutions = useCallback(
-        (item: SearchQueryItem) => {
-            if (!item.autocompleteID || !item.mapKey) {
-                return;
-            }
-
-            const substitutions = {...autocompleteSubstitutions, [item.mapKey]: item.autocompleteID};
-            setAutocompleteSubstitutions(substitutions);
-        },
-        [autocompleteSubstitutions],
-    );
-
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => {
         onRouterClose();
     });
@@ -487,7 +461,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     isFullWidth={shouldUseNarrowLayout}
                     onSearchQueryChange={onSearchQueryChange}
                     onSubmit={() => {
-                        const focusedOption = listRef.current?.getFocusedOption();
+                        const focusedOption = listRef.current?.getFocusedOption?.();
 
                         if (!focusedOption) {
                             submitSearch(textInputValue);
@@ -497,7 +471,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                         onListItemPress(focusedOption);
                     }}
                     caretHidden={shouldHideInputCaret}
-                    autocompleteListRef={listRef}
                     shouldShowOfflineMessage
                     wrapperStyle={{...styles.border, ...styles.alignItemsCenter}}
                     wrapperFocusedStyle={styles.borderColorFocus}
@@ -515,15 +488,13 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     searchQueryItem={searchQueryItem}
                     getAdditionalSections={getAdditionalSections}
                     onListItemPress={onListItemPress}
-                    setTextQuery={setTextAndUpdateSelection}
-                    updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
                     onHighlightFirstItem={updateAndScrollToFocusedIndex}
                     ref={listRef}
-                    textInputRef={textInputRef}
                     personalDetails={personalDetails}
                     reports={reports}
                     allFeeds={allFeeds}
                     allCards={nonPersonalAndWorkspaceCards}
+                    textInputRef={textInputRef}
                 />
             )}
             {!shouldShowList && (

@@ -1,4 +1,5 @@
 import type {ReactNode} from 'react';
+import type {LayoutChangeEvent} from 'react-native';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import type {BaseSelectionListProps} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
@@ -39,10 +40,16 @@ type SelectionListWithSectionsProps<TItem extends ListItem> = BaseSelectionListP
 
     /** Callback to fire when the list is scrolled */
     onScroll?: () => void;
+
+    /** Callback to fire when the list layout changes */
+    onLayout?: (event: LayoutChangeEvent) => void;
 };
 
-type SelectionListWithSectionsHandle = {
+type SelectionListWithSectionsHandle<TItem extends ListItem = ListItem> = {
     focusTextInput: () => void;
+    updateAndScrollToFocusedIndex: (index: number, shouldScroll?: boolean) => void;
+    updateExternalTextInputFocus: (isTextInputFocused: boolean) => void;
+    getFocusedOption: () => TItem | undefined;
 };
 
 type SectionHeader = {
