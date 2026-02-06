@@ -9,7 +9,6 @@ import {
     areTransactionsEligibleForMerge,
     getMergeableDataAndConflictFields,
     getMergeFieldValue,
-    getTransactionThreadReportID,
     MERGE_FIELDS,
     selectTargetAndSourceTransactionsForMerge,
     shouldNavigateToReceiptReview,
@@ -23,9 +22,9 @@ import CONST from '@src/CONST';
 import {isDistanceRequest, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {CardList, MergeTransaction, Policy, PolicyCategories, PolicyTagLists, Report, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {CardList, MergeTransaction, Policy, PolicyCategories, PolicyTagLists, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
 import {getUpdateMoneyRequestParams, getUpdateTrackExpenseParams} from './IOU';
-import type {UpdateMoneyRequestData} from './IOU';
+import type {UpdateMoneyRequestData, UpdateMoneyRequestDataKeys} from './IOU';
 
 /**
  * Setup merge transaction data for merging flow
@@ -181,20 +180,35 @@ function getTransactionsForMerging({
     }
 }
 
-function getOnyxTargetTransactionData(
-    targetTransaction: Transaction,
-    targetTransactionViolations: OnyxEntry<TransactionViolations>,
-    mergeTransaction: MergeTransaction,
-    policy: OnyxEntry<Policy>,
-    policyTags: OnyxEntry<PolicyTagLists>,
-    policyCategories: OnyxEntry<PolicyCategories>,
-    currentUserAccountIDParam: number,
-    currentUserEmailParam: string,
-    isASAPSubmitBetaEnabled: boolean,
-) {
-    let data: UpdateMoneyRequestData;
+function getOnyxTargetTransactionData({
+    targetTransaction,
+    targetTransactionViolations,
+    mergeTransaction,
+    targetTransactionThreadReport,
+    targetTransactionThreadParentReport,
+    targetTransactionThreadParentReportNextStep,
+    policy,
+    policyTags,
+    policyCategories,
+    currentUserAccountIDParam,
+    currentUserEmailParam,
+    isASAPSubmitBetaEnabled,
+}: {
+    targetTransaction: Transaction;
+    targetTransactionViolations: OnyxEntry<TransactionViolations>;
+    mergeTransaction: MergeTransaction;
+    targetTransactionThreadReport: OnyxEntry<Report>;
+    targetTransactionThreadParentReport: OnyxEntry<Report>;
+    targetTransactionThreadParentReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
+    policy: OnyxEntry<Policy>;
+    policyTags: OnyxEntry<PolicyTagLists>;
+    policyCategories: OnyxEntry<PolicyCategories>;
+    currentUserAccountIDParam: number;
+    currentUserEmailParam: string;
+    isASAPSubmitBetaEnabled: boolean;
+}) {
+    let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
     const isUnreportedExpense = !mergeTransaction.reportID || mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-    const transactionThreadReportID = getTransactionThreadReportID(targetTransaction);
 
     // Compare mergeTransaction with targetTransaction and remove fields with same values
     const targetTransactionDetails = getTransactionDetails(targetTransaction);
@@ -213,11 +227,19 @@ function getOnyxTargetTransactionData(
     const shouldBuildOptimisticModifiedExpenseReportAction = false;
 
     if (isUnreportedExpense) {
-        data = getUpdateTrackExpenseParams(targetTransaction.transactionID, transactionThreadReportID, filteredTransactionChanges, policy, shouldBuildOptimisticModifiedExpenseReportAction);
+        data = getUpdateTrackExpenseParams(
+            targetTransaction.transactionID,
+            targetTransactionThreadReport?.reportID,
+            filteredTransactionChanges,
+            policy,
+            shouldBuildOptimisticModifiedExpenseReportAction,
+        );
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID: targetTransaction.transactionID,
-            transactionThreadReportID,
+            transactionThreadReport: targetTransactionThreadReport,
+            iouReport: targetTransactionThreadParentReport,
+            iouReportNextStep: targetTransactionThreadParentReportNextStep,
             transactionChanges: filteredTransactionChanges,
             policy,
             policyTagList: policyTags,
@@ -266,6 +288,9 @@ type MergeTransactionRequestParams = {
     targetTransaction: Transaction;
     allTransactionViolations: OnyxCollection<TransactionViolations>;
     sourceTransaction: Transaction;
+    targetTransactionThreadReport: OnyxEntry<Report>;
+    targetTransactionThreadParentReport: OnyxEntry<Report>;
+    targetTransactionThreadParentReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
     policy: OnyxEntry<Policy>;
     policyTags: OnyxEntry<PolicyTagLists>;
     policyCategories: OnyxEntry<PolicyCategories>;
@@ -281,6 +306,9 @@ function mergeTransactionRequest({
     mergeTransaction,
     targetTransaction,
     sourceTransaction,
+    targetTransactionThreadReport,
+    targetTransactionThreadParentReport,
+    targetTransactionThreadParentReportNextStep,
     allTransactionViolations,
     policy,
     policyTags,
@@ -317,17 +345,20 @@ function mergeTransactionRequest({
         reportID: mergeTransaction.reportID,
     };
 
-    const onyxTargetTransactionData = getOnyxTargetTransactionData(
+    const onyxTargetTransactionData = getOnyxTargetTransactionData({
         targetTransaction,
-        allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + targetTransaction.transactionID] ?? [],
+        targetTransactionViolations: allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + targetTransaction.transactionID] ?? [],
         mergeTransaction,
+        targetTransactionThreadReport,
+        targetTransactionThreadParentReport,
+        targetTransactionThreadParentReportNextStep,
         policy,
         policyTags,
         policyCategories,
         currentUserAccountIDParam,
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
-    );
+    });
 
     // Optimistic delete the source transaction and also delete its report if it was a single expense report
     const optimisticSourceTransactionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION> = {
@@ -413,25 +444,28 @@ function mergeTransactionRequest({
     };
 
     // Optimistic delete duplicated transaction violations
-    const optimisticTransactionViolations: OnyxUpdate[] = [targetTransaction.transactionID, sourceTransaction.transactionID].map((id) => {
-        const violations = allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + id] ?? [];
+    const optimisticTransactionViolations: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [targetTransaction.transactionID, sourceTransaction.transactionID].map(
+        (id) => {
+            const violations = allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + id] ?? [];
 
-        return {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            value: violations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
-        };
-    });
-    const failureTransactionViolations: OnyxUpdate[] = [targetTransaction.transactionID, sourceTransaction.transactionID].map((id) => {
-        const violations = allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + id] ?? [];
+            return {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
+                value: violations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
+            };
+        },
+    );
+    const failureTransactionViolations: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [targetTransaction.transactionID, sourceTransaction.transactionID].map(
+        (id) => {
+            const violations = allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + id] ?? [];
 
-        return {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
-            value: violations,
-        };
-    });
+            return {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
+                value: violations,
+            };
+        },
+    );
 
     // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

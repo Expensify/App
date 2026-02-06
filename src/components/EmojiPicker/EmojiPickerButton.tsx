@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {memo, useContext, useEffect, useRef} from 'react';
+import React, {memo, useEffect, useRef} from 'react';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import Icon from '@components/Icon';
 import type PressableProps from '@components/Pressable/GenericPressable/types';
@@ -13,6 +13,7 @@ import getButtonState from '@libs/getButtonState';
 import {emojiPickerRef, resetEmojiPopoverAnchor, showEmojiPicker} from '@userActions/EmojiPickerAction';
 import type {EmojiPickerOnModalHide, OnEmojiSelected} from '@userActions/EmojiPickerAction';
 import CONST from '@src/CONST';
+import KeyboardUtils from '@src/utils/keyboard';
 
 type EmojiPickerButtonProps = {
     /** Flag to disable the emoji picker button */
@@ -33,7 +34,7 @@ type EmojiPickerButtonProps = {
 };
 
 function EmojiPickerButton({isDisabled = false, emojiPickerID = '', shiftVertical = 0, onPress, onModalHide, onEmojiSelected}: EmojiPickerButtonProps) {
-    const actionSheetContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
+    const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const emojiPopoverAnchor = useRef(null);
@@ -46,21 +47,23 @@ function EmojiPickerButton({isDisabled = false, emojiPickerID = '', shiftVertica
             return;
         }
 
-        actionSheetContext.transitionActionSheetState({
+        transitionActionSheetState({
             type: ActionSheetAwareScrollView.Actions.CLOSE_KEYBOARD,
         });
 
         if (!emojiPickerRef?.current?.isEmojiPickerVisible) {
-            showEmojiPicker({
-                onModalHide,
-                onEmojiSelected,
-                emojiPopoverAnchor,
-                anchorOrigin: {
-                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                    shiftVertical,
-                },
-                id: emojiPickerID,
+            KeyboardUtils.dismissKeyboardAndExecute(() => {
+                showEmojiPicker({
+                    onModalHide,
+                    onEmojiSelected,
+                    emojiPopoverAnchor,
+                    anchorOrigin: {
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                        shiftVertical,
+                    },
+                    id: emojiPickerID,
+                });
             });
         } else {
             emojiPickerRef.current.hideEmojiPicker();
@@ -79,6 +82,7 @@ function EmojiPickerButton({isDisabled = false, emojiPickerID = '', shiftVertica
                 onPress={openEmojiPicker}
                 id={CONST.EMOJI_PICKER_BUTTON_NATIVE_ID}
                 accessibilityLabel={translate('reportActionCompose.emoji')}
+                role={CONST.ROLE.BUTTON}
                 sentryLabel={CONST.SENTRY_LABEL.EMOJI_PICKER.BUTTON}
             >
                 {({hovered, pressed}) => (

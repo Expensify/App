@@ -125,6 +125,13 @@ type Comment = {
 
     /** Odometer end reading for distance expenses */
     odometerEnd?: number;
+
+    /** Both image fields are needed only locally because server receives only one merged image as receipt */
+    /** Odometer start image (File object on web, URI string on native) */
+    odometerStartImage?: File | string;
+
+    /** Odometer end image (File object on web, URI string on native) */
+    odometerEndImage?: File | string;
 };
 
 /** Model of transaction custom unit */
@@ -482,7 +489,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         merchant: string;
 
         /** The edited transaction amount */
-        modifiedAmount?: number;
+        modifiedAmount?: number | string;
 
         /** The edited attendees list */
         modifiedAttendees?: Attendee[];
@@ -531,6 +538,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the transaction was created globally */
         isFromGlobalCreate?: boolean;
+
+        /** Whether the transaction was created from the FAB, including Global create button, FloatingCameraButton, QuickAction,... */
+        isFromFloatingActionButton?: boolean;
 
         /** The transaction tax rate */
         taxRate?: string | undefined;
@@ -631,6 +641,12 @@ type AdditionalTransactionChanges = {
 
     /** Previous distance before changes */
     distance?: number;
+
+    /** Odometer start reading for distance expenses */
+    odometerStart?: number;
+
+    /** Odometer end reading for distance expenses */
+    odometerEnd?: number;
 };
 
 /** Model of transaction changes  */

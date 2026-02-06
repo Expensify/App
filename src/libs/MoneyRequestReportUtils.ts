@@ -4,6 +4,7 @@ import type {TransactionListItemType} from '@components/SelectionListWithSection
 import CONST from '@src/CONST';
 import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportMetadata, Transaction} from '@src/types/onyx';
 import {convertToDisplayString} from './CurrencyUtils';
+import {isPaidGroupPolicy} from './PolicyUtils';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
 import {
     getMoneyRequestSpendBreakdown,
@@ -19,7 +20,7 @@ import {
 import {getReimbursable, isTransactionPendingDelete} from './TransactionUtils';
 
 function isBillableEnabledOnPolicy(policy: Policy | OnyxEntry<Policy> | undefined): boolean {
-    return !!policy && policy.disabledFields?.defaultBillable !== true;
+    return !!policy && isPaidGroupPolicy(policy) && policy.disabledFields?.defaultBillable !== true;
 }
 
 function hasNonReimbursableTransactions(transactions: Transaction[]): boolean {
@@ -127,7 +128,11 @@ function shouldDisplayReportTableView(report: OnyxEntry<Report>, transactions: T
     return !isReportTransactionThread(report) && !isSingleTransactionReport(report, transactions);
 }
 
-function shouldWaitForTransactions(report: OnyxEntry<Report>, transactions: Transaction[] | undefined, reportMetadata: OnyxEntry<ReportMetadata>) {
+function shouldWaitForTransactions(report: OnyxEntry<Report>, transactions: Transaction[] | undefined, reportMetadata: OnyxEntry<ReportMetadata>, isOffline = false) {
+    if (isOffline) {
+        return false;
+    }
+
     const isTransactionDataReady = transactions !== undefined;
     const isTransactionThreadView = isReportTransactionThread(report);
     const isStillLoadingData = transactions?.length === 0 && ((!!reportMetadata?.isLoadingInitialReportActions && !reportMetadata.hasOnceLoadedReportActions) || report?.total !== 0);

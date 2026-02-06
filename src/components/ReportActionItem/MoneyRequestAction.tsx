@@ -23,9 +23,9 @@ import {
     isSplitBillAction as isSplitBillActionReportActionsUtils,
     isTrackExpenseAction as isTrackExpenseActionReportActionsUtils,
 } from '@libs/ReportActionsUtils';
-import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import ReportActionItemContext from '@pages/home/report/ReportActionItemContext';
+import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+import {contextMenuRef} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+import ReportActionItemContext from '@pages/inbox/report/ReportActionItemContext';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';

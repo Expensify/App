@@ -1,5 +1,5 @@
 import {findFocusedRoute} from '@react-navigation/native';
-import React, {createContext, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {createContext, useCallback, useContext, useEffect, useRef, useState} from 'react';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
@@ -15,10 +15,10 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
-import defaultWideRHPContextValue from './default';
+import {defaultWideRHPActionsContextValue, defaultWideRHPStateContextValue} from './default';
 import getIsRHPDisplayedBelow from './getIsRHPDisplayedBelow';
 import getVisibleRHPKeys from './getVisibleRHPRouteKeys';
-import type {WideRHPContextType} from './types';
+import type {WideRHPActionsContextType, WideRHPStateContextType} from './types';
 import useShouldRenderOverlay from './useShouldRenderOverlay';
 
 // 0 is folded/hidden, 1 is expanded/shown
@@ -45,7 +45,8 @@ const animatedWideRHPWidth = new Animated.Value(wideRHPWidth);
 const modalStackOverlayWideRHPPositionLeft = new Animated.Value(superWideRHPWidth - wideRHPWidth);
 const modalStackOverlaySuperWideRHPPositionLeft = new Animated.Value(superWideRHPWidth - singleRHPWidth);
 
-const WideRHPContext = createContext<WideRHPContextType>(defaultWideRHPContextValue);
+const WideRHPStateContext = createContext<WideRHPStateContextType>(defaultWideRHPStateContextValue);
+const WideRHPActionsContext = createContext<WideRHPActionsContextType>(defaultWideRHPActionsContextValue);
 
 const expenseReportSelector = (reports: OnyxCollection<Report>) => {
     return Object.fromEntries(
@@ -111,6 +112,17 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: expenseReportSelector, canBeMissing: true});
 
+    const isWideRHPClosingRef = useRef(false);
+    const isSuperWideRHPClosingRef = useRef(false);
+
+    const setIsWideRHPClosing = (isClosing: boolean) => {
+        isWideRHPClosingRef.current = isClosing;
+    };
+
+    const setIsSuperWideRHPClosing = (isClosing: boolean) => {
+        isSuperWideRHPClosingRef.current = isClosing;
+    };
+
     const {focusedRoute, focusedNavigator} = useRootNavigationState((state) => {
         if (!state) {
             return {focusedRoute: undefined, focusedNavigator: undefined};
@@ -122,13 +134,8 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         };
     });
 
-    const isWideRHPFocused = useMemo(() => {
-        return !!focusedRoute?.key && allWideRHPRouteKeys.includes(focusedRoute.key);
-    }, [focusedRoute?.key, allWideRHPRouteKeys]);
-
-    const isSuperWideRHPFocused = useMemo(() => {
-        return !!focusedRoute?.key && allSuperWideRHPRouteKeys.includes(focusedRoute.key);
-    }, [focusedRoute?.key, allSuperWideRHPRouteKeys]);
+    const isWideRHPFocused = !!focusedRoute?.key && allWideRHPRouteKeys.includes(focusedRoute.key);
+    const isSuperWideRHPFocused = !!focusedRoute?.key && allSuperWideRHPRouteKeys.includes(focusedRoute.key);
 
     const isRHPFocused = focusedNavigator === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
 
@@ -143,14 +150,15 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         setExpandedRHPProgress(visibleSuperWideRHPRouteKeys, visibleWideRHPRouteKeys);
     }, [allSuperWideRHPRouteKeys, allWideRHPRouteKeys]);
 
-    const clearWideRHPKeys = useCallback(() => {
+    const clearWideRHPKeys = () => {
         setWideRHPRouteKeys([]);
         setSuperWideRHPRouteKeys([]);
         expandedRHPProgress.setValue(0);
-    }, []);
+    };
 
     // Once we have updated the array of all Super Wide RHP keys, we should sync it with the array of RHP keys visible on the screen
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         syncRHPKeys();
     }, [allSuperWideRHPRouteKeys, allWideRHPRouteKeys, syncRHPKeys]);
 
@@ -180,109 +188,94 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     /**
      * Removes a route from the super wide RHP route keys list, disabling wide RHP display for that route.
      */
-    const removeSuperWideRHPRouteKey = useCallback((route: NavigationRoute) => removeWideRHPRoute(route, setAllSuperWideRHPRouteKeys), []);
+    const removeSuperWideRHPRouteKey = (route: NavigationRoute) => removeWideRHPRoute(route, setAllSuperWideRHPRouteKeys);
 
     /**
      * Removes a route from the wide RHP route keys list, disabling wide RHP display for that route.
      */
-    const removeWideRHPRouteKey = useCallback((route: NavigationRoute) => removeWideRHPRoute(route, setAllWideRHPRouteKeys), []);
+    const removeWideRHPRouteKey = (route: NavigationRoute) => removeWideRHPRoute(route, setAllWideRHPRouteKeys);
 
     /**
      * Adds a route to the wide RHP route keys list, enabling wide RHP display for that route.
      */
-    const showWideRHPVersion = useCallback(
-        (route: NavigationRoute) => {
-            removeSuperWideRHPRouteKey(route);
-            showWideRHPRoute(route, setAllWideRHPRouteKeys);
-        },
-        [removeSuperWideRHPRouteKey],
-    );
+    const showWideRHPVersion = (route: NavigationRoute) => {
+        removeSuperWideRHPRouteKey(route);
+        showWideRHPRoute(route, setAllWideRHPRouteKeys);
+    };
 
     /**
      * Adds a route to the super wide RHP route keys list, enabling super wide RHP display for that route.
      */
-    const showSuperWideRHPVersion = useCallback(
-        (route: NavigationRoute) => {
-            removeWideRHPRouteKey(route);
-            showWideRHPRoute(route, setAllSuperWideRHPRouteKeys);
-        },
-        [removeWideRHPRouteKey],
-    );
+    const showSuperWideRHPVersion = (route: NavigationRoute) => {
+        removeWideRHPRouteKey(route);
+        showWideRHPRoute(route, setAllSuperWideRHPRouteKeys);
+    };
 
     /**
      * Marks a report ID as an expense report, adding it to the expense reports set.
      * This enables optimistic wide RHP display for expense reports.
      * It helps us open expense as wide, before it fully loads.
      */
-    const markReportIDAsExpense = useCallback(
-        (reportID?: string) => {
-            if (!reportID) {
-                return;
-            }
-            const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-            const isInvoice = report?.type === CONST.REPORT.TYPE.INVOICE;
-            const isTask = report?.type === CONST.REPORT.TYPE.TASK;
-            if (isInvoice || isTask) {
-                return;
-            }
-            setExpenseReportIDs((prev) => {
-                const newSet = new Set(prev);
-                newSet.add(reportID);
-                return newSet;
-            });
-        },
-        [allReports],
-    );
+    const markReportIDAsExpense = (reportID?: string) => {
+        if (!reportID) {
+            return;
+        }
+        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+        const isInvoice = report?.type === CONST.REPORT.TYPE.INVOICE;
+        const isTask = report?.type === CONST.REPORT.TYPE.TASK;
+        if (isInvoice || isTask) {
+            return;
+        }
+        setExpenseReportIDs((prev) => {
+            const newSet = new Set(prev);
+            newSet.add(reportID);
+            return newSet;
+        });
+    };
 
     /**
      * Checks if a report ID is marked as an expense report.
      * Used to determine if wide RHP should be displayed optimistically.
      * It helps us open expense as wide, before it fully loads.
      */
-    const isReportIDMarkedAsExpense = useCallback(
-        (reportID: string) => {
-            return expenseReportIDs.has(reportID);
-        },
-        [expenseReportIDs],
-    );
+    const isReportIDMarkedAsExpense = (reportID: string) => {
+        return expenseReportIDs.has(reportID);
+    };
 
     /**
      * Marks a report ID as a multi-transaction expense report, adding it to the expense reports set.
      * This enables optimistic super wide RHP display for expense reports.
      * It helps us open expense as super wide, before it fully loads.
      */
-    const markReportIDAsMultiTransactionExpense = useCallback((reportID: string) => {
+    const markReportIDAsMultiTransactionExpense = (reportID: string) => {
         setMultiTransactionExpenseReportIDs((prev) => {
             const newSet = new Set(prev);
             newSet.add(reportID);
             return newSet;
         });
-    }, []);
+    };
 
     /**
      * Removes a report ID from the multi-transaction expense reports set.
      * This disables optimistic super wide RHP display for that specific report
      * (e.g., when transactions are deleted or report no longer qualifies as multi-transaction)
      */
-    const unmarkReportIDAsMultiTransactionExpense = useCallback((reportID: string) => {
+    const unmarkReportIDAsMultiTransactionExpense = (reportID: string) => {
         setMultiTransactionExpenseReportIDs((prev) => {
             const newSet = new Set(prev);
             newSet.delete(reportID);
             return newSet;
         });
-    }, []);
+    };
 
     /**
      * Checks if a report ID is marked as a multi-transaction expense report.
      * Used to determine if super wide RHP should be displayed optimistically.
      * It helps us open expense as super wide, before it fully loads.
      */
-    const isReportIDMarkedAsMultiTransactionExpense = useCallback(
-        (reportID: string) => {
-            return multiTransactionExpenseReportIDs.has(reportID);
-        },
-        [multiTransactionExpenseReportIDs],
-    );
+    const isReportIDMarkedAsMultiTransactionExpense = (reportID: string) => {
+        return multiTransactionExpenseReportIDs.has(reportID);
+    };
 
     /**
      * Effect that handles responsive RHP width calculation when window dimensions change.
@@ -311,53 +304,50 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         return () => subscription?.remove();
     }, []);
 
-    const value = useMemo(
-        () => ({
-            expandedRHPProgress,
-            wideRHPRouteKeys,
-            superWideRHPRouteKeys,
-            showWideRHPVersion,
-            showSuperWideRHPVersion,
-            removeWideRHPRouteKey,
-            removeSuperWideRHPRouteKey,
-            shouldRenderSecondaryOverlayForRHPOnSuperWideRHP,
-            shouldRenderSecondaryOverlayForRHPOnWideRHP,
-            shouldRenderSecondaryOverlayForWideRHP,
-            shouldRenderTertiaryOverlay,
-            markReportIDAsExpense,
-            markReportIDAsMultiTransactionExpense,
-            unmarkReportIDAsMultiTransactionExpense,
-            isReportIDMarkedAsExpense,
-            isReportIDMarkedAsMultiTransactionExpense,
-            isWideRHPFocused,
-            isSuperWideRHPFocused,
-            syncRHPKeys,
-            clearWideRHPKeys,
-        }),
-        [
-            wideRHPRouteKeys,
-            superWideRHPRouteKeys,
-            showWideRHPVersion,
-            showSuperWideRHPVersion,
-            removeWideRHPRouteKey,
-            removeSuperWideRHPRouteKey,
-            shouldRenderSecondaryOverlayForRHPOnSuperWideRHP,
-            shouldRenderSecondaryOverlayForRHPOnWideRHP,
-            shouldRenderSecondaryOverlayForWideRHP,
-            shouldRenderTertiaryOverlay,
-            markReportIDAsExpense,
-            markReportIDAsMultiTransactionExpense,
-            unmarkReportIDAsMultiTransactionExpense,
-            isReportIDMarkedAsExpense,
-            isReportIDMarkedAsMultiTransactionExpense,
-            isWideRHPFocused,
-            isSuperWideRHPFocused,
-            syncRHPKeys,
-            clearWideRHPKeys,
-        ],
-    );
+    // Because of the React Compiler we don't need to memoize it manually
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
+    const stateValue = {
+        wideRHPRouteKeys,
+        superWideRHPRouteKeys,
+        shouldRenderSecondaryOverlayForRHPOnSuperWideRHP,
+        shouldRenderSecondaryOverlayForRHPOnWideRHP,
+        shouldRenderSecondaryOverlayForWideRHP,
+        shouldRenderTertiaryOverlay,
+        isWideRHPFocused,
+        isSuperWideRHPFocused,
+    };
 
-    return <WideRHPContext.Provider value={value}>{children}</WideRHPContext.Provider>;
+    // Because of the React Compiler we don't need to memoize it manually
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
+    const actionsValue = {
+        showWideRHPVersion,
+        showSuperWideRHPVersion,
+        removeWideRHPRouteKey,
+        removeSuperWideRHPRouteKey,
+        markReportIDAsExpense,
+        markReportIDAsMultiTransactionExpense,
+        unmarkReportIDAsMultiTransactionExpense,
+        isReportIDMarkedAsExpense,
+        isReportIDMarkedAsMultiTransactionExpense,
+        syncRHPKeys,
+        clearWideRHPKeys,
+        setIsWideRHPClosing,
+        setIsSuperWideRHPClosing,
+    };
+
+    return (
+        <WideRHPStateContext.Provider value={stateValue}>
+            <WideRHPActionsContext.Provider value={actionsValue}>{children}</WideRHPActionsContext.Provider>
+        </WideRHPStateContext.Provider>
+    );
+}
+
+function useWideRHPState() {
+    return useContext(WideRHPStateContext);
+}
+
+function useWideRHPActions() {
+    return useContext(WideRHPActionsContext);
 }
 
 export default WideRHPContextProvider;
@@ -373,5 +363,8 @@ export {
     secondOverlayRHPOnWideRHPProgress,
     secondOverlayRHPOnSuperWideRHPProgress,
     thirdOverlayProgress,
-    WideRHPContext,
+    WideRHPStateContext,
+    WideRHPActionsContext,
+    useWideRHPState,
+    useWideRHPActions,
 };

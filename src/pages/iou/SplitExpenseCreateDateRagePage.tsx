@@ -1,3 +1,4 @@
+import {differenceInDays} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -9,6 +10,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
 import useAllTransactions from '@hooks/useAllTransactions';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -31,14 +33,11 @@ type SplitExpenseCreateDateRagePageProps = PlatformStackScreenProps<SplitExpense
 function SplitExpenseCreateDateRagePage({route}: SplitExpenseCreateDateRagePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const searchContext = useSearchContext();
+    const {currentSearchResults} = useSearchContext();
 
     const {reportID, transactionID, backTo} = route.params;
 
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: false});
-
-    const searchHash = searchContext?.currentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`, {canBeMissing: true});
     const allTransactions = useAllTransactions();
 
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`];
@@ -51,13 +50,14 @@ function SplitExpenseCreateDateRagePage({route}: SplitExpenseCreateDateRagePageP
     const currentPolicy = Object.keys(policy?.employeeList ?? {}).length
         ? policy
         : currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(currentReport?.policyID)}`];
+    const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const updateDate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.SPLIT_EXPENSE_EDIT_DATES>) => {
         resetSplitExpensesByDateRange(transaction, value[INPUT_IDS.START_DATE], value[INPUT_IDS.END_DATE]);
         Navigation.goBack(backTo);
     };
 
-    const isSplitAvailable = report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, currentPolicy);
+    const isSplitAvailable = report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, login ?? '', currentUserAccountID, currentPolicy);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SPLIT_EXPENSE_EDIT_DATES>) => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SPLIT_EXPENSE_EDIT_DATES> = {};
@@ -76,6 +76,8 @@ function SplitExpenseCreateDateRagePage({route}: SplitExpenseCreateDateRagePageP
                 errors[INPUT_IDS.END_DATE] = translate('iou.error.endDateBeforeStartDate');
             } else if (endDate.getTime() === startDate.getTime()) {
                 errors[INPUT_IDS.END_DATE] = translate('iou.error.endDateSameAsStartDate');
+            } else if (differenceInDays(endDate, startDate) + 1 > CONST.IOU.SPLITS_LIMIT) {
+                errors[INPUT_IDS.END_DATE] = translate('iou.error.dateRangeExceedsMaxDays');
             }
         }
 
