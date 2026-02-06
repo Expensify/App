@@ -1,7 +1,7 @@
-import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
-import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmostFullScreenRoute';
+import Navigation from './Navigation/Navigation';
 
 type PerformPostMergeNavigationParams = {
     isOnSearch: boolean;
@@ -14,7 +14,6 @@ type PerformPostMergeNavigationParams = {
  * - When not on search and merging into a different report: dismisses modal and opens that report (or search report screen if applicable).
  * - Otherwise: dismisses to super wide RHP.
  */
-/* eslint-disable @typescript-eslint/no-unsafe-return -- Navigation/ROUTES APIs may be typed with any; we intentionally do not return their values */
 function performPostMergeNavigation({isOnSearch, reportID, targetTransactionReportID}: PerformPostMergeNavigationParams): void {
     const reportIDToDismiss = reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? reportID : undefined;
 

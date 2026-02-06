@@ -5,19 +5,24 @@ const mockDismissToSuperWideRHP = jest.fn();
 const mockIsSearchTopmostFullScreenRoute = jest.fn();
 
 jest.mock('@libs/Navigation/Navigation', () => ({
-    dismissModalWithReport: (...args: unknown[]) => mockDismissModalWithReport(...args),
+    dismissModalWithReport: (...args: unknown[]): void => {
+        mockDismissModalWithReport(...args);
+    },
     dismissModal: jest.fn(),
-    setNavigationActionToMicrotaskQueue: jest.fn((cb: () => void) => cb()),
-    dismissToSuperWideRHP: (...args: unknown[]) => mockDismissToSuperWideRHP(...args),
+    setNavigationActionToMicrotaskQueue: jest.fn((cb: () => void): void => {
+        cb();
+    }),
+    dismissToSuperWideRHP: (...args: unknown[]): void => {
+        mockDismissToSuperWideRHP(...args);
+    },
     navigate: jest.fn(),
 }));
 
-jest.mock(
-    '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute',
-    () =>
-        (...args: unknown[]) =>
-            mockIsSearchTopmostFullScreenRoute(...args),
-);
+jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => {
+    return function mockIsSearchTopmostFullScreenRouteImpl(..._args: unknown[]): boolean {
+        return mockIsSearchTopmostFullScreenRoute(..._args) as boolean;
+    };
+});
 
 describe('performPostMergeNavigation', () => {
     beforeEach(() => {
