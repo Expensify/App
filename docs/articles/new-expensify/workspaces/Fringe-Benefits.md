@@ -75,8 +75,8 @@ This section applies to **Workspace Admins reporting and exporting** Fringe Bene
 Before exporting, you must create a custom CSV template and add the formulas needed to capture attendee counts.
 
 Add the following formulas to your CSV template:
-- `{expense:tag:ntag-3}` → **Internal Attendees**
-- `{expense:tag:ntag-4}` → **External Attendees**
+- `{expense:tag:ntag-3}`: **Internal Attendees**
+- `{expense:tag:ntag-4}`: **External Attendees**
 
 [Create a custom export template]([url](https://help.expensify.com/articles/expensify-classic/spending-insights/Export-Expenses-And-Reports#create-a-custom-export-template)) ([Expensify Classic](https://help.expensify.com/articles/new-expensify/settings/Switch-between-New-Expensify-and-Expensify-Classic) only). 
 
