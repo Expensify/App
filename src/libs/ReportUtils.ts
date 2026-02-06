@@ -9124,12 +9124,12 @@ function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEnt
         return false;
     }
 
-    if (!report.lastReadTime) {
-        return !isEmptyReport(report, isReportArchived);
-    }
-
     if (isEmptyReport(report, isReportArchived)) {
         return false;
+    }
+
+    if (!report.lastReadTime) {
+        return true;
     }
     // lastVisibleActionCreated and lastReadTime are both datetime strings and can be compared directly
     const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, oneTransactionThreadReport);
@@ -9534,6 +9534,9 @@ function reasonForReportToBeInOptionList({
 }: ShouldReportBeInOptionListParams): ValueOf<typeof CONST.REPORT_IN_LHN_REASONS> | null {
     const isInDefaultMode = !isInFocusMode;
 
+    // Include the currently viewed report. If we excluded the currently viewed report, then there
+    // would be no way to highlight it in the options list and it would be confusing to users because they lose
+    // a sense of context.
     if (report?.reportID === currentReportId) {
         return CONST.REPORT_IN_LHN_REASONS.IS_FOCUSED;
     }
@@ -9569,15 +9572,7 @@ function reasonForReportToBeInOptionList({
     const reportActionKeys = Object.keys(currentReportActions);
 
     const isThreadReport = isThread(report);
-    let parentReportActionComputed = false;
-    let parentReportActionCache: OnyxEntry<ReportAction>;
-    const getParentReportAction = (): OnyxEntry<ReportAction> => {
-        if (!parentReportActionComputed) {
-            parentReportActionComputed = true;
-            parentReportActionCache = isThreadReport ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID] : undefined;
-        }
-        return parentReportActionCache;
-    };
+    const parentReportAction = isThreadReport ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID] : undefined;
 
     // We used to use the system DM for A/B testing onboarding tasks, but now only create them in the Concierge chat. We
     // still need to allow existing users who have tasks in the system DM to see them, but otherwise we don't need to
@@ -9593,7 +9588,7 @@ function reasonForReportToBeInOptionList({
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`];
 
     // If this is a transaction thread associated with a report that only has one transaction, omit it
-    if (isOneTransactionThread(report, parentReport, getParentReportAction())) {
+    if (isOneTransactionThread(report, parentReport, parentReportAction)) {
         return null;
     }
 
@@ -9624,7 +9619,6 @@ function reasonForReportToBeInOptionList({
 
     // Drafts already return early above, so no draft check needed here
     if (isChatThreadReport && isEmptyChat) {
-        const parentReportAction = getParentReportAction();
         const isParentDeleted = !isEmptyObject(parentReportAction) && isDeletedAction(parentReportAction);
         const isParentPendingDelete = !isEmptyObject(parentReportAction) && parentReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
         const hasReplies = (parentReportAction?.childVisibleActionCount ?? 0) > 0;
@@ -9685,12 +9679,7 @@ function reasonForReportToBeInOptionList({
     }
 
     // Hide chat threads where the parent message is pending removal
-    const parentReportActionForPendingCheck = getParentReportAction();
-    if (
-        !isEmptyObject(parentReportActionForPendingCheck) &&
-        isPendingRemove(parentReportActionForPendingCheck) &&
-        isThreadParentMessage(parentReportActionForPendingCheck, report?.reportID)
-    ) {
+    if (!isEmptyObject(parentReportAction) && isPendingRemove(parentReportAction) && isThreadParentMessage(parentReportAction, report?.reportID)) {
         return null;
     }
 
