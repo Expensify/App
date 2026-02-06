@@ -153,6 +153,7 @@ function SearchFiltersCardPage() {
                             shouldShowTextInput={shouldShowSearchInput}
                             textInputOptions={textInputOptions}
                             showLoadingPlaceholder={isLoadingOnyxValue(userCardListMetadata, workspaceCardFeedsMetadata, searchAdvancedFiltersFormMetadata) || !didScreenTransitionEnd}
+                            disableMaintainingScrollPosition
                             shouldStopPropagation
                             shouldShowTooltips
                             canSelectMultiple
