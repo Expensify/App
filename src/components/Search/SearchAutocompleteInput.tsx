@@ -1,12 +1,11 @@
 /* eslint-disable rulesdir/no-acc-spread-in-reduce */
-import type {ForwardedRef, RefObject} from 'react';
+import type {ForwardedRef} from 'react';
 import React, {useEffect, useRef} from 'react';
 import type {StyleProp, TextInputProps, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Animated, {interpolateColor, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import FormHelpMessage from '@components/FormHelpMessage';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
-import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useCurrencyList from '@hooks/useCurrencyList';
