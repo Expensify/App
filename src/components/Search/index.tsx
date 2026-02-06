@@ -1363,9 +1363,9 @@ function Search({
             </View>
         );
     }
-
+    const isAnyActionLoading = isActionLoadingSet.size > 0;
     const visibleDataLength = filteredData.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length;
-    if (shouldShowEmptyState(isDataLoaded, visibleDataLength, searchDataType)) {
+    if (shouldShowEmptyState(isDataLoaded, visibleDataLength, searchDataType) && !isAnyActionLoading) {
         cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB);
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
