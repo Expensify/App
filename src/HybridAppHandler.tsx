@@ -6,7 +6,7 @@ import {getHybridAppSettings} from './libs/actions/HybridApp';
 import type HybridAppSettings from './libs/actions/HybridApp/types';
 import {setupNewDotAfterTransitionFromOldDot} from './libs/actions/Session';
 import Log from './libs/Log';
-import {endSpan, startSpan} from './libs/telemetry/activeSpans';
+import {startSpan} from './libs/telemetry/activeSpans';
 import ONYXKEYS from './ONYXKEYS';
 import {useSplashScreenActions, useSplashScreenState} from './SplashScreenStateContext';
 import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
@@ -25,8 +25,6 @@ function HybridAppHandler() {
                 if (splashScreenState !== CONST.BOOT_SPLASH_STATE.VISIBLE) {
                     return;
                 }
-
-                endSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION);
 
                 setSplashScreenState(loggedOutFromOldDot ? CONST.BOOT_SPLASH_STATE.HIDDEN : CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
             });
