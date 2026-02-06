@@ -1901,7 +1901,7 @@ describe('PolicyUtils', () => {
 
         it('should return false when single group policy has expense chat enabled', () => {
             const policies: OnyxCollection<Policy> = {
-                '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), isPolicyExpenseChatEnabled: true},
+                '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), isPolicyExpenseChatEnabled: true, pendingAction: null},
             };
             const result = areAllGroupPoliciesExpenseChatDisabled(policies);
             expect(result).toBe(false);
@@ -1909,9 +1909,9 @@ describe('PolicyUtils', () => {
 
         it('should return false when multiple group policies and at least one has expense chat enabled', () => {
             const policies: OnyxCollection<Policy> = {
-                '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), isPolicyExpenseChatEnabled: false},
-                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), isPolicyExpenseChatEnabled: true},
-                '3': {...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM), isPolicyExpenseChatEnabled: false},
+                '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), isPolicyExpenseChatEnabled: false, pendingAction: null},
+                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), isPolicyExpenseChatEnabled: true, pendingAction: null},
+                '3': {...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM), isPolicyExpenseChatEnabled: false, pendingAction: null},
             };
             const result = areAllGroupPoliciesExpenseChatDisabled(policies);
             expect(result).toBe(false);
@@ -1919,7 +1919,7 @@ describe('PolicyUtils', () => {
 
         it('should return true when single group policy has expense chat disabled', () => {
             const policies: OnyxCollection<Policy> = {
-                '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), isPolicyExpenseChatEnabled: false},
+                '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), isPolicyExpenseChatEnabled: false, pendingAction: null},
             };
             const result = areAllGroupPoliciesExpenseChatDisabled(policies);
             expect(result).toBe(true);
@@ -1927,9 +1927,9 @@ describe('PolicyUtils', () => {
 
         it('should return true when all group policies have expense chat disabled', () => {
             const policies: OnyxCollection<Policy> = {
-                '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), isPolicyExpenseChatEnabled: false},
-                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), isPolicyExpenseChatEnabled: false},
-                '3': {...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM), isPolicyExpenseChatEnabled: false},
+                '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), isPolicyExpenseChatEnabled: false, pendingAction: null},
+                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), isPolicyExpenseChatEnabled: false, pendingAction: null},
+                '3': {...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM), isPolicyExpenseChatEnabled: false, pendingAction: null},
             };
             const result = areAllGroupPoliciesExpenseChatDisabled(policies);
             expect(result).toBe(true);
