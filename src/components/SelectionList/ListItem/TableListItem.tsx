@@ -7,7 +7,6 @@ import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import BaseListItem from './BaseListItem';
 import type {ListItem, TableListItemProps} from './types';
 
