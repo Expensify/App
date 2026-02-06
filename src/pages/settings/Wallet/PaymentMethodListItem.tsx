@@ -1,4 +1,4 @@
-import React, {useCallback, useRef} from 'react';
+import React, {useMemo, useRef} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -95,25 +95,23 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean; onThreeDotsPress: () => void}>(null);
-    const showThreeDotsMenu = item.shouldShowThreeDotsMenu !== false && !!threeDotsMenuItems;
+    const isInSetupState = isAccountInSetupState(item);
+    const showThreeDotsMenu = item.shouldShowThreeDotsMenu !== false && !!threeDotsMenuItems && !isInSetupState;
 
     const handleRowPress = (e: GestureResponderEvent | KeyboardEvent | undefined) => {
-        if (isAccountInSetupState(item) || !showThreeDotsMenu || (item.cardID && item.onThreeDotsMenuPress)) {
+        if (!showThreeDotsMenu || (item.cardID && item.onThreeDotsMenuPress)) {
             item.onPress?.(e);
         } else if (threeDotsMenuRef.current) {
             threeDotsMenuRef.current.onThreeDotsPress();
         }
     };
 
-    const getBadgeText = useCallback(
-        (listItem: PaymentMethodItem) => {
-            if (isAccountInSetupState(listItem)) {
-                return translate('common.actionRequired');
-            }
-            return shouldShowDefaultBadge ? translate('paymentMethodList.defaultPaymentMethod') : undefined;
-        },
-        [shouldShowDefaultBadge, translate],
-    );
+    const badgeText = useMemo(() => {
+        if (isInSetupState) {
+            return translate('common.actionRequired');
+        }
+        return shouldShowDefaultBadge ? translate('paymentMethodList.defaultPaymentMethod') : undefined;
+    }, [isInSetupState, shouldShowDefaultBadge, translate]);
 
     return (
         <OfflineWithFeedback
@@ -135,11 +133,11 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 iconHeight={item.iconHeight ?? item.iconSize}
                 iconWidth={item.iconWidth ?? item.iconSize}
                 iconStyles={item.iconStyles}
-                badgeText={getBadgeText(item)}
-                badgeIcon={isAccountInSetupState(item) ? icons.DotIndicator : undefined}
-                badgeSuccess={isAccountInSetupState(item) ? true : undefined}
+                badgeText={badgeText}
+                badgeIcon={isInSetupState ? icons.DotIndicator : undefined}
+                badgeSuccess={isInSetupState ? true : undefined}
                 wrapperStyle={[styles.paymentMethod, listItemStyle]}
-                iconRight={item.iconRight}
+                iconRight={isInSetupState ? undefined : item.iconRight}
                 shouldShowRightIcon={!showThreeDotsMenu && item.shouldShowRightIcon}
                 shouldShowRightComponent={showThreeDotsMenu}
                 rightComponent={
