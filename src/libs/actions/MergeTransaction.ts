@@ -371,7 +371,6 @@ function mergeTransactionRequest({
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`,
         value: sourceTransaction,
     };
-
     const transactionsOfSourceReport = getReportTransactions(sourceTransaction.reportID);
     const optimisticSourceReportData: OnyxUpdate[] =
         transactionsOfSourceReport.length === 1
