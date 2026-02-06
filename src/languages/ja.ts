@@ -3157,6 +3157,11 @@ ${
         toGetStarted: '銀行口座を追加して、経費の精算、Expensifyカードの発行、請求書の回収、支払いをすべて一か所で行いましょう。',
         plaidBodyCopy: '従業員に、会社の経費を支払うのも立て替え精算を受けるのも、より簡単な方法を提供しましょう。',
         checkHelpLine: '口座のルーティング番号と口座番号は、その口座の小切手に記載されています。',
+        bankAccountPurposeTitle: '銀行口座で何をしたいですか？',
+        getReimbursed: '払い戻しを受ける',
+        getReimbursedDescription: '雇用主または他の人から',
+        makePayments: '支払いを行う',
+        makePaymentsDescription: '経費を支払うかExpensifyカードを発行する',
         hasPhoneLoginError: (contactMethodRoute: string) =>
             `銀行口座を連携するには、まず<a href="${contactMethodRoute}">メールアドレスをプライマリログインとして追加</a>してから、もう一度お試しください。電話番号はセカンダリログインとして追加できます。`,
         hasBeenThrottledError: '銀行口座の追加中にエラーが発生しました。数分待ってから、もう一度お試しください。',

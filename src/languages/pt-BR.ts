@@ -3164,6 +3164,11 @@ ${
         toGetStarted: 'Adicione uma conta bancária para reembolsar despesas, emitir cartões Expensify, receber pagamentos de faturas e pagar contas, tudo em um só lugar.',
         plaidBodyCopy: 'Dê aos seus funcionários uma forma mais fácil de pagar — e ser reembolsados — pelas despesas da empresa.',
         checkHelpLine: 'Seu número de roteamento e número da conta podem ser encontrados em um cheque dessa conta.',
+        bankAccountPurposeTitle: 'O que você quer fazer com sua conta bancária?',
+        getReimbursed: 'Ser reembolsado',
+        getReimbursedDescription: 'Pelo empregador ou outros',
+        makePayments: 'Fazer pagamentos',
+        makePaymentsDescription: 'Pagar despesas ou emitir cartões Expensify',
         hasPhoneLoginError: (contactMethodRoute: string) =>
             `Para conectar uma conta bancária, <a href="${contactMethodRoute}">adicione um e-mail como seu login principal</a> e tente novamente. Você pode adicionar seu número de telefone como login secundário.`,
         hasBeenThrottledError: 'Ocorreu um erro ao adicionar sua conta bancária. Aguarde alguns minutos e tente novamente.',

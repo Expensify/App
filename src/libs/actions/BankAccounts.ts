@@ -222,13 +222,13 @@ function addBusinessWebsiteForDraft(websiteUrl: string) {
  * Get the Onyx data required to set the last used payment method to VBBA for a given policyID
  */
 function getOnyxDataForConnectingVBBAAndLastPaymentMethod(
-    policyID: string,
+    policyID?: string,
     lastPaymentMethod?: LastPaymentMethodType | string,
 ): OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD> {
     const onyxData = getVBBADataForOnyx();
     const lastUsedPaymentMethod = typeof lastPaymentMethod === 'string' ? lastPaymentMethod : lastPaymentMethod?.expense?.name;
 
-    if (!lastUsedPaymentMethod) {
+    if (!lastUsedPaymentMethod && policyID) {
         onyxData.successData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
@@ -517,9 +517,6 @@ function deletePaymentBankAccount(bankAccountID: number, personalPolicyID: strin
  * @param isConfirmPage - If we're submitting from the confirmation substep, to trigger all external checks
  */
 function updatePersonalInformationForBankAccount(bankAccountID: number, params: RequestorStepProps, policyID: string | undefined, isConfirmPage: boolean) {
-    if (!policyID) {
-        return;
-    }
     API.write(
         WRITE_COMMANDS.UPDATE_PERSONAL_INFORMATION_FOR_BANK_ACCOUNT,
         {
@@ -532,7 +529,7 @@ function updatePersonalInformationForBankAccount(bankAccountID: number, params: 
     );
 }
 
-function validateBankAccount(bankAccountID: number, validateCode: string, policyID: string) {
+function validateBankAccount(bankAccountID: number, validateCode: string, policyID?: string) {
     const parameters: ValidateBankAccountWithTransactionsParams = {
         bankAccountID,
         validateCode,
@@ -852,10 +849,6 @@ function askForCorpaySignerInformation(parameters: AskForCorpaySignerInformation
     return API.write(WRITE_COMMANDS.ASK_FOR_CORPAY_SIGNER_INFORMATION, parameters, onyxData);
 }
 
-function clearReimbursementAccount() {
-    Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, null);
-}
-
 function finishCorpayBankAccountOnboarding(parameters: FinishCorpayBankAccountOnboardingParams) {
     const onyxData: OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT> = {
         optimisticData: [
@@ -1006,20 +999,25 @@ function clearReimbursementAccountSendReminderForCorpaySignerInformation() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isSuccess: null, isSendingReminderForCorpaySignerInformation: null});
 }
 
+type OpenReimbursementAccountPageActionParams = {
+    stepToOpen?: ReimbursementAccountStep;
+    subStep?: ReimbursementAccountSubStep;
+    localCurrentStep?: ReimbursementAccountStep;
+    policyID?: string;
+    bankAccountID?: number;
+    shouldPreserveDraft?: boolean;
+};
+
 /**
  * Function to display and fetch data for Reimbursement Account step
  * @param stepToOpen - current step to open
  * @param subStep - particular step
  * @param localCurrentStep - last step on device
  * @param policyID - policy ID
+ * @param bankAccountID - bank account ID
+ * @param shouldPreserveDraft - if the draft should be preserved
  */
-function openReimbursementAccountPage(
-    stepToOpen: ReimbursementAccountStep,
-    subStep: ReimbursementAccountSubStep,
-    localCurrentStep: ReimbursementAccountStep,
-    policyID: string,
-    shouldPreserveDraft?: boolean,
-) {
+function openReimbursementAccountPage({stepToOpen = '', subStep = '', localCurrentStep = '', policyID, bankAccountID, shouldPreserveDraft}: OpenReimbursementAccountPageActionParams) {
     const onyxData: OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT> = {
         optimisticData: [
             {
@@ -1055,6 +1053,7 @@ function openReimbursementAccountPage(
         subStep,
         localCurrentStep,
         policyID,
+        bankAccountID,
         shouldPreserveDraft,
     };
 
@@ -1103,7 +1102,7 @@ function updateBeneficialOwnersForBankAccount(bankAccountID: number, params: Par
  * @param policyID - ID of the policy we're setting the bank account on
  * @param lastPaymentMethod - last payment method used in the app
  */
-function acceptACHContractForBankAccount(bankAccountID: number, params: ACHContractStepProps, policyID: string, lastPaymentMethod?: LastPaymentMethodType | string) {
+function acceptACHContractForBankAccount(bankAccountID: number, params: ACHContractStepProps, policyID?: string, lastPaymentMethod?: LastPaymentMethodType | string) {
     const onyxData = getOnyxDataForConnectingVBBAAndLastPaymentMethod(policyID, lastPaymentMethod);
 
     API.write(
@@ -1139,7 +1138,7 @@ function connectBankAccountManually(bankAccountID: number, bankAccount: PlaidBan
 /**
  * Verify the user's identity via Onfido
  */
-function verifyIdentityForBankAccount(bankAccountID: number, onfidoData: OnfidoDataWithApplicantID, policyID: string) {
+function verifyIdentityForBankAccount(bankAccountID: number, onfidoData: OnfidoDataWithApplicantID, policyID?: string) {
     const parameters: VerifyIdentityForBankAccountParams = {
         bankAccountID,
         onfidoData: JSON.stringify(onfidoData),
@@ -1503,7 +1502,6 @@ export {
     enableGlobalReimbursementsForUSDBankAccount,
     clearEnableGlobalReimbursementsForUSDBankAccount,
     askForCorpaySignerInformation,
-    clearReimbursementAccount,
     clearEnterSignerInformationFormSave,
     sendReminderForCorpaySignerInformation,
     clearPersonalBankAccountErrors,

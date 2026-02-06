@@ -62,7 +62,14 @@ function SearchSelectedNarrow({options, itemsLength, currentSelectedPolicyID, cu
             chatReportID={currentSelectedReportID}
             iouReport={selectedIouReport}
             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-            addBankAccountRoute={isCurrentSelectedExpenseReport ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(currentSelectedPolicyID, undefined, Navigation.getActiveRoute()) : undefined}
+            addBankAccountRoute={
+                isCurrentSelectedExpenseReport
+                    ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({
+                          policyID: currentSelectedPolicyID,
+                          backTo: Navigation.getActiveRoute(),
+                      })
+                    : undefined
+            }
             onSuccessfulKYC={(paymentType) => confirmPayment?.(paymentType)}
         >
             {(triggerKYCFlow, buttonRef) => (
