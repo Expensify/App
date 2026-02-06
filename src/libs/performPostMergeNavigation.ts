@@ -14,6 +14,7 @@ type PerformPostMergeNavigationParams = {
  * - When not on search and merging into a different report: dismisses modal and opens that report (or search report screen if applicable).
  * - Otherwise: dismisses to super wide RHP.
  */
+/* eslint-disable @typescript-eslint/no-unsafe-return -- Navigation/ROUTES APIs may be typed with any; we intentionally do not return their values */
 function performPostMergeNavigation({isOnSearch, reportID, targetTransactionReportID}: PerformPostMergeNavigationParams): void {
     const reportIDToDismiss = reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? reportID : undefined;
 
@@ -28,14 +29,11 @@ function performPostMergeNavigation({isOnSearch, reportID, targetTransactionRepo
                 // Navigate to the money request report in search results
                 Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: reportIDToDismiss}));
             });
-            return;
         } else {
             Navigation.dismissModalWithReport({reportID: reportIDToDismiss});
-            return;
         }
     } else {
         Navigation.dismissToSuperWideRHP();
-        return;
     }
 }
 
