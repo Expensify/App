@@ -111,6 +111,7 @@ export default {
     uploadViewMargin: 20,
     chooseFilesViewMargin: 8,
     sideBarWithLHBWidth: 320,
+    searchSidebarWidth: 260,
     navigationTabBarSize: 72,
     popoverMargin: 18,
     pdfPageMaxWidth: 992,

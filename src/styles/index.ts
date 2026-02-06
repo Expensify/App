@@ -1599,11 +1599,11 @@ const staticStyles = (theme: ThemeColors) =>
         searchSplitContainer: {
             flex: 1,
             flexDirection: 'row',
-            marginLeft: variables.navigationTabBarSize + variables.sideBarWithLHBWidth,
+            marginLeft: variables.navigationTabBarSize + variables.searchSidebarWidth,
         },
 
         searchSidebar: {
-            width: variables.sideBarWithLHBWidth,
+            width: variables.searchSidebarWidth,
             height: '100%',
             backgroundColor: theme.sidebar,
             justifyContent: 'space-between',
