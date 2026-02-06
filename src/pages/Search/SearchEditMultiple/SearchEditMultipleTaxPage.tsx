@@ -61,6 +61,4 @@ function SearchEditMultipleTaxPage() {
     );
 }
 
-SearchEditMultipleTaxPage.displayName = 'SearchEditMultipleTaxPage';
-
 export default SearchEditMultipleTaxPage;

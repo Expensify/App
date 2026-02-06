@@ -74,6 +74,4 @@ function SearchEditMultipleDatePage() {
     );
 }
 
-SearchEditMultipleDatePage.displayName = 'SearchEditMultipleDatePage';
-
 export default SearchEditMultipleDatePage;

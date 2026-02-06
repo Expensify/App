@@ -80,6 +80,4 @@ function SearchEditMultipleMerchantPage() {
     );
 }
 
-SearchEditMultipleMerchantPage.displayName = 'SearchEditMultipleMerchantPage';
-
 export default SearchEditMultipleMerchantPage;

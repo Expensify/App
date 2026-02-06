@@ -71,6 +71,4 @@ function SearchEditMultipleDescriptionPage() {
     );
 }
 
-SearchEditMultipleDescriptionPage.displayName = 'SearchEditMultipleDescriptionPage';
-
 export default SearchEditMultipleDescriptionPage;

@@ -286,6 +286,4 @@ function SearchEditMultiplePage() {
     );
 }
 
-SearchEditMultiplePage.displayName = 'SearchEditMultiplePage';
-
 export default SearchEditMultiplePage;

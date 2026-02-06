@@ -79,6 +79,4 @@ function SearchEditMultipleBooleanPage() {
     );
 }
 
-SearchEditMultipleBooleanPage.displayName = 'SearchEditMultipleBooleanPage';
-
 export default SearchEditMultipleBooleanPage;

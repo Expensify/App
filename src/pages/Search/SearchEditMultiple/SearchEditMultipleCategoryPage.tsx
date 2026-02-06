@@ -56,6 +56,4 @@ function SearchEditMultipleCategoryPage() {
     );
 }
 
-SearchEditMultipleCategoryPage.displayName = 'SearchEditMultipleCategoryPage';
-
 export default SearchEditMultipleCategoryPage;

@@ -83,6 +83,4 @@ function SearchEditMultipleTagPage() {
     );
 }
 
-SearchEditMultipleTagPage.displayName = 'SearchEditMultipleTagPage';
-
 export default SearchEditMultipleTagPage;
