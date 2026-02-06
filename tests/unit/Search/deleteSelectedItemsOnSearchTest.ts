@@ -4,7 +4,7 @@ import type {SelectedTransactionInfo} from '@components/Search/types';
 import {bulkDeleteReports} from '@libs/actions/Search';
 import {deleteAppReport} from '@userActions/Report';
 import CONST from '@src/CONST';
-import { createRandomReport } from '../../utils/collections/reports';
+import {createRandomReport} from '../../utils/collections/reports';
 
 jest.mock('@userActions/Report', () => ({
     deleteAppReport: jest.fn(),
@@ -28,8 +28,8 @@ describe('bulkDeleteReports', () => {
         it('should delete empty reports when selected', () => {
             const hash = 12345;
             const reports = {
-                'report_123': createRandomReport(123, undefined),
-                'report_456': createRandomReport(456, undefined),
+                report_123: createRandomReport(123, undefined),
+                report_456: createRandomReport(456, undefined),
             };
             const selectedTransactions: Record<string, SelectedTransactionInfo> = {
                 123: {
@@ -80,8 +80,8 @@ describe('bulkDeleteReports', () => {
         it('should handle mixed selection of empty reports and transactions', () => {
             const hash = 12345;
             const reports = {
-                'report_123': createRandomReport(123, undefined),
-                'report_456': createRandomReport(456, undefined),
+                report_123: createRandomReport(123, undefined),
+                report_456: createRandomReport(456, undefined),
             };
             const selectedTransactions: Record<string, SelectedTransactionInfo> = {
                 123: {
@@ -200,8 +200,8 @@ describe('bulkDeleteReports', () => {
         it('should only delete reports where key matches reportID for VIEW action', () => {
             const hash = 12345;
             const reports = {
-                'report_123': createRandomReport(123, undefined),
-                'report_456': createRandomReport(456, undefined),
+                report_123: createRandomReport(123, undefined),
+                report_456: createRandomReport(456, undefined),
             };
             const selectedTransactions: Record<string, SelectedTransactionInfo> = {
                 123: {
