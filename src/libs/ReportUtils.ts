@@ -4766,6 +4766,9 @@ function canEditMultipleTransactions(
             CONST.EDIT_REQUEST_FIELD.TAG,
             CONST.EDIT_REQUEST_FIELD.DESCRIPTION,
             CONST.EDIT_REQUEST_FIELD.DATE,
+            CONST.EDIT_REQUEST_FIELD.BILLABLE,
+            CONST.EDIT_REQUEST_FIELD.REIMBURSABLE,
+            CONST.EDIT_REQUEST_FIELD.TAX_RATE,
         ];
 
         const isTransactionEditable = fieldsToCheck.some((field) => canEditFieldOfMoneyRequest(reportAction, field, undefined, undefined, undefined, transaction, report, policy));
