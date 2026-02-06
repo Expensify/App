@@ -28,6 +28,9 @@ type SelectionListWithSectionsProps<TItem extends ListItem> = BaseSelectionListP
     /** Array of sections to display in the list */
     sections: Array<Section<TItem>>;
 
+    /** Index to scroll to initially (when different from the initially focused item) */
+    initialScrollIndex?: number;
+
     /** Custom content to display in the header */
     customHeaderContent?: ReactNode;
 
