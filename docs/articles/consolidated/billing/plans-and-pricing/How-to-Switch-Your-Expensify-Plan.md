@@ -3,6 +3,7 @@ title: How to Switch Your Expensify Plan
 description: Learn how to upgrade from Collect to Control, downgrade from Control to Collect, or switch between plan tiers in both New Expensify and Expensify Classic.
 keywords: [switch Expensify plan, upgrade to Control, downgrade to Collect, change subscription, switch from Collect to Control, change workspace plan, upgrade plan New Expensify, change plan Expensify Classic]
 internalScope: Audience is billing owners who want to change their workspace plan. Covers upgrade/downgrade procedures for both New Expensify and Expensify Classic, annual subscription constraints, and when changes take effect. Does not cover pricing details or plan features.
+order: 5
 ---
 
 # How to Switch Your Expensify Plan

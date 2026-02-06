@@ -3,6 +3,7 @@ title: How to read your Expensify billing receipt
 description: Learn how to read your Expensify billing receipt, including billing breakdown, member activity types, workspace charges, and discounts.
 keywords: [Expensify billing receipt, billing breakdown, workspace charges, member activity, Expensify Card discounts, pay-per-use, annual Control, chat-only, inactive members]
 internalScope: Audience is billing owners. Covers how to read and interpret Expensify billing receipts, including member activity definitions, workspace-level breakdowns, and how discounts or credits are applied. Does not cover updating billing ownership or payment methods.
+order: 3
 ---
 
 This article explains how to read your Expensify billing receipt, so you can understand your charges, member activity types, and how discounts or credits are applied.

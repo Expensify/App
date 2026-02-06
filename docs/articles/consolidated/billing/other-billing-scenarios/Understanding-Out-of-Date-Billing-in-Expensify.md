@@ -3,6 +3,7 @@ title: How to fix out-of-date billing in Expensify
 description: Learn what out-of-date billing means in Expensify, why it happens, and how billing owners can resolve it to restore full access to workspace features.
 keywords: [out-of-date billing, fix failed payment, retry billing, update payment method, billing owner, billing issue, resolve billing problem, Expensify trial ended]
 internalScope: Audience is billing owners and Workspace Admins. Covers what causes out-of-date billing, who can resolve it, and what actions are required. Does not cover step-by-step platform-specific navigation.
+order: 1
 ---
 
 When billing is out of date in Expensify, your workspace may lose access to paid features. This guide explains what it means, why it happens, and how to resolve it.
@@ -56,8 +57,6 @@ To restore billing and unlock full access:
 - **Retry the failed charge** once the issue is resolved
 - **Upgrade your workspace** if your trial has ended
 - **Transfer billing ownership** to a Workspace Admin who can take action
-
-> **Note:** The exact steps vary slightly depending on your app version. Concierge can guide you through the process if needed.
 
 # What happens after billing is fixed
 

@@ -1,11 +1,12 @@
 ---
-title: How to Manage Your Subscription in Expensify Classic
+title: How to configure your subscription in Expensify Classic
 description: Learn how to view your subscription details, explore workspace plans, and manage payment information in Expensify Classic.
 keywords: manage Expensify Classic subscription, Expensify Classic subscription settings, view Expensify subscription, change Expensify Classic plan, update subscription payment method Expensify
 internalScope: Audience is Billing Owners. Covers all subscription and payment management actions available in Expensify Classic. Does not cover New Expensify, billing disputes, or invoices.
+order: 5
 ---
 
-# How to Manage Your Subscription in Expensify Classic
+# How to configure your subscription in Expensify Classic
 
 Your Expensify subscription controls how your account is billed and how many employees are covered. From the Subscription page in Expensify Classic, you can review your subscription details, explore workspace plans, and manage your payment method.
 

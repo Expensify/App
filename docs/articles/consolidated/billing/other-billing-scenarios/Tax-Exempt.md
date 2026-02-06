@@ -2,6 +2,7 @@
 title: Tax Exempt
 description: How to request tax-exempt status for your Expensify account if your organization is recognized by the IRS or other local tax authorities.
 keywords: [Expensify Classic, tax-exempt, request tax exemption status]
+order: 3
 ---
 
 If your organization is recognized as **tax-exempt** by the IRS or other local tax authorities, you can request tax-exempt status in Expensify to avoid tax charges on your monthly bill. Follow these steps to submit your request.
