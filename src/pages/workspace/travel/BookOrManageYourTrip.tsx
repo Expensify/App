@@ -3,10 +3,10 @@ import MenuItem from '@components/MenuItem';
 import Section from '@components/Section';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
-import usePermissions from '@hooks/usePermissions';
 import CONST from '@src/CONST';
 import WorkspaceTravelInvoicingSection from './WorkspaceTravelInvoicingSection';
 
@@ -44,9 +44,7 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
                     wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3]}
                 />
             </Section>
-            {isTravelInvoicingEnabled && (
-                <WorkspaceTravelInvoicingSection policyID={policyID} />
-            )}
+            {isTravelInvoicingEnabled && <WorkspaceTravelInvoicingSection policyID={policyID} />}
         </>
     );
 }

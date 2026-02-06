@@ -217,11 +217,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
         </Section>
     );
 
-    return (
-        <>
-            {optionItems.map(renderOptionItem)}
-        </>
-    );
+    return <>{optionItems.map(renderOptionItem)}</>;
 }
 
 export default WorkspaceTravelInvoicingSection;
