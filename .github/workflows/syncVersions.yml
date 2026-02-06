@@ -151,7 +151,7 @@ jobs:
             }
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
       - name: Announce failed workflow in Slack
         if: ${{ failure() }}
