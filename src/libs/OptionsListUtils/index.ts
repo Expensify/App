@@ -2488,6 +2488,8 @@ function getSearchOptions({
     currentUserEmail,
     personalDetails,
 }: SearchOptionsConfig): Options {
+    Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
+
     const optionList = getValidOptions(
         options,
         allPolicies,
