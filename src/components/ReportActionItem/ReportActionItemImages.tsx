@@ -75,7 +75,7 @@ function ReportActionItemImages({images, size, total, isHovered = false, onPress
     return (
         <View style={styles.reportActionItemImagesContainer}>
             <View style={[styles.reportActionItemImages, hoverStyle, ...layoutStyle]}>
-                {shownImages.map(({thumbnail320, isThumbnail, image, isEmptyReceipt, transaction, isLocalFile, fileExtension, filename}, index) => {
+                {shownImages.map(({thumbnail, isThumbnail, image, isEmptyReceipt, transaction, isLocalFile, fileExtension, filename}, index) => {
                     // Show a border to separate multiple images. Shown to the right for each except the last.
                     const shouldShowBorder = shownImages.length > 1 && index < shownImages.length - 1;
                     const borderStyle = shouldShowBorder ? styles.reportActionItemImageBorder : {};
@@ -86,7 +86,7 @@ function ReportActionItemImages({images, size, total, isHovered = false, onPress
                         >
                             <View style={[styles.reportActionItemImage, borderStyle, hoverStyle]}>
                                 <ReportActionItemImage
-                                    thumbnail={thumbnail320}
+                                    thumbnail={thumbnail}
                                     fileExtension={fileExtension}
                                     image={image}
                                     isLocalFile={isLocalFile}
