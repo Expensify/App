@@ -386,7 +386,7 @@
     "express": "4.20.0",
     "elliptic": "6.5.7",
     "fast-json-patch": "3.1.1",
-    "webpack": "^5.94.0",
+    "webpack": "^5.104.1",
     "@blakeembrey/template": "1.2.0",
     "body-parser": "1.20.3",
     "path-to-regexp": "0.1.10",
