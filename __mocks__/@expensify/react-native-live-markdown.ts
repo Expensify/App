@@ -1,4 +1,18 @@
-export * from '@expensify/react-native-live-markdown/mock';
+import type {Ref} from 'react';
+
+type MarkdownTextInputProps = {
+    ref?: Ref<unknown>;
+};
+
+function MarkdownTextInput({ref}: MarkdownTextInputProps) {
+    if (ref) {
+        // no-op to mark ref as used
+    }
+    return null;
+}
+
+const parseExpensiMark = () => [];
 
 const getWorkletRuntime = () => ({});
-export {getWorkletRuntime};
+
+export {MarkdownTextInput, parseExpensiMark, getWorkletRuntime};
