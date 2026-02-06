@@ -1081,9 +1081,11 @@ function updateSplitTransactions({
         }) ?? [];
     changesInReportTotal -= splitExpensesTotal;
 
-    const successData: Array<OnyxUpdate<BuildOnyxDataForMoneyRequestKeys | UpdateMoneyRequestDataKeys>> = [];
-    const failureData: Array<OnyxUpdate<BuildOnyxDataForMoneyRequestKeys | UpdateMoneyRequestDataKeys>> = [];
-    const optimisticData: Array<OnyxUpdate<BuildOnyxDataForMoneyRequestKeys | UpdateMoneyRequestDataKeys>> = [];
+    const onyxData: OnyxData<BuildOnyxDataForMoneyRequestKeys | UpdateMoneyRequestDataKeys> = {
+        successData: [],
+        failureData: [],
+        optimisticData: [],
+    };
 
     // The split transactions can be in different reports, so we need to calculate the total for each report.
     const reportTotals = new Map<string, number>();
@@ -1181,7 +1183,12 @@ function updateSplitTransactions({
         const parsedComment = getParsedComment(Parser.htmlToMarkdown(transactionParams.comment ?? ''));
         transactionParams.comment = parsedComment;
 
-        const {transactionThreadReportID, createdReportActionIDForThread, onyxData, iouAction} = getMoneyRequestInformation({
+        const {
+            transactionThreadReportID,
+            createdReportActionIDForThread,
+            onyxData: moneyRequestInformationOnyxData,
+            iouAction,
+        } = getMoneyRequestInformation({
             participantParams,
             parentChatReport,
             policyParams,
@@ -1268,9 +1275,9 @@ function updateSplitTransactions({
             currentSplit.splitReportActionID = iouAction.reportActionID;
         }
 
-        optimisticData.push(...(onyxData.optimisticData ?? []), ...(updateMoneyRequestParamsOnyxData.optimisticData ?? []));
-        successData.push(...(onyxData.successData ?? []), ...(updateMoneyRequestParamsOnyxData.successData ?? []));
-        failureData.push(...(onyxData.failureData ?? []), ...(updateMoneyRequestParamsOnyxData.failureData ?? []));
+        onyxData.optimisticData?.push(...(moneyRequestInformationOnyxData.optimisticData ?? []), ...(updateMoneyRequestParamsOnyxData.optimisticData ?? []));
+        onyxData.successData?.push(...(moneyRequestInformationOnyxData.successData ?? []), ...(updateMoneyRequestParamsOnyxData.successData ?? []));
+        onyxData.failureData?.push(...(moneyRequestInformationOnyxData.failureData ?? []), ...(updateMoneyRequestParamsOnyxData.failureData ?? []));
     }
 
     // All transactions that were deleted in the split list will be marked as deleted in onyx
@@ -1311,14 +1318,14 @@ function updateSplitTransactions({
             isReportArchived || undeletedTransaction?.transactionID === forceDeleteSplitTransactionID,
         );
 
-        optimisticData.push(...(deleteExpenseOptimisticData ?? []));
-        successData.push(...(deleteExpenseSuccessData ?? []));
-        failureData.push(...(deleteExpenseFailureData ?? []));
+        onyxData.optimisticData?.push(...(deleteExpenseOptimisticData ?? []));
+        onyxData.successData?.push(...(deleteExpenseSuccessData ?? []));
+        onyxData.failureData?.push(...(deleteExpenseFailureData ?? []));
     }
 
     if (!isReverseSplitOperation) {
         // Use SET to update originalTransaction more quickly in Onyx as compared to MERGE to prevent UI inconsistency
-        optimisticData.push({
+        onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
             value: {
@@ -1328,7 +1335,7 @@ function updateSplitTransactions({
         });
 
         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-        failureData.push({
+        onyxData.failureData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
             value: originalTransaction,
@@ -1355,18 +1362,18 @@ function updateSplitTransactions({
                 },
             };
             const transactionThread = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${firstIOU.childReportID}`] ?? null;
-            optimisticData.push({
+            onyxData.optimisticData?.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${firstIOU?.childReportID}`,
                 value: null,
             });
-            optimisticData.push({
+            onyxData.optimisticData?.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
                 value: updatedReportAction,
             });
 
-            failureData.push({
+            onyxData.failureData?.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
                 value: {
@@ -1376,14 +1383,14 @@ function updateSplitTransactions({
                     },
                 },
             });
-            failureData.push({
+            onyxData.failureData?.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${firstIOU?.childReportID}`,
                 value: transactionThread ?? null,
             });
         }
 
-        optimisticData.push({
+        onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext?.currentSearchHash}`,
             value: {
@@ -1394,7 +1401,7 @@ function updateSplitTransactions({
         });
 
         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-        failureData.push({
+        onyxData.failureData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext?.currentSearchHash}`,
             value: {
@@ -1404,7 +1411,7 @@ function updateSplitTransactions({
             },
         });
     } else {
-        optimisticData.push({
+        onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
             value: {
@@ -1418,7 +1425,7 @@ function updateSplitTransactions({
             ...splits.at(0),
             comment: splits.at(0)?.comment?.comment,
         } as RevertSplitTransactionParams;
-        API.write(WRITE_COMMANDS.REVERT_SPLIT_TRANSACTION, parameters, {optimisticData, successData, failureData});
+        API.write(WRITE_COMMANDS.REVERT_SPLIT_TRANSACTION, parameters, onyxData);
     } else {
         // Prepare splitApiParams for the Transaction_Split API call which requires a specific format for the splits
         // The format is: splits[0][amount], splits[0][category], splits[0][tag] etc.
@@ -1478,7 +1485,7 @@ function updateSplitTransactions({
                         };
 
                         // Add to optimisticData for this split's reportActions
-                        optimisticData.push({
+                        onyxData.optimisticData?.push({
                             onyxMethod: Onyx.METHOD.MERGE,
                             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitReportID}`,
                             value: {
@@ -1488,7 +1495,7 @@ function updateSplitTransactions({
                         });
 
                         // Add successData to clear pendingAction after API call succeeds
-                        successData.push({
+                        onyxData.successData?.push({
                             onyxMethod: Onyx.METHOD.MERGE,
                             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitReportID}`,
                             value: {
@@ -1498,7 +1505,7 @@ function updateSplitTransactions({
                         });
 
                         // Add failureData to remove optimistic hold report actions if the request fails
-                        failureData.push({
+                        onyxData.failureData?.push({
                             onyxMethod: Onyx.METHOD.MERGE,
                             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitReportID}`,
                             value: {
@@ -1530,10 +1537,10 @@ function updateSplitTransactions({
 
         if (isCreationOfSplits) {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            API.write(WRITE_COMMANDS.SPLIT_TRANSACTION, splitParameters, {optimisticData, successData, failureData});
+            API.write(WRITE_COMMANDS.SPLIT_TRANSACTION, splitParameters, onyxData);
         } else {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            API.write(WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION, splitParameters, {optimisticData, successData, failureData});
+            API.write(WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION, splitParameters, onyxData);
         }
     }
     // eslint-disable-next-line @typescript-eslint/no-deprecated

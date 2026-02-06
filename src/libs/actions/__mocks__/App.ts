@@ -1,3 +1,4 @@
+import type {OnyxKey} from 'react-native-onyx';
 import type * as AppImport from '@libs/actions/App';
 import * as OnyxUpdates from '@userActions/OnyxUpdates';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
@@ -22,14 +23,13 @@ const {
     KEYS_TO_PRESERVE,
 } = AppImplementation;
 
-type AppMockValues = {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    missingOnyxUpdatesToBeApplied: Array<OnyxUpdatesFromServer<any>> | undefined;
+type AppMockValues<TKey extends OnyxKey = never> = {
+    missingOnyxUpdatesToBeApplied: Array<OnyxUpdatesFromServer<TKey>> | undefined;
 };
 
-type AppActionsMock = typeof AppImport & {
+type AppActionsMock<TKey extends OnyxKey = never> = typeof AppImport & {
     getMissingOnyxUpdates: jest.Mock<Promise<Response[] | void[]>>;
-    mockValues: AppMockValues;
+    mockValues: AppMockValues<TKey>;
 };
 
 const mockValues: AppMockValues = {
@@ -44,8 +44,7 @@ const getMissingOnyxUpdates = jest.fn((updateIDFrom: number, updateIDTo: number)
             updates.push({
                 lastUpdateID: i,
                 previousUpdateID: i - 1,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            } as OnyxUpdatesFromServer<any>);
+            } as OnyxUpdatesFromServer<never>);
         }
     }
 

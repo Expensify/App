@@ -7,7 +7,7 @@ import Performance from '@libs/Performance';
 import PusherUtils from '@libs/PusherUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxUpdateEvent, OnyxUpdatesFromServer, Request} from '@src/types/onyx';
+import type {AnyOnyxUpdatesFromServer, OnyxUpdateEvent, OnyxUpdatesFromServer, Request} from '@src/types/onyx';
 import type Response from '@src/types/onyx/Response';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {queueOnyxUpdates} from './QueuedOnyxUpdates';
@@ -195,7 +195,7 @@ function saveUpdateInformation<TKey extends OnyxKey>(updateParams: OnyxUpdatesFr
     }
     // Always use set() here so that the updateParams are never merged and always unique to the request that came in
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, modifiedUpdateParams as OnyxUpdatesFromServer<any>);
+    Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, modifiedUpdateParams as AnyOnyxUpdatesFromServer);
 }
 
 type DoesClientNeedToBeUpdatedParams = {
