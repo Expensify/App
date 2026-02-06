@@ -213,6 +213,39 @@ describe('Split Expense Auto-Adjustment', () => {
             const totalAmount = splitExpenses.reduce((sum, split) => sum + split.amount, 0);
             expect(totalAmount).toBe(1100);
         });
+
+        it('should ignore NaN amount and preserve existing split values', async () => {
+            // Setup: 2 unedited splits at $5/$5
+            const initialSplits = [createSplitExpense('split1', 500, false), createSplitExpense('split2', 500, false)];
+
+            const mockTransaction = createMockDraftTransaction(initialSplits);
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${ORIGINAL_TRANSACTION_ID}`, mockTransaction);
+            await waitForBatchedUpdates();
+
+            // Action: Try to update with NaN amount (simulates user entering just "-")
+            updateSplitExpenseAmountField(mockTransaction, 'split1', NaN);
+            await waitForBatchedUpdates();
+
+            // Verify: Splits should remain unchanged
+            const draftTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${ORIGINAL_TRANSACTION_ID}`,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+            const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
+            expect(splitExpenses.find((s) => s.transactionID === 'split1')?.amount).toBe(500);
+            expect(splitExpenses.find((s) => s.transactionID === 'split2')?.amount).toBe(500);
+
+            // Total should still equal original amount
+            const totalAmount = splitExpenses.reduce((sum, split) => sum + split.amount, 0);
+            expect(totalAmount).toBe(TOTAL_AMOUNT);
+        });
     });
 
     describe('evenlyDistributeSplitExpenseAmounts', () => {

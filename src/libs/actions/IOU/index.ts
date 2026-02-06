@@ -13295,7 +13295,7 @@ function updateSplitExpenseField(
 }
 
 function updateSplitExpenseAmountField(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, currentItemTransactionID: string, amount: number) {
-    if (!draftTransaction?.transactionID || !currentItemTransactionID) {
+    if (!draftTransaction?.transactionID || !currentItemTransactionID || Number.isNaN(amount)) {
         return;
     }
 
