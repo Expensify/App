@@ -297,8 +297,9 @@ function MoneyRequestParticipantsSelector({
             undefined,
             reportAttributesDerived,
         );
-
-        newSections.push(formatResults.section);
+        // Just a temporary fix to satisfy the type checker
+        // Will be fixed when migrating to use new SelectionListWithSections
+        newSections.push({...formatResults.section, title: undefined, shouldShow: true});
 
         newSections.push({
             title: translate('workspace.common.workspace'),
