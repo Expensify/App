@@ -43,7 +43,7 @@ function ImportSpreadsheetConfirmModal({isVisible, closeImportPageAndModal, onMo
         }).then(() => {
             closeImportPageAndModal();
         });
-    }, [isVisible, titleText, promptText, closeImportPageAndModal, onModalHide, shouldHandleNavigationBack, showConfirmModal, translate]);
+    }, [isVisible, titleText, promptText, closeImportPageAndModal, onModalHide, shouldHandleNavigationBack, showConfirmModal, translate, spreadsheet?.importFinalModal]);
 
     return null;
 }
