@@ -170,7 +170,7 @@ function initSearchPage() {
         const query = input.value.trim();
         if (query) {
             const url = '/search?q=' + encodeURIComponent(query) + (platform ? '&platform=' + encodeURIComponent(platform) : '');
-            history.replaceState(null, '', url);
+            history.pushState(null, '', url);
             title.textContent = 'Search results';
             searchPageQuery(query);
         }
