@@ -776,7 +776,7 @@ function SearchFiltersBar({
         return hiddenFilters.filter((key) => {
             const dateFilterKey = DATE_FILTER_KEYS.find((dateKey) => key === dateKey);
             if (dateFilterKey) {
-                return searchAdvancedFiltersForm[`${dateFilterKey}On`] ?? searchAdvancedFiltersForm[`${dateFilterKey}After`] ?? searchAdvancedFiltersForm[`${dateFilterKey}Before`];
+                return filterFormValues[`${dateFilterKey}On`] ?? filterFormValues[`${dateFilterKey}After`] ?? filterFormValues[`${dateFilterKey}Before`];
             }
 
             if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD) {
@@ -786,15 +786,15 @@ function SearchFiltersBar({
             const amountFilterKey = AMOUNT_FILTER_KEYS.find((amountKey) => key === amountKey);
             if (amountFilterKey) {
                 return (
-                    searchAdvancedFiltersForm[`${amountFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`] ??
-                    searchAdvancedFiltersForm[`${amountFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`] ??
-                    searchAdvancedFiltersForm[`${amountFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`]
+                    filterFormValues[`${amountFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`] ??
+                    filterFormValues[`${amountFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`] ??
+                    filterFormValues[`${amountFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`]
                 );
             }
 
-            return searchAdvancedFiltersForm[key as SearchAdvancedFiltersKey];
+            return filterFormValues[key as SearchAdvancedFiltersKey];
         });
-    }, [searchAdvancedFiltersForm, filters, typeFiltersKeys]);
+    }, [filterFormValues, filters, searchAdvancedFiltersForm, typeFiltersKeys]);
 
     const adjustScroll = useCallback((info: {distanceFromEnd: number}) => {
         // Workaround for a known React Native bug on Android (https://github.com/facebook/react-native/issues/27504):
