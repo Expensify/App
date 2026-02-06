@@ -8377,7 +8377,7 @@ ${reportName}
                 addMember: 'このメンバーを追加できませんでした。もう一度お試しください。',
             },
         },
-        groups: {title: 'グループ', memberCount: {one: 'メンバー 1 人', other: (count: number) => `${count}名のメンバー`}},
+        groups: {title: 'グループ', memberCount: () => ({one: 'メンバー 1 人', other: (count: number) => `${count}名のメンバー`})},
     },
 };
 export default translations;

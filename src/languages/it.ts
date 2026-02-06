@@ -8446,7 +8446,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
                 addMember: 'Impossibile aggiungere questo membro. Riprova.',
             },
         },
-        groups: {title: 'Gruppi', memberCount: {one: '1 membro', other: (count: number) => `${count} membri`}},
+        groups: {title: 'Gruppi', memberCount: () => ({one: '1 membro', other: (count: number) => `${count} membri`})},
     },
 };
 export default translations;

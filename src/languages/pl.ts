@@ -8412,7 +8412,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
                 addMember: 'Nie można dodać tego członka. Spróbuj ponownie.',
             },
         },
-        groups: {title: 'Grupy', memberCount: {one: '1 członek', other: (count: number) => `${count} członków`}},
+        groups: {title: 'Grupy', memberCount: () => ({one: '1 członek', other: (count: number) => `${count} członków`})},
     },
 };
 export default translations;

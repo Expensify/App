@@ -1,3 +1,4 @@
+import type {DomainSecurityGroupWithID} from '@selectors/Domain';
 import {groupsSelector} from '@selectors/Domain';
 import React from 'react';
 import {View} from 'react-native';
@@ -17,13 +18,7 @@ import type {DomainSplitNavigatorParamList} from '@navigation/types';
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {DomainSecurityGroup} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
-
-type DomainSecurityGroupWithID = {
-    id: string;
-    details: DomainSecurityGroup;
-};
 
 type DomainGroupsPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.GROUPS>;
 
@@ -40,7 +35,7 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
     const data = groups.map((group) => {
         return {
             keyForList: group.id,
-            text: group.details.name,
+            text: group.details.name ?? '',
             rightElement: (
                 <View style={[styles.flex1]}>
                     <Text
@@ -90,7 +85,7 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
                 <SelectionList
                     data={data}
                     ListItem={TableListItem}
-                    onSelectRow={() => {}}
+                    onSelectRow={() => null}
                     customListHeader={getCustomListHeader()}
                 />
             </ScreenWrapper>
@@ -100,5 +95,4 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
 
 DomainGroupsPage.displayName = 'DomainGroupsPage';
 
-export type {DomainSecurityGroupWithID};
 export default DomainGroupsPage;

@@ -8433,7 +8433,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
                 addMember: 'Kan dit lid niet toevoegen. Probeer het opnieuw.',
             },
         },
-        groups: {title: 'Groepen', memberCount: {one: '1 lid', other: (count: number) => `${count} leden`}},
+        groups: {title: 'Groepen', memberCount: () => ({one: '1 lid', other: (count: number) => `${count} leden`})},
     },
 };
 export default translations;

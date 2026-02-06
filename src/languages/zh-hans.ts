@@ -8253,7 +8253,7 @@ ${reportName}
                 addMember: '无法添加此成员。请重试。',
             },
         },
-        groups: {title: '群组', memberCount: {one: '1 名成员', other: (count: number) => `${count} 名成员`}},
+        groups: {title: '群组', memberCount: () => ({one: '1 名成员', other: (count: number) => `${count} 名成员`})},
     },
 };
 export default translations;

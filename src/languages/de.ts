@@ -8468,7 +8468,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
                 addMember: 'Dieses Mitglied kann nicht hinzugefügt werden. Bitte versuche es erneut.',
             },
         },
-        groups: {title: 'Gruppen', memberCount: {one: '1 Mitglied', other: (count: number) => `${count} Mitglieder`}},
+        groups: {title: 'Gruppen', memberCount: () => ({one: '1 Mitglied', other: (count: number) => `${count} Mitglieder`})},
     },
 };
 export default translations;

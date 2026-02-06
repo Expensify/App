@@ -1,10 +1,14 @@
 import {Str} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {DomainSecurityGroupWithID} from '@pages/domain/Groups/DomainGroupsPage';
 import CONST from '@src/CONST';
 import type {CardFeeds, Domain, DomainPendingActions, DomainSecurityGroup, DomainSettings, SamlMetadata} from '@src/types/onyx';
 import type {SecurityGroupKey, UserSecurityGroupData} from '@src/types/onyx/Domain';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+
+type DomainSecurityGroupWithID = {
+    id: string;
+    details: DomainSecurityGroup;
+};
 
 const domainMemberSamlSettingsSelector = (domainSettings: OnyxEntry<CardFeeds>) => domainSettings?.settings;
 
@@ -172,3 +176,5 @@ export {
     isSecurityGroupEntry,
     groupsSelector,
 };
+
+export {type DomainSecurityGroupWithID};
