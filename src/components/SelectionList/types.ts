@@ -1,4 +1,4 @@
-import type {ComponentType, ReactElement, RefObject} from 'react';
+import type {ReactElement, RefObject} from 'react';
 import type {GestureResponderEvent, InputModeOptions, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -25,11 +25,8 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     /** Custom content to display in the footer */
     footerContent?: React.ReactNode;
 
-    /** Rendered at the bottom of all the items. Can be a React Component (e.g. SomeComponent), or a React element (e.g. <SomeComponent />). */
-    listFooterComponent?: ReactElement | ComponentType | null | undefined;
-
-    /** Experimental: When true offscreen child views (whose overflow value is hidden) are removed from their native backing superview when offscreen. This can improve scrolling performance on long lists. The default value is false. */
-    removeClippedSubviews?: boolean;
+    /** Custom content to display in the footer of list component */
+    listFooterContent?: React.JSX.Element | null | undefined;
 
     /** Whether to show the loading placeholder */
     showLoadingPlaceholder?: boolean;
@@ -134,9 +131,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> &
 
         /** Custom component to render while data is loading */
         customLoadingPlaceholder?: React.JSX.Element;
-
-        /** Custom content to display in the footer of list component */
-        listFooterContent?: React.JSX.Element | null | undefined;
 
         /** Number of lines to show for alternate text */
         alternateNumberOfSupportedLines?: number;

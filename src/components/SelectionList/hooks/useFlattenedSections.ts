@@ -52,14 +52,16 @@ function useFlattenedSections<TItem extends ListItem>(sections: Array<Section<TI
         for (const section of sections) {
             const sectionDataLength = section.data?.length ?? 0;
             itemsTotalCount += sectionDataLength;
-            if (sectionDataLength > 0 && (section.title || section.customHeader)) {
+            const hasHeader = sectionDataLength > 0 && (section.customHeader ?? section.title);
+
+            if (hasHeader) {
                 disabledIndices.push(data.length);
                 data.push({
                     type: CONST.SECTION_LIST_ITEM_TYPE.HEADER,
-                    ...(section.title && {title: section.title}),
-                    ...(section.customHeader && {customHeader: section.customHeader}),
                     keyForList: `header-${section.sectionIndex}`,
                     isDisabled: true,
+                    ...(section.title && {title: section.title}),
+                    ...(section.customHeader && {customHeader: section.customHeader}),
                 });
             }
 

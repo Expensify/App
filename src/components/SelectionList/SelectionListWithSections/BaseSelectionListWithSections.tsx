@@ -50,6 +50,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     rightHandSideComponent,
     listEmptyContent,
     footerContent,
+    listFooterContent,
     style,
     addBottomSafeAreaPadding,
     isLoadingNewOptions,
@@ -67,8 +68,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     shouldScrollToFocusedIndex = true,
     shouldSingleExecuteRowSelect = false,
     shouldPreventDefaultFocusOnSelectRow = false,
-    listFooterComponent,
-    removeClippedSubviews,
 }: SelectionListWithSectionsProps<TItem>) {
     const styles = useThemeStyles();
     const isScreenFocused = useIsFocused();
@@ -343,10 +342,9 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         indicatorStyle="white"
                         showsVerticalScrollIndicator
                         keyboardShouldPersistTaps="always"
-                        ListFooterComponent={listFooterComponent}
+                        ListFooterComponent={listFooterContent}
                         style={style?.listStyle}
                         maintainVisibleContentPosition={{disabled: disableMaintainingScrollPosition}}
-                        removeClippedSubviews={removeClippedSubviews}
                     />
                 </>
             )}

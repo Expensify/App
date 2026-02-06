@@ -48,11 +48,13 @@ type SelectionListWithSectionsHandle = {
     focusTextInput: () => void;
 };
 
-type SectionHeader<TItem extends ListItem> = {
+type SectionHeader = {
     type: typeof CONST.SECTION_LIST_ITEM_TYPE.HEADER;
     keyForList: string;
+    title?: string;
+    customHeader?: ReactElement;
     isDisabled: boolean;
-} & Pick<Section<TItem>, 'title' | 'customHeader'>;
+};
 
 type SectionListItem<TItem extends ListItem> = TItem & {
     flatIndex: number;
@@ -61,6 +63,6 @@ type SectionListItem<TItem extends ListItem> = TItem & {
     flatListKey: string;
 };
 
-type FlattenedItem<TItem extends ListItem> = SectionListItem<TItem> | SectionHeader<TItem>;
+type FlattenedItem<TItem extends ListItem> = SectionListItem<TItem> | SectionHeader;
 
 export type {Section, ListItem, SectionListItem, SelectionListWithSectionsProps, SelectionListWithSectionsHandle, SectionHeader, FlattenedItem};

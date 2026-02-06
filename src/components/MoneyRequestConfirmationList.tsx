@@ -3,7 +3,6 @@ import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {SetRequired} from 'type-fest';
 import useCurrencyList from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -82,7 +81,7 @@ import MoneyRequestConfirmationListFooter from './MoneyRequestConfirmationListFo
 import {PressableWithFeedback} from './Pressable';
 import {useProductTrainingContext} from './ProductTrainingContext';
 import UserListItem from './SelectionList/ListItem/UserListItem';
-import SelectionList from './SelectionList/SelectionListWithSections';
+import SelectionListWithSections from './SelectionList/SelectionListWithSections';
 import type {Section} from './SelectionList/SelectionListWithSections/types';
 import SettlementButton from './SettlementButton';
 import Text from './Text';
@@ -222,7 +221,7 @@ type MoneyRequestConfirmationListProps = {
     showRemoveExpenseConfirmModal?: () => void;
 };
 
-type MoneyRequestConfirmationListItem = SetRequired<Participant, 'keyForList'> | OptionData;
+type MoneyRequestConfirmationListItem = (Participant & {keyForList: string}) | OptionData;
 
 const mileageRateSelector = (policy: OnyxEntry<OnyxTypes.Policy>) => DistanceRequestUtils.getDefaultMileageRate(policy);
 
@@ -719,7 +718,6 @@ function MoneyRequestConfirmationList({
                         transaction?.comment?.splits?.find((split) => split.accountID === participantOption.accountID)?.amount ??
                         calculateAmount(selectedParticipants.length, iouAmount, iouCurrencyCode ?? '', isPayer);
                 }
-
                 return {
                     ...participantOption,
                     keyForList: `${participantOption.keyForList ?? participantOption.accountID ?? participantOption.reportID}`,
@@ -857,6 +855,8 @@ function MoneyRequestConfirmationList({
                 ...participant,
                 isSelected: false,
                 keyForList: `${participant.keyForList ?? participant.accountID ?? participant.reportID}`,
+                isInteractive: isFromGlobalCreateAndCanEditParticipant && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
+                shouldShowRightIcon: isFromGlobalCreateAndCanEditParticipant && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
             }));
 
             options.push({
@@ -1308,20 +1308,18 @@ function MoneyRequestConfirmationList({
 
     return (
         <MouseProvider>
-            <SelectionList<MoneyRequestConfirmationListItem>
+            <SelectionListWithSections<MoneyRequestConfirmationListItem>
                 sections={sections}
                 ListItem={UserListItem}
                 onSelectRow={navigateToParticipantPage}
                 shouldSingleExecuteRowSelect
-                canSelectMultiple={false}
                 shouldPreventDefaultFocusOnSelectRow
                 showListEmptyContent={false}
                 footerContent={footerContent}
-                listFooterComponent={listFooterContent}
+                listFooterContent={listFooterContent}
                 style={{
                     containerStyle: [styles.flexBasisAuto],
                 }}
-                removeClippedSubviews={false}
                 disableKeyboardShortcuts
             />
         </MouseProvider>
