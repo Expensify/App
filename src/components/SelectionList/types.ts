@@ -102,6 +102,9 @@ type BaseSelectionListProps<TItem extends ListItem> = {
 
     /** Called when the list is scrolled and the user begins dragging */
     onScrollBeginDrag?: () => void;
+
+    /** Configuration for the confirm button */
+    confirmButtonOptions?: ConfirmButtonOptions<TItem>;
 };
 
 /**
@@ -122,9 +125,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> &
 
         /** Callback to fire when the item is long pressed */
         onLongPressRow?: (item: TItem) => void;
-
-        /** Configuration for the confirm button */
-        confirmButtonOptions?: ConfirmButtonOptions<TItem>;
 
         /** Custom header content to render instead of the default select all header */
         customListHeader?: React.ReactNode;

@@ -8245,8 +8245,20 @@ const CONST = {
         REANIMATED_MODAL: {
             BACKDROP: 'ReanimatedModal-Backdrop',
         },
+        REQUEST_STEP: {
+            SCAN: {
+                MULTI_SCAN: 'Scan-MultiScan',
+                FLASH: 'Scan-Flash',
+                CHOOSE_FILE: 'Scan-ChooseFile',
+                CHOOSE_FILES: 'Scan-ChooseFiles',
+                SHUTTER: 'Scan-Shutter',
+            },
+        },
         NEW_CHAT: {
             SELECT_PARTICIPANT: 'NewChat-SelectParticipant',
+        },
+        WORKSPACE_EXPENSIFY_CARD: {
+            CARD_LIST_ROW: 'WorkspaceExpensifyCard-CardListRow',
         },
         WORKSPACE: {
             TOGGLE_SETTINGS_ROW: 'Workspace-ToggleSettingsRow',
