@@ -735,6 +735,8 @@ const translations: TranslationDeepObject<typeof en> = {
         looksLikeYouRanOutOfTime: 'Parece que o tempo acabou! Tente novamente no estabelecimento.',
         youRanOutOfTime: 'Seu tempo acabou',
         letsVerifyItsYou: 'Vamos verificar se é você',
+        nowLetsAuthenticateYou: 'Agora, vamos autenticar você...',
+        letsAuthenticateYou: 'Vamos autenticar você...',
         verifyYourself: {
             biometrics: 'Verifique sua identidade com seu rosto ou impressão digital',
         },
@@ -751,6 +753,10 @@ const translations: TranslationDeepObject<typeof en> = {
             noDevices: 'Você não tem nenhum dispositivo registrado para verificação por rosto/digital ou passkey. Se você registrar algum, poderá revogar esse acesso aqui.',
             dismiss: 'Entendi',
             error: 'Falha na solicitação. Tente novamente mais tarde.',
+        },
+        unsupportedDevice: {
+            unsupportedDevice: 'Dispositivo não compatível',
+            pleaseDownloadMobileApp: `<centered-text><muted-text> Esta ação não é compatível com seu dispositivo. Baixe o app do Expensify na <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> ou na <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> e tente novamente.</muted-text></centered-text>`,
         },
     },
     validateCodeModal: {
@@ -3873,6 +3879,7 @@ ${
             card: 'Cartões',
             expensifyCard: 'Cartão Expensify',
             companyCards: 'Cartões corporativos',
+            personalCards: 'Cartões pessoais',
             workflows: 'Fluxos de trabalho',
             workspace: 'Espaço de trabalho',
             findWorkspace: 'Encontrar espaço de trabalho',
@@ -5175,6 +5182,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                             currentTravelLimitLabel: 'Limite de viagem atual',
                             settlementAccountLabel: 'Conta de liquidação',
                             settlementFrequencyLabel: 'Frequência de liquidação',
+                            settlementFrequencyDescription:
+                                'Com que frequência o Expensify vai debitar da sua conta bancária empresarial para liquidar as transações recentes do Expensify Travel.',
                         },
                     },
                 },
@@ -5646,6 +5655,22 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 limit: 'Limite',
                 limitType: 'Tipo de limite',
                 disabledApprovalForSmartLimitError: 'Ative as aprovações em <strong>Fluxos de trabalho > Adicionar aprovações</strong> antes de configurar limites inteligentes',
+                singleUse: 'Uso único',
+                singleUseDescription: 'Expira após uma transação',
+                validFrom: 'Válido a partir de',
+                startDate: 'Data de início',
+                endDate: 'Data de término',
+                noExpirationHint: 'Um cartão sem data de validade não expirará',
+                validFromTo: ({startDate, endDate}: {startDate: string; endDate: string}) => `Válido de ${startDate} a ${endDate}`,
+                validFromToWithoutText: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} a ${endDate}`,
+                combineWithExpiration: 'Combine com opções de validade para controle adicional de gastos',
+                enterValidDate: 'Digite uma data válida',
+                expirationDate: 'Data de validade',
+                limitAmount: 'Valor do limite',
+                setExpiryOptions: 'Definir opções de validade',
+                setExpiryDate: 'Definir data de validade',
+                setExpiryDateDescription: 'O cartão expirará conforme indicado no cartão',
+                amount: 'Valor',
             },
             deactivateCardModal: {
                 deactivate: 'Desativar',
@@ -7498,8 +7523,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
     },
     cardTransactions: {
         notActivated: 'Não ativado',
-        outOfPocket: 'Gasto presencial',
-        companySpend: 'Gastos da empresa',
+        outOfPocket: 'Reembolsável',
+        companySpend: 'Não reembolsável',
     },
     distance: {
         addStop: 'Adicionar parada',
@@ -7587,6 +7612,11 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             title: 'Rastreamento por GPS em andamento',
             prompt: 'Tem certeza de que deseja descartar a viagem e sair?',
             confirm: 'Descartar e sair',
+        },
+        switchToODWarningTripInProgress: {
+            title: 'Rastreamento por GPS em andamento',
+            prompt: 'Tem certeza de que deseja parar o rastreamento por GPS e mudar para o Expensify Classic?',
+            confirm: 'Parar e mudar',
         },
         locationServicesRequiredModal: {
             title: 'Acesso à localização necessário',

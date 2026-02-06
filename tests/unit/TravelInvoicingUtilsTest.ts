@@ -112,9 +112,9 @@ describe('TravelInvoicingUtils', () => {
     });
 
     describe('getTravelSettlementFrequency', () => {
-        it('Should return daily when cardSettings is undefined', () => {
+        it('Should return monthly (default) when cardSettings is undefined', () => {
             const result = getTravelSettlementFrequency(undefined);
-            expect(result).toBe(CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY);
+            expect(result).toBe(CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY);
         });
 
         it('Should return daily when monthlySettlementDate is not set', () => {

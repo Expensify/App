@@ -4,7 +4,6 @@ import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import type {SplitListItemType} from '@components/SelectionList/ListItem/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
 import SplitAmountDisplay from './SplitAmountDisplay';
 
 type SplitAmountInputProps = {
@@ -56,7 +55,6 @@ function SplitAmountInput({splitItem, formattedOriginalAmount, contentWidth, onS
                 onFocus={focusHandler}
                 onBlur={onInputBlur}
                 allowNegativeInput
-                keyboardType={CONST.KEYBOARD_TYPE.NUMBERS_AND_PUNCTUATION}
             />
         );
     }

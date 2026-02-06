@@ -72,6 +72,7 @@ function MultifactorAuthenticationRevokePage() {
                 <View style={[styles.flexRow, styles.m5, styles.mt0]}>
                     {hasDevices ? (
                         <Button
+                            large
                             danger
                             style={styles.flex1}
                             onPress={showConfirmModal}
@@ -79,6 +80,7 @@ function MultifactorAuthenticationRevokePage() {
                         />
                     ) : (
                         <Button
+                            large
                             success
                             style={styles.flex1}
                             onPress={onGoBackPress}

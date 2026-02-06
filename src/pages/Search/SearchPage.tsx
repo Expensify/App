@@ -33,6 +33,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSelfDMReport from '@hooks/useSelfDMReport';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
@@ -76,6 +77,7 @@ import {
     isExpenseReport as isExpenseReportUtil,
     isInvoiceReport,
     isIOUReport as isIOUReportUtil,
+    isSelfDM,
 } from '@libs/ReportUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {shouldShowDeleteOption} from '@libs/SearchUIUtils';
@@ -90,7 +92,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy, Report, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Report, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import SearchPageNarrow from './SearchPageNarrow';
 import SearchPageWide from './SearchPageWide';
@@ -113,6 +115,7 @@ function SearchPage({route}: SearchPageProps) {
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
     const allTransactions = useAllTransactions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const selfDMReport = useSelfDMReport();
     const [lastPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
     const newReportID = generateReportID();
@@ -318,9 +321,16 @@ function SearchPage({route}: SearchPageProps) {
     );
 
     const policyIDsWithVBBA = useMemo(() => {
-        return Object.values(policies ?? {})
-            .filter((policy): policy is Policy => !!policy?.achAccount?.bankAccountID)
-            .map((policy) => policy.id);
+        const result = [];
+        for (const policy of Object.values(policies ?? {})) {
+            if (!policy || !policy.achAccount?.bankAccountID) {
+                continue;
+            }
+
+            result.push(policy.id);
+        }
+
+        return result;
     }, [policies]);
 
     const handleBasicExport = useCallback(async () => {
@@ -1123,20 +1133,21 @@ function SearchPage({route}: SearchPageProps) {
         }
 
         if (isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id)) {
-            const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
             const shouldAutoReport = !!activePolicy?.autoReporting || !!personalPolicy?.autoReporting;
-            const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
+            const report = shouldAutoReport ? getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id) : selfDMReport;
+            const transactionReportID = isSelfDM(report) ? CONST.REPORT.UNREPORTED_REPORT_ID : report?.reportID;
+            const iouTypeTrackOrSubmit = transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
             const setParticipantsPromises = newReceiptFiles.map((receiptFile) => {
                 setTransactionReport(receiptFile.transactionID, {reportID: transactionReportID}, true);
-                return setMoneyRequestParticipantsFromReport(receiptFile.transactionID, activePolicyExpenseChat, currentUserPersonalDetails.accountID);
+                return setMoneyRequestParticipantsFromReport(receiptFile.transactionID, report, currentUserPersonalDetails.accountID);
             });
             Promise.all(setParticipantsPromises).then(() =>
                 Navigation.navigate(
                     ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
                         CONST.IOU.ACTION.CREATE,
-                        CONST.IOU.TYPE.SUBMIT,
+                        iouTypeTrackOrSubmit,
                         initialTransaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                        activePolicyExpenseChat?.reportID,
+                        report?.reportID,
                     ),
                 ),
             );

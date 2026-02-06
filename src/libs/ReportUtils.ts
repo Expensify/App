@@ -167,6 +167,7 @@ import {
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyAuditor,
     isPolicyMember,
+    isPolicyMemberWithoutPendingDelete,
     isPolicyOwner,
     isSubmitAndClose,
     shouldShowPolicy,
@@ -1885,15 +1886,12 @@ function isConciergeChatReport(report: OnyxInputOrEntry<Report>, conciergeReport
     return !!report && report?.reportID === (conciergeReportID ?? conciergeReportIDOnyxConnect);
 }
 
-function findSelfDMReportID(): string | undefined {
+function findSelfDMReportID(reports?: OnyxCollection<Report>): string | undefined {
     if (cachedSelfDMReportID) {
         return cachedSelfDMReportID;
     }
-    if (!allReports) {
-        return;
-    }
 
-    const selfDMReport = Object.values(allReports).find((report) => isSelfDM(report) && !isThread(report));
+    const selfDMReport = Object.values(reports ?? allReports ?? {}).find((report) => isSelfDM(report) && !isThread(report));
     return selfDMReport?.reportID;
 }
 
@@ -2737,7 +2735,23 @@ function isPayer(
     reportPolicy?: OnyxInputOrEntry<Policy>,
     onlyShowPayElsewhere = false,
 ) {
-    const policy = reportPolicy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`] ?? null;
+    const policy = reportPolicy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`];
+
+    // If the report belongs to a workspace, verify the user is still a member
+    // When a user leaves a workspace, they may no longer have access to the policy data,
+    // or the policy.role/employeeList may be stale
+    if (iouReport?.policyID && iouReport.policyID !== CONST.POLICY.ID_FAKE) {
+        // No policy data means user likely left the workspace
+        if (!policy) {
+            return false;
+        }
+        // For paid group policies, verify membership via employeeList (only when loaded)
+        // employeeList may be lazily loaded/partial, so only check if it's present
+        if (isPaidGroupPolicy(iouReport) && !isEmptyObject(policy?.employeeList) && !isPolicyMemberWithoutPendingDelete(currentUserEmailParam, policy)) {
+            return false;
+        }
+    }
+
     const policyType = policy?.type;
     const isAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = iouReport?.managerID === currentAccountID;
@@ -4342,6 +4356,38 @@ function getMoneyRequestSpendBreakdown(report: OnyxInputOrEntry<Report>, searchR
     };
 }
 
+function getBillableAndTaxTotal(report: OnyxEntry<Report>, transactions: Array<OnyxEntry<Transaction>>) {
+    let billableTotal = 0;
+    let taxTotal = 0;
+    if (!isExpenseReport(report)) {
+        return {
+            billableTotal: 0,
+            taxTotal: 0,
+        };
+    }
+    for (const transaction of transactions) {
+        const {amount = 0, taxAmount = 0, currency, billable} = getTransactionDetails(transaction) ?? {};
+        if (billable) {
+            if (currency === report?.currency) {
+                billableTotal += amount;
+            } else {
+                billableTotal -= transaction?.convertedAmount ?? 0;
+            }
+        }
+        if (taxAmount) {
+            if (currency === report?.currency) {
+                taxTotal += taxAmount;
+            } else {
+                taxTotal -= transaction?.convertedTaxAmount ?? 0;
+            }
+        }
+    }
+    return {
+        billableTotal,
+        taxTotal,
+    };
+}
+
 /**
  * Given a report field, check if the field is for the report title.
  */
@@ -4819,12 +4865,28 @@ function canEditFieldOfMoneyRequest(
             return false;
         }
 
-        return (
-            Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
-                getOutstandingReportsForUser(currentPolicy?.id, moneyRequestReport?.ownerAccountID, outstandingReportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
-            ).length > 1 ||
-            ((isOwner || isAdmin || isManager) && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID))
-        );
+        // Check the cheaper condition first
+        if ((isOwner || isAdmin || isManager) && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID)) {
+            return true;
+        }
+
+        // Check if there are multiple outstanding reports across policies
+        let outstandingReportsCount = 0;
+        for (const currentPolicy of Object.values(allPolicies ?? {})) {
+            const reports = getOutstandingReportsForUser(
+                currentPolicy?.id,
+                moneyRequestReport?.ownerAccountID,
+                outstandingReportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {},
+            );
+            outstandingReportsCount += reports.length;
+
+            // Short-circuit once we find more than 1
+            if (outstandingReportsCount > 1) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -5897,8 +5959,18 @@ function getReportSubtitlePrefix(report: OnyxEntry<Report>): string {
         return '';
     }
 
-    const filteredPolicies = Object.values(allPolicies ?? {}).filter((policy) => shouldShowPolicy(policy, false, currentUserEmail));
-    if (filteredPolicies.length < 2) {
+    let policyCount = 0;
+    for (const policy of Object.values(allPolicies ?? {})) {
+        if (!policy || !shouldShowPolicy(policy, false, currentUserEmail)) {
+            continue;
+        }
+
+        policyCount++;
+        if (policyCount >= 2) {
+            break;
+        }
+    }
+    if (policyCount < 2) {
         return '';
     }
 
@@ -11016,7 +11088,23 @@ function createDraftTransactionAndNavigateToParticipantSelector(
         mccGroup,
     } as Transaction);
 
-    const filteredPolicies = Object.values(allPolicies ?? {}).filter((policy) => shouldShowPolicy(policy, false, currentUserEmail));
+    let firstPolicy: Policy | undefined;
+    let filteredPoliciesCount = 0;
+    for (const policy of Object.values(allPolicies ?? {})) {
+        if (!policy || !shouldShowPolicy(policy, false, currentUserEmail)) {
+            continue;
+        }
+
+        if (filteredPoliciesCount === 0) {
+            firstPolicy = policy;
+        }
+        filteredPoliciesCount++;
+
+        // Short-circuit once we find 2 policies
+        if (filteredPoliciesCount > 1) {
+            break;
+        }
+    }
 
     if (actionName === CONST.IOU.ACTION.CATEGORIZE) {
         if (activePolicy && shouldRestrictUserBillableActions(activePolicy.id)) {
@@ -11043,7 +11131,7 @@ function createDraftTransactionAndNavigateToParticipantSelector(
             }
             return;
         }
-        if (filteredPolicies.length === 0 || filteredPolicies.length > 1) {
+        if (filteredPoliciesCount === 0 || filteredPoliciesCount > 1) {
             Navigation.navigate(
                 ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
                     action: actionName,
@@ -11058,7 +11146,7 @@ function createDraftTransactionAndNavigateToParticipantSelector(
             return;
         }
 
-        const policyID = filteredPolicies.at(0)?.id;
+        const policyID = firstPolicy?.id;
         const policyExpenseReportID = getPolicyExpenseChat(currentUserAccountID, policyID)?.reportID;
         setMoneyRequestParticipants(transactionID, [
             {
@@ -11083,7 +11171,7 @@ function createDraftTransactionAndNavigateToParticipantSelector(
         return;
     }
 
-    if (actionName === CONST.IOU.ACTION.SUBMIT || (allPolicies && filteredPolicies.length > 0)) {
+    if (actionName === CONST.IOU.ACTION.SUBMIT || (allPolicies && filteredPoliciesCount > 0)) {
         // Check if user is restricted to preferred workspace for submit tracked expenses
         if (isRestrictedToPreferredPolicy && preferredPolicyID) {
             const policyExpenseReport = getPolicyExpenseChat(currentUserAccountID, preferredPolicyID);
@@ -13120,6 +13208,7 @@ export {
     isOneTransactionReport,
     isTrackExpenseReportNew,
     shouldHideSingleReportField,
+    getBillableAndTaxTotal,
     getReportForHeader,
     isReportOpenOrUnsubmitted,
 };
