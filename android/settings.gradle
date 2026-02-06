@@ -1,5 +1,11 @@
-pluginManagement { includeBuild("../node_modules/@react-native/gradle-plugin") }
-plugins { id("com.facebook.react.settings") }
+pluginManagement {
+    includeBuild("../node_modules/@react-native/gradle-plugin")
+    includeBuild("../node_modules/expo-modules-autolinking/android/expo-gradle-plugin")
+}
+plugins {
+    id("com.facebook.react.settings")
+    id("expo-autolinking-settings")
+}
 apply from: "${rootDir}/../gradleUtils/PatchedArtifactsSettings.gradle"
 
 extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autolinkLibrariesFromCommand(['npx', 'rock', 'config', '-p', 'android']) }
@@ -33,3 +39,7 @@ if(settings.extensions.patchedArtifacts.buildFromSource) {
 
 apply from: new File(["node", "--print", "require.resolve('expo/package.json')"].execute(null, rootDir).text.trim(), "../scripts/autolinking.gradle")
 useExpoModules()
+expoAutolinking {
+    projectRoot = file(rootDir)
+    useExpoModules()
+}

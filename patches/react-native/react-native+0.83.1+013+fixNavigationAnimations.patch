@@ -1,29 +1,29 @@
 diff --git a/node_modules/react-native/Libraries/Animated/nodes/AnimatedProps.js b/node_modules/react-native/Libraries/Animated/nodes/AnimatedProps.js
-index 750569f..d458d7a 100644
+index af89f0d..aed96ca 100644
 --- a/node_modules/react-native/Libraries/Animated/nodes/AnimatedProps.js
 +++ b/node_modules/react-native/Libraries/Animated/nodes/AnimatedProps.js
 @@ -97,6 +97,7 @@ export default class AnimatedProps extends AnimatedNode {
-   #nodes: $ReadOnlyArray<AnimatedNode>;
-   #props: {[string]: mixed};
-   #target: ?TargetView = null;
-+  #connectedToView: boolean;
+   _nodes: $ReadOnlyArray<AnimatedNode>;
+   _props: {[string]: mixed};
+   _target: ?TargetView = null;
++  _connectedToView: boolean;
  
    constructor(
      inputProps: {[string]: mixed},
 @@ -110,6 +111,7 @@ export default class AnimatedProps extends AnimatedNode {
-     this.#nodes = nodes;
-     this.#props = props;
-     this.#callback = callback;
-+    this.#connectedToView = false;
+     this._nodes = nodes;
+     this._props = props;
+     this._callback = callback;
++    this._connectedToView = false;
    }
  
    __getValue(): Object {
 @@ -248,6 +250,8 @@ export default class AnimatedProps extends AnimatedNode {
  
-       if (this.#target != null) {
-         this.#connectAnimatedView(this.#target);
-+      } else if (!this.#connectedToView && this._animatedView) {
-+        this.#connectAnimatedView(this.#target);
+       if (this._target != null) {
+         this.#connectAnimatedView(this._target);
++      } else if (!this._connectedToView && this._animatedView) {
++        this.#connectAnimatedView(this._target);
        }
      }
    }
@@ -31,7 +31,7 @@ index 750569f..d458d7a 100644
          throw new Error('Unable to locate attached view in the native tree');
        }
      }
-+    this.#connectedToView = true;
++    this._connectedToView = true;
      NativeAnimatedHelper.API.connectAnimatedNodeToView(
        this.__getNativeTag(),
        viewTag,
@@ -39,7 +39,7 @@ index 750569f..d458d7a 100644
      if (viewTag == null) {
        return;
      }
-+    this.#connectedToView = false;
++    this._connectedToView = false;
      NativeAnimatedHelper.API.disconnectAnimatedNodeFromView(
        this.__getNativeTag(),
        viewTag,
