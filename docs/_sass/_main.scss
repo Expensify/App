@@ -1135,10 +1135,17 @@ button {
         background-color: var(--color-highlightBG);
         border-radius: 12px;
         padding: 20px;
-        min-height: 676px;
         box-sizing: border-box;
         display: flex;
         flex-direction: column;
+
+        &.ai-panel-loading {
+            min-height: 300px;
+
+            @include breakpoint($breakpoint-tablet) {
+                min-height: 676px;
+            }
+        }
     }
 
     .ai-avatar {
