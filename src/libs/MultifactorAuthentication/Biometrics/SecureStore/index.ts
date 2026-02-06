@@ -32,12 +32,12 @@ const SECURE_STORE_VALUES = {
         },
         FACE_ID: {
             CODE: SecureStore.AUTH_TYPE.FACE_ID,
-            NAME: 'FaceID',
+            NAME: 'Face ID',
             MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.BIOMETRIC_FACE,
         },
         TOUCH_ID: {
             CODE: SecureStore.AUTH_TYPE.TOUCH_ID,
-            NAME: 'TouchID',
+            NAME: 'Touch ID',
             MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.BIOMETRIC_FINGERPRINT,
         },
         /**
@@ -46,7 +46,7 @@ const SECURE_STORE_VALUES = {
          */
         OPTIC_ID: {
             CODE: SecureStore.AUTH_TYPE.OPTIC_ID,
-            NAME: 'OpticID',
+            NAME: 'Optic ID',
             MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.BIOMETRIC_FACE,
         },
     },

@@ -29,17 +29,17 @@ const SECURE_STORE_VALUES = {
         },
         FACE_ID: {
             CODE: 3,
-            NAME: 'FaceID',
+            NAME: 'Face ID',
             MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.BIOMETRIC_FACE,
         },
         TOUCH_ID: {
             CODE: 4,
-            NAME: 'TouchID',
+            NAME: 'Touch ID',
             MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.BIOMETRIC_FINGERPRINT,
         },
         OPTIC_ID: {
             CODE: 5,
-            NAME: 'OpticID',
+            NAME: 'Optic ID',
             MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.OTHER,
         },
     },
