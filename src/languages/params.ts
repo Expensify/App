@@ -1,4 +1,5 @@
 import type {ValueOf} from 'type-fest';
+import type {AuthTypeName} from '@components/MultifactorAuthentication/types';
 import type CONST from '@src/CONST';
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {DelegateRole} from '@src/types/onyx/Account';
@@ -6,7 +7,7 @@ import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageI
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
 type MultifactorAuthenticationTranslationParams = {
-    authType?: string;
+    authType?: AuthTypeName;
     registered?: boolean;
 };
 
@@ -250,7 +251,15 @@ type UpdatedPolicyTagFieldParams = {oldValue?: string; newValue: string; tagName
 
 type UpdatedPolicyCategoryNameParams = {oldName: string; newName?: string};
 
+type UpdatedPolicyTagListParams = {tagListName: string};
+
+type UpdatedPolicyTagListRequiredParams = {tagListsName: string; isRequired: boolean};
+
 type UpdatePolicyCustomUnitTaxEnabledParams = {newValue: boolean};
+
+type ImportPolicyCustomUnitRatesParams = {customUnitName: string};
+
+type UpdatePolicyCustomUnitDefaultCategoryParams = {customUnitName: string; newValue?: string; oldValue?: string};
 
 type UpdatePolicyCustomUnitParams = {oldValue: string; newValue: string; customUnitName: string; updatedField: string};
 
@@ -259,6 +268,12 @@ type UpdatedPolicyCustomUnitRateParams = {customUnitName: string; customUnitRate
 type UpdatedPolicyCustomUnitTaxRateExternalIDParams = {customUnitRateName: string; newValue: string; newTaxPercentage: string; oldValue?: string; oldTaxPercentage?: string};
 
 type UpdatedPolicyCustomUnitTaxClaimablePercentageParams = {customUnitRateName: string; newValue: number; oldValue?: number};
+
+type UpdatedPolicyCustomUnitSubRateParams = {customUnitName: string; customUnitRateName: string; customUnitSubRateName: string; oldValue: string; newValue: string; updatedField: string};
+
+type RemovedPolicyCustomUnitSubRateParams = {customUnitName: string; customUnitRateName: string; removedSubRateName: string};
+
+type AddedOrDeletedPolicyReportFieldParams = {fieldType: string; fieldName?: string};
 
 type UpdatedPolicyCustomUnitRateEnabledParams = {customUnitName: string; customUnitRateName: string; oldValue: boolean; newValue: boolean};
 
@@ -274,9 +289,37 @@ type UpdatedPolicyApprovalRuleParams = {oldApproverEmail: string; oldApproverNam
 
 type UpdatedPolicyPreventSelfApprovalParams = {oldValue: string; newValue: string};
 
+type UpdatedPolicyOwnershipParams = {oldOwnerEmail: string; oldOwnerName: string; policyName: string};
+
 type UpdatedPolicyFieldWithNewAndOldValueParams = {oldValue: string; newValue: string};
 
-type UpdatedPolicyFieldWithValueParam = {value: boolean};
+type UpdatedPolicyTimeEnabledParams = {enabled?: boolean};
+
+type UpdatedPolicyTimeRateParams = {newRate?: string; oldRate?: string};
+
+type UpdatedPolicyAutoHarvestingParams = {enabled: boolean};
+
+type UpdatedPolicyBudgetNotificationParams = {
+    budgetAmount: string;
+    budgetFrequency: string;
+    budgetName: string;
+    budgetTypeForNotificationMessage: string;
+    summaryLink?: string;
+    thresholdPercentage: number;
+    totalSpend: number;
+    unsubmittedSpend: number;
+    userEmail?: string;
+    awaitingApprovalSpend: number;
+    approvedReimbursedClosedSpend: number;
+};
+
+type UpdatedPolicyReimbursementChoiceParams = {newReimbursementChoice: string; oldReimbursementChoice: string};
+
+type UpdatedPolicyDefaultTitleParams = {newDefaultTitle: string; oldDefaultTitle: string};
+
+type UpdatedPolicyFieldWithValueParams = {value: boolean};
+
+type UpdatedPolicySetAutoJoinParams = {enabled: boolean};
 
 type UpdatedPolicyFrequencyParams = {oldFrequency: string; newFrequency: string};
 
@@ -289,6 +332,32 @@ type UpdatedPolicyReimbursementEnabledParams = {enabled: boolean};
 type UpdatedPolicyReimburserParams = {newReimburser: string; previousReimburser?: string};
 
 type ExportedToIntegrationParams = {label: string; markedManually?: boolean; inProgress?: boolean; lastModified?: string};
+
+type AddBudgetParams = {frequency: string; entityType: string; entityName: string; shared?: string; individual?: string; notificationThreshold?: number};
+
+type AddOrDeletePolicyCustomUnitRateParams = {customUnitName: string; rateName: string};
+
+type UpdatedBudgetParams = {
+    entityType: string;
+    entityName: string;
+    oldFrequency?: string;
+    newFrequency?: string;
+    oldIndividual?: string;
+    newIndividual?: string;
+    oldShared?: string;
+    newShared?: string;
+    oldNotificationThreshold?: number;
+    newNotificationThreshold?: number;
+};
+
+type DeleteBudgetParams = {
+    entityType: string;
+    entityName: string;
+    frequency?: string;
+    individual?: string;
+    shared?: string;
+    notificationThreshold?: number;
+};
 
 type IntegrationsMessageParams = {
     label: string;
@@ -360,6 +429,10 @@ type DisconnectTitleParams = {integration?: ConnectionName} | undefined;
 type AmountWithCurrencyParams = {amountWithCurrency: string};
 
 type LowerUpperParams = {lower: string; upper: string};
+
+type CategoryNameParams = {categoryName: string};
+
+type UpdatedPolicyCategoriesParams = {count: number};
 
 type NeedCategoryForExportToIntegrationParams = {connectionName: string};
 
@@ -592,6 +665,8 @@ export type {
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     OwnerOwesAmountParams,
     TaxAmountParams,
+    CategoryNameParams,
+    UpdatedPolicyCategoriesParams,
     AmountWithCurrencyParams,
     LowerUpperParams,
     LogSizeAndDateParams,
@@ -672,6 +747,7 @@ export type {
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
     ShareParams,
+    UpdatedPolicyFieldWithValueParams,
     UnshareParams,
     StripePaidParams,
     RemoveMembersWarningPrompt,
@@ -696,9 +772,12 @@ export type {
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCategoryDescriptionHintTypeParams,
     UpdatedPolicyCategoryNameParams,
+    UpdatedPolicyTagListParams,
+    UpdatedPolicyTagListRequiredParams,
     UpdatedPolicyPreventSelfApprovalParams,
     UpdatedPolicyFieldWithNewAndOldValueParams,
-    UpdatedPolicyFieldWithValueParam,
+    UpdatedPolicyTimeEnabledParams,
+    UpdatedPolicyTimeRateParams,
     UpdatedPolicyDescriptionParams,
     WorkEmailResendCodeParams,
     WorkEmailMergingBlockedParams,
@@ -715,15 +794,20 @@ export type {
     PolicyDisabledReportFieldOptionParams,
     PolicyDisabledReportFieldAllOptionsParams,
     SubmitsToParams,
+    UpdatedPolicyCustomUnitSubRateParams,
+    RemovedPolicyCustomUnitSubRateParams,
     PolicyExpenseChatNameParams,
     ReceiptPartnersUberSubtitleParams,
     YourPlanPriceValueParams,
+    AddedOrDeletedPolicyReportFieldParams,
     NeedCategoryForExportToIntegrationParams,
     UpdatedPolicyAuditRateParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyReimbursementEnabledParams,
     UpdatedPolicyReimburserParams,
     UpdatePolicyCustomUnitTaxEnabledParams,
+    ImportPolicyCustomUnitRatesParams,
+    UpdatePolicyCustomUnitDefaultCategoryParams,
     UpdatePolicyCustomUnitParams,
     UpdatedPolicyApprovalRuleParams,
     UpdatedPolicyCategoryGLCodeParams,
@@ -737,7 +821,11 @@ export type {
     PhoneErrorRouteParams,
     WorkspacesListRouteParams,
     WorkspaceRouteParams,
+    AddBudgetParams,
+    UpdatedBudgetParams,
+    DeleteBudgetParams,
     QBDSetupErrorBodyParams,
+    AddOrDeletePolicyCustomUnitRateParams,
     MergeSuccessDescriptionParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeFailureDescriptionGenericParams,
@@ -752,6 +840,12 @@ export type {
     SubscriptionSettingsLearnMoreParams,
     MergeAccountIntoParams,
     NextStepParams,
+    UpdatedPolicyOwnershipParams,
+    UpdatedPolicyAutoHarvestingParams,
+    UpdatedPolicyBudgetNotificationParams,
+    UpdatedPolicyReimbursementChoiceParams,
+    UpdatedPolicyDefaultTitleParams,
+    UpdatedPolicySetAutoJoinParams,
     UpdatedPolicyCustomUnitRateEnabledParams,
     MultifactorAuthenticationTranslationParams,
 };

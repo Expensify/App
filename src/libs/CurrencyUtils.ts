@@ -212,12 +212,41 @@ function getCurrencyKeyByCountryCode(currencies?: CurrencyList, countryCode?: st
     return CONST.CURRENCY.USD;
 }
 
+/**
+ * Get currency display information for chart labels and tooltips.
+ *
+ * Uses Intl.NumberFormat to determine the appropriate currency symbol and its position
+ * relative to the value based on the user's locale. For example:
+ * - USD in en-US: symbol "$", position "left" → "$100"
+ * - PLN in pl-PL: symbol "zł", position "right" → "100 zł"
+ * - EUR in de-DE: symbol "€", position "right" → "100 €"
+ *
+ * The function formats a zero value and extracts the currency part from the formatted parts.
+ * Position is determined by comparing the index of the currency part to the integer part.
+ *
+ * @param currencyCode - ISO 4217 currency code (e.g., "USD", "PLN", "EUR")
+ * @returns Object with symbol (e.g., "$", "zł", "PLN") and position ("left" or "right")
+ */
+function getCurrencyDisplayInfoForCharts(currencyCode: string): {symbol: string; position: 'left' | 'right'} {
+    const locale = IntlStore.getCurrentLocale();
+    const parts = formatToParts(locale, 0, {style: 'currency', currency: currencyCode});
+
+    const currencyIndex = parts.findIndex((p) => p.type === 'currency');
+    const integerIndex = parts.findIndex((p) => p.type === 'integer');
+
+    return {
+        symbol: parts.find((p) => p.type === 'currency')?.value ?? currencyCode,
+        position: currencyIndex < integerIndex ? 'left' : 'right',
+    };
+}
+
 export {
     getCurrencyDecimals,
     getCurrencyUnit,
     getLocalizedCurrencySymbol,
     getCurrencySymbol,
     getCurrencyKeyByCountryCode,
+    getCurrencyDisplayInfoForCharts,
     convertToBackendAmount,
     convertToFrontendAmountAsInteger,
     convertToFrontendAmountAsString,
