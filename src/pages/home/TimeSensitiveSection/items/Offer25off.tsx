@@ -7,6 +7,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 
 type Offer25offProps = {
+    /** The number of days remaining until the offer expires */
     days: number;
 };
 
@@ -26,6 +27,7 @@ function Offer25off({days}: Offer25offProps) {
             subtitle={subtitle}
             ctaText={translate('homePage.timeSensitiveSection.cta')}
             onCtaPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(ROUTES.HOME))}
+            buttonProps={{success: true}}
         />
     );
 }
