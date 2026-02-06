@@ -237,7 +237,7 @@ describe('ReportActionCompose Integration Tests', () => {
         });
 
         it('should send when length is within the limit', async () => {
-            renderReportActionCompose();
+            const {unmount} = renderReportActionCompose();
             const composer = screen.getByTestId('composer');
 
             // Given a message that is within the length limit
@@ -254,10 +254,13 @@ describe('ReportActionCompose Integration Tests', () => {
 
             // Then the message should be sent
             expect(mockForceClearInput).toHaveBeenCalledTimes(1);
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
         });
 
         it('should not send when length exceeds the limit', async () => {
-            renderReportActionCompose();
+            const {unmount} = renderReportActionCompose();
             const composer = screen.getByTestId('composer');
 
             // Given a message that is over the length limit
@@ -267,16 +270,14 @@ describe('ReportActionCompose Integration Tests', () => {
             // When the message is submitted
             act(onSubmitAction);
 
-            // scheduleOnUI mock uses setTimeout(() => ..., 0)
-            act(() => {
-                jest.advanceTimersByTime(1);
-            });
-
             // Then the message should NOT be sent
             expect(mockForceClearInput).toHaveBeenCalledTimes(0);
 
             // And the error should be displayed
             expect(screen.getByText('composer.commentExceededMaxLength')).toBeOnTheScreen();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
         });
     });
 });
