@@ -149,7 +149,6 @@ import {generateAccountID} from '@libs/UserUtils';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PrivateIsArchivedMap} from '@src/selectors/ReportNameValuePairs';
 import type {
     Beta,
     DismissedProductTraining,
@@ -1277,7 +1276,6 @@ function processReport(
 
 function createOptionList(
     personalDetails: OnyxEntry<PersonalDetailsList>,
-    privateIsArchivedMap: PrivateIsArchivedMap,
     currentUserAccountID: number,
     privateIsArchivedMap: PrivateIsArchivedMap,
     reports?: OnyxCollection<Report>,
