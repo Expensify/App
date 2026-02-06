@@ -165,7 +165,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                     />
                     <OfflineWithFeedback
                         errors={cardSettings?.errors}
-                        pendingAction={cardSettings?.pendingAction}
+                        pendingAction={cardSettings?.pendingFields?.paymentBankAccountID}
                         onClose={() => clearTravelInvoicingSettlementAccountErrors(workspaceAccountID, cardSettings?.previousPaymentBankAccountID ?? null)}
                         errorRowStyles={styles.mh2half}
                         errorRowTextStyles={styles.mr3}

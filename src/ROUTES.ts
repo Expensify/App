@@ -457,6 +457,8 @@ const ROUTES = {
         route: 'settings/wallet/card/:cardID/activate',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}/activate` as const,
     },
+    SETTINGS_WALLET_TRAVEL_CVV: 'settings/wallet/travel-cvv',
+    SETTINGS_WALLET_TRAVEL_CVV_VERIFY_ACCOUNT: `settings/wallet/travel-cvv/${VERIFY_ACCOUNT}`,
     SETTINGS_RULES: 'settings/rules',
     SETTINGS_RULES_ADD: {
         route: 'settings/rules/new/:field?',
@@ -2570,6 +2572,10 @@ const ROUTES = {
     WORKSPACE_TRAVEL_SETTINGS_ACCOUNT: {
         route: 'workspaces/:policyID/travel/settings/account',
         getRoute: (policyID: string) => `workspaces/${policyID}/travel/settings/account` as const,
+    },
+    WORKSPACE_TRAVEL_SETTINGS_FREQUENCY: {
+        route: 'workspaces/:policyID/travel/settings/frequency',
+        getRoute: (policyID: string) => `workspaces/${policyID}/travel/settings/frequency` as const,
     },
     WORKSPACE_CREATE_DISTANCE_RATE: {
         route: 'workspaces/:policyID/distance-rates/new',

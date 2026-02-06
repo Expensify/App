@@ -2,7 +2,6 @@ import {useFocusEffect} from '@react-navigation/native';
 import {filterOutPersonalCards} from '@selectors/Card';
 import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AddToWalletButton from '@components/AddToWalletButton/index';
 import Button from '@components/Button';
@@ -29,7 +28,7 @@ import {convertToDisplayString, getCurrencyKeyByCountryCode} from '@libs/Currenc
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DomainCardNavigatorParamList, SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {arePersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
+import {shouldShowMissingDetailsPage} from '@libs/PersonalDetailsUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import RedDotCardSection from '@pages/settings/Wallet/RedDotCardSection';
@@ -41,7 +40,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Card, PrivatePersonalDetails} from '@src/types/onyx';
 import {useExpensifyCardActions, useExpensifyCardState} from './ExpensifyCardContextProvider';
 
 type ExpensifyCardPageProps =
@@ -54,17 +52,6 @@ type LimitTypeTranslationKeys = {
     limitNameKey: TranslationPaths | undefined;
     limitTitleKey: PossibleTitles | undefined;
 };
-
-/**
- * Determines if the user should be redirected to the missing details page
- * before revealing their card details (for UK/EU cards only).
- */
-function shouldShowMissingDetailsPage(card: OnyxEntry<Card>, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): boolean {
-    const isUKOrEUCard = card?.nameValuePairs?.feedCountry === 'GB';
-    const hasMissingDetails = arePersonalDetailsMissing(privatePersonalDetails);
-
-    return hasMissingDetails && isUKOrEUCard;
-}
 
 function getLimitTypeTranslationKeys(limitType: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES> | undefined): LimitTypeTranslationKeys {
     switch (limitType) {

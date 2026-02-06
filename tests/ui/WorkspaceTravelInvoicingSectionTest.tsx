@@ -5,10 +5,10 @@ import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import {getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
 import WorkspaceTravelInvoicingSection from '@pages/workspace/travel/WorkspaceTravelInvoicingSection';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxKey} from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -48,6 +48,14 @@ jest.mock('@hooks/useWorkspaceAccountID', () => ({
 jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
     __esModule: true,
     default: () => ({didScreenTransitionEnd: true}),
+}));
+
+jest.mock('@libs/Navigation/Navigation', () => ({
+    __esModule: true,
+    default: {
+        navigate: jest.fn(),
+        getActiveRoute: jest.fn(() => ''),
+    },
 }));
 
 const mockPolicy: Policy = {
@@ -102,7 +110,7 @@ describe('WorkspaceTravelInvoicingSection', () => {
 
         it('should render sections when paymentBankAccountID is not set', async () => {
             // Given Travel Invoicing card settings exist but without paymentBankAccountID
-            const travelInvoicingKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${WORKSPACE_ACCOUNT_ID}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}` as OnyxKey;
+            const travelInvoicingKey = getTravelInvoicingCardSettingsKey(WORKSPACE_ACCOUNT_ID);
 
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
@@ -126,7 +134,7 @@ describe('WorkspaceTravelInvoicingSection', () => {
     });
 
     describe('When Travel Invoicing is configured', () => {
-        const travelInvoicingKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${WORKSPACE_ACCOUNT_ID}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}` as OnyxKey;
+        const travelInvoicingKey = getTravelInvoicingCardSettingsKey(WORKSPACE_ACCOUNT_ID);
         const bankAccountKey = ONYXKEYS.BANK_ACCOUNT_LIST;
 
         it('should render the section title when card settings are properly configured', async () => {
@@ -276,6 +284,38 @@ describe('WorkspaceTravelInvoicingSection', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then the settlement frequency label should be visible
+            expect(screen.getByText('Settlement frequency')).toBeTruthy();
+        });
+
+        it('should show correct frequency value and navigate on press', async () => {
+            // Given Travel Invoicing is configured with Monthly frequency (default if monthlySettlementDate exists)
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
+                await Onyx.merge(travelInvoicingKey, {
+                    paymentBankAccountID: 12345,
+                    remainingLimit: 50000,
+                    currentBalance: 10000,
+                    monthlySettlementDate: new Date(),
+                });
+                await Onyx.merge(bankAccountKey, {
+                    12345: {
+                        accountData: {
+                            addressName: 'Test Company',
+                            accountNumber: '****1234',
+                            bankAccountID: 12345,
+                        },
+                    },
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // When rendering the component
+            renderWorkspaceTravelInvoicingSection();
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it should display "Monthly"
+            expect(screen.getByText('Monthly')).toBeTruthy();
             expect(screen.getByText('Settlement frequency')).toBeTruthy();
         });
     });

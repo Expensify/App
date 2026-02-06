@@ -2253,6 +2253,11 @@ const translations = {
         unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} will lose access to this business bank account. We’ll still complete any payments in process.`,
         reachOutForHelp: 'It’s being used with the Expensify Card. <concierge-link>Reach out to Concierge</concierge-link> if you need to unshare it.',
         unshareErrorModalTitle: 'Can’t unshare bank account',
+        travelCVV: {
+            title: 'Travel CVV',
+            subtitle: 'Use this when booking travel',
+            description: "Use this card for your Expensify Travel bookings. It'll show as “Travel Card” at checkout.",
+        },
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -5162,6 +5167,7 @@ const translations = {
                             currentTravelLimitLabel: 'Current travel limit',
                             settlementAccountLabel: 'Settlement account',
                             settlementFrequencyLabel: 'Settlement frequency',
+                            settlementFrequencyDescription: 'How often Expensify will pull from your business bank account to settle recent Expensify Travel transactions.',
                         },
                     },
                 },
