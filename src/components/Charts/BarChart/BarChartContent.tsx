@@ -3,7 +3,7 @@ import React, {useCallback, useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import {useSharedValue} from 'react-native-reanimated';
-import type {ChartBounds, PointsArray} from 'victory-native';
+import type {ChartBounds, PointsArray, Scale} from 'victory-native';
 import {Bar, CartesianChart} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ChartHeader from '@components/Charts/components/ChartHeader';

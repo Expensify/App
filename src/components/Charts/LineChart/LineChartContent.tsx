@@ -2,7 +2,6 @@ import {Group, Text as SkiaText, useFont, vec} from '@shopify/react-native-skia'
 import React, {useCallback, useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
-import Animated from 'react-native-reanimated';
 import type {CartesianChartRenderArg, ChartBounds} from 'victory-native';
 import {CartesianChart, Line, Scatter} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -144,7 +143,7 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
         return Math.sqrt(dx * dx + dy * dy) <= DOT_RADIUS + DOT_HOVER_EXTRA_RADIUS;
     }, []);
 
-    const {actionsRef, customGestures, activeDataIndex, isTooltipActive, tooltipStyle} = useChartInteractions({
+    const {actionsRef, customGestures, activeDataIndex, isTooltipActive, initialTooltipPosition} = useChartInteractions({
         handlePress: handlePointPress,
         checkIsOver: checkIsOverDot,
     });
@@ -291,13 +290,13 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                     </CartesianChart>
                 )}
                 {isTooltipActive && !!tooltipData && (
-                    <Animated.View style={tooltipStyle}>
-                        <ChartTooltip
-                            label={tooltipData.label}
-                            amount={tooltipData.amount}
-                            percentage={tooltipData.percentage}
-                        />
-                    </Animated.View>
+                    <ChartTooltip
+                        label={tooltipData.label}
+                        amount={tooltipData.amount}
+                        percentage={tooltipData.percentage}
+                        chartWidth={chartWidth}
+                        initialTooltipPosition={initialTooltipPosition}
+                    />
                 )}
             </View>
         </View>
