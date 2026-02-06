@@ -676,7 +676,7 @@ useEffect(() => {
 
 ### [PERF-16] Guard initialization logic against double-execution
 
-- **Search patterns**: `useEffect(`, `}, [])`, `loadData`, `init`, `checkAuth`, `configure`, `setup`, `register`, `start`
+- **Search patterns**: `useEffect` with empty dependency array `[]` containing initialization logic (API calls, storage access, authentication checks, SDK setup, global configuration, event handler registration)
 
 - **Condition**: Flag ONLY when ALL of these are true:
 
