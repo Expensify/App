@@ -683,8 +683,8 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'Tu espacio',
         welcomeToRoom: ({roomName}) => `¡Bienvenido a ${roomName}!`,
         usePlusButton: ({additionalText}) => ` Usa el botón + para ${additionalText} un gasto`,
-        askConcierge: ' ¡Pregúntame lo que quieras!',
-        conciergeSupport: 'Tu agente personal de IA',
+        askConcierge: ' Tu asistente de gastos con IA 24/7 está aquí para ayudar.',
+        conciergeSupport: 'tu asistente de gastos 24/7',
         create: 'crear',
         iouTypes: {
             pay: 'pagar',
@@ -2729,8 +2729,6 @@ ${amount} para ${merchant} - ${date}`,
                 '# Vamos a configurarte\n👋 Hola, soy tu **especialista asignado** de configuración de Expensify. Ya he creado un espacio de trabajo para ayudarte a gestionar tus recibos y gastos. Para aprovechar al máximo tu prueba gratuita de 30 días, ¡solo sigue los pasos de configuración restantes que aparecen a continuación!',
             onboardingChatSplitMessage: 'Dividir cuentas con amigos es tan fácil como enviar un mensaje. Así se hace.',
             onboardingAdminMessage: 'Aprende a gestionar el espacio de tu equipo como administrador y enviar tus propios gastos.',
-            onboardingLookingAroundMessage:
-                'Expensify es conocido por gastos, viajes y gestión de tarjetas corporativas, pero hacemos mucho más. Dime qué te interesa y te ayudaré a empezar.',
             onboardingTestDriveReceiverMessage: '*¡Tienes 3 meses gratis! Empieza abajo.*',
         },
         workspace: {
