@@ -99,7 +99,7 @@ Available options:
 
 # Configure Tag Rules
 
-Tag Rules allow tagging-based workflows and approvals.
+Tag Rules allow tagging-based workflows and approvals. 
 
 To manage them:
 
