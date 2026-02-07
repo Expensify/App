@@ -39,6 +39,18 @@ const cursor: CursorStyles = {
     cursorText: {
         cursor: 'text' as ViewStyle['cursor'],
     },
+    cursorEwResize: {
+        cursor: 'ew-resize' as ViewStyle['cursor'],
+    },
+    cursorNsResize: {
+        cursor: 'ns-resize' as ViewStyle['cursor'],
+    },
+    cursorNeswResize: {
+        cursor: 'nesw-resize' as ViewStyle['cursor'],
+    },
+    cursorNwseResize: {
+        cursor: 'nwse-resize' as ViewStyle['cursor'],
+    },
 };
 
 export default cursor;

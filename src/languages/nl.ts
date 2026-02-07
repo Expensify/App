@@ -1129,6 +1129,7 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: 'Weet je zeker dat je deze bon wilt verwijderen?',
         addReceipt: 'Bon toevoegen',
         scanFailed: 'De bon is niet gescand, omdat er een handelaar, datum of bedrag ontbreekt.',
+        crop: 'Bijsnijden',
         addAReceipt: {
             phrase1: 'Voeg een bon toe',
             phrase2: 'of sleep ze hier naartoe',

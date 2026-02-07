@@ -1972,6 +1972,161 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             containerStyle: {paddingBottom},
         };
     },
+
+    /**
+     * Returns all necessary styles for crop view components
+     * @param params - Object containing dynamic crop values (cropX, cropY, cropWidth, cropHeight, etc.)
+     */
+    getCropViewStyles: (params?: {
+        cropX?: number;
+        cropY?: number;
+        cropWidth?: number;
+        cropHeight?: number;
+        imageLeft?: number;
+        imageTop?: number;
+        imgDisplayWidth?: number;
+        cropLeft?: number;
+        cropRight?: number;
+        cropTop?: number;
+        cropBottom?: number;
+        imageRight?: number;
+        imageBottom?: number;
+    }) => {
+        'worklet';
+
+        const {
+            cropX = 0,
+            cropY = 0,
+            cropWidth = 0,
+            cropHeight = 0,
+            imageLeft = 0,
+            imageTop = 0,
+            imgDisplayWidth = 0,
+            cropLeft = 0,
+            cropRight = 0,
+            cropTop = 0,
+            cropBottom = 0,
+            imageRight = 0,
+            imageBottom = 0,
+        } = params ?? {};
+
+        return {
+            cornerVisual: {
+                position: 'absolute' as const,
+                left: (variables.cornerTapTargetSize - variables.cornerHandleSize) / 2,
+                top: (variables.cornerTapTargetSize - variables.cornerHandleSize) / 2,
+                width: variables.cornerHandleSize,
+                height: variables.cornerHandleSize,
+                borderRadius: variables.cornerHandleSize / 2,
+                backgroundColor: theme.success,
+            },
+            border: {
+                ...styles.pAbsolute,
+                left: cropX,
+                top: cropY,
+                width: cropWidth,
+                height: cropHeight,
+                borderWidth: variables.cropBorderWidth,
+                borderColor: theme.success,
+            },
+            cornerTopLeft: {
+                ...styles.pAbsolute,
+                left: cropX - variables.cornerTapTargetSize / 2,
+                top: cropY - variables.cornerTapTargetSize / 2,
+                width: variables.cornerTapTargetSize,
+                height: variables.cornerTapTargetSize,
+                ...styles.cursorNwseResize,
+            },
+            cornerTopRight: {
+                ...styles.pAbsolute,
+                left: cropX + cropWidth - variables.cornerTapTargetSize / 2,
+                top: cropY - variables.cornerTapTargetSize / 2,
+                width: variables.cornerTapTargetSize,
+                height: variables.cornerTapTargetSize,
+                ...styles.cursorNeswResize,
+            },
+            cornerBottomLeft: {
+                ...styles.pAbsolute,
+                left: cropX - variables.cornerTapTargetSize / 2,
+                top: cropY + cropHeight - variables.cornerTapTargetSize / 2,
+                width: variables.cornerTapTargetSize,
+                height: variables.cornerTapTargetSize,
+                ...styles.cursorNeswResize,
+            },
+            cornerBottomRight: {
+                ...styles.pAbsolute,
+                left: cropX + cropWidth - variables.cornerTapTargetSize / 2,
+                top: cropY + cropHeight - variables.cornerTapTargetSize / 2,
+                width: variables.cornerTapTargetSize,
+                height: variables.cornerTapTargetSize,
+                ...styles.cursorNwseResize,
+            },
+            edgeTop: {
+                ...styles.pAbsolute,
+                left: cropX,
+                top: cropY - variables.edgeHandleTapTargetThickness / 2,
+                width: cropWidth,
+                height: variables.edgeHandleTapTargetThickness,
+                ...styles.cursorNsResize,
+            },
+            edgeBottom: {
+                ...styles.pAbsolute,
+                left: cropX,
+                top: cropY + cropHeight - variables.edgeHandleTapTargetThickness / 2,
+                width: cropWidth,
+                height: variables.edgeHandleTapTargetThickness,
+                ...styles.cursorNsResize,
+            },
+            edgeLeft: {
+                ...styles.pAbsolute,
+                left: cropX - variables.edgeHandleTapTargetThickness / 2,
+                top: cropY,
+                width: variables.edgeHandleTapTargetThickness,
+                height: cropHeight,
+                ...styles.cursorEwResize,
+            },
+            edgeRight: {
+                ...styles.pAbsolute,
+                left: cropX + cropWidth - variables.edgeHandleTapTargetThickness / 2,
+                top: cropY,
+                width: variables.edgeHandleTapTargetThickness,
+                height: cropHeight,
+                ...styles.cursorEwResize,
+            },
+            overlayTop: {
+                ...styles.pAbsolute,
+                left: imageLeft,
+                top: imageTop,
+                width: imgDisplayWidth,
+                height: Math.max(0, cropTop - imageTop),
+                backgroundColor: theme.transparentWhite,
+            },
+            overlayBottom: {
+                ...styles.pAbsolute,
+                left: imageLeft,
+                top: cropBottom,
+                width: imgDisplayWidth,
+                height: Math.max(0, imageBottom - cropBottom),
+                backgroundColor: theme.transparentWhite,
+            },
+            overlayLeft: {
+                ...styles.pAbsolute,
+                left: imageLeft,
+                top: cropTop,
+                width: Math.max(0, cropLeft - imageLeft),
+                height: cropHeight,
+                backgroundColor: theme.transparentWhite,
+            },
+            overlayRight: {
+                ...styles.pAbsolute,
+                left: cropRight,
+                top: cropTop,
+                width: Math.max(0, imageRight - cropRight),
+                height: cropHeight,
+                backgroundColor: theme.transparentWhite,
+            },
+        };
+    },
 });
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;

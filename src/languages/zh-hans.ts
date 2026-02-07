@@ -1109,6 +1109,7 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: '确定要删除这张收据吗？',
         addReceipt: '添加收据',
         scanFailed: '无法扫描此收据，因为缺少商家、日期或金额。',
+        crop: '裁剪',
         addAReceipt: {
             phrase1: '添加收据',
             phrase2: '或将文件拖放到此处',

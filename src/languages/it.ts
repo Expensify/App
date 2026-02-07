@@ -1129,6 +1129,7 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: 'Sei sicuro di voler eliminare questa ricevuta?',
         addReceipt: 'Aggiungi ricevuta',
         scanFailed: 'La ricevuta non può essere acquisita perché manca il nome dell’esercente, la data o l’importo.',
+        crop: 'Ritaglia',
         addAReceipt: {
             phrase1: 'Aggiungi una ricevuta',
             phrase2: 'o trascinalo qui',
