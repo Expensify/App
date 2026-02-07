@@ -99,6 +99,10 @@ function TroubleshootPage() {
     }, [tryNewDot?.classicRedirect]);
 
     const classicRedirectMenuItem: BaseMenuItem | null = useMemo(() => {
+        if (tryNewDot?.isLockedToNewApp && CONFIG.IS_HYBRID_APP) {
+            return null;
+        }
+
         if (tryNewDot?.classicRedirect?.isLockedToNewDot) {
             return null;
         }
