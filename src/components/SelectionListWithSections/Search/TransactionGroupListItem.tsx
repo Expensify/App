@@ -235,9 +235,12 @@ function TransactionGroupListItem<TItem extends ListItem>({
             onSelectRow(item, transactionPreviewData);
         }
         if (!isExpenseReportType) {
+            if (groupItem.transactionsQueryJSON && !isExpanded && transactions.length === 0) {
+                searchTransactions();
+            }
             handleToggle();
         }
-    }, [isExpenseReportType, transactions.length, onSelectRow, transactionPreviewData, item, handleToggle]);
+    }, [isExpenseReportType, transactions.length, onSelectRow, transactionPreviewData, item, handleToggle, groupItem.transactionsQueryJSON, isExpanded, searchTransactions]);
 
     const onLongPress = useCallback(() => {
         onLongPressRow?.(item, isExpenseReportType ? undefined : transactions);
@@ -514,6 +517,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_GROUP_LIST_ITEM}
                 accessibilityLabel={item.text ?? ''}
                 role={getButtonRole(true)}
+                sentryLabel="TransactionGroupListItem"
                 isNested
                 hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
