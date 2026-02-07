@@ -92,7 +92,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy, Report, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Report, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import SearchPageNarrow from './SearchPageNarrow';
 import SearchPageWide from './SearchPageWide';
@@ -321,9 +321,16 @@ function SearchPage({route}: SearchPageProps) {
     );
 
     const policyIDsWithVBBA = useMemo(() => {
-        return Object.values(policies ?? {})
-            .filter((policy): policy is Policy => !!policy?.achAccount?.bankAccountID)
-            .map((policy) => policy.id);
+        const result = [];
+        for (const policy of Object.values(policies ?? {})) {
+            if (!policy || !policy.achAccount?.bankAccountID) {
+                continue;
+            }
+
+            result.push(policy.id);
+        }
+
+        return result;
     }, [policies]);
 
     const handleBasicExport = useCallback(async () => {

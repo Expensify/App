@@ -16,6 +16,7 @@ import {getCommandURL} from '@libs/ApiUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
+import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
@@ -559,9 +560,24 @@ function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: 
     ];
 
     const report = (reportList.at(0) ?? {}) as Report;
+    const policyForReport = policy.at(0);
+    const submitToAccountID = getSubmitToAccountID(policyForReport, report);
+    const managerAccountIDParam = submitToAccountID ?? report?.managerID;
+    Log.info('[submitMoneyRequestOnSearch] Submitting report with approval chain diagnostic', false, {
+        reportID: report.reportID,
+        reportOwnerAccountID: report.ownerAccountID,
+        reportExistingManagerID: report.managerID,
+        getSubmitToAccountIDResult: submitToAccountID,
+        managerAccountIDSentToAPI: managerAccountIDParam,
+        hasPolicyData: !!policyForReport,
+        policyID: policyForReport?.id,
+        policyApprovalMode: policyForReport?.approvalMode,
+        policyOwner: policyForReport?.owner,
+        policyApprover: policyForReport?.approver,
+    });
     const parameters: SubmitReportParams = {
         reportID: report.reportID,
-        managerAccountID: getSubmitToAccountID(policy.at(0), report) ?? report?.managerID,
+        managerAccountID: managerAccountIDParam,
         reportActionID: rand64(),
     };
 

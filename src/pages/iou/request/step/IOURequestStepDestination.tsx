@@ -111,7 +111,7 @@ function IOURequestStepDestination({
                 setCustomUnitID(transactionID, customUnit.customUnitID);
                 setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '', undefined);
             }
-            setCustomUnitRateID(transactionID, destination.keyForList ?? '');
+            setCustomUnitRateID(transactionID, destination.keyForList ?? '', transaction, policy);
             setMoneyRequestCurrency(transactionID, destination.currency);
             clearSubrates(transactionID);
         }
