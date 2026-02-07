@@ -57,6 +57,7 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorCode: 'Autenticación de dos factores',
         workspaces: 'Espacios de trabajo',
         inbox: 'Recibidos',
+        yourReviewIsRequired: 'Se requiere tu revisión',
         home: 'Inicio',
         group: 'Grupo',
         profile: 'Perfil',

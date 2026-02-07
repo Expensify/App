@@ -275,6 +275,7 @@ const translations: TranslationDeepObject<typeof en> = {
         workspaces: 'ワークスペース',
         home: 'ホーム',
         inbox: '受信トレイ',
+        yourReviewIsRequired: '確認が必要です',
         success: '成功しました',
         group: 'グループ',
         profile: 'プロフィール',
