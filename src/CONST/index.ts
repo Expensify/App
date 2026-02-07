@@ -8062,6 +8062,12 @@ const CONST = {
             SEND_BUTTON: 'AttachmentModal-SendButton',
             IMAGE_ZOOM: 'AttachmentModal-ImageZoom',
         },
+        CALENDAR_PICKER: {
+            CURRENT_YEAR_BUTTON: 'CalendarPicker-CurrentYearButton',
+            PREV_MONTH_ARROW: 'CalendarPicker-PrevMonthArrow',
+            NEXT_MONTH_ARROW: 'CalendarPicker-NextMonthArrow',
+            DAY_CELL: 'CalendarPicker-DayCell',
+        },
         HEADER: {
             BACK_BUTTON: 'Header-BackButton',
             DOWNLOAD_BUTTON: 'Header-DownloadButton',
