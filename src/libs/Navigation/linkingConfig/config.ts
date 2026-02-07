@@ -826,6 +826,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.TRAVEL_SETTINGS_ACCOUNT]: {
                             path: ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.route,
                         },
+                        [SCREENS.WORKSPACE.TRAVEL_SETTINGS_FREQUENCY]: {
+                            path: ROUTES.WORKSPACE_TRAVEL_SETTINGS_FREQUENCY.route,
+                        },
                         [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.route,
                         },
@@ -900,9 +903,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.INVITE_MESSAGE_ROLE]: {
                             path: ROUTES.WORKSPACE_INVITE_MESSAGE_ROLE.route,
-                        },
-                        [SCREENS.WORKSPACE.INVITE_MESSAGE_APPROVER]: {
-                            path: ROUTES.WORKSPACE_INVITE_MESSAGE_APPROVER.route,
                         },
                         [SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE]: {
                             path: ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE.route,
@@ -1456,6 +1456,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_LIMIT_TYPE]: {
                             path: ROUTES.EXPENSIFY_CARD_LIMIT_TYPE.route,
+                        },
+                        [SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_EXPIRY_OPTIONS]: {
+                            path: ROUTES.EXPENSIFY_CARD_EXPIRY_OPTIONS.route,
                         },
                     },
                 },

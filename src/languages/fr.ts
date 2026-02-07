@@ -739,6 +739,8 @@ const translations: TranslationDeepObject<typeof en> = {
         looksLikeYouRanOutOfTime: 'On dirait que votre temps est écoulé ! Veuillez réessayer chez le commerçant.',
         youRanOutOfTime: 'Vous n’avez plus de temps',
         letsVerifyItsYou: 'Vérifions qu’il s’agit bien de vous',
+        nowLetsAuthenticateYou: 'Maintenant, procédons à votre authentification…',
+        letsAuthenticateYou: 'Authentifions votre identité…',
         verifyYourself: {
             biometrics: 'Vérifiez votre identité avec votre visage ou votre empreinte digitale',
         },
@@ -756,6 +758,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 'Vous n’avez enregistré aucun appareil pour la vérification par reconnaissance faciale, empreinte digitale ou passkey. Si vous en enregistrez, vous pourrez révoquer cet accès ici.',
             dismiss: 'Compris',
             error: 'La requête a échoué. Réessayez plus tard.',
+        },
+        unsupportedDevice: {
+            unsupportedDevice: 'Appareil non pris en charge',
+            pleaseDownloadMobileApp: `<centered-text><muted-text> Cette action n'est pas prise en charge sur votre appareil. Veuillez télécharger l'application Expensify depuis l'<a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> ou le <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> et réessayer.</muted-text></centered-text>`,
         },
     },
     validateCodeModal: {
@@ -3901,6 +3907,7 @@ ${
             card: 'Cartes',
             expensifyCard: 'Carte Expensify',
             companyCards: 'Cartes d’entreprise',
+            personalCards: 'Cartes personnelles',
             workflows: 'Workflows',
             workspace: 'Espace de travail',
             findWorkspace: 'Trouver un espace de travail',
@@ -5217,6 +5224,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                             currentTravelLimitLabel: 'Plafond de déplacement actuel',
                             settlementAccountLabel: 'Compte de règlement',
                             settlementFrequencyLabel: 'Fréquence de règlement',
+                            settlementFrequencyDescription:
+                                'Fréquence à laquelle Expensify prélèvera sur votre compte bancaire professionnel pour régler les transactions récentes d’Expensify Travel.',
                         },
                     },
                 },
@@ -5692,6 +5701,22 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 limitType: 'Type de limite',
                 disabledApprovalForSmartLimitError:
                     'Veuillez activer les approbations dans <strong>Workflows > Ajouter des approbations</strong> avant de configurer des limites intelligentes',
+                singleUse: 'À usage unique',
+                singleUseDescription: 'Expire après une transaction',
+                validFrom: 'Valide à partir du',
+                startDate: 'Date de début',
+                endDate: 'Date de fin',
+                noExpirationHint: 'Une carte sans date d’expiration n’expirera pas',
+                validFromTo: ({startDate, endDate}: {startDate: string; endDate: string}) => `Valide du ${startDate} au ${endDate}`,
+                validFromToWithoutText: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} au ${endDate}`,
+                combineWithExpiration: 'Combiner avec les options d’expiration pour un contrôle des dépenses supplémentaire',
+                enterValidDate: 'Entrez une date valide',
+                expirationDate: 'Date d’expiration',
+                limitAmount: 'Montant de la limite',
+                setExpiryOptions: 'Définir les options d’expiration',
+                setExpiryDate: 'Définir la date d’expiration',
+                setExpiryDateDescription: 'La carte expirera comme indiqué sur la carte',
+                amount: 'Montant',
             },
             deactivateCardModal: {
                 deactivate: 'Désactiver',
@@ -7560,8 +7585,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
     },
     cardTransactions: {
         notActivated: 'Non activé',
-        outOfPocket: 'Dépenses personnelles',
-        companySpend: 'Dépenses de l’entreprise',
+        outOfPocket: 'Remboursable',
+        companySpend: 'Non remboursable',
     },
     distance: {
         addStop: 'Ajouter un arrêt',

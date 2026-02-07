@@ -732,6 +732,7 @@ function getUpdatedTransaction({
                 translateLocal,
                 (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
                 getCurrencySymbol,
+                isManualDistanceRequest(transaction),
             );
 
             updatedTransaction.amount = updatedAmount;
@@ -780,6 +781,7 @@ function getUpdatedTransaction({
                 translateLocal,
                 (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
                 getCurrencySymbol,
+                isManualDistanceRequest(transaction),
             );
 
             updatedTransaction.amount = updatedAmount;
@@ -864,6 +866,7 @@ function getUpdatedTransaction({
             translateLocal,
             (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
             getCurrencySymbol,
+            isManualDistanceRequest(transaction),
         );
 
         updatedTransaction.modifiedAmount = amount;
@@ -1133,6 +1136,7 @@ function getMerchant(transaction: OnyxInputOrEntry<Transaction>, policyParam: On
                 translateLocal,
                 (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
                 getCurrencySymbol,
+                isManualDistanceRequest(transaction),
             );
         }
     }
