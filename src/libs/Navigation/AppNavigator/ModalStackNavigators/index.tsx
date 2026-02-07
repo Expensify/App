@@ -89,6 +89,25 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
     [SCREENS.MISSING_PERSONAL_DETAILS]: {
         animationTypeForReplace: 'push',
     },
+
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE]: {
+        animationTypeForReplace: 'push',
+    },
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_TEST]: {
+        animationTypeForReplace: 'push',
+    },
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME]: {
+        animationTypeForReplace: 'push',
+    },
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT]: {
+        animationTypeForReplace: 'push',
+    },
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.REVOKE]: {
+        animationTypeForReplace: 'push',
+    },
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.NOT_FOUND]: {
+        animationTypeForReplace: 'push',
+    },
 };
 
 /**
@@ -772,6 +791,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceSettlementAccountPage').default,
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_FREQUENCY]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceSettlementFrequencyPage').default,
     [SCREENS.WORKSPACE.TRAVEL_SETTINGS_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/travel/WorkspaceTravelInvoicingSettlementAccountPage').default,
+    [SCREENS.WORKSPACE.TRAVEL_SETTINGS_FREQUENCY]: () => require<ReactComponentModule>('../../../../pages/workspace/travel/WorkspaceTravelInvoicingSettlementFrequencyPage').default,
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_SELECT_FEED]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceExpensifyCardSelectorPage').default,
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceExpensifyCardBankAccounts').default,
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceExpensifyCardDetailsPage').default,

@@ -493,6 +493,10 @@ const translations: TranslationDeepObject<typeof en> = {
         signIn: 'Por favor, inicia sesión de nuevo.',
     },
     multifactorAuthentication: {
+        unsupportedDevice: {
+            unsupportedDevice: 'Dispositivo no compatible',
+            pleaseDownloadMobileApp: `<centered-text><muted-text> Esta acción no está soportada en tu dispositivo. Por favor descarga la aplicación de Expensify desde la <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> o <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> e inténtalo de nuevo.</muted-text></centered-text>`,
+        },
         biometricsTest: {
             biometricsTest: 'Prueba de biometría',
             authenticationSuccessful: 'Autenticación exitosa',
@@ -514,6 +518,8 @@ const translations: TranslationDeepObject<typeof en> = {
         looksLikeYouRanOutOfTime: '¡Parece que se te acabó el tiempo! Por favor, inténtalo de nuevo en el comercio.',
         youRanOutOfTime: 'Se te acabó el tiempo',
         letsVerifyItsYou: 'Verifiquemos que eres tú',
+        nowLetsAuthenticateYou: 'Vamos a validarte...',
+        letsAuthenticateYou: 'Validando...',
         verifyYourself: {
             biometrics: 'Verifícate con tu rostro o huella dactilar',
         },
@@ -4921,6 +4927,8 @@ ${amount} para ${merchant} - ${date}`,
                             currentTravelLimitLabel: 'Límite actual de viajes',
                             settlementAccountLabel: 'Cuenta de liquidación',
                             settlementFrequencyLabel: 'Frecuencia de liquidación',
+                            settlementFrequencyDescription:
+                                'Con qué frecuencia Expensify retirará fondos de la cuenta bancaria de tu empresa para liquidar transacciones recientes de Expensify Travel.',
                         },
                     },
                 },

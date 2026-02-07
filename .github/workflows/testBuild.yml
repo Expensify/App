@@ -319,8 +319,16 @@ jobs:
           # Specify the path (relative to the Android source directory) where the keystore should be placed.
           keystore-path: '../tools/buildtools/upload-key.keystore'
           comment-bot: false
-          rock-build-extra-params: '--extra-params -PreactNativeArchitectures=arm64-v8a,x86_64'
+          rock-build-extra-params: '--extra-params "-PreactNativeArchitectures=arm64-v8a,x86_64 --profile"'
           custom-ref: ${{ needs.prep.outputs.APP_REF }}
+
+      - name: Upload Gradle profile report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: gradle-profile-report
+          path: Mobile-Expensify/Android/build/reports/profile/
+          if-no-files-found: ignore
 
       - name: Set artifact URL output
         id: set-artifact-url
