@@ -54,33 +54,11 @@ import type {
     NextStepParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
-    NotYouParams,
-    OOOEventSummaryFullDayParams,
-    OOOEventSummaryPartialDayParams,
     OptionalParam,
-    OurEmailProviderParams,
-    OwnerOwesAmountParams,
     PaidElsewhereParams,
     ParentNavigationSummaryParams,
-    PayAndDowngradeDescriptionParams,
-    PayerOwesParams,
-    PayerPaidParams,
-    PaySomeoneParams,
-    PhoneErrorRouteParams,
-    PolicyAddedReportFieldOptionParams,
-    PolicyDisabledReportFieldAllOptionsParams,
-    PolicyDisabledReportFieldOptionParams,
-    PolicyExpenseChatNameParams,
-    QBDSetupErrorBodyParams,
-    RailTicketParams,
-    ReceiptPartnersUberSubtitleParams,
     RemovedFromApprovalWorkflowParams,
     RemovedPolicyCustomUnitSubRateParams,
-    RemovedTheRequestParams,
-    RemoveMemberPromptParams,
-    RemoveMembersWarningPrompt,
-    RenamedRoomActionParams,
-    RenamedWorkspaceNameActionParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
@@ -373,6 +351,10 @@ const translations = {
         acceptTermsAndPrivacy: `I accept the <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Expensify Terms of Service</a> and <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacy Policy</a>`,
         acceptTermsAndConditions: `I accept the <a href="${CONST.OLD_DOT_PUBLIC_URLS.ACH_TERMS_URL}">terms and conditions</a>`,
         acceptTermsOfService: `I accept the <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Expensify Terms of Service</a>`,
+        downloadFailedEmptyReportDescription: () => ({
+            one: "You can't export an empty report.",
+            other: () => `You can't export empty reports.`,
+        }),
         remove: 'Remove',
         admin: 'Admin',
         owner: 'Owner',
@@ -652,6 +634,7 @@ const translations = {
         exchangeRate: 'Exchange rate',
         reimbursableTotal: 'Reimbursable total',
         nonReimbursableTotal: 'Non-reimbursable total',
+        locked: 'Locked',
         month: 'Month',
         week: 'Week',
         year: 'Year',
@@ -748,6 +731,10 @@ const translations = {
         signIn: 'Please sign in again.',
     },
     multifactorAuthentication: {
+        unsupportedDevice: {
+            unsupportedDevice: 'Unsupported device',
+            pleaseDownloadMobileApp: `<centered-text><muted-text> This action is not supported on your device. Please download the Expensify app from the <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> or <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> and try again.</muted-text></centered-text>`,
+        },
         biometricsTest: {
             biometricsTest: 'Biometrics test',
             authenticationSuccessful: 'Authentication successful',
@@ -758,7 +745,7 @@ const translations = {
             areYouSureToReject: 'Are you sure? The authentication attempt will be rejected if you close this screen.',
             rejectAuthentication: 'Reject authentication',
             test: 'Test',
-            biometricsAuthentication: 'Biometrics authentication',
+            biometricsAuthentication: 'Biometric authentication',
         },
         pleaseEnableInSystemSettings: {
             start: 'Please enable face/fingerprint verification or set a device passcode in your ',
@@ -769,6 +756,8 @@ const translations = {
         looksLikeYouRanOutOfTime: 'Looks like you ran out of time! Please try again at the merchant.',
         youRanOutOfTime: 'You ran out of time',
         letsVerifyItsYou: 'Let’s verify it’s you',
+        nowLetsAuthenticateYou: "Now, let's authenticate you...",
+        letsAuthenticateYou: "Let's authenticate you...",
         verifyYourself: {
             biometrics: 'Verify yourself with your face or fingerprint',
         },
@@ -1173,7 +1162,7 @@ const translations = {
         splitBill: 'Split expense',
         splitScan: 'Split receipt',
         splitDistance: 'Split distance',
-        paySomeone: ({name}: PaySomeoneParams = {}) => `Pay ${name ?? 'someone'}`,
+        paySomeone: (name?: string) => `Pay ${name ?? 'someone'}`,
         assignTask: 'Assign task',
         header: 'Quick action',
         noLongerHaveReportAccess: 'You no longer have access to your previous quick action destination. Pick a new one below.',
@@ -1209,8 +1198,8 @@ const translations = {
         removeSplit: 'Remove split',
         splitExpenseCannotBeEditedModalTitle: "This expense can't be edited",
         splitExpenseCannotBeEditedModalDescription: 'Approved or paid expenses cannot be edited',
+        paySomeone: (name?: string) => `Pay ${name ?? 'someone'}`,
         splitExpenseDistanceErrorModalDescription: 'Please fix the distance rate error and try again.',
-        paySomeone: ({name}: PaySomeoneParams = {}) => `Pay ${name ?? 'someone'}`,
         expense: 'Expense',
         categorize: 'Categorize',
         share: 'Share',
@@ -1298,8 +1287,14 @@ const translations = {
             one: 'Are you sure that you want to delete this expense?',
             other: 'Are you sure that you want to delete these expenses?',
         }),
-        deleteReport: 'Delete report',
-        deleteReportConfirmation: 'Are you sure that you want to delete this report?',
+        deleteReport: () => ({
+            one: 'Delete report',
+            other: 'Delete reports',
+        }),
+        deleteReportConfirmation: () => ({
+            one: 'Are you sure that you want to delete this report?',
+            other: 'Are you sure that you want to delete these reports?',
+        }),
         settledExpensify: 'Paid',
         done: 'Done',
         settledElsewhere: 'Paid elsewhere',
@@ -1334,11 +1329,11 @@ const translations = {
         didSplitAmount: (formattedAmount: string, comment: string) => `split ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         yourSplit: ({amount}: UserSplitParams) => `Your split ${amount}`,
         payerOwesAmount: (amount: number | string, payer: string, comment?: string) => `${payer} owes ${amount}${comment ? ` for ${comment}` : ''}`,
-        payerOwes: ({payer}: PayerOwesParams) => `${payer} owes: `,
+        payerOwes: (payer: string) => `${payer} owes: `,
         payerPaidAmount: (amount: number | string, payer?: string) => `${payer ? `${payer} ` : ''}paid ${amount}`,
-        payerPaid: ({payer}: PayerPaidParams) => `${payer} paid: `,
+        payerPaid: (payer: string) => `${payer} paid: `,
         payerSpentAmount: (amount: number | string, payer?: string) => `${payer} spent ${amount}`,
-        payerSpent: ({payer}: PayerPaidParams) => `${payer} spent: `,
+        payerSpent: (payer: string) => `${payer} spent: `,
         managerApproved: ({manager}: ManagerApprovedParams) => `${manager} approved:`,
         managerApprovedAmount: ({manager, amount}: ManagerApprovedAmountParams) => `${manager} approved ${amount}`,
         payerSettled: (amount: number | string) => `paid ${amount}`,
@@ -1366,7 +1361,7 @@ const translations = {
         setTheRequest: ({valueName, newValueToDisplay}: SetTheRequestParams) => `the ${valueName} to ${newValueToDisplay}`,
         setTheDistanceMerchant: ({translatedChangedField, newMerchant, newAmountToDisplay}: SetTheDistanceMerchantParams) =>
             `set the ${translatedChangedField} to ${newMerchant}, which set the amount to ${newAmountToDisplay}`,
-        removedTheRequest: ({valueName, oldValueToDisplay}: RemovedTheRequestParams) => `the ${valueName} (previously ${oldValueToDisplay})`,
+        removedTheRequest: (valueName: string, oldValueToDisplay: string) => `the ${valueName} (previously ${oldValueToDisplay})`,
         updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) => `the ${valueName} to ${newValueToDisplay} (previously ${oldValueToDisplay})`,
         updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
             `changed the ${translatedChangedField} to ${newMerchant} (previously ${oldMerchant}), which updated the amount to ${newAmountToDisplay} (previously ${oldAmountToDisplay})`,
@@ -2654,7 +2649,7 @@ const translations = {
         },
         cannotGetAccountDetails: "Couldn't retrieve account details. Please try to sign in again.",
         loginForm: 'Login form',
-        notYou: ({user}: NotYouParams) => `Not ${user}?`,
+        notYou: (user: string) => `Not ${user}?`,
     },
     onboarding: {
         welcome: 'Welcome!',
@@ -3073,8 +3068,7 @@ const translations = {
         successfullyUnlinkedLogin: 'Secondary login successfully unlinked!',
     },
     emailDeliveryFailurePage: {
-        ourEmailProvider: ({login}: OurEmailProviderParams) =>
-            `Our email provider has temporarily suspended emails to ${login} due to delivery issues. To unblock your login, please follow these steps:`,
+        ourEmailProvider: (login: string) => `Our email provider has temporarily suspended emails to ${login} due to delivery issues. To unblock your login, please follow these steps:`,
         confirmThat: (login: string) =>
             `<strong>Confirm that ${login} is spelled correctly and is a real, deliverable email address.</strong> Email aliases such as "expenses@domain.com" must have access to their own email inbox for it to be a valid Expensify login.`,
         ensureYourEmailClient: `<strong>Ensure your email client allows expensify.com emails.</strong> You can find directions on how to complete this step <a href="${CONST.SET_NOTIFICATION_LINK}">here</a> but you may need your IT department to help configure your email settings.`,
@@ -3086,8 +3080,7 @@ const translations = {
         refreshAndTryAgain: 'Refresh and try again',
     },
     smsDeliveryFailurePage: {
-        smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
-            `We've been unable to deliver SMS messages to ${login}, so we've suspended it temporarily. Please try validating your number:`,
+        smsDeliveryFailureMessage: (login: string) => `We've been unable to deliver SMS messages to ${login}, so we've suspended it temporarily. Please try validating your number:`,
         validationSuccess: 'Your number has been validated! Click below to send a new magic sign-in code.',
         validationFailed: ({timeData}: {timeData?: {days?: number; hours?: number; minutes?: number} | null}) => {
             if (!timeData) {
@@ -3862,7 +3855,7 @@ const translations = {
         tripSummary: 'Trip summary',
         departs: 'Departs',
         errorMessage: 'Something went wrong. Please try again later.',
-        phoneError: ({phoneErrorMethodsRoute}: PhoneErrorRouteParams) => `<rbr>Please <a href="${phoneErrorMethodsRoute}">add a work email as your primary login</a> to book travel.</rbr>`,
+        phoneError: (phoneErrorMethodsRoute: string) => `<rbr>Please <a href="${phoneErrorMethodsRoute}">add a work email as your primary login</a> to book travel.</rbr>`,
         domainSelector: {
             title: 'Domain',
             subtitle: 'Choose a domain for Expensify Travel setup.',
@@ -3910,10 +3903,10 @@ const translations = {
             bookingCancelledByVendor: ({type, id = ''}: TravelTypeParams) => `The vendor cancelled your ${type} reservation ${id}.`,
             bookingRebooked: ({type, id = ''}: TravelTypeParams) => `Your ${type} reservation was re-booked. New confirmation #:${id}.`,
             bookingUpdated: ({type}: TravelTypeParams) => `Your ${type} booking was updated. Review the new details in the itinerary.`,
-            railTicketRefund: ({origin, destination, startDate}: RailTicketParams) =>
+            railTicketRefund: (origin: string, destination: string, startDate: string) =>
                 `Your rail ticket for ${origin} → ${destination} on ${startDate} has been refunded. A credit will be processed.`,
-            railTicketExchange: ({origin, destination, startDate}: RailTicketParams) => `Your rail ticket for ${origin} → ${destination} on ${startDate} has been exchanged.`,
-            railTicketUpdate: ({origin, destination, startDate}: RailTicketParams) => `Your rail ticket for ${origin} → ${destination} on ${startDate} has been updated.`,
+            railTicketExchange: (origin: string, destination: string, startDate: string) => `Your rail ticket for ${origin} → ${destination} on ${startDate} has been exchanged.`,
+            railTicketUpdate: (origin: string, destination: string, startDate: string) => `Your rail ticket for ${origin} → ${destination} on ${startDate} has been updated.`,
             defaultUpdate: ({type}: TravelTypeParams) => `Your ${type} reservation was updated.`,
         },
         flightTo: 'Flight to',
@@ -3927,6 +3920,7 @@ const translations = {
             card: 'Cards',
             expensifyCard: 'Expensify Card',
             companyCards: 'Company cards',
+            personalCards: 'Personal cards',
             workflows: 'Workflows',
             workspace: 'Workspace',
             findWorkspace: 'Find workspace',
@@ -4060,13 +4054,12 @@ const translations = {
                 "You can't downgrade your plan on an invoiced subscription. To discuss or make changes to your subscription, reach out to your account manager or Concierge for help.",
             defaultCategory: 'Default category',
             viewTransactions: 'View transactions',
-            policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName}'s expenses`,
+            policyExpenseChatName: (displayName: string) => `${displayName}'s expenses`,
             deepDiveExpensifyCard: `<muted-text-label>Expensify Card transactions will automatically export to an "Expensify Card Liability Account" created with <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">our integration</a>.</muted-text-label>`,
         },
         receiptPartners: {
             uber: {
-                subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) =>
-                    organizationName ? `Connected to ${organizationName}` : 'Automate travel and meal delivery expenses across your organization.',
+                subtitle: (organizationName: string) => (organizationName ? `Connected to ${organizationName}` : 'Automate travel and meal delivery expenses across your organization.'),
                 sendInvites: 'Send invites',
                 sendInvitesDescription: "These workspace members don't have an Uber for Business account yet. Unselect any members you do not wish to invite at this time.",
                 confirmInvite: 'Confirm invite',
@@ -4194,7 +4187,7 @@ const translations = {
                 title: 'Open this link to connect',
                 body: 'To complete setup, open the following link on the computer where QuickBooks Desktop is running.',
                 setupErrorTitle: 'Something went wrong',
-                setupErrorBody: ({conciergeLink}: QBDSetupErrorBodyParams) =>
+                setupErrorBody: (conciergeLink: string) =>
                     `<muted-text><centered-text>The QuickBooks Desktop connection isn't working at the moment. Please try again later or <a href="${conciergeLink}">reach out to Concierge</a> if the problem persists.</centered-text></muted-text>`,
             },
             importDescription: 'Choose which coding configurations to import from QuickBooks Desktop to Expensify.',
@@ -5176,6 +5169,7 @@ const translations = {
                             currentTravelLimitLabel: 'Current travel limit',
                             settlementAccountLabel: 'Settlement account',
                             settlementFrequencyLabel: 'Settlement frequency',
+                            settlementFrequencyDescription: 'How often Expensify will pull from your business bank account to settle recent Expensify Travel transactions.',
                         },
                     },
                 },
@@ -5568,7 +5562,7 @@ const translations = {
                 one: `Are you sure you want to remove ${memberName}?`,
                 other: 'Are you sure you want to remove these members?',
             }),
-            removeMembersWarningPrompt: ({memberName, ownerName}: RemoveMembersWarningPrompt) =>
+            removeMembersWarningPrompt: (memberName: string, ownerName: string) =>
                 `${memberName} is an approver in this workspace. When you unshare this workspace with them, we’ll replace them in the approval workflow with the workspace owner, ${ownerName}`,
             removeMembersTitle: () => ({
                 one: 'Remove member',
@@ -5578,7 +5572,7 @@ const translations = {
             removeWorkspaceMemberButtonTitle: 'Remove from workspace',
             removeGroupMemberButtonTitle: 'Remove from group',
             removeRoomMemberButtonTitle: 'Remove from chat',
-            removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `Are you sure you want to remove ${memberName}?`,
+            removeMemberPrompt: (memberName: string) => `Are you sure you want to remove ${memberName}?`,
             removeMemberTitle: 'Remove member',
             transferOwner: 'Transfer owner',
             makeMember: () => ({
@@ -5632,9 +5626,9 @@ const translations = {
                 smartLimit: 'Smart Limit',
                 smartLimitDescription: 'Spend up to a certain amount before requiring approval',
                 monthly: 'Monthly',
-                monthlyDescription: 'Spend up to a certain amount per month',
+                monthlyDescription: 'Limit renews monthly',
                 fixedAmount: 'Fixed amount',
-                fixedAmountDescription: 'Spend up to a certain amount once',
+                fixedAmountDescription: 'Spend until the limit is reached',
                 setLimit: 'Set a limit',
                 cardLimitError: 'Please enter an amount less than $21,474,836',
                 giveItName: 'Give it a name',
@@ -5648,6 +5642,22 @@ const translations = {
                 limit: 'Limit',
                 limitType: 'Limit type',
                 disabledApprovalForSmartLimitError: 'Please enable approvals in <strong>Workflows > Add approvals</strong> before setting up smart limits',
+                singleUse: 'Single-use',
+                singleUseDescription: 'Expires after one transaction',
+                validFrom: 'Valid from',
+                startDate: 'Start date',
+                endDate: 'End date',
+                noExpirationHint: "A card without an expiration date won't expire",
+                validFromTo: ({startDate, endDate}: {startDate: string; endDate: string}) => `Valid from ${startDate} to ${endDate}`,
+                validFromToWithoutText: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} to ${endDate}`,
+                combineWithExpiration: 'Combine with expiration options for additional spend control',
+                enterValidDate: 'Enter a valid date',
+                expirationDate: 'Expiration date',
+                limitAmount: 'Limit amount',
+                setExpiryOptions: 'Set expiry options',
+                setExpiryDate: 'Set expiry date',
+                setExpiryDateDescription: 'Card will expire as listed on the card',
+                amount: 'Amount',
             },
             deactivateCardModal: {
                 deactivate: 'Deactivate',
@@ -6055,7 +6065,7 @@ const translations = {
             amountOwedText: 'This account has an outstanding balance from a previous month.\n\nDo you want to clear the balance and take over billing of this workspace?',
             ownerOwesAmountTitle: 'Outstanding balance',
             ownerOwesAmountButtonText: 'Transfer balance',
-            ownerOwesAmountText: ({email, amount}: OwnerOwesAmountParams) =>
+            ownerOwesAmountText: (email: string, amount: string) =>
                 `The account owning this workspace (${email}) has an outstanding balance from a previous month.\n\nDo you want to transfer this amount (${amount}) in order to take over billing for this workspace? Your payment card will be charged immediately.`,
             subscriptionTitle: 'Take over annual subscription',
             subscriptionButtonText: 'Transfer subscription',
@@ -6256,7 +6266,7 @@ const translations = {
         payAndDowngrade: {
             title: 'Pay & downgrade',
             headline: 'Your final payment',
-            description1: ({formattedAmount}: PayAndDowngradeDescriptionParams) => `Your final bill for this subscription will be <strong>${formattedAmount}</strong>`,
+            description1: (formattedAmount: string) => `Your final bill for this subscription will be <strong>${formattedAmount}</strong>`,
             description2: (date: string) => `See your breakdown below for ${date}:`,
             subscription:
                 'Heads up! This action will end your Expensify subscription, delete this workspace, and remove all workspace members. If you want to keep this workspace and only remove yourself, have another admin take over billing first.',
@@ -6487,7 +6497,7 @@ const translations = {
         roomNameInvalidError: 'Room names can only include lowercase letters, numbers, and hyphens',
         pleaseEnterRoomName: 'Please enter a room name',
         pleaseSelectWorkspace: 'Please select a workspace',
-        renamedRoomAction: ({oldName, newName, actorName, isExpenseReport}: RenamedRoomActionParams) => {
+        renamedRoomAction: (oldName: string, newName: string, isExpenseReport: boolean, actorName?: string) => {
             const actor = actorName ? `${actorName} ` : '';
             return isExpenseReport ? `${actor}renamed to "${newName}" (previously "${oldName}")` : `${actor}renamed this room to "${newName}" (previously "${oldName}")`;
         },
@@ -6650,11 +6660,11 @@ const translations = {
             return `${newValue ? 'enabled' : 'disabled'} the ${customUnitName} rate "${customUnitRateName}"`;
         },
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) => `set the default value of report field "${fieldName}" to "${defaultValue}"`,
-        addedReportFieldOption: ({fieldName, optionName}: PolicyAddedReportFieldOptionParams) => `added the option "${optionName}" to the report field "${fieldName}"`,
-        removedReportFieldOption: ({fieldName, optionName}: PolicyAddedReportFieldOptionParams) => `removed the option "${optionName}" from the report field "${fieldName}"`,
-        updateReportFieldOptionDisabled: ({fieldName, optionName, optionEnabled}: PolicyDisabledReportFieldOptionParams) =>
+        addedReportFieldOption: (fieldName: string, optionName: string) => `added the option "${optionName}" to the report field "${fieldName}"`,
+        removedReportFieldOption: (fieldName: string, optionName: string) => `removed the option "${optionName}" from the report field "${fieldName}"`,
+        updateReportFieldOptionDisabled: (fieldName: string, optionName: string, optionEnabled: boolean) =>
             `${optionEnabled ? 'enabled' : 'disabled'} the option "${optionName}" for the report field "${fieldName}"`,
-        updateReportFieldAllOptionsDisabled: ({fieldName, optionName, allEnabled, toggledOptionsCount}: PolicyDisabledReportFieldAllOptionsParams) => {
+        updateReportFieldAllOptionsDisabled: (fieldName: string, optionName: string, allEnabled: boolean, toggledOptionsCount?: number) => {
             if (toggledOptionsCount && toggledOptionsCount > 1) {
                 return `${allEnabled ? 'enabled' : 'disabled'} all options for the report field "${fieldName}" `;
             }
@@ -6674,7 +6684,7 @@ const translations = {
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParams) => `turned "Enforce default report titles" ${value ? 'on' : 'off'}`,
         changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `changed the custom report name formula to "${newValue}" (previously "${oldValue}")`,
-        renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `updated the name of this workspace to "${newName}" (previously "${oldName}")`,
+        renamedWorkspaceNameAction: (oldName: string, newName: string) => `updated the name of this workspace to "${newName}" (previously "${oldName}")`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
             !oldDescription
                 ? `set the description of this workspace to "${newDescription}"`
@@ -7185,6 +7195,7 @@ const translations = {
             label: 'View',
             table: 'Table',
             bar: 'Bar',
+            line: 'Line',
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'From',
@@ -7368,8 +7379,8 @@ const translations = {
         },
     },
     chronos: {
-        oooEventSummaryFullDay: ({summary, dayCount, date}: OOOEventSummaryFullDayParams) => `${summary} for ${dayCount} ${dayCount === 1 ? 'day' : 'days'} until ${date}`,
-        oooEventSummaryPartialDay: ({summary, timePeriod, date}: OOOEventSummaryPartialDayParams) => `${summary} from ${timePeriod} on ${date}`,
+        oooEventSummaryFullDay: (summary: string, dayCount: number, date: string) => `${summary} for ${dayCount} ${dayCount === 1 ? 'day' : 'days'} until ${date}`,
+        oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${summary} from ${timePeriod} on ${date}`,
     },
     footer: {
         features: 'Features',
@@ -7498,8 +7509,8 @@ const translations = {
     },
     cardTransactions: {
         notActivated: 'Not activated',
-        outOfPocket: 'Out-of-pocket spend',
-        companySpend: 'Company spend',
+        outOfPocket: 'Reimbursable',
+        companySpend: 'Non-reimbursable',
     },
     distance: {
         addStop: 'Add stop',
@@ -7523,6 +7534,10 @@ const translations = {
             endReading: 'End reading',
             saveForLater: 'Save for later',
             totalDistance: 'Total distance',
+            startTitle: 'Odometer start photo',
+            endTitle: 'Odometer end photo',
+            startMessageWeb: 'Add a photo of your odometer from the <strong>start</strong> of your trip. Drag a file here or choose one to upload.',
+            endMessageWeb: 'Add a photo of your odometer from the <strong>end</strong> of your trip. Drag a file here or choose one to upload.',
         },
     },
     gps: {
@@ -7583,6 +7598,11 @@ const translations = {
             title: 'GPS tracking in progress',
             prompt: 'Are you sure you want to discard the trip and sign out?',
             confirm: 'Discard and sign out',
+        },
+        switchToODWarningTripInProgress: {
+            title: 'GPS tracking in progress',
+            prompt: 'Are you sure you want to stop GPS tracking and switch to Expensify Classic?',
+            confirm: 'Stop and switch',
         },
         locationServicesRequiredModal: {
             title: 'Location access required',
@@ -8394,13 +8414,21 @@ const translations = {
             enterDomainName: 'Enter your domain name here',
             resetDomainInfo: `This action is <strong>permanent</strong> and the following data will be deleted: <br/> <ul><li>Company card connections and any unreported expenses from those cards</li> <li>SAML and group settings</li> </ul> All accounts, workspaces, reports, expenses, and other data will remain. <br/><br/>Note: You can clear this domain from your domains list by removing the associated email from your <a href="#">contact methods</a>.`,
         },
+        domainMembers: 'Domain members',
         members: {
             title: 'Members',
             findMember: 'Find member',
             addMember: 'Add member',
             email: 'Email address',
-            errors: {
+            closeAccount: 'Close account',
+            closeAccountPrompt: 'Are you sure? This action is permanent.',
+            forceCloseAccount: 'Force close account',
+            safeCloseAccount: 'Close account safely',
+            closeAccountInfo:
+                'We recommend closing the account safely to skip closing it in case there are: <ul><li>Pending approvals</li><li>Active reimbursements</li><li>No alternative login methods</li></ul>Otherwise, you can ignore the safety precautions above and force close the selected account.',
+            error: {
                 addMember: 'Unable to add this member. Please try again.',
+                removeMember: 'Unable to remove this user. Please try again.',
             },
         },
     },

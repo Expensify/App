@@ -12,6 +12,7 @@ import type {
 } from '@react-navigation/native';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {UpperCaseCharacters} from 'type-fest/source/internal';
+import type {AllMultifactorAuthenticationOutcomeType, MultifactorAuthenticationPromptType} from '@components/MultifactorAuthentication/config/types';
 import type {SearchQueryString} from '@components/Search/types';
 import type {ReplacementReason} from '@libs/actions/Card';
 import type {IOURequestType} from '@libs/actions/IOU';
@@ -20,7 +21,7 @@ import type {ReimbursementAccountStepToOpen} from '@libs/ReimbursementAccountUti
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type {AttachmentModalContainerModalProps} from '@pages/media/AttachmentModalScreen/types';
 import type CONST from '@src/CONST';
-import type {Country, IOUAction, IOUType} from '@src/CONST';
+import type {Country, IOUAction, IOUType, OdometerImageType} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
 import type {Route as ExpensifyRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -1279,6 +1280,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.TRAVEL_SETTINGS_ACCOUNT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.TRAVEL_SETTINGS_FREQUENCY]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS]: {
         policyID: string;
     };
@@ -1374,6 +1378,12 @@ type SettingsNavigatorParamList = {
         backTo?: Routes;
     };
     [SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_LIMIT_TYPE]: {
+        policyID: string;
+        cardID: string;
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo?: Routes;
+    };
+    [SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_EXPIRY_OPTIONS]: {
         policyID: string;
         cardID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
@@ -1879,6 +1889,12 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         backToReport?: string;
         reportActionID?: string;
+    };
+    [SCREENS.MONEY_REQUEST.ODOMETER_IMAGE]: {
+        action: IOUAction;
+        iouType: IOUType;
+        transactionID: string;
+        readingType: OdometerImageType;
     };
     [SCREENS.MONEY_REQUEST.CREATE]: {
         iouType: IOUType;
@@ -3085,10 +3101,10 @@ type MultifactorAuthenticationParamList = {
     [SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE]: undefined;
     [SCREENS.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_TEST]: undefined;
     [SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME]: {
-        outcomeType: ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION_OUTCOME_TYPE>;
+        outcomeType: AllMultifactorAuthenticationOutcomeType;
     };
     [SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT]: {
-        promptType: string;
+        promptType: MultifactorAuthenticationPromptType;
     };
 };
 
@@ -3101,6 +3117,14 @@ type SplitNavigatorName = keyof SplitNavigatorParamList;
 type SearchFullscreenNavigatorName = typeof NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR;
 
 type FullScreenName = SplitNavigatorName | SearchFullscreenNavigatorName | typeof SCREENS.WORKSPACES_LIST | typeof SCREENS.HOME;
+
+type PublicScreenName =
+    | typeof SCREENS.TRANSITION_BETWEEN_APPS
+    | typeof SCREENS.VALIDATE_LOGIN
+    | typeof SCREENS.CONNECTION_COMPLETE
+    | typeof SCREENS.BANK_CONNECTION_COMPLETE
+    | typeof SCREENS.UNLINK_LOGIN
+    | typeof SCREENS.SAML_SIGN_IN;
 
 // There are three screens/navigators which can be displayed when the Workspaces tab is selected
 type WorkspacesTabNavigatorName = typeof SCREENS.WORKSPACES_LIST | typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR | typeof NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR;
@@ -3145,6 +3169,7 @@ export type {
     ParticipantsNavigatorParamList,
     PrivateNotesNavigatorParamList,
     ProfileNavigatorParamList,
+    PublicScreenName,
     PublicScreensParamList,
     ReferralDetailsNavigatorParamList,
     ReportVerifyAccountNavigatorParamList,
