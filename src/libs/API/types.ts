@@ -549,6 +549,7 @@ const WRITE_COMMANDS = {
     REMOVE_DOMAIN_ADMIN: 'RemoveDomainAdmin',
     DELETE_DOMAIN: 'DeleteDomain',
     DELETE_DOMAIN_MEMBER: 'DeleteDomainMember',
+    TOGGLE_TWO_FACTOR_AUTH_REQUIRED_FOR_DOMAIN: 'ToggleTwoFactorAuthRequiredForDomain',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -1120,6 +1121,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.DELETE_DOMAIN]: Parameters.DeleteDomainParams;
     [WRITE_COMMANDS.ADD_DOMAIN_ADMIN]: Parameters.AddAdminToDomainParams;
     [WRITE_COMMANDS.ADD_DOMAIN_MEMBER]: Parameters.AddMemberToDomainParams;
+    [WRITE_COMMANDS.TOGGLE_TWO_FACTOR_AUTH_REQUIRED_FOR_DOMAIN]: Parameters.ToggleTwoFactorAuthRequiredForDomainParams;
 };
 
 const READ_COMMANDS = {

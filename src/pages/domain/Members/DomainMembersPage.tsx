@@ -1,6 +1,7 @@
 import {defaultSecurityGroupIDSelector, memberAccountIDsSelector, memberPendingActionSelector} from '@selectors/Domain';
 import React from 'react';
 import Button from '@components/Button';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -12,6 +13,7 @@ import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
 import BaseDomainMembersPage from '@pages/domain/BaseDomainMembersPage';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -22,7 +24,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const {domainAccountID} = route.params;
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Profile']);
-    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Gear']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
 
@@ -36,14 +38,32 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     });
 
     const renderHeaderButtons = (
-        <Button
-            success
-            onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_MEMBER.getRoute(domainAccountID))}
-            text={translate('domain.members.addMember')}
-            icon={icons.Plus}
-            innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
-            style={shouldUseNarrowLayout ? [styles.flexGrow1, styles.mb3] : undefined}
-        />
+        <>
+            <Button
+                success
+                onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_MEMBER.getRoute(domainAccountID))}
+                text={translate('domain.members.addMember')}
+                icon={icons.Plus}
+                innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
+                style={shouldUseNarrowLayout ? [styles.flexGrow1, styles.mb3] : undefined}
+            />
+            <ButtonWithDropdownMenu
+                success={false}
+                onPress={() => {}}
+                shouldAlwaysShowDropdownMenu
+                customText={translate('common.more')}
+                options={[
+                    {
+                        value: CONST.DOMAIN.MEMBERS.SECONDARY_ACTIONS.SETTINGS,
+                        text: translate('domain.common.settings'),
+                        icon: icons.Gear,
+                        onSelected: () => Navigation.navigate(ROUTES.DOMAIN_MEMBERS_SETTINGS.getRoute(domainAccountID)),
+                    },
+                ]}
+                isSplitButton={false}
+                wrapperStyle={shouldUseNarrowLayout && [styles.flexGrow1, styles.mb3]}
+            />
+        </>
     );
 
     const getCustomRowProps = (accountID: number, email?: string) => {

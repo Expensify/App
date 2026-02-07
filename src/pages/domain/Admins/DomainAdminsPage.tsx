@@ -76,7 +76,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
             />
             <Button
                 onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainAccountID))}
-                text={translate('domain.admins.settings')}
+                text={translate('domain.common.settings')}
                 icon={icons.Gear}
                 innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
                 style={shouldUseNarrowLayout ? [styles.flexGrow1, styles.mb3] : undefined}

@@ -11,7 +11,7 @@ import {resetSamlEnabledError, resetSamlRequiredError, setSamlEnabled, setSamlRe
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {domainSamlSettingsStateSelector, metaIdentitySelector} from '@src/selectors/Domain';
+import {domainMemberSettingsSelector, domainSamlSettingsStateSelector, metaIdentitySelector} from '@src/selectors/Domain';
 
 type SamlLoginSectionContentProps = {
     /** The unique identifier for the domain. */
@@ -39,6 +39,10 @@ function SamlLoginSectionContent({accountID, domainName, isSamlEnabled, isSamlRe
         selector: domainSamlSettingsStateSelector,
     });
     const [metaIdentity] = useOnyx(`${ONYXKEYS.COLLECTION.SAML_METADATA}${accountID}`, {canBeMissing: true, selector: metaIdentitySelector});
+    const [domainSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${accountID}`, {
+        canBeMissing: false,
+        selector: domainMemberSettingsSelector,
+    });
     const [isOktaScimConfirmModalVisible, setIsScimConfirmModalVisible] = useState(false);
 
     useEffect(() => {
@@ -62,11 +66,14 @@ function SamlLoginSectionContent({accountID, domainName, isSamlEnabled, isSamlRe
                         <Switch
                             accessibilityLabel={translate('domain.samlLogin.enableSamlLogin')}
                             isOn={isSamlEnabled}
+                            disabled={domainSettings?.twoFactorAuthRequired}
                             onToggle={() => setSamlEnabled({enabled: !isSamlEnabled, accountID, domainName})}
                         />
                     </View>
 
-                    <Text style={[styles.formHelp, styles.pr15]}>{translate('domain.samlLogin.allowMembers')}</Text>
+                    <Text style={[styles.formHelp, styles.pr15]}>
+                        {translate(domainSettings?.twoFactorAuthRequired ? 'domain.samlLogin.pleaseDisableTwoFactorAuth' : 'domain.samlLogin.allowMembers')}
+                    </Text>
                 </View>
             </OfflineWithFeedback>
 

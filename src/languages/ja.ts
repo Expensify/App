@@ -8371,7 +8371,6 @@ ${reportName}
             primaryContact: '主要連絡先',
             addPrimaryContact: '主な連絡先を追加',
             setPrimaryContactError: '主要連絡先を設定できませんでした。後でもう一度お試しください。',
-            settings: '設定',
             consolidatedDomainBilling: 'ドメイン一括請求',
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>有効にすると、主な連絡先は <strong>${domainName}</strong> メンバーが所有するすべてのワークスペースの支払いを行い、すべての請求書の受領書を受け取ります。</muted-text-label></comment>`,
@@ -8406,7 +8405,12 @@ ${reportName}
                 removeMember: 'このユーザーを削除できません。もう一度お試しください。',
                 addMember: 'このメンバーを追加できませんでした。もう一度お試しください。',
             },
+            forceTwoFactorAuth: '2 要素認証を強制する',
+            forceTwoFactorAuthSAMLEnabledDescription: `<muted-text>二要素認証を強制するには、<a href="${CONST.SAML_HELP_URL}">SAML</a> を無効にしてください。</muted-text>`,
+            forceTwoFactorAuthDescription: `<muted-text>このドメインのすべてのメンバーに二要素認証を必須にします。ドメインのメンバーは、サインイン時にアカウントで二要素認証を設定するよう求められます。</muted-text>`,
+            forceTwoFactorAuthError: '2 要素認証の強制設定を変更できませんでした。後でもう一度お試しください。',
         },
+        common: {settings: '設定'},
     },
 };
 export default translations;

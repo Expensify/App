@@ -1080,7 +1080,7 @@ const CONST = {
     MERGE_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Merge-Accounts',
     CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Business-Bank-Account',
     DOMAIN_VERIFICATION_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Claim-and-Verify-a-Domain',
-    SAML_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/domains/Managing-Single-Sign-On-(SSO)-in-Expensify',
+    SAML_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/domains/Set-Up-SAML-SSO',
     REGISTER_FOR_WEBINAR_URL: 'https://events.zoom.us/eo/Aif1I8qCi1GZ7KnLnd1vwGPmeukSRoPjFpyFAZ2udQWn0-B86e1Z~AggLXsr32QYFjq8BlYLZ5I06Dg',
     TEST_RECEIPT_URL: `${CLOUDFRONT_URL}/images/fake-receipt__tacotodds.png`,
     // Use Environment.getEnvironmentURL to get the complete URL with port number
@@ -8275,6 +8275,15 @@ const CONST = {
             TOGGLE_SETTINGS_ROW: 'Workspace-ToggleSettingsRow',
             WORKSPACE_MENU_ITEM: 'Workspace-WorkspaceMenuItem',
         },
+        TWO_FACTOR_AUTH: {
+            RESEND_CODE: 'TwoFactorAuth-ResendCode',
+            SWITCH_BETWEEN_METHODS: 'TwoFactorAuth-SwitchBetweenMethods',
+            COPY: 'TwoFactorAuth-Copy',
+        },
+        VALIDATE_CODE: {
+            RESEND_CODE: 'ValidateCode-ResendCode',
+            RECOVERY_CODE: 'ValidateCode-RecoveryCode',
+        },
     },
 
     DOMAIN: {
@@ -8282,6 +8291,18 @@ const CONST = {
         EXPENSIFY_ADMIN_ACCESS_PREFIX: 'expensify_adminPermissions_',
         /** Onyx prefix for domain security groups */
         DOMAIN_SECURITY_GROUP_PREFIX: 'domain_securityGroup_',
+
+        MEMBERS: {
+            SECONDARY_ACTIONS: {
+                SETTINGS: 'settings',
+            },
+        },
+    },
+
+    AUTO_COMPLETE_VARIANTS: {
+        SMS_OTP: 'sms-otp',
+        ONE_TIME_CODE: 'one-time-code',
+        OFF: 'off',
     },
 
     HOME: {

@@ -5,7 +5,7 @@ import type {CardFeeds, Domain, DomainPendingActions, DomainSecurityGroup, Domai
 import type {SecurityGroupKey, UserSecurityGroupData} from '@src/types/onyx/Domain';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
-const domainMemberSamlSettingsSelector = (domainSettings: OnyxEntry<CardFeeds>) => domainSettings?.settings;
+const domainMemberSettingsSelector = (domainSettings: OnyxEntry<CardFeeds>) => domainSettings?.settings;
 
 const domainSamlSettingsStateSelector = (domain: OnyxEntry<Domain>) =>
     domain
@@ -142,7 +142,7 @@ const adminPendingActionSelector = (pendingAction: OnyxEntry<DomainPendingAction
 const defaultSecurityGroupIDSelector = (domain: OnyxEntry<Domain>) => domain?.domain_defaultSecurityGroupID;
 
 export {
-    domainMemberSamlSettingsSelector,
+    domainMemberSettingsSelector,
     domainSettingsPrimaryContactSelector,
     domainSamlSettingsStateSelector,
     domainNameSelector,

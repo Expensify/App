@@ -3877,6 +3877,14 @@ const ROUTES = {
         route: 'domain/:domainAccountID/members/invite',
         getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members/invite` as const,
     },
+    DOMAIN_MEMBERS_SETTINGS: {
+        route: 'domain/:domainAccountID/members/settings',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members/settings` as const,
+    },
+    DOMAIN_MEMBERS_SETTINGS_TWO_FACTOR_AUTH: {
+        route: 'domain/:domainAccountID/members/settings/two-factor-auth',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members/settings/two-factor-auth` as const,
+    },
 
     MULTIFACTOR_AUTHENTICATION_MAGIC_CODE: `multifactor-authentication/magic-code`,
     MULTIFACTOR_AUTHENTICATION_BIOMETRICS_TEST: 'multifactor-authentication/scenario/biometrics-test',

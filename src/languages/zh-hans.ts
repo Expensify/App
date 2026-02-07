@@ -8243,7 +8243,6 @@ ${reportName}
             primaryContact: '主要联系人',
             addPrimaryContact: '添加主要联系人',
             setPrimaryContactError: '无法设置主要联系人。请稍后重试。',
-            settings: '设置',
             consolidatedDomainBilling: '合并域名账单',
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>启用后，主要联系人将为所有由 <strong>${domainName}</strong> 成员拥有的工作区付款，并接收所有账单收据。</muted-text-label></comment>`,
@@ -8278,7 +8277,12 @@ ${reportName}
                 removeMember: '无法移除此用户。请重试。',
                 addMember: '无法添加此成员。请重试。',
             },
+            forceTwoFactorAuth: '强制启用双重身份验证',
+            forceTwoFactorAuthSAMLEnabledDescription: `<muted-text>请禁用<a href="${CONST.SAML_HELP_URL}">SAML</a>以强制启用双重身份验证。</muted-text>`,
+            forceTwoFactorAuthDescription: `<muted-text>要求此域中的所有成员使用双重身份验证。当域成员登录时，将提示他们在其账户上设置双重身份验证。</muted-text>`,
+            forceTwoFactorAuthError: '强制启用双重身份验证的设置无法更改。请稍后重试。',
         },
+        common: {settings: '设置'},
     },
 };
 export default translations;

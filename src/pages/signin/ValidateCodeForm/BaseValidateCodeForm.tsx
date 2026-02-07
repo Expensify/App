@@ -36,7 +36,7 @@ import type ValidateCodeFormProps from './types';
 type BaseValidateCodeFormProps = WithToggleVisibilityViewProps &
     ValidateCodeFormProps & {
         /** Specifies autocomplete hints for the system, so it can provide autofill */
-        autoComplete: 'sms-otp' | 'one-time-code';
+        autoComplete: typeof CONST.AUTO_COMPLETE_VARIANTS.SMS_OTP | typeof CONST.AUTO_COMPLETE_VARIANTS.ONE_TIME_CODE;
     };
 
 type BaseValidateCodeFormRef = {
@@ -352,6 +352,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                         disabled={isValidateCodeFormSubmitting}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={isUsingRecoveryCode ? translate('recoveryCodeForm.use2fa') : translate('recoveryCodeForm.useRecoveryCode')}
+                        sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.SWITCH_BETWEEN_METHODS}
                     >
                         <Text style={[styles.link]}>{isUsingRecoveryCode ? translate('recoveryCodeForm.use2fa') : translate('recoveryCodeForm.useRecoveryCode')}</Text>
                     </PressableWithFeedback>
@@ -394,6 +395,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                                 pressDimmingValue={0.2}
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('validateCodeForm.magicCodeNotReceived')}
+                                sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.RESEND_CODE}
                             >
                                 <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>
                                     {hasError ? translate('validateCodeForm.requestNewCodeAfterErrorOccurred') : translate('validateCodeForm.magicCodeNotReceived')}
