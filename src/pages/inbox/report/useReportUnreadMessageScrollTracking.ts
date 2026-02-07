@@ -23,6 +23,9 @@ type Args = {
 
     /** Callback to call on every scroll event */
     onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+
+    /** Whether the report actions have been loaded at least once */
+    hasOnceLoadedReportActions: boolean;
 };
 
 export default function useReportUnreadMessageScrollTracking({
@@ -32,14 +35,16 @@ export default function useReportUnreadMessageScrollTracking({
     onTrackScrolling,
     unreadMarkerReportActionIndex,
     isInverted,
+    hasOnceLoadedReportActions,
 }: Args) {
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
     const isFocused = useIsFocused();
-    const ref = useRef<{previousViewableItems: ViewToken[]; reportID: string; unreadMarkerReportActionIndex: number; isFocused: boolean}>({
+    const ref = useRef<{previousViewableItems: ViewToken[]; reportID: string; unreadMarkerReportActionIndex: number; isFocused: boolean; hasOnceLoadedReportActions: boolean}>({
         reportID,
         unreadMarkerReportActionIndex,
         previousViewableItems: [],
         isFocused: true,
+        hasOnceLoadedReportActions: false,
     });
     // We want to save the updated value on ref to use it in onViewableItemsChanged
     // because FlatList requires the callback to be stable and we cannot add a dependency on the useCallback.
@@ -51,6 +56,10 @@ export default function useReportUnreadMessageScrollTracking({
     useEffect(() => {
         ref.current.isFocused = isFocused;
     }, [isFocused]);
+
+    useEffect(() => {
+        ref.current.hasOnceLoadedReportActions = hasOnceLoadedReportActions;
+    }, [hasOnceLoadedReportActions]);
 
     /**
      * On every scroll event we want to:
@@ -110,7 +119,8 @@ export default function useReportUnreadMessageScrollTracking({
         }
 
         // if we're scrolled closer than the offset and read action has been skipped then mark message as read
-        if (unreadActionVisible && readActionSkippedRef.current) {
+        // Do not try to mark the report as read if the report has not been loaded and shared with the user
+        if (unreadActionVisible && readActionSkippedRef.current && ref.current.hasOnceLoadedReportActions) {
             // eslint-disable-next-line no-param-reassign
             readActionSkippedRef.current = false;
             readNewestAction(ref.current.reportID);

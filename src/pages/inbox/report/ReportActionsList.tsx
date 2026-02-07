@@ -368,6 +368,7 @@ function ReportActionsList({
                 setShouldScrollToEndAfterLayout(false);
             }
         },
+        hasOnceLoadedReportActions: !!reportMetadata?.hasOnceLoadedReportActions,
     });
 
     useEffect(() => {
@@ -430,6 +431,11 @@ function ReportActionsList({
             return;
         }
 
+        // Do not try to mark the report as read if the report has not been loaded and shared with the user
+        if (!reportMetadata?.hasOnceLoadedReportActions) {
+            return;
+        }
+
         if (!isVisible || !isFocused) {
             if (!lastMessageTime.current) {
                 lastMessageTime.current = lastAction?.created ?? '';
@@ -464,7 +470,7 @@ function ReportActionsList({
         // We will mark the report as read in the above case which marks the LHN report item as read while showing the new message
         // marker for the chat messages received while the user wasn't focused on the report or on another browser tab for web.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isFocused, isVisible]);
+    }, [isFocused, isVisible, reportMetadata?.hasOnceLoadedReportActions]);
 
     const prevHandleReportChangeMarkAsRead = useRef<() => void>(null);
     const prevHandleAppVisibilityMarkAsRead = useRef<() => void>(null);
@@ -631,8 +637,11 @@ function ReportActionsList({
         }
         reportScrollManager.scrollToBottom();
         readActionSkipped.current = false;
-        readNewestAction(report.reportID);
-    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID, backTo]);
+        // Do not try to mark the report as read if the report has not been loaded and shared with the user
+        if (reportMetadata?.hasOnceLoadedReportActions) {
+            readNewestAction(report.reportID);
+        }
+    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID, backTo, reportMetadata?.hasOnceLoadedReportActions]);
 
     /**
      * Calculates the ideal number of report actions to render in the first render, based on the screen height and on
