@@ -6405,6 +6405,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 adultEntertainment: 'Erwachsenenunterhaltung',
                 requireCompanyCard: 'Firmenkarten für alle Käufe vorschreiben',
                 requireCompanyCardDescription: 'Kennzeichne alle Barausgaben, einschließlich Kilometer- und Tagegeldspesen.',
+                requireCompanyCardDisabledTooltip: 'Verbinde eine Firmenkarte, um diese Funktion zu aktivieren.',
             },
             expenseReportRules: {
                 title: 'Erweitert',
