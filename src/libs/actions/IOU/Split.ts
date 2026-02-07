@@ -1279,11 +1279,13 @@ function updateSplitTransactions({
         const splitTransaction = allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${undeletedTransaction?.transactionID}`];
         const splitReportActions = getAllReportActions(splitTransaction?.reportID);
         const reportNameValuePairs = allReportNameValuePairsList?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${splitTransaction?.reportID}`];
+        const splitTransactionReport = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${splitTransaction?.reportID}`];
         const isReportArchived = isArchivedReport(reportNameValuePairs);
         const currentReportAction = Object.values(splitReportActions).find((action) => {
             const transactionID = isMoneyRequestAction(action) ? (getOriginalMessage(action)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
             return transactionID === undeletedTransaction?.transactionID;
         }) as ReportAction;
+        const splitTransactionThread = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${currentReportAction?.childReportID}`];
 
         // For a reverse split operation (i.e. deleting one transaction from a 2-split), the other split(undeleted)
         // transaction also gets marked for deletion optimistically. This causes the undeleted split to remain visible,
@@ -1297,7 +1299,8 @@ function updateSplitTransactions({
             failureData: deleteExpenseFailureData,
             successData: deleteExpenseSuccessData,
         } = getDeleteTrackExpenseInformation(
-            splitTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+            splitTransactionReport,
+            splitTransactionThread,
             undeletedTransaction?.transactionID,
             currentReportAction,
             undefined,
