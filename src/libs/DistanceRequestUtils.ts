@@ -268,6 +268,32 @@ function getRateForP2P(currency: string, transaction: OnyxEntry<Transaction>): M
     };
 }
 
+function getRateForP2PInUnit(currency: string, transaction: OnyxEntry<Transaction>, unit: Unit): number {
+    const mileageRate = getRateForP2P(currency, transaction);
+
+    if (!mileageRate.rate) {
+        return 0;
+    }
+
+    // If requested unit matches the currency's native unit, return the rate directly
+    if (unit === mileageRate.unit) {
+        return mileageRate.rate;
+    }
+
+    // If units don't match, convert between km and miles
+    if (unit === 'km' && mileageRate.unit === 'mi') {
+        // Convert miles rate to km rate: km rate = mile rate / CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS
+        return mileageRate.rate / CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS;
+    }
+    if (unit === 'mi' && mileageRate.unit === 'km') {
+        // Convert km rate to miles rate: mile rate = km rate * CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS
+        return mileageRate.rate * CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS;
+    }
+
+    // Fallback: return rate as-is (shouldn't happen with valid units)
+    return mileageRate.rate;
+}
+
 /**
  * Calculates the expense amount based on distance, unit, and rate.
  *
@@ -427,6 +453,7 @@ export default {
     getDistanceForDisplay,
     getRoundedDistanceInUnits,
     getRateForP2P,
+    getRateForP2PInUnit,
     getCustomUnitRateID,
     convertToDistanceInMeters,
     getTaxableAmount,
