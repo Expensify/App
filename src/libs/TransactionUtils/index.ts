@@ -666,12 +666,14 @@ function getUpdatedTransaction({
     isFromExpenseReport,
     shouldUpdateReceiptState = true,
     policy = undefined,
+    shouldPreserveAmountSign = false,
 }: {
     transaction: Transaction;
     transactionChanges: TransactionChanges;
     isFromExpenseReport: boolean;
     shouldUpdateReceiptState?: boolean;
     policy?: OnyxEntry<Policy>;
+    shouldPreserveAmountSign?: boolean;
 }): Transaction {
     const isUnReportedExpense = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -691,7 +693,7 @@ function getUpdatedTransaction({
         shouldStopSmartscan = true;
     }
     if (Object.hasOwn(transactionChanges, 'amount') && typeof transactionChanges.amount === 'number') {
-        updatedTransaction.modifiedAmount = isFromExpenseReport || isUnReportedExpense ? -transactionChanges.amount : transactionChanges.amount;
+        updatedTransaction.modifiedAmount = (isFromExpenseReport || isUnReportedExpense) && !shouldPreserveAmountSign ? -transactionChanges.amount : transactionChanges.amount;
         shouldStopSmartscan = true;
     }
     if (Object.hasOwn(transactionChanges, 'currency')) {
@@ -922,16 +924,22 @@ function getDescription(transaction: OnyxInputOrEntry<Transaction>): string {
  * Return the amount field from the transaction, return the modifiedAmount if present.
  */
 function getAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseReport = false, isFromTrackedExpense = false, allowNegative = false, disableOppositeConversion = false): number {
+    const isValidModifiedAmount = hasValidModifiedAmount(transaction);
+
     // IOU requests cannot have negative values, but they can be stored as negative values, let's return absolute value
     if (!isFromExpenseReport && !isFromTrackedExpense && !allowNegative) {
         const amount = Number(transaction?.modifiedAmount) ?? 0;
-        if (hasValidModifiedAmount(transaction)) {
+        if (isValidModifiedAmount) {
             return Math.abs(amount);
         }
         return Math.abs(transaction?.amount ?? 0);
     }
 
     if (disableOppositeConversion) {
+        const amount = Number(transaction?.modifiedAmount) ?? 0;
+        if (isValidModifiedAmount) {
+            return amount;
+        }
         return transaction?.amount ?? 0;
     }
 
@@ -939,7 +947,7 @@ function getAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseRepo
     // The amounts are stored using an opposite sign and negative values can be set,
     // we need to return an opposite sign than is saved in the transaction object
     let amount = Number(transaction?.modifiedAmount) ?? 0;
-    if (hasValidModifiedAmount(transaction)) {
+    if (isValidModifiedAmount) {
         return -amount;
     }
 
