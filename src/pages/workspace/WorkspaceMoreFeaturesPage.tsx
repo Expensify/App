@@ -264,27 +264,25 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         },
     });
 
-    if (isBetaEnabled(CONST.BETAS.TIME_TRACKING)) {
-        spendItems.push({
-            icon: illustrations.Clock,
-            titleTranslationKey: 'workspace.moreFeatures.timeTracking.title',
-            subtitleTranslationKey: 'workspace.moreFeatures.timeTracking.subtitle',
-            isActive: isTimeTrackingEnabled(policy),
-            pendingAction: policy?.pendingFields?.isTimeTrackingEnabled,
-            action: (isEnabled: boolean) => {
-                if (!policyID) {
-                    return;
-                }
-                enablePolicyTimeTracking(policyID, isEnabled);
-            },
-            onPress: () => {
-                if (!policyID) {
-                    return;
-                }
-                Navigation.navigate(ROUTES.WORKSPACE_TIME_TRACKING.getRoute(policyID));
-            },
-        });
-    }
+    spendItems.push({
+        icon: illustrations.Clock,
+        titleTranslationKey: 'workspace.moreFeatures.timeTracking.title',
+        subtitleTranslationKey: 'workspace.moreFeatures.timeTracking.subtitle',
+        isActive: isTimeTrackingEnabled(policy),
+        pendingAction: policy?.pendingFields?.isTimeTrackingEnabled,
+        action: (isEnabled: boolean) => {
+            if (!policyID) {
+                return;
+            }
+            enablePolicyTimeTracking(policyID, isEnabled);
+        },
+        onPress: () => {
+            if (!policyID) {
+                return;
+            }
+            Navigation.navigate(ROUTES.WORKSPACE_TIME_TRACKING.getRoute(policyID));
+        },
+    });
 
     const manageItems: Item[] = [
         {

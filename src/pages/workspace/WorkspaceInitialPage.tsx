@@ -346,7 +346,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             });
         }
 
-        if (isBetaEnabled(CONST.BETAS.TIME_TRACKING) && featureStates?.[CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED]) {
+        if (featureStates?.[CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED]) {
             protectedMenuItems.push({
                 translationKey: 'iou.time',
                 icon: expensifyIcons.Clock,
