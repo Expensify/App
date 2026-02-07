@@ -3,7 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import useOnyx from '@hooks/useOnyx';
-import {changeTransactionsReport, dismissDuplicateTransactionViolation, markAsCash, saveWaypoint} from '@libs/actions/Transaction';
+import {changeTransactionsReport, dismissDuplicateTransactionViolation, markAsCash, sanitizeWaypointsForAPI, saveWaypoint} from '@libs/actions/Transaction';
 import DateUtils from '@libs/DateUtils';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {buildOptimisticNextStep} from '@libs/NextStepUtils';
@@ -1057,6 +1057,87 @@ describe('Transaction', () => {
             expect(transaction?.errorFields?.route ?? null).toBeNull();
             expect(transaction?.routes?.route0?.distance ?? null).toBeNull();
             expect(transaction?.routes?.route0?.geometry?.coordinates ?? null).toBeNull();
+        });
+    });
+
+    describe('sanitizeWaypointsForAPI', () => {
+        it('should only include allowed fields (name, address, lat, lng)', () => {
+            // Given waypoints with extra fields that should be stripped out
+            const waypointsWithExtraFields = {
+                waypoint0: {
+                    name: 'Start Location',
+                    address: '123 Main St',
+                    lat: 40.7128,
+                    lng: -74.006,
+                    city: 'New York',
+                    state: 'NY',
+                    zipCode: '10001',
+                    country: 'US',
+                    street: '123 Main St',
+                    street2: 'Apt 4B',
+                    keyForList: 'unique-key-1',
+                    pendingAction: 'add',
+                    extraField: 'should be removed',
+                },
+                waypoint1: {
+                    address: '456 Oak Ave',
+                    lat: 40.7589,
+                    lng: -73.9851,
+                    city: 'New York',
+                    state: 'NY',
+                    zipCode: '10002',
+                    keyForList: 'unique-key-2',
+                    anotherExtraField: 'should also be removed',
+                },
+            };
+
+            // When sanitizing the waypoints
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
+            const sanitizedWaypoints = sanitizeWaypointsForAPI(waypointsWithExtraFields as any);
+
+            // Then only allowed fields should remain
+            expect(sanitizedWaypoints.waypoint0).toEqual({
+                name: 'Start Location',
+                address: '123 Main St',
+                lat: 40.7128,
+                lng: -74.006,
+            });
+
+            // waypoint1 has no name field, so it should not be included
+            expect(sanitizedWaypoints.waypoint1).toEqual({
+                address: '456 Oak Ave',
+                lat: 40.7589,
+                lng: -73.9851,
+            });
+        });
+
+        it('should handle waypoints with only some allowed fields', () => {
+            // Given waypoints with only address
+            const waypointsWithPartialFields = {
+                waypoint0: {
+                    address: 'Partial Address Only',
+                },
+            };
+
+            // When sanitizing the waypoints
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
+            const sanitizedWaypoints = sanitizeWaypointsForAPI(waypointsWithPartialFields as any);
+
+            // Then only the address should be present
+            expect(sanitizedWaypoints.waypoint0).toEqual({
+                address: 'Partial Address Only',
+            });
+        });
+
+        it('should handle empty waypoints', () => {
+            // Given empty waypoints
+            const emptyWaypoints = {};
+
+            // When sanitizing the waypoints
+            const sanitizedWaypoints = sanitizeWaypointsForAPI(emptyWaypoints);
+
+            // Then the result should also be empty
+            expect(sanitizedWaypoints).toEqual({});
         });
     });
 
