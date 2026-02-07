@@ -118,7 +118,7 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
     // Add each employee to the appropriate workflow
     for (const employee of Object.values(employees)) {
         const {email, submitsTo, pendingAction} = employee;
-        if (!email || !submitsTo || !employees[submitsTo]) {
+        if (!email || !submitsTo || !employees[submitsTo] || employee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             continue;
         }
 
