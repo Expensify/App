@@ -33,6 +33,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchDeleteTransactions from '@hooks/useSearchDeleteTransactions';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -111,6 +112,7 @@ function SearchPage({route}: SearchPageProps) {
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, areAllMatchingItemsSelected, selectAllMatchingItems, currentSearchResults} =
         useSearchContext();
+    const {deleteTransactionsOnSearch} = useSearchDeleteTransactions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
     const allTransactions = useAllTransactions();
@@ -516,7 +518,16 @@ function SearchPage({route}: SearchPageProps) {
                 const transactionsViolations = allTransactionViolations
                     ? Object.fromEntries(Object.entries(allTransactionViolations).filter((entry): entry is [string, TransactionViolations] => !!entry[1]))
                     : {};
-                bulkDeleteReports(hash, selectedTransactions, currentUserPersonalDetails.email ?? '', accountID, reportTransactions, transactionsViolations, bankAccountList);
+                bulkDeleteReports(
+                    hash,
+                    selectedTransactions,
+                    currentUserPersonalDetails.email ?? '',
+                    accountID,
+                    reportTransactions,
+                    transactionsViolations,
+                    bankAccountList,
+                    deleteTransactionsOnSearch,
+                );
                 clearSelectedTransactions();
             });
         });
@@ -534,6 +545,7 @@ function SearchPage({route}: SearchPageProps) {
         currentUserPersonalDetails.email,
         bankAccountList,
         clearSelectedTransactions,
+        deleteTransactionsOnSearch,
     ]);
 
     const onBulkPaySelected = useCallback(
