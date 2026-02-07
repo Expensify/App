@@ -232,6 +232,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                             description={translate('cardPage.virtualCardNumber')}
                                             title={maskCard('')}
                                             interactive={false}
+                                            shouldBeAccessible={false}
                                             titleStyle={styles.walletCardNumber}
                                             shouldShowRightComponent
                                             rightComponent={
