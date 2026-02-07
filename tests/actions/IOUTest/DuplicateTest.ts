@@ -849,6 +849,69 @@ describe('actions/Duplicate', () => {
             expect(duplicatedTransaction?.comment?.customUnit?.distanceUnit).toEqual(mockDistanceTransaction.comment?.customUnit?.distanceUnit);
             expect(duplicatedTransaction?.comment?.customUnit?.quantity).toEqual(DISTANCE_MI);
         });
+
+        it('should not carry over linkedTrackedExpenseReportAction from the original transaction', async () => {
+            // Given a transaction with linkedTrackedExpenseReportAction set
+            // This simulates a split expense that was removed from a report
+            const existingLinkedReportActionChildReportID = 'existing-linked-child-789';
+
+            const {waypoints, ...restOfComment} = mockTransaction.comment ?? {};
+            const mockTransactionWithLinkedAction = {
+                ...mockTransaction,
+                amount: mockTransaction.amount * -1,
+                // This is the field that causes the collision - its childReportID gets used as existingTransactionThreadReportID
+                // in getMoneyRequestInformation, causing the backend to try to create a report with an existing ID
+                linkedTrackedExpenseReportAction: {
+                    reportActionID: 'linked-action-123',
+                    childReportID: existingLinkedReportActionChildReportID,
+                    actionName: 'IOU',
+                    created: '2024-01-01 00:00:00',
+                } as ReportAction,
+                comment: {
+                    ...restOfComment,
+                },
+            };
+
+            await Onyx.clear();
+
+            // When duplicating the transaction
+            duplicateExpenseTransaction({
+                transaction: mockTransactionWithLinkedAction,
+                optimisticChatReportID: mockOptimisticChatReportID,
+                optimisticIOUReportID: mockOptimisticIOUReportID,
+                isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                customUnitPolicyID: '',
+                targetPolicy: mockPolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetReport: policyExpenseChat,
+            });
+
+            await waitForBatchedUpdates();
+
+            let duplicatedTransaction: OnyxEntry<Transaction>;
+
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (allTransactions) => {
+                    duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
+                },
+            });
+
+            // Then the duplicated transaction should exist
+            expect(duplicatedTransaction).toBeDefined();
+            expect(duplicatedTransaction?.transactionID).toBeDefined();
+
+            // And the duplicated transaction should NOT have the original's linkedTrackedExpenseReportAction
+            // This is critical - linkedTrackedExpenseReportAction.childReportID gets used as existingTransactionThreadReportID,
+            // which would cause the backend to try to create a report with an already existing ID
+            expect(duplicatedTransaction?.linkedTrackedExpenseReportAction?.childReportID).not.toBe(existingLinkedReportActionChildReportID);
+        });
     });
 
     describe('resolveDuplicate', () => {

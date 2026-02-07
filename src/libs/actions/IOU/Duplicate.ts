@@ -507,6 +507,12 @@ function duplicateExpenseTransaction({
     const participants = getMoneyRequestParticipantsFromReport(targetReport, userAccountID);
     const transactionDetails = getTransactionDetails(transaction);
 
+    // Exclude linkedTrackedExpenseReportAction from the original transaction to avoid reportID collisions
+    // when duplicating split expenses that were removed from a report. linkedTrackedExpenseReportAction.childReportID
+    // gets used as existingTransactionThreadReportID in getMoneyRequestInformation, which would cause the backend
+    // to try to create a transaction thread report with an ID that already exists.
+    const {linkedTrackedExpenseReportAction, ...transactionWithoutLinkedAction} = transaction;
+
     const params: RequestMoneyInformation = {
         report: targetReport,
         optimisticChatReportID,
@@ -521,7 +527,7 @@ function duplicateExpenseTransaction({
         gpsPoint: undefined,
         action: CONST.IOU.ACTION.CREATE,
         transactionParams: {
-            ...transaction,
+            ...transactionWithoutLinkedAction,
             ...transactionDetails,
             attendees: transactionDetails?.attendees as Attendee[] | undefined,
             comment: Parser.htmlToMarkdown(transactionDetails?.comment ?? ''),
