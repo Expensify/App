@@ -30,7 +30,9 @@ type PersonalCardDetailsHeaderMenuProps = {
     reimbursableSetting: boolean;
     lastScrape: string;
     isOffline: boolean;
+    shouldShowBreakConnection: boolean;
     onUpdateCard: () => void;
+    onBreakConnection: () => void;
     onUnassignCard: () => void;
 };
 
@@ -45,7 +47,9 @@ function PersonalCardDetailsHeaderMenu({
     reimbursableSetting,
     lastScrape,
     isOffline,
+    shouldShowBreakConnection,
     onUpdateCard,
+    onBreakConnection,
     onUnassignCard,
 }: PersonalCardDetailsHeaderMenuProps) {
     const {translate} = useLocalize();
@@ -166,6 +170,14 @@ function PersonalCardDetailsHeaderMenu({
                         onPress={onUpdateCard}
                     />
                 </OfflineWithFeedback>
+            )}
+            {shouldShowBreakConnection && (
+                <MenuItem
+                    icon={Expensicons.Trashcan}
+                    disabled={isOffline || card?.isLoadingLastUpdated}
+                    title="Break connection (Testing)"
+                    onPress={onBreakConnection}
+                />
             )}
             <MenuItem
                 icon={expensifyIcons.RemoveMembers}
