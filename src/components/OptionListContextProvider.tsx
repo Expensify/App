@@ -56,10 +56,10 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     const [, {sourceValue: changedReportActions}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
     const prevPersonalDetails = usePrevious(personalDetails);
+    const privateIsArchivedMap = usePrivateIsArchivedMap();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const hasInitialData = useMemo(() => Object.keys(personalDetails ?? {}).length > 0, [personalDetails]);
-    const privateIsArchivedMap = usePrivateIsArchivedMap();
 
     const loadOptions = useCallback(() => {
         const optionLists = createOptionList(personalDetails, currentUserAccountID, privateIsArchivedMap, reports, reportAttributes?.reports);
@@ -226,7 +226,8 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                     continue;
                 }
 
-                const newReportOption = createOptionFromReport(report, personalDetails, currentUserAccountID, reportAttributes?.reports, {showPersonalDetails: true});
+                const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
+                const newReportOption = createOptionFromReport(report, personalDetails, currentUserAccountID, privateIsArchived, reportAttributes?.reports, {showPersonalDetails: true});
                 const replaceIndex = options.reports.findIndex((option) => option.reportID === report.reportID);
                 newReportOptions.push({
                     newReportOption,
