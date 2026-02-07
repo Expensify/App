@@ -181,7 +181,7 @@ function WalletPage() {
             selectedPaymentMethod: {},
             formattedSelectedPaymentMethod: {
                 title: cardTitle ?? '',
-                description: cardData ? getDescriptionForPolicyDomainCard(cardData.domainName) : '',
+                description: cardData ? getDescriptionForPolicyDomainCard(cardData.domainName, allPolicies) : '',
                 icon,
             },
             selectedPaymentMethodType: '',

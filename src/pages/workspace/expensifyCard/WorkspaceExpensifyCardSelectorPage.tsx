@@ -10,6 +10,7 @@ import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getFundIdFromSettingsKey} from '@libs/CardUtils';
 import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
@@ -35,9 +36,11 @@ function WorkspaceExpensifyCardSelectorPage({route}: WorkspaceExpensifyCardSelec
     const {policyID} = route.params;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const policy = usePolicy(policyID);
     const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage']);
     const [lastSelectedExpensifyCardFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}${policyID}`, {canBeMissing: true});
     const defaultFundID = useDefaultFundID(policyID);
+    const policyCollection = policy?.id ? {[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy} : undefined;
     const lastSelectedExpensifyCardFeedID = lastSelectedExpensifyCardFeed ?? defaultFundID;
 
     const allExpensifyCardFeeds = useExpensifyCardFeeds(policyID);
@@ -46,7 +49,7 @@ function WorkspaceExpensifyCardSelectorPage({route}: WorkspaceExpensifyCardSelec
         const fundID = getFundIdFromSettingsKey(key) ?? CONST.DEFAULT_NUMBER_ID;
         return {
             value: fundID,
-            text: getDescriptionForPolicyDomainCard(value?.domainName ?? ''),
+            text: getDescriptionForPolicyDomainCard(value?.domainName ?? '', policyCollection),
             keyForList: fundID.toString(),
             isSelected: fundID === lastSelectedExpensifyCardFeedID,
             leftElement: (

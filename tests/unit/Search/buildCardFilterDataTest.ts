@@ -2,25 +2,16 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {buildCardFeedsData, buildCardsData} from '@libs/CardFeedUtils';
-// eslint-disable-next-line no-restricted-syntax
-import * as PolicyUtils from '@libs/PolicyUtils';
 import type IllustrationsType from '@styles/theme/illustrations/types';
 import type {CardList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
-// Use jest.spyOn to mock the implementation
-jest.spyOn(PolicyUtils, 'getPolicy').mockImplementation((policyID?: string): Policy => {
-    switch (policyID) {
-        case '1':
-            return {name: ''} as Policy;
-        case '2':
-            return {name: 'test1'} as Policy;
-        case '3':
-            return {name: 'test2'} as Policy;
-        default:
-            return {name: ''} as Policy;
-    }
-});
+
+const mockPolicies = {
+    policy_1: {id: '1', name: ''} as Policy,
+    policy_2: {id: '2', name: 'test1'} as Policy,
+    policy_3: {id: '3', name: 'test2'} as Policy,
+};
 
 const workspaceCardFeeds = {
     cards_18680694_vcf: {
@@ -412,6 +403,7 @@ describe('buildCardFeedsData', () => {
     const result = buildCardFeedsData(
         workspaceCardFeeds as unknown as Record<string, WorkspaceCardsList | undefined>,
         domainFeedDataMock,
+        mockPolicies,
         [],
         translateMock as LocaleContextProps['translate'],
         illustrationsMock as IllustrationsType,
@@ -451,7 +443,7 @@ describe('buildCardFeedsData', () => {
 
 describe('buildIndividualCardsData with empty argument objects', () => {
     it('Return empty array when domainCardFeeds and workspaceCardFeeds are empty', () => {
-        const result = buildCardFeedsData({}, {}, [], translateMock as LocaleContextProps['translate'], illustrationsMock as IllustrationsType, companyCardIconsMock);
+        const result = buildCardFeedsData({}, {}, mockPolicies, [], translateMock as LocaleContextProps['translate'], illustrationsMock as IllustrationsType, companyCardIconsMock);
         expect(result).toEqual({selected: [], unselected: []});
     });
 });
