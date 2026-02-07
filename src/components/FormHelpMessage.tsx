@@ -6,6 +6,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Parser from '@libs/Parser';
+import CONST from '@src/CONST';
 import Icon from './Icon';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
@@ -37,6 +38,7 @@ function FormHelpMessage({message = '', children, isError = true, style, shouldS
     const theme = useTheme();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Exclamation']);
+    const shouldAnnounceError = isError && typeof message === 'string' && !!message && !shouldRenderMessageAsHTML && children == null;
 
     const HTMLMessage = useMemo(() => {
         if (typeof message !== 'string' || !shouldRenderMessageAsHTML) {
@@ -73,7 +75,18 @@ function FormHelpMessage({message = '', children, isError = true, style, shouldS
                 />
             )}
             <View style={[styles.flex1, isError && shouldShowRedDotIndicator ? styles.ml2 : {}]}>
-                {children ?? (shouldRenderMessageAsHTML ? <RenderHTML html={HTMLMessage} /> : <Text style={[isError ? styles.formError : styles.formHelp, styles.mb0]}>{message}</Text>)}
+                {children ??
+                    (shouldRenderMessageAsHTML ? (
+                        <RenderHTML html={HTMLMessage} />
+                    ) : (
+                        <Text
+                            style={[isError ? styles.formError : styles.formHelp, styles.mb0]}
+                            accessibilityRole={shouldAnnounceError ? CONST.ROLE.ALERT : undefined}
+                            accessibilityLiveRegion={shouldAnnounceError ? 'assertive' : undefined}
+                        >
+                            {message}
+                        </Text>
+                    ))}
             </View>
         </View>
     );
