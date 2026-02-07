@@ -1131,6 +1131,11 @@ function Search({
                 return;
             }
 
+            if (isTaskListItemType(item)) {
+                requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
+                return;
+            }
+
             markReportIDAsExpense(reportID);
 
             if (isTransactionItem && transactionPreviewData) {
