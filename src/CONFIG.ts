@@ -126,7 +126,7 @@ export default {
                 // cspell:disable-next-line
                 IOS: '1008697809946-5e095eqem3o6ugtpc2rjf7v880tcp28p.apps.googleusercontent.com',
                 // cspell:disable-next-line
-                ANDROID: '240677659774-86pov3adub93cv4b8uj13g7varolmk2l.apps.googleusercontent.com',
+                ANDROID: '240677659774-3b0h72mj41kj7e3hosjun242roi0j620.apps.googleusercontent.com',
             },
         },
     },
