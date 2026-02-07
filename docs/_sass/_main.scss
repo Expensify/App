@@ -64,6 +64,7 @@ body {
     min-height: 100%;
     background: var(--color-appBG);
     color: var(--color-text-supporting);
+    overflow-x: hidden;
 }
 
 hr {
@@ -222,6 +223,7 @@ button {
     position: fixed;
     background-color: var(--color-highlightBG);
     box-sizing: border-box;
+    z-index: 1;
     border-right-color: var(--color-borders);
     border-right-width: 1px;
     border-style: solid;
@@ -282,7 +284,7 @@ button {
         padding: 24px;
 
         @include breakpoint($breakpoint-tablet) {
-            padding: 44px;
+            padding: 44px 44px 40px 44px;
         }
 
         #header-button {
@@ -365,6 +367,10 @@ button {
             font-size: 2.25em;
             flex: 1;
         }
+    }
+
+    h1.homepage-title {
+        font-size: 2.5em;
     }
 
     .article {
@@ -710,6 +716,59 @@ button {
     }
 }
 
+// Keep mobile LHN layout (top bar) on tablet
+.mobile-lhn {
+    @include breakpoint($breakpoint-tablet) {
+        #lhn {
+            width: 100%;
+            height: auto;
+        }
+
+        #lhn #lhn-content {
+            display: none;
+
+            &.expanded {
+                display: block;
+            }
+        }
+
+        #lhn .lhn-header {
+            padding: 24px;
+
+            #header-button {
+                display: block;
+            }
+        }
+
+        #content-area {
+            margin-left: 0;
+        }
+    }
+
+    @include breakpoint($breakpoint-desktop) {
+        #lhn {
+            width: 420px;
+            height: 100%;
+        }
+
+        #lhn #lhn-content {
+            display: block;
+        }
+
+        #lhn .lhn-header {
+            padding: 44px 44px 40px 44px;
+
+            #header-button {
+                display: none;
+            }
+        }
+
+        #content-area {
+            margin-left: 420px;
+        }
+    }
+}
+
 .lhn-items {
     ol,
     ul {
@@ -896,7 +955,7 @@ button {
         font-size: 1.2em;
         font-weight: normal;
         &.with-margin {
-            margin: 20px 0 8px 0;
+            margin: 12px 0 8px 0;
         }
     }
 
@@ -931,6 +990,10 @@ button {
         }
     }
     h2 {
+        font-family: 'Expensify New Kansas', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
+        font-weight: 500;
+        font-size: 22px;
+        line-height: 28px;
         padding-bottom: 24px;
     }
     p {
@@ -938,6 +1001,301 @@ button {
     }
     .cards-group {
         padding-bottom: 32px;
+    }
+    h3.title {
+        font-family: 'Expensify Neue', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
+        font-weight: 700;
+        font-style: normal;
+        font-size: 1em;
+    }
+
+    &-hero {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        padding-bottom: 48px;
+
+        &__content {
+            flex: 1;
+        }
+
+        &__illustration {
+            display: none;
+
+            @include breakpoint($breakpoint-desktop) {
+                display: block;
+            }
+
+            img {
+                width: 280px;
+                height: auto;
+            }
+        }
+    }
+
+    &-search {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        max-width: 537px;
+
+        .search-input-wrapper {
+            flex: 1;
+        }
+
+        .search-button {
+            width: 52px;
+            height: 52px;
+            flex-shrink: 0;
+        }
+    }
+
+    &-search-clear {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        padding: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+
+        .base-icon {
+            width: 18px;
+            height: 18px;
+        }
+    }
+
+    &-results-container {
+        margin-top: 48px;
+
+        .search-loading,
+        .search-no-results,
+        .search-error {
+            padding: 0;
+        }
+
+        .search-result-item {
+            padding-left: 20px;
+            padding-right: 20px;
+            margin-left: -20px;
+            margin-right: -20px;
+        }
+    }
+
+
+    .search-page-form {
+        max-width: none;
+        box-sizing: border-box;
+        width: 100%;
+    }
+
+    .search-columns {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        margin-top: 48px;
+
+        @include breakpoint($breakpoint-tablet) {
+            flex-direction: row;
+            gap: 32px;
+        }
+    }
+
+    .search-articles-column {
+        flex: 1;
+        min-width: 0;
+        order: 2;
+
+        @include breakpoint($breakpoint-tablet) {
+            order: 1;
+        }
+
+        .homepage-results-container {
+            margin-top: 0;
+        }
+    }
+
+    .ai-answer-container {
+        order: 1;
+
+        @include breakpoint($breakpoint-tablet) {
+            order: 2;
+            width: 400px;
+            flex-shrink: 0;
+        }
+    }
+
+    .ai-panel {
+        background-color: var(--color-highlightBG);
+        border-radius: 12px;
+        padding: 20px;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+
+        &.ai-panel-loading {
+            min-height: 320px;
+
+            @include breakpoint($breakpoint-tablet) {
+                min-height: 676px;
+            }
+        }
+    }
+
+    .ai-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+    }
+
+    .ai-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+
+    .ai-title {
+        font-weight: 700;
+        font-size: 15px;
+        color: var(--color-text);
+    }
+
+
+    .ai-content {
+        font-size: 15px;
+        line-height: 24px;
+        max-height: 320px;
+        overflow: hidden;
+        color: var(--color-text);
+        position: relative;
+
+        @include breakpoint($breakpoint-tablet) {
+            max-height: 676px;
+        }
+
+        &.has-overflow::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: linear-gradient(to bottom, transparent, var(--color-highlightBG));
+            pointer-events: none;
+        }
+
+        &.expanded {
+            max-height: none;
+
+            &::after {
+                display: none;
+            }
+
+            ~ .ai-show-more {
+                margin-top: 16px;
+
+                img {
+                    transform: rotate(180deg);
+                }
+            }
+        }
+    }
+
+    .ai-illustration {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex: 1;
+
+        img {
+            width: 102px;
+            height: 102px;
+            animation: bounce 1s ease-in-out infinite;
+        }
+    }
+
+    @keyframes bounce {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-10px);
+        }
+    }
+
+    .ai-show-more {
+        background: var(--color-button-background);
+        border: none;
+        border-radius: 9999px;
+        color: var(--color-text);
+        cursor: pointer;
+        font-size: 15px;
+        font-weight: 700;
+        padding: 12px 16px;
+        margin-top: -20px;
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        align-self: center;
+        justify-content: center;
+        gap: 8px;
+
+        &.hidden {
+            display: none;
+        }
+    }
+
+    .getting-started-cards {
+        @include breakpoint($breakpoint-desktop) {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    .topic-card {
+        @extend .card;
+        flex-direction: column;
+        cursor: default;
+
+        &:hover {
+            background-color: var(--color-highlightBG);
+        }
+
+        .icon {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 12px;
+        }
+
+        h3.title {
+            font-family: 'Expensify Neue', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
+            font-weight: 700;
+            font-style: normal;
+            padding: 0;
+            margin: 0 0 8px 0;
+        }
+    }
+
+    .topic-links {
+        list-style: none;
+        margin: 0 !important;
+        padding: 0 !important;
+
+        li {
+            padding: 0;
+            margin: 0;
+        }
+
+        a {
+            color: var(--color-link);
+            font-weight: normal;
+            font-size: 15px;
+            line-height: 28px;
+        }
     }
 }
 
@@ -1156,3 +1514,4 @@ button {
     height: 12px;
     width: 12px;
 }
+

@@ -76,7 +76,7 @@
     "generate-autocomplete-parser": "peggy --format es -o src/libs/SearchParser/autocompleteParser.js src/libs/SearchParser/autocompleteParser.peggy src/libs/SearchParser/baseRules.peggy && ./scripts/parser-workletization.sh src/libs/SearchParser/autocompleteParser.js",
     "web:dist": "concurrently \"npm:web-proxy\" \"http-server ./dist --cors --port 8080 -P http://localhost:9000\"",
     "octokit": "cd scripts && npx ts-node -i -e \"$(cat ./octokit.ts)\"",
-    "compress-svg": "npx ts-node scripts/compressSvg.ts --dir assets/images"
+    "compress-svg": "npx ts-node scripts/compressSvg.ts --dir assets/images && npx ts-node scripts/compressSvg.ts --dir docs/assets/images"
   },
   "dependencies": {
     "@babel/runtime": "^7.25.0",
