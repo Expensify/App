@@ -12,6 +12,9 @@ function TextInputLabel({label, labelScale, labelTranslateY, isMultiline}: TextI
     return (
         <Animated.View style={[styles.textInputLabelContainer, animatedStyle]}>
             <Animated.Text
+                accessible={false}
+                accessibilityElementsHidden
+                importantForAccessibility="no"
                 numberOfLines={!isMultiline ? 1 : undefined}
                 ellipsizeMode={!isMultiline ? 'tail' : undefined}
                 allowFontScaling={false}
