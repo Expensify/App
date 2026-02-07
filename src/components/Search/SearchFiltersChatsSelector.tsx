@@ -70,7 +70,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
                 createOptionFromReport({...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id}, personalDetails, currentUserAccountID, reportAttributesDerived),
             );
             const isReportArchived = archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
-            const alternateText = getAlternateText(report, {}, isReportArchived, currentUserAccountID, {});
+            const alternateText = getAlternateText(report, {}, isReportArchived, currentUserAccountID, {}, reportAttributesDerived);
             return {...report, alternateText};
         });
     }, [archivedReportsIdSet, personalDetails, reportAttributesDerived, reports, selectedReportIDs, currentUserAccountID]);
