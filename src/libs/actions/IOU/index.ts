@@ -189,6 +189,7 @@ import {
     prepareOnboardingOnyxData,
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
     shouldEnableNegative,
+    updateOptimisticParentReportAction,
     updateReportPreview,
 } from '@libs/ReportUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -3054,15 +3055,11 @@ function getDeleteTrackExpenseInformation(
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const transactionThreadID = reportAction.childReportID;
-    let transactionThread = null;
-    if (transactionThreadID) {
-        transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`] ?? null;
-    }
 
     // STEP 2: Decide if we need to:
-    // 1. Delete the transactionThread - delete if there are no visible comments in the thread and we're not moving the transaction
+    // 1. Delete the transactionThread - delete if we're not moving the transaction
     // 2. Update the moneyRequestPreview to show [Deleted expense] - update if the transactionThread exists AND it isn't being deleted and we're not moving the transaction
-    const shouldDeleteTransactionThread = !isMovingTransactionFromTrackExpense && (transactionThreadID ? (reportAction?.childVisibleActionCount ?? 0) === 0 : false);
+    const shouldDeleteTransactionThread = !isMovingTransactionFromTrackExpense && !!transactionThreadID;
 
     const shouldShowDeletedRequestMessage = !isMovingTransactionFromTrackExpense && !!transactionThreadID && !shouldDeleteTransactionThread;
 
@@ -3122,31 +3119,11 @@ function getDeleteTrackExpenseInformation(
         value: null,
     });
 
-    if (shouldDeleteTransactionThread) {
-        optimisticData.push(
-            // Use merge instead of set to avoid deleting the report too quickly, which could cause a brief "not found" page to appear.
-            // The remaining parts of the report object will be removed after the API call is successful.
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
-                value: {
-                    reportID: null,
-                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-                    participants: {
-                        [userAccountID]: {
-                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-                        },
-                    },
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`,
-                value: null,
-            },
-        );
-    }
+    const cleanUpTransactionThreadReportOnyxData = getCleanUpTransactionThreadReportOnyxData({
+        transactionThreadID,
+        shouldDeleteTransactionThread,
+    });
+    optimisticData.push(...cleanUpTransactionThreadReportOnyxData.optimisticData);
 
     optimisticData.push(
         {
@@ -3180,13 +3157,7 @@ function getDeleteTrackExpenseInformation(
 
     // Ensure that any remaining data is removed upon successful completion, even if the server sends a report removal response.
     // This is done to prevent the removal update from lingering in the applyHTTPSOnyxUpdates function.
-    if (shouldDeleteTransactionThread && transactionThread) {
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
-            value: null,
-        });
-    }
+    successData.push(...cleanUpTransactionThreadReportOnyxData.successData);
 
     const failureData: Array<
         OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>
@@ -3215,13 +3186,7 @@ function getDeleteTrackExpenseInformation(
         value: transactionViolations ?? null,
     });
 
-    if (shouldDeleteTransactionThread) {
-        failureData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
-            value: transactionThread,
-        });
-    }
+    failureData.push(...cleanUpTransactionThreadReportOnyxData.failureData);
 
     if (actionableWhisperReportActionID) {
         const actionableWhisperReportAction = getReportAction(chatReportID, actionableWhisperReportActionID);
@@ -8604,6 +8569,152 @@ function cleanUpMoneyRequest(
 }
 
 /**
+ * @param transactionThreadID - The transaction thread reportID of the transaction
+ * @param shouldDeleteTransactionThread - Flag indicating whether the transactionThread should be optimistically deleted
+ * @param reportAction - The IOU action of the transaction
+ * @return Returns Onyx data including information about deleting the transactionThread and updating the child comment count for the preview report action
+ */
+function getCleanUpTransactionThreadReportOnyxData({
+    transactionThreadID,
+    shouldDeleteTransactionThread,
+    reportAction,
+    isChatIOUReportArchived,
+    updatedReportPreviewAction,
+    shouldAddUpdatedReportPreviewActionToOnyxData = true,
+}: {
+    transactionThreadID?: string;
+    shouldDeleteTransactionThread: boolean;
+    reportAction?: ReportAction;
+    isChatIOUReportArchived?: boolean;
+    updatedReportPreviewAction?: ReportAction;
+    shouldAddUpdatedReportPreviewActionToOnyxData?: boolean;
+}) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+
+    if (shouldDeleteTransactionThread) {
+        let transactionThread = null;
+        let transactionThreadReportActions = null;
+        if (transactionThreadID) {
+            transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`] ?? null;
+            transactionThreadReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`] ?? null;
+        }
+
+        optimisticData.push(
+            // Use merge instead of set to avoid deleting the report too quickly, which could cause a brief "not found" page to appear.
+            // The remaining parts of the report object will be removed after the API call is successful.
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
+                value: {
+                    reportID: null,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                    participants: {
+                        [userAccountID]: {
+                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                        },
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`,
+                value: null,
+            },
+        );
+        if (transactionThread) {
+            successData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
+                value: null,
+            });
+        }
+        failureData.push(
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
+                value: transactionThread ?? null,
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`,
+                value: transactionThreadReportActions,
+            },
+        );
+    }
+
+    // Update the child comment visible count for reportPreviewAction.
+    const iouReportID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUReportID : undefined;
+    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
+    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
+    const originalReportPreviewAction = getReportPreviewAction(chatReport?.reportID, iouReport?.reportID) ?? undefined;
+    let reportPreviewAction = updatedReportPreviewAction ?? originalReportPreviewAction;
+    if (
+        originalReportPreviewAction?.reportActionID &&
+        reportPreviewAction?.reportActionID &&
+        reportPreviewAction?.childVisibleActionCount &&
+        reportPreviewAction?.childVisibleActionCount > 0 &&
+        reportAction?.childVisibleActionCount &&
+        reportAction?.childVisibleActionCount > 0
+    ) {
+        let canUserPerformWriteAction = true;
+        if (chatReport) {
+            const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport?.reportID}`];
+            const isArchivedExpenseReport = isArchivedReport(reportNameValuePairs);
+
+            canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(chatReport, isChatIOUReportArchived ?? isArchivedExpenseReport);
+        }
+        const lastVisibleAction = getLastVisibleAction(iouReportID, canUserPerformWriteAction);
+
+        const {childVisibleActionCount, childCommenterCount, childLastVisibleActionCreated, childOldestFourAccountIDs} = updateOptimisticParentReportAction(
+            reportPreviewAction,
+            lastVisibleAction?.childLastVisibleActionCreated ?? lastVisibleAction?.created ?? '',
+            CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            reportAction.childVisibleActionCount,
+        );
+
+        if (shouldAddUpdatedReportPreviewActionToOnyxData) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+                value: {
+                    [reportPreviewAction.reportActionID]: {
+                        childVisibleActionCount,
+                        childCommenterCount,
+                        childLastVisibleActionCreated,
+                        childOldestFourAccountIDs,
+                    },
+                },
+            });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+                value: {
+                    [reportPreviewAction.reportActionID]: {
+                        childVisibleActionCount: originalReportPreviewAction.childVisibleActionCount,
+                        childCommenterCount: originalReportPreviewAction.childCommenterCount,
+                        childLastVisibleActionCreated: originalReportPreviewAction.childLastVisibleActionCreated,
+                        childOldestFourAccountIDs: originalReportPreviewAction.childOldestFourAccountIDs,
+                    },
+                },
+            });
+        }
+
+        reportPreviewAction = {...reportPreviewAction, childVisibleActionCount, childCommenterCount, childLastVisibleActionCreated, childOldestFourAccountIDs};
+    }
+
+    return {
+        optimisticData,
+        successData,
+        failureData,
+        updatedReportPreviewAction: reportPreviewAction,
+    };
+}
+
+/**
  *
  * @param transactionID  - The transactionID of IOU
  * @param reportAction - The reportAction of the transaction in the IOU report
@@ -8637,7 +8748,6 @@ function deleteMoneyRequest({
         updatedIOUReport,
         updatedReportPreviewAction,
         transactionThreadID,
-        transactionThread,
         transaction,
         transactionViolations,
         reportPreviewAction,
@@ -8681,32 +8791,6 @@ function deleteMoneyRequest({
     ];
 
     removeTransactionFromDuplicateTransactionViolation({optimisticData, failureData}, transactionID, transactions, violations);
-
-    if (shouldDeleteTransactionThread) {
-        optimisticData.push(
-            // Use merge instead of set to avoid deleting the report too quickly, which could cause a brief "not found" page to appear.
-            // The remaining parts of the report object will be removed after the API call is successful.
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
-                value: {
-                    reportID: null,
-                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-                    participants: {
-                        [userAccountID]: {
-                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-                        },
-                    },
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`,
-                value: null,
-            },
-        );
-    }
 
     optimisticData.push(
         {
@@ -8777,6 +8861,9 @@ function deleteMoneyRequest({
         });
     }
 
+    const cleanUpTransactionThreadReportOnyxData = getCleanUpTransactionThreadReportOnyxData({shouldDeleteTransactionThread, transactionThreadID, reportAction, isChatIOUReportArchived});
+    optimisticData.push(...cleanUpTransactionThreadReportOnyxData.optimisticData);
+
     const successData: OnyxUpdate[] = [
         shouldDeleteIOUReport
             ? {
@@ -8810,13 +8897,7 @@ function deleteMoneyRequest({
 
     // Ensure that any remaining data is removed upon successful completion, even if the server sends a report removal response.
     // This is done to prevent the removal update from lingering in the applyHTTPSOnyxUpdates function.
-    if (shouldDeleteTransactionThread && transactionThread) {
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
-            value: null,
-        });
-    }
+    successData.push(...cleanUpTransactionThreadReportOnyxData.successData);
 
     if (shouldDeleteIOUReport) {
         successData.push({
@@ -8838,13 +8919,7 @@ function deleteMoneyRequest({
         value: transactionViolations ?? null,
     });
 
-    if (shouldDeleteTransactionThread) {
-        failureData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
-            value: transactionThread,
-        });
-    }
+    failureData.push(...cleanUpTransactionThreadReportOnyxData.failureData);
 
     const errorKey = DateUtils.getMicroseconds();
 
@@ -13732,6 +13807,7 @@ export {
     getPolicyTags,
     setMoneyRequestTimeRate,
     setMoneyRequestTimeCount,
+    getCleanUpTransactionThreadReportOnyxData,
     handleNavigateAfterExpenseCreate,
     buildMinimalTransactionForFormula,
     buildOnyxDataForMoneyRequest,
