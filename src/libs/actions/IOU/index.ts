@@ -12249,7 +12249,6 @@ function prepareRejectMoneyRequestData(
     const baseTimestamp = DateUtils.getDBTime();
     const optimisticRejectReportAction = buildOptimisticRejectReportAction(baseTimestamp);
     const optimisticRejectReportActionComment = buildOptimisticRejectReportActionComment(comment, DateUtils.addMillisecondsFromDateTime(baseTimestamp, 1));
-    let movedTransactionAction;
 
     // Build successData and failureData to prevent duplication
     const successData: Array<
@@ -12537,9 +12536,9 @@ function prepareRejectMoneyRequestData(
             });
 
             reportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, newExpenseReport, undefined, transaction, undefined);
-            movedTransactionAction = buildOptimisticMovedTransactionAction(childReportID, newExpenseReport.reportID);
+            // Skip creating system messages when moving to a Draft report
+            // New expense reports created for rejected expenses are always Draft reports (open status)
             createdIOUReportActionID = iouAction.reportActionID;
-            expenseMovedReportActionID = movedTransactionAction.reportActionID;
             expenseCreatedReportActionID = createdActionForExpenseReport.reportActionID;
             newExpenseReport.parentReportActionID = reportPreviewAction.reportActionID;
             optimisticData.push(
@@ -12781,7 +12780,6 @@ function prepareRejectMoneyRequestData(
         value: {
             [optimisticRejectReportAction.reportActionID]: optimisticRejectReportAction,
             [optimisticRejectReportActionComment.reportActionID]: optimisticRejectReportActionComment,
-            ...(movedTransactionAction ? {[movedTransactionAction.reportActionID]: movedTransactionAction} : {}),
         },
     });
 
