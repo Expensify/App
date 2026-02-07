@@ -1192,7 +1192,7 @@ function getWelcomeMessage(
         messageHtml += translate('reportActionsView.usePlusButton', {additionalText});
     }
     if (isConciergeChatReport(report)) {
-        messageHtml += translate('reportActionsView.askConcierge');
+        messageHtml = translate('reportActionsView.askConcierge');
     }
 
     welcomeMessage.messageHtml = messageHtml;
