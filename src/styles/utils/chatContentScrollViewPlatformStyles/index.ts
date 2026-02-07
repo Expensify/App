@@ -1,7 +1,7 @@
 import type ChatContentScrollViewPlatformStyles from './types';
 
 const chatContentScrollViewPlatformStyles: ChatContentScrollViewPlatformStyles = {
-    overflow: 'hidden',
+    overflow: 'clip',
 };
 
 export default chatContentScrollViewPlatformStyles;
