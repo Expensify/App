@@ -31,6 +31,9 @@ type TextInputMeasurementProps = {
     /** Whether the input is markdown */
     isAutoGrowHeightMarkdown?: boolean;
 
+    /** Horizontal padding and border styles extracted from the container for accurate width measurement */
+    autoGrowMeasurementStyles?: StyleProp<TextStyle>;
+
     /** Callback to set the text input width */
     onSetTextInputWidth: (width: number) => void;
 
