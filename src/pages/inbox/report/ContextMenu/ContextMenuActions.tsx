@@ -744,6 +744,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 policyTags,
                 translate,
                 harvestReport,
+                currentUserPersonalDetails,
             },
         ) => {
             const isReportPreviewAction = isReportPreviewActionReportActionsUtils(reportAction);
@@ -769,6 +770,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         movedFromReport,
                         movedToReport,
                         policyTags,
+                        currentUserLogin: currentUserPersonalDetails?.login ?? '',
                     });
                     Clipboard.setString(modifyExpenseMessage);
                 } else if (isReimbursementDeQueuedOrCanceledAction(reportAction)) {

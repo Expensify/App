@@ -28,6 +28,7 @@ import {getPolicyName, getReportName, getRootParentReport, isPolicyExpenseChat, 
 import {getFormattedAttendees, getTagArrayFromName} from './TransactionUtils';
 
 let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
+// eslint-disable-next-line @typescript-eslint/no-deprecated -- Onyx.connectWithoutView is being removed in https://github.com/Expensify/App/issues/66336
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.POLICY_TAGS,
     waitForCollectionCallback: true,
@@ -43,7 +44,8 @@ Onyx.connectWithoutView({
 let environmentURL: string;
 getEnvironmentURL().then((url: string) => (environmentURL = url));
 
-let currentUserLogin = '';
+let storedCurrentUserLogin = '';
+// eslint-disable-next-line @typescript-eslint/no-deprecated -- Onyx.connectWithoutView is being removed in https://github.com/Expensify/App/issues/66336
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
@@ -51,7 +53,7 @@ Onyx.connectWithoutView({
         if (!value) {
             return;
         }
-        currentUserLogin = value?.email ?? '';
+        storedCurrentUserLogin = value?.email ?? '';
     },
 });
 
@@ -164,7 +166,7 @@ function getForExpenseMovedFromSelfDM(translate: LocalizedTranslate, destination
     // In NewDot, the "Move report" flow only supports moving expenses from self-DM to:
     // - A policy expense chat
     // - A 1:1 DM
-    const currentUserAccountID = getPersonalDetailByEmail(currentUserLogin)?.accountID;
+    const currentUserAccountID = getPersonalDetailByEmail(storedCurrentUserLogin)?.accountID;
     const reportName = isPolicyExpenseChat(rootParentReport)
         ? getPolicyExpenseChatName({report: rootParentReport})
         : buildReportNameFromParticipantNames({report: rootParentReport, currentUserAccountID});
@@ -330,7 +332,7 @@ function getForReportAction({
         } else if (reportActionOriginalMessage?.source === CONST.CATEGORY_SOURCE.MCC) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             const policy = getPolicy(policyID);
-            const isAdmin = isPolicyAdmin(policy, currentUserLogin);
+            const isAdmin = isPolicyAdmin(policy, storedCurrentUserLogin);
 
             // For admins, create a hyperlink to the workspace rules page
             if (isAdmin && policy?.id) {
@@ -514,6 +516,7 @@ function getForReportActionTemp({
     movedFromReport,
     movedToReport,
     policyTags,
+    currentUserLogin,
 }: {
     translate: LocalizedTranslate;
     reportAction: OnyxEntry<ReportAction>;
@@ -521,6 +524,7 @@ function getForReportActionTemp({
     movedFromReport?: OnyxEntry<Report>;
     movedToReport?: OnyxEntry<Report>;
     policyTags: OnyxEntry<PolicyTagLists>;
+    currentUserLogin: string;
 }): string {
     if (!isModifiedExpenseAction(reportAction)) {
         return '';
