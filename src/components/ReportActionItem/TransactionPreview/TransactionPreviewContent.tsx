@@ -243,6 +243,7 @@ function TransactionPreviewContent({
                         isHovered={isHovered || isTransactionScanning}
                         size={1}
                         shouldUseAspectRatio={!isMapDistanceRequest(transaction) && !isGPSDistanceRequest(transaction)}
+                        isReceipt
                     />
                     {shouldShowSkeleton ? (
                         <TransactionPreviewSkeletonView transactionPreviewWidth={transactionPreviewWidth} />
