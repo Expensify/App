@@ -6,9 +6,9 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetSuiteImportAddCustomSegmentFormSubmit from '@hooks/useNetSuiteImportAddCustomSegmentForm';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import NetSuiteCustomFieldMappingPicker from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomFieldMappingPicker';
-import type {CustomFieldSubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
+import type {CustomFieldSubPageWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -16,7 +16,7 @@ import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 
 const STEP_FIELDS = [INPUT_IDS.MAPPING];
 
-function CustomSegmentMappingStep({importCustomField, customSegmentType, onNext, isEditing, netSuiteCustomFieldFormValues}: CustomFieldSubStepWithPolicy) {
+function CustomSegmentMappingStep({importCustomField, customSegmentType, onNext, isEditing, netSuiteCustomFieldFormValues}: CustomFieldSubPageWithPolicy) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     // reminder to change the validation logic at the last phase of PR
@@ -24,7 +24,7 @@ function CustomSegmentMappingStep({importCustomField, customSegmentType, onNext,
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM> = {};
-            if (!ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.MAPPING])) {
+            if (!isRequiredFulfilled(values[INPUT_IDS.MAPPING])) {
                 errors[INPUT_IDS.MAPPING] = translate('common.error.pleaseSelectOne');
             }
             return errors;

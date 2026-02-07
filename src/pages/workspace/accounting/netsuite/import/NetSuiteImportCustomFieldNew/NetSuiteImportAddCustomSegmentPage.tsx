@@ -7,8 +7,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import NetSuiteImportAddCustomSegmentContent from './NetSuiteImportAddCustomSegmentContent';
 
-function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps) {
-    const [draftValues, draftValuesMetadata] = useOnyx(ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM_DRAFT);
+function NetSuiteImportAddCustomSegmentPage({policy, route}: WithPolicyConnectionsProps) {
+    const [draftValues, draftValuesMetadata] = useOnyx(ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM_DRAFT, {canBeMissing: true});
     const isLoading = isLoadingOnyxValue(draftValuesMetadata);
 
     if (isLoading) {
@@ -18,6 +18,7 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
     return (
         <NetSuiteImportAddCustomSegmentContent
             policy={policy}
+            policyIDParam={route.params.policyID}
             draftValues={draftValues}
         />
     );
