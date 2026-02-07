@@ -7407,6 +7407,9 @@ ${reportName}
         scrollToNewestMessages: '最新のメッセージまでスクロール',
         preStyledText: '事前にスタイル設定されたテキスト',
         viewAttachment: '添付ファイルを表示',
+        selectAllFeatures: 'すべての機能を選択',
+        selectAllTransactions: 'すべての取引を選択',
+        selectAllItems: 'すべての項目を選択',
     },
     parentReportAction: {
         deletedReport: '削除されたレポート',

@@ -7468,6 +7468,9 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         scrollToNewestMessages: 'Scorri ai messaggi più recenti',
         preStyledText: 'Testo preformattato',
         viewAttachment: 'Visualizza allegato',
+        selectAllFeatures: 'Seleziona tutte le funzionalità',
+        selectAllTransactions: 'Seleziona tutte le transazioni',
+        selectAllItems: 'Seleziona tutti gli elementi',
     },
     parentReportAction: {
         deletedReport: 'Report eliminato',

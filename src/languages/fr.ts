@@ -7501,6 +7501,9 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         scrollToNewestMessages: 'Aller au dernier message',
         preStyledText: 'Texte pré-stylé',
         viewAttachment: 'Afficher la pièce jointe',
+        selectAllFeatures: 'Sélectionner toutes les fonctionnalités',
+        selectAllTransactions: 'Sélectionner toutes les transactions',
+        selectAllItems: 'Sélectionner tous les éléments',
     },
     parentReportAction: {
         deletedReport: 'Note de frais supprimée',

@@ -695,7 +695,7 @@ function MoneyRequestReportActionsList({
                         />
                         <View style={[styles.alignItemsCenter, styles.userSelectNone, styles.flexRow, styles.pt6, styles.ph8, styles.pb3]}>
                             <Checkbox
-                                accessibilityLabel={translate('workspace.people.selectAll')}
+                                accessibilityLabel={translate('accessibilityHints.selectAllTransactions')}
                                 isChecked={isSelectAllChecked}
                                 isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactionsWithoutPendingDelete.length}
                                 onPress={() => {
@@ -715,7 +715,7 @@ function MoneyRequestReportActionsList({
                                         setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID));
                                     }
                                 }}
-                                accessibilityLabel={translate('workspace.people.selectAll')}
+                                accessibilityLabel={translate('accessibilityHints.selectAllTransactions')}
                                 role="button"
                                 accessibilityState={{checked: isSelectAllChecked}}
                                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}

@@ -7487,6 +7487,9 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         scrollToNewestMessages: 'Zu neuesten Nachrichten scrollen',
         preStyledText: 'Vorgestylter Text',
         viewAttachment: 'Anhang anzeigen',
+        selectAllFeatures: 'Alle Funktionen auswählen',
+        selectAllTransactions: 'Alle Transaktionen auswählen',
+        selectAllItems: 'Alle Einträge auswählen',
     },
     parentReportAction: {
         deletedReport: 'Gelöschter Bericht',

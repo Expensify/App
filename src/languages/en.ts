@@ -7425,6 +7425,9 @@ const translations = {
         scrollToNewestMessages: 'Scroll to newest messages',
         preStyledText: 'Pre-styled text',
         viewAttachment: 'View attachment',
+        selectAllFeatures: 'Select all features',
+        selectAllTransactions: 'Select all transactions',
+        selectAllItems: 'Select all items',
     },
     parentReportAction: {
         deletedReport: 'Deleted report',
