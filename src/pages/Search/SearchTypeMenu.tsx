@@ -59,6 +59,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         !!typeMenuSections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle') && isFocused,
     );
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'Basket',
         'Bookmark',
         'Pencil',
         'Receipt',
@@ -68,6 +69,8 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         'MoneyHourglass',
         'CreditCardHourglass',
         'Bank',
+        'User',
+        'Folder',
     ] as const);
     const {showDeleteModal} = useDeleteSavedSearch();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
@@ -98,7 +101,18 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             let title = item.name;
             if (title === item.query) {
                 const jsonQuery = buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
-                title = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, nonPersonalAndWorkspaceCards, allFeeds, allPolicies, currentUserAccountID);
+                title = buildUserReadableQueryString({
+                    queryJSON: jsonQuery,
+                    PersonalDetails: personalDetails,
+                    reports,
+                    taxRates,
+                    cardList: nonPersonalAndWorkspaceCards,
+                    cardFeeds: allFeeds,
+                    policies: allPolicies,
+                    currentUserAccountID,
+                    autoCompleteWithSpace: false,
+                    translate,
+                });
             }
 
             const isItemFocused = Number(key) === hash;
@@ -147,6 +161,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             allFeeds,
             currentUserAccountID,
             allPolicies,
+            translate,
         ],
     );
 

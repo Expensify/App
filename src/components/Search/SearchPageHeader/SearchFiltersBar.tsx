@@ -41,19 +41,29 @@ import {handleBulkPayItemSelected, updateAdvancedFilters} from '@libs/actions/Se
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getActiveAdminWorkspaces, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces} from '@libs/PolicyUtils';
 import {isExpenseReport} from '@libs/ReportUtils';
 import {buildQueryStringFromFilterFormValues, getQueryWithUpdatedValues, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
-import {getDatePresets, getFeedOptions, getGroupByOptions, getGroupCurrencyOptions, getHasOptions, getStatusOptions, getTypeOptions, getWithdrawalTypeOptions} from '@libs/SearchUIUtils';
+import {
+    getDatePresets,
+    getFeedOptions,
+    getGroupByOptions,
+    getGroupCurrencyOptions,
+    getHasOptions,
+    getStatusOptions,
+    getTypeOptions,
+    getViewOptions,
+    getWithdrawalTypeOptions,
+} from '@libs/SearchUIUtils';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {hasMultipleOutputCurrenciesSelector} from '@src/selectors/Policy';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS, {AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {Policy} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type {SearchHeaderOptionValue} from './SearchPageHeader';
@@ -88,8 +98,8 @@ function SearchFiltersBar({
     const currentPolicy = usePolicy(currentSelectedPolicyID);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
-    // type, groupBy and status values are not guaranteed to respect the ts type as they come from user input
-    const {type: unsafeType, groupBy: unsafeGroupBy, status: unsafeStatus, flatFilters} = queryJSON;
+    // type, groupBy, status, and view values are not guaranteed to respect the ts type as they come from user input
+    const {type: unsafeType, groupBy: unsafeGroupBy, status: unsafeStatus, view: unsafeView, flatFilters} = queryJSON;
     const [selectedIOUReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentSelectedReportID}`, {canBeMissing: true});
     const isCurrentSelectedExpenseReport = isExpenseReport(currentSelectedReportID);
     const theme = useTheme();
@@ -107,6 +117,7 @@ function SearchFiltersBar({
     const [email] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [hasMultipleOutputCurrency] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasMultipleOutputCurrenciesSelector, canBeMissing: true});
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter', 'Columns']);
@@ -136,11 +147,6 @@ function SearchFiltersBar({
     }, [workspaces]);
 
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions ?? {}), [selectedTransactions]);
-    const hasMultipleOutputCurrency = useMemo(() => {
-        const policies = Object.values(allPolicies ?? {}).filter((policy): policy is Policy => isPaidGroupPolicy(policy));
-        const outputCurrency = policies.at(0)?.outputCurrency;
-        return policies.some((policy) => policy.outputCurrency !== outputCurrency);
-    }, [allPolicies]);
 
     // Get selected workspace options from filterFormValues or queryJSON
     const selectedWorkspaceOptions = useMemo(() => {
@@ -188,6 +194,12 @@ function SearchFiltersBar({
         return [options, value];
     }, [translate, unsafeGroupBy]);
 
+    const [viewOptions, viewValue] = useMemo(() => {
+        const options = getViewOptions(translate);
+        const value = options.find((option) => option.value === unsafeView) ?? options.at(0) ?? null;
+        return [options, value];
+    }, [translate, unsafeView]);
+
     const [groupCurrencyOptions, groupCurrency] = useMemo(() => {
         const options = getGroupCurrencyOptions(currencyList, getCurrencySymbol);
         const value = options.find((option) => option.value === searchAdvancedFiltersForm.groupCurrency) ?? null;
@@ -196,10 +208,10 @@ function SearchFiltersBar({
 
     const [feedOptions, feed] = useMemo(() => {
         const feedFilterValues = flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED)?.filters?.map((filter) => filter.value);
-        const options = getFeedOptions(allFeeds, nonPersonalAndWorkspaceCards);
+        const options = getFeedOptions(allFeeds, nonPersonalAndWorkspaceCards, translate);
         const value = feedFilterValues ? options.filter((option) => feedFilterValues.includes(option.value)) : [];
         return [options, value];
-    }, [flatFilters, allFeeds, nonPersonalAndWorkspaceCards]);
+    }, [flatFilters, allFeeds, nonPersonalAndWorkspaceCards, translate]);
 
     const [statusOptions, status] = useMemo(() => {
         const options = type ? getStatusOptions(translate, type.value) : [];
@@ -371,6 +383,21 @@ function SearchFiltersBar({
             );
         },
         [translate, groupByOptions, groupBy, updateFilterForm],
+    );
+
+    const viewComponent = useCallback(
+        ({closeOverlay}: PopoverComponentProps) => {
+            return (
+                <SingleSelectPopup
+                    label={translate('search.view.label')}
+                    items={viewOptions}
+                    value={viewValue}
+                    closeOverlay={closeOverlay}
+                    onChange={(item) => updateFilterForm({view: item?.value ?? CONST.SEARCH.VIEW.TABLE})}
+                />
+            );
+        },
+        [translate, viewOptions, viewValue, updateFilterForm],
     );
 
     const groupCurrencyComponent = useCallback(
@@ -666,6 +693,16 @@ function SearchFiltersBar({
                       },
                   ]
                 : []),
+            ...(shouldDisplayGroupByFilter
+                ? [
+                      {
+                          label: translate('search.view.label'),
+                          PopoverComponent: viewComponent,
+                          value: viewValue?.text ?? null,
+                          filterKey: FILTER_KEYS.VIEW,
+                      },
+                  ]
+                : []),
         ].filter((filterItem) => isFilterSupported(filterItem.filterKey, type?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE));
 
         return filterList;
@@ -674,6 +711,7 @@ function SearchFiltersBar({
         type?.text,
         groupBy?.value,
         groupBy?.text,
+        viewValue?.text,
         groupCurrency?.value,
         withdrawalType?.text,
         displayDate,
@@ -693,6 +731,7 @@ function SearchFiltersBar({
         isComponent,
         typeComponent,
         groupByComponent,
+        viewComponent,
         groupCurrencyComponent,
         statusComponent,
         datePickerComponent,

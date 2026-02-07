@@ -7,6 +7,7 @@ import CONST from '@src/CONST';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import IntlStore from '@src/languages/IntlStore';
 import {
+    doesCardFeedExist,
     filterInactiveCards,
     flatAllCardsList,
     formatCardExpiration,
@@ -21,7 +22,10 @@ import {
     getCompanyCardFeed,
     getCompanyCardFeedWithDomainID,
     getCompanyFeeds,
+    getCustomFeedNameFromFeeds,
     getCustomOrFormattedFeedName,
+    getDefaultExpensifyCardLimitType,
+    getFeedNameForDisplay,
     getFeedType,
     getFilteredCardList,
     getMonthFromExpirationDateString,
@@ -32,6 +36,7 @@ import {
     getYearFromExpirationDateString,
     hasIssuedExpensifyCard,
     hasOnlyOneCardToAssign,
+    isCSVFeedOrExpensifyCard,
     isCustomFeed as isCustomFeedCardUtils,
     isExpensifyCard,
     isExpensifyCardFullySetUp,
@@ -523,6 +528,28 @@ describe('CardUtils', () => {
         });
     });
 
+    describe('isCSVFeedOrExpensifyCard', () => {
+        it('Should return true for CSV feed keys', () => {
+            expect(isCSVFeedOrExpensifyCard('csv#123456')).toBe(true);
+        });
+
+        it('Should return true for ccupload feed keys', () => {
+            expect(isCSVFeedOrExpensifyCard(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)).toBe(true);
+        });
+
+        it('Should return true for Expensify Card feed key', () => {
+            expect(isCSVFeedOrExpensifyCard('Expensify Card')).toBe(true);
+        });
+
+        it('Should return false for a direct bank feed', () => {
+            expect(isCSVFeedOrExpensifyCard('plaid.ins_19')).toBe(false);
+        });
+
+        it('Should return false for a custom feed', () => {
+            expect(isCSVFeedOrExpensifyCard(`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}#12345`)).toBe(false);
+        });
+    });
+
     describe('getSelectedFeed', () => {
         it('Should return last selected custom feed', () => {
             const lastSelectedCustomFeed: CompanyCardFeedWithDomainID = `${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}#12345`;
@@ -578,6 +605,107 @@ describe('CardUtils', () => {
             const companyCardNickname = cardFeedsCollection.FAKE_ID_7?.settings?.companyCardNicknames?.[unknownFeed];
             const feedName = getCustomOrFormattedFeedName(translateLocal, unknownFeed, companyCardNickname);
             expect(feedName).toBe(unknownFeed);
+        });
+    });
+
+    describe('doesCardFeedExist', () => {
+        it('Should return true if feed exists in cardFeeds', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
+            const exists = doesCardFeedExist(feed, cardFeedsCollection);
+            expect(exists).toBe(true);
+        });
+
+        it('Should return false if feed has pendingAction delete', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX;
+            const exists = doesCardFeedExist(feed, cardFeedsCollection);
+            expect(exists).toBe(false);
+        });
+
+        it('Should return false if feed is undefined', () => {
+            const feed = undefined;
+            const exists = doesCardFeedExist(feed, cardFeedsCollection);
+            expect(exists).toBe(false);
+        });
+
+        it('Should return false if cardFeeds is undefined', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
+            const exists = doesCardFeedExist(feed, undefined);
+            expect(exists).toBe(false);
+        });
+    });
+
+    describe('getCustomFeedNameFromFeeds', () => {
+        it('Should return custom feed name if it exists', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
+            const customName = getCustomFeedNameFromFeeds(cardFeedsCollection, feed);
+            expect(customName).toBe(customFeedName);
+        });
+
+        it('Should return undefined if no custom feed name exists', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE;
+            const customName = getCustomFeedNameFromFeeds(cardFeedsCollection, feed);
+            expect(customName).toBe(undefined);
+        });
+
+        it('Should return undefined if feed is undefined', () => {
+            const feed = undefined;
+            const customName = getCustomFeedNameFromFeeds(cardFeedsCollection, feed);
+            expect(customName).toBe(undefined);
+        });
+
+        it('Should return undefined if cardFeeds is undefined', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
+            const customName = getCustomFeedNameFromFeeds(undefined, feed);
+            expect(customName).toBe(undefined);
+        });
+    });
+
+    describe('getFeedNameForDisplay', () => {
+        beforeAll(() => {
+            IntlStore.load(CONST.LOCALES.EN);
+            return waitForBatchedUpdates();
+        });
+
+        it('Should return "Deleted Feed" if feed does not exist', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX;
+            const feedName = getFeedNameForDisplay(translateLocal, feed, {FAKE_ID_2: cardFeedsCollection.FAKE_ID_2});
+            expect(feedName).toBe('Deleted feed');
+        });
+
+        it('Should return empty string when cardFeeds is undefined (loading state)', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE;
+            const feedName = getFeedNameForDisplay(translateLocal, feed, undefined);
+            expect(feedName).toBe('');
+        });
+
+        it('Should return custom name if provided via parameter', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
+            const feedName = getFeedNameForDisplay(translateLocal, feed, {FAKE_ID_1: cardFeedsCollection.FAKE_ID_1}, customFeedName);
+            expect(feedName).toBe(customFeedName);
+        });
+
+        it('Should return custom name from cardFeeds if no parameter provided', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
+            const feedName = getFeedNameForDisplay(translateLocal, feed, cardFeedsCollection);
+            expect(feedName).toBe(customFeedName);
+        });
+
+        it('Should return formatted feed name if no custom name exists', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE;
+            const feedName = getFeedNameForDisplay(translateLocal, feed, {FAKE_ID_1: cardFeedsCollection.FAKE_ID_1});
+            expect(feedName).toBe('Chase cards');
+        });
+
+        it('Should return empty string if feed is undefined', () => {
+            const feed = undefined;
+            const feedName = getFeedNameForDisplay(translateLocal, feed, {FAKE_ID_1: cardFeedsCollection.FAKE_ID_1});
+            expect(feedName).toBe('');
+        });
+
+        it('Should return formatted name without "cards" suffix when shouldAddCardsSuffix is false', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE;
+            const feedName = getFeedNameForDisplay(translateLocal, feed, {FAKE_ID_1: cardFeedsCollection.FAKE_ID_1}, undefined, false);
+            expect(feedName).toBe('Chase');
         });
     });
 
@@ -637,6 +765,16 @@ describe('CardUtils', () => {
         it('Should return card name without last 4 numbers', () => {
             const maskedCardNumber = maskCardNumber('Business Card Cash - 3001', undefined);
             expect(maskedCardNumber).toBe('Business Card Cash');
+        });
+
+        it('Should return CSV import card display name without 4-character formatting', () => {
+            const maskedCardNumber = maskCardNumber('Checking', CONST.COMPANY_CARDS.BANK_NAME.UPLOAD);
+            expect(maskedCardNumber).toBe('Checking');
+        });
+
+        it('Should return CSV import card display name as-is for longer names', () => {
+            const maskedCardNumber = maskCardNumber('JustChecking', CONST.COMPANY_CARDS.BANK_NAME.UPLOAD);
+            expect(maskedCardNumber).toBe('JustChecking');
         });
     });
 
@@ -1000,6 +1138,56 @@ describe('CardUtils', () => {
         it('should return false when both policy and cardSettings are undefined', () => {
             const result = isExpensifyCardFullySetUp(undefined, undefined);
             expect(result).toBe(false);
+        });
+    });
+
+    describe('getDefaultExpensifyCardLimitType', () => {
+        it('returns SMART when policy has approvals configured (approvalMode is ADVANCED)', () => {
+            const policy = {
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            } as Policy;
+
+            expect(getDefaultExpensifyCardLimitType(policy)).toBe(CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
+        });
+
+        it('returns SMART when policy has approvals configured (approvalMode is BASIC)', () => {
+            const policy = {
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            } as Policy;
+
+            expect(getDefaultExpensifyCardLimitType(policy)).toBe(CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
+        });
+
+        it('returns MONTHLY when policy has optional approvals (approvalMode is OPTIONAL)', () => {
+            const policy = {
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            } as Policy;
+
+            expect(getDefaultExpensifyCardLimitType(policy)).toBe(CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY);
+        });
+
+        it('returns MONTHLY when policy type is PERSONAL (approvals are always optional)', () => {
+            const policy = {
+                type: CONST.POLICY.TYPE.PERSONAL,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            } as Policy;
+
+            expect(getDefaultExpensifyCardLimitType(policy)).toBe(CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY);
+        });
+
+        it('returns SMART when policy is undefined (defaults to ADVANCED approval mode)', () => {
+            expect(getDefaultExpensifyCardLimitType(undefined)).toBe(CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
+        });
+
+        it('returns SMART when corporate policy has no approvalMode (defaults to ADVANCED)', () => {
+            const policy = {
+                type: CONST.POLICY.TYPE.CORPORATE,
+            } as Policy;
+
+            expect(getDefaultExpensifyCardLimitType(policy)).toBe(CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
         });
     });
 

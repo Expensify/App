@@ -16,11 +16,23 @@ import type BillingStatus from './BillingStatus';
 import type BlockedFromConcierge from './BlockedFromConcierge';
 import type CancellationDetails from './CancellationDetails';
 import type Card from './Card';
-import type {CardList, FailedCompanyCardAssignment, FailedCompanyCardAssignments, IssueNewCard, ProvisioningCardData, WorkspaceCardsList} from './Card';
+import type {CardList, IssueNewCard, ProvisioningCardData, WorkspaceCardsList} from './Card';
 import type CardContinuousReconciliation from './CardContinuousReconciliation';
 import type CardFeeds from './CardFeeds';
-import type {AddNewCompanyCardFeed, CombinedCardFeed, CombinedCardFeeds, CompanyCardFeed, CompanyCardFeedWithDomainID, DomainSettings, FundID} from './CardFeeds';
+import type {
+    AddNewCompanyCardFeed,
+    CardFeedsStatus,
+    CardFeedsStatusByDomainID,
+    CombinedCardFeed,
+    CombinedCardFeeds,
+    CompanyCardFeed,
+    CompanyCardFeedWithDomainID,
+    DomainSettings,
+    FundID,
+    WorkspaceCardFeedsStatus,
+} from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
+import type CodingRuleMatchingTransaction from './CodingRuleMatchingTransaction';
 import type {CapturedLogs, Log} from './Console';
 import type {CorpayFields, CorpayFormField} from './CorpayFields';
 import type {CorpayOnboardingFields} from './CorpayOnboardingFields';
@@ -34,11 +46,14 @@ import type {
     OutstandingReportsByPolicyIDDerivedValue,
     ReportAttributesDerivedValue,
     ReportTransactionsAndViolationsDerivedValue,
+    TodoMetadata,
+    TodosDerivedValue,
 } from './DerivedValues';
+import type DeviceBiometrics from './DeviceBiometrics';
 import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Domain from './Domain';
-import type {DomainSecurityGroup, SamlMetadata} from './Domain';
+import type {DomainSecurityGroup, SamlMetadata, UserSecurityGroupData} from './Domain';
 import type DomainErrors from './DomainErrors';
 import type DomainPendingActions from './DomainPendingActions';
 import type Download from './Download';
@@ -113,6 +128,7 @@ import type ReportUserIsTyping from './ReportUserIsTyping';
 import type {ReportFieldsViolations, ReportViolationName} from './ReportViolation';
 import type ReportViolations from './ReportViolation';
 import type Request from './Request';
+import type {AnyRequest} from './Request';
 import type Response from './Response';
 import type ReviewDuplicates from './ReviewDuplicates';
 import type {SaveSearch} from './SaveSearch';
@@ -175,8 +191,6 @@ export type {
     Download,
     DuplicateWorkspace,
     WorkspaceCardsList,
-    FailedCompanyCardAssignment,
-    FailedCompanyCardAssignments,
     ExpenseRule,
     ExpensifyCardSettings,
     ExpensifyCardBankAccountMetadata,
@@ -244,6 +258,7 @@ export type {
     ReportFieldsViolations,
     ReportLayoutGroupBy,
     GroupedTransactions,
+    AnyRequest,
     Request,
     Response,
     ScreenShareRequest,
@@ -292,6 +307,9 @@ export type {
     CancellationDetails,
     ApprovalWorkflowOnyx,
     CardFeeds,
+    CardFeedsStatus,
+    CardFeedsStatusByDomainID,
+    WorkspaceCardFeedsStatus,
     DomainSettings,
     SaveSearch,
     RecentSearchItem,
@@ -317,6 +335,8 @@ export type {
     OutstandingReportsByPolicyIDDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
+    TodosDerivedValue,
+    TodoMetadata,
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
     VacationDelegate,
@@ -328,4 +348,7 @@ export type {
     DomainErrors,
     DomainPendingActions,
     DomainSecurityGroup,
+    CodingRuleMatchingTransaction,
+    UserSecurityGroupData,
+    DeviceBiometrics,
 };

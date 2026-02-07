@@ -4,6 +4,7 @@ import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
+import {translateLocal} from '../utils/TestHelper';
 
 const FAKE_POLICY: Policy = {
     id: 'CEEEDB0EC660F71A',
@@ -172,6 +173,43 @@ describe('DistanceRequestUtils', () => {
             } as MileageRate;
 
             expect(DistanceRequestUtils.getDistanceUnit(transaction, mileageRate)).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+        });
+    });
+
+    describe('getDistanceForDisplay', () => {
+        it('returns empty string when distance is 0 and isManualDistanceRequest is false', () => {
+            const result = DistanceRequestUtils.getDistanceForDisplay(true, 0, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, 67, translateLocal, false, false);
+            expect(result).toBe('');
+        });
+
+        it('formats zero distance when isManualDistanceRequest is true', () => {
+            const result = DistanceRequestUtils.getDistanceForDisplay(true, 0, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, 67, translateLocal, false, true);
+            expect(result).toBe(`0.00 ${translateLocal('common.miles')}`);
+        });
+    });
+
+    describe('getDistanceMerchant', () => {
+        const toLocaleDigitMock = (dot: string): string => dot;
+        const getCurrencySymbolMock = (currency: string): string | undefined => {
+            if (currency === 'USD') {
+                return '$';
+            }
+            return undefined;
+        };
+
+        it('formats zero distance when isManualDistanceRequest is true', () => {
+            const result = DistanceRequestUtils.getDistanceMerchant(
+                true,
+                0,
+                CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                67,
+                'USD',
+                translateLocal,
+                toLocaleDigitMock,
+                getCurrencySymbolMock,
+                true,
+            );
+            expect(result).toBe('0.00 mi @ $0.67 / mi');
         });
     });
 });

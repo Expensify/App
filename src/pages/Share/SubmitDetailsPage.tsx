@@ -71,7 +71,7 @@ function SubmitDetailsPage({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: hasSeenTourSelector});
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
-
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalPolicy = usePersonalPolicy();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
@@ -127,6 +127,7 @@ function SubmitDetailsPage({
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {canBeMissing: true});
 
     const finishRequestAndNavigate = (participant: Participant, receipt: Receipt, gpsPoint?: GpsPoint) => {
         if (!transaction) {
@@ -164,6 +165,8 @@ function SubmitDetailsPage({
                 activePolicyID,
                 introSelected,
                 quickAction,
+                recentWaypoints,
+                betas,
             });
         } else {
             requestMoney({
@@ -199,6 +202,8 @@ function SubmitDetailsPage({
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 quickAction,
                 isSelfTourViewed,
+                betas,
+                personalDetails,
             });
         }
     };
