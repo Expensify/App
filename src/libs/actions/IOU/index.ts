@@ -3385,7 +3385,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
     }
 
-    const isScanRequest = isScanRequestTransactionUtils({amount, receipt});
+    const isScanRequest = isScanRequestTransactionUtils({amount, receipt, iouRequestType: existingTransaction?.iouRequestType});
     const shouldCreateNewMoneyRequestReport = isSplitExpense ? false : shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest, action);
 
     // Generate IDs upfront so we can pass them to buildOptimisticExpenseReport for formula computation
