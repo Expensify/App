@@ -227,12 +227,22 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
      * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
      */
     const removeUsers = () => {
-        // Check if any of the members are approvers
-        const hasApprovers = selectedEmployees.some((email) => isApprover(policy, email));
+        const selectedEmployeesToRemove = [...selectedEmployees];
 
-        if (hasApprovers) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        InteractionManager.runAfterInteractions(() => {
+            setSelectedEmployees([]);
+            removeMembers(policy, selectedEmployeesToRemove, policyMemberEmailsToAccountIDs);
+
+            // Check if any of the members are approvers
+            const hasApprovers = selectedEmployeesToRemove.some((email) => isApprover(policy, email));
+
+            if (!hasApprovers) {
+                return;
+            }
+
             const ownerEmail = ownerDetails.login;
-            for (const login of selectedEmployees) {
+            for (const login of selectedEmployeesToRemove) {
                 if (!isApprover(policy, login)) {
                     continue;
                 }
@@ -256,12 +266,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     }
                 }
             }
-        }
-
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            setSelectedEmployees([]);
-            removeMembers(policy, selectedEmployees, policyMemberEmailsToAccountIDs);
         });
     };
 
