@@ -27,7 +27,7 @@ Onyx.connect({
 });
 
 function clearReportActionErrors(reportID: string, reportAction: ReportAction, keys?: string[]) {
-    const originalReportID = getOriginalReportID(reportID, reportAction);
+    const originalReportID = getOriginalReportID(reportID, reportAction, undefined);
 
     if (!reportAction?.reportActionID) {
         return;

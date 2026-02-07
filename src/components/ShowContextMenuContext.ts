@@ -62,7 +62,7 @@ function showContextMenuForReport(
         contextMenuAnchor: anchor,
         report: {
             reportID,
-            originalReportID: reportID ? getOriginalReportID(reportID, action) : undefined,
+            originalReportID: reportID ? getOriginalReportID(reportID, action, undefined) : undefined,
             isArchivedRoom,
         },
         reportAction: {

@@ -4,10 +4,12 @@ import type {OnyxEntry} from 'react-native-onyx';
 import RenderHTML from '@components/RenderHTML';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import {explain} from '@libs/actions/Report';
 import {hasReasoning} from '@libs/ReportActionsUtils';
 import {getOriginalReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
 
@@ -29,6 +31,7 @@ type ReportActionItemMessageWithExplainProps = {
 function ReportActionItemMessageWithExplain({message, action, reportID}: ReportActionItemMessageWithExplainProps) {
     const {translate} = useLocalize();
     const personalDetail = useCurrentUserPersonalDetails();
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canBeMissing: true});
 
     const actionHasReasoning = hasReasoning(action);
     const computedMessage = actionHasReasoning ? `${message}${translate('iou.AskToExplain')}` : message;
@@ -39,10 +42,10 @@ function ReportActionItemMessageWithExplain({message, action, reportID}: ReportA
                 return;
             }
 
-            const actionOriginalReportID = getOriginalReportID(reportID, action);
+            const actionOriginalReportID = getOriginalReportID(reportID, action, reportActions);
             explain(action, actionOriginalReportID, translate, personalDetail?.timezone);
         },
-        [action, reportID, translate, personalDetail?.timezone],
+        [action, reportID, reportActions, translate, personalDetail?.timezone],
     );
 
     return (
