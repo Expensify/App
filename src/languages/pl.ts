@@ -2390,6 +2390,16 @@ ${amount} dla ${merchant} - ${date}`,
         admins: 'Administratorzy',
         payer: 'Płatnik',
         paymentAccount: 'Konto płatnicze',
+        shareBankAccount: {
+            shareTitle: 'Udostępnić dostęp do konta bankowego?',
+            shareDescription: ({admin}: {admin: string}) => `Musisz udostępnić dostęp do konta bankowego użytkownikowi ${admin}, aby uczynić go płatnikiem.`,
+            validationTitle: 'Konto bankowe oczekuje na walidację',
+            validationDescription: ({admin}: {admin: string}) =>
+                `Musisz <a href="#">zweryfikować to konto bankowe</a>. Po wykonaniu tej czynności możesz udostępnić dostęp do konta bankowego użytkownikowi ${admin}, aby uczynić go płatnikiem.`,
+            errorTitle: 'Nie można zmienić płatnika',
+            errorDescription: ({admin, owner}: {admin: string; owner: string}) =>
+                `${admin} nie ma dostępu do tego konta bankowego, więc nie możesz uczynić go płatnikiem. <a href="#">Porozmawiaj z ${owner}em/właścicielem, jeśli konto bankowe powinno być współdzielone.`,
+        },
     },
     reportFraudPage: {
         title: 'Zgłoś oszustwo kartą wirtualną',

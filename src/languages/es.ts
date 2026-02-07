@@ -2156,6 +2156,16 @@ ${amount} para ${merchant} - ${date}`,
         admins: 'Administradores',
         payer: 'Pagador',
         paymentAccount: 'Cuenta de pago',
+        shareBankAccount: {
+            shareTitle: '¿Compartir acceso a la cuenta bancaria?',
+            shareDescription: ({admin}: {admin: string}) => `Necesitarás compartir el acceso a la cuenta bancaria con ${admin} para que sea el pagador.`,
+            validationTitle: 'Cuenta bancaria en espera de validación',
+            validationDescription: ({admin}: {admin: string}) =>
+                `Necesitas <a href="#">validar esta cuenta bancaria</a>. Una vez hecho esto, puedes compartir el acceso a la cuenta bancaria con ${admin} para que sea el pagador.`,
+            errorTitle: 'No se puede cambiar el pagador',
+            errorDescription: ({admin, owner}: {admin: string; owner: string}) =>
+                `${admin} no tiene acceso a esta cuenta bancaria, por lo que no puede asignarle el pago. <a href="#">Chatea con ${owner}</a> si la cuenta bancaria debe compartirse.`,
+        },
     },
     reportFraudPage: {
         title: 'Reportar fraude con la tarjeta virtual',
