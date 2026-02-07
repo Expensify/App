@@ -25,6 +25,7 @@ function ReportFieldText({field, close}: ReportFieldListProps) {
             <HeaderWithBackButton
                 title={field.name}
                 onBackButtonPress={close}
+                shouldDisplayHelpButton={false}
             />
             <TextFilterBase
                 filterKey={formKey}

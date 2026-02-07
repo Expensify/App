@@ -43,7 +43,10 @@ function SearchAdvancedFiltersPage() {
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
         >
-            <HeaderWithBackButton title={translate('search.filtersHeader')}>
+            <HeaderWithBackButton
+                title={translate('search.filtersHeader')}
+                shouldDisplayHelpButton={false}
+            >
                 {shouldShowResetFilters && <TextLink onPress={clearAdvancedFilters}>{translate('search.resetFilters')}</TextLink>}
             </HeaderWithBackButton>
             <AdvancedSearchFilters />
