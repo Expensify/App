@@ -5,10 +5,11 @@ import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
+import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {confirmReadyToOpenApp, setSidebarLoaded} from '@libs/actions/App';
+import {setSidebarLoaded} from '@libs/actions/App';
 import Navigation from '@libs/Navigation/Navigation';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 import * as ReportActionContextMenu from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
@@ -38,9 +39,7 @@ function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    useEffect(() => {
-        confirmReadyToOpenApp();
-    }, []);
+    useConfirmReadyToOpenApp();
 
     useEffect(() => {
         ReportActionContextMenu.hideContextMenu(false);

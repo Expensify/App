@@ -1,14 +1,14 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {confirmReadyToOpenApp} from '@libs/actions/App';
 import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
 import AnnouncementSection from './AnnouncementSection';
 import DiscoverSection from './DiscoverSection';
@@ -23,9 +23,7 @@ function HomePage() {
 
     // confirmReadyToOpenApp must be called after HomePage mounts
     // to make sure everything loads properly
-    useEffect(() => {
-        confirmReadyToOpenApp();
-    }, []);
+    useConfirmReadyToOpenApp();
 
     // This hook preloads the screens of adjacent tabs to make changing tabs faster.
     usePreloadFullScreenNavigators();
