@@ -1,7 +1,10 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, ListRenderItem} from 'react-native';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
+import useNewTransactions from '@hooks/useNewTransactions';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -119,6 +122,11 @@ function MoneyRequestReportPreview({
             Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo: Navigation.getActiveRoute()}));
         }
     }, [iouReportID, isSmallScreenWidth]);
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`, {canBeMissing: true});
+    const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, transactions);
+    const isFocused = useIsFocused();
+    // We only want to highlight the new expenses if the screen is focused.
+    const newTransactionIDs = isFocused ? new Set(newTransactions.map((transaction) => transaction.transactionID)) : undefined;
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
         <TransactionPreview
@@ -140,11 +148,13 @@ function MoneyRequestReportPreview({
             reportPreviewAction={action}
             onPreviewPressed={openReportFromPreview}
             shouldShowPayerAndReceiver={shouldShowPayerAndReceiver}
+            shouldHighlight={newTransactionIDs?.has(item.transactionID)}
         />
     );
 
     return (
         <MoneyRequestReportPreviewContent
+            newTransactionIDs={newTransactionIDs}
             iouReportID={iouReportID}
             chatReportID={chatReportID}
             iouReport={iouReport}
