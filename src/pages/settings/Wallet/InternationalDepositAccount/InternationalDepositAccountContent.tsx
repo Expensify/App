@@ -7,6 +7,7 @@ import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useLocalize from '@hooks/useLocalize';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useSubStep from '@hooks/useSubStep';
+import {clearCorpayBankAccountFields} from '@libs/actions/BankAccounts';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation from '@libs/Navigation/Navigation';
@@ -85,8 +86,9 @@ function InternationalDepositAccountContent({privatePersonalDetails, corpayField
         }
     }, [topmostFullScreenRoute?.name]);
 
-    const handleFinishStep = useCallback(() => {
+    const handleCleanupAndGoBack = useCallback(() => {
         clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
+        clearCorpayBankAccountFields();
         goBack();
     }, [goBack]);
 
@@ -98,7 +100,8 @@ function InternationalDepositAccountContent({privatePersonalDetails, corpayField
         screenIndex,
         moveTo,
         resetScreenIndex,
-    } = useSubStep<CustomSubStepProps>({bodyContent: formSteps, startFrom, onFinished: handleFinishStep, skipSteps: skippedSteps});
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- useSubStep is deprecated; migrate to useSubPage per https://github.com/Expensify/App/issues/79039
+    } = useSubStep<CustomSubStepProps>({bodyContent: formSteps, startFrom, onFinished: handleCleanupAndGoBack, skipSteps: skippedSteps});
 
     const handleBackButtonPress = () => {
         if (isEditing) {
@@ -108,15 +111,13 @@ function InternationalDepositAccountContent({privatePersonalDetails, corpayField
 
         // Clicking back on the first screen should dismiss the modal
         if (screenIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.COUNTRY_SELECTOR) {
-            clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
-            goBack();
+            handleCleanupAndGoBack();
             return true;
         }
 
         // Clicking back on the success screen should dismiss the modal
         if (screenIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.SUCCESS) {
-            clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
-            goBack();
+            handleCleanupAndGoBack();
             return true;
         }
         prevScreen();
