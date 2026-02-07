@@ -2944,9 +2944,26 @@ function hasOutstandingChildRequest(
                 return transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
             });
         const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReportID}`];
-        const canSubmit = !hasAutoRejectedTransactionsForManager && canSubmitReport(iouReport, policy, transactions, undefined, false, currentUserEmailParam, currentUserAccountIDParam);
-        return canIOUBePaid(iouReport, chatReport, policy, bankAccountList, transactions) || canApproveIOU(iouReport, policy, reportMetadata, transactions) || canSubmit;
+        const shouldWaitForSubmission = shouldCurrentUserSubmitReport(iouReport, chatReport, policy, reportActions);
+        const canSubmitAndIsAwaitingForCurrentUser =
+            !hasAutoRejectedTransactionsForManager &&
+            canSubmitReport(iouReport, policy, transactions, undefined, false, currentUserEmailParam, currentUserAccountIDParam) &&
+            shouldWaitForSubmission;
+        return (
+            canIOUBePaid(iouReport, chatReport, policy, bankAccountList, transactions) ||
+            canApproveIOU(iouReport, policy, reportMetadata, transactions) ||
+            canSubmitAndIsAwaitingForCurrentUser
+        );
     });
+}
+
+/**
+ * Determines if the current user should submit the report
+ */
+function shouldCurrentUserSubmitReport(iouReport: OnyxEntry<Report>, chatReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportActions?: OnyxEntry<ReportActions> | ReportAction[]) {
+    const hasBeenReopenedOrRetracted = hasReportBeenReopened(iouReport, reportActions) || hasReportBeenRetracted(iouReport, reportActions);
+    const isOwnReportAndRetracted = isReportOwner(iouReport) && hasBeenReopenedOrRetracted;
+    return isOwnReportAndRetracted || isWaitingForSubmissionFromCurrentUser(chatReport, policy);
 }
 
 /**
@@ -12949,6 +12966,7 @@ export {
     getReportParticipantsTitle,
     getReportPreviewMessage,
     getReportRecipientAccountIDs,
+    shouldCurrentUserSubmitReport,
     getParentReport,
     getReportOrDraftReport,
     getRoom,
