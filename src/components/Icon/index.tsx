@@ -119,6 +119,7 @@ function Icon({
             <View
                 testID={testID}
                 style={[StyleUtils.getWidthAndHeightStyle(width ?? 0, height), styles.bgTransparent, styles.overflowVisible]}
+                pointerEvents="none"
             >
                 <View style={iconStyles}>
                     <ImageSVG
@@ -130,6 +131,7 @@ function Icon({
                         pressed={pressed}
                         contentFit={contentFit}
                         cachePolicy={cachePolicy}
+                        pointerEvents="none"
                     />
                 </View>
             </View>
@@ -182,6 +184,7 @@ function Icon({
             accessibilityElementsHidden
             importantForAccessibility="no-hide-descendants"
             accessible={false}
+            pointerEvents="none"
         >
             <ImageSVG
                 src={src}
@@ -192,6 +195,7 @@ function Icon({
                 pressed={pressed}
                 contentFit={contentFit}
                 cachePolicy={cachePolicy}
+                pointerEvents="none"
             />
         </View>
     );
