@@ -2489,13 +2489,23 @@ const CONST = {
         AUTO_CREATE_ENTITIES: 'autoCreateEntities',
         APPROVAL_ACCOUNT: 'approvalAccount',
         CUSTOM_FORM_ID_OPTIONS: 'customFormIDOptions',
-        TOKEN_INPUT_STEP_NAMES: ['1', '2', '3', '4', '5'],
-        TOKEN_INPUT_STEP_KEYS: {
-            0: 'installBundle',
-            1: 'enableTokenAuthentication',
-            2: 'enableSoapServices',
-            3: 'createAccessToken',
-            4: 'enterCredentials',
+        TOKEN_INPUT: {
+            STEP_INDEX_LIST: ['1', '2', '3', '4'],
+            PAGE_NAME: {
+                INSTALL: 'install',
+                AUTHENTICATION: 'authentication',
+                SOAP: 'soap',
+                ACCESS_TOKEN: 'access-token',
+                CREDENTIALS: 'credentials',
+            },
+            CREDENTIALS_PAGE_INDEX: 4,
+            STEP_KEYS: {
+                install: 'installBundle',
+                authentication: 'enableTokenAuthentication',
+                soap: 'enableSoapServices',
+                'access-token': 'createAccessToken',
+                credentials: 'enterCredentials',
+            },
         },
         IMPORT_CUSTOM_FIELDS: {
             CUSTOM_SEGMENTS: 'customSegments',

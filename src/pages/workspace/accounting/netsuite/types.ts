@@ -3,6 +3,7 @@ import type {ValueOf} from 'type-fest';
 import type {MenuItemProps} from '@components/MenuItem';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import type {SelectorType} from '@components/SelectionScreen';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import type {ToggleSettingOptionRowProps} from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import type CONST from '@src/CONST';
@@ -106,7 +107,7 @@ type CustomListSelectorType = SelectorType & {
     id: string;
 };
 
-type SubStepWithPolicy = SubStepProps & {policyID: string | undefined};
+type CustomSubPageTokenInputProps = SubPageProps & {policyID: string | undefined};
 
 export type {
     MenuItem,
@@ -118,5 +119,5 @@ export type {
     CustomFieldSubStepWithPolicy,
     CustomListSelectorType,
     ExtendedMenuItemWithSubscribedSettings,
-    SubStepWithPolicy,
+    CustomSubPageTokenInputProps,
 };
