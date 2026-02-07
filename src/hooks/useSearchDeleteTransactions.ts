@@ -1,11 +1,6 @@
 import {useCallback} from 'react';
-import Onyx from 'react-native-onyx';
-import type {OnyxUpdate} from 'react-native-onyx';
 import {useSearchContext} from '@components/Search/SearchContext';
-import {deleteMoneyRequestOnSearch} from '@libs/actions/Search';
-import * as API from '@libs/API';
-import type {RevertSplitTransactionParams} from '@libs/API/parameters';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import {deleteMoneyRequestOnSearch, revertSplitTransactionOnSearch} from '@libs/actions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
@@ -70,22 +65,12 @@ function useSearchDeleteTransactions() {
                 }
 
                 if (siblings.length === 1) {
-                    const remaining = siblings[0];
+                    const remaining = siblings.at(0);
+                    if (!remaining) {
+                        continue;
+                    }
                     const remainingPortion = Math.abs(Number(remaining.modifiedAmount ?? remaining.amount ?? 0));
-
-                    const optimisticData: OnyxUpdate[] = [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
-                            value: {
-                                data: {
-                                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: null,
-                                },
-                            },
-                        },
-                    ];
-
-                    const params: RevertSplitTransactionParams = {
+                    revertSplitTransactionOnSearch(hash, originalTransactionID, {
                         transactionID: remaining.transactionID,
                         amount: remainingPortion,
                         created: remaining.created ?? '',
@@ -96,9 +81,7 @@ function useSearchDeleteTransactions() {
                         reimbursable: remaining.reimbursable,
                         billable: remaining.billable,
                         reportID: remaining.reportID,
-                    };
-
-                    API.write(WRITE_COMMANDS.REVERT_SPLIT_TRANSACTION, params, {optimisticData, successData: [], failureData: []});
+                    });
                     continue;
                 }
 

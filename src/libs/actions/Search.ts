@@ -10,7 +10,7 @@ import type {BankAccountMenuItem, PaymentData, SearchQueryJSON, SelectedReports,
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 import * as API from '@libs/API';
 import {waitForWrites} from '@libs/API';
-import type {ExportSearchItemsToCSVParams, ExportSearchWithTemplateParams, OpenSearchPageParams, ReportExportParams, SubmitReportParams} from '@libs/API/parameters';
+import type {ExportSearchItemsToCSVParams, ExportSearchWithTemplateParams, OpenSearchPageParams, ReportExportParams, RevertSplitTransactionParams, SubmitReportParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -811,7 +811,7 @@ function bulkDeleteReports(
     reportTransactions: Record<string, Transaction>,
     transactionsViolations: Record<string, TransactionViolations>,
     bankAccountList: OnyxEntry<BankAccountList>,
-    deleteTransactionsOnSearch: (hash: number, transactionIDs: string[]) => void,
+    deleteTransactionsOnSearch: (hash: number, transactionIDs: string[]) => void = deleteMoneyRequestOnSearch,
 ) {
     const transactionIDList: string[] = [];
     const reportIDList: string[] = [];
@@ -834,6 +834,22 @@ function bulkDeleteReports(
             deleteAppReport(reportID, currentUserEmailParam, currentUserAccountIDParam, reportTransactions, transactionsViolations, bankAccountList);
         }
     }
+}
+
+function revertSplitTransactionOnSearch(hash: number, originalTransactionID: string, params: RevertSplitTransactionParams) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            value: {
+                data: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: null,
+                },
+            },
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.REVERT_SPLIT_TRANSACTION, params, {optimisticData, successData: [], failureData: []});
 }
 
 function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
@@ -1417,6 +1433,7 @@ export {
     saveSearch,
     search,
     deleteMoneyRequestOnSearch,
+    revertSplitTransactionOnSearch,
     holdMoneyRequestOnSearch,
     bulkDeleteReports,
     unholdMoneyRequestOnSearch,
