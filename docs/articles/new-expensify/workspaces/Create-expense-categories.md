@@ -11,7 +11,7 @@ Admins can manually create categories for a workspace, or they can be imported a
 
 The Categories table displays the category **Name**, **GL Code** (if assigned), and whether it's **Enabled** for workspace members to use.
 
-![The Categories tab]({{site.url}}/assets/images/ExpensifyHelp_R3_Categories_1.png){:width="100%"}
+![The Categories tab]({{site.url}}/assets/images/NewExpensify_ManageCategories_1.png){:width="100%"}
 
 ---
 
@@ -107,7 +107,7 @@ To edit these fields:
 3. To edit a GL code, click the **GL Code** field, update it, and click **Save**.
 4. To edit a payroll code, do the same in the **Payroll Code** field.
 
-![In the Workspace > Categories setting, the right-hand panel is open and the GL and Payroll code setting is highlighted.]({{site.url}}/assets/images/workspace_gl_payroll_codes.png){:width="100%"}
+![In the Workspace > Categories setting, the right-hand panel is open and the GL and Payroll code setting is highlighted.]({{site.url}}/assets/images/NewExpensify_ManageCategories_2.png){:width="100%"}
 
 ---
 
