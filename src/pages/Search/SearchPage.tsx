@@ -38,7 +38,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
-import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, searchInServer} from '@libs/actions/Report';
+import {deleteAppReport, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, searchInServer} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
     bulkDeleteReports,
@@ -151,6 +151,7 @@ function SearchPage({route}: SearchPageProps) {
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
 
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q, route.params.rawQuery), [route.params.q, route.params.rawQuery]);
+    const isExpenseReportType = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const activeAdminPolicies = getActiveAdminWorkspaces(policies, currentUserPersonalDetails?.accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -510,13 +511,28 @@ function SearchPage({route}: SearchPageProps) {
             }
             // Translations copy for delete modal depends on amount of selected items,
             // We need to wait for modal to fully disappear before clearing them to avoid translation flicker between singular vs plural
+            const validTransactions = Object.fromEntries(Object.entries(allTransactions ?? {}).filter((entry): entry is [string, Transaction] => entry[1] !== undefined));
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
-                const reportTransactions = allTransactions ? Object.fromEntries(Object.entries(allTransactions).filter((entry): entry is [string, Transaction] => !!entry[1])) : {};
-                const transactionsViolations = allTransactionViolations
-                    ? Object.fromEntries(Object.entries(allTransactionViolations).filter((entry): entry is [string, TransactionViolations] => !!entry[1]))
-                    : {};
-                bulkDeleteReports(hash, selectedTransactions, currentUserPersonalDetails.email ?? '', accountID, reportTransactions, transactionsViolations, bankAccountList);
+                if (isExpenseReportType) {
+                    // For expense reports, call deleteAppReport which properly un-reports the expenses
+                    for (const reportID of selectedReportIDs) {
+                        deleteAppReport(
+                            reportID,
+                            currentUserPersonalDetails?.login ?? '',
+                            currentUserPersonalDetails?.accountID,
+                            validTransactions,
+                            allTransactionViolations,
+                            bankAccountList,
+                        );
+                    }
+                } else {
+                    const reportTransactions = allTransactions ? Object.fromEntries(Object.entries(allTransactions).filter((entry): entry is [string, Transaction] => !!entry[1])) : {};
+                    const transactionsViolations = allTransactionViolations
+                        ? Object.fromEntries(Object.entries(allTransactionViolations).filter((entry): entry is [string, TransactionViolations] => !!entry[1]))
+                        : {};
+                    bulkDeleteReports(hash, selectedTransactions, currentUserPersonalDetails.email ?? '', accountID, reportTransactions, transactionsViolations, bankAccountList);
+                }
                 clearSelectedTransactions();
             });
         });
@@ -528,12 +544,16 @@ function SearchPage({route}: SearchPageProps) {
         deleteModalPrompt,
         translate,
         allTransactions,
-        allTransactionViolations,
-        accountID,
-        selectedTransactions,
-        currentUserPersonalDetails.email,
-        bankAccountList,
+        isExpenseReportType,
         clearSelectedTransactions,
+        selectedReportIDs,
+        currentUserPersonalDetails?.login,
+        currentUserPersonalDetails?.accountID,
+        currentUserPersonalDetails.email,
+        allTransactionViolations,
+        bankAccountList,
+        selectedTransactions,
+        accountID,
     ]);
 
     const onBulkPaySelected = useCallback(
@@ -882,7 +902,7 @@ function SearchPage({route}: SearchPageProps) {
 
         options.push(exportButtonOption);
 
-        const shouldShowHoldOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canHold);
+        const shouldShowHoldOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canHold) && !isExpenseReportType;
 
         if (shouldShowHoldOption) {
             options.push({
@@ -914,7 +934,7 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
-        const shouldShowUnholdOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canUnhold);
+        const shouldShowUnholdOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canUnhold) && !isExpenseReportType;
 
         if (shouldShowUnholdOption) {
             options.push({
@@ -1041,59 +1061,60 @@ function SearchPage({route}: SearchPageProps) {
 
         return options;
     }, [
-        searchResults,
         selectedTransactionsKeys,
         status,
         hash,
         selectedTransactions,
+        queryJSON?.type,
+        expensifyIcons.Export,
+        expensifyIcons.ArrowRight,
+        expensifyIcons.Table,
+        expensifyIcons.ThumbsUp,
+        expensifyIcons.ThumbsDown,
+        expensifyIcons.Send,
+        expensifyIcons.MoneyBag,
+        expensifyIcons.Stopwatch,
+        expensifyIcons.ArrowCollapse,
+        expensifyIcons.DocumentMerge,
+        expensifyIcons.ArrowSplit,
+        expensifyIcons.Trashcan,
+        expensifyIcons.Exclamation,
         translate,
-        localeCompare,
         areAllMatchingItemsSelected,
         isOffline,
         selectedReports,
-        selectedTransactionReportIDs,
         lastPaymentMethods,
         selectedReportIDs,
+        personalPolicyID,
+        isExpenseReportType,
+        searchResults,
         allTransactions,
-        queryJSON?.type,
+        currentSearchResults?.data,
+        selectedTransactionReportIDs,
         selectedPolicyIDs,
         policies,
         integrationsExportTemplates,
         csvExportLayouts,
-        clearSelectedTransactions,
+        handleBasicExport,
         beginExportWithTemplate,
+        handleApproveWithDEWCheck,
+        allTransactionViolations,
+        isDelegateAccessRestricted,
+        dismissedRejectUseExplanation,
+        showDelegateNoAccessModal,
+        clearSelectedTransactions,
         bulkPayButtonOptions,
         onBulkPaySelected,
-        handleBasicExport,
-        handleApproveWithDEWCheck,
-        handleDeleteSelectedTransactions,
+        areAllTransactionsFromSubmitter,
+        dismissedHoldUseExplanation,
+        currentUserPersonalDetails.accountID,
+        localeCompare,
         allReports,
+        handleDeleteSelectedTransactions,
         theme.icon,
         styles.colorMuted,
         styles.fontWeightNormal,
         styles.textWrap,
-        expensifyIcons.ArrowCollapse,
-        expensifyIcons.ArrowRight,
-        expensifyIcons.ArrowSplit,
-        expensifyIcons.DocumentMerge,
-        expensifyIcons.Exclamation,
-        expensifyIcons.Export,
-        expensifyIcons.MoneyBag,
-        expensifyIcons.Send,
-        expensifyIcons.Stopwatch,
-        expensifyIcons.Table,
-        expensifyIcons.ThumbsDown,
-        expensifyIcons.ThumbsUp,
-        expensifyIcons.Trashcan,
-        dismissedHoldUseExplanation,
-        dismissedRejectUseExplanation,
-        areAllTransactionsFromSubmitter,
-        allTransactionViolations,
-        currentSearchResults?.data,
-        isDelegateAccessRestricted,
-        showDelegateNoAccessModal,
-        currentUserPersonalDetails.accountID,
-        personalPolicyID,
     ]);
 
     const saveFileAndInitMoneyRequest = (files: FileObject[]) => {
