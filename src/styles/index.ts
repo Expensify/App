@@ -1650,6 +1650,10 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
+        floatingActionButtonMobileShadow: {
+            boxShadow: theme.shadow,
+        },
+
         floatingSecondaryActionButton: {
             backgroundColor: theme.buttonDefaultBG,
             height: variables.componentSizeLarge,

@@ -4,6 +4,7 @@ import type {GestureResponderEvent, Role, Text, View as ViewType} from 'react-na
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -31,6 +32,9 @@ function FloatingReceiptButton({onPress, accessibilityLabel, role, sentryLabel}:
     const fabPressable = useRef<HTMLDivElement | ViewType | Text | null>(null);
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus']);
     const {translate} = useLocalize();
+    // We need isSmallScreenWidth specifically to apply mobile-only shadow styles, not narrow layout behavior
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     const toggleFabAction = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
         // Drop focus to avoid blue focus ring.
@@ -59,7 +63,7 @@ function FloatingReceiptButton({onPress, accessibilityLabel, role, sentryLabel}:
             >
                 {({hovered}) => (
                     <View
-                        style={[styles.floatingActionButton, {borderRadius}, styles.floatingActionButtonSmall, hovered && {backgroundColor: successHover}]}
+                        style={[styles.floatingActionButton, {borderRadius}, styles.floatingActionButtonSmall, isSmallScreenWidth && styles.floatingActionButtonMobileShadow, hovered && {backgroundColor: successHover}]}
                         testID="floating-receipt-button-container"
                     >
                         <Icon
