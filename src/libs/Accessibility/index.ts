@@ -8,6 +8,9 @@ type HitSlop = {x: number; y: number};
 const useScreenReaderStatus = (): boolean => {
     const [isScreenReaderEnabled, setIsScreenReaderEnabled] = useState(false);
     useEffect(() => {
+        // Check initial screen reader status
+        AccessibilityInfo.isScreenReaderEnabled().then(setIsScreenReaderEnabled);
+
         const subscription = AccessibilityInfo.addEventListener('screenReaderChanged', setIsScreenReaderEnabled);
 
         return () => {
