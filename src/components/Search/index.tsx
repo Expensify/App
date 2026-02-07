@@ -447,6 +447,7 @@ function Search({
             cardFeeds,
             isOffline,
             allTransactionViolations: violations,
+            customCardNames,
             allReportMetadata,
         });
         return [filteredData1, filteredData1.length, allLength];
@@ -469,6 +470,7 @@ function Search({
         policies,
         bankAccountList,
         violations,
+        customCardNames,
         allReportMetadata,
     ]);
 
