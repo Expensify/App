@@ -483,7 +483,10 @@ function doesUserHavePaymentCardAdded(userBillingFundID: number | undefined): bo
 /**
  * Whether the user's billable actions should be restricted.
  */
-function shouldRestrictUserBillableActions(policyID: string, userBillingGraceEndPeriodCollection: OnyxCollection<BillingGraceEndPeriod> = deprecatedUserBillingGraceEndPeriodCollection): boolean {
+function shouldRestrictUserBillableActions(
+    policyID: string,
+    userBillingGraceEndPeriodCollection: OnyxCollection<BillingGraceEndPeriod> = deprecatedUserBillingGraceEndPeriodCollection,
+): boolean {
     const currentDate = new Date();
 
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];

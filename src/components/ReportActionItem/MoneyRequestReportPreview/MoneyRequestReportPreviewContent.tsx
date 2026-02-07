@@ -581,7 +581,17 @@ function MoneyRequestReportPreviewContent({
     ]);
 
     const addExpenseDropdownOptions = useMemo(
-        () => getAddExpenseDropdownOptions(translate, expensifyIcons, iouReport?.reportID, policy, userBillingGraceEndPeriodCollection, chatReportID, iouReport?.parentReportID, lastDistanceExpenseType),
+        () =>
+            getAddExpenseDropdownOptions(
+                translate,
+                expensifyIcons,
+                iouReport?.reportID,
+                policy,
+                userBillingGraceEndPeriodCollection,
+                chatReportID,
+                iouReport?.parentReportID,
+                lastDistanceExpenseType,
+            ),
         [translate, expensifyIcons, iouReport?.reportID, iouReport?.parentReportID, policy, userBillingGraceEndPeriodCollection, chatReportID, lastDistanceExpenseType],
     );
 
