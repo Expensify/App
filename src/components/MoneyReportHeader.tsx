@@ -210,6 +210,7 @@ function MoneyReportHeader({
     const {login: currentUserLogin, accountID, email} = useCurrentUserPersonalDetails();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
+    const [userBillingGraceEndPeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END, {canBeMissing: true});
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`, {canBeMissing: true});
     const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`, {canBeMissing: true});
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
@@ -895,8 +896,9 @@ function MoneyReportHeader({
     });
 
     const addExpenseDropdownOptions = useMemo(
-        () => getAddExpenseDropdownOptions(translate, expensifyIcons, moneyRequestReport?.reportID, policy, undefined, undefined, lastDistanceExpenseType),
-        [moneyRequestReport?.reportID, policy, lastDistanceExpenseType, expensifyIcons, translate],
+        () =>
+            getAddExpenseDropdownOptions(translate, expensifyIcons, moneyRequestReport?.reportID, policy, userBillingGraceEndPeriodCollection, undefined, undefined, lastDistanceExpenseType),
+        [moneyRequestReport?.reportID, policy, userBillingGraceEndPeriodCollection, lastDistanceExpenseType, expensifyIcons, translate],
     );
 
     const exportSubmenuOptions: Record<string, DropdownOption<string>> = useMemo(() => {
@@ -1581,7 +1583,7 @@ function MoneyReportHeader({
                 if (!moneyRequestReport?.reportID) {
                     return;
                 }
-                if (policy && shouldRestrictUserBillableActions(policy.id)) {
+                if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriodCollection)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
