@@ -1185,6 +1185,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitExpenseCannotBeEditedModalTitle: 'Diese Ausgabe kann nicht bearbeitet werden',
         splitExpenseCannotBeEditedModalDescription: 'Genehmigte oder bezahlte Ausgaben können nicht bearbeitet werden',
         splitExpenseDistanceErrorModalDescription: 'Bitte behebe den Fehler beim Distanzsatz und versuche es erneut.',
+        splitExpensePerDiemRateErrorModalDescription: 'Bitte behebe den Fehler beim Tagessatz und versuche es erneut.',
         paySomeone: (name?: string) => `${name ?? 'jemand'} bezahlen`,
         expense: 'Ausgabe',
         categorize: 'Kategorisieren',

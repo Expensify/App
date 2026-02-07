@@ -1183,6 +1183,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitExpenseCannotBeEditedModalTitle: 'Deze uitgave kan niet worden bewerkt',
         splitExpenseCannotBeEditedModalDescription: 'Goedgekeurde of betaalde onkosten kunnen niet worden bewerkt',
         splitExpenseDistanceErrorModalDescription: 'Los het foutieve afstandstarief op en probeer het opnieuw.',
+        splitExpensePerDiemRateErrorModalDescription: 'Los de fout in het dagtarief op en probeer het opnieuw.',
         paySomeone: (name?: string) => `Betaal ${name ?? 'iemand'}`,
         expense: 'Declaratie',
         categorize: 'Categoriseren',
