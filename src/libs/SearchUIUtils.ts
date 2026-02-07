@@ -4511,6 +4511,18 @@ function getTableMinWidth(columns: SearchColumnType[]) {
     return minWidth;
 }
 
+function filterValidHasValues(hasValues: string[] | undefined, type: SearchDataTypes | undefined, translate: LocalizedTranslate): string[] | undefined {
+    if (!hasValues || !type) {
+        return undefined;
+    }
+
+    const validHasOptions = getHasOptions(translate, type);
+    const validHasValues = new Set(validHasOptions.map((option) => option.value));
+    const filteredHasValues = hasValues.filter((hasValue) => validHasValues.has(hasValue as ValueOf<typeof CONST.SEARCH.HAS_VALUES>));
+
+    return filteredHasValues.length > 0 ? filteredHasValues : undefined;
+}
+
 function shouldShowDeleteOption(
     selectedTransactions: Record<string, SelectedTransactionInfo>,
     currentSearchResults: SearchResults['data'] | undefined,
@@ -4617,6 +4629,7 @@ export {
     getTableMinWidth,
     getCustomColumns,
     getCustomColumnDefault,
+    filterValidHasValues,
     shouldShowDeleteOption,
     getToFieldValueForTransaction,
     isTodoSearch,
