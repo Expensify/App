@@ -40,8 +40,6 @@ To share an existing account with other admins:
 
 ![Close the confirmation screen once the share is successful]({{site.url}}/assets/images/Help-ShareBankAccount-4.png){:width="100%"}
 
----
-
 ## What happens after sharing a business bank account
 
 - The shared-to admins will receive a Concierge message letting them know the account was shared.
@@ -54,6 +52,25 @@ To share an existing account with other admins:
 
 **For non-US accounts:**
 - The shared account is ready to use immediately — no test transactions required.
+
+## How business bank account sharing works when changing the payer
+
+When changing the **Authorized Payer** in a Workspace:
+
+- If you have access but the new payer doesn't:
+  - You'll be prompted to share the bank account from the Authorized Payer screen.
+  - The account shares immediately when you confirm.
+  - A confirmation screen appears after successful sharing.
+
+- If your own copy of the bank account is pending validation, and you try to assign a new payer who doesn’t have access:
+  - You’ll see an error prompting you to **validate your account first** by entering the test transactions before changing payers.
+
+- If **neither** you nor the new selected payer has access:
+  - You’ll be shown an error telling you to ask the current payer to share the account.
+
+This process ensures you can only set an Authorized Payer who already has bank account access or receives access during the payer change.
+
+---
 
 # FAQ
 
@@ -79,5 +96,13 @@ If an admin already has access to the bank account, they won’t appear in the s
 ## Can a shared admin share the bank account with others?
 
 Yes — once an admin has validated the account (if required), they can share the bank account with other admins. 
+
+## Can I share a bank account during the payer change process?
+
+Yes. If the new payer doesn’t already have access, you’ll be prompted to share the bank account before confirming the payer change. This ensures the new payer can reimburse expenses without delay.
+
+## What happens if I try to set a payer but neither of us has bank account access?
+
+You’ll be shown an error and prompted to ask the current payer to share the account with one of you before proceeding.
 
 </div>
