@@ -90,11 +90,11 @@ function Banner({
                             styles.p5,
                             styles.borderRadiusNormal,
                             shouldHighlight ? styles.activeComponentBG : styles.hoveredComponentBG,
-                            styles.breakAll,
+                            styles.breakWord,
                             containerStyles,
                         ]}
                     >
-                        <View style={[styles.flexRow, styles.flex1, styles.mw100, styles.alignItemsCenter]}>
+                        <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter]}>
                             {shouldShowIcon && !!displayIcon && (
                                 <View style={[styles.mr3]}>
                                     <Icon
@@ -110,7 +110,7 @@ function Banner({
                                     <RenderHTML html={text} />
                                 ) : (
                                     <Text
-                                        style={[styles.flex1, styles.flexWrap, textStyles]}
+                                        style={[styles.flex1, textStyles]}
                                         onPress={onPress}
                                         suppressHighlighting
                                     >
@@ -121,7 +121,7 @@ function Banner({
                         {shouldShowButton && (
                             <Button
                                 success
-                                style={[styles.pr3]}
+                                style={[styles.pr3, styles.flexShrink0]}
                                 text={translate('common.chatNow')}
                                 onPress={onButtonPress}
                             />
@@ -132,6 +132,7 @@ function Banner({
                                     onPress={onClose}
                                     role={CONST.ROLE.BUTTON}
                                     accessibilityLabel={text ? `${translate('common.close')}, ${text}` : translate('common.close')}
+                                    sentryLabel="Banner-Close"
                                 >
                                     <Icon
                                         src={expensifyIcons.Close}
