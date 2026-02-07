@@ -1076,8 +1076,8 @@ function Search({
                 return;
             }
 
-            // After handling all group types, item should be TransactionListItemType, ReportActionListItemType, or TransactionGroupListItemType
-            if (!isTransactionItem && !isReportActionListItemType(item) && !isTransactionGroupListItemType(item)) {
+            // After handling all group types, item should be TransactionListItemType, ReportActionListItemType, TaskListItemType, or TransactionGroupListItemType
+            if (!isTransactionItem && !isReportActionListItemType(item) && !isTaskListItemType(item) && !isTransactionGroupListItemType(item)) {
                 return;
             }
 
@@ -1106,9 +1106,8 @@ function Search({
             });
 
             if (isTransactionGroupListItemType(item)) {
-                const groupItem = item as TransactionGroupListItemType;
-                const firstTransaction = groupItem.transactions.at(0);
-                if (groupItem.isOneTransactionReport && firstTransaction && transactionPreviewData) {
+                const firstTransaction = item.transactions.at(0);
+                if (item.isOneTransactionReport && firstTransaction && transactionPreviewData) {
                     if (!firstTransaction?.reportAction?.childReportID) {
                         createAndOpenSearchTransactionThread(firstTransaction, backTo, firstTransaction?.reportAction?.childReportID, transactionPreviewData, false);
                     } else {
@@ -1116,7 +1115,7 @@ function Search({
                     }
                 }
 
-                if (groupItem.transactions.length > 1) {
+                if (item.transactions.length > 1) {
                     markReportIDAsMultiTransactionExpense(reportID);
                 } else {
                     unmarkReportIDAsMultiTransactionExpense(reportID);
