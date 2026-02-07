@@ -84,7 +84,7 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
                     const formattedAdmin = formatMemberForList({
                         text: personalDetails?.displayName,
                         alternateText: personalDetails?.login,
-                        keyForList: personalDetails?.login,
+                        keyForList: personalDetails?.login ?? '',
                         accountID: personalDetails?.accountID,
                         login: personalDetails?.login,
                         pendingAction: personalDetails?.pendingAction,

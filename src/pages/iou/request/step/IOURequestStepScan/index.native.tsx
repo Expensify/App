@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/core';
 import reportsSelector from '@selectors/Attributes';
-import {transactionDraftValuesSelector} from '@selectors/TransactionDraft';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Alert, AppState, InteractionManager, StyleSheet, View} from 'react-native';
 import type {LayoutRectangle} from 'react-native';
@@ -16,7 +16,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
-import {useFullScreenLoader} from '@components/FullScreenLoaderContext';
+import {useFullScreenLoaderActions, useFullScreenLoaderState} from '@components/FullScreenLoaderContext';
 import Icon from '@components/Icon';
 import ImageSVG from '@components/ImageSVG';
 import LocationPermissionModal from '@components/LocationPermissionModal';
@@ -29,9 +29,11 @@ import useIOUUtils from '@hooks/useIOUUtils';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
+import useSelfDMReport from '@hooks/useSelfDMReport';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {handleMoneyRequestStepScanParticipants} from '@libs/actions/IOU/MoneyRequest';
@@ -83,7 +85,8 @@ function IOURequestStepScan({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
-    const {isLoaderVisible, setIsLoaderVisible} = useFullScreenLoader();
+    const {isLoaderVisible} = useFullScreenLoaderState();
+    const {setIsLoaderVisible} = useFullScreenLoaderActions();
     const device = useCameraDevice('back', {
         physicalDevices: ['wide-angle-camera', 'ultra-wide-angle-camera'],
     });
@@ -118,23 +121,19 @@ function IOURequestStepScan({
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-
+    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: hasSeenTourSelector});
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const defaultTaxCode = getDefaultTaxCode(policy, initialTransaction);
     const transactionTaxCode = (initialTransaction?.taxCode ? initialTransaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = initialTransaction?.taxAmount ?? 0;
 
-    const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
-        selector: transactionDraftValuesSelector,
-        canBeMissing: true,
-    });
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const transactions = useMemo(() => {
-        const allTransactions = optimisticTransactions && optimisticTransactions.length > 1 ? optimisticTransactions : [initialTransaction];
-        return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
-    }, [initialTransaction, optimisticTransactions]);
+    const [transactions, optimisticTransactions] = useOptimisticDraftTransactions(initialTransaction);
 
     const shouldAcceptMultipleFiles = !isEditing && !backTo;
+
+    const selfDMReport = useSelfDMReport();
 
     const blinkOpacity = useSharedValue(0);
     const blinkStyle = useAnimatedStyle(() => ({
@@ -162,7 +161,7 @@ function IOURequestStepScan({
 
     const {translate} = useLocalize();
 
-    const askForPermissions = () => {
+    const askForPermissions = useCallback(() => {
         // There's no way we can check for the BLOCKED status without requesting the permission first
         // https://github.com/zoontek/react-native-permissions/blob/a836e114ce3a180b2b23916292c79841a267d828/README.md?plain=1#L670
         CameraPermission.requestCameraPermission?.()
@@ -176,7 +175,7 @@ function IOURequestStepScan({
             .catch(() => {
                 setCameraPermissionStatus(RESULTS.UNAVAILABLE);
             });
-    };
+    }, [translate]);
 
     const focusIndicatorOpacity = useSharedValue(0);
     const focusIndicatorScale = useSharedValue(2);
@@ -294,8 +293,12 @@ function IOURequestStepScan({
                 files,
                 isTestTransaction,
                 locationPermissionGranted,
+                selfDMReport,
+                isSelfTourViewed,
+                betas,
             });
         },
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- reportNameValuePairs?.private_isArchived is not needed
         [
             backTo,
             backToReport,
@@ -321,11 +324,15 @@ function IOURequestStepScan({
             quickAction,
             policy,
             personalPolicy?.autoReporting,
+            selfDMReport,
             isASAPSubmitBetaEnabled,
             transactionViolations,
             policyRecentlyUsedCurrencies,
             introSelected,
             activePolicyID,
+            reportNameValuePairs?.private_isArchived,
+            isSelfTourViewed,
+            betas,
         ],
     );
 
@@ -339,7 +346,7 @@ function IOURequestStepScan({
                 if (backTo) {
                     Navigation.navigate(backTo as Route);
                 } else {
-                    Navigation.navigate(ROUTES.HOME);
+                    Navigation.navigate(ROUTES.INBOX);
                 }
             } else {
                 navigateBack();
@@ -394,7 +401,7 @@ function IOURequestStepScan({
             return;
         }
 
-        if (!isMultiScanEnabled) {
+        if (!isMultiScanEnabled && isStartingScan) {
             removeDraftTransactions(true);
         }
 
@@ -546,6 +553,7 @@ function IOURequestStepScan({
                         Log.warn('Error taking photo', error);
                     });
             });
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- askForPermissions is not needed
     }, [
         cameraPermissionStatus,
         didCapturePhoto,
@@ -563,6 +571,7 @@ function IOURequestStepScan({
         receiptFiles,
         submitReceipts,
         updateScanAndNavigate,
+        askForPermissions,
     ]);
 
     const toggleMultiScan = () => {
@@ -648,6 +657,7 @@ function IOURequestStepScan({
                                             <PressableWithFeedback
                                                 role={CONST.ROLE.BUTTON}
                                                 accessibilityLabel={translate('receipt.flash')}
+                                                sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
                                                 disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
                                                 onPress={() => setFlash((prevFlash) => !prevFlash)}
                                             >
@@ -695,6 +705,7 @@ function IOURequestStepScan({
                             <PressableWithFeedback
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('receipt.gallery')}
+                                sentryLabel={shouldAcceptMultipleFiles ? CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILES : CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILE}
                                 style={[styles.alignItemsStart, isMultiScanEnabled && styles.opacity0]}
                                 onPress={() => {
                                     openPicker({
@@ -719,6 +730,7 @@ function IOURequestStepScan({
                     <PressableWithFeedback
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('receipt.shutter')}
+                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.SHUTTER}
                         style={[styles.alignItemsCenter]}
                         onPress={capturePhoto}
                     >
@@ -734,6 +746,7 @@ function IOURequestStepScan({
                             accessibilityRole="button"
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('receipt.multiScan')}
+                            sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.MULTI_SCAN}
                             style={styles.alignItemsEnd}
                             onPress={toggleMultiScan}
                         >
@@ -748,6 +761,7 @@ function IOURequestStepScan({
                         <PressableWithFeedback
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('receipt.flash')}
+                            sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
                             style={[styles.alignItemsEnd, !hasFlash && styles.opacity0]}
                             disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
                             onPress={() => setFlash((prevFlash) => !prevFlash)}

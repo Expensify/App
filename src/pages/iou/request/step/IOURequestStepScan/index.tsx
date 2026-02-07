@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import reportsSelector from '@selectors/Attributes';
-import {transactionDraftValuesSelector} from '@selectors/TransactionDraft';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState} from 'react';
 import type {LayoutRectangle} from 'react-native';
 import {InteractionManager, PanResponder, StyleSheet, View} from 'react-native';
@@ -28,10 +28,13 @@ import useIOUUtils from '@hooks/useIOUUtils';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSelfDMReport from '@hooks/useSelfDMReport';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {handleMoneyRequestStepScanParticipants} from '@libs/actions/IOU/MoneyRequest';
@@ -97,6 +100,7 @@ function IOURequestStepScan({
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const isArchived = isArchivedReport(reportNameValuePairs);
     const policy = usePolicy(report?.policyID);
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const personalPolicy = usePersonalPolicy();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`, {canBeMissing: true});
@@ -114,17 +118,10 @@ function IOURequestStepScan({
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-
-    const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
-        selector: transactionDraftValuesSelector,
-        canBeMissing: true,
-    });
+    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: hasSeenTourSelector});
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
-
-    const transactions = useMemo(() => {
-        const allTransactions = optimisticTransactions && optimisticTransactions.length > 1 ? optimisticTransactions : [initialTransaction];
-        return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
-    }, [initialTransaction, optimisticTransactions]);
+    const [transactions, optimisticTransactions] = useOptimisticDraftTransactions(initialTransaction);
 
     const [videoConstraints, setVideoConstraints] = useState<MediaTrackConstraints>();
     const isTabActive = useIsFocused();
@@ -134,6 +131,8 @@ function IOURequestStepScan({
     const transactionTaxAmount = initialTransaction?.taxAmount ?? 0;
 
     const shouldAcceptMultipleFiles = !isEditing && !backTo;
+
+    const selfDMReport = useSelfDMReport();
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
@@ -347,38 +346,47 @@ function IOURequestStepScan({
                 files,
                 isTestTransaction,
                 locationPermissionGranted,
+                selfDMReport,
+                policyForMovingExpenses,
+                isSelfTourViewed,
+                betas,
             });
         },
         [
-            backTo,
-            backToReport,
-            shouldGenerateTransactionThreadReport,
-            transactions,
-            initialTransaction?.isFromGlobalCreate,
-            initialTransaction?.currency,
-            initialTransaction?.participants,
-            initialTransaction?.reportID,
-            isArchived,
             iouType,
-            defaultExpensePolicy,
+            policy,
             report,
-            initialTransactionID,
-            currentUserPersonalDetails.accountID,
-            currentUserPersonalDetails?.login,
-            shouldSkipConfirmation,
-            personalDetails,
-            reportAttributesDerived,
             reportID,
+            reportAttributesDerived,
+            transactions,
+            initialTransactionID,
+            initialTransaction?.reportID,
+            initialTransaction?.currency,
+            initialTransaction?.isFromGlobalCreate,
+            initialTransaction?.participants,
             transactionTaxCode,
             transactionTaxAmount,
-            quickAction,
-            policyRecentlyUsedCurrencies,
-            policy,
+            personalDetails,
+            currentUserPersonalDetails.login,
+            currentUserPersonalDetails.accountID,
+            backTo,
+            backToReport,
+            shouldSkipConfirmation,
+            defaultExpensePolicy,
+            shouldGenerateTransactionThreadReport,
+            isArchived,
             personalPolicy?.autoReporting,
+            selfDMReport,
             isASAPSubmitBetaEnabled,
             transactionViolations,
+            quickAction,
+            policyRecentlyUsedCurrencies,
             introSelected,
             activePolicyID,
+            reportNameValuePairs?.private_isArchived,
+            policyForMovingExpenses,
+            isSelfTourViewed,
+            betas,
         ],
     );
 
@@ -408,7 +416,7 @@ function IOURequestStepScan({
             return;
         }
 
-        if (!isMultiScanEnabled) {
+        if (!isMultiScanEnabled && isStartingScan) {
             removeDraftTransactions(true);
         }
 
@@ -695,6 +703,7 @@ function IOURequestStepScan({
                                     accessibilityLabel={translate('receipt.flash')}
                                     disabled={!isTorchAvailable}
                                     onPress={toggleFlashlight}
+                                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
                                 >
                                     <Icon
                                         height={16}
@@ -728,6 +737,7 @@ function IOURequestStepScan({
                                     onPicked: (data) => validateFiles(data),
                                 });
                             }}
+                            sentryLabel={shouldAcceptMultipleFiles ? CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILES : CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILE}
                         >
                             <Icon
                                 height={32}
@@ -743,6 +753,7 @@ function IOURequestStepScan({
                     accessibilityLabel={translate('receipt.shutter')}
                     style={[styles.alignItemsCenter]}
                     onPress={capturePhoto}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.SHUTTER}
                 >
                     <Icon
                         src={lazyIllustrations.Shutter}
@@ -757,6 +768,7 @@ function IOURequestStepScan({
                         accessibilityLabel={translate('receipt.multiScan')}
                         style={styles.alignItemsEnd}
                         onPress={toggleMultiScan}
+                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.MULTI_SCAN}
                     >
                         <Icon
                             height={32}
@@ -772,6 +784,7 @@ function IOURequestStepScan({
                         style={[styles.alignItemsEnd, !isTorchAvailable && styles.opacity0]}
                         onPress={toggleFlashlight}
                         disabled={!isTorchAvailable}
+                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
                     >
                         <Icon
                             height={32}

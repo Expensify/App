@@ -1,4 +1,5 @@
 import * as SecureStore from 'expo-secure-store';
+import MARQETA_VALUES from './MarqetaValues';
 import type {SecureStoreMethods, SecureStoreValues} from './types';
 
 /**
@@ -12,26 +13,32 @@ const SECURE_STORE_VALUES = {
         UNKNOWN: {
             CODE: SecureStore.AUTH_TYPE.UNKNOWN,
             NAME: 'Unknown',
+            MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.KNOWLEDGE_BASED,
         },
         NONE: {
             CODE: SecureStore.AUTH_TYPE.NONE,
             NAME: 'None',
+            MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.NONE,
         },
         CREDENTIALS: {
             CODE: SecureStore.AUTH_TYPE.CREDENTIALS,
             NAME: 'Credentials',
+            MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.KNOWLEDGE_BASED,
         },
         BIOMETRICS: {
             CODE: SecureStore.AUTH_TYPE.BIOMETRICS,
             NAME: 'Biometrics',
+            MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.BIOMETRIC_FINGERPRINT,
         },
         FACE_ID: {
             CODE: SecureStore.AUTH_TYPE.FACE_ID,
-            NAME: 'FaceID',
+            NAME: 'Face ID',
+            MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.BIOMETRIC_FACE,
         },
         TOUCH_ID: {
             CODE: SecureStore.AUTH_TYPE.TOUCH_ID,
-            NAME: 'TouchID',
+            NAME: 'Touch ID',
+            MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.BIOMETRIC_FINGERPRINT,
         },
         /**
          * OpticID is reserved by apple, used on Apple Vision Pro and not iOS.
@@ -39,7 +46,8 @@ const SECURE_STORE_VALUES = {
          */
         OPTIC_ID: {
             CODE: SecureStore.AUTH_TYPE.OPTIC_ID,
-            NAME: 'OpticID',
+            NAME: 'Optic ID',
+            MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.BIOMETRIC_FACE,
         },
     },
     /**

@@ -1,6 +1,5 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type {CompanyCardFeedWithDomainID} from './CardFeeds';
 import type * as OnyxCommon from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
 
@@ -71,6 +70,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Last updated time */
     lastScrape?: string;
+
+    /** Whether transactions from the card should be marked reimbursable by default */
+    reimbursable?: boolean;
 
     /** Last update result */
     lastScrapeResult?: number;
@@ -144,6 +146,12 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** List of token reference ids */
         // eslint-disable-next-line @typescript-eslint/naming-convention
         expensifyCard_tokenReferenceIdList?: string[];
+
+        /** Date when card becomes valid (YYYY-MM-DD format) */
+        validFrom?: string;
+
+        /** Date when card expires (YYYY-MM-DD format) */
+        validThru?: string;
 
         /** Collection of errors coming from BE */
         errors?: OnyxCommon.Errors;
@@ -276,6 +284,12 @@ type IssueNewCardData = {
 
     /** Currency of the card */
     currency: string;
+
+    /** Optional start date for card validity (YYYY-MM-DD) */
+    validFrom?: string;
+
+    /** Optional end date for card validity (YYYY-MM-DD) */
+    validThru?: string;
 };
 
 /** Model of Issue new card flow */
@@ -309,53 +323,38 @@ type WorkspaceCardsList = CardList & {
 };
 
 /**
- * Pending action for a company card assignment
+ *
  */
-type FailedCompanyCardAssignment = {
-    /** The domain or workspace account ID */
-    domainOrWorkspaceAccountID: number;
-
-    /** The name of the feed */
-    feed: CompanyCardFeedWithDomainID;
-
-    /** Cardholder personal details */
-    cardholder?: PersonalDetails;
-
-    /** The name of the card */
+type CardAssignmentData = {
+    /**
+     * The masked card number displayed to users (e.g., "XXXX1234" or "VISA - 1234").
+     */
     cardName: string;
 
-    /** Custom card name */
-    customCardName?: string;
-
-    /** Failed company card assignment */
-    hasFailedCardAssignment: boolean;
-
-    /** Encrypted card number */
+    /**
+     * The card identifier sent to backend.
+     * For direct feeds (Plaid/OAuth): equals cardName
+     * For commercial feeds (Visa/Mastercard/Amex): encrypted value
+     */
     encryptedCardNumber: string;
 
-    /** Card related error messages */
+    /** User-defined name for the card (e.g., "John's card") */
+    customCardName?: string;
+
+    /** Cardholder personal details */
+    cardholder?: PersonalDetails | null;
+
+    /** Errors */
     errors?: OnyxCommon.Errors;
 
-    /** Collection of form field errors  */
+    /**
+     *
+     */
     errorFields?: OnyxCommon.ErrorFields;
 
-    /** Whether the card is deleted */
-    isCardDeleted: boolean;
-
-    /** Whether the card is assigned */
-    isAssigned: boolean;
-
-    /** Assigned card */
-    assignedCard: Card | undefined;
-
-    /**
-     * The type of action that's pending
-     */
+    /** Pending action */
     pendingAction?: OnyxCommon.PendingAction;
 };
-
-/** Pending action for a company card assignment */
-type FailedCompanyCardAssignments = Record<string, FailedCompanyCardAssignment>;
 
 export default Card;
 export type {
@@ -365,8 +364,7 @@ export type {
     IssueNewCardStep,
     IssueNewCardData,
     WorkspaceCardsList,
-    FailedCompanyCardAssignment,
-    FailedCompanyCardAssignments,
+    CardAssignmentData,
     CardLimitType,
     ProvisioningCardData,
     AssignableCardsList,

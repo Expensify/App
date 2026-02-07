@@ -1,13 +1,17 @@
+import {defaultExpensifyCardSelector} from '@selectors/Card';
 import {createPoliciesSelector} from '@selectors/Policy';
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {areAllGroupPoliciesExpenseChatDisabled} from '@libs/PolicyUtils';
 import {createTypeMenuSections} from '@libs/SearchUIUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Session} from '@src/types/onyx';
+import todosReportCountsSelector from '@src/selectors/Todos';
+import type {NonPersonalAndWorkspaceCardListDerivedValue, Policy, Session} from '@src/types/onyx';
 import useCardFeedsForDisplay from './useCardFeedsForDisplay';
 import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
+import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 
@@ -30,6 +34,7 @@ const policySelector = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
         areCompanyCardsEnabled: policy.areCompanyCardsEnabled,
         areExpensifyCardsEnabled: policy.areExpensifyCardsEnabled,
         achAccount: policy.achAccount,
+        areCategoriesEnabled: policy.areCategoriesEnabled,
     };
 
 const policiesSelector = (policies: OnyxCollection<Policy>) => createPoliciesSelector(policies, policySelector);
@@ -38,12 +43,17 @@ const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
     email: session?.email,
     accountID: session?.accountID,
 });
+
 /**
  * Get a list of all search groupings, along with their search items. Also returns the
  * currently focused search, based on the hash
  */
 const useSearchTypeMenuSections = () => {
-    const {defaultCardFeed, cardFeedsByPolicy, defaultExpensifyCard} = useCardFeedsForDisplay();
+    const {translate} = useLocalize();
+    const cardSelector = (allCards: OnyxEntry<NonPersonalAndWorkspaceCardListDerivedValue>) => defaultExpensifyCardSelector(allCards, translate);
+    const [defaultExpensifyCard] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true, selector: cardSelector}, [cardSelector]);
+
+    const {defaultCardFeed, cardFeedsByPolicy} = useCardFeedsForDisplay();
 
     const icons = useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']);
     const {isOffline} = useNetwork();
@@ -51,6 +61,7 @@ const useSearchTypeMenuSections = () => {
     const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: currentUserLoginAndAccountIDSelector, canBeMissing: false});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
+    const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {canBeMissing: true, selector: todosReportCountsSelector});
     const shouldRedirectToExpensifyClassic = useMemo(() => areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {}), [allPolicies]);
     const [pendingReportCreation, setPendingReportCreation] = useState<{policyID: string; policyName?: string; onConfirm: (shouldDismissEmptyReportsConfirmation: boolean) => void} | null>(
         null,
@@ -83,9 +94,7 @@ const useSearchTypeMenuSections = () => {
     }, [pendingReportCreation, openCreateReportConfirmation]);
 
     const isSuggestedSearchDataReady = useMemo(() => {
-        const policiesList = Object.values(allPolicies ?? {}).filter((policy): policy is NonNullable<typeof policy> => policy !== null && policy !== undefined);
-
-        return policiesList.some((policy) => policy.employeeList !== undefined && policy.exporter !== undefined);
+        return Object.values(allPolicies ?? {}).some((policy) => policy?.employeeList !== undefined && policy?.exporter !== undefined);
     }, [allPolicies]);
 
     const typeMenuSections = useMemo(
@@ -102,6 +111,7 @@ const useSearchTypeMenuSections = () => {
                 defaultExpensifyCard,
                 shouldRedirectToExpensifyClassic,
                 allTransactionDrafts,
+                reportCounts,
             ),
         [
             currentUserLoginAndAccountID?.email,
@@ -115,6 +125,7 @@ const useSearchTypeMenuSections = () => {
             shouldRedirectToExpensifyClassic,
             allTransactionDrafts,
             icons,
+            reportCounts,
         ],
     );
 

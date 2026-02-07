@@ -3,6 +3,7 @@ import Apple from '@assets/images/apple.svg';
 import AttachmentNotFound from '@assets/images/attachment-not-found.svg';
 import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
 import Bank from '@assets/images/bank.svg';
+import Basket from '@assets/images/basket.svg';
 import Bell from '@assets/images/bell.svg';
 import Bill from '@assets/images/bill.svg';
 import boltSlash from '@assets/images/bolt-slash.svg';
@@ -60,6 +61,7 @@ import FlagLevelThree from '@assets/images/flag_level_03.svg';
 import Folder from '@assets/images/folder.svg';
 import Fullscreen from '@assets/images/fullscreen.svg';
 import GalleryNotFound from '@assets/images/gallery-not-found.svg';
+import GalleryPlus from '@assets/images/gallery-plus.svg';
 import Gallery from '@assets/images/gallery.svg';
 import Gear from '@assets/images/gear.svg';
 import Heart from '@assets/images/heart.svg';
@@ -166,8 +168,9 @@ export {
     Apple,
     AttachmentNotFound,
     Bank,
-    Bill,
+    Basket,
     Bell,
+    Bill,
     Bolt,
     Bug,
     Building,
@@ -324,4 +327,5 @@ export {
     BillComSquare,
     CertiniaSquare,
     ZenefitsSquare,
+    GalleryPlus,
 };

@@ -38,7 +38,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.reportID)}`, {canBeMissing: true});
-
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const archivedReportsIdSet = useArchivedReportsIdSet();
 
@@ -127,7 +127,10 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     continue;
                 }
 
-                const remainingSplitExpenses = childTransactions.map((childTransaction) => initSplitExpenseItemData(childTransaction));
+                const remainingSplitExpenses = childTransactions.map((childTransaction) => {
+                    const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childTransaction?.reportID}`];
+                    return initSplitExpenseItemData(childTransaction, transactionReport);
+                });
 
                 updateSplitTransactions({
                     allTransactionsList: allTransactions,
@@ -152,6 +155,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     quickAction,
                     iouReportNextStep,
+                    betas,
                 });
             }
 
@@ -177,6 +181,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     selectedTransactionIDs: transactionIDs,
                     hash: currentSearchHash,
                     allTransactionViolationsParam: transactionViolations,
+                    currentUserAccountID: currentUserPersonalDetails.accountID,
                 });
                 deletedTransactionIDs.push(transactionID);
                 if (action.childReportID) {
@@ -202,6 +207,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             report,
             reportActions,
             transactionViolations,
+            betas,
         ],
     );
 

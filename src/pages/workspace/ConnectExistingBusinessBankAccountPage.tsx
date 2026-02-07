@@ -42,12 +42,17 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
         if (policyID === undefined) {
             return;
         }
+
         const newReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner ?? '';
         setWorkspaceReimbursement({
             policyID,
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
             bankAccountID: methodID ?? CONST.DEFAULT_NUMBER_ID,
             reimburserEmail: newReimburserEmail,
+            accountNumber: accountData?.accountNumber,
+            addressName: accountData?.addressName,
+            bankName: accountData?.additionalData?.bankName,
+            state: accountData?.state,
             lastPaymentMethod: lastPaymentMethod?.[policyID],
             shouldUpdateLastPaymentMethod: accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN,
         });

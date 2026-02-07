@@ -1,3 +1,4 @@
+import MARQETA_VALUES from './MarqetaValues';
 import type {SecureStoreMethods, SecureStoreValues} from './types';
 
 /**
@@ -9,30 +10,37 @@ const SECURE_STORE_VALUES = {
         UNKNOWN: {
             CODE: -1,
             NAME: 'Unknown',
+            MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.OTHER,
         },
         NONE: {
             CODE: 0,
             NAME: 'None',
+            MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.OTHER,
         },
         CREDENTIALS: {
             CODE: 1,
             NAME: 'Credentials',
+            MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.KNOWLEDGE_BASED,
         },
         BIOMETRICS: {
             CODE: 2,
             NAME: 'Biometrics',
+            MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.BIOMETRIC_FINGERPRINT,
         },
         FACE_ID: {
             CODE: 3,
-            NAME: 'FaceID',
+            NAME: 'Face ID',
+            MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.BIOMETRIC_FACE,
         },
         TOUCH_ID: {
             CODE: 4,
-            NAME: 'TouchID',
+            NAME: 'Touch ID',
+            MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.BIOMETRIC_FINGERPRINT,
         },
         OPTIC_ID: {
             CODE: 5,
-            NAME: 'OpticID',
+            NAME: 'Optic ID',
+            MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.OTHER,
         },
     },
     WHEN_PASSCODE_SET_THIS_DEVICE_ONLY: -1,
