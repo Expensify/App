@@ -414,6 +414,56 @@ function Search({
             (!!searchResults?.search.isLoading && Array.isArray(searchResults?.data) && searchResults?.data.length === 0) ||
             (hasErrors && searchRequestResponseStatusCode === null) ||
             isCardFeedsLoading);
+
+    // Track loading state conditions for debug logging
+    const loadingStateDebugRef = useRef({
+        shouldShowLoadingState: false,
+        isDataLoaded: false,
+        searchResultsIsLoading: false,
+        hasErrors: false,
+        searchRequestResponseStatusCode: null as number | null | undefined,
+        isCardFeedsLoading: false,
+    });
+
+    // Debug log for production loading state - only log when state or conditions change
+    const prev = loadingStateDebugRef.current;
+    const hasChanged =
+        prev.shouldShowLoadingState !== shouldShowLoadingState ||
+        prev.isDataLoaded !== isDataLoaded ||
+        prev.searchResultsIsLoading !== searchResults?.search.isLoading ||
+        prev.hasErrors !== hasErrors ||
+        prev.searchRequestResponseStatusCode !== searchRequestResponseStatusCode ||
+        prev.isCardFeedsLoading !== isCardFeedsLoading;
+
+    if (shouldShowLoadingState && hasChanged) {
+        Log.info('[Search] shouldShowLoadingState is TRUE', {
+            shouldUseLiveData,
+            notShouldUseLiveData: !shouldUseLiveData,
+            isOffline,
+            notIsOffline: !isOffline,
+            isDataLoaded,
+            notIsDataLoaded: !isDataLoaded,
+            searchResultsIsLoading: searchResults?.search.isLoading,
+            searchResultsDataIsArray: Array.isArray(searchResults?.data),
+            searchResultsDataLength: searchResults?.data?.length,
+            searchResultsLoadingCondition: !!(searchResults?.search.isLoading && Array.isArray(searchResults?.data) && searchResults?.data.length === 0),
+            hasErrors,
+            searchRequestResponseStatusCode,
+            errorWithNullStatus: hasErrors && searchRequestResponseStatusCode === null,
+            isCardFeedsLoading,
+        });
+    }
+
+    // Always update tracked values after the check to capture state transitions
+    loadingStateDebugRef.current = {
+        shouldShowLoadingState,
+        isDataLoaded,
+        searchResultsIsLoading: searchResults?.search.isLoading ?? false,
+        hasErrors,
+        searchRequestResponseStatusCode,
+        isCardFeedsLoading,
+    };
+
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
