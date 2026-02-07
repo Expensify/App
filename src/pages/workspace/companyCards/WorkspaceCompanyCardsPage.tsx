@@ -63,14 +63,14 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     }, [policyID, domainOrWorkspaceAccountID, loadPolicyCompanyCardsPage, isOffline]);
 
     const loadPolicyCompanyCardsFeed = useCallback(() => {
-        if (isLoading || !bankName || isFeedPending) {
+        if (isLoading || !bankName || isFeedPending || isOffline) {
             return;
         }
 
         const clientMemberEmails = Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList));
         openWorkspaceMembersPage(policyID, clientMemberEmails);
         openPolicyCompanyCardsFeed(domainOrWorkspaceAccountID, policyID, bankName, translate);
-    }, [bankName, domainOrWorkspaceAccountID, isFeedPending, isLoading, policy?.employeeList, policyID, translate]);
+    }, [bankName, domainOrWorkspaceAccountID, isFeedPending, isLoading, policy?.employeeList, policyID, translate, isOffline]);
 
     useEffect(() => {
         loadPolicyCompanyCardsFeed();
