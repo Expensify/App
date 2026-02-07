@@ -3877,6 +3877,9 @@ ${
             workspaceOwner: '所有者',
             workspaceType: '工作区类型',
             workspaceAvatar: '工作区头像',
+            clientID: '客户ID',
+            clientIDInputLabel: '客户ID',
+            clientIDInputHint: '请输入客户的唯一标识符',
             mustBeOnlineToViewMembers: '您需要联网才能查看此工作区的成员。',
             moreFeatures: '更多功能',
             requested: '已请求',
@@ -3945,9 +3948,6 @@ ${
             budgetTypeForNotificationMessage: {tag: '标签', category: '类别'},
             policyExpenseChatName: (displayName: string) => `${displayName} 的报销费用`,
             deepDiveExpensifyCard: `<muted-text-label>Expensify Card 交易将通过<a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">我们的集成</a>自动导出到一个名为“Expensify Card Liability Account”的账户中。</muted-text-label>`,
-            clientID: '客户ID',
-            clientIDInputLabel: '客户ID',
-            clientIDInputHint: '请输入客户的唯一标识符',
         },
         receiptPartners: {
             uber: {

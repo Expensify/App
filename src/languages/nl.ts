@@ -3944,6 +3944,9 @@ ${
             workspaceOwner: 'Eigenaar',
             workspaceType: 'Werkruimtetype',
             workspaceAvatar: 'Workspace-avatar',
+            clientID: 'Klant-ID',
+            clientIDInputLabel: 'Klant-ID',
+            clientIDInputHint: 'Voer de unieke identificatie van de klant in',
             mustBeOnlineToViewMembers: 'Je moet online zijn om de leden van deze workspace te bekijken.',
             moreFeatures: 'Meer functies',
             requested: 'Aangevraagd',
@@ -4013,9 +4016,6 @@ ${
             budgetFrequencyUnit: {monthly: 'maand', yearly: 'jaar'},
             budgetTypeForNotificationMessage: {tag: 'tag', category: 'categorie'},
             deepDiveExpensifyCard: `<muted-text-label>Expensify Card-transacties worden automatisch geëxporteerd naar een "Expensify Card Liability Account" dat wordt aangemaakt met <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">onze integratie</a>.</muted-text-label>`,
-            clientID: 'Klant-ID',
-            clientIDInputLabel: 'Klant-ID',
-            clientIDInputHint: 'Voer de unieke identificatie van de klant in',
         },
         receiptPartners: {
             uber: {

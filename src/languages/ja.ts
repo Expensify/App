@@ -3927,6 +3927,9 @@ ${
             workspaceOwner: 'オーナー',
             workspaceType: 'ワークスペースの種類',
             workspaceAvatar: 'ワークスペースのアバター',
+            clientID: 'クライアントID',
+            clientIDInputLabel: 'クライアントID',
+            clientIDInputHint: 'クライアントの一意の識別子を入力してください',
             mustBeOnlineToViewMembers: 'このワークスペースのメンバーを表示するには、オンライン接続が必要です。',
             moreFeatures: 'その他の機能',
             requested: 'リクエスト済み',
@@ -3996,9 +3999,6 @@ ${
             budgetFrequency: {monthly: '毎月', yearly: '年次'},
             budgetFrequencyUnit: {monthly: '月', yearly: '年'},
             budgetTypeForNotificationMessage: {tag: 'タグ', category: 'カテゴリ'},
-            clientID: 'クライアントID',
-            clientIDInputLabel: 'クライアントID',
-            clientIDInputHint: 'クライアントの一意の識別子を入力してください',
         },
         receiptPartners: {
             uber: {

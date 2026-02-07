@@ -3937,6 +3937,9 @@ ${
             workspaceOwner: 'Proprietário',
             workspaceType: 'Tipo de workspace',
             workspaceAvatar: 'Avatar do workspace',
+            clientID: 'ID do cliente',
+            clientIDInputLabel: 'ID do cliente',
+            clientIDInputHint: 'Insira o identificador único do cliente',
             mustBeOnlineToViewMembers: 'Você precisa estar online para visualizar os membros deste workspace.',
             moreFeatures: 'Mais recursos',
             requested: 'Solicitado',
@@ -4006,9 +4009,6 @@ ${
             budgetFrequencyUnit: {monthly: 'mês', yearly: 'ano'},
             budgetTypeForNotificationMessage: {tag: 'etiqueta', category: 'categoria'},
             deepDiveExpensifyCard: `<muted-text-label>As transações do Expensify Card serão exportadas automaticamente para uma “Conta de Passivo do Expensify Card” criada com <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">nossa integração</a>.</muted-text-label>`,
-            clientID: 'ID do cliente',
-            clientIDInputLabel: 'ID do cliente',
-            clientIDInputHint: 'Insira o identificador único do cliente',
         },
         receiptPartners: {
             uber: {
