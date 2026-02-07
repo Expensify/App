@@ -4679,6 +4679,49 @@ function searchInServer(searchInput: string, policyID?: string) {
     searchForReports(isOffline, searchInput, policyID);
 }
 
+/**
+ * Fetch all outstanding reports to ensure they are available in Onyx
+ */
+function fetchOutstandingReports() {
+    const isOffline = NetworkStore.isOffline();
+
+    // We do not try to make this request while offline because it sets a loading indicator optimistically
+    if (isOffline) {
+        Onyx.set(ONYXKEYS.IS_LOADING_OUTSTANDING_REPORTS, false);
+        return;
+    }
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_OUTSTANDING_REPORTS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_OUTSTANDING_REPORTS,
+            value: true,
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_OUTSTANDING_REPORTS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_OUTSTANDING_REPORTS,
+            value: false,
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_OUTSTANDING_REPORTS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_OUTSTANDING_REPORTS,
+            value: false,
+        },
+    ];
+
+    API.read(READ_COMMANDS.GET_OUTSTANDING_REPORTS, null, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
 function updateLastVisitTime(reportID: string) {
     if (!isValidReportIDFromPath(reportID)) {
         return;
@@ -6710,6 +6753,7 @@ export {
     saveReportActionDraft,
     saveReportDraftComment,
     searchInServer,
+    fetchOutstandingReports,
     setDeleteTransactionNavigateBackUrl,
     setGroupDraft,
     setIsComposerFullSize,
