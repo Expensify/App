@@ -751,6 +751,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.HAS ||
                     filterKey === FILTER_KEYS.IS ||
                     filterKey === FILTER_KEYS.EXPORTER ||
+                    filterKey === FILTER_KEYS.EXPORTED_TO ||
                     filterKey === FILTER_KEYS.ATTENDEE ||
                     filterKey === FILTER_KEYS.COLUMNS) &&
                 Array.isArray(filterValue) &&
@@ -880,6 +881,9 @@ function buildFilterFormValuesFromQuery(
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE) {
             // Don't filter attendee values by personalDetails - they can be accountIDs OR display names for name-only attendees
+            filtersForm[key as typeof filterKey] = filterValues;
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO) {
             filtersForm[key as typeof filterKey] = filterValues;
         }
 
@@ -1134,6 +1138,15 @@ function getFilterDisplayValue(
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
         return getPolicyNameWithFallback(filterValue, policies, reports);
+    }
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO) {
+        if (filterValue === CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT) {
+            return CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT;
+        }
+        if (filterValue === CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT) {
+            return CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT;
+        }
+        return filterValue;
     }
     return filterValue;
 }

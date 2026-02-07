@@ -3292,6 +3292,7 @@ const CONST = {
                 XERO: 'xero',
                 NETSUITE: 'netsuite',
                 SAGE_INTACCT: 'intacct',
+                CERTINIA: 'certinia',
             },
             SUPPORTED_ONLY_ON_OLDDOT: {
                 FINANCIALFORCE: 'financialForce',
@@ -3305,6 +3306,7 @@ const CONST = {
                 NETSUITE: 'netsuite',
                 SAGE_INTACCT: 'sage-intacct',
                 QBD: 'quickbooks-desktop',
+                CERTINIA: 'certinia',
             },
             NAME_USER_FRIENDLY: {
                 netsuite: 'NetSuite',
@@ -3313,6 +3315,7 @@ const CONST = {
                 xero: 'Xero',
                 intacct: 'Sage Intacct',
                 financialForce: 'FinancialForce',
+                certinia: 'Certinia',
                 billCom: 'Bill.com',
                 zenefits: 'Zenefits',
                 sap: 'SAP',
@@ -7144,7 +7147,7 @@ const CONST = {
             BANK_ACCOUNT: 'bankAccount',
             REPORT_ID: 'reportID',
             BASE_62_REPORT_ID: 'base62ReportID',
-            EXPORTED_TO: 'exportedto',
+            EXPORTED_TO: 'exportedTo',
             EXCHANGE_RATE: 'exchangeRate',
             REIMBURSABLE_TOTAL: 'reimbursableTotal',
             NON_REIMBURSABLE_TOTAL: 'nonReimbursableTotal',
@@ -7233,6 +7236,7 @@ const CONST = {
             ATTENDEE: 'attendee',
             IS: 'is',
             REPORT_FIELD: 'reportField',
+            EXPORTED_TO: 'exportedTo',
         },
         REPORT_FIELD: {
             // All report fields start with this, so use this to check if a search key is a report field
@@ -7299,6 +7303,7 @@ const CONST = {
             ATTENDEE: 'attendee',
             IS: 'is',
             REPORT_FIELD: 'report-field',
+            EXPORTED_TO: 'exported-to',
             COLUMNS: 'columns',
             LIMIT: 'limit',
         },
@@ -7412,6 +7417,7 @@ const CONST = {
         },
         TODO_BADGE_MAX_COUNT: 50,
         TOP_SEARCH_LIMIT: 10,
+        PREDEFINED_INTEGRATION_FILTER_VALUES: ['Xero', 'QuickBooks Online', 'QuickBooks Desktop', 'NetSuite', 'Sage Intacct', 'Certinia'],
     },
     SEARCH_SELECTOR: {
         SELECTION_MODE_SINGLE: 'single',

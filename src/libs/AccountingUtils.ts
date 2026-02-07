@@ -8,6 +8,7 @@ const ROUTE_NAME_MAPPING = {
     [CONST.POLICY.CONNECTIONS.ROUTE.SAGE_INTACCT]: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT,
     [CONST.POLICY.CONNECTIONS.ROUTE.NETSUITE]: CONST.POLICY.CONNECTIONS.NAME.NETSUITE,
     [CONST.POLICY.CONNECTIONS.ROUTE.QBD]: CONST.POLICY.CONNECTIONS.NAME.QBD,
+    [CONST.POLICY.CONNECTIONS.ROUTE.CERTINIA]: CONST.POLICY.CONNECTIONS.NAME.CERTINIA,
 };
 
 const NAME_ROUTE_MAPPING = {
@@ -16,6 +17,7 @@ const NAME_ROUTE_MAPPING = {
     [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: CONST.POLICY.CONNECTIONS.ROUTE.SAGE_INTACCT,
     [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: CONST.POLICY.CONNECTIONS.ROUTE.NETSUITE,
     [CONST.POLICY.CONNECTIONS.NAME.QBD]: CONST.POLICY.CONNECTIONS.ROUTE.QBD,
+    [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: CONST.POLICY.CONNECTIONS.ROUTE.CERTINIA,
 };
 
 function getConnectionNameFromRouteParam(routeParam: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>) {
@@ -26,4 +28,12 @@ function getRouteParamForConnection(connectionName: ConnectionName) {
     return NAME_ROUTE_MAPPING[connectionName];
 }
 
-export {getConnectionNameFromRouteParam, getRouteParamForConnection};
+function getSearchValueForConnection(connectionName: ConnectionName): string {
+    return CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName];
+}
+
+function getPredefinedConnectionNamesForSearch(): ConnectionName[] {
+    return Object.values(CONST.POLICY.CONNECTIONS.NAME);
+}
+
+export {getConnectionNameFromRouteParam, getRouteParamForConnection, getSearchValueForConnection, getPredefinedConnectionNamesForSearch};

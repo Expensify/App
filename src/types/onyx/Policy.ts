@@ -1463,6 +1463,9 @@ type Connections = {
 
     /** QuickBooks Desktop integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.QBD]: Connection<QBDConnectionData, QBDConnectionConfig>;
+
+    /** Certinia integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: Connection<Record<string, never>, Record<string, never>>;
 };
 
 /** All integration connections, including unsupported ones */

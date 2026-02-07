@@ -40,7 +40,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
     const {showConfirmModal} = useConfirmModal();
     const styles = useThemeStyles();
     const lazyIllustrations = useMemoizedLazyIllustrations(['LaptopWithSecondScreenAndHourglass']);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['XeroSquare', 'QBOSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['XeroSquare', 'QBOSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare', 'CertiniaSquare']);
 
     const iconToDisplay = getIntegrationIcon(connectionName, expensifyIcons);
     const canBeExported = canBeExportedUtil(report);

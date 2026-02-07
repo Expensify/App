@@ -17,6 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getExportTemplates} from '@libs/actions/Search';
 import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
 import {getCardDescription, isCard, isCardHiddenFromSearch} from '@libs/CardUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
@@ -344,6 +345,14 @@ function SearchAutocompleteList({
     }, [allPoliciesTags]);
     const recentTagsAutocompleteList = useMemo(() => getAutocompleteRecentTags(allRecentTags), [allRecentTags]);
 
+    const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
+    const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
+    const exportedToAutocompleteList = useMemo(() => {
+        const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, undefined, true);
+        const customNames = exportTemplates.map((t) => t.templateName).filter(Boolean);
+        return Array.from(new Set([...CONST.SEARCH.PREDEFINED_INTEGRATION_FILTER_VALUES, ...customNames]));
+    }, [integrationsExportTemplates, csvExportLayouts, translate]);
+
     const [autocompleteParsedQuery, autocompleteQueryWithoutFilters] = useMemo(() => {
         const queryWithoutFilters = getQueryWithoutFilters(autocompleteQueryValue);
         return [parsedQuery, queryWithoutFilters];
@@ -633,6 +642,20 @@ function SearchAutocompleteList({
 
                 return filteredIsValues.map((isValue) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IS, text: isValue}));
             }
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO: {
+                const filteredExportedTo = exportedToAutocompleteList
+                    .filter((value) => {
+                        const lowerValue = value.toLowerCase();
+                        return lowerValue.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(lowerValue);
+                    })
+                    .sort()
+                    .slice(0, 10);
+                return filteredExportedTo.map((value) => ({
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.EXPORTED_TO,
+                    text: value,
+                    mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
+                }));
+            }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED:
@@ -678,6 +701,7 @@ function SearchAutocompleteList({
         hasAutocompleteList,
         isAutocompleteList,
         personalDetails,
+        exportedToAutocompleteList,
     ]);
 
     const sortedRecentSearches = useMemo(() => {
