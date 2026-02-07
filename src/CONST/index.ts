@@ -8256,6 +8256,9 @@ const CONST = {
         REANIMATED_MODAL: {
             BACKDROP: 'ReanimatedModal-Backdrop',
         },
+        ONBOARDING: {
+            FEATURE_ITEM: 'Onboarding-FeatureItem',
+        },
         REQUEST_STEP: {
             SCAN: {
                 MULTI_SCAN: 'Scan-MultiScan',
