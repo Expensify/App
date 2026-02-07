@@ -15,11 +15,15 @@ type CurrencyListContextProps = {
 
     /** Function to get currency symbol for a currency(ISO 4217) Code */
     getCurrencySymbol: (currencyCode: string) => string | undefined;
+
+    /** Function to get number of digits after the decimal separator for a specific currency */
+    getCurrencyDecimals: (currencyCode: string | undefined) => number;
 };
 
 const CurrencyListContext = createContext<CurrencyListContextProps>({
     currencyList: getEmptyObject<CurrencyList>(),
     getCurrencySymbol: () => undefined,
+    getCurrencyDecimals: () => 2,
 });
 
 function CurrencyListContextProvider({children}: CurrencyListContextProviderProps) {
@@ -32,12 +36,21 @@ function CurrencyListContextProvider({children}: CurrencyListContextProviderProp
         [currencyList],
     );
 
+    const getCurrencyDecimals = useCallback(
+        (currencyCode: string | undefined): number => {
+            const decimals = currencyList[currencyCode ?? '']?.decimals;
+            return decimals ?? 2;
+        },
+        [currencyList],
+    );
+
     const contextValue = useMemo<CurrencyListContextProps>(
         () => ({
             currencyList,
             getCurrencySymbol,
+            getCurrencyDecimals,
         }),
-        [currencyList, getCurrencySymbol],
+        [currencyList, getCurrencySymbol, getCurrencyDecimals],
     );
 
     return <CurrencyListContext.Provider value={contextValue}>{children}</CurrencyListContext.Provider>;

@@ -1,5 +1,5 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-import {convertToDisplayString, convertToFrontendAmountAsString, getCurrencyDecimals} from './CurrencyUtils';
+import {convertToDisplayString, convertToFrontendAmountAsString} from './CurrencyUtils';
 import {validateAmount} from './MoneyRequestUtils';
 
 /**
@@ -19,8 +19,8 @@ function formatTimeMerchant(hours: number, rate: number, currency: string, trans
 /**
  * Checks whether the amount calculated via computeTimeAmount is valid (primarily that it is not too big).
  */
-function isValidTimeExpenseAmount(amount: number, currency?: string) {
-    return validateAmount(convertToFrontendAmountAsString(amount, currency), getCurrencyDecimals(currency));
+function isValidTimeExpenseAmount(amount: number, currency: string | undefined, decimals: number) {
+    return validateAmount(convertToFrontendAmountAsString(amount, currency), decimals);
 }
 
 export {computeTimeAmount, formatTimeMerchant, isValidTimeExpenseAmount};
