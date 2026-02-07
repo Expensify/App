@@ -822,10 +822,11 @@ function getAutoReportingDates(policy: OnyxEntry<Policy>, report: Report, curren
         }
 
         case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP: {
-            // For trip-based, use oldest transaction as start
+            // For trip-based, use oldest transaction as start and newest transaction as end
             const oldestTransactionDateString = getOldestTransactionDate(report.reportID);
+            const newestTransactionDateString = getNewestTransactionDate(report.reportID);
             startDate = oldestTransactionDateString ? new Date(oldestTransactionDateString) : currentDate;
-            endDate = currentDate;
+            endDate = newestTransactionDateString ? new Date(newestTransactionDateString) : currentDate;
             break;
         }
 
