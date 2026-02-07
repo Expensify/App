@@ -4,6 +4,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -28,6 +29,9 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
     const styles = useThemeStyles();
     const subscriptionPlan = useSubscriptionPlan();
     const illustrations = useMemoizedLazyIllustrations(['CreditCardsNew']);
+    // Set the page title for accessibility (WCAG 2.4.2 Page Titled)
+    useDocumentTitle(`${translate('common.settings')} - ${translate('workspace.common.subscription')}`);
+
     useEffect(() => {
         openSubscriptionPage();
     }, []);
