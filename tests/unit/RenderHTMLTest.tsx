@@ -1,6 +1,6 @@
 import {render} from '@testing-library/react-native';
 import React from 'react';
-import {unstable_TextAncestorContext as TextAncestorContext, View} from 'react-native';
+import {View} from 'react-native';
 import RenderHTML from '@components/RenderHTML';
 
 jest.mock('@hooks/useWindowDimensions', () => () => ({windowWidth: 400}));
@@ -13,18 +13,23 @@ jest.mock('react-native-render-html', () => {
     };
 });
 
+const mockUseHasTextAncestor = jest.fn(() => false);
+jest.mock('@hooks/useHasTextAncestor', () => () => mockUseHasTextAncestor());
+
 describe('RenderHTML', () => {
     it('throws when rendered inside a Text ancestor', () => {
+        mockUseHasTextAncestor.mockReturnValue(true);
         expect(() =>
             render(
-                <TextAncestorContext value>
+                <View>
                     <RenderHTML html="<p>test</p>" />
-                </TextAncestorContext>,
+                </View>,
             ),
         ).toThrow('RenderHTML must not be rendered inside a <Text> component');
     });
 
     it('does not throw when rendered outside a Text ancestor', () => {
+        mockUseHasTextAncestor.mockReturnValue(false);
         expect(() =>
             render(
                 <View>
