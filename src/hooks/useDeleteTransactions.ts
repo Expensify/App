@@ -127,7 +127,10 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     continue;
                 }
 
-                const remainingSplitExpenses = childTransactions.map((childTransaction) => initSplitExpenseItemData(childTransaction));
+                const remainingSplitExpenses = childTransactions.map((childTransaction) => {
+                    const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childTransaction?.reportID}`];
+                    return initSplitExpenseItemData(childTransaction, transactionReport);
+                });
 
                 updateSplitTransactions({
                     allTransactionsList: allTransactions,
