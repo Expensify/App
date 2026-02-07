@@ -186,6 +186,7 @@ import {
     isSettled,
     isTestTransactionReport,
     isTrackExpenseReport,
+    populateOptimisticReportFormula,
     prepareOnboardingOnyxData,
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
     shouldEnableNegative,
@@ -3265,6 +3266,37 @@ function getDeleteTrackExpenseInformation(
 }
 
 /**
+ * Recalculates the report name using the policy's custom title formula.
+ * This is needed when report totals change (e.g., adding expenses or changing reimbursable status)
+ * to ensure the report title reflects the updated values like {report:reimbursable}.
+ */
+function recalculateOptimisticReportName(iouReport: OnyxTypes.Report, policy: OnyxEntry<OnyxTypes.Policy>): string | undefined {
+    if (!policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]) {
+        return undefined;
+    }
+    const titleFormula = policy.fieldList[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.defaultValue ?? '';
+    if (!titleFormula) {
+        return undefined;
+    }
+    return populateOptimisticReportFormula(titleFormula, iouReport as Parameters<typeof populateOptimisticReportFormula>[1], policy);
+}
+
+function maybeUpdateReportNameForFormulaTitle(iouReport: OnyxTypes.Report, policy: OnyxEntry<OnyxTypes.Policy>): OnyxTypes.Report {
+    const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`];
+    const titleField = reportNameValuePairs?.expensify_text_title;
+    if (titleField?.type !== 'formula') {
+        return iouReport;
+    }
+
+    const updatedReportName = recalculateOptimisticReportName(iouReport, policy);
+    if (!updatedReportName) {
+        return iouReport;
+    }
+
+    return {...iouReport, reportName: updatedReportName};
+}
+
+/**
  * Gathers all the data needed to submit an expense. It attempts to find existing reports, iouReports, and receipts. If it doesn't find them, then
  * it creates optimistic versions of them and uses those instead
  */
@@ -3428,6 +3460,8 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                         iouReport.nonReimbursableTotal = (iouReport.nonReimbursableTotal ?? 0) - amount;
                     }
                 }
+
+                iouReport = maybeUpdateReportNameForFormulaTitle(iouReport, policy);
             }
             if (typeof iouReport.unheldTotal === 'number') {
                 // Use newReportTotal in scenarios where the total is based on more than just the current transaction amount, and we need to override it manually
@@ -4600,6 +4634,11 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             if (updatedTransaction && transaction?.reimbursable !== updatedTransaction?.reimbursable && typeof updatedMoneyRequestReport.unheldNonReimbursableTotal === 'number') {
                 updatedMoneyRequestReport.unheldNonReimbursableTotal += updatedTransaction.reimbursable ? -updatedTransaction.amount : updatedTransaction.amount;
             }
+        }
+
+        // Only recalculate reportName when reimbursable status changes and the report uses a formula title
+        if ('reimbursable' in transactionChanges) {
+            updatedMoneyRequestReport = maybeUpdateReportNameForFormulaTitle(updatedMoneyRequestReport, policy);
         }
     } else {
         updatedMoneyRequestReport = updateIOUOwnerAndTotal(
