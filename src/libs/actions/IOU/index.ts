@@ -1,5 +1,5 @@
 /* eslint-disable max-lines */
-import {eachDayOfInterval, format} from 'date-fns';
+import {eachDayOfInterval, format, parseISO} from 'date-fns';
 import {fastMerge} from 'expensify-common';
 import cloneDeep from 'lodash/cloneDeep';
 // eslint-disable-next-line you-dont-need-lodash-underscore/union-by
@@ -13251,8 +13251,8 @@ function resetSplitExpensesByDateRange(transaction: OnyxEntry<OnyxTypes.Transact
 
     // Generate all dates in the range
     const dates = eachDayOfInterval({
-        start: new Date(startDate),
-        end: new Date(endDate),
+        start: parseISO(startDate),
+        end: parseISO(endDate),
     });
 
     const transactionDetails = getTransactionDetails(transaction);
