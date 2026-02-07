@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, Keyboard} from 'react-native';
@@ -144,16 +145,33 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     }, [contactMethod, loginList, toggleDeleteModal, backTo]);
 
     const prevValidatedDate = usePrevious(loginData?.validatedDate);
+    const isFocused = useIsFocused();
+    const [shouldNavigateOnFocus, setShouldNavigateOnFocus] = useState(false);
+
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (prevValidatedDate || !loginData?.validatedDate) {
             return;
         }
 
-        // Navigate to methods page on successful magic code verification
-        // validatedDate property is responsible to decide the status of the magic code verification
-        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+        if (isFocused) {
+            // Navigate to methods page on successful magic code verification.
+            // The validatedDate property indicates successful magic code verification.
+            Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+        } else {
+            // Set flag to navigate when screen regains focus
+            setShouldNavigateOnFocus(true);
+        }
     }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod, backTo]);
+
+    // Handle navigation when screen regains focus and flag is set
+    useEffect(() => {
+        if (!isFocused || !shouldNavigateOnFocus) {
+            return;
+        }
+        setShouldNavigateOnFocus(false);
+        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+    }, [isFocused]);
 
     useEffect(() => {
         setIsValidateCodeFormVisible(!loginData?.validatedDate);
