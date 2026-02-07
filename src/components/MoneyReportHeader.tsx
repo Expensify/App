@@ -1956,7 +1956,6 @@ function MoneyReportHeader({
                         onPress={() => {
                             setIsPDFModalVisible(false);
                         }}
-                        sentryLabel={CONST.SENTRY_LABEL.HEADER.PDF_BUTTON}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('common.close')}
                         wrapperStyle={[styles.pAbsolute, styles.r0]}

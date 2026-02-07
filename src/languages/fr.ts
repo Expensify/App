@@ -1275,8 +1275,8 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Supprimer des dépenses',
         }),
         deleteConfirmation: () => ({
-            one: 'Voulez-vous vraiment supprimer cette dépense ?',
-            other: 'Voulez-vous vraiment supprimer ces dépenses ?',
+            one: 'Voulez-vous vraiment supprimer cette dépense ?',
+            other: 'Voulez-vous vraiment supprimer ces dépenses ?',
         }),
         deleteReport: () => ({
             one: 'Supprimer le rapport',
