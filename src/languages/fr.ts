@@ -4030,24 +4030,13 @@ ${
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL]: 'Indirect',
             },
             budgetFrequency: {monthly: 'mensuel', yearly: 'annuel'},
-            budgetFrequencyUnit_PLACEHOLDER: 'FIXME',
-            deepDiveExpensifyCard: `<muted-text-label>Les transactions de la carte Expensify seront automatiquement exportées vers un « Compte de passif de carte Expensify » créé avec <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">notre intégration</a>.</muted-text-label>`,
-            youCantDowngradeInvoicing: `Vous ne pouvez pas rétrograder votre forfait sur un abonnement facturé. Pour discuter ou apporter des modifications à votre abonnement, contactez votre gestionnaire de compte ou Concierge pour obtenir de l'aide.`,
-            clientID: 'ID client',
-            clientIDInputLabel: 'ID client',
-            clientIDInputHint: "Entrez l'identifiant unique du client",
-=======
-            reimbursementChoice: {
-                [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES]: 'Direct',
-                [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO]: 'Aucun',
-                [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL]: 'Indirect',
-            },
-            budgetFrequency: {monthly: 'mensuel', yearly: 'annuel'},
             budgetFrequencyUnit: {monthly: 'mois', yearly: 'année'},
             budgetTypeForNotificationMessage: {tag: 'tag', category: 'catégorie'},
             policyExpenseChatName: (displayName: string) => `Dépenses de ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>Les transactions de la carte Expensify seront automatiquement exportées vers un « compte de passif de carte Expensify » créé avec <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">notre intégration</a>.</muted-text-label>`,
->>>>>>> theirs
+            clientID: 'ID client',
+            clientIDInputLabel: 'ID client',
+            clientIDInputHint: "Entrez l'identifiant unique du client",
         },
         receiptPartners: {
             uber: {
