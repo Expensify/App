@@ -10,6 +10,7 @@ function WebGenericPressable({focusable = true, ref, sentryLabel, ...props}: Pre
         <GenericPressable
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
+            fullDisabled={!!props.fullDisabled || !!props.disabled}
             ref={ref}
             // change native accessibility props to web accessibility props
             focusable={focusable}
