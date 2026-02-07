@@ -2,6 +2,7 @@ import {accountIDSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -22,7 +23,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
-import ConfirmModal from './ConfirmModal';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import type {PopoverMenuItem} from './PopoverMenu';
@@ -57,9 +57,9 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
 
     const buttonRef = useRef<HTMLDivElement>(null);
     const {windowHeight} = useWindowDimensions();
+    const {showConfirmModal} = useConfirmModal();
 
     const [shouldShowDelegatorMenu, setShouldShowDelegatorMenu] = useState(false);
-    const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
     const delegators = account?.delegatedAccess?.delegators ?? [];
 
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
@@ -143,7 +143,14 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                 createBaseMenuItem(delegatePersonalDetails, error, {
                     onSelected: () => {
                         if (isOffline) {
-                            close(() => setShouldShowOfflineModal(true));
+                            close(() => {
+                                showConfirmModal({
+                                    title: translate('common.youAppearToBeOffline'),
+                                    prompt: translate('common.offlinePrompt'),
+                                    confirmText: translate('common.buttonConfirm'),
+                                    shouldShowCancelButton: false,
+                                });
+                            });
                             return;
                         }
                         disconnect({stashedCredentials, stashedSession});
@@ -163,7 +170,14 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                     badgeText: translate('delegate.role', {role}),
                     onSelected: () => {
                         if (isOffline) {
-                            close(() => setShouldShowOfflineModal(true));
+                            close(() => {
+                                showConfirmModal({
+                                    title: translate('common.youAppearToBeOffline'),
+                                    prompt: translate('common.offlinePrompt'),
+                                    confirmText: translate('common.buttonConfirm'),
+                                    shouldShowCancelButton: false,
+                                });
+                            });
                             return;
                         }
                         connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID});
@@ -268,15 +282,6 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                     shouldUpdateFocusedIndex={false}
                 />
             )}
-            <ConfirmModal
-                title={translate('common.youAppearToBeOffline')}
-                isVisible={shouldShowOfflineModal}
-                onConfirm={() => setShouldShowOfflineModal(false)}
-                onCancel={() => setShouldShowOfflineModal(false)}
-                confirmText={translate('common.buttonConfirm')}
-                prompt={translate('common.offlinePrompt')}
-                shouldShowCancelButton={false}
-            />
         </>
     );
 }

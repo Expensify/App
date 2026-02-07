@@ -1,7 +1,8 @@
 import {emailSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import type {ReactElement} from 'react';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -22,7 +23,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Button from './Button';
-import ConfirmModal from './ConfirmModal';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import RenderHTML from './RenderHTML';
 
@@ -66,15 +66,11 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, ac
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
     const {isBetaEnabled} = usePermissions();
-    const [isPreventionModalVisible, setPreventionModalVisibility] = useState(false);
-    const [isVerificationModalVisible, setVerificationModalVisibility] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const activePolicies = getActivePolicies(policies, currentUserLogin);
     const groupPaidPolicies = activePolicies.filter((activePolicy) => activePolicy.type !== CONST.POLICY.TYPE.PERSONAL && isPaidGroupPolicy(activePolicy));
-
-    const hidePreventionModal = () => setPreventionModalVisibility(false);
-    const hideVerificationModal = () => setVerificationModalVisibility(false);
 
     useEffect(() => {
         if (!errorMessage) {
@@ -83,11 +79,21 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, ac
         setShouldScrollToBottom?.(true);
     }, [errorMessage, setShouldScrollToBottom]);
 
-    const bookATrip = useCallback(() => {
+    const bookATrip = () => {
         setErrorMessage('');
 
         if (isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL)) {
-            setPreventionModalVisibility(true);
+            showConfirmModal({
+                title: translate('travel.blockedFeatureModal.title'),
+                titleStyles: styles.textHeadlineH1,
+                titleContainerStyles: styles.mb2,
+                prompt: translate('travel.blockedFeatureModal.message'),
+                promptStyles: styles.mb2,
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+                image: illustrations.RocketDude,
+                imageStyles: StyleUtils.getBackgroundColorStyle(colors.ice600),
+            });
             return;
         }
 
@@ -130,7 +136,17 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, ac
                 return;
             }
             if (shouldShowVerifyAccountModal) {
-                setVerificationModalVisibility(true);
+                showConfirmModal({
+                    title: translate('travel.verifyCompany.title'),
+                    titleStyles: styles.textHeadlineH1,
+                    titleContainerStyles: styles.mb2,
+                    prompt: translate('travel.verifyCompany.message'),
+                    promptStyles: styles.mb2,
+                    confirmText: translate('common.buttonConfirm'),
+                    shouldShowCancelButton: false,
+                    image: illustrations.RocketDude,
+                    imageStyles: StyleUtils.getBackgroundColorStyle(colors.ice600),
+                });
             }
             if (!travelSettings?.lastTravelSignupRequestTime) {
                 requestTravelAccess();
@@ -161,19 +177,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, ac
         } else {
             Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR.getRoute(activePolicyID, Navigation.getActiveRoute()));
         }
-    }, [
-        primaryContactMethod,
-        policy,
-        groupPaidPolicies.length,
-        travelSettings?.hasAcceptedTerms,
-        travelSettings?.lastTravelSignupRequestTime,
-        isBetaEnabled,
-        translate,
-        isUserValidated,
-        phoneErrorMethodsRoute,
-        activePolicyID,
-        shouldShowVerifyAccountModal,
-    ]);
+    };
 
     return (
         <>
@@ -200,34 +204,6 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, ac
                     type="error"
                 />
             )}
-            <ConfirmModal
-                title={translate('travel.blockedFeatureModal.title')}
-                titleStyles={styles.textHeadlineH1}
-                titleContainerStyles={styles.mb2}
-                onConfirm={hidePreventionModal}
-                onCancel={hidePreventionModal}
-                image={illustrations.RocketDude}
-                imageStyles={StyleUtils.getBackgroundColorStyle(colors.ice600)}
-                isVisible={isPreventionModalVisible}
-                prompt={translate('travel.blockedFeatureModal.message')}
-                promptStyles={styles.mb2}
-                confirmText={translate('common.buttonConfirm')}
-                shouldShowCancelButton={false}
-            />
-            <ConfirmModal
-                title={translate('travel.verifyCompany.title')}
-                titleStyles={styles.textHeadlineH1}
-                titleContainerStyles={styles.mb2}
-                onConfirm={hideVerificationModal}
-                onCancel={hideVerificationModal}
-                image={illustrations.RocketDude}
-                imageStyles={StyleUtils.getBackgroundColorStyle(colors.ice600)}
-                isVisible={isVerificationModalVisible}
-                prompt={translate('travel.verifyCompany.message')}
-                promptStyles={styles.mb2}
-                confirmText={translate('common.buttonConfirm')}
-                shouldShowCancelButton={false}
-            />
         </>
     );
 }
