@@ -59,6 +59,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {OnyxDataWithErrors} from '@libs/ErrorUtils';
 import {getLatestErrorMessageField, isReceiptError} from '@libs/ErrorUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
@@ -571,10 +572,12 @@ function PureReportActionItem({
     const prevDraftMessage = usePrevious(draftMessage);
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
     const [isReportActionActive, setIsReportActionActive] = useState(!!isReportActionLinked);
+    const isNarrowLayout = getIsNarrowLayout();
     const isActionableWhisper =
         isActionableMentionWhisper(action) || isActionableMentionInviteToSubmitExpenseConfirmWhisper(action) || isActionableTrackExpense(action) || isActionableReportMentionWhisper(action);
     const isReportArchived = useReportIsArchived(reportID);
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
+    const isInlineEditing = !isNarrowLayout && draftMessage !== undefined;
     const isHarvestCreatedExpenseReport = isHarvestCreatedExpenseReportUtils(reportNameValuePairsOrigin, reportNameValuePairsOriginalID);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Eye'] as const);
 
@@ -1775,7 +1778,7 @@ function PureReportActionItem({
                 <MentionReportContext.Provider value={mentionReportContextValue}>
                     <ShowContextMenuContext.Provider value={contextValue}>
                         <AttachmentContext.Provider value={attachmentContextValue}>
-                            {draftMessage === undefined ? (
+                            {!isInlineEditing ? (
                                 <View style={displayAsGroup && hasBeenFlagged ? styles.blockquote : {}}>
                                     <ReportActionItemMessage
                                         reportID={reportID}
@@ -1924,7 +1927,7 @@ function PureReportActionItem({
             return emptyHTML;
         }
 
-        if (draftMessage !== undefined) {
+        if (!isNarrowLayout && draftMessage !== undefined) {
             return <ReportActionItemDraft>{content}</ReportActionItemDraft>;
         }
 
@@ -1932,7 +1935,7 @@ function PureReportActionItem({
             return (
                 <ReportActionItemSingle
                     action={action}
-                    showHeader={draftMessage === undefined}
+                    showHeader={draftMessage === undefined || isNarrowLayout}
                     wrapperStyle={{
                         ...(isOnSearch && styles.p0),
                         ...(isWhisper && styles.pt1),

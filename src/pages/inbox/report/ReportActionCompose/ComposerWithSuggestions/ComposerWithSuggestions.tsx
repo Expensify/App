@@ -249,15 +249,57 @@ function ComposerWithSuggestions({
     const cursorPositionValue = useSharedValue({x: 0, y: 0});
     const tag = useSharedValue(-1);
     const [draftComment = ''] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, {canBeMissing: true});
-    const [value, setValue] = useState(() => {
-        if (draftComment) {
-            emojisPresentBefore.current = extractEmojis(draftComment);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+
+    const [allActionDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS, {canBeMissing: true});
+    const activeInlineEdit = useMemo(() => {
+        if (!shouldUseNarrowLayout) {
+            return null;
         }
-        return draftComment;
+
+        const reportDrafts = allActionDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`];
+
+        if (!reportDrafts) {
+            return null;
+        }
+
+        const entry = Object.entries(reportDrafts).find(([, d]) => d?.message);
+
+        if (!entry) {
+            return null;
+        }
+
+        const [reportActionID, draft] = entry;
+
+        return {
+            reportActionID,
+            message: draft?.message ?? '',
+        };
+    }, [allActionDrafts, reportID, shouldUseNarrowLayout]);
+
+    const initialValue = shouldUseNarrowLayout ? (activeInlineEdit?.message ?? draftComment) : draftComment;
+
+    const [value, setValue] = useState(() => {
+        if (initialValue) {
+            emojisPresentBefore.current = extractEmojis(initialValue);
+        }
+        return initialValue;
     });
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const commentRef = useRef(value);
+
+    useEffect(() => {
+        if (!shouldUseNarrowLayout) {
+            return;
+        }
+
+        const nextValue = activeInlineEdit?.message ?? draftComment ?? '';
+
+        emojisPresentBefore.current = extractEmojis(nextValue);
+        setValue(nextValue);
+        commentRef.current = nextValue;
+    }, [activeInlineEdit?.message, activeInlineEdit?.reportActionID, draftComment, shouldUseNarrowLayout]);
 
     const {superWideRHPRouteKeys} = useWideRHPState();
     // Autofocus is disabled on SearchReport when another RHP is displayed below as it causes animation issues
@@ -272,7 +314,6 @@ function ComposerWithSuggestions({
         lastTextRef.current = value;
     }, [value]);
 
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const maxComposerLines = shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
     const shouldAutoFocus =
         (shouldFocusInputOnScreenFocus || !!draftComment) && shouldShowComposeInput && areAllModalsHidden() && isFocused && !didHideComposerInput && !shouldDisableAutoFocus;
@@ -324,10 +365,13 @@ function ComposerWithSuggestions({
     const debouncedSaveReportComment = useMemo(
         () =>
             lodashDebounce((selectedReportID: string, newComment: string | null) => {
+                if (shouldUseNarrowLayout) {
+                    return;
+                }
                 saveReportDraftComment(selectedReportID, newComment);
                 isCommentPendingSaved.current = false;
             }, 1000),
-        [],
+        [shouldUseNarrowLayout],
     );
 
     useEffect(() => {
@@ -460,14 +504,24 @@ function ComposerWithSuggestions({
             }
 
             commentRef.current = newCommentConverted;
+            if (shouldUseNarrowLayout) {
+                const editingReportActionID = activeInlineEdit?.reportActionID;
+
+                if (editingReportActionID) {
+                    saveReportActionDraft(reportID, {reportActionID: editingReportActionID} as OnyxTypes.ReportAction, newCommentConverted);
+                }
+
+                if (newCommentConverted) {
+                    debouncedBroadcastUserIsTyping(reportID, currentUserAccountID);
+                }
+                return;
+            }
+
             if (shouldDebounceSaveComment) {
                 isCommentPendingSaved.current = true;
                 debouncedSaveReportComment(reportID, newCommentConverted);
             } else {
                 saveReportDraftComment(reportID, newCommentConverted);
-            }
-            if (newCommentConverted) {
-                debouncedBroadcastUserIsTyping(reportID, currentUserAccountID);
             }
         },
         [
@@ -479,6 +533,8 @@ function ComposerWithSuggestions({
             suggestionsRef,
             raiseIsScrollLikelyLayoutTriggered,
             debouncedSaveReportComment,
+            activeInlineEdit?.reportActionID,
+            shouldUseNarrowLayout,
             selection?.end,
             selection?.start,
             currentUserAccountID,
@@ -918,7 +974,7 @@ function ComposerWithSuggestions({
                 resetKeyboardInput={resetKeyboardInput}
             />
 
-            {isValidReportIDFromPath(reportID) && (
+            {isValidReportIDFromPath(reportID) && !shouldUseNarrowLayout && (
                 <SilentCommentUpdater
                     reportID={reportID}
                     value={value}

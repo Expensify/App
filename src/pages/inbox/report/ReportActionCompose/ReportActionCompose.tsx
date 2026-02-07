@@ -36,6 +36,7 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
+import draftMessageVideoAttributeCache from '@libs/DraftMessageVIdeoAttributeCache';
 import FS from '@libs/Fullstory';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Performance from '@libs/Performance';
@@ -65,7 +66,7 @@ import AgentZeroProcessingRequestIndicator from '@pages/inbox/report/AgentZeroPr
 import ParticipantLocalTime from '@pages/inbox/report/ParticipantLocalTime';
 import ReportTypingIndicator from '@pages/inbox/report/ReportTypingIndicator';
 import {hideEmojiPicker, isActive as isActiveEmojiPickerAction, isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
-import {addAttachmentWithComment, setIsComposerFullSize} from '@userActions/Report';
+import {addAttachmentWithComment, deleteReportActionDraft, editReportComment, setIsComposerFullSize} from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
 import CONST from '@src/CONST';
@@ -148,6 +149,7 @@ function ReportActionCompose({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
+    const {email} = useCurrentUserPersonalDetails();
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
@@ -159,6 +161,28 @@ function ReportActionCompose({
     const [initialModalState] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
     const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, {canBeMissing: true});
+    const [allActionDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS, {canBeMissing: true});
+
+    const activeInlineDraft = useMemo(() => {
+        const reportDrafts = allActionDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`];
+
+        if (!reportDrafts) {
+            return null;
+        }
+
+        const entry = Object.entries(reportDrafts).find(([, draft]) => draft?.message);
+
+        if (!entry) {
+            return null;
+        }
+
+        const [reportActionID, draft] = entry;
+
+        return {
+            reportActionID,
+            message: draft.message,
+        };
+    }, [allActionDrafts, reportID]);
 
     const shouldFocusComposerOnScreenFocus = shouldFocusInputOnScreenFocus || !!draftComment;
 
@@ -177,8 +201,10 @@ function ReportActionCompose({
 
     const {isScrollLayoutTriggered, raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();
 
+    const effectiveDraft = shouldUseNarrowLayout ? activeInlineDraft?.message : draftComment;
+
     const [isCommentEmpty, setIsCommentEmpty] = useState(() => {
-        return !draftComment || !!draftComment.match(CONST.REGEX.EMPTY_COMMENT);
+        return !effectiveDraft || !!effectiveDraft.match(CONST.REGEX.EMPTY_COMMENT);
     });
 
     /**
@@ -229,6 +255,27 @@ function ReportActionCompose({
         canEvict: false,
         canBeMissing: true,
     });
+
+    const [reportActionDrafts] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`, {canBeMissing: true});
+
+    const editingReportActionID = useMemo(() => {
+        if (!reportActionDrafts) {
+            return null;
+        }
+
+        const entry = Object.entries(reportActionDrafts).find(([, draft]) => draft?.message);
+        return entry?.[0] ?? null;
+    }, [reportActionDrafts]);
+
+    const editingReportAction = useMemo(() => {
+        if (!editingReportActionID || !reportActions) {
+            return null;
+        }
+
+        return reportActions[editingReportActionID] ?? null;
+    }, [editingReportActionID, reportActions]);
+
+    const isEditingInline = shouldUseNarrowLayout && !!editingReportAction;
 
     const personalDetail = useCurrentUserPersonalDetails();
 
@@ -336,6 +383,16 @@ function ReportActionCompose({
         (newComment: string) => {
             const newCommentTrimmed = newComment.trim();
 
+            if (!newCommentTrimmed && !attachmentFileRef.current) {
+                return;
+            }
+
+            if (isEditingInline && !attachmentFileRef.current) {
+                editReportComment(report, editingReportAction, ancestors, newCommentTrimmed, isReportArchived, false, email ?? '', Object.fromEntries(draftMessageVideoAttributeCache));
+                deleteReportActionDraft(reportID, editingReportAction);
+                return;
+            }
+
             if (isConciergeChat) {
                 kickoffWaitingIndicator();
             }
@@ -357,7 +414,21 @@ function ReportActionCompose({
                 onSubmit(newCommentTrimmed);
             }
         },
-        [isConciergeChat, kickoffWaitingIndicator, transactionThreadReport, report, reportID, ancestors, personalDetail.timezone, onSubmit, isInSidePanel],
+        [
+            isEditingInline,
+            isConciergeChat,
+            report,
+            editingReportAction,
+            ancestors,
+            isReportArchived,
+            email,
+            reportID,
+            kickoffWaitingIndicator,
+            transactionThreadReport,
+            personalDetail.timezone,
+            isInSidePanel,
+            onSubmit,
+        ],
     );
 
     const onTriggerAttachmentPicker = useCallback(() => {
@@ -384,6 +455,11 @@ function ReportActionCompose({
         setIsFocused(true);
         onComposerFocus?.();
     }, [onComposerFocus]);
+
+    useEffect(() => {
+        const valueToCheck = shouldUseNarrowLayout ? activeInlineDraft?.message : draftComment;
+        setIsCommentEmpty(!valueToCheck || !!valueToCheck.match(CONST.REGEX.EMPTY_COMMENT));
+    }, [activeInlineDraft?.message, draftComment, shouldUseNarrowLayout]);
 
     useEffect(() => {
         if (hasExceededMaxTaskTitleLength) {
