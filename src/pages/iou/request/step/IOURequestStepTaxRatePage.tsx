@@ -68,7 +68,28 @@ function IOURequestStepTaxRatePage({
 
     const taxRateTitle = getTaxName(policy, currentTransaction);
 
-    const updateTaxRates = (taxes: TaxRatesOption) => {
+    const updateTaxRates = (taxes: TaxRatesOption, shouldClearTax?: boolean) => {
+        const updateTaxRateParams = {
+            transactionID: currentTransaction?.transactionID,
+            transactionThreadReport: report,
+            parentReport,
+            taxCode: '',
+            taxValue: '',
+            taxAmount: 0,
+            policy,
+            policyTagList: policyTags,
+            policyCategories,
+            currentUserAccountIDParam,
+            currentUserEmailParam,
+            isASAPSubmitBetaEnabled,
+            parentReportNextStep,
+        };
+
+        if (shouldClearTax && isEditing) {
+            updateMoneyRequestTaxRate(updateTaxRateParams);
+            navigateBack();
+            return;
+        }
         if (!currentTransaction || !taxes.code || !taxRates) {
             Navigation.goBack();
             return;
@@ -88,21 +109,7 @@ function IOURequestStepTaxRatePage({
 
         if (isEditing) {
             const newTaxCode = taxes.code;
-            updateMoneyRequestTaxRate({
-                transactionID: currentTransaction?.transactionID,
-                transactionThreadReport: report,
-                parentReport,
-                taxCode: newTaxCode,
-                taxValue,
-                taxAmount: convertToBackendAmount(taxAmount ?? 0),
-                policy,
-                policyTagList: policyTags,
-                policyCategories,
-                currentUserAccountIDParam,
-                currentUserEmailParam,
-                isASAPSubmitBetaEnabled,
-                parentReportNextStep,
-            });
+            updateMoneyRequestTaxRate({...updateTaxRateParams, taxCode: newTaxCode, taxValue, taxAmount: convertToBackendAmount(taxAmount ?? 0)});
             navigateBack();
             return;
         }
