@@ -2703,8 +2703,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                         5. 在右上角添加你自己的类别。
 
                         [带我前往工作区类别设置](${workspaceCategoriesLink})。
-
-                        ![设置类别](${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)`),
+                    `),
             },
             combinedTrackSubmitExpenseTask: {
                 title: '提交报销',
@@ -2795,8 +2794,7 @@ ${
                         5. 如有需要，可添加自定义邀请消息！
 
                         [带我前往工作区成员页面](${workspaceMembersLink})。
-
-                        ![邀请您的团队](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`),
+                    `),
             },
             setupCategoriesAndTags: {
                 title: ({workspaceCategoriesLink, workspaceTagsLink}) => `设置[类别](${workspaceCategoriesLink})和[标签](${workspaceTagsLink})`,
@@ -2821,7 +2819,7 @@ ${
 
                         [带我前往更多功能](${workspaceMoreFeaturesLink})。
 
-                        ![设置标签](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`),
+                    `),
             },
             inviteAccountantTask: {
                 title: ({workspaceMembersLink}) => `邀请你的[会计](${workspaceMembersLink})`,

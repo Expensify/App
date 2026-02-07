@@ -2736,8 +2736,7 @@ ${date} の ${merchant} への ${amount}`,
                         5. 右上で独自のカテゴリを追加します。
 
                         [ワークスペースのカテゴリ設定に移動](${workspaceCategoriesLink})。
-
-                        ![カテゴリを設定](${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)`),
+                    `),
             },
             combinedTrackSubmitExpenseTask: {
                 title: '経費を送信',
@@ -2828,8 +2827,7 @@ ${
                         5. 必要に応じて、招待メッセージを追加します。
 
                         [ワークスペースのメンバー画面へ移動](${workspaceMembersLink})。
-
-                        ![チームを招待](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`),
+                    `),
             },
             setupCategoriesAndTags: {
                 title: ({workspaceCategoriesLink, workspaceTagsLink}) => `[カテゴリ](${workspaceCategoriesLink})と[タグ](${workspaceTagsLink})を設定する`,
@@ -2854,7 +2852,7 @@ ${
 
                         [その他の機能に移動](${workspaceMoreFeaturesLink})。
 
-                        ![タグを設定](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`),
+                    `),
             },
             inviteAccountantTask: {
                 title: ({workspaceMembersLink}) => `[会計士](${workspaceMembersLink})を招待する`,
