@@ -10,7 +10,7 @@ Admins can manually create one level of tags or multiple levels of tags for a wo
 
 The Tags table displays the tag **Name**, **GL Code** (if assigned), and whether it's **Required** for expenses.
 
-![The Tags tab]({{site.url}}/assets/images/ExpensifyHelp_R4_Tags_2.png){:width="100%"}
+![The Tags tab]({{site.url}}/assets/images/NewExpensify_ManageTags_3.png){:width="100%"}
 
 ---
 
@@ -22,8 +22,6 @@ Before you can manage tags, you need to enable the **Tags** feature for your wor
 2. Click your **workspace name**.
 3. Click **More Features** in the left menu.
 4. In the **Organize** section, toggle on **Tags**.
-
-![The toggle to enable Tags]({{site.url}}/assets/images/ExpensifyHelp_R4_Tags_1.png){:width="100%"}
 
 ---
 
