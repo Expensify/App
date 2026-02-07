@@ -7164,6 +7164,8 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 currency,
                 comment,
                 distance: distance !== undefined ? roundToTwoDecimalPlaces(distance) : undefined,
+                odometerStart,
+                odometerEnd,
                 created,
                 merchant,
                 iouReportID: iouReport?.reportID,
@@ -7194,7 +7196,11 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 customUnitRateID,
                 description: parsedComment,
                 gpsCoordinates,
-                isDistance: isGPSDistanceRequest || isMapDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction),
+                isDistance:
+                    isGPSDistanceRequest ||
+                    isMapDistanceRequest(transaction) ||
+                    isManualDistanceRequestTransactionUtils(transaction) ||
+                    isOdometerDistanceRequestTransactionUtils(transaction),
             };
             if (actionableWhisperReportActionIDParam) {
                 parameters.actionableWhisperReportActionID = actionableWhisperReportActionIDParam;
