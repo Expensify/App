@@ -348,7 +348,7 @@ function getCustomUnitRateID({
 function getTaxableAmount(policy: OnyxEntry<Policy>, customUnitRateID: string, distance: number) {
     const distanceUnit = getDistanceRateCustomUnit(policy);
     const customUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
-    if (!distanceUnit?.customUnitID || !customUnitRate) {
+    if (!distanceUnit?.customUnitID || !customUnitRate || !customUnitRate?.attributes?.taxRateExternalID) {
         return 0;
     }
     const unit = distanceUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
