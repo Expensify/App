@@ -189,7 +189,7 @@ function AccountDetailsPage() {
                 >
                     <View style={[styles.flexGrow1, styles.mt3]}>
                         <View style={[styles.renderHTML]}>
-                            <RenderHTML html={translate('mergeAccountsPage.accountDetails.accountToMergeInto', {login: userEmailOrPhone ?? ''})} />
+                            <RenderHTML html={translate('mergeAccountsPage.accountDetails.accountToMergeInto', userEmailOrPhone ?? '')} />
                         </View>
                         <InputWrapper
                             ref={inputCallbackRef}

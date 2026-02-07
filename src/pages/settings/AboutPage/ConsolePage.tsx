@@ -217,9 +217,7 @@ function ConsolePage() {
                 isVisible={isLimitModalVisible}
                 onConfirm={() => setIsLimitModalVisible(false)}
                 onCancel={() => setIsLimitModalVisible(false)}
-                prompt={translate('initialSettingsPage.debugConsole.logSizeTooLarge', {
-                    size: CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE / 1024 / 1024,
-                })}
+                prompt={translate('initialSettingsPage.debugConsole.logSizeTooLarge', CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE / 1024 / 1024)}
                 shouldShowCancelButton={false}
                 confirmText={translate('common.ok')}
             />

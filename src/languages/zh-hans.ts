@@ -36,35 +36,13 @@ import type {
     ExportIntegrationSelectedParams,
     ImportPolicyCustomUnitRatesParams,
     IntacctMappingTitleParams,
-    IntegrationExportParams,
-    IntegrationSyncFailedParams,
     InvalidPropertyParams,
     InvalidValueParams,
-    IssueVirtualCardParams,
-    LastSyncAccountingParams,
-    LastSyncDateParams,
-    LearnMoreRouteParams,
-    LeftWorkspaceParams,
-    LocalTimeParams,
-    LogSizeParams,
-    ManagerApprovedAmountParams,
-    ManagerApprovedParams,
-    MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
-    MergeAccountIntoParams,
-    MergeFailureDescriptionGenericParams,
-    MergeFailureUncreatedAccountDescriptionParams,
-    MergeSuccessDescriptionParams,
     MissingPropertyParams,
-    MovedActionParams,
     MovedFromPersonalSpaceParams,
-    MovedFromReportParams,
-    MovedTransactionParams,
     MultifactorAuthenticationTranslationParams,
-    NeedCategoryForExportToIntegrationParams,
-    NewWorkspaceNameParams,
     NextStepParams,
-    NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     OptionalParam,
     PaidElsewhereParams,
@@ -839,7 +817,7 @@ const translations: TranslationDeepObject<typeof en> = {
         writeSomething: '写点什么…',
         blockedFromConcierge: '通信被禁止',
         fileUploadFailed: '上传失败。不支持该文件。',
-        localTime: ({user, time}: LocalTimeParams) => `现在是${user}的${time}`,
+        localTime: (user: string, time: string) => `现在是 ${user} 的 ${time}`,
         edited: '（已编辑）',
         emoji: '表情符号',
         collapse: '折叠',
@@ -1188,11 +1166,11 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteReceipt: '删除收据',
         findExpense: '查找报销',
         deletedTransaction: (amount: string, merchant: string) => `已删除一笔报销（${merchant} 的 ${amount}）`,
-        movedFromReport: ({reportName}: MovedFromReportParams) => `已移动一笔报销${reportName ? `来自${reportName}` : ''}`,
-        movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `已移动此报销${reportName ? `到 <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `已移动此报销${reportName ? `来自 <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `已将此报销移动到你的<a href="${reportUrl}">个人空间</a>`,
-        movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
+        movedFromReport: (reportName: string) => `已移动一笔报销${reportName ? `来自${reportName}` : ''}`,
+        movedTransactionTo: (reportUrl: string, reportName?: string) => `已移动此报销${reportName ? `到 <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionFrom: (reportUrl: string, reportName?: string) => `已移动此报销${reportName ? `来自 <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        unreportedTransaction: (reportUrl: string) => `已将此报销移动到你的<a href="${reportUrl}">个人空间</a>`,
+        movedAction: (shouldHideMovedReportUrl: boolean, movedReportUrl: string, newParentReportUrl: string, toPolicyName: string) => {
             if (shouldHideMovedReportUrl) {
                 return `已将此报表移动到<a href="${newParentReportUrl}">${toPolicyName}</a>工作区`;
             }
@@ -1299,8 +1277,8 @@ const translations: TranslationDeepObject<typeof en> = {
         payerPaid: (payer: string) => `${payer} 已支付：`,
         payerSpentAmount: (amount: number | string, payer?: string) => `${payer} 支出了 ${amount}`,
         payerSpent: (payer: string) => `${payer} 支出：`,
-        managerApproved: ({manager}: ManagerApprovedParams) => `${manager} 已批准：`,
-        managerApprovedAmount: ({manager, amount}: ManagerApprovedAmountParams) => `${manager} 已批准 ${amount}`,
+        managerApproved: (manager: string) => `${manager} 已批准：`,
+        managerApprovedAmount: (manager: string, amount: number | string) => `${manager} 已批准 ${amount}`,
         payerSettled: (amount: number | string) => `已支付 ${amount}`,
         payerSettledWithMissingBankAccount: (amount: number | string) => `已支付 ${amount}。添加一个银行账户以接收你的付款。`,
         automaticallyApproved: `通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>批准`,
@@ -1906,7 +1884,7 @@ const translations: TranslationDeepObject<typeof en> = {
             enterCommand: '输入命令',
             execute: '执行',
             noLogsAvailable: '无可用日志',
-            logSizeTooLarge: ({size}: LogSizeParams) => `日志大小超过 ${size} MB 限制。请使用“保存日志”来下载日志文件。`,
+            logSizeTooLarge: (size: number) => `日志大小超过 ${size} MB 限制。请使用“保存日志”来下载日志文件。`,
             logs: '日志',
             viewConsole: '查看控制台',
         },
@@ -1936,13 +1914,13 @@ const translations: TranslationDeepObject<typeof en> = {
     mergeAccountsPage: {
         mergeAccount: '合并账户',
         accountDetails: {
-            accountToMergeInto: ({login}: MergeAccountIntoParams) => `输入要与 <strong>${login}</strong> 合并的账户。`,
+            accountToMergeInto: (login: string) => `输入要与 <strong>${login}</strong> 合并的账户。`,
             notReversibleConsent: '我明白此操作无法撤销',
         },
         accountValidate: {
             confirmMerge: '确定要合并账户吗？',
-            lossOfUnsubmittedData: ({login}: MergeAccountIntoParams) => `合并您的账户后将无法撤销，并且会导致 <strong>${login}</strong> 的所有未提交报销被删除。`,
-            enterMagicCode: ({login}: MergeAccountIntoParams) => `要继续，请输入发送到 <strong>${login}</strong> 的魔法验证码。`,
+            lossOfUnsubmittedData: (login: string) => `合并您的账户后将无法撤销，并且会导致 <strong>${login}</strong> 的所有未提交报销被删除。`,
+            enterMagicCode: (login: string) => `要继续，请输入发送到 <strong>${login}</strong> 的魔法验证码。`,
             errors: {
                 incorrectMagicCode: '魔术验证码不正确或无效。请重试或请求新的验证码。',
                 fallback: '出现问题。请稍后再试。',
@@ -1950,7 +1928,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         mergeSuccess: {
             accountsMerged: '账户已合并！',
-            description: ({from, to}: MergeSuccessDescriptionParams) =>
+            description: (from: string, to: string) =>
                 `<muted-text><centered-text>您已成功将所有数据从 <strong>${from}</strong> 合并到 <strong>${to}</strong>。后续您可以使用任一登录方式访问此账户。</centered-text></muted-text>`,
         },
         mergePendingSAML: {
@@ -1959,22 +1937,22 @@ const translations: TranslationDeepObject<typeof en> = {
             reachOutForHelp: '<muted-text><centered-text>如果有任何问题，欢迎<concierge-link>联系 Concierge</concierge-link>！</centered-text></muted-text>',
             goToExpensifyClassic: '前往 Expensify 经典版',
         },
-        mergeFailureSAMLDomainControlDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+        mergeFailureSAMLDomainControlDescription: (email: string) =>
             `<muted-text><centered-text>您无法合并 <strong>${email}</strong>，因为它由 <strong>${email.split('@').at(1) ?? ''}</strong> 管理。请<concierge-link>联系 Concierge</concierge-link>获取帮助。</centered-text></muted-text>`,
-        mergeFailureSAMLAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+        mergeFailureSAMLAccountDescription: (email: string) =>
             `<muted-text><centered-text>你无法将<strong>${email}</strong>合并到其他账户中，因为你的域管理员已将其设置为你的主登录账号。请改为将其他账户合并到该账号中。</centered-text></muted-text>`,
         mergeFailure2FA: {
-            description: ({email}: MergeFailureDescriptionGenericParams) =>
+            description: (email: string) =>
                 `<muted-text><centered-text>由于 <strong>${email}</strong> 启用了两步验证（2FA），你无法合并账户。请先为 <strong>${email}</strong> 禁用两步验证，然后重试。</centered-text></muted-text>`,
             learnMore: '了解更多关于合并账户的信息。',
         },
-        mergeFailureAccountLockedDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+        mergeFailureAccountLockedDescription: (email: string) =>
             `<muted-text><centered-text>你无法合并 <strong>${email}</strong>，因为它已被锁定。请<concierge-link>联系 Concierge</concierge-link>获取帮助。</centered-text></muted-text>`,
-        mergeFailureUncreatedAccountDescription: ({email, contactMethodLink}: MergeFailureUncreatedAccountDescriptionParams) =>
+        mergeFailureUncreatedAccountDescription: (email: string, contactMethodLink: string) =>
             `<muted-text><centered-text>您无法合并账户，因为 <strong>${email}</strong> 没有 Expensify 账户。请改为<a href="${contactMethodLink}">将其添加为联系方式</a>。</centered-text></muted-text>`,
-        mergeFailureSmartScannerAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+        mergeFailureSmartScannerAccountDescription: (email: string) =>
             `<muted-text><centered-text>您不能将<strong>${email}</strong>合并到其他账户中。请改为将其他账户合并到该账户。</centered-text></muted-text>`,
-        mergeFailureInvoicedAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+        mergeFailureInvoicedAccountDescription: (email: string) =>
             `<muted-text><centered-text>你无法将其他账户合并到 <strong>${email}</strong>，因为此账户是一个已开具发票的账单关系的所有者。</centered-text></muted-text>`,
         mergeFailureTooManyAttempts: {
             heading: '请稍后再试',
@@ -2973,7 +2951,7 @@ ${
     },
     unlinkLoginForm: {
         toValidateLogin: ({primaryLogin, secondaryLogin}: ToValidateLoginParams) => `若要验证 ${secondaryLogin}，请从 ${primaryLogin} 的账户设置中重新发送魔法验证码。`,
-        noLongerHaveAccess: ({primaryLogin}: NoLongerHaveAccessParams) => `如果你已无法访问 ${primaryLogin}，请先解除账户关联。`,
+        noLongerHaveAccess: (primaryLogin: string) => `如果你已无法访问 ${primaryLogin}，请先解除账户关联。`,
         unlink: '取消关联',
         linkSent: '链接已发送！',
         successfullyUnlinkedLogin: '次要登录已成功取消关联！',
@@ -3904,7 +3882,7 @@ ${
             existingConnections: '现有连接',
             existingConnectionsDescription: ({connectionName}: ConnectionNameParams) =>
                 `由于你之前已连接到 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}，你可以选择复用现有连接或创建新连接。`,
-            lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - 上次同步时间：${formattedDate}`,
+            lastSyncDate: (connectionName: string, formattedDate: string) => `${connectionName} - 上次同步时间：${formattedDate}`,
             authenticationError: (connectionName: string) => `由于身份验证错误，无法连接到 ${connectionName}。`,
             learnMore: '了解详情',
             memberAlternateText: '提交并审批报销报告。',
@@ -4967,10 +4945,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             addShippingDetails: '添加收货详情',
             issuedCard: (assignee: string) => `已向 ${assignee} 发放一张 Expensify 卡！该卡将在 2–3 个工作日内送达。`,
             issuedCardNoShippingDetails: (assignee: string) => `已向 ${assignee} 发放 Expensify 卡！一旦收货信息确认，卡片将寄出。`,
-            issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `已为 ${assignee} 发放一张虚拟 Expensify 卡！${link} 可立即使用。`,
+            issuedCardVirtual: (assignee: string, link: string) => `已为 ${assignee} 发放一张虚拟 Expensify 卡！${link} 可立即使用。`,
             addedShippingDetails: (assignee: string) => `${assignee} 已添加邮寄详情。Expensify 卡将在 2-3 个工作日内送达。`,
             replacedCard: (assignee: string) => `${assignee} 已更换他们的 Expensify 卡。新卡将在 2–3 个工作日内送达。`,
-            replacedVirtualCard: ({assignee, link}: IssueVirtualCardParams) => `${assignee} 已更换他们的虚拟 Expensify 卡！${link} 可以立即使用。`,
+            replacedVirtualCard: (assignee: string, link: string) => `${assignee} 已更换他们的虚拟 Expensify 卡！${link} 可以立即使用。`,
             card: '卡片',
             replacementCard: '替换卡',
             verifyingHeader: '正在验证',
@@ -4998,7 +4976,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             deleteFailureMessage: '删除类别时出错，请重试',
             categoryName: '类别名称',
             requiresCategory: '成员必须为所有报销分类',
-            needCategoryForExportToIntegration: ({connectionName}: NeedCategoryForExportToIntegrationParams) => `要导出到 ${connectionName}，所有报销都必须先进行分类。`,
+            needCategoryForExportToIntegration: (connectionName: string) => `要导出到 ${connectionName}，所有报销都必须先进行分类。`,
             subtitle: '更好地了解资金的支出去向。使用我们的默认类别或添加你自己的类别。',
             emptyCategories: {
                 title: '你还没有创建任何类别',
@@ -5138,9 +5116,9 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 allCards: '所有卡片',
                 assignedCards: '已分配',
                 unassignedCards: '未分配',
-                integrationExport: ({integration, type}: IntegrationExportParams) => (integration && type ? `${integration} ${type.toLowerCase()} 导出` : `${integration} 导出`),
-                integrationExportTitleXero: ({integration}: IntegrationExportParams) => `选择要导出交易的 ${integration} 账户。`,
-                integrationExportTitle: ({integration, exportPageLink}: IntegrationExportParams) =>
+                integrationExport: (integration: string, type?: string) => (integration && type ? `${integration} ${type.toLowerCase()} 导出` : `${integration} 导出`),
+                integrationExportTitleXero: (integration: string) => `选择要导出交易的 ${integration} 账户。`,
+                integrationExportTitle: (integration: string, exportPageLink: string) =>
                     `选择要导出交易的 ${integration} 账户。选择其他<a href="${exportPageLink}">导出选项</a>以更改可用账户。`,
                 lastUpdated: '最近更新',
                 transactionStartDate: '交易开始日期',
@@ -5471,7 +5449,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             getTheExpensifyCardAndMore: '获取 Expensify 卡及更多服务',
             confirmWorkspace: '确认工作区',
             myGroupWorkspace: ({workspaceNumber}: {workspaceNumber?: number}) => `我的群组工作区${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
-            workspaceName: ({userName, workspaceNumber}: NewWorkspaceNameParams) => `${userName} 的工作区${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
+            workspaceName: (userName: string, workspaceNumber?: number) => `${userName} 的工作区${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
         },
         people: {
             genericFailureMessage: '从工作区移除成员时出错，请重试',
@@ -5613,7 +5591,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             errorODIntegration: (oldDotPolicyConnectionsURL: string) => `Expensify Classic 中已设置的某个连接出错。[前往 Expensify Classic 解决此问题](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: '前往 Expensify Classic 管理您的设置。',
             setup: '连接',
-            lastSync: ({relativeDate}: LastSyncAccountingParams) => `上次同步于 ${relativeDate}`,
+            lastSync: (relativeDate: string) => `上次同步于 ${relativeDate}`,
             notSync: '未同步',
             import: '导入',
             export: '导出',
@@ -6138,7 +6116,7 @@ ${reportName}
                 title: '升级到 Control 方案',
                 note: '解锁我们最强大的功能，包括：',
                 benefits: {
-                    startsAtFull: ({learnMoreMethodsRoute, formattedPrice, hasTeam2025Pricing}: LearnMoreRouteParams) =>
+                    startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
                         `<muted-text>Control 方案起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}，<a href="${learnMoreMethodsRoute}">了解更多</a>我们的方案和定价。</muted-text>`,
                     benefit1: '高级会计连接（NetSuite、Sage Intacct 等）',
                     benefit2: '智能报销规则',
@@ -7197,11 +7175,11 @@ ${reportName}
                     nonReimbursableLink: '公司卡消费',
                     pending: (label: string) => `已开始将此报表导出到 ${label}…`,
                 },
-                integrationsMessage: ({errorMessage, label, linkText, linkURL}: IntegrationSyncFailedParams) =>
+                integrationsMessage: (errorMessage: string, label: string, linkText?: string, linkURL?: string) =>
                     `未能将此报表导出到 ${label}（“${errorMessage}${linkText ? `<a href="${linkURL}">${linkText}</a>` : ''}”）`,
                 managerAttachReceipt: `已添加一张收据`,
                 managerDetachReceipt: `移除了报销单`,
-                markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `在其他地方已支付${currency}${amount}`,
+                markedReimbursed: (amount: string, currency: string) => `在其他地方已支付${currency}${amount}`,
                 markedReimbursedFromIntegration: ({amount, currency}: MarkReimbursedFromIntegrationParams) => `通过集成支付了 ${currency}${amount}`,
                 outdatedBankAccount: `由于付款方的银行账户出现问题，无法处理该付款`,
                 reimbursementACHBounce: `由于银行账户问题，无法处理付款`,
@@ -7214,7 +7192,7 @@ ${reportName}
                 unshare: ({to}: UnshareParams) => `已移除成员 ${to}`,
                 stripePaid: ({amount, currency}: StripePaidParams) => `已支付 ${currency}${amount}`,
                 takeControl: `取得控制权`,
-                integrationSyncFailed: ({label, errorMessage, workspaceAccountingLink}: IntegrationSyncFailedParams) =>
+                integrationSyncFailed: (label: string, errorMessage: string, workspaceAccountingLink?: string) =>
                     `与 ${label}${errorMessage ? ` ("${errorMessage}")` : ''} 同步时出现问题。请在<a href="${workspaceAccountingLink}">工作区设置</a>中修复此问题。`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `${feedName} 连接已中断。要恢复银行卡导入，请<a href='${workspaceCompanyCardRoute}'>登录您的银行账户</a>。`,
@@ -7234,14 +7212,14 @@ ${reportName}
                     }
                     return !previousValue ? `已将“${newValue}”添加到 ${email} 的自定义字段 2` : `将 ${email} 的自定义字段 2 更改为“${newValue}”（之前为“${previousValue}”）`;
                 },
-                leftWorkspace: ({nameOrEmail}: LeftWorkspaceParams) => `${nameOrEmail} 离开了工作区`,
+                leftWorkspace: (nameOrEmail: string) => `${nameOrEmail} 离开了工作区`,
                 removeMember: (email: string, role: string) => `已移除 ${role} ${email}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `已移除与 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} 的连接`,
                 addedConnection: ({connectionName}: ConnectionNameParams) => `已连接到 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: '已离开聊天',
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
                     `由于报销或 Expensify Card 结算出现问题，企业银行账户 ${maskedBankAccountNumber} 已被自动锁定。请在<a href="${linkURL}">工作区设置</a>中修复该问题。`,
-                leftTheChatWithName: ({nameOrEmail}: LeftWorkspaceParams) => `${nameOrEmail ? `${nameOrEmail}: ` : ''}离开了聊天`,
+                leftTheChatWithName: (nameOrEmail: string) => `${nameOrEmail ? `${nameOrEmail}: ` : ''}离开了聊天`,
             },
             error: {
                 invalidCredentials: '凭证无效，请检查您的连接配置。',

@@ -5274,10 +5274,7 @@ function getReportPreviewMessage(
 
     if (isReportApproved({report}) && isPaidGroupPolicy(report)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.managerApprovedAmount', {
-            manager: payerName ?? '',
-            amount: formattedAmount,
-        });
+        return translateLocal('iou.managerApprovedAmount', payerName ?? '', formattedAmount);
     }
 
     const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
@@ -6811,15 +6808,9 @@ function getMovedTransactionMessage(translate: LocalizedTranslate, action: Repor
     const reportName = getReportName(report) ?? report?.reportName ?? '';
     const reportUrl = getReportURLForCurrentContext(report?.reportID);
     if (typeof fromReportID === 'undefined') {
-        return translate('iou.movedTransactionTo', {
-            reportUrl,
-            reportName,
-        });
+        return translate('iou.movedTransactionTo', reportUrl, reportName);
     }
-    return translate('iou.movedTransactionFrom', {
-        reportUrl,
-        reportName,
-    });
+    return translate('iou.movedTransactionFrom', reportUrl, reportName);
 }
 
 function getUnreportedTransactionMessage(translate: LocalizedTranslate, action: ReportAction) {
@@ -6836,15 +6827,10 @@ function getUnreportedTransactionMessage(translate: LocalizedTranslate, action: 
 
     if (fromReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         reportUrl = `${environmentURL}/r/${findSelfDMReportID()}`;
-        return translate('iou.unreportedTransaction', {
-            reportUrl,
-        });
+        return translate('iou.unreportedTransaction', reportUrl);
     }
 
-    return translate('iou.movedTransactionFrom', {
-        reportUrl,
-        reportName,
-    });
+    return translate('iou.movedTransactionFrom', reportUrl, reportName);
 }
 
 function getMovedActionMessage(translate: LocalizedTranslate, action: ReportAction, report: OnyxEntry<Report>) {
@@ -6858,12 +6844,7 @@ function getMovedActionMessage(translate: LocalizedTranslate, action: ReportActi
     }
     const {toPolicyID, newParentReportID, movedReportID} = movedActionOriginalMessage;
     const toPolicyName = getPolicyNameByID(toPolicyID);
-    return translate('iou.movedAction', {
-        shouldHideMovedReportUrl: !isDM(report),
-        movedReportUrl: getReportURLForCurrentContext(movedReportID),
-        newParentReportUrl: getReportURLForCurrentContext(newParentReportID),
-        toPolicyName,
-    });
+    return translate('iou.movedAction', !isDM(report), getReportURLForCurrentContext(movedReportID), getReportURLForCurrentContext(newParentReportID), toPolicyName);
 }
 
 function getPolicyChangeMessage(translate: LocalizedTranslate, action: ReportAction) {

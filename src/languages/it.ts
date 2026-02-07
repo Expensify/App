@@ -36,35 +36,13 @@ import type {
     ExportIntegrationSelectedParams,
     ImportPolicyCustomUnitRatesParams,
     IntacctMappingTitleParams,
-    IntegrationExportParams,
-    IntegrationSyncFailedParams,
     InvalidPropertyParams,
     InvalidValueParams,
-    IssueVirtualCardParams,
-    LastSyncAccountingParams,
-    LastSyncDateParams,
-    LearnMoreRouteParams,
-    LeftWorkspaceParams,
-    LocalTimeParams,
-    LogSizeParams,
-    ManagerApprovedAmountParams,
-    ManagerApprovedParams,
-    MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
-    MergeAccountIntoParams,
-    MergeFailureDescriptionGenericParams,
-    MergeFailureUncreatedAccountDescriptionParams,
-    MergeSuccessDescriptionParams,
     MissingPropertyParams,
-    MovedActionParams,
     MovedFromPersonalSpaceParams,
-    MovedFromReportParams,
-    MovedTransactionParams,
     MultifactorAuthenticationTranslationParams,
-    NeedCategoryForExportToIntegrationParams,
-    NewWorkspaceNameParams,
     NextStepParams,
-    NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     OptionalParam,
     PaidElsewhereParams,
@@ -848,7 +826,7 @@ const translations: TranslationDeepObject<typeof en> = {
         writeSomething: 'Scrivi qualcosa...',
         blockedFromConcierge: 'Comunicazione bloccata',
         fileUploadFailed: 'Caricamento non riuscito. File non supportato.',
-        localTime: ({user, time}: LocalTimeParams) => `Sono le ${time} per ${user}`,
+        localTime: (user: string, time: string) => `Sono le ${time} per ${user}`,
         edited: '(modificato)',
         emoji: 'Emoji',
         collapse: 'Comprimi',
@@ -1208,11 +1186,11 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteReceipt: 'Elimina ricevuta',
         findExpense: 'Trova spesa',
         deletedTransaction: (amount: string, merchant: string) => `ha eliminato una spesa (${amount} per ${merchant})`,
-        movedFromReport: ({reportName}: MovedFromReportParams) => `ha spostato una spesa${reportName ? `da ${reportName}` : ''}`,
-        movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `ha spostato questa spesa${reportName ? `a <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `ha spostato questa spesa${reportName ? `da <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `ha spostato questa spesa nel tuo <a href="${reportUrl}">spazio personale</a>`,
-        movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
+        movedFromReport: (reportName: string) => `ha spostato una spesa${reportName ? `da ${reportName}` : ''}`,
+        movedTransactionTo: (reportUrl: string, reportName?: string) => `ha spostato questa spesa${reportName ? `a <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionFrom: (reportUrl: string, reportName?: string) => `ha spostato questa spesa${reportName ? `da <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        unreportedTransaction: (reportUrl: string) => `ha spostato questa spesa nel tuo <a href="${reportUrl}">spazio personale</a>`,
+        movedAction: (shouldHideMovedReportUrl: boolean, movedReportUrl: string, newParentReportUrl: string, toPolicyName: string) => {
             if (shouldHideMovedReportUrl) {
                 return `ha spostato questo report nello spazio di lavoro <a href="${newParentReportUrl}">${toPolicyName}</a>`;
             }
@@ -1322,8 +1300,8 @@ const translations: TranslationDeepObject<typeof en> = {
         payerPaid: (payer: string) => `${payer} ha pagato:`,
         payerSpentAmount: (amount: number | string, payer?: string) => `${payer} ha speso ${amount}`,
         payerSpent: (payer: string) => `${payer} ha speso:`,
-        managerApproved: ({manager}: ManagerApprovedParams) => `${manager} ha approvato:`,
-        managerApprovedAmount: ({manager, amount}: ManagerApprovedAmountParams) => `${manager} ha approvato ${amount}`,
+        managerApproved: (manager: string) => `${manager} ha approvato:`,
+        managerApprovedAmount: (manager: string, amount: number | string) => `${manager} ha approvato ${amount}`,
         payerSettled: (amount: number | string) => `pagato ${amount}`,
         payerSettledWithMissingBankAccount: (amount: number | string) => `ha pagato ${amount}. Aggiungi un conto bancario per ricevere il tuo pagamento.`,
         automaticallyApproved: `approvata tramite le <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regole dello spazio di lavoro</a>`,
@@ -1937,7 +1915,7 @@ const translations: TranslationDeepObject<typeof en> = {
             enterCommand: 'Inserisci comando',
             execute: 'Esegui',
             noLogsAvailable: 'Nessun registro disponibile',
-            logSizeTooLarge: ({size}: LogSizeParams) => `La dimensione del registro supera il limite di ${size} MB. Usa “Salva registro” per scaricare il file di registro.`,
+            logSizeTooLarge: (size: number) => `La dimensione del registro supera il limite di ${size} MB. Usa “Salva registro” per scaricare il file di registro.`,
             logs: 'Registri',
             viewConsole: 'Visualizza console',
         },
@@ -1967,14 +1945,13 @@ const translations: TranslationDeepObject<typeof en> = {
     mergeAccountsPage: {
         mergeAccount: 'Unisci account',
         accountDetails: {
-            accountToMergeInto: ({login}: MergeAccountIntoParams) => `Inserisci l’account che vuoi unire a <strong>${login}</strong>.`,
+            accountToMergeInto: (login: string) => `Inserisci l’account che vuoi unire a <strong>${login}</strong>.`,
             notReversibleConsent: 'Capisco che questa operazione non è reversibile',
         },
         accountValidate: {
             confirmMerge: 'Sei sicuro di voler unire gli account?',
-            lossOfUnsubmittedData: ({login}: MergeAccountIntoParams) =>
-                `L’unione dei tuoi account è irreversibile e comporterà la perdita di tutte le spese non inviate per <strong>${login}</strong>.`,
-            enterMagicCode: ({login}: MergeAccountIntoParams) => `Per continuare, inserisci il codice magico inviato a <strong>${login}</strong>.`,
+            lossOfUnsubmittedData: (login: string) => `L’unione dei tuoi account è irreversibile e comporterà la perdita di tutte le spese non inviate per <strong>${login}</strong>.`,
+            enterMagicCode: (login: string) => `Per continuare, inserisci il codice magico inviato a <strong>${login}</strong>.`,
             errors: {
                 incorrectMagicCode: 'Codice magico errato o non valido. Riprova o richiedi un nuovo codice.',
                 fallback: 'Si è verificato un errore. Riprova più tardi.',
@@ -1982,7 +1959,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         mergeSuccess: {
             accountsMerged: 'Account uniti!',
-            description: ({from, to}: MergeSuccessDescriptionParams) =>
+            description: (from: string, to: string) =>
                 `<muted-text><centered-text>Hai unito correttamente tutti i dati da <strong>${from}</strong> a <strong>${to}</strong>. D’ora in poi puoi usare qualsiasi dei due login per questo account.</centered-text></muted-text>`,
         },
         mergePendingSAML: {
@@ -1991,22 +1968,22 @@ const translations: TranslationDeepObject<typeof en> = {
             reachOutForHelp: '<muted-text><centered-text>Sentiti liberə di <concierge-link>contattare Concierge</concierge-link> se hai domande!</centered-text></muted-text>',
             goToExpensifyClassic: 'Vai a Expensify Classic',
         },
-        mergeFailureSAMLDomainControlDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+        mergeFailureSAMLDomainControlDescription: (email: string) =>
             `<muted-text><centered-text>Non puoi unire <strong>${email}</strong> perché è gestito da <strong>${email.split('@').at(1) ?? ''}</strong>. <concierge-link>Contatta Concierge</concierge-link> per ricevere assistenza.</centered-text></muted-text>`,
-        mergeFailureSAMLAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+        mergeFailureSAMLAccountDescription: (email: string) =>
             `<muted-text><centered-text>Non puoi unire <strong>${email}</strong> ad altri account perché l’amministratore del tuo dominio l’ha impostata come accesso principale. Unisci invece gli altri account a questa.</centered-text></muted-text>`,
         mergeFailure2FA: {
-            description: ({email}: MergeFailureDescriptionGenericParams) =>
+            description: (email: string) =>
                 `<muted-text><centered-text>Non puoi unire gli account perché <strong>${email}</strong> ha l’autenticazione a due fattori (2FA) abilitata. Disabilita la 2FA per <strong>${email}</strong> e riprova.</centered-text></muted-text>`,
             learnMore: 'Scopri di più sull’unione degli account.',
         },
-        mergeFailureAccountLockedDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+        mergeFailureAccountLockedDescription: (email: string) =>
             `<muted-text><centered-text>Non puoi unire <strong>${email}</strong> perché è bloccata. <concierge-link>Contatta Concierge</concierge-link> per assistenza.</centered-text></muted-text>`,
-        mergeFailureUncreatedAccountDescription: ({email, contactMethodLink}: MergeFailureUncreatedAccountDescriptionParams) =>
+        mergeFailureUncreatedAccountDescription: (email: string, contactMethodLink: string) =>
             `<muted-text><centered-text>Non puoi unire gli account perché <strong>${email}</strong> non ha un account Expensify. <a href="${contactMethodLink}">Aggiungilo come metodo di contatto</a> invece.</centered-text></muted-text>`,
-        mergeFailureSmartScannerAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+        mergeFailureSmartScannerAccountDescription: (email: string) =>
             `<muted-text><centered-text>Non puoi unire <strong>${email}</strong> ad altri account. Unisci invece gli altri account a questo.</centered-text></muted-text>`,
-        mergeFailureInvoicedAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+        mergeFailureInvoicedAccountDescription: (email: string) =>
             `<muted-text><centered-text>Non puoi unire account in <strong>${email}</strong> perché questo account possiede una relazione di fatturazione con fattura emessa.</centered-text></muted-text>`,
         mergeFailureTooManyAttempts: {
             heading: 'Riprova più tardi',
@@ -3022,7 +2999,7 @@ ${
     unlinkLoginForm: {
         toValidateLogin: ({primaryLogin, secondaryLogin}: ToValidateLoginParams) =>
             `Per convalidare ${secondaryLogin}, invia nuovamente il codice magico dalle Impostazioni account di ${primaryLogin}.`,
-        noLongerHaveAccess: ({primaryLogin}: NoLongerHaveAccessParams) => `Se non hai più accesso a ${primaryLogin}, scollega i tuoi account.`,
+        noLongerHaveAccess: (primaryLogin: string) => `Se non hai più accesso a ${primaryLogin}, scollega i tuoi account.`,
         unlink: 'Scollega',
         linkSent: 'Link inviato!',
         successfullyUnlinkedLogin: 'Accesso secondario scollegato correttamente!',
@@ -3970,7 +3947,7 @@ ${
             existingConnections: 'Connessioni esistenti',
             existingConnectionsDescription: ({connectionName}: ConnectionNameParams) =>
                 `Poiché ti sei già connesso a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} in passato, puoi scegliere di riutilizzare una connessione esistente o crearne una nuova.`,
-            lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - Ultima sincronizzazione ${formattedDate}`,
+            lastSyncDate: (connectionName: string, formattedDate: string) => `${connectionName} - Ultima sincronizzazione ${formattedDate}`,
             authenticationError: (connectionName: string) => `Impossibile connettersi a ${connectionName} a causa di un errore di autenticazione.`,
             learnMore: 'Scopri di più',
             memberAlternateText: 'Invia e approva i report.',
@@ -5072,10 +5049,10 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             addShippingDetails: 'Aggiungi dettagli di spedizione',
             issuedCard: (assignee: string) => `ha emesso una Expensify Card per ${assignee}! La carta arriverà tra 2-3 giorni lavorativi.`,
             issuedCardNoShippingDetails: (assignee: string) => `ha emesso una Expensify Card per ${assignee}! La carta verrà spedita una volta confermati i dettagli di spedizione.`,
-            issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `ha emesso a ${assignee} una carta virtuale Expensify! Il/la ${link} può essere usato/a subito.`,
+            issuedCardVirtual: (assignee: string, link: string) => `ha emesso a ${assignee} una carta virtuale Expensify! Il/la ${link} può essere usato/a subito.`,
             addedShippingDetails: (assignee: string) => `${assignee} ha aggiunto i dettagli di spedizione. La Expensify Card arriverà tra 2-3 giorni lavorativi.`,
             replacedCard: (assignee: string) => `${assignee} ha sostituito la sua Expensify Card. La nuova carta arriverà tra 2-3 giorni lavorativi.`,
-            replacedVirtualCard: ({assignee, link}: IssueVirtualCardParams) => `${assignee} ha sostituito la sua Expensify Card virtuale! La ${link} può essere usata subito.`,
+            replacedVirtualCard: (assignee: string, link: string) => `${assignee} ha sostituito la sua Expensify Card virtuale! La ${link} può essere usata subito.`,
             card: 'carta',
             replacementCard: 'carta sostitutiva',
             verifyingHeader: 'Verifica in corso',
@@ -5103,8 +5080,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             deleteFailureMessage: 'Si è verificato un errore durante l’eliminazione della categoria, riprova per favore',
             categoryName: 'Nome categoria',
             requiresCategory: 'I membri devono categorizzare tutte le spese',
-            needCategoryForExportToIntegration: ({connectionName}: NeedCategoryForExportToIntegrationParams) =>
-                `Tutte le spese devono essere categorizzate per poterle esportare su ${connectionName}.`,
+            needCategoryForExportToIntegration: (connectionName: string) => `Tutte le spese devono essere categorizzate per poterle esportare su ${connectionName}.`,
             subtitle: 'Ottieni una panoramica migliore di dove viene speso il denaro. Usa le nostre categorie predefinite oppure aggiungi le tue.',
             emptyCategories: {
                 title: 'Non hai creato alcuna categoria',
@@ -5246,10 +5222,9 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 allCards: 'Tutte le carte',
                 assignedCards: 'Assegnato',
                 unassignedCards: 'Non assegnato',
-                integrationExport: ({integration, type}: IntegrationExportParams) =>
-                    integration && type ? `esportazione ${integration} ${type.toLowerCase()}` : `Esportazione ${integration}`,
-                integrationExportTitleXero: ({integration}: IntegrationExportParams) => `Scegli il conto ${integration} in cui esportare le transazioni.`,
-                integrationExportTitle: ({integration, exportPageLink}: IntegrationExportParams) =>
+                integrationExport: (integration: string, type?: string) => (integration && type ? `esportazione ${integration} ${type.toLowerCase()}` : `Esportazione ${integration}`),
+                integrationExportTitleXero: (integration: string) => `Scegli il conto ${integration} in cui esportare le transazioni.`,
+                integrationExportTitle: (integration: string, exportPageLink: string) =>
                     `Scegli il conto ${integration} in cui esportare le transazioni. Seleziona un’altra <a href="${exportPageLink}">opzione di esportazione</a> per modificare i conti disponibili.`,
                 lastUpdated: 'Ultimo aggiornamento',
                 transactionStartDate: 'Data di inizio transazione',
@@ -5583,7 +5558,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             getTheExpensifyCardAndMore: 'Ottieni la Expensify Card e altro ancora',
             confirmWorkspace: 'Conferma spazio di lavoro',
             myGroupWorkspace: ({workspaceNumber}: {workspaceNumber?: number}) => `Il mio spazio di lavoro di gruppo${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
-            workspaceName: ({userName, workspaceNumber}: NewWorkspaceNameParams) => `Workspace di ${userName}${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
+            workspaceName: (userName: string, workspaceNumber?: number) => `Workspace di ${userName}${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
         },
         people: {
             genericFailureMessage: 'Si è verificato un errore durante la rimozione di un membro dallo spazio di lavoro, riprova per favore',
@@ -5730,7 +5705,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 `Si è verificato un errore con una connessione configurata in Expensify Classic. [Vai a Expensify Classic per risolvere questo problema.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Vai a Expensify Classic per gestire le tue impostazioni.',
             setup: 'Connetti',
-            lastSync: ({relativeDate}: LastSyncAccountingParams) => `Ultima sincronizzazione ${relativeDate}`,
+            lastSync: (relativeDate: string) => `Ultima sincronizzazione ${relativeDate}`,
             notSync: 'Non sincronizzato',
             import: 'Importa',
             export: 'Esporta',
@@ -6270,7 +6245,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 title: 'Passa al piano Control',
                 note: 'Sblocca le nostre funzioni più potenti, tra cui:',
                 benefits: {
-                    startsAtFull: ({learnMoreMethodsRoute, formattedPrice, hasTeam2025Pricing}: LearnMoreRouteParams) =>
+                    startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
                         `<muted-text>Il piano Control parte da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per utente al mese.` : `per membro attivo al mese.`} <a href="${learnMoreMethodsRoute}">Scopri di più</a> sui nostri piani e prezzi.</muted-text>`,
                     benefit1: 'Connessioni avanzate alla contabilità (NetSuite, Sage Intacct e altro)',
                     benefit2: 'Regole spesa intelligenti',
@@ -7366,11 +7341,11 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                     nonReimbursableLink: 'spese con carta aziendale',
                     pending: (label: string) => `ha iniziato a esportare questo resoconto su ${label}...`,
                 },
-                integrationsMessage: ({errorMessage, label, linkText, linkURL}: IntegrationSyncFailedParams) =>
+                integrationsMessage: (errorMessage: string, label: string, linkText?: string, linkURL?: string) =>
                     `esportazione di questo report su ${label} non riuscita ("${errorMessage}${linkText ? `<a href="${linkURL}">${linkText}</a>` : ''}")`,
                 managerAttachReceipt: `ha aggiunto una ricevuta`,
                 managerDetachReceipt: `ha rimosso una ricevuta`,
-                markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `pagato ${currency}${amount} altrove`,
+                markedReimbursed: (amount: string, currency: string) => `pagato ${currency}${amount} altrove`,
                 markedReimbursedFromIntegration: ({amount, currency}: MarkReimbursedFromIntegrationParams) => `pagato ${currency}${amount} tramite integrazione`,
                 outdatedBankAccount: `impossibile elaborare il pagamento a causa di un problema con il conto bancario del pagatore`,
                 reimbursementACHBounce: `impossibile elaborare il pagamento a causa di un problema con il conto bancario`,
@@ -7383,7 +7358,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 unshare: ({to}: UnshareParams) => `ha rimosso il membro ${to}`,
                 stripePaid: ({amount, currency}: StripePaidParams) => `ha pagato ${currency}${amount}`,
                 takeControl: `ha preso il controllo`,
-                integrationSyncFailed: ({label, errorMessage, workspaceAccountingLink}: IntegrationSyncFailedParams) =>
+                integrationSyncFailed: (label: string, errorMessage: string, workspaceAccountingLink?: string) =>
                     `si è verificato un problema di sincronizzazione con ${label}${errorMessage ? ` ("${errorMessage}")` : ''}. Risolvi il problema nelle <a href="${workspaceAccountingLink}">impostazioni dello spazio di lavoro</a>.`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `La connessione ${feedName} è interrotta. Per ripristinare le importazioni della carta, <a href='${workspaceCompanyCardRoute}'>accedi alla tua banca</a>.`,
@@ -7407,14 +7382,14 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                         ? `aggiunto "${newValue}" al campo personalizzato 2 di ${email}`
                         : `ha modificato il campo personalizzato 2 di ${email} in "${newValue}" (in precedenza "${previousValue}")`;
                 },
-                leftWorkspace: ({nameOrEmail}: LeftWorkspaceParams) => `${nameOrEmail} ha lasciato lo spazio di lavoro`,
+                leftWorkspace: (nameOrEmail: string) => `${nameOrEmail} ha lasciato lo spazio di lavoro`,
                 removeMember: (email: string, role: string) => `ha rimosso ${role} ${email}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `rimossa connessione a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 addedConnection: ({connectionName}: ConnectionNameParams) => `collegato a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'ha lasciato la chat',
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
                     `il conto bancario aziendale ${maskedBankAccountNumber} è stato bloccato automaticamente a causa di un problema con il Rimborso o con il regolamento della Expensify Card. Risolvi il problema nelle <a href="${linkURL}">impostazioni dello spazio di lavoro</a>.`,
-                leftTheChatWithName: ({nameOrEmail}: LeftWorkspaceParams) => `${nameOrEmail ? `${nameOrEmail}: ` : ''} ha lasciato la chat`,
+                leftTheChatWithName: (nameOrEmail: string) => `${nameOrEmail ? `${nameOrEmail}: ` : ''} ha lasciato la chat`,
             },
             error: {
                 invalidCredentials: 'Credenziali non valide, controlla la configurazione della tua connessione.',

@@ -34,7 +34,7 @@ function UnlinkLoginForm() {
                 <Text>{translate('unlinkLoginForm.toValidateLogin', {primaryLogin, secondaryLogin})}</Text>
             </View>
             <View style={[styles.mv5]}>
-                <Text>{translate('unlinkLoginForm.noLongerHaveAccess', {primaryLogin})}</Text>
+                <Text>{translate('unlinkLoginForm.noLongerHaveAccess', primaryLogin)}</Text>
             </View>
             {!!unlinkMessage && (
                 // DotIndicatorMessage mostly expects onyxData errors, so we need to mock an object so that the messages looks similar to prop.account.errors
