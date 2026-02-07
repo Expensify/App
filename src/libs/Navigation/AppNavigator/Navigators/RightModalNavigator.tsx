@@ -143,10 +143,16 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
             return;
         }
         isExecutingRef.current = true;
-        navigation.goBack();
-        setTimeout(() => {
-            isExecutingRef.current = false;
-        }, CONST.ANIMATED_TRANSITION);
+        const currentState = navigationRef.getRootState();
+
+        // There is a brief moment when the RHP is not in the state anymore but the overlay is still visible (closing RHP animation)
+        // We need to block overlay press function in such case because it would go back from the currently active  full screen.
+        if (currentState.routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+            navigation.goBack();
+            setTimeout(() => {
+                isExecutingRef.current = false;
+            }, CONST.ANIMATED_TRANSITION);
+        }
     }, [navigation]);
 
     const clearWideRHPKeysAfterTabChanged = useCallback(() => {
