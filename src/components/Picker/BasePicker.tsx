@@ -209,6 +209,8 @@ function BasePicker<TPickerValue>({
                     onClose={disableHighlight}
                     textInputProps={{
                         allowFontScaling: false,
+                        accessibilityRole: CONST.ROLE.COMBOBOX,
+                        accessibilityLabel,
                     }}
                     pickerProps={{
                         ref: picker,
@@ -219,6 +221,7 @@ function BasePicker<TPickerValue>({
                             onBlur();
                         },
                         accessibilityLabel,
+                        accessibilityRole: CONST.ROLE.COMBOBOX,
                         ...additionalPickerEvents(enableHighlight, (inputValue, index) => {
                             onValueChange(inputValue, index);
                             disableHighlight();
