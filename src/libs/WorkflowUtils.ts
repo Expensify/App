@@ -110,6 +110,7 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
     const employees = policy?.employeeList ?? {};
     const defaultApprover = getDefaultApprover(policy);
     const approvalWorkflows: Record<string, ApprovalWorkflow> = {};
+    const membersWithoutWorkflow: Member[] = [];
 
     // Keep track of used approver emails to display hints in the UI
     const usedApproverEmails = new Set<string>();
@@ -119,6 +120,16 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
     for (const employee of Object.values(employees)) {
         const {email, submitsTo, pendingAction} = employee;
         if (!email || !submitsTo || !employees[submitsTo]) {
+            // If the employee doesn't have submitsTo but has a valid email,
+            // they should still be available for selection in new workflows
+            if (email && !submitsTo && pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                membersWithoutWorkflow.push({
+                    email,
+                    avatar: personalDetailsByEmail[email]?.avatar,
+                    displayName: personalDetailsByEmail[email]?.displayName ?? email,
+                    pendingFields: employee.pendingFields,
+                });
+            }
             continue;
         }
 
@@ -182,8 +193,9 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
         });
     }
 
-    const availableMembers =
+    const workflowMembers =
         policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.BASIC ? sortedApprovalWorkflows?.flatMap((workflow) => workflow.members) : (sortedApprovalWorkflows.at(0)?.members ?? []);
+    const availableMembers = [...workflowMembers, ...membersWithoutWorkflow];
 
     return {approvalWorkflows: sortedApprovalWorkflows, usedApproverEmails: [...usedApproverEmails], availableMembers};
 }
