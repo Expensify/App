@@ -13034,7 +13034,7 @@ function markRejectViolationAsResolved(transactionID: string, reportID?: string)
 
 function initSplitExpenseItemData(
     transaction: OnyxEntry<OnyxTypes.Transaction>,
-    transactionReport: OnyxEntry<OnyxTypes.Report>,    
+    transactionReport: OnyxEntry<OnyxTypes.Report>,
     {amount, transactionID, reportID, created, isManuallyEdited}: {amount?: number; transactionID?: string; reportID?: string; created?: string; isManuallyEdited?: boolean} = {},
 ): SplitExpense {
     const transactionDetails = getTransactionDetails(transaction);
@@ -13065,7 +13065,7 @@ function initSplitExpense(transactions: OnyxCollection<OnyxTypes.Transaction>, r
     const reportID = transaction.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
     const originalTransactionID = transaction?.comment?.originalTransactionID;
     const originalTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
-    
+
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
 
     if (isExpenseSplit) {
