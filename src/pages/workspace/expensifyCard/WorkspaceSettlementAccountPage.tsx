@@ -120,10 +120,11 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
                 {!!continuousReconciliation?.value && !!connectionParam && hasActiveAccountingConnection && (
                     <View style={[styles.renderHTML, styles.mh5, styles.mb6]}>
                         <RenderHTML
-                            html={translate('workspace.expensifyCard.settlementAccountInfo', {
-                                reconciliationAccountSettingsLink: `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, connectionParam, Navigation.getActiveRoute())}`,
-                                accountNumber: `${CONST.MASKED_PAN_PREFIX}${getLastFourDigits(paymentBankAccountNumber)}`,
-                            })}
+                            html={translate(
+                                'workspace.expensifyCard.settlementAccountInfo',
+                                `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, connectionParam, Navigation.getActiveRoute())}`,
+                                `${CONST.MASKED_PAN_PREFIX}${getLastFourDigits(paymentBankAccountNumber)}`,
+                            )}
                         />
                     </View>
                 )}

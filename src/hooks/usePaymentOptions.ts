@@ -118,17 +118,17 @@ function usePaymentOptions({
         const isExpenseReport = isExpenseReportUtil(iouReport);
         const paymentMethods = {
             [CONST.IOU.PAYMENT_TYPE.EXPENSIFY]: {
-                text: hasActivatedWallet ? translate('iou.settleWallet', {formattedAmount: ''}) : translate('iou.settlePersonal', {formattedAmount: ''}),
+                text: hasActivatedWallet ? translate('iou.settleWallet', '') : translate('iou.settlePersonal', ''),
                 icon: icons.Wallet,
                 value: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
             },
             [CONST.IOU.PAYMENT_TYPE.VBBA]: {
-                text: translate('iou.settleBusiness', {formattedAmount}),
+                text: translate('iou.settleBusiness', formattedAmount),
                 icon: icons.Building,
                 value: CONST.IOU.PAYMENT_TYPE.VBBA,
             },
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
-                text: translate('iou.payElsewhere', {formattedAmount}),
+                text: translate('iou.payElsewhere', formattedAmount),
                 icon: icons.Cash,
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             },
@@ -194,14 +194,14 @@ function usePaymentOptions({
 
             if (isIndividualInvoiceRoomUtil(chatReport)) {
                 buttonOptions.push({
-                    text: translate('iou.settlePersonal', {formattedAmount}),
+                    text: translate('iou.settlePersonal', formattedAmount),
                     icon: icons.User,
                     value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                     backButtonText: translate('iou.individual'),
                     subMenuItems: [
                         ...(isCurrencySupported ? getPaymentSubItems(false) : []),
                         {
-                            text: translate('iou.payElsewhere', {formattedAmount: ''}),
+                            text: translate('iou.payElsewhere', ''),
                             icon: icons.Cash,
                             value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                             onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.ELSEWHERE),
@@ -212,7 +212,7 @@ function usePaymentOptions({
             }
 
             buttonOptions.push({
-                text: translate('iou.settleBusiness', {formattedAmount}),
+                text: translate('iou.settleBusiness', formattedAmount),
                 icon: icons.Building,
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 backButtonText: translate('iou.business'),
@@ -220,7 +220,7 @@ function usePaymentOptions({
                     ...(isCurrencySupported ? getPaymentSubItems(true) : []),
                     ...(isCurrencySupported ? [addBankAccountItem] : []),
                     {
-                        text: translate('iou.payElsewhere', {formattedAmount: ''}),
+                        text: translate('iou.payElsewhere', ''),
                         icon: icons.Cash,
                         value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                         onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, true),

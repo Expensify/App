@@ -168,7 +168,7 @@ function MoneyRequestAmountForm({
             }
 
             if (isTaxAmountInvalid(currentAmount, taxAmount, isTaxAmountForm, currency)) {
-                setFormError(translate('iou.error.invalidTaxAmount', {amount: formattedTaxAmount}));
+                setFormError(translate('iou.error.invalidTaxAmount', formattedTaxAmount));
                 return;
             }
 
