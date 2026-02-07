@@ -24,6 +24,7 @@ import type {
     EnablePolicyCompanyCardsParams,
     EnablePolicyConnectionsParams,
     EnablePolicyExpensifyCardsParams,
+    EnablePolicyInvoiceFieldsParams,
     EnablePolicyInvoicingParams,
     EnablePolicyReportFieldsParams,
     EnablePolicyTaxesParams,
@@ -4331,16 +4332,19 @@ function enableCompanyCards(policyID: string, enabled: boolean, shouldGoBack = t
     }
 }
 
-function enablePolicyReportFields(policyID: string, enabled: boolean) {
+function enablePolicyFields(policyID: string, enabled: boolean, command: typeof WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS | typeof WRITE_COMMANDS.ENABLE_POLICY_INVOICE_FIELDS) {
+    const enableFieldKey =
+        command === WRITE_COMMANDS.ENABLE_POLICY_INVOICE_FIELDS ? CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED : CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED;
+
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    areReportFieldsEnabled: enabled,
+                    [enableFieldKey]: enabled,
                     pendingFields: {
-                        areReportFieldsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        [enableFieldKey]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
                 },
             },
@@ -4351,7 +4355,7 @@ function enablePolicyReportFields(policyID: string, enabled: boolean) {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     pendingFields: {
-                        areReportFieldsEnabled: null,
+                        [enableFieldKey]: null,
                     },
                 },
             },
@@ -4361,18 +4365,26 @@ function enablePolicyReportFields(policyID: string, enabled: boolean) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    areReportFieldsEnabled: !enabled,
+                    [enableFieldKey]: !enabled,
                     pendingFields: {
-                        areReportFieldsEnabled: null,
+                        [enableFieldKey]: null,
                     },
                 },
             },
         ],
     };
 
-    const parameters: EnablePolicyReportFieldsParams = {policyID, enabled};
+    const parameters: EnablePolicyReportFieldsParams | EnablePolicyInvoiceFieldsParams = {policyID, enabled};
 
-    API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS, parameters, onyxData);
+    API.writeWithNoDuplicatesEnableFeatureConflicts(command, parameters, onyxData);
+}
+
+function enablePolicyReportFields(policyID: string, enabled: boolean) {
+    enablePolicyFields(policyID, enabled, WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS);
+}
+
+function enablePolicyInvoiceFields(policyID: string, enabled: boolean) {
+    enablePolicyFields(policyID, enabled, WRITE_COMMANDS.ENABLE_POLICY_INVOICE_FIELDS);
 }
 
 function enablePolicyTaxes(policyID: string, enabled: boolean) {
@@ -6893,6 +6905,7 @@ export {
     enablePolicyConnections,
     enablePolicyReceiptPartners,
     enablePolicyReportFields,
+    enablePolicyInvoiceFields,
     enablePolicyTaxes,
     enablePolicyWorkflows,
     enablePolicyTimeTracking,

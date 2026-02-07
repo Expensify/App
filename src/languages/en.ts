@@ -3938,6 +3938,7 @@ const translations = {
             customFieldHint: 'Add custom coding that applies to all spend from this member.',
             reports: 'Reports',
             reportFields: 'Report fields',
+            invoiceFields: 'Invoice fields',
             reportTitle: 'Report title',
             reportField: 'Report field',
             taxes: 'Taxes',
@@ -5392,6 +5393,14 @@ const translations = {
             circularReferenceError: "This field can't refer to itself. Please update.",
             reportFieldInitialValueRequiredError: 'Please choose a report field initial value',
             genericFailureMessage: 'An error occurred while updating the report field. Please try again.',
+        },
+        invoiceFields: {
+            subtitle: "Invoice fields can be helpful when you'd like to include extra information.",
+            importedFromAccountingSoftware: 'The invoice fields below are imported from your',
+            disableInvoiceFields: 'Disable invoice fields',
+            disableInvoiceFieldsConfirmation: 'Are you sure? Invoice fields will be disabled on invoices.',
+            delete: 'Delete invoice field',
+            deleteConfirmation: 'Are you sure you want to delete this invoice field?',
         },
         tags: {
             tagName: 'Tag name',

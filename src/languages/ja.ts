@@ -3887,6 +3887,7 @@ ${
             customFieldHint: 'このメンバーのすべての支出に適用されるカスタムコードを追加します。',
             reports: 'レポート',
             reportFields: 'レポート項目',
+            invoiceFields: '請求書項目',
             reportTitle: 'レポートタイトル',
             reportField: 'レポート項目',
             taxes: '税金',
@@ -5385,6 +5386,14 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             circularReferenceError: 'このフィールドを自分自身に参照することはできません。更新してください。',
             reportFieldInitialValueRequiredError: 'レポート項目の初期値を選択してください',
             genericFailureMessage: 'レポートフィールドの更新中にエラーが発生しました。もう一度お試しください。',
+        },
+        invoiceFields: {
+            subtitle: "Invoice fields can be helpful when you'd like to include extra information.",
+            importedFromAccountingSoftware: 'The invoice fields below are imported from your',
+            disableInvoiceFields: 'Disable invoice fields',
+            disableInvoiceFieldsConfirmation: 'Are you sure? Invoice fields will be disabled on invoices.',
+            delete: 'Delete invoice field',
+            deleteConfirmation: 'Are you sure you want to delete this invoice field?',
         },
         tags: {
             tagName: 'タグ名',

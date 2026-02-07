@@ -3904,6 +3904,7 @@ ${
             customFieldHint: 'Voeg aangepaste codering toe die van toepassing is op alle uitgaven van dit lid.',
             reports: 'Rapporten',
             reportFields: 'Rapportvelden',
+            invoiceFields: 'Factuurvelden',
             reportTitle: 'Rapporttitel',
             reportField: 'Rapportveld',
             taxes: 'Belastingen',
@@ -5413,6 +5414,14 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             circularReferenceError: 'Dit veld kan niet naar zichzelf verwijzen. Werk het alsjeblieft bij.',
             reportFieldInitialValueRequiredError: 'Kies een beginwaarde voor een rapportveld',
             genericFailureMessage: 'Er is een fout opgetreden bij het bijwerken van het rapportveld. Probeer het opnieuw.',
+        },
+        invoiceFields: {
+            subtitle: "Invoice fields can be helpful when you'd like to include extra information.",
+            importedFromAccountingSoftware: 'The invoice fields below are imported from your',
+            disableInvoiceFields: 'Disable invoice fields',
+            disableInvoiceFieldsConfirmation: 'Are you sure? Invoice fields will be disabled on invoices.',
+            delete: 'Delete invoice field',
+            deleteConfirmation: 'Are you sure you want to delete this invoice field?',
         },
         tags: {
             tagName: 'Tagnaam',

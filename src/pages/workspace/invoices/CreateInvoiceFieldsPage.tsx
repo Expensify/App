@@ -8,24 +8,24 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type CreateReportFieldsPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_CREATE>;
+type CreateInvoiceFieldsPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVOICE_FIELDS_CREATE>;
 
-function WorkspaceCreateReportFieldsPage({
+function CreateInvoiceFieldsPage({
     policy,
     route: {
         params: {policyID},
     },
-}: CreateReportFieldsPageProps) {
+}: CreateInvoiceFieldsPageProps) {
     return (
         <CreateFieldsPage
             policy={policy}
             policyID={policyID}
-            isInvoiceField={false}
-            listValuesRoute={ROUTES.WORKSPACE_REPORT_FIELDS_LIST_VALUES.getRoute(policyID)}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED}
-            testID="WorkspaceCreateReportFieldsPage"
+            isInvoiceField
+            listValuesRoute={ROUTES.WORKSPACE_INVOICE_FIELDS_LIST_VALUES.getRoute(policyID)}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED}
+            testID="CreateInvoiceFieldsPage"
         />
     );
 }
 
-export default withPolicyAndFullscreenLoading(WorkspaceCreateReportFieldsPage);
+export default withPolicyAndFullscreenLoading(CreateInvoiceFieldsPage);

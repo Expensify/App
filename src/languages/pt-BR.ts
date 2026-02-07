@@ -3896,6 +3896,8 @@ ${
             customField2: 'Campo personalizado 2',
             customFieldHint: 'Adicione codificação personalizada que se aplique a todos os gastos deste membro.',
             reports: 'Relatórios',
+            reportFields: 'Campos de relatório',
+            invoiceFields: 'Campos de fatura',
             reportFields: 'Campos do relatório',
             reportTitle: 'Título do relatório',
             reportField: 'Campo de relatório',
@@ -5407,6 +5409,14 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             circularReferenceError: 'Este campo não pode fazer referência a si mesmo. Atualize, por favor.',
             reportFieldInitialValueRequiredError: 'Escolha um valor inicial para o campo de relatório',
             genericFailureMessage: 'Ocorreu um erro ao atualizar o campo do relatório. Tente novamente.',
+        },
+        invoiceFields: {
+            subtitle: "Invoice fields can be helpful when you'd like to include extra information.",
+            importedFromAccountingSoftware: 'The invoice fields below are imported from your',
+            disableInvoiceFields: 'Disable invoice fields',
+            disableInvoiceFieldsConfirmation: 'Are you sure? Invoice fields will be disabled on invoices.',
+            delete: 'Delete invoice field',
+            deleteConfirmation: 'Are you sure you want to delete this invoice field?',
         },
         tags: {
             tagName: 'Nome da tag',

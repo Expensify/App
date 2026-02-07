@@ -1,4 +1,5 @@
-import {hasFormulaPartsInInitialValue, isReportFieldNameExisting} from '@libs/WorkspaceReportFieldUtils';
+import {hasFormulaPartsInInitialValue, isReportFieldNameExisting, isReportFieldTargetValid} from '@libs/WorkspaceReportFieldUtils';
+import CONST from '@src/CONST';
 import type {PolicyReportField} from '@src/types/onyx/Policy';
 
 describe('WorkspaceReportFieldUtils.hasFormulaPartsInInitialValue', () => {
@@ -58,5 +59,37 @@ describe('WorkspaceReportFieldUtils.isReportFieldNameExisting', () => {
     it('should return true when field name exists with different case', () => {
         expect(isReportFieldNameExisting(fieldList, 'FIELD1')).toBe(true);
         expect(isReportFieldNameExisting(fieldList, 'field1')).toBe(true);
+    });
+});
+
+describe('WorkspaceReportFieldUtils.isReportFieldTargetValid', () => {
+    const baseField: PolicyReportField = {
+        fieldID: 'field_id_1',
+        name: 'Field A',
+        type: CONST.REPORT_FIELD_TYPES.TEXT,
+        values: [],
+        disabledOptions: [],
+        defaultValue: '',
+        orderWeight: 1,
+        deletable: true,
+        keys: [],
+        externalIDs: [],
+        isTax: false,
+    };
+
+    it('allows expense fields without target', () => {
+        expect(isReportFieldTargetValid(baseField, CONST.REPORT_FIELD_TARGETS.EXPENSE)).toBe(true);
+    });
+
+    it('blocks expense settings for invoice-targeted fields', () => {
+        expect(isReportFieldTargetValid({...baseField, target: CONST.REPORT_FIELD_TARGETS.INVOICE}, CONST.REPORT_FIELD_TARGETS.EXPENSE)).toBe(false);
+    });
+
+    it('allows invoice settings for invoice-targeted fields', () => {
+        expect(isReportFieldTargetValid({...baseField, target: CONST.REPORT_FIELD_TARGETS.INVOICE}, CONST.REPORT_FIELD_TARGETS.INVOICE)).toBe(true);
+    });
+
+    it('blocks invoice settings for fields without target', () => {
+        expect(isReportFieldTargetValid(baseField, CONST.REPORT_FIELD_TARGETS.INVOICE)).toBe(false);
     });
 });

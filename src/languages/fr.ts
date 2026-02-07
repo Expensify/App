@@ -3925,6 +3925,7 @@ ${
             customFieldHint: 'Ajoutez un codage personnalisé qui s’applique à toutes les dépenses de ce membre.',
             reports: 'Notes de frais',
             reportFields: 'Champs de note de frais',
+            invoiceFields: 'Champs de facture',
             reportTitle: 'Titre de la note de frais',
             reportField: 'Champ de note de frais',
             taxes: 'Taxes',
@@ -5452,6 +5453,14 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             circularReferenceError: 'Ce champ ne peut pas faire référence à lui-même. Veuillez le mettre à jour.',
             reportFieldInitialValueRequiredError: 'Veuillez choisir une valeur initiale pour le champ de note de frais',
             genericFailureMessage: 'Une erreur s’est produite lors de la mise à jour du champ de note de frais. Veuillez réessayer.',
+        },
+        invoiceFields: {
+            subtitle: "Invoice fields can be helpful when you'd like to include extra information.",
+            importedFromAccountingSoftware: 'The invoice fields below are imported from your',
+            disableInvoiceFields: 'Disable invoice fields',
+            disableInvoiceFieldsConfirmation: 'Are you sure? Invoice fields will be disabled on invoices.',
+            delete: 'Delete invoice field',
+            deleteConfirmation: 'Are you sure you want to delete this invoice field?',
         },
         tags: {
             tagName: 'Nom du tag',

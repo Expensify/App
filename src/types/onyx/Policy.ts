@@ -2009,6 +2009,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the Report Fields feature is enabled */
         areReportFieldsEnabled?: boolean;
 
+        /** Whether the Invoice Fields feature is enabled */
+        areInvoiceFieldsEnabled?: boolean;
+
         /** Whether the Connections feature is enabled */
         areConnectionsEnabled?: boolean;
 

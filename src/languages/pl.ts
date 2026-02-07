@@ -3895,6 +3895,7 @@ ${
             customFieldHint: 'Dodaj niestandardowe kodowanie, które będzie stosowane do wszystkich wydatków tego członka.',
             reports: 'Raporty',
             reportFields: 'Pola raportu',
+            invoiceFields: 'Pola faktury',
             reportTitle: 'Tytuł raportu',
             reportField: 'Pole raportu',
             taxes: 'Podatki',
@@ -5402,6 +5403,14 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             circularReferenceError: 'To pole nie może odnosić się do siebie. Zaktualizuj je.',
             reportFieldInitialValueRequiredError: 'Wybierz początkową wartość pola raportu',
             genericFailureMessage: 'Wystąpił błąd podczas aktualizowania pola raportu. Spróbuj ponownie.',
+        },
+        invoiceFields: {
+            subtitle: "Invoice fields can be helpful when you'd like to include extra information.",
+            importedFromAccountingSoftware: 'The invoice fields below are imported from your',
+            disableInvoiceFields: 'Disable invoice fields',
+            disableInvoiceFieldsConfirmation: 'Are you sure? Invoice fields will be disabled on invoices.',
+            delete: 'Delete invoice field',
+            deleteConfirmation: 'Are you sure you want to delete this invoice field?',
         },
         tags: {
             tagName: 'Nazwa tagu',

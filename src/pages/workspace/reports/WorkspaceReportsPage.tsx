@@ -91,6 +91,7 @@ function WorkspaceReportFieldsPage({
     const reportFieldsSections: ReportFieldForList[] = policy?.fieldList
         ? Object.entries(policy.fieldList)
               .filter(([, value]) => value.fieldID !== 'text_title')
+              .filter(([, value]) => !value.target || value.target === CONST.REPORT_FIELD_TARGETS.EXPENSE)
               .map(([, reportField]) => ({
                   text: reportField.name,
                   keyForList: String(reportField.fieldID),

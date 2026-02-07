@@ -3837,6 +3837,7 @@ ${
             customFieldHint: '为该成员的所有支出添加适用的自定义编码。',
             reports: '报表',
             reportFields: '报表字段',
+            invoiceFields: '发票字段',
             reportTitle: '报表标题',
             reportField: '报表字段',
             taxes: '税费',
@@ -5311,6 +5312,14 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             circularReferenceError: '此字段不能引用自身。请更新。',
             reportFieldInitialValueRequiredError: '请选择报表字段的初始值',
             genericFailureMessage: '更新报表字段时出错。请重试。',
+        },
+        invoiceFields: {
+            subtitle: "Invoice fields can be helpful when you'd like to include extra information.",
+            importedFromAccountingSoftware: 'The invoice fields below are imported from your',
+            disableInvoiceFields: 'Disable invoice fields',
+            disableInvoiceFieldsConfirmation: 'Are you sure? Invoice fields will be disabled on invoices.',
+            delete: 'Delete invoice field',
+            deleteConfirmation: 'Are you sure you want to delete this invoice field?',
         },
         tags: {
             tagName: '标签名称',

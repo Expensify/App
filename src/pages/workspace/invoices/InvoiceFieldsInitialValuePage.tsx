@@ -1,29 +1,30 @@
 import React from 'react';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import FieldsAddListValuePage from '@pages/workspace/fields/FieldsAddListValuePage';
+import FieldsInitialValuePage from '@pages/workspace/fields/FieldsInitialValuePage';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 
-type ReportFieldsAddListValuePageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_ADD_VALUE>;
+type InvoiceFieldsInitialValuePageProps = WithPolicyAndFullscreenLoadingProps &
+    PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVOICE_FIELDS_EDIT_INITIAL_VALUE>;
 
-function ReportFieldsAddListValuePage({
+function InvoiceFieldsInitialValuePage({
     policy,
     route: {
         params: {policyID, reportFieldID},
     },
-}: ReportFieldsAddListValuePageProps) {
+}: InvoiceFieldsInitialValuePageProps) {
     return (
-        <FieldsAddListValuePage
+        <FieldsInitialValuePage
             policy={policy}
             policyID={policyID}
             reportFieldID={reportFieldID}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED}
-            testID="ReportFieldsAddListValuePage"
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED}
+            testID="InvoiceFieldsInitialValuePage"
         />
     );
 }
 
-export default withPolicyAndFullscreenLoading(ReportFieldsAddListValuePage);
+export default withPolicyAndFullscreenLoading(InvoiceFieldsInitialValuePage);

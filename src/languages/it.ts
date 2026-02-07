@@ -3903,6 +3903,7 @@ ${
             customFieldHint: 'Aggiungi una codifica personalizzata che si applichi a tutte le spese di questo membro.',
             reports: 'Report',
             reportFields: 'Campi del report',
+            invoiceFields: 'Campi fattura',
             reportTitle: 'Titolo del report',
             reportField: 'Campo report',
             taxes: 'Tasse',
@@ -5423,6 +5424,14 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             circularReferenceError: 'Questo campo non può fare riferimento a se stesso. Aggiorna per favore.',
             reportFieldInitialValueRequiredError: 'Scegli un valore iniziale per il campo del resoconto',
             genericFailureMessage: 'Si è verificato un errore durante l’aggiornamento del campo del report. Riprova.',
+        },
+        invoiceFields: {
+            subtitle: "Invoice fields can be helpful when you'd like to include extra information.",
+            importedFromAccountingSoftware: 'The invoice fields below are imported from your',
+            disableInvoiceFields: 'Disable invoice fields',
+            disableInvoiceFieldsConfirmation: 'Are you sure? Invoice fields will be disabled on invoices.',
+            delete: 'Delete invoice field',
+            deleteConfirmation: 'Are you sure you want to delete this invoice field?',
         },
         tags: {
             tagName: 'Nome tag',
