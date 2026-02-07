@@ -110,6 +110,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
     const sumOfSplitExpenses = (draftTransaction?.comment?.splitExpenses ?? []).reduce((acc, item) => acc + (item.amount ?? 0), 0);
     const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
+    const invalidSplit = splitExpenses.find((split) => Math.abs(split.amount) > Math.abs(transactionDetailsAmount));
 
     const currencySymbol = getCurrencySymbol(transactionDetails.currency ?? '') ?? transactionDetails.currency ?? CONST.CURRENCY.USD;
 
@@ -200,6 +201,13 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         if (draftTransaction?.errors) {
             clearSplitTransactionDraftErrors(transactionID);
         }
+
+        if (invalidSplit) {
+            const difference = Math.abs(invalidSplit.amount) - Math.abs(transactionDetailsAmount);
+            setErrorMessage(translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)}));
+            return;
+        }
+
         if (sumOfSplitExpenses > transactionDetailsAmount) {
             const difference = sumOfSplitExpenses - transactionDetailsAmount;
             setErrorMessage(translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)}));
@@ -338,7 +346,11 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const difference = sumOfSplitExpenses - transactionDetailsAmount;
     let warningMessage = '';
-    if (difference < 0) {
+
+    if (invalidSplit) {
+        const absDifference = Math.abs(invalidSplit.amount) - Math.abs(transactionDetailsAmount);
+        warningMessage = translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(absDifference, transactionDetails?.currency)});
+    } else if (difference < 0) {
         warningMessage = translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(-difference, transactionDetails.currency)});
     } else if (difference > 0) {
         warningMessage = translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)});
