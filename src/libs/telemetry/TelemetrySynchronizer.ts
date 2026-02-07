@@ -10,6 +10,7 @@ import {getActivePolicies} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Session, TryNewDot} from '@src/types/onyx';
+import {cleanupMemoryTracking, initializeMemoryTracking} from './sendMemoryContext';
 
 /**
  * Connect to Onyx to retrieve information about the user's active policies.
@@ -148,3 +149,5 @@ function sendReportsCountTag(reportsCount: number) {
     const reportsCountBucket = bucketReportCount(reportsCount);
     Sentry.setTag(CONST.TELEMETRY.TAG_REPORTS_COUNT, reportsCountBucket);
 }
+
+export {initializeMemoryTracking as initializeMemoryTrackingTelemetry, cleanupMemoryTracking as cleanupMemoryTrackingTelemetry};
