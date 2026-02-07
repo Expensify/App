@@ -108,6 +108,8 @@ function ReportFooter({
         selector: isBlockedFromChatSelector,
         canBeMissing: true,
     });
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const accountDelegateEmail = account?.delegatedAccess?.delegate ?? '';
 
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
     const isReportArchived = useReportIsArchived(report?.reportID);
@@ -176,11 +178,12 @@ function ReportFooter({
                 policyID: report.policyID,
                 isCreatedUsingMarkdown: true,
                 quickAction,
-                ancestors,
+                ancestors,  
+                accountDelegateEmail,
             });
             return true;
         },
-        [allPersonalDetails, ancestors, availableLoginsList, currentUserEmail, personalDetail.accountID, quickAction, report],
+        [allPersonalDetails, ancestors, availableLoginsList, currentUserEmail, personalDetail.accountID, quickAction, report, accountDelegateEmail],
     );
 
     const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID ?? report.reportID}`, {canBeMissing: true});

@@ -41,7 +41,8 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
     const titleDefaultValue = useMemo(() => Parser.htmlToMarkdown(Parser.replace(taskTitle)), [taskTitle]);
     const descriptionDefaultValue = useMemo(() => Parser.htmlToMarkdown(Parser.replace(taskDescription)), [taskDescription]);
     const {inputCallbackRef} = useAutoFocusInput();
-
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const accountDelegateEmail = account?.delegatedAccess?.delegate ?? '';
     const backTo = route.params?.backTo;
     const skipConfirmation = task?.skipConfirmation && task?.assigneeAccountID && task?.parentReportID;
     const buttonText = skipConfirmation ? translate('newTaskPage.assignTask') : translate('common.next');
@@ -88,6 +89,7 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
                 isCreatedUsingMarkdown: false,
                 quickAction,
                 ancestors,
+                accountDelegateEmail,
             });
         } else {
             Navigation.navigate(ROUTES.NEW_TASK.getRoute(backTo));

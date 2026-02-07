@@ -6335,6 +6335,67 @@ function buildOptimisticAddCommentReportAction(
     };
 }
 
+function newBuildOptimisticAddCommentReportAction(
+    accountDelegateEmail: string,
+    text?: string,
+    file?: FileObject,
+    actorAccountID?: number,
+    createdOffset = 0,
+    reportID?: string,
+    reportActionID: string = rand64(),
+): OptimisticReportAction {
+    const commentText = getParsedComment(text ?? '', {reportID});
+    const attachmentHtml = getUploadingAttachmentHtml(file);
+
+    const htmlForNewComment = `${commentText}${commentText && attachmentHtml ? '<br /><br />' : ''}${attachmentHtml}`;
+    const textForNewComment = Parser.htmlToText(htmlForNewComment);
+
+    const isAttachmentOnly = file && !text;
+    const isAttachmentWithText = !!text && file !== undefined;
+    const accountID = actorAccountID ?? currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const delegateAccountDetails = getPersonalDetailByEmail(accountDelegateEmail);
+
+    // Remove HTML from text when applying optimistic offline comment
+    return {
+        commentText,
+        reportAction: {
+            reportActionID,
+            reportID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            actorAccountID: accountID,
+            person: [
+                {
+                    style: 'strong',
+                    text: allPersonalDetails?.[accountID]?.displayName ?? currentUserEmail,
+                    type: 'TEXT',
+                },
+            ],
+            automatic: false,
+            avatar: allPersonalDetails?.[accountID]?.avatar,
+            created: NetworkConnection.getDBTimeWithSkew(Date.now() + createdOffset),
+            message: [
+                {
+                    translationKey: isAttachmentOnly ? CONST.TRANSLATION_KEYS.ATTACHMENT : '',
+                    type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                    html: htmlForNewComment,
+                    text: textForNewComment,
+                },
+            ],
+            originalMessage: {
+                html: htmlForNewComment,
+                whisperedTo: [],
+            },
+            isFirstItem: false,
+            isAttachmentOnly,
+            isAttachmentWithText,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            shouldShow: true,
+            isOptimisticAction: true,
+            delegateAccountID: delegateAccountDetails?.accountID,
+        },
+    };
+}
+
 /**
  * update optimistic parent reportAction when a comment is added or remove in the child report
  * @param parentReportAction - Parent report action of the child report
@@ -6391,12 +6452,13 @@ function buildOptimisticTaskCommentReportAction(
     taskReportID: string,
     taskTitle: string,
     taskAssigneeAccountID: number,
+    accountDelegateEmail: string,
     text: string,
     parentReportID: string | undefined,
     actorAccountID?: number,
     createdOffset = 0,
 ): OptimisticReportAction {
-    const reportAction = buildOptimisticAddCommentReportAction(text, undefined, undefined, createdOffset, taskReportID);
+    const reportAction = newBuildOptimisticAddCommentReportAction(accountDelegateEmail, text, undefined, undefined, createdOffset, taskReportID);
     if (Array.isArray(reportAction.reportAction.message)) {
         const message = reportAction.reportAction.message.at(0);
         if (message) {
@@ -10131,6 +10193,7 @@ function getTaskAssigneeChatOnyxData(
     parentReportID: string | undefined,
     title: string,
     assigneeChatReport: OnyxEntry<Report>,
+    accountDelegateEmail: string,
     isOptimisticAssigneeChatReport?: boolean,
 ): OnyxDataTaskAssigneeChat {
     // Set if we need to add a comment to the assignee chat notifying them that they have been assigned a task
@@ -10236,7 +10299,7 @@ function getTaskAssigneeChatOnyxData(
     if (assigneeChatReportID !== parentReportID) {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const displayname = allPersonalDetails?.[assigneeAccountID]?.displayName || allPersonalDetails?.[assigneeAccountID]?.login || '';
-        optimisticAssigneeAddComment = buildOptimisticTaskCommentReportAction(taskReportID, title, assigneeAccountID, `assigned to ${displayname}`, parentReportID);
+        optimisticAssigneeAddComment = buildOptimisticTaskCommentReportAction(taskReportID, title, assigneeAccountID, accountDelegateEmail, `assigned to ${displayname}`, parentReportID);
         const lastAssigneeCommentText = formatReportLastMessageText(getReportActionText(optimisticAssigneeAddComment.reportAction as ReportAction));
         const optimisticAssigneeReport = {
             lastVisibleActionCreated: currentTime,

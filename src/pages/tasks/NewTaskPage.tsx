@@ -51,7 +51,8 @@ function NewTaskPage({route}: NewTaskPageProps) {
     const [errorMessage, setErrorMessage] = useState('');
     const hasDestinationError = task?.skipConfirmation && !task?.parentReportID;
     const isAllowedToCreateTask = isEmptyObject(parentReport) || isAllowedToComment(parentReport);
-
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const accountDelegateEmail = account?.delegatedAccess?.delegate ?? '';
     const {paddingBottom} = useSafeAreaPaddings();
 
     const backTo = route.params?.backTo;
@@ -109,6 +110,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
             isCreatedUsingMarkdown: false,
             quickAction,
             ancestors,
+            accountDelegateEmail,
         });
     };
 

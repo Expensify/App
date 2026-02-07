@@ -280,7 +280,7 @@ describe('actions/Task', () => {
         const mockPolicyID = 'policy_123';
         const mockCurrentUserAccountID = 123;
         const mockCurrentUserEmail = 'creator@example.com';
-
+        const mockAccountDelegateEmail = 'delegate@example.com';
         beforeEach(async () => {
             jest.clearAllMocks();
             writeSpy.mockClear();
@@ -380,6 +380,7 @@ describe('actions/Task', () => {
                 policyID: mockPolicyID,
                 isCreatedUsingMarkdown: false,
                 quickAction: {},
+                accountDelegateEmail: mockAccountDelegateEmail,
             });
             // Then: Verify API.write called with expected arguments
             const calls = (API.write as jest.Mock).mock.calls;
@@ -426,6 +427,7 @@ describe('actions/Task', () => {
                 policyID: mockPolicyID,
                 isCreatedUsingMarkdown: false,
                 quickAction: mockQuickAction,
+                accountDelegateEmail: mockAccountDelegateEmail,
             });
 
             await waitForBatchedUpdatesWithAct();
@@ -486,6 +488,7 @@ describe('actions/Task', () => {
                 policyID: mockPolicyID,
                 isCreatedUsingMarkdown: true,
                 quickAction: {},
+                accountDelegateEmail: mockAccountDelegateEmail,
             });
 
             await waitForBatchedUpdatesWithAct();
@@ -524,6 +527,7 @@ describe('actions/Task', () => {
                 policyID: CONST.POLICY.OWNER_EMAIL_FAKE,
                 isCreatedUsingMarkdown: false,
                 quickAction: {},
+                accountDelegateEmail: mockAccountDelegateEmail,
             });
 
             await waitForBatchedUpdatesWithAct();
@@ -569,6 +573,7 @@ describe('actions/Task', () => {
                 policyID: mockPolicyID,
                 isCreatedUsingMarkdown: false,
                 quickAction: {},
+                accountDelegateEmail: mockAccountDelegateEmail,
             });
 
             await waitForBatchedUpdatesWithAct();
@@ -624,6 +629,7 @@ describe('actions/Task', () => {
                 policyID: mockPolicyID,
                 isCreatedUsingMarkdown: false,
                 quickAction: {},
+                accountDelegateEmail: mockAccountDelegateEmail,
             });
 
             await waitForBatchedUpdatesWithAct();
@@ -659,7 +665,8 @@ describe('actions/Task', () => {
                 policyID: mockPolicyID,
                 isCreatedUsingMarkdown: false,
                 quickAction: {}, // quickAction is empty
-            });
+                accountDelegateEmail: mockAccountDelegateEmail,
+                });
 
             await waitForBatchedUpdatesWithAct();
 
