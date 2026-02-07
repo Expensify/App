@@ -53,6 +53,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS, {canBeMissing: true});
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE, {canBeMissing: true});
     const [validatedFile] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
 
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const personalDetails = usePersonalDetails();
@@ -146,6 +147,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                 if (isDraft) {
                     openReport(
                         report.reportID,
+                        introSelected,
                         '',
                         displayReport.participantsList?.filter((u) => u.accountID !== personalDetail.accountID).map((u) => u.login ?? '') ?? [],
                         report,
@@ -175,6 +177,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
         >
             <View style={[styles.flex1, styles.flexColumn, styles.h100, styles.appBG]}>
                 <PressableWithoutFeedback
+                    sentryLabel={CONST.SENTRY_LABEL.SHARE_DETAILS.DISMISS_KEYBOARD_HEADER}
                     onPress={() => {
                         KeyboardUtils.dismiss();
                     }}
@@ -220,6 +223,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                         </ScrollView>
                     </View>
                     <PressableWithoutFeedback
+                        sentryLabel={CONST.SENTRY_LABEL.SHARE_DETAILS.DISMISS_KEYBOARD_ATTACHMENT}
                         onPress={() => {
                             KeyboardUtils.dismiss();
                         }}

@@ -598,7 +598,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             }
         }
 
-        openReport(reportIDFromRoute, reportActionIDFromRoute);
+        openReport(reportIDFromRoute, introSelected, reportActionIDFromRoute);
     }, [
         reportMetadata.isOptimisticReport,
         report,
@@ -733,7 +733,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         if (!shouldUseNarrowLayout || !isFocused || prevIsFocused || !isChatThread(report) || !isHiddenForCurrentUser(report) || isTransactionThreadView) {
             return;
         }
-        openReport(reportID);
+        openReport(reportID, introSelected);
 
         // We don't want to run this useEffect every time `report` is changed
         // Excluding shouldUseNarrowLayout from the dependency list to prevent re-triggering on screen resize events.

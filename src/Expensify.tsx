@@ -128,6 +128,7 @@ function Expensify() {
     const {isOffline} = useNetwork();
     const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS, {canBeMissing: true});
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
 
     useDebugShortcut();
@@ -342,7 +343,19 @@ function Expensify() {
                 if (conciergeReportID === undefined) {
                     Log.info('[Deep link] conciergeReportID is undefined when processing initial URL', false, {url});
                 }
-                openReportFromDeepLink(url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isAuthenticated, conciergeReportID);
+                if (introSelected === undefined) {
+                    Log.info('[Deep link] introSelected is undefined when processing initial URL', false, {url});
+                }
+                openReportFromDeepLink(
+                    url,
+                    currentOnboardingPurposeSelected,
+                    currentOnboardingCompanySize,
+                    onboardingInitialPath,
+                    allReports,
+                    isAuthenticated,
+                    introSelected,
+                    conciergeReportID,
+                );
             } else {
                 Report.doneCheckingPublicRoom();
             }
@@ -355,15 +368,27 @@ function Expensify() {
             if (conciergeReportID === undefined) {
                 Log.info('[Deep link] conciergeReportID is undefined when processing URL change', false, {url: state.url});
             }
+            if (introSelected === undefined) {
+                Log.info('[Deep link] introSelected is undefined when processing URL change', false, {url: state.url});
+            }
             const isCurrentlyAuthenticated = hasAuthToken();
-            openReportFromDeepLink(state.url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isCurrentlyAuthenticated, conciergeReportID);
+            openReportFromDeepLink(
+                state.url,
+                currentOnboardingPurposeSelected,
+                currentOnboardingCompanySize,
+                onboardingInitialPath,
+                allReports,
+                isCurrentlyAuthenticated,
+                introSelected,
+                conciergeReportID,
+            );
         });
 
         return () => {
             linkingChangeListener.current?.remove();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want this effect to re-run when conciergeReportID changes
-    }, [sessionMetadata?.status, conciergeReportID]);
+    }, [sessionMetadata?.status, conciergeReportID, introSelected]);
 
     useLayoutEffect(() => {
         if (!isNavigationReady || !lastRoute) {
