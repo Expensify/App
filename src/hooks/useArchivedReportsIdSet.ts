@@ -17,6 +17,7 @@ function useArchivedReportsIdSet(): ArchivedReportsIDSet {
     // useDeepCompareRef is used here to prevent unnecessary re-renders by maintaining referential equality
     // when the Set contents are the same, even if it's a new Set instance. This is important for performance
     // optimization since Sets are reference types and would normally cause re-renders even with same values
+    // Reassure test confirmed additional rerender when not using useDeepCompareRef
     return useDeepCompareRef(archivedReportsIdSet) ?? new Set<string>();
 }
 

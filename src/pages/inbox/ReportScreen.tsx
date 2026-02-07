@@ -24,7 +24,6 @@ import useShowWideRHPVersion from '@components/WideRHPContextProvider/useShowWid
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
-import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -192,8 +191,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const deletedParentAction = isDeletedParentAction(parentReportAction);
     const prevDeletedParentAction = usePrevious(deletedParentAction);
 
-    const permissions = useDeepCompareRef(reportOnyx?.permissions);
-
     const isAnonymousUser = useIsAnonymousUser();
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
     const prevIsLoadingReportData = usePrevious(isLoadingReportData);
@@ -289,12 +286,12 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                 private_isArchived: reportNameValuePairsOnyx?.private_isArchived,
                 lastMentionedTime: reportOnyx.lastMentionedTime,
                 avatarUrl: reportOnyx.avatarUrl,
-                permissions,
+                permissions: reportOnyx?.permissions,
                 invoiceReceiver: reportOnyx.invoiceReceiver,
                 policyAvatar: reportOnyx.policyAvatar,
                 nextStep: reportOnyx.nextStep,
             },
-        [reportOnyx, reportNameValuePairsOnyx?.private_isArchived, permissions],
+        [reportOnyx, reportNameValuePairsOnyx?.private_isArchived],
     );
     const reportID = report?.reportID;
 
