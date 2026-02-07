@@ -88,23 +88,28 @@ Onyx.connect({
 
 /**
  * @returns The date when the grace period ends.
+ * @param gracePeriodEnd - Optional parameter to use instead of module-level value (for pure function usage).
  */
-function getOverdueGracePeriodDate(): OnyxEntry<number> {
-    return ownerBillingGraceEndPeriod;
+function getOverdueGracePeriodDate(gracePeriodEnd?: OnyxEntry<number>): OnyxEntry<number> {
+    return gracePeriodEnd ?? ownerBillingGraceEndPeriod;
 }
 
 /**
  * @returns Whether the workspace owner has an overdue grace period.
+ * @param gracePeriodEnd - Optional parameter to use instead of module-level value (for pure function usage).
  */
-function hasOverdueGracePeriod(): boolean {
-    return !!ownerBillingGraceEndPeriod;
+function hasOverdueGracePeriod(gracePeriodEnd?: OnyxEntry<number>): boolean {
+    const value = gracePeriodEnd ?? ownerBillingGraceEndPeriod;
+    return !!value;
 }
 
 /**
  * @returns Whether the workspace owner's grace period is overdue.
+ * @param gracePeriodEnd - Optional parameter to use instead of module-level value (for pure function usage).
  */
-function hasGracePeriodOverdue(): boolean {
-    return !!ownerBillingGraceEndPeriod && Date.now() > new Date(ownerBillingGraceEndPeriod).getTime();
+function hasGracePeriodOverdue(gracePeriodEnd?: OnyxEntry<number>): boolean {
+    const value = gracePeriodEnd ?? ownerBillingGraceEndPeriod;
+    return !!value && Date.now() > new Date(value).getTime();
 }
 
 /**
@@ -270,6 +275,7 @@ type SubscriptionStatus = {
 
 /**
  * @returns The subscription status.
+ * @param ownerBillingGraceEndPeriodParam - Optional parameter to use instead of module-level value (for pure function usage).
  */
 function getSubscriptionStatus(
     stripeCustomerId: OnyxEntry<StripeCustomerID>,
@@ -278,11 +284,12 @@ function getSubscriptionStatus(
     retryBillingFailed: boolean | undefined,
     fundList: OnyxEntry<FundList>,
     billingStatus: OnyxEntry<BillingStatus>,
+    ownerBillingGraceEndPeriodParam?: OnyxEntry<number>,
 ): SubscriptionStatus | undefined {
-    if (hasOverdueGracePeriod()) {
+    if (hasOverdueGracePeriod(ownerBillingGraceEndPeriodParam)) {
         if (hasAmountOwed()) {
             // 1. Policy owner with amount owed, within grace period
-            if (!hasGracePeriodOverdue()) {
+            if (!hasGracePeriodOverdue(ownerBillingGraceEndPeriodParam)) {
                 return {
                     status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED,
                     isError: true,
@@ -290,7 +297,7 @@ function getSubscriptionStatus(
             }
 
             // 2. Policy owner with amount owed, overdue (past grace period)
-            if (hasGracePeriodOverdue()) {
+            if (hasGracePeriodOverdue(ownerBillingGraceEndPeriodParam)) {
                 return {
                     isError: true,
                     status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED_OVERDUE,
@@ -298,7 +305,7 @@ function getSubscriptionStatus(
             }
         } else {
             // 3. Owner of policy under invoicing, within grace period
-            if (!hasGracePeriodOverdue()) {
+            if (!hasGracePeriodOverdue(ownerBillingGraceEndPeriodParam)) {
                 return {
                     status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING,
                     isError: true,
@@ -306,7 +313,7 @@ function getSubscriptionStatus(
             }
 
             // 4. Owner of policy under invoicing, overdue (past grace period)
-            if (hasGracePeriodOverdue()) {
+            if (hasGracePeriodOverdue(ownerBillingGraceEndPeriodParam)) {
                 return {
                     status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING_OVERDUE,
                     isError: true,
@@ -374,6 +381,7 @@ function getSubscriptionStatus(
 
 /**
  * @returns Whether there is a subscription red dot error.
+ * @param ownerBillingGraceEndPeriodParam - Optional parameter to use instead of module-level value (for pure function usage).
  */
 function hasSubscriptionRedDotError(
     stripeCustomerId: OnyxEntry<StripeCustomerID>,
@@ -382,12 +390,16 @@ function hasSubscriptionRedDotError(
     retryBillingFailed: boolean | undefined,
     fundList: OnyxEntry<FundList>,
     billingStatus: OnyxEntry<BillingStatus>,
+    ownerBillingGraceEndPeriodParam?: OnyxEntry<number>,
 ): boolean {
-    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus)?.isError ?? false;
+    return (
+        getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus, ownerBillingGraceEndPeriodParam)?.isError ?? false
+    );
 }
 
 /**
  * @returns Whether there is a subscription green dot info.
+ * @param ownerBillingGraceEndPeriodParam - Optional parameter to use instead of module-level value (for pure function usage).
  */
 function hasSubscriptionGreenDotInfo(
     stripeCustomerId: OnyxEntry<StripeCustomerID>,
@@ -396,8 +408,12 @@ function hasSubscriptionGreenDotInfo(
     retryBillingFailed: boolean | undefined,
     fundList: OnyxEntry<FundList>,
     billingStatus: OnyxEntry<BillingStatus>,
+    ownerBillingGraceEndPeriodParam?: OnyxEntry<number>,
 ): boolean {
-    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus)?.isError === false;
+    return (
+        getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus, ownerBillingGraceEndPeriodParam)?.isError ===
+        false
+    );
 }
 
 /**
@@ -617,6 +633,8 @@ export {
     getOverdueGracePeriodDate,
     getSubscriptionStatus,
     hasCardAuthenticatedError,
+    hasGracePeriodOverdue,
+    hasOverdueGracePeriod,
     hasRetryBillingError,
     hasSubscriptionGreenDotInfo,
     hasSubscriptionRedDotError,
