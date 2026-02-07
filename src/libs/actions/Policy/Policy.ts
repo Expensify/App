@@ -354,6 +354,7 @@ type DeleteWorkspaceActionParams = {
     bankAccountList: OnyxEntry<BankAccountList>;
     lastUsedPaymentMethods?: LastPaymentMethod;
     localeCompare: LocaleContextProps['localeCompare'];
+    hasWorkspaceDeleteErrorOffline?: boolean;
 };
 
 /**
@@ -377,6 +378,7 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
         bankAccountList,
         localeCompare,
         personalPolicyID,
+        hasWorkspaceDeleteErrorOffline,
     } = params;
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
@@ -414,7 +416,7 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
             value: {
                 avatarURL: '',
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                errors: null,
+                errors: hasWorkspaceDeleteErrorOffline ? ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage') : null,
             },
         },
         {
@@ -585,6 +587,17 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
                 [optimisticClosedReportAction.reportActionID]: null,
             },
         });
+
+        if (hasWorkspaceDeleteErrorOffline) {
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    errors: null,
+                },
+            });
+        }
+
         reportIDToOptimisticCloseReportActionID[reportID] = optimisticClosedReportAction.reportActionID;
 
         for (const transactionViolationKey of Object.keys(transactionViolations ?? {})) {
