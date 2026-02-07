@@ -324,7 +324,7 @@ function SearchFiltersBar({
             });
 
             if (updatedFilterFormValues.groupBy !== searchAdvancedFiltersForm.groupBy) {
-                queryString = getQueryWithUpdatedValues(queryString, true) ?? '';
+                queryString = getQueryWithUpdatedValues(queryString, true, translate) ?? '';
             }
             if (!queryString) {
                 return;
@@ -335,7 +335,7 @@ function SearchFiltersBar({
                 Navigation.setParams({q: queryString, rawQuery: undefined});
             });
         },
-        [searchAdvancedFiltersForm, queryJSON.sortBy, queryJSON.sortOrder, queryJSON.limit],
+        [searchAdvancedFiltersForm, queryJSON.sortBy, queryJSON.sortOrder, queryJSON.limit, translate],
     );
 
     const openAdvancedFilters = useCallback(() => {

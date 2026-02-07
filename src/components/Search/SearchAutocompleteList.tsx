@@ -48,6 +48,7 @@ import {
     sanitizeSearchValue,
     shouldHighlight,
 } from '@libs/SearchQueryUtils';
+import {formatTranslatedValue, getStatusOptions} from '@libs/SearchTranslationUtils';
 import {getDatePresets, getHasOptions} from '@libs/SearchUIUtils';
 import StringUtils from '@libs/StringUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
@@ -261,33 +262,9 @@ function SearchAutocompleteList({
     }, []);
 
     const statusAutocompleteList = useMemo(() => {
-        let suggestedStatuses;
-        switch (currentType) {
-            case CONST.SEARCH.DATA_TYPES.EXPENSE:
-                suggestedStatuses = Object.values(CONST.SEARCH.STATUS.EXPENSE);
-                break;
-            case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
-                suggestedStatuses = Object.values(CONST.SEARCH.STATUS.EXPENSE_REPORT);
-                break;
-            case CONST.SEARCH.DATA_TYPES.INVOICE:
-                suggestedStatuses = Object.values(CONST.SEARCH.STATUS.INVOICE);
-                break;
-            case CONST.SEARCH.DATA_TYPES.TRIP:
-                suggestedStatuses = Object.values(CONST.SEARCH.STATUS.TRIP);
-                break;
-            case CONST.SEARCH.DATA_TYPES.TASK:
-                suggestedStatuses = Object.values(CONST.SEARCH.STATUS.TASK);
-                break;
-            default:
-                suggestedStatuses = Object.values({
-                    ...CONST.SEARCH.STATUS.EXPENSE,
-                    ...CONST.SEARCH.STATUS.INVOICE,
-                    ...CONST.SEARCH.STATUS.TRIP,
-                    ...CONST.SEARCH.STATUS.TASK,
-                });
-        }
-        return suggestedStatuses.filter((value) => value !== '').map((value) => getUserFriendlyValue(value));
-    }, [currentType]);
+        const suggestedStatuses = getStatusOptions(translate, currentType);
+        return suggestedStatuses.map((option) => formatTranslatedValue(option.text));
+    }, [translate, currentType]);
 
     const hasAutocompleteList = useMemo(() => getHasOptions(translate, currentType), [translate, currentType]);
     const isAutocompleteList = useMemo(() => {
@@ -527,7 +504,7 @@ function SearchAutocompleteList({
             }
             case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS: {
                 const filteredStatuses = statusAutocompleteList
-                    .filter((status) => status.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(status))
+                    .filter((status) => status.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(status))
                     .sort()
                     .slice(0, 10);
 

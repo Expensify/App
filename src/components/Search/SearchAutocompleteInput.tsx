@@ -20,6 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setSearchContext} from '@libs/actions/Search';
 import scheduleOnLiveMarkdownRuntime from '@libs/scheduleOnLiveMarkdownRuntime';
 import {getAutocompleteCategories, getAutocompleteTags, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
+import {getAllTranslatedStatusValues} from '@libs/SearchTranslationUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -124,6 +125,9 @@ function SearchAutocompleteInput({
     const emailList = Object.keys(loginList ?? {});
     const emailListSharedValue = useSharedValue(emailList);
 
+    const translatedStatusSet = useMemo(() => getAllTranslatedStatusValues(translate), [translate]);
+    const translatedStatusSharedValue = useSharedValue(translatedStatusSet);
+
     const offlineMessage: string = isOffline && shouldShowOfflineMessage ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     const {borderColor: focusedBorderColor = theme.border, ...restWrapperFocusedStyle} = wrapperFocusedStyle;
@@ -172,13 +176,30 @@ function SearchAutocompleteInput({
         });
     }, [tagSharedValue, tagAutocompleteList]);
 
+    useEffect(() => {
+        scheduleOnLiveMarkdownRuntime(() => {
+            'worklet';
+
+            translatedStatusSharedValue.set(translatedStatusSet);
+        });
+    }, [translatedStatusSharedValue, translatedStatusSet]);
+
     const parser = useCallback(
         (input: string) => {
             'worklet';
 
-            return parseForLiveMarkdown(input, currentUserPersonalDetails.displayName ?? '', substitutionMap, emailListSharedValue, currencySharedValue, categorySharedValue, tagSharedValue);
+            return parseForLiveMarkdown(
+                input,
+                currentUserPersonalDetails.displayName ?? '',
+                substitutionMap,
+                emailListSharedValue,
+                currencySharedValue,
+                categorySharedValue,
+                tagSharedValue,
+                translatedStatusSharedValue,
+            );
         },
-        [currentUserPersonalDetails.displayName, substitutionMap, currencySharedValue, categorySharedValue, tagSharedValue, emailListSharedValue],
+        [currentUserPersonalDetails.displayName, substitutionMap, currencySharedValue, categorySharedValue, tagSharedValue, emailListSharedValue, translatedStatusSharedValue],
     );
 
     const clearInput = useCallback(() => {
