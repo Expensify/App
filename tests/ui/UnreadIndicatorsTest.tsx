@@ -176,7 +176,7 @@ async function signInAndGetAppWithUnreadChat(): Promise<void> {
     renderAppOnce();
     await waitForBatchedUpdatesWithAct();
 
-    subscribeToUserEvents();
+    subscribeToUserEvents(USER_A_ACCOUNT_ID);
 
     await waitForBatchedUpdates();
 
@@ -495,7 +495,14 @@ describe('Unread Indicators', () => {
 
                 // Leave a comment as the current user and verify the indicator is removed
                 const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
-                addComment(report, REPORT_ID, [], 'Current User Comment 1', CONST.DEFAULT_TIME_ZONE);
+                addComment({
+                    report,
+                    notifyReportID: REPORT_ID,
+                    ancestors: [],
+                    text: 'Current User Comment 1',
+                    timezoneParam: CONST.DEFAULT_TIME_ZONE,
+                    currentUserAccountID: USER_A_ACCOUNT_ID,
+                });
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -559,7 +566,14 @@ describe('Unread Indicators', () => {
                 .then(async () => {
                     const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
                     // Leave a comment as the current user
-                    addComment(report, REPORT_ID, [], 'Current User Comment 1', CONST.DEFAULT_TIME_ZONE);
+                    addComment({
+                        report,
+                        notifyReportID: REPORT_ID,
+                        ancestors: [],
+                        text: 'Current User Comment 1',
+                        timezoneParam: CONST.DEFAULT_TIME_ZONE,
+                        currentUserAccountID: USER_A_ACCOUNT_ID,
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -606,7 +620,7 @@ describe('Unread Indicators', () => {
         await navigateToSidebarOption(0);
 
         const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
-        addComment(report, REPORT_ID, [], 'Comment 1', CONST.DEFAULT_TIME_ZONE);
+        addComment({report, notifyReportID: REPORT_ID, ancestors: [], text: 'Comment 1', timezoneParam: CONST.DEFAULT_TIME_ZONE, currentUserAccountID: USER_A_ACCOUNT_ID});
 
         await waitForBatchedUpdates();
 
@@ -617,7 +631,7 @@ describe('Unread Indicators', () => {
 
             await waitForBatchedUpdates();
 
-            addComment(report, REPORT_ID, [], 'Comment 2', CONST.DEFAULT_TIME_ZONE);
+            addComment({report, notifyReportID: REPORT_ID, ancestors: [], text: 'Comment 2', timezoneParam: CONST.DEFAULT_TIME_ZONE, currentUserAccountID: USER_A_ACCOUNT_ID});
 
             await waitForBatchedUpdates();
 
@@ -780,7 +794,7 @@ describe('Unread Indicators', () => {
         const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
 
         // When USER_A add a comment
-        addComment(report, REPORT_ID, [], 'Current User Comment', CONST.DEFAULT_TIME_ZONE);
+        addComment({report, notifyReportID: REPORT_ID, ancestors: [], text: 'Current User Comment', timezoneParam: CONST.DEFAULT_TIME_ZONE, currentUserAccountID: USER_A_ACCOUNT_ID});
         await waitForBatchedUpdates();
 
         // Then USER_A mark the report as unread

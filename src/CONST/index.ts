@@ -8256,6 +8256,9 @@ const CONST = {
         REANIMATED_MODAL: {
             BACKDROP: 'ReanimatedModal-Backdrop',
         },
+        SHARE_DETAIL: {
+            DISMISS_KEYBOARD_BUTTON: 'ShareDetail-DismissKeyboardButton',
+        },
         REQUEST_STEP: {
             SCAN: {
                 MULTI_SCAN: 'Scan-MultiScan',

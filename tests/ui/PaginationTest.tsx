@@ -227,7 +227,7 @@ async function signInAndGetApp(): Promise<void> {
     await waitForBatchedUpdatesWithAct();
 
     // Start listening for pusher events after navigation settles.
-    subscribeToUserEvents();
+    subscribeToUserEvents(USER_A_ACCOUNT_ID);
     await waitForBatchedUpdates();
 
     await act(async () => {
