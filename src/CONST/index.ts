@@ -8275,6 +8275,9 @@ const CONST = {
             TOGGLE_SETTINGS_ROW: 'Workspace-ToggleSettingsRow',
             WORKSPACE_MENU_ITEM: 'Workspace-WorkspaceMenuItem',
         },
+        BASE_ANCHOR_FOR_ATTACHMENTS_ONLY: {
+            DOWNLOAD_BUTTON: 'BaseAnchorForAttachmentsOnly-DownloadButton',
+        },
     },
 
     DOMAIN: {

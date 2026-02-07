@@ -5068,14 +5068,14 @@ function exportReportToPDF({reportID}: ExportReportPDFParams) {
     API.write(WRITE_COMMANDS.EXPORT_REPORT_TO_PDF, params, {optimisticData, failureData});
 }
 
-function downloadReportPDF(fileName: string, reportName: string, translate: LocalizedTranslate, currentUserLogin: string) {
+function downloadReportPDF(fileName: string, reportName: string, translate: LocalizedTranslate, currentUserLogin: string, encryptedAuthToken: string) {
     const baseURL = addTrailingForwardSlash(getOldDotURLFromEnvironment(environment));
     const downloadFileName = `${reportName}.pdf`;
     setDownload(fileName, true);
     const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${encodeURIComponent(fileName)}&downloadName=${encodeURIComponent(downloadFileName)}&email=${encodeURIComponent(
         currentUserLogin,
     )}`;
-    fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, true), downloadFileName, '', Browser.isMobileSafari()).then(() => setDownload(fileName, false));
+    fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, encryptedAuthToken, true), downloadFileName, '', Browser.isMobileSafari()).then(() => setDownload(fileName, false));
 }
 
 function setDeleteTransactionNavigateBackUrl(url: string) {
