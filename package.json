@@ -149,7 +149,7 @@
     "fast-equals": "^5.2.2",
     "focus-trap-react": "^11.0.3",
     "group-ib-fp": "file:modules/group-ib-fp",
-    "heic-to": "^1.1.13",
+    "heic-to": "^1.1.14",
     "howler": "^2.2.4",
     "htmlparser2": "10.0.0",
     "idb-keyval": "^6.2.1",
