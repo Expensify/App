@@ -1,5 +1,5 @@
 import mapValues from 'lodash/mapValues';
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -29,6 +29,7 @@ import {
     isPaidGroupPolicy,
     isTrackExpenseReportNew,
 } from '@libs/ReportUtils';
+import trackExpenseCreationError from '@libs/telemetry/trackExpenseCreationError';
 import {
     didReceiptScanSucceed as didReceiptScanSucceedTransactionUtils,
     hasReceipt as hasReceiptTransactionUtils,
@@ -208,6 +209,44 @@ function MoneyRequestReceiptView({
     const reportCreationError = useMemo(() => (getCreationReportErrors(report) ? getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage') : {}), [report]);
     const errors = useMemo(() => ({...errorsWithoutReportCreation, ...reportCreationError}), [errorsWithoutReportCreation, reportCreationError]);
     const showReceiptErrorWithEmptyState = shouldShowReceiptEmptyState && !hasReceipt && !isEmptyObject(errors);
+
+    // Track expense creation errors to Sentry for monitoring RequestMoney failures
+    useEffect(() => {
+        if (isEmptyObject(errors)) {
+            return;
+        }
+        let errorType: 'report_creation_failed' | 'transaction_missing';
+        let errorSource: 'transaction' | 'report_action' | 'report_creation';
+
+        if (!isEmptyObject(reportCreationError)) {
+            errorType = 'report_creation_failed';
+            errorSource = 'report_creation';
+        } else if (parentReportAction?.errors && !isEmptyObject(parentReportAction.errors)) {
+            errorType = 'transaction_missing';
+            errorSource = 'report_action';
+        } else {
+            errorType = 'transaction_missing';
+            errorSource = 'transaction';
+        }
+
+        const errorValue = Object.values(errors).at(0);
+        const errorMessage = typeof errorValue === 'string' ? errorValue : JSON.stringify(errorValue);
+        const isRequestPending = transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+        const isTransactionMissing = !transaction?.transactionID && !!linkedTransactionID;
+
+        trackExpenseCreationError(null, {
+            errorType,
+            errorSource,
+            reportID: report?.reportID,
+            transactionID: linkedTransactionID,
+            hasReceipt,
+            pendingAction: transaction?.pendingAction,
+            iouType,
+            errorMessage,
+            isRequestPending,
+            isTransactionMissing,
+        });
+    }, [errors, reportCreationError, report?.reportID, linkedTransactionID, hasReceipt, transaction?.pendingAction, transaction?.transactionID, parentReportAction?.errors, iouType]);
 
     const [showConfirmDismissReceiptError, setShowConfirmDismissReceiptError] = useState(false);
 
