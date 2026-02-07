@@ -2238,6 +2238,8 @@ const CONST = {
         BIG_SCREEN_SUGGESTION_WIDTH: 300,
     },
     COMPOSER_MAX_HEIGHT: 125,
+    // Starts with this value to avoid a big jump while the container height is being calculated in case the screen is first rendered w/ a full size composer. It's based on the perceived concierge header height on the iPhone 16 Pro.
+    CHAT_HEADER_BASE_HEIGHT: 73,
     CHAT_FOOTER_SECONDARY_ROW_HEIGHT: 15,
     CHAT_FOOTER_SECONDARY_ROW_PADDING: 5,
     CHAT_FOOTER_MIN_HEIGHT: 65,

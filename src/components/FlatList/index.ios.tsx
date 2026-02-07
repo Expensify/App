@@ -2,7 +2,6 @@ import React, {useCallback, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {FlatList} from 'react-native';
 import KeyboardDismissibleFlatList from '@components/KeyboardDismissibleFlatList';
-import useEmitComposerScrollEvents from '@hooks/useEmitComposerScrollEvents';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {CustomFlatListProps} from './types';
 
@@ -37,15 +36,6 @@ function CustomFlatList<T>({
         [onMomentumScrollEnd],
     );
 
-    const emitComposerScrollEvents = useEmitComposerScrollEvents({enabled: !enableAnimatedKeyboardDismissal, inverted: restProps.inverted});
-    const handleScroll = useCallback(
-        (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-            onScrollProp?.(e);
-            emitComposerScrollEvents();
-        },
-        [emitComposerScrollEvents, onScrollProp],
-    );
-
     const maintainVisibleContentPosition = isScrolling || shouldDisableVisibleContentPosition ? undefined : maintainVisibleContentPositionProp;
 
     const contentContainerStyle = [restProps.contentContainerStyle, shouldHideContent && styles.opacity0];
@@ -72,7 +62,7 @@ function CustomFlatList<T>({
             {...restProps}
             ref={ref}
             maintainVisibleContentPosition={maintainVisibleContentPosition}
-            onScroll={handleScroll}
+            onScroll={onScrollProp}
             onMomentumScrollBegin={handleScrollBegin}
             onMomentumScrollEnd={handleScrollEnd}
             contentContainerStyle={contentContainerStyle}

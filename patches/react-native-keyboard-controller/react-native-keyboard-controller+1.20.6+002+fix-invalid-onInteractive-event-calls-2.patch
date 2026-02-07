@@ -1,0 +1,162 @@
+diff --git a/node_modules/react-native-keyboard-controller/ios/observers/movement/observer/KeyboardMovementObserver+Interactive.swift b/node_modules/react-native-keyboard-controller/ios/observers/movement/observer/KeyboardMovementObserver+Interactive.swift
+index 0695b74f56..026c24a1db 100644
+--- a/node_modules/react-native-keyboard-controller/ios/observers/movement/observer/KeyboardMovementObserver+Interactive.swift
++++ b/node_modules/react-native-keyboard-controller/ios/observers/movement/observer/KeyboardMovementObserver+Interactive.swift
+@@ -48,6 +48,8 @@ extension KeyboardMovementObserver {
+     }
+ 
+     prevKeyboardPosition = position
++    
++    keyboardDidTask?.cancel()
+ 
+     onEvent(
+       "onKeyboardMoveInteractive",
+diff --git a/node_modules/react-native-keyboard-controller/ios/observers/movement/observer/KeyboardMovementObserver+Listeners.swift b/node_modules/react-native-keyboard-controller/ios/observers/movement/observer/KeyboardMovementObserver+Listeners.swift
+index 47cb3b0b9c..464eec73bb 100644
+--- a/node_modules/react-native-keyboard-controller/ios/observers/movement/observer/KeyboardMovementObserver+Listeners.swift
++++ b/node_modules/react-native-keyboard-controller/ios/observers/movement/observer/KeyboardMovementObserver+Listeners.swift
+@@ -7,7 +7,7 @@
+ 
+ extension KeyboardMovementObserver {
+   @objc func keyboardWillAppear(_ notification: Notification) {
+-    guard !KeyboardEventsIgnorer.shared.shouldIgnore, !UIResponder.isKeyboardPreloading else { return }
++    guard !UIResponder.isKeyboardPreloading else { return }
+ 
+     let (duration, frame) = notification.keyboardMetaData()
+     if let keyboardFrame = frame {
+@@ -15,6 +15,12 @@ extension KeyboardMovementObserver {
+       let keyboardHeight = keyboardFrame.cgRectValue.size.height
+       self.keyboardHeight = keyboardHeight
+       self.notification = notification
++
++      guard !KeyboardEventsIgnorer.shared.shouldIgnore else {
++        KeyboardEventsIgnorer.shared.shouldIgnoreKeyboardEvents = false
++        return
++      }
++
+       self.duration = duration
+ 
+       onRequestAnimation()
+@@ -23,6 +29,7 @@ extension KeyboardMovementObserver {
+ 
+       setupKeyboardWatcher()
+       initializeAnimation(fromValue: prevKeyboardPosition, toValue: self.keyboardHeight)
++      scheduleDidEvent(height: self.keyboardHeight, duration: animation?.duration ?? CGFloat(duration) / 1000)
+     }
+   }
+ 
+@@ -44,6 +51,7 @@ extension KeyboardMovementObserver {
+     setupKeyboardWatcher()
+     removeKVObserver()
+     initializeAnimation(fromValue: prevKeyboardPosition, toValue: 0)
++    scheduleDidEvent(height: 0, duration: animation?.duration ?? CGFloat(duration) / 1000)
+   }
+ 
+   @objc func keyboardDidAppear(_ notification: Notification) {
+@@ -55,12 +63,7 @@ extension KeyboardMovementObserver {
+       tag = UIResponder.current.reactViewTag
+       self.keyboardHeight = keyboardHeight
+ 
+-      guard !KeyboardEventsIgnorer.shared.shouldIgnore else {
+-        KeyboardEventsIgnorer.shared.shouldIgnoreKeyboardEvents = false
+-        return
+-      }
+-
+-      let height = self.keyboardHeight - KeyboardAreaExtender.shared.offset
++      let height = self.keyboardHeight
+       // always limit progress to the maximum possible value
+       let progress = min(height / self.keyboardHeight, 1.0)
+ 
+@@ -90,4 +93,24 @@ extension KeyboardMovementObserver {
+     removeKeyboardWatcher()
+     animation = nil
+   }
++
++  @objc func scheduleDidEvent(height: CGFloat, duration: CGFloat) {
++    keyboardDidTask?.cancel()
++
++    guard let notification = notification else {
++      return
++    }
++
++    let task = DispatchWorkItem { [weak self] in
++      guard let self = self else { return }
++      if height > 0 {
++        self.keyboardDidAppear(notification)
++      } else {
++        self.keyboardDidDisappear(notification)
++      }
++    }
++
++    keyboardDidTask = task
++    DispatchQueue.main.asyncAfter(deadline: .now() + duration, execute: task)
++  }
+ }
+diff --git a/node_modules/react-native-keyboard-controller/ios/observers/movement/observer/KeyboardMovementObserver.swift b/node_modules/react-native-keyboard-controller/ios/observers/movement/observer/KeyboardMovementObserver.swift
+index 5c23801136..ae97d611a7 100644
+--- a/node_modules/react-native-keyboard-controller/ios/observers/movement/observer/KeyboardMovementObserver.swift
++++ b/node_modules/react-native-keyboard-controller/ios/observers/movement/observer/KeyboardMovementObserver.swift
+@@ -19,30 +19,7 @@ public class KeyboardMovementObserver: NSObject {
+   var onCancelAnimation: () -> Void
+   // progress tracker
+   @objc public var keyboardTrackingView = KeyboardTrackingView()
+-  var animation: KeyboardAnimation? {
+-    didSet {
+-      keyboardDidTask?.cancel()
+-
+-      guard let animation = animation, let notification = notification else {
+-        return
+-      }
+-
+-      let toValue = animation.toValue
+-      let duration = animation.duration
+-
+-      let task = DispatchWorkItem { [weak self] in
+-        guard let self = self else { return }
+-        if toValue > 0 {
+-          self.keyboardDidAppear(notification)
+-        } else {
+-          self.keyboardDidDisappear(notification)
+-        }
+-      }
+-
+-      keyboardDidTask = task
+-      DispatchQueue.main.asyncAfter(deadline: .now() + duration, execute: task)
+-    }
+-  }
++  var animation: KeyboardAnimation?
+ 
+   var prevKeyboardPosition = 0.0
+   var displayLink: CADisplayLink!
+@@ -55,30 +32,7 @@ public class KeyboardMovementObserver: NSObject {
+     set { _keyboardHeight = newValue }
+   }
+ 
+-  var duration = 0 {
+-    didSet {
+-      keyboardDidTask?.cancel()
+-
+-      guard let notification = notification,
+-            let height = notification.keyboardMetaData().1?.cgRectValue.size.height, duration == 0
+-      else {
+-        return
+-      }
+-
+-      let task = DispatchWorkItem { [weak self] in
+-        guard let self = self else { return }
+-        if height > 0 {
+-          self.keyboardDidAppear(notification)
+-        } else {
+-          self.keyboardDidDisappear(notification)
+-        }
+-      }
+-
+-      keyboardDidTask = task
+-      DispatchQueue.main.asyncAfter(deadline: .now() + UIUtils.nextFrame, execute: task)
+-    }
+-  }
+-
++  var duration = 0
+   var tag: NSNumber = -1
+   // manual did events
+   var notification: Notification?
