@@ -65,7 +65,7 @@ describe('Split Expense Auto-Adjustment', () => {
             await waitForBatchedUpdates();
 
             // Action: Add a third split
-            addSplitExpenseField(mockTransaction, mockTransaction);
+            addSplitExpenseField(mockTransaction, mockTransaction, undefined);
             await waitForBatchedUpdates();
 
             // Verify: Should be 3 splits at ~$3.33/$3.33/$3.34 (33/33/34%)
@@ -103,7 +103,7 @@ describe('Split Expense Auto-Adjustment', () => {
             await waitForBatchedUpdates();
 
             // Action: Add a new split
-            addSplitExpenseField(mockTransaction, mockTransaction);
+            addSplitExpenseField(mockTransaction, mockTransaction, undefined);
             await waitForBatchedUpdates();
 
             // Verify: 3 splits
