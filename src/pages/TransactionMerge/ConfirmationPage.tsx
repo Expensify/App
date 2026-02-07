@@ -19,13 +19,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {mergeTransactionRequest} from '@libs/actions/MergeTransaction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {buildMergedTransactionData, getTransactionThreadReportID} from '@libs/MergeTransactionUtils';
-import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
+import performPostMergeNavigation from '@libs/performPostMergeNavigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -90,25 +89,11 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
             isASAPSubmitBetaEnabled,
         });
 
-        const reportIDToDismiss = reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? reportID : undefined;
-
-        // If we're on search, dismiss the modal and stay on search
-        if (!isOnSearch && reportIDToDismiss && reportID !== targetTransaction.reportID) {
-            // Navigate to search money report screen if we're on Reports
-            if (isSearchTopmostFullScreenRoute()) {
-                // Close the current modal screen
-                Navigation.dismissModal();
-                // Ensure the dismiss completes first
-                Navigation.setNavigationActionToMicrotaskQueue(() => {
-                    // Navigate to the money request report in search results
-                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: reportIDToDismiss}));
-                });
-            } else {
-                Navigation.dismissModalWithReport({reportID: reportIDToDismiss});
-            }
-        } else {
-            Navigation.dismissToSuperWideRHP();
-        }
+        performPostMergeNavigation({
+            isOnSearch: !!isOnSearch,
+            reportID,
+            targetTransactionReportID: targetTransaction.reportID,
+        });
     };
 
     if (isLoadingOnyxValue(mergeTransactionMetadata)) {

@@ -91,6 +91,7 @@ describe('mergeTransactionRequest', () => {
             merchant: 'Updated Merchant',
             category: 'Updated Category',
             tag: 'Updated Tag',
+            reportID: 'target-report-456',
         };
         const mergeTransactionID = 'merge789';
 
