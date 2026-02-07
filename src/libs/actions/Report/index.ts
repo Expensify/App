@@ -1718,15 +1718,19 @@ function createChildReport(childReport: OnyxEntry<Report>, parentReportAction: R
  * Creates an explanation thread for a report action with reasoning
  * Adds a "Please explain this to me." comment from the user
  */
-function explain(reportAction: OnyxEntry<ReportAction>, originalReportID: string | undefined, translate: LocalizedTranslate, timezone: Timezone = CONST.DEFAULT_TIME_ZONE) {
-    if (!originalReportID || !reportAction) {
+function explain(
+    childReport: OnyxEntry<Report>,
+    originalReport: OnyxEntry<Report>,
+    reportAction: OnyxEntry<ReportAction>,
+    translate: LocalizedTranslate,
+    timezone: Timezone = CONST.DEFAULT_TIME_ZONE,
+) {
+    if (!originalReport?.reportID || !reportAction) {
         return;
     }
 
     // Check if explanation thread report already exists
-    const existingChildReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`];
-    const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
-    const report = existingChildReport ?? createChildReport(existingChildReport, reportAction, originalReport);
+    const report = childReport ?? createChildReport(childReport, reportAction, originalReport);
 
     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, Navigation.getActiveRoute()));
     // Schedule adding the explanation comment on the next animation frame
