@@ -1160,6 +1160,8 @@ function getReportOwnerAsAttendee(transaction: OnyxInputOrEntry<Transaction>, cu
 
     if (creatorAccountID) {
         const [creatorDetails] = getPersonalDetailsByIDs({accountIDs: [creatorAccountID], currentUserAccountID: currentUserPersonalDetails?.accountID});
+
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const creatorLogin = creatorDetails?.login || creatorDetails?.displayName || '';
         const creatorDisplayName = creatorDetails?.displayName ?? creatorLogin;
 
