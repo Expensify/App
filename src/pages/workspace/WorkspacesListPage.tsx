@@ -24,16 +24,18 @@ import type {ScrollViewProps} from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useHandleBackButton from '@hooks/useHandleBackButton';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
+import usePoliciesWithCardFeedErrors from '@hooks/usePoliciesWithCardFeedErrors';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
+import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
@@ -54,15 +56,17 @@ import {
     getConnectionExporters,
     getPolicyBrickRoadIndicatorStatus,
     getUberConnectionErrorDirectlyFromPolicy,
+    getUserFriendlyWorkspaceType,
     isPendingDeletePolicy,
     isPolicyAdmin,
     isPolicyAuditor,
+    shouldBlockWorkspaceDeletionForInvoicifyUser,
     shouldShowEmployeeListError,
     shouldShowPolicy,
 } from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
-import {shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
+import {isSubscriptionTypeOfInvoicing, shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import {setNameValuePair} from '@userActions/User';
 import CONST from '@src/CONST';
@@ -132,6 +136,7 @@ function WorkspacesListPage() {
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const privateSubscription = usePrivateSubscription();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [allConnectionSyncProgresses] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
@@ -420,6 +425,18 @@ function WorkspacesListPage() {
                             return;
                         }
 
+                        if (
+                            shouldBlockWorkspaceDeletionForInvoicifyUser(
+                                isSubscriptionTypeOfInvoicing(privateSubscription?.type),
+                                policies,
+                                item?.policyID,
+                                currentUserPersonalDetails?.accountID,
+                            )
+                        ) {
+                            Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_DOWNGRADE_BLOCKED.getRoute(Navigation.getActiveRoute()));
+                            return;
+                        }
+
                         setPolicyIDToDelete(item.policyID);
                         setPolicyNameToDelete(item.title);
 
@@ -445,11 +462,22 @@ function WorkspacesListPage() {
                 });
             }
 
+            const ownerDisplayName = personalDetails?.[item.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? '';
+            const workspaceType = item.type ? getUserFriendlyWorkspaceType(item.type, translate) : '';
+            const accessibilityLabel = [
+                `${translate('workspace.common.workspace')}: ${item.title}`,
+                isDefault ? translate('common.default') : '',
+                `${translate('workspace.common.workspaceOwner')}: ${ownerDisplayName}`,
+                `${translate('workspace.common.workspaceType')}: ${workspaceType}`,
+            ]
+                .filter(Boolean)
+                .join(', ');
+
             return (
                 <OfflineWithFeedback
                     key={`${item.title}_${index}`}
                     pendingAction={item.pendingAction}
-                    errorRowStyles={styles.ph5}
+                    errorRowStyles={[styles.ph5, styles.mt3]}
                     onClose={item.dismissError}
                     errors={item.errors}
                     style={styles.mb2}
@@ -458,10 +486,11 @@ function WorkspacesListPage() {
                 >
                     <PressableWithoutFeedback
                         role={CONST.ROLE.BUTTON}
-                        accessibilityLabel="row"
+                        accessibilityLabel={accessibilityLabel}
                         style={[styles.mh5]}
                         disabled={item.disabled}
                         onPress={item.action}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKSPACE_MENU_ITEM}
                     >
                         {({hovered}) => (
                             <WorkspacesListRow
@@ -511,6 +540,9 @@ function WorkspacesListPage() {
             icons,
             expensifyIcons.Building,
             expensifyIcons.Exit,
+            privateSubscription?.type,
+            currentUserPersonalDetails?.accountID,
+            personalDetails,
         ],
     );
 
@@ -533,6 +565,8 @@ function WorkspacesListPage() {
         Navigation.navigate(ROUTES.DOMAIN_INITIAL.getRoute(domainAccountID));
     }, []);
 
+    const {policiesWithCardFeedErrors} = usePoliciesWithCardFeedErrors();
+
     /**
      * Add free policies (workspaces) to the list of menu items and returns the list of menu items
      */
@@ -542,46 +576,59 @@ function WorkspacesListPage() {
             return [];
         }
 
-        return Object.values(policies)
-            .filter((policy): policy is PolicyType => shouldShowPolicy(policy, true, session?.email))
-            .map((policy): WorkspaceItem => {
-                const receiptUberBrickRoadIndicator = getUberConnectionErrorDirectlyFromPolicy(policy as OnyxEntry<PolicyType>) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
+        const result: WorkspaceItem[] = [];
+        for (const policy of Object.values(policies)) {
+            if (!policy || !shouldShowPolicy(policy, true, session?.email)) {
+                continue;
+            }
 
-                if (policy?.isJoinRequestPending && policy?.policyDetailsForNonMembers) {
-                    const policyInfo = Object.values(policy.policyDetailsForNonMembers).at(0) as PolicyDetailsForNonMembers;
-                    const id = Object.keys(policy.policyDetailsForNonMembers).at(0);
-                    return {
-                        listItemType: 'workspace',
-                        title: policyInfo.name,
-                        icon: policyInfo?.avatar ? policyInfo.avatar : getDefaultWorkspaceAvatar(policy.name),
-                        disabled: true,
-                        ownerAccountID: policyInfo.ownerAccountID,
-                        type: policyInfo.type,
-                        iconType: policyInfo?.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
-                        iconFill: theme.textLight,
-                        fallbackIcon: icons.FallbackWorkspaceAvatar,
-                        policyID: id,
-                        role: CONST.POLICY.ROLE.USER,
-                        errors: undefined,
-                        action: () => null,
-                        dismissError: () => null,
-                        isJoinRequestPending: true,
-                    };
+            const receiptUberBrickRoadIndicator = getUberConnectionErrorDirectlyFromPolicy(policy as OnyxEntry<PolicyType>) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
+
+            let brickRoadIndicator: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
+            if (isPolicyAdmin(policy, session?.email)) {
+                const indicator = reimbursementAccountBrickRoadIndicator ?? receiptUberBrickRoadIndicator;
+
+                if (indicator) {
+                    brickRoadIndicator = indicator;
+                } else if (policiesWithCardFeedErrors.find((p) => p.id === policy.id)) {
+                    brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+                } else if (shouldShowEmployeeListError(policy)) {
+                    brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+                } else {
+                    brickRoadIndicator = getPolicyBrickRoadIndicatorStatus(
+                        policy,
+                        isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`], policy),
+                    );
                 }
-                return {
+            }
+
+            if (policy?.isJoinRequestPending && policy?.policyDetailsForNonMembers) {
+                const policyInfo = Object.values(policy.policyDetailsForNonMembers).at(0) as PolicyDetailsForNonMembers;
+                const id = Object.keys(policy.policyDetailsForNonMembers).at(0);
+                result.push({
+                    listItemType: 'workspace',
+                    title: policyInfo.name,
+                    icon: policyInfo?.avatar ? policyInfo.avatar : getDefaultWorkspaceAvatar(policy.name),
+                    disabled: true,
+                    ownerAccountID: policyInfo.ownerAccountID,
+                    type: policyInfo.type,
+                    iconType: policyInfo?.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
+                    iconFill: theme.textLight,
+                    fallbackIcon: icons.FallbackWorkspaceAvatar,
+                    policyID: id,
+                    role: CONST.POLICY.ROLE.USER,
+                    errors: undefined,
+                    action: () => null,
+                    dismissError: () => null,
+                    isJoinRequestPending: true,
+                });
+            } else {
+                result.push({
                     listItemType: 'workspace',
                     title: policy.name,
                     icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
                     action: () => navigateToWorkspace(policy.id),
-                    brickRoadIndicator: !isPolicyAdmin(policy)
-                        ? undefined
-                        : (reimbursementAccountBrickRoadIndicator ??
-                          receiptUberBrickRoadIndicator ??
-                          (shouldShowEmployeeListError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined) ??
-                          getPolicyBrickRoadIndicatorStatus(
-                              policy,
-                              isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`], policy),
-                          )),
+                    brickRoadIndicator,
                     pendingAction: policy.pendingAction,
                     errors: policy.errors,
                     dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
@@ -594,9 +641,21 @@ function WorkspacesListPage() {
                     role: policy.role,
                     type: policy.type,
                     employeeList: policy.employeeList,
-                };
-            });
-    }, [reimbursementAccount?.errors, policies, session?.email, allConnectionSyncProgresses, theme.textLight, icons.FallbackWorkspaceAvatar, navigateToWorkspace]);
+                });
+            }
+        }
+
+        return result;
+    }, [
+        reimbursementAccount?.errors,
+        policies,
+        session?.email,
+        theme.textLight,
+        icons.FallbackWorkspaceAvatar,
+        policiesWithCardFeedErrors,
+        allConnectionSyncProgresses,
+        navigateToWorkspace,
+    ]);
 
     const filterWorkspace = useCallback((workspace: WorkspaceItem, inputValue: string) => workspace.title.toLowerCase().includes(inputValue), []);
     const sortWorkspace = useCallback((workspaceItems: WorkspaceItem[]) => workspaceItems.sort((a, b) => localeCompare(a.title, b.title)), [localeCompare]);
@@ -697,7 +756,7 @@ function WorkspacesListPage() {
         return true;
     };
 
-    useHandleBackButton(onBackButtonPress);
+    useAndroidBackButtonHandler(onBackButtonPress);
 
     const data: WorkspaceOrDomainListItem[] = useMemo(() => {
         const shouldShowDomainsSection = !inputValue.trim().length;
@@ -759,7 +818,7 @@ function WorkspacesListPage() {
                 shouldUseNarrowLayout && (
                     <NavigationTabBar
                         selectedTab={NAVIGATION_TABS.WORKSPACES}
-                        shouldShowFloatingCameraButton={false}
+                        shouldShowFloatingButtons={false}
                     />
                 )
             }

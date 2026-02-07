@@ -1,3 +1,4 @@
+import {hasServicesEnabledAsync, startLocationUpdatesAsync} from 'expo-location';
 import React, {useState} from 'react';
 import {Linking, View} from 'react-native';
 import Button from '@components/Button';
@@ -5,26 +6,31 @@ import ConfirmModal from '@components/ConfirmModal';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {addGpsPoints, initGpsDraft, resetGPSDraftDetails, setEndAddress, setIsTracking, setStartAddress} from '@libs/actions/GPSDraftDetails';
+import {initGpsDraft, resetGPSDraftDetails} from '@libs/actions/GPSDraftDetails';
+import {stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import BackgroundLocationPermissionsFlow from '@pages/iou/request/step/IOURequestStepDistanceGPS/BackgroundLocationPermissionsFlow';
+import {BACKGROUND_LOCATION_TRACKING_TASK_NAME, getBackgroundLocationTaskOptions} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 import ONYXKEYS from '@src/ONYXKEYS';
+import openSettings from './openSettings';
 
 type ButtonsProps = {
     navigateToNextStep: () => void;
     setShouldShowStartError: React.Dispatch<React.SetStateAction<boolean>>;
     setShouldShowPermissionsError: React.Dispatch<React.SetStateAction<boolean>>;
+    reportID: string;
 };
 
-// next line will be removed in a follow-up PR where the currently unused props will be used
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowPermissionsError}: ButtonsProps) {
+function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowPermissionsError, reportID}: ButtonsProps) {
     const [startPermissionsFlow, setStartPermissionsFlow] = useState(false);
+    const [showLocationRequiredModal, setShowLocationRequiredModal] = useState(false);
     const [showDiscardConfirmation, setShowDiscardConfirmation] = useState(false);
     const [showStopConfirmation, setShowStopConfirmation] = useState(false);
     const [showZeroDistanceModal, setShowZeroDistanceModal] = useState(false);
-    const [showLocationRequiredModal, setShowLocationRequiredModal] = useState(false);
+    const [showDisabledServicesModal, setShowDisabledServicesModal] = useState(false);
+    const {isOffline} = useNetwork();
 
     const {asset: ReceiptLocationMarker} = useMemoizedLazyAsset(() => loadIllustration('ReceiptLocationMarker'));
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
@@ -33,36 +39,46 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
 
     const isTripCaptured = !gpsDraftDetails?.isTracking && (gpsDraftDetails?.gpsPoints?.length ?? 0) > 0;
 
-    /**
-     * todo: startGpsTrip, onNext, checkPermissions and stopGpsTrip are implemented like this to show
-     * all UI components to test as of now, their proper implementation will be added in follow-up PRs
-     */
-    const startGpsTrip = () => {
-        initGpsDraft();
+    const checkSettingsAndPermissions = async () => {
+        setShouldShowStartError(false);
 
-        setIsTracking(true);
-        setStartAddress({value: '181 3rd St, San Francisco, CA', type: 'address'});
-        addGpsPoints([]);
+        const hasLocationServicesEnabled = await hasServicesEnabledAsync();
+
+        if (!hasLocationServicesEnabled) {
+            setShowDisabledServicesModal(true);
+            return;
+        }
+
+        setStartPermissionsFlow(true);
     };
 
-    const stopGpsTrip = () => {
-        setIsTracking(false);
+    const startGpsTrip = async () => {
+        try {
+            await startLocationUpdatesAsync(
+                BACKGROUND_LOCATION_TRACKING_TASK_NAME,
+                getBackgroundLocationTaskOptions(translate('gps.notification.title'), translate('gps.notification.body')),
+            );
+        } catch (error) {
+            console.error('[GPS distance request] Failed to start location tracking', error);
+            setShouldShowStartError(true);
+            return;
+        }
 
-        setTimeout(() => {
-            setEndAddress({value: '181 3rd St, San Francisco, CA', type: 'address'});
-        }, 500);
+        initGpsDraft(reportID);
     };
 
     const onNext = () => {
         if (gpsDraftDetails?.distanceInMeters === 0) {
             setShowZeroDistanceModal(true);
+            return;
         }
 
         navigateToNextStep();
     };
 
-    const checkPermissions = () => {
-        setStartPermissionsFlow(true);
+    const openSettingsForLocationServices = () => {
+        setShowDisabledServicesModal(false);
+        openSettings();
     };
 
     return (
@@ -89,7 +105,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
                 </View>
             ) : (
                 <Button
-                    onPress={gpsDraftDetails?.isTracking ? () => setShowStopConfirmation(true) : checkPermissions}
+                    onPress={gpsDraftDetails?.isTracking ? () => setShowStopConfirmation(true) : checkSettingsAndPermissions}
                     success={!gpsDraftDetails?.isTracking}
                     danger={gpsDraftDetails?.isTracking}
                     allowBubble
@@ -115,7 +131,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
                 isVisible={showStopConfirmation}
                 onConfirm={() => {
                     setShowStopConfirmation(false);
-                    stopGpsTrip();
+                    stopGpsTrip(isOffline);
                 }}
                 onCancel={() => setShowStopConfirmation(false)}
                 confirmText={translate('gps.stopGpsTrackingModal.confirm')}
@@ -144,8 +160,8 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
                 prompt={translate('gps.zeroDistanceTripModal.prompt')}
             />
             <ConfirmModal
-                title={translate('gps.locationRequiredModal.title')}
                 isVisible={showLocationRequiredModal}
+                title={translate('gps.locationRequiredModal.title')}
                 onConfirm={() => {
                     setShowLocationRequiredModal(false);
                     Linking.openSettings();
@@ -159,6 +175,16 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
                 iconWidth={140}
                 iconHeight={120}
                 shouldCenterIcon
+                shouldReverseStackedButtons
+            />
+            <ConfirmModal
+                title={translate('gps.locationServicesRequiredModal.title')}
+                isVisible={showDisabledServicesModal}
+                onConfirm={openSettingsForLocationServices}
+                onCancel={() => setShowDisabledServicesModal(false)}
+                confirmText={translate('gps.locationServicesRequiredModal.confirm')}
+                cancelText={translate('common.dismiss')}
+                prompt={translate('gps.locationServicesRequiredModal.prompt')}
                 shouldReverseStackedButtons
             />
         </>

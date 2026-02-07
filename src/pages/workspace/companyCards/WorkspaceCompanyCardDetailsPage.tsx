@@ -37,6 +37,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 import {clearCompanyCardErrorField, unassignWorkspaceCompanyCard, updateWorkspaceCompanyCard} from '@userActions/CompanyCards';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -104,6 +105,14 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
         updateWorkspaceCompanyCard(domainOrWorkspaceAccountID, cardID, bank, card?.lastScrapeResult);
     };
 
+    const breakConnection = () => {
+        updateWorkspaceCompanyCard(domainOrWorkspaceAccountID, cardID, bank, card?.lastScrapeResult, true);
+    };
+
+    // Show "Break connection" option only for Mock Bank cards in non-production environments
+    const isMockBank = bank?.includes(CONST.COMPANY_CARDS.BANK_CONNECTIONS.MOCK_BANK);
+    const shouldShowBreakConnection = isMockBank && CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.PRODUCTION;
+
     const lastScrape = useMemo(() => {
         if (!card?.lastScrape) {
             return translate('workspace.moreFeatures.companyCards.neverUpdated');
@@ -112,7 +121,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     }, [getLocalDateFromDatetime, card?.lastScrape, translate]);
 
     // Don't show NotFoundPage if card is being unassigned or data is still loading
-    if (!card && !isUnassigningRef.current && !isLoadingOnyxValue(allBankCardsMetadata) && !isLoadingOnyxValue(cardListMetadata)) {
+    if ((!card && !isUnassigningRef.current && !isLoadingOnyxValue(allBankCardsMetadata) && !isLoadingOnyxValue(cardListMetadata)) || (isCardBeingUnassigned && !isUnassigningRef.current)) {
         return <NotFoundPage />;
     }
 
@@ -255,6 +264,14 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             onPress={updateCard}
                         />
                     </OfflineWithFeedback>
+                    {shouldShowBreakConnection && (
+                        <MenuItem
+                            icon={Expensicons.Trashcan}
+                            disabled={isOffline || card?.isLoadingLastUpdated}
+                            title="Break connection (Testing)"
+                            onPress={breakConnection}
+                        />
+                    )}
                     <MenuItem
                         icon={expensifyIcons.RemoveMembers}
                         title={translate('workspace.moreFeatures.companyCards.unassignCard')}

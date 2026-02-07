@@ -1,7 +1,7 @@
 import type {ParamListBase} from '@react-navigation/native';
 import {CardStyleInterpolators} from '@react-navigation/stack';
-import {useCallback, useContext} from 'react';
-import {WideRHPContext} from '@components/WideRHPContextProvider';
+import {useCallback} from 'react';
+import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import enhanceCardStyleInterpolator from '@libs/Navigation/AppNavigator/enhanceCardStyleInterpolator';
@@ -16,7 +16,7 @@ function useWideModalStackScreenOptions() {
     // https://github.com/Expensify/App/issues/63747
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const {wideRHPRouteKeys, superWideRHPRouteKeys} = useContext(WideRHPContext);
+    const {wideRHPRouteKeys, superWideRHPRouteKeys} = useWideRHPState();
 
     return useCallback<({route}: {route: PlatformStackRouteProp<ParamListBase, string>}) => PlatformStackNavigationOptions>(
         ({route}) => {

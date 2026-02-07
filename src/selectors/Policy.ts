@@ -1,5 +1,5 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {getOwnedPaidPolicies, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getOwnedPaidPolicies, isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import type {Policy, PolicyReportField} from '@src/types/onyx';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
@@ -37,4 +37,61 @@ const createAllPolicyReportFieldsSelector = (policies: OnyxCollection<Policy>, l
     return Object.fromEntries(nonFormulaReportFields);
 };
 
-export {activePolicySelector, createPoliciesSelector, createAllPolicyReportFieldsSelector, ownerPoliciesSelector, activeAdminPoliciesSelector};
+const createPoliciesForDomainCardsSelector = (domainNames: string[]) => {
+    const policyIDs = new Set(
+        domainNames
+            .map((domainName) => domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1])
+            .filter((policyID): policyID is string => !!policyID)
+            .map((policyID) => policyID.toUpperCase()),
+    );
+
+    return (policies: OnyxCollection<Policy>) => {
+        if (policyIDs.size === 0) {
+            return {};
+        }
+
+        return Object.entries(policies ?? {}).reduce<NonNullable<OnyxCollection<Policy>>>((acc, [key, policy]) => {
+            if (policy?.id && policyIDs.has(policy.id.toUpperCase())) {
+                acc[key] = policy;
+            }
+            return acc;
+        }, {});
+    };
+};
+
+const policyTimeTrackingSelector = (policy: OnyxEntry<Policy>) =>
+    policy && {
+        outputCurrency: policy.outputCurrency,
+        pendingFields: {
+            timeTrackingDefaultRate: policy.pendingFields?.timeTrackingDefaultRate,
+        },
+        units: policy.units,
+    };
+
+const hasMultipleOutputCurrenciesSelector = (policies: OnyxCollection<Policy>) => {
+    const currencies = new Set<string>();
+
+    for (const policy of Object.values(policies ?? {})) {
+        if (!policy || !isPaidGroupPolicy(policy)) {
+            continue;
+        }
+
+        currencies.add(policy.outputCurrency);
+        if (currencies.size > 1) {
+            return true;
+        }
+    }
+
+    return false;
+};
+
+export {
+    activePolicySelector,
+    createPoliciesSelector,
+    createAllPolicyReportFieldsSelector,
+    ownerPoliciesSelector,
+    activeAdminPoliciesSelector,
+    createPoliciesForDomainCardsSelector,
+    policyTimeTrackingSelector,
+    hasMultipleOutputCurrenciesSelector,
+};

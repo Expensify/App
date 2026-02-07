@@ -56,9 +56,9 @@ function IOURequestStepTime({
     const currentDateAttributes = transaction?.comment?.customUnit?.attributes?.dates;
     const currentStartDate = currentDateAttributes?.start ? DateUtils.extractDate(currentDateAttributes.start) : undefined;
     const currentEndDate = currentDateAttributes?.end ? DateUtils.extractDate(currentDateAttributes.end) : undefined;
-    // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFound = !isValidMoneyRequestType(iouType) || isEmptyObject(transaction?.comment?.customUnit) || isEmptyObject(policy);
     const isEditPage = name === SCREENS.MONEY_REQUEST.STEP_TIME_EDIT;
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFound = !isValidMoneyRequestType(iouType) || isEmptyObject(policy) || (isEditPage && isEmptyObject(transaction?.comment?.customUnit));
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const policiesWithPerDiemEnabled = useMemo(() => getActivePoliciesWithExpenseChatAndPerDiemEnabled(allPolicies, currentUserLogin), [allPolicies, currentUserLogin]);
     const hasMoreThanOnePolicyWithPerDiemEnabled = policiesWithPerDiemEnabled.length > 1;
@@ -117,8 +117,8 @@ function IOURequestStepTime({
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.SUBMIT]: translate('iou.createExpense'),
-        [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', {name: ''}),
-        [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', {name: ''}),
+        [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', ''),
+        [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', ''),
         [CONST.IOU.TYPE.SPLIT]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.SPLIT_EXPENSE]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.TRACK]: translate('iou.createExpense'),

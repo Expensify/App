@@ -1,11 +1,11 @@
 import type {OnyxEntry} from 'react-native-onyx';
+import type {CurrencyListContextProps} from '@components/CurrencyListContextProvider';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {LastSelectedDistanceRates, OnyxInputOrEntry, Transaction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getCurrencySymbol} from './CurrencyUtils';
 // This will be fixed as part of https://github.com/Expensify/App/issues/66397
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getPersonalPolicy, getUnitRateValue} from './PolicyUtils';
@@ -142,6 +142,7 @@ function getRateForDisplay(
     currency: string | undefined,
     translate: LocaleContextProps['translate'],
     toLocaleDigit: LocaleContextProps['toLocaleDigit'],
+    getCurrencySymbol: CurrencyListContextProps['getCurrencySymbol'],
     isOffline?: boolean,
     useShortFormUnit?: boolean,
 ): string {
@@ -176,9 +177,14 @@ function getDistanceForDisplay(
     rate: number | undefined,
     translate: LocaleContextProps['translate'],
     useShortFormUnit?: boolean,
+    isManualDistanceRequest?: boolean,
 ): string {
     if (!hasRoute || !unit) {
         return translate('iou.fieldPending');
+    }
+
+    if (!distanceInMeters && !isManualDistanceRequest) {
+        return '';
     }
 
     const distanceInUnits = getRoundedDistanceInUnits(distanceInMeters, unit);
@@ -216,13 +222,19 @@ function getDistanceMerchant(
     currency: string,
     translate: LocaleContextProps['translate'],
     toLocaleDigit: LocaleContextProps['toLocaleDigit'],
+    getCurrencySymbol: CurrencyListContextProps['getCurrencySymbol'],
+    isManualDistanceRequest?: boolean,
 ): string {
     if (!hasRoute || !rate) {
         return translate('iou.fieldPending');
     }
 
-    const distanceInUnits = getDistanceForDisplay(hasRoute, distanceInMeters, unit, rate, translate, true);
-    const ratePerUnit = getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, undefined, true);
+    if (!distanceInMeters && !isManualDistanceRequest) {
+        return '';
+    }
+
+    const distanceInUnits = getDistanceForDisplay(hasRoute, distanceInMeters, unit, rate, translate, true, isManualDistanceRequest);
+    const ratePerUnit = getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, undefined, true);
 
     return `${distanceInUnits} ${CONST.DISTANCE_MERCHANT_SEPARATOR} ${ratePerUnit}`;
 }

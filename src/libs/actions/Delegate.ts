@@ -17,7 +17,6 @@ import type Credentials from '@src/types/onyx/Credentials';
 import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
 import {confirmReadyToOpenApp, openApp} from './App';
-import {getCurrentUserAccountID} from './Report';
 import updateSessionAuthTokens from './Session/updateSessionAuthTokens';
 import updateSessionUser from './Session/updateSessionUser';
 
@@ -124,8 +123,6 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
     Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, credentials ?? {});
     Onyx.set(ONYXKEYS.STASHED_SESSION, session ?? {});
 
-    const previousAccountID = getCurrentUserAccountID();
-
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -193,12 +190,15 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
             const policyID = activePolicyID;
 
             return SequentialQueue.waitForIdle()
-                .then(() => Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS))
                 .then(() => {
-                    // Update authToken in Onyx and in our local variables so that API requests will use the new authToken
-                    updateSessionAuthTokens(response?.restrictedToken, response?.encryptedAuthToken);
-
+                    // Update authToken in Onyx so it persists if the further flow does not complete for any reason.
+                    return updateSessionAuthTokens(response?.restrictedToken, response?.encryptedAuthToken);
+                })
+                .then(() => {
                     NetworkStore.setAuthToken(response?.restrictedToken ?? null);
+                    return Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS);
+                })
+                .then(() => {
                     confirmReadyToOpenApp();
                     return openApp().then(() => {
                         if (!CONFIG.IS_HYBRID_APP || !policyID) {
@@ -208,7 +208,7 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
                             newDotCurrentAccountEmail: email,
                             authToken: restrictedToken,
                             policyID,
-                            accountID: String(previousAccountID),
+                            accountID: String(session?.accountID ?? CONST.DEFAULT_NUMBER_ID),
                         });
                         return true;
                     });
@@ -279,27 +279,31 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
             const requesterEmail = response.requesterEmail;
             const authToken = response.authToken;
             return SequentialQueue.waitForIdle()
-                .then(() => Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS))
+                .then(() => {
+                    return Promise.all([
+                        Onyx.set(ONYXKEYS.SESSION, {
+                            ...stashedSession,
+                            accountID: response.requesterID,
+                            email: requesterEmail,
+                            authToken,
+                            encryptedAuthToken: response.encryptedAuthToken,
+                        }),
+                        Onyx.merge(ONYXKEYS.ACCOUNT, {
+                            primaryLogin: requesterEmail,
+                        }),
+                    ]);
+                })
+                .then(() => {
+                    NetworkStore.setAuthToken(response?.authToken ?? null);
+                    return Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS);
+                })
                 .then(() => {
                     Onyx.set(ONYXKEYS.CREDENTIALS, {
                         ...stashedCredentials,
                         accountID: response.requesterID,
                     });
-                    Onyx.set(ONYXKEYS.SESSION, {
-                        ...stashedSession,
-                        accountID: response.requesterID,
-                        email: requesterEmail,
-                        authToken,
-                        encryptedAuthToken: response.encryptedAuthToken,
-                    });
-                    Onyx.merge(ONYXKEYS.ACCOUNT, {
-                        primaryLogin: requesterEmail,
-                    });
                     Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, {});
                     Onyx.set(ONYXKEYS.STASHED_SESSION, {});
-
-                    NetworkStore.setAuthToken(response?.authToken ?? null);
-
                     confirmReadyToOpenApp();
                     openApp().then(() => {
                         if (!CONFIG.IS_HYBRID_APP) {
@@ -365,7 +369,7 @@ function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegatePa
         ];
     };
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.VALIDATE_ACTION_CODE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
