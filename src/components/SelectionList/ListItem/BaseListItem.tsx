@@ -145,7 +145,6 @@ function BaseListItem<TItem extends ListItem>({
                 testID={testID}
                 accessible={accessible}
                 role={accessible === false ? CONST.ROLE.PRESENTATION : accessibilityRole}
-                sentryLabel={`BaseListItem-${keyForList}`}
             >
                 <View
                     testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
