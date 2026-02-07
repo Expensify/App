@@ -42,7 +42,7 @@ function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWr
         if (policy?.isChangeOwnerFailed || policy?.isChangeOwnerSuccessful) {
             return;
         }
-        requestWorkspaceOwnerChange(policyID, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
+        requestWorkspaceOwnerChange(policy, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [policyID]);
 

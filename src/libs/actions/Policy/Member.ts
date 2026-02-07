@@ -42,22 +42,6 @@ type WorkspaceMembersRoleData = {
     role: ValueOf<typeof CONST.POLICY.ROLE>;
 };
 
-const allPolicies: OnyxCollection<Policy> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    callback: (val, key) => {
-        if (!key) {
-            return;
-        }
-        if (val === null || val === undefined) {
-            delete allPolicies[key];
-            return;
-        }
-
-        allPolicies[key] = val;
-    },
-});
-
 let allReportActions: OnyxCollection<ReportActions>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
@@ -82,17 +66,6 @@ function isApprover(policy: OnyxEntry<Policy>, employeeLogin: string) {
     return Object.values(policy?.employeeList ?? {}).some(
         (employee) => employee?.submitsTo === employeeLogin || employee?.forwardsTo === employeeLogin || employee?.overLimitForwardsTo === employeeLogin,
     );
-}
-
-/**
- * Returns the policy of the report
- * @deprecated Get the data straight from Onyx - This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
- */
-function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
-    if (!allPolicies || !policyID) {
-        return undefined;
-    }
-    return allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 }
 
 /**
@@ -780,14 +753,12 @@ function updateWorkspaceMembersRole(policy: OnyxEntry<Policy>, selectedMemberEma
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE, params, {optimisticData, successData, failureData});
 }
 
-function requestWorkspaceOwnerChange(policyID: string | undefined, currentUserAccountID: number, currentUserAccountLogin: string) {
-    if (!policyID) {
+function requestWorkspaceOwnerChange(policy: OnyxEntry<Policy>, currentUserAccountID: number, currentUserAccountLogin: string) {
+    if (!policy?.id) {
         return;
     }
 
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(policyID);
+    const policyID = policy.id;
     const ownershipChecks = {...policyOwnershipChecks?.[policyID]};
 
     const changeOwnerErrors = Object.keys(policy?.errorFields?.changeOwner ?? {});
