@@ -19,7 +19,7 @@ type SearchRowSkeletonProps = {
 
 const barHeight = 8;
 const longBarWidth = 120;
-const leftPaneWidth = variables.sideBarWithLHBWidth + variables.navigationTabBarSize;
+const leftPaneWidth = variables.searchSidebarWidth + variables.navigationTabBarSize;
 
 // 12 is the gap between the element and the right button
 const gapWidth = 12;

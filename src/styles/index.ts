@@ -1599,17 +1599,18 @@ const staticStyles = (theme: ThemeColors) =>
         searchSplitContainer: {
             flex: 1,
             flexDirection: 'row',
-            marginLeft: variables.navigationTabBarSize + variables.sideBarWithLHBWidth,
+            marginLeft: variables.navigationTabBarSize + variables.searchSidebarWidth,
         },
 
         searchSidebar: {
-            width: variables.sideBarWithLHBWidth,
+            width: variables.searchSidebarWidth,
             height: '100%',
+            position: 'fixed',
+            left: variables.navigationTabBarSize,
             backgroundColor: theme.sidebar,
             justifyContent: 'space-between',
             borderRightWidth: 1,
             borderColor: theme.border,
-            marginLeft: variables.navigationTabBarSize,
         },
 
         // Sidebar Styles
@@ -2814,6 +2815,13 @@ const staticStyles = (theme: ThemeColors) =>
             paddingHorizontal: 16,
             paddingVertical: 8,
             height: 52,
+            alignItems: 'center',
+        },
+
+        sectionMenuItemCompact: {
+            borderRadius: 8,
+            paddingHorizontal: 12,
+            height: 40,
             alignItems: 'center',
         },
 
@@ -5464,11 +5472,15 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         todoBadge: {
-            width: variables.w36,
+            width: 24,
+            minWidth: 24,
+            maxWidth: 24,
+            minHeight: 20,
+            height: 20,
             alignItems: 'center',
             justifyContent: 'center',
-            paddingLeft: 0,
-            paddingRight: 0,
+            padding: 0,
+            overflow: 'hidden',
         },
 
         stickToBottom: {
