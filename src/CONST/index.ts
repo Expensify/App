@@ -8137,6 +8137,7 @@ const CONST = {
         },
         SELECTION_LIST_WITH_SECTIONS: {
             BASE_LIST_ITEM: 'SelectionListWithSections-BaseListItem',
+            SELECT_ALL: 'SelectionListWithSections-SelectAll',
         },
         CONTEXT_MENU: {
             REPLY_IN_THREAD: 'ContextMenu-ReplyInThread',

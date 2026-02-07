@@ -478,6 +478,7 @@ const translations: TranslationDeepObject<typeof en> = {
         whyDoWeAskForThis: '我们为什么要询问这个？',
         required: '必填',
         showing: '正在显示',
+        automatic: '自动',
         of: '的',
         default: '默认',
         update: '更新',
@@ -1203,6 +1204,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatchWithCreditCardDescription: '收据正在等待与卡片交易匹配。将其标记为现金以取消。',
         markAsCash: '标记为现金',
         routePending: '路由处理中…',
+        automaticallyEnterExpenseDetails: 'Concierge 将自动为您输入费用详情，或者您可以手动添加。',
         receiptScanning: () => ({
             one: '正在扫描收据…',
             other: '正在扫描收据…',

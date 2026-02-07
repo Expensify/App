@@ -1,5 +1,5 @@
 import React, {useMemo} from 'react';
-import type {ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
+import type {ImageResizeMode, ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
@@ -46,6 +46,9 @@ type ImageWithSizeCalculationProps = {
 
     /** Callback to be called when the image loads */
     onLoad?: (event: {nativeEvent: {width: number; height: number}}) => void;
+
+    /** The resize mode of the image */
+    resizeMode?: ImageResizeMode;
 };
 
 /**
@@ -65,6 +68,7 @@ function ImageWithSizeCalculation({
     loadingIconSize,
     loadingIndicatorStyles,
     onLoad,
+    resizeMode,
 }: ImageWithSizeCalculationProps) {
     const styles = useThemeStyles();
 
@@ -82,7 +86,7 @@ function ImageWithSizeCalculation({
             source={source}
             aria-label={altText}
             isAuthTokenRequired={isAuthTokenRequired}
-            resizeMode={RESIZE_MODES.cover}
+            resizeMode={resizeMode ?? RESIZE_MODES.cover}
             onError={onError}
             onLoad={(event: OnLoadNativeEvent) => {
                 onMeasure({

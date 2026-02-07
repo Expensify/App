@@ -144,6 +144,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     renderScrollComponent,
     shouldShowRightCaret,
     shouldHighlightSelectedItem = true,
+    ListFooterComponentStyle,
     shouldDisableHoverStyle = false,
     setShouldDisableHoverStyle = () => {},
     shouldSkipContentHeaderHeightOffset,
@@ -632,6 +633,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                                 disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
                                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                 onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
+                                sentryLabel={CONST.SENTRY_LABEL.SELECTION_LIST_WITH_SECTIONS.SELECT_ALL}
                             >
                                 <Text style={[styles.textStrong, styles.ph3, selectAllStyle]}>{translate('workspace.people.selectAll')}</Text>
                             </PressableWithFeedback>
@@ -1079,6 +1081,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                                 {listFooterContent}
                             </>
                         }
+                        ListFooterComponentStyle={ListFooterComponentStyle}
                         onEndReached={handleOnEndReached}
                         onEndReachedThreshold={onEndReachedThreshold}
                         scrollEventThrottle={scrollEventThrottle}

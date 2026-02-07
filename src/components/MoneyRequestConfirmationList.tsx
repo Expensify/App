@@ -75,6 +75,7 @@ import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import {DelegateNoAccessContext} from './DelegateNoAccessModalProvider';
 import FormHelpMessage from './FormHelpMessage';
 import MoneyRequestAmountInput from './MoneyRequestAmountInput';
+import getContentContainerStyle from './MoneyRequestConfirmationList/getContentContainerStyles';
 import MoneyRequestConfirmationListFooter from './MoneyRequestConfirmationListFooter';
 import {PressableWithFeedback} from './Pressable';
 import {useProductTrainingContext} from './ProductTrainingContext';
@@ -412,6 +413,7 @@ function MoneyRequestConfirmationList({
 
     const [didConfirm, setDidConfirm] = useState(isConfirmed);
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
+    const [showMoreFields, setShowMoreFields] = useState(false);
 
     // Clear the form error if it's set to one among the list passed as an argument
     const clearFormErrors = useCallback(
@@ -1234,6 +1236,8 @@ function MoneyRequestConfirmationList({
         reportID,
     ]);
 
+    const isCompactMode = useMemo(() => !showMoreFields && isScanRequest, [isScanRequest, showMoreFields]);
+
     const listFooterContent = (
         <MoneyRequestConfirmationListFooter
             action={action}
@@ -1292,6 +1296,8 @@ function MoneyRequestConfirmationList({
             onToggleReimbursable={onToggleReimbursable}
             isReceiptEditable={isReceiptEditable}
             isDescriptionRequired={isDescriptionRequired}
+            showMoreFields={showMoreFields}
+            setShowMoreFields={setShowMoreFields}
         />
     );
 
@@ -1310,6 +1316,8 @@ function MoneyRequestConfirmationList({
                 containerStyle={[styles.flexBasisAuto]}
                 removeClippedSubviews={false}
                 disableKeyboardShortcuts
+                contentContainerStyle={getContentContainerStyle(isCompactMode, styles.flex1).contentContainerStyle}
+                ListFooterComponentStyle={isCompactMode ? [styles.flex1] : undefined}
             />
         </MouseProvider>
     );
