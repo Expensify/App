@@ -1408,6 +1408,35 @@ function updateSplitTransactions({
                 errors: null,
             },
         });
+        const singleSplitExpense = transactionData.splitExpenses.at(0) ?? undefined;
+        const isExpenseMovingToDifferentReport = !!singleSplitExpense?.reportID && singleSplitExpense.reportID !== transactionData.reportID;
+        const isLastTransactionInReport =
+            isExpenseMovingToDifferentReport || Object.values(allTransactionsList ?? {}).filter((itemTransaction) => itemTransaction?.reportID === transactionData.reportID).length === 0;
+        if (isLastTransactionInReport) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${transactionData.reportID}`,
+                value: {
+                    reportID: null,
+                    pendingFields: {
+                        preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                },
+            });
+            successData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${transactionData.reportID}`,
+                value: null,
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${transactionData.reportID}`,
+                value: {
+                    reportID: transactionData.reportID,
+                    pendingFields: null,
+                },
+            });
+        }
     }
 
     if (isReverseSplitOperation) {
