@@ -65,7 +65,7 @@ function ListHeader<TItem extends ListItem>({
             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                 <Checkbox
                     testID="selection-list-select-all-checkbox"
-                    accessibilityLabel={translate('accessibilityLabels.selectAllItems')}
+                    accessibilityLabel={translate('accessibilityHints.selectAllItems')}
                     isChecked={dataDetails.allSelected}
                     isIndeterminate={dataDetails.someSelected}
                     onPress={onSelectAll}
@@ -76,7 +76,7 @@ function ListHeader<TItem extends ListItem>({
                     <PressableWithFeedback
                         style={[styles.userSelectNone, styles.flexRow, styles.alignItemsCenter]}
                         onPress={onSelectAll}
-                        accessibilityLabel={translate('accessibilityLabels.selectAllItems')}
+                        accessibilityLabel={translate('accessibilityHints.selectAllItems')}
                         accessibilityRole="button"
                         accessibilityState={{checked: dataDetails.allSelected, disabled: allDisabled}}
                         disabled={allDisabled}

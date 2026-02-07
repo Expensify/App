@@ -103,18 +103,24 @@ function isSplitAction(
     }
 
     const reportTransaction = reportTransactions.at(0);
+    const {amount} = getTransactionDetails(reportTransaction) ?? {};
+
+    if (isPending(reportTransaction) || !!reportTransaction?.errors) {
+        return false;
+    }
 
     const isScanning = hasReceiptTransactionUtils(reportTransaction) && isReceiptBeingScanned(reportTransaction);
-    if (isPending(reportTransaction) || isScanning || !!reportTransaction?.errors) {
+
+    if (isScanning && !amount) {
         return false;
     }
 
-    const {amount} = getTransactionDetails(reportTransaction) ?? {};
-    if (!amount) {
+    const {isBillSplit, isExpenseSplit} = getOriginalTransactionWithSplitInfo(reportTransaction, originalTransaction);
+
+    if (!amount && !isExpenseSplit) {
         return false;
     }
 
-    const {isBillSplit} = getOriginalTransactionWithSplitInfo(reportTransaction, originalTransaction);
     if (isBillSplit) {
         return false;
     }
@@ -128,6 +134,11 @@ function isSplitAction(
     }
 
     if (hasOnlyNonReimbursableTransactions(report.reportID) && isSubmitAndClose(policy) && isInstantSubmitEnabled(policy)) {
+        return false;
+    }
+
+    const arePaymentsDisabled = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+    if (isProcessingReportUtils(report) && isInstantSubmitEnabled(policy) && isSubmitAndClose(policy) && arePaymentsDisabled) {
         return false;
     }
 
@@ -564,11 +575,31 @@ function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy
     }
 
     const submitterEmail = getLoginByAccountID(report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID);
-    const availablePolicies = Object.values(policies ?? {}).filter((newPolicy) => isWorkspaceEligibleForReportChange(submitterEmail, newPolicy, report));
-    let hasAvailablePolicies = availablePolicies.length > 1;
-    if (!hasAvailablePolicies && availablePolicies.length === 1) {
-        hasAvailablePolicies = !report.policyID || report.policyID !== availablePolicies?.at(0)?.id;
+
+    // Find available policies - stop early once we find 2 or after checking all
+    let firstAvailablePolicy: Policy | undefined;
+    let availablePoliciesCount = 0;
+    for (const policy of Object.values(policies ?? {})) {
+        if (!policy || !isWorkspaceEligibleForReportChange(submitterEmail, policy, report)) {
+            continue;
+        }
+
+        if (availablePoliciesCount === 0) {
+            firstAvailablePolicy = policy;
+        }
+        availablePoliciesCount++;
+
+        // Short-circuit once we find 2 - we know we can change workspace
+        if (availablePoliciesCount > 1) {
+            break;
+        }
     }
+
+    let hasAvailablePolicies = availablePoliciesCount > 1;
+    if (!hasAvailablePolicies && availablePoliciesCount === 1) {
+        hasAvailablePolicies = !report.policyID || report.policyID !== firstAvailablePolicy?.id;
+    }
+
     const reportPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
     return hasAvailablePolicies && canEditReportPolicy(report, reportPolicy) && !isExportedUtils(reportActions);
 }
@@ -1012,4 +1043,12 @@ function getSecondaryTransactionThreadActions(
 
     return options;
 }
-export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isMergeAction, isMergeActionForSelectedTransactions, getSecondaryExportReportActions, isSplitAction};
+export {
+    getSecondaryReportActions,
+    getSecondaryTransactionThreadActions,
+    isMergeAction,
+    isMergeActionForSelectedTransactions,
+    getSecondaryExportReportActions,
+    isSplitAction,
+    isChangeWorkspaceAction,
+};
