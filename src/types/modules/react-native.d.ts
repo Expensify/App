@@ -5,7 +5,6 @@ import type {EnvironmentCheckerModule} from '@libs/Environment/betaChecker/types
 import type {NavBarButtonStyle, NavigationBarType} from '@libs/NavBarManager/types';
 import type {ShareActionHandlerModule} from '@libs/ShareActionHandlerModule';
 import type {ShortcutManagerModule} from '@libs/ShortcutManager';
-import type StartupTimer from '@libs/StartupTimer/types';
 
 type AppStateTrackerModule = {
     getWasAppRelaunchedFromIcon: () => Promise<boolean>;
@@ -57,7 +56,6 @@ declare module 'react-native' {
     interface NativeModulesStatic {
         AppStateTracker: AppStateTrackerModule;
         BootSplash: BootSplashModule;
-        StartupTimer: StartupTimer;
         RNTextInputReset: RNTextInputResetModule;
         RNNavBarManager: RNNavBarManagerModule;
         EnvironmentChecker: EnvironmentCheckerModule;
