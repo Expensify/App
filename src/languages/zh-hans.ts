@@ -8152,6 +8152,7 @@ ${reportName}
         expenseLevelExport: '所有数据 - 报销级别',
         exportInProgress: '导出进行中',
         conciergeWillSend: 'Concierge 将很快把文件发送给你。',
+        conciergeWillNotifyOnExportFailure: '如果有报告导出失败，Concierge 将向你发送消息。',
     },
     domain: {
         notVerified: '未验证',

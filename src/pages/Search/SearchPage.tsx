@@ -4,6 +4,7 @@ import {InteractionManager, View} from 'react-native';
 import Animated from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
@@ -38,10 +39,12 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
-import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, searchInServer} from '@libs/actions/Report';
+import {markAsManuallyExportedMultipleReports, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, searchInServer} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
     bulkDeleteReports,
+    deleteMoneyRequestOnSearch,
+    exportMultipleReportsToIntegration,
     exportSearchItemsToCSV,
     getExportTemplates,
     getLastPolicyBankAccountID,
@@ -66,10 +69,11 @@ import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import {getActiveAdminWorkspaces, hasDynamicExternalWorkflow, hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
+import {getActiveAdminWorkspaces, getConnectedIntegration, hasDynamicExternalWorkflow, hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {getSecondaryExportReportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     generateReportID,
+    getIntegrationIcon,
     getPolicyExpenseChat,
     getReportOrDraftReport,
     isBusinessInvoiceRoom,
@@ -136,6 +140,7 @@ function SearchPage({route}: SearchPageProps) {
 
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
+    const [accountingExportModalVisible, setAccountingExportModalVisible] = useState(false);
     const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
     const {showConfirmModal} = useConfirmModal();
     const {isBetaEnabled} = usePermissions();
@@ -168,6 +173,11 @@ function SearchPage({route}: SearchPageProps) {
         'SmartScan',
         'MoneyBag',
         'ArrowSplit',
+        'QBOSquare',
+        'XeroSquare',
+        'NetSuiteSquare',
+        'IntacctSquare',
+        'QBDSquare',
     ] as const);
 
     const lastNonEmptySearchResults = useRef<SearchResults | undefined>(undefined);
@@ -711,20 +721,9 @@ function SearchPage({route}: SearchPageProps) {
         const typeExpenseReport = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
         // Gets the list of options for the export sub-menu
-        // Gets the list of options for the export sub-menu
         const getExportOptions = () => {
             // We provide the basic and expense level export options by default
-            const exportOptions: PopoverMenuItem[] = [
-                {
-                    text: translate('export.basicExport'),
-                    icon: expensifyIcons.Table,
-                    onSelected: () => {
-                        handleBasicExport();
-                    },
-                    shouldCloseModalOnSelect: true,
-                    shouldCallAfterModalHide: true,
-                },
-            ];
+            const exportOptions: PopoverMenuItem[] = [];
 
             // Determine if only full reports are selected by comparing the reportIDs of the selected transactions and the reportIDs of the selected reports
             const areFullReportsSelected = selectedTransactionReportIDs.length === selectedReportIDs.length && selectedTransactionReportIDs.every((id) => selectedReportIDs.includes(id));
@@ -736,8 +735,76 @@ function SearchPage({route}: SearchPageProps) {
             // the selected expenses are the only expenses of their parent expense report include the report level export option.
             const includeReportLevelExport = ((typeExpenseReport || typeInvoice) && areFullReportsSelected) || (typeExpense && !typeExpenseReport && isAllOneTransactionReport);
 
-            // Collect a list of export templates available to the user from their account, policy, and custom integrations templates
             const policy = selectedPolicyIDs.length === 1 ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyIDs.at(0)}`] : undefined;
+            const connectedIntegration = getConnectedIntegration(policy);
+            const isReportsTab = typeExpenseReport;
+
+            // Helper function to check if a single report can be exported
+            const canReportBeExported = (report: (typeof selectedReports)[0]) => {
+                if (!report.reportID) {
+                    return false;
+                }
+
+                const reportPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+                const completeReport = getReportOrDraftReport(report.reportID);
+
+                if (!completeReport) {
+                    return false;
+                }
+
+                const reportExportOptions = getSecondaryExportReportActions(
+                    currentUserPersonalDetails?.accountID ?? 0,
+                    currentUserPersonalDetails?.login ?? '',
+                    completeReport,
+                    bankAccountList,
+                    reportPolicy,
+                );
+
+                return reportExportOptions.includes(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
+            };
+
+            // Check if all selected reports can be exported using existing logic
+            const canExportAllReports = isReportsTab && selectedReportIDs.length > 0 && includeReportLevelExport && selectedReports.every(canReportBeExported);
+
+            // Add accounting integration export options if conditions are met
+            if (canExportAllReports && connectedIntegration) {
+                const connectionNameFriendly = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectedIntegration];
+                const integrationIcon = getIntegrationIcon(connectedIntegration, expensifyIcons);
+
+                exportOptions.push(
+                    {
+                        text: connectionNameFriendly,
+                        icon: integrationIcon,
+                        onSelected: () => {
+                            // Show accounting integration confirmation modal
+                            setAccountingExportModalVisible(true);
+                            exportMultipleReportsToIntegration(hash, selectedReportIDs, connectedIntegration);
+                        },
+                        shouldCloseModalOnSelect: true,
+                        shouldCallAfterModalHide: true,
+                    },
+                    {
+                        text: translate('workspace.common.markAsExported'),
+                        icon: integrationIcon,
+                        onSelected: () => {
+                            markAsManuallyExportedMultipleReports(selectedReportIDs, connectedIntegration);
+                        },
+                        shouldCloseModalOnSelect: true,
+                        shouldCallAfterModalHide: true,
+                    },
+                );
+            }
+
+            exportOptions.push({
+                text: translate('export.basicExport'),
+                icon: expensifyIcons.Table,
+                onSelected: () => {
+                    handleBasicExport();
+                },
+                shouldCloseModalOnSelect: true,
+                shouldCallAfterModalHide: true,
+            });
+
             const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy, includeReportLevelExport);
             for (const template of exportTemplates) {
                 exportOptions.push({
@@ -1072,19 +1139,6 @@ function SearchPage({route}: SearchPageProps) {
         styles.colorMuted,
         styles.fontWeightNormal,
         styles.textWrap,
-        expensifyIcons.ArrowCollapse,
-        expensifyIcons.ArrowRight,
-        expensifyIcons.ArrowSplit,
-        expensifyIcons.DocumentMerge,
-        expensifyIcons.Exclamation,
-        expensifyIcons.Export,
-        expensifyIcons.MoneyBag,
-        expensifyIcons.Send,
-        expensifyIcons.Stopwatch,
-        expensifyIcons.Table,
-        expensifyIcons.ThumbsDown,
-        expensifyIcons.ThumbsUp,
-        expensifyIcons.Trashcan,
         dismissedHoldUseExplanation,
         dismissedRejectUseExplanation,
         areAllTransactionsFromSubmitter,
@@ -1093,7 +1147,10 @@ function SearchPage({route}: SearchPageProps) {
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
         currentUserPersonalDetails.accountID,
+        currentUserPersonalDetails?.login,
         personalPolicyID,
+        bankAccountList,
+        expensifyIcons,
     ]);
 
     const saveFileAndInitMoneyRequest = (files: FileObject[]) => {
@@ -1355,6 +1412,18 @@ function SearchPage({route}: SearchPageProps) {
                             onConfirm={dismissModalAndUpdateUseHold}
                         />
                     )}
+
+                    <ConfirmModal
+                        isVisible={accountingExportModalVisible}
+                        onConfirm={() => {
+                            setAccountingExportModalVisible(false);
+                        }}
+                        onCancel={() => setAccountingExportModalVisible(false)}
+                        title={translate('export.exportInProgress')}
+                        prompt={translate('export.conciergeWillNotifyOnExportFailure')}
+                        confirmText={translate('common.buttonConfirm')}
+                        shouldShowCancelButton={false}
+                    />
                 </View>
             )}
             <DecisionModal
