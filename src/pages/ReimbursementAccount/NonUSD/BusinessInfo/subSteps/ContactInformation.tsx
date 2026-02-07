@@ -79,6 +79,7 @@ function ContactInformation({onNext, isEditing}: ContactInformationProps) {
                 containerStyles={[styles.mt5, styles.mh5]}
                 defaultValue={phoneNumberDefaultValue}
                 shouldSaveDraft={!isEditing}
+                autoComplete="tel"
             />
             <InputWrapper
                 InputComponent={TextInput}
@@ -90,6 +91,7 @@ function ContactInformation({onNext, isEditing}: ContactInformationProps) {
                 containerStyles={[styles.mt5, styles.mh5]}
                 defaultValue={confirmationEmailDefaultValue}
                 shouldSaveDraft={!isEditing}
+                autoComplete="email"
             />
         </FormProvider>
     );
