@@ -123,19 +123,63 @@ public class BootSplashModule extends ReactContextBaseJavaModule {
 
     mDialog = new BootSplashDialog(activity, R.style.BootTheme);
 
-    mDialog.setOnShowListener(new DialogInterface.OnShowListener() {
-      @Override
-      public void onShow(DialogInterface dialog) {
-        mShouldKeepOnScreen = false;
-      }
-    });
-
     UiThreadUtil.runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        mDialog.show();
+        showDialog(mDialog, new Runnable() {
+          @Override
+          public void run() {
+            mShouldKeepOnScreen = false;
+          }
+        });
       }
     });
+  }
+
+  private static void showDialog(
+    @NonNull final BootSplashDialog dialog,
+    @NonNull final Runnable callback
+  ) {
+    if (dialog.isShowing()) {
+      callback.run();
+      return;
+    }
+
+    dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+      @Override
+      public void onShow(DialogInterface d) {
+        callback.run();
+      }
+    });
+
+    try {
+      dialog.show();
+    } catch (Exception exception) {
+      callback.run();
+    }
+  }
+
+  private static void dismissDialog(
+    @Nullable final BootSplashDialog dialog,
+    @NonNull final Runnable callback
+  ) {
+    if (dialog == null || !dialog.isShowing()) {
+      callback.run();
+      return;
+    }
+
+    dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+      @Override
+      public void onDismiss(DialogInterface d) {
+        callback.run();
+      }
+    });
+
+    try {
+      dialog.dismiss();
+    } catch (Exception exception) {
+      callback.run();
+    }
   }
 
   private void clearPromiseQueue() {
@@ -153,7 +197,7 @@ public class BootSplashModule extends ReactContextBaseJavaModule {
       public void run() {
         final Activity activity = getReactApplicationContext().getCurrentActivity();
 
-        if (mShouldKeepOnScreen ||  activity == null || activity.isFinishing()) {
+        if (mShouldKeepOnScreen || activity == null || activity.isFinishing() || activity.isDestroyed()) {
           final Timer timer = new Timer();
 
           timer.schedule(new TimerTask() {
@@ -166,15 +210,13 @@ public class BootSplashModule extends ReactContextBaseJavaModule {
         } else if (mDialog == null) {
           clearPromiseQueue();
         } else {
-          mDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+          dismissDialog(mDialog, new Runnable() {
             @Override
-            public void onDismiss(DialogInterface dialog) {
+            public void run() {
               mDialog = null;
               clearPromiseQueue();
             }
           });
-
-          mDialog.dismiss();
         }
       }
     });
