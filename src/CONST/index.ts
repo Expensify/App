@@ -5480,6 +5480,15 @@ const CONST = {
     ACCESSIBILITY_LABELS: {
         COLLAPSE: 'Collapse',
         EXPAND: 'Expand',
+        PODCAST: 'Podcast',
+        TWITTER: 'Twitter',
+        INSTAGRAM: 'Instagram',
+        FACEBOOK: 'Facebook',
+        LINKEDIN: 'Linkedin',
+    },
+
+    SOCIAL_SENTRY_LABELS: {
+        ICON: 'SignIn-Socials-Icon',
     },
 
     /**

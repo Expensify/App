@@ -13,28 +13,34 @@ import CONST from '@src/CONST';
 type Social = {
     iconURL: Extract<ExpensifyIconName, 'Podcast' | 'Twitter' | 'Instagram' | 'Facebook' | 'Linkedin'>;
     link: string;
+    accessibilityLabel: string;
 };
 
 const socialList: Social[] = [
     {
         iconURL: 'Podcast',
         link: CONST.SOCIALS.PODCAST,
+        accessibilityLabel: CONST.ACCESSIBILITY_LABELS.PODCAST,
     },
     {
         iconURL: 'Twitter',
         link: CONST.SOCIALS.TWITTER,
+        accessibilityLabel: CONST.ACCESSIBILITY_LABELS.TWITTER,
     },
     {
         iconURL: 'Instagram',
         link: CONST.SOCIALS.INSTAGRAM,
+        accessibilityLabel: CONST.ACCESSIBILITY_LABELS.INSTAGRAM,
     },
     {
         iconURL: 'Facebook',
         link: CONST.SOCIALS.FACEBOOK,
+        accessibilityLabel: CONST.ACCESSIBILITY_LABELS.FACEBOOK,
     },
     {
         iconURL: 'Linkedin',
         link: CONST.SOCIALS.LINKEDIN,
+        accessibilityLabel: CONST.ACCESSIBILITY_LABELS.LINKEDIN,
     },
 ];
 
@@ -53,9 +59,11 @@ function Socials() {
                         e?.preventDefault();
                         openExternalLink(social.link);
                     }}
-                    accessible={false}
                     style={[styles.mr1, styles.mt1]}
                     shouldUseAutoHitSlop={false}
+                    accessibilityRole={CONST.ROLE.LINK}
+                    accessibilityLabel={social.accessibilityLabel}
+                    sentryLabel={CONST.SOCIAL_SENTRY_LABELS.ICON}
                 >
                     {({hovered, pressed}) => (
                         <Icon
