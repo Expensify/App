@@ -317,9 +317,18 @@ class GithubUtils {
         isFirebaseChecked = false,
         isGHStatusChecked = false,
     ): Promise<void | StagingDeployCashBody> {
-        return this.fetchAllPullRequests(PRList.map((pr) => this.getPullRequestNumberFromURL(pr)))
-            .then((data) => {
-                const internalQAPRs = Array.isArray(data) ? data.filter((pr) => !isEmptyObject(pr.labels.find((item) => item.name === CONST.LABELS.INTERNAL_QA))) : [];
+        return Promise.all([
+            this.fetchAllPullRequests(
+                PRList.map((pr) => this.getPullRequestNumberFromURL(pr)),
+                CONST.APP_REPO,
+            ),
+            this.fetchAllPullRequests(
+                PRListMobileExpensify.map((pr) => this.getPullRequestNumberFromURL(pr)),
+                CONST.MOBILE_EXPENSIFY_REPO,
+            ),
+        ])
+            .then(([appPRData, mobilePRData]) => {
+                const internalQAPRs = Array.isArray(appPRData) ? appPRData.filter((pr) => !isEmptyObject(pr.labels.find((item) => item.name === CONST.LABELS.INTERNAL_QA))) : [];
                 return Promise.all(internalQAPRs.map((pr) => this.getPullRequestMergerLogin(pr.number).then((mergerLogin) => ({url: pr.html_url, mergerLogin})))).then((results) => {
                     // The format of this map is following:
                     // {
@@ -332,9 +341,13 @@ class GithubUtils {
                     }, {});
                     console.log('Found the following Internal QA PRs:', internalQAPRMap);
 
-                    const noQAPRs = Array.isArray(data) ? data.filter((PR) => /\[No\s?QA]/i.test(PR.title)).map((item) => item.html_url) : [];
+                    // Detect and check off verified and NO QA PRs
+                    const noQAPRs = Array.isArray(appPRData) ? appPRData.filter((PR) => CONST.NO_QA_REGEX.test(PR.title)).map((item) => item.html_url) : [];
                     console.log('Found the following NO QA PRs:', noQAPRs);
-                    const verifiedOrNoQAPRs = new Set([...verifiedPRList, ...verifiedPRListMobileExpensify, ...noQAPRs]);
+
+                    const noQAMobileExpensifyPRs = Array.isArray(mobilePRData) ? mobilePRData.filter((PR) => CONST.NO_QA_REGEX.test(PR.title)).map((item) => item.html_url) : [];
+                    console.log('Found the following NO QA Mobile-Expensify PRs:', noQAMobileExpensifyPRs);
+                    const verifiedOrNoQAPRs = new Set([...verifiedPRList, ...verifiedPRListMobileExpensify, ...noQAPRs, ...noQAMobileExpensifyPRs]);
 
                     const sortedPRList = [...new Set(arrayDifference(PRList, Object.keys(internalQAPRMap)))].sort(
                         (a, b) => GithubUtils.getPullRequestNumberFromURL(a) - GithubUtils.getPullRequestNumberFromURL(b),
@@ -427,13 +440,13 @@ class GithubUtils {
     /**
      * Fetch all pull requests given a list of PR numbers.
      */
-    static fetchAllPullRequests(pullRequestNumbers: number[]): Promise<OctokitPR[] | void> {
+    static fetchAllPullRequests(pullRequestNumbers: number[], repo: string = CONST.APP_REPO): Promise<OctokitPR[] | void> {
         const oldestPR = pullRequestNumbers.sort((a, b) => a - b).at(0);
         return this.paginate(
             this.octokit.pulls.list,
             {
                 owner: CONST.GITHUB_OWNER,
-                repo: CONST.APP_REPO,
+                repo,
                 state: 'all',
                 sort: 'created',
                 direction: 'desc',
