@@ -780,6 +780,7 @@ function TransactionItemRow({
                     )}
                     {!!isLargeScreenWidth && !!onArrowRightPress && (
                         <PressableWithFeedback
+                            disabled={!!isDisabled}
                             onPress={() => onArrowRightPress?.()}
                             style={[styles.p3Half, styles.pl0half, styles.pr0half, styles.justifyContentCenter, styles.alignItemsEnd]}
                             accessibilityRole={CONST.ROLE.BUTTON}

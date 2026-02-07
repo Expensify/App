@@ -4514,50 +4514,46 @@ function getTableMinWidth(columns: SearchColumnType[]) {
 function shouldShowDeleteOption(
     selectedTransactions: Record<string, SelectedTransactionInfo>,
     currentSearchResults: SearchResults['data'] | undefined,
-    isOffline: boolean,
     selectedReports: SelectedReports[] = [],
     searchDataType?: SearchDataTypes,
 ) {
     const selectedTransactionsKeys = Object.keys(selectedTransactions);
 
-    return (
-        !isOffline &&
-        (selectedReports.length && searchDataType !== CONST.SEARCH.DATA_TYPES.EXPENSE
-            ? selectedReports.every((selectedReport) => {
-                  const fullReport = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`];
-                  if (!fullReport) {
-                      return false;
+    return selectedReports.length && searchDataType !== CONST.SEARCH.DATA_TYPES.EXPENSE
+        ? selectedReports.every((selectedReport) => {
+              const fullReport = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`];
+              if (!fullReport) {
+                  return false;
+              }
+              const reportActionsData = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selectedReport.reportID}`];
+              const reportActionsArray = Object.values(reportActionsData ?? {});
+              const reportTransactions: OnyxTypes.Transaction[] = [];
+              const searchData = currentSearchResults ?? {};
+              for (const key of Object.keys(searchData)) {
+                  if (!key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
+                      continue;
                   }
-                  const reportActionsData = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selectedReport.reportID}`];
-                  const reportActionsArray = Object.values(reportActionsData ?? {});
-                  const reportTransactions: OnyxTypes.Transaction[] = [];
-                  const searchData = currentSearchResults ?? {};
-                  for (const key of Object.keys(searchData)) {
-                      if (!key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
-                          continue;
-                      }
-                      const item = searchData[key as keyof typeof searchData] as OnyxTypes.Transaction | undefined;
-                      if (item && 'transactionID' in item && 'reportID' in item && item.reportID === selectedReport.reportID) {
-                          reportTransactions.push(item);
-                      }
+                  const item = searchData[key as keyof typeof searchData] as OnyxTypes.Transaction | undefined;
+                  if (item && 'transactionID' in item && 'reportID' in item && item.reportID === selectedReport.reportID) {
+                      reportTransactions.push(item);
                   }
-                  return canDeleteMoneyRequestReport(fullReport, reportTransactions, reportActionsArray);
-              })
-            : selectedTransactionsKeys.every((id) => {
-                  const transaction = currentSearchResults?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] ?? selectedTransactions[id]?.transaction;
-                  if (!transaction) {
-                      return false;
-                  }
-                  const parentReportID = transaction.reportID;
-                  const parentReport = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`] ?? selectedTransactions[id].report;
-                  const reportActions = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`];
-                  const parentReportAction =
-                      Object.values(reportActions ?? {}).find((action) => (isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined) === id) ??
-                      selectedTransactions[id].reportAction;
+              }
+              return canDeleteMoneyRequestReport(fullReport, reportTransactions, reportActionsArray);
+          })
+        : selectedTransactionsKeys.every((id) => {
+              const transaction = currentSearchResults?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] ?? selectedTransactions[id]?.transaction;
+              if (!transaction) {
+                  return false;
+              }
+              const parentReportID = transaction.reportID;
+              const parentReport = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`] ?? selectedTransactions[id].report;
+              const reportActions = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`];
+              const parentReportAction =
+                  Object.values(reportActions ?? {}).find((action) => (isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined) === id) ??
+                  selectedTransactions[id].reportAction;
 
-                  return canDeleteMoneyRequestReport(parentReport, [transaction], parentReportAction ? [parentReportAction] : []);
-              }))
-    );
+              return canDeleteMoneyRequestReport(parentReport, [transaction], parentReportAction ? [parentReportAction] : []);
+          });
 }
 
 export {
