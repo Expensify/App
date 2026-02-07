@@ -50,10 +50,10 @@ import {
     areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils,
     getAddExpenseDropdownOptions,
     getDisplayNameForParticipant,
-    getMoneyReportPreviewName,
     getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,
     getPolicyName,
+    getReportName,
     getReportStatusColorStyle,
     getReportStatusTranslation,
     getTransactionsWithReceipts,
@@ -118,7 +118,6 @@ function MoneyRequestReportPreviewContent({
     currentWidth,
     reportPreviewStyles,
     shouldDisplayContextMenu = true,
-    isInvoice,
     shouldShowBorder = false,
     onPress,
     forwardedFSClass,
@@ -218,12 +217,6 @@ function MoneyRequestReportPreviewContent({
     const shouldShowOnlyPayElsewhere = useMemo(() => !canIOUBePaid && getCanIOUBePaid(true), [canIOUBePaid, getCanIOUBePaid]);
 
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportAttributesSelector});
-
-    const currentReportName = iouReport?.reportID ? reportAttributes?.[iouReport.reportID]?.reportName : undefined;
-    const reportPreviewName = useMemo(() => {
-        return getMoneyReportPreviewName(action, iouReport, isInvoice, reportAttributes);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [action, iouReport, isInvoice, currentReportName]);
 
     const hasReceipts = transactionsWithReceipts.length > 0;
     const isScanning = hasReceipts && areAllRequestsBeingSmartScanned;
@@ -754,7 +747,9 @@ function MoneyRequestReportPreviewContent({
                                                             style={[styles.headerText]}
                                                             testID="MoneyRequestReportPreview-reportName"
                                                         >
-                                                            {reportPreviewName}
+                                                            {/* This will be fixed as follow up https://github.com/Expensify/App/pull/75357 */}
+                                                            {/* eslint-disable-next-line @typescript-eslint/no-deprecated */}
+                                                            {getReportName(iouReport, undefined, undefined, undefined, undefined, reportAttributes) || action.childReportName}
                                                         </Text>
                                                     </Animated.View>
                                                 </View>
