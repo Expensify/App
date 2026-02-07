@@ -599,6 +599,7 @@ function MoneyReportHeader({
                     activePolicy,
                     policy,
                     betas,
+                    accountDelegateEmail,   
                 });
                 if (currentSearchQueryJSON && !isOffline) {
                     search({
@@ -633,6 +634,7 @@ function MoneyReportHeader({
             shouldCalculateTotals,
             currentSearchResults?.search?.isLoading,
             betas,
+            accountDelegateEmail,
         ],
     );
 

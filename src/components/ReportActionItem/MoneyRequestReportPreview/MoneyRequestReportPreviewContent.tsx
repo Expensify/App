@@ -126,6 +126,8 @@ function MoneyRequestReportPreviewContent({
     const [chatReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`, {canBeMissing: true, allowStaleData: true});
     const [iouReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReportID}`, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const accountDelegateEmail = account?.delegatedAccess?.delegate ?? '';
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReportID}`, {canBeMissing: true});
     const activePolicy = usePolicy(activePolicyID);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
@@ -281,6 +283,7 @@ function MoneyRequestReportPreviewContent({
                         activePolicy,
                         policy,
                         betas,
+                        accountDelegateEmail,
                     });
                 }
             }

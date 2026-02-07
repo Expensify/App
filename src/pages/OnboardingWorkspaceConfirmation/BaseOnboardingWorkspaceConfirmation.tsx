@@ -35,6 +35,8 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboar
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const accountDelegateEmail = account?.delegatedAccess?.delegate ?? '';
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, {canBeMissing: true});
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
@@ -79,7 +81,8 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboar
                       currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                       currentUserEmailParam: currentUserPersonalDetails.email ?? '',
                       shouldAddGuideWelcomeMessage: false,
-                      onboardingPurposeSelected,
+                      onboardingPurposeSelected,    
+                      accountDelegateEmail,
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
@@ -99,6 +102,7 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboar
             currentUserPersonalDetails.accountID,
             currentUserPersonalDetails.email,
             introSelected,
+            accountDelegateEmail,
         ],
     );
 

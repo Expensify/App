@@ -108,6 +108,8 @@ function SettlementButton({
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`, {canBeMissing: true});
 
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const accountDelegateEmail = account?.delegatedAccess?.delegate ?? '';
     const policyEmployeeAccountIDs = getPolicyEmployeeAccountIDs(policy, accountID);
     const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(chatReport, policyEmployeeAccountIDs, policyID, conciergeReportID) : false;
     const policyIDKey = reportBelongsToWorkspace ? policyID : (iouReport?.policyID ?? CONST.POLICY.ID_FAKE);
@@ -364,6 +366,7 @@ function SettlementButton({
                         activePolicyID,
                         currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                         currentUserEmailParam: currentUserPersonalDetails.email ?? '',
+                        accountDelegateEmail,
                     }).policyID;
                 };
                 const addBankAccountItem = {

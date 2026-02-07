@@ -22,6 +22,8 @@ function WorkspaceConfirmationPage() {
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const accountDelegateEmail = account?.delegatedAccess?.delegate ?? '';
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const privateSubscription = usePrivateSubscription();
     const onSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
@@ -43,6 +45,7 @@ function WorkspaceConfirmationPage() {
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             currentUserEmailParam: currentUserPersonalDetails.email ?? '',
             shouldCreateControlPolicy: isSubscriptionTypeOfInvoicing(privateSubscription?.type),
+            accountDelegateEmail,
         });
     };
     const currentUrl = getCurrentUrl();

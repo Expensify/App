@@ -330,6 +330,7 @@ type PayInvoiceArgs = {
     paymentMethod?: PaymentMethod;
     activePolicy?: OnyxTypes.Policy;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    accountDelegateEmail: string;
 };
 
 type RejectMoneyRequestData = {
@@ -885,6 +886,7 @@ type PayMoneyRequestFunctionParams = {
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
     policy?: OnyxEntry<OnyxTypes.Policy>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    accountDelegateEmail: string;
 };
 
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
@@ -9477,6 +9479,7 @@ function getPayMoneyRequestParams({
     activePolicy,
     iouReportCurrentNextStepDeprecated,
     betas,
+    accountDelegateEmail
 }: {
     initialChatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -9495,6 +9498,7 @@ function getPayMoneyRequestParams({
     introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
     iouReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    accountDelegateEmail: string;
 }): PayMoneyRequestData {
     const isInvoiceReport = isInvoiceReportReportUtils(iouReport);
     let payerPolicyID = activePolicy?.id;
@@ -9521,6 +9525,7 @@ function getPayMoneyRequestParams({
             introSelected,
             activePolicyID: activePolicy?.id,
             companySize: introSelected?.companySize as OnboardingCompanySize,
+            accountDelegateEmail,
         });
         const {adminsChatReportID, adminsCreatedReportActionID, expenseChatReportID, expenseCreatedReportActionID, customUnitRateID, customUnitID, ownerEmail, policyName} = params;
 
@@ -11360,6 +11365,7 @@ function completePaymentOnboarding(
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
     adminsChatReportID?: string,
     onboardingPolicyID?: string,
+    
 ) {
     const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
 
@@ -11395,7 +11401,7 @@ function completePaymentOnboarding(
 }
 
 function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
-    const {paymentType, chatReport, iouReport, introSelected, iouReportCurrentNextStepDeprecated, currentUserAccountID, paymentPolicyID, full = true, activePolicy, policy, betas} = params;
+    const {paymentType, chatReport, iouReport, introSelected, iouReportCurrentNextStepDeprecated, currentUserAccountID, paymentPolicyID, full = true, activePolicy, policy, betas,accountDelegateEmail} = params;
     if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
         return;
@@ -11422,6 +11428,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         iouReportCurrentNextStepDeprecated,
         currentUserAccountIDParam: currentUserAccountID,
         betas,
+        accountDelegateEmail,
     });
 
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
@@ -11448,6 +11455,7 @@ function payInvoice({
     activePolicy,
     invoiceReportCurrentNextStepDeprecated,
     betas,
+    accountDelegateEmail,
 }: PayInvoiceArgs) {
     const recipient = {accountID: invoiceReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {
@@ -11481,6 +11489,7 @@ function payInvoice({
         currentUserEmailParam,
         introSelected,
         betas,
+        accountDelegateEmail,
     });
 
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;

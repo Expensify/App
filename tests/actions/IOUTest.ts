@@ -6190,6 +6190,7 @@ describe('actions/IOU', () => {
                             iouReportCurrentNextStepDeprecated: undefined,
                             currentUserAccountID,
                             betas: [CONST.BETAS.ALL],
+                            accountDelegateEmail: '',
                         });
                     }
                     return waitForBatchedUpdates();
@@ -6389,7 +6390,7 @@ describe('actions/IOU', () => {
                             introSelected: undefined,
                             iouReportCurrentNextStepDeprecated: undefined,
                             currentUserAccountID: CARLOS_ACCOUNT_ID,
-                            betas: [CONST.BETAS.ALL],
+                            betas: [CONST.BETAS.ALL],         accountDelegateEmail: '',
                         });
                     }
                     return waitForBatchedUpdates();
@@ -6543,7 +6544,7 @@ describe('actions/IOU', () => {
                             introSelected: undefined,
                             iouReportCurrentNextStepDeprecated: undefined,
                             currentUserAccountID: CARLOS_ACCOUNT_ID,
-                            betas: [CONST.BETAS.ALL],
+                            betas: [CONST.BETAS.ALL],         accountDelegateEmail: '',
                         });
                     }
                     return waitForBatchedUpdates();
@@ -6592,7 +6593,7 @@ describe('actions/IOU', () => {
                 introSelected: undefined,
                 iouReportCurrentNextStepDeprecated: undefined,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
-                betas: [CONST.BETAS.ALL],
+                betas: [CONST.BETAS.ALL],         accountDelegateEmail: '',
             });
 
             await waitForBatchedUpdates();
@@ -6703,7 +6704,7 @@ describe('actions/IOU', () => {
                         iouReportCurrentNextStepDeprecated: undefined,
                         currentUserAccountID: CARLOS_ACCOUNT_ID,
                         full: false,
-                        betas: [CONST.BETAS.ALL],
+                        betas: [CONST.BETAS.ALL],         accountDelegateEmail: '',
                     });
                     return waitForBatchedUpdates();
                 })
@@ -6795,7 +6796,7 @@ describe('actions/IOU', () => {
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
                 full: false,
                 policy,
-                betas: [CONST.BETAS.ALL],
+                betas: [CONST.BETAS.ALL],         accountDelegateEmail: '',
             });
             await waitForBatchedUpdates();
             const newExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${newExpenseReportID}`);
@@ -6893,7 +6894,7 @@ describe('actions/IOU', () => {
                             introSelected: undefined,
                             iouReportCurrentNextStepDeprecated: undefined,
                             currentUserAccountID: CARLOS_ACCOUNT_ID,
-                            betas: [CONST.BETAS.ALL],
+                            betas: [CONST.BETAS.ALL],         accountDelegateEmail: '',
                         });
                     }
                     return waitForBatchedUpdates();
@@ -10833,6 +10834,7 @@ describe('actions/IOU', () => {
                     iouReportCurrentNextStepDeprecated: undefined,
                     currentUserAccountID: CARLOS_ACCOUNT_ID,
                     betas: [CONST.BETAS.ALL],
+                    accountDelegateEmail: '',
                 });
             }
             await waitForBatchedUpdates();

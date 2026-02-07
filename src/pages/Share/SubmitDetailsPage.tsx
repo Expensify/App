@@ -208,7 +208,6 @@ function SubmitDetailsPage({
                 isSelfTourViewed,
                 betas,
                 personalDetails,
-                accountDelegateEmail,
             });
         }
     };

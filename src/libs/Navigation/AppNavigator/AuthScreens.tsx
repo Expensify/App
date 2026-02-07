@@ -156,6 +156,7 @@ function AuthScreens() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {
         canBeMissing: true,
     });
+    const accountDelegateEmail = account?.delegatedAccess?.delegate ?? '';
     const {isOnboardingCompleted, shouldShowRequire2FAPage} = useOnboardingFlowRouter();
     const {initialURL, isAuthenticatedAtStartup} = useInitialURLState();
     const {setIsAuthenticatedAtStartup} = useInitialURLActions();
@@ -281,7 +282,7 @@ function AuthScreens() {
             App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
-        App.setUpPoliciesAndNavigate(session, introSelected, activePolicyID);
+        App.setUpPoliciesAndNavigate(session, introSelected, activePolicyID, accountDelegateEmail);
 
         Download.clearDownloads();
 

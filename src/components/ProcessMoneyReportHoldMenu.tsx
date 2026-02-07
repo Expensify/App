@@ -82,7 +82,8 @@ function ProcessMoneyReportHoldMenu({
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
-
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const accountDelegateEmail = account?.delegatedAccess?.delegate ?? '';
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const onSubmit = (full: boolean) => {
         if (isDelegateAccessRestricted) {
@@ -120,6 +121,7 @@ function ProcessMoneyReportHoldMenu({
                 activePolicy,
                 policy,
                 betas,
+                accountDelegateEmail,
             });
         }
         onClose();

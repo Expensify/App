@@ -97,7 +97,7 @@ function IOURequestStepDistanceOdometer({
     const initialStartImageRef = useRef<File | string | undefined>(undefined);
     const initialEndImageRef = useRef<File | string | undefined>(undefined);
     const prevSelectedTabRef = useRef<string | undefined>(undefined);
-    
+
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const accountDelegateEmail = account?.delegatedAccess?.delegate ?? '';
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
@@ -489,7 +489,6 @@ function IOURequestStepDistanceOdometer({
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     recentWaypoints,
                     betas,
-                    accountDelegateEmail,
                 });
                 return;
             }

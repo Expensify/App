@@ -18,7 +18,8 @@ function WorkspaceConfirmationForTravelPage({route}: WorkspaceConfirmationForTra
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const accountDelegateEmail = account?.delegatedAccess?.delegate ?? '';
     const goBack = () => {
         Navigation.goBack(route.params?.backTo ?? ROUTES.TRAVEL_UPGRADE.route);
     };
@@ -37,6 +38,7 @@ function WorkspaceConfirmationForTravelPage({route}: WorkspaceConfirmationForTra
             activePolicyID,
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             currentUserEmailParam: currentUserPersonalDetails.email ?? '',
+            accountDelegateEmail,
         });
         goBack();
     };

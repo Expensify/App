@@ -43,6 +43,8 @@ function IOURequestStepUpgrade({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
 
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const accountDelegateEmail = account?.delegatedAccess?.delegate ?? '';
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
 
@@ -147,6 +149,7 @@ function IOURequestStepUpgrade({
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             currentUserEmailParam: currentUserPersonalDetails.email ?? '',
             onboardingPurposeSelected,
+            accountDelegateEmail,
         });
         setIsUpgraded(true);
         policyDataRef.current = policyData;
@@ -172,6 +175,7 @@ function IOURequestStepUpgrade({
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             currentUserEmailParam: currentUserPersonalDetails.email ?? '',
             onboardingPurposeSelected,
+            accountDelegateEmail,
         });
         policyDataRef.current = policyData;
         setCreatedPolicyName(params.name);

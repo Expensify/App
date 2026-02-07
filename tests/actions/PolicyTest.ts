@@ -80,6 +80,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                accountDelegateEmail: '',
             });
             await waitForBatchedUpdates();
 
@@ -521,7 +522,7 @@ describe('actions/Policy', () => {
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
-                currentUserEmailParam: ESH_EMAIL,
+                currentUserEmailParam: ESH_EMAIL,     accountDelegateEmail: '',
             });
             await waitForBatchedUpdates();
 
@@ -550,7 +551,7 @@ describe('actions/Policy', () => {
                 engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
-                currentUserEmailParam: ESH_EMAIL,
+                currentUserEmailParam: ESH_EMAIL,     accountDelegateEmail: '',
             });
             await waitForBatchedUpdates();
 
@@ -583,7 +584,7 @@ describe('actions/Policy', () => {
                 engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
-                currentUserEmailParam: ESH_EMAIL,
+                currentUserEmailParam: ESH_EMAIL,     accountDelegateEmail: '',
             });
             await waitForBatchedUpdates();
 
@@ -611,7 +612,7 @@ describe('actions/Policy', () => {
                 policyID,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
-                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,     accountDelegateEmail: '',
                 currentUserEmailParam: ESH_EMAIL,
             });
             await waitForBatchedUpdates();
@@ -638,7 +639,7 @@ describe('actions/Policy', () => {
                 engagementChoice: undefined,
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
-                currentUserEmailParam: ESH_EMAIL,
+                currentUserEmailParam: ESH_EMAIL,     accountDelegateEmail: '',
             });
             await waitForBatchedUpdates();
 
@@ -665,7 +666,7 @@ describe('actions/Policy', () => {
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
-                currentUserEmailParam: ESH_EMAIL,
+                currentUserEmailParam: ESH_EMAIL,     accountDelegateEmail: '',
             });
             await waitForBatchedUpdates();
 
@@ -690,7 +691,7 @@ describe('actions/Policy', () => {
                 engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
-                currentUserEmailParam: ESH_EMAIL,
+                currentUserEmailParam: ESH_EMAIL,     accountDelegateEmail: '',
             });
             await waitForBatchedUpdates();
 
@@ -715,7 +716,7 @@ describe('actions/Policy', () => {
                 engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
-                currentUserEmailParam: ESH_EMAIL,
+                currentUserEmailParam: ESH_EMAIL,     accountDelegateEmail: '',
             });
             await waitForBatchedUpdates();
 
@@ -740,7 +741,7 @@ describe('actions/Policy', () => {
                 engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.EMPLOYER},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
-                currentUserEmailParam: ESH_EMAIL,
+                currentUserEmailParam: ESH_EMAIL,     accountDelegateEmail: '',
             });
             await waitForBatchedUpdates();
 
@@ -765,7 +766,7 @@ describe('actions/Policy', () => {
                 engagementChoice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
-                currentUserEmailParam: ESH_EMAIL,
+                currentUserEmailParam: ESH_EMAIL,     accountDelegateEmail: '',
             });
             await waitForBatchedUpdates();
 
@@ -802,7 +803,7 @@ describe('actions/Policy', () => {
                 ],
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
-                currentUserEmailParam: ESH_EMAIL,
+                currentUserEmailParam: ESH_EMAIL,     accountDelegateEmail: '',
             });
             await waitForBatchedUpdates();
 
