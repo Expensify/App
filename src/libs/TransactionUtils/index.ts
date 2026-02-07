@@ -2845,6 +2845,7 @@ export {
     shouldShowExpenseBreakdown,
     isTimeRequest,
     getExpenseTypeTranslationKey,
+    isDistanceTypeRequest,
 };
 
 export type {TransactionChanges};
