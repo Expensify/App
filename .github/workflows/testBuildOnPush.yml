@@ -6,7 +6,7 @@ on:
     paths-ignore: ['docs/**', 'contributingGuides/**', 'help/**', '.github/**', 'scripts/**', 'tests/**', 'jest/**', '.claude/**']
 
 concurrency:
-  group: 'testBuildOnPush'
+  group: 'testBuild'
   cancel-in-progress: false
 
 jobs:
