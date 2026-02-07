@@ -97,7 +97,9 @@ function IOURequestStepDistanceOdometer({
     const initialStartImageRef = useRef<File | string | undefined>(undefined);
     const initialEndImageRef = useRef<File | string | undefined>(undefined);
     const prevSelectedTabRef = useRef<string | undefined>(undefined);
-
+    
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const accountDelegateEmail = account?.delegatedAccess?.delegate ?? '';
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const isArchived = isArchivedReport(reportNameValuePairs);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
@@ -454,6 +456,7 @@ function IOURequestStepDistanceOdometer({
                         quickAction,
                         recentWaypoints,
                         betas,
+                        accountDelegateEmail,
                     });
                     return;
                 }
@@ -486,6 +489,7 @@ function IOURequestStepDistanceOdometer({
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     recentWaypoints,
                     betas,
+                    accountDelegateEmail,
                 });
                 return;
             }

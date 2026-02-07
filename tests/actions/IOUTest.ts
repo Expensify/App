@@ -541,7 +541,8 @@ describe('actions/IOU', () => {
                 activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
+                betas: [CONST.BETAS.ALL],   
+                accountDelegateEmail: '',
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -642,6 +643,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                accountDelegateEmail: '',
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -728,7 +730,7 @@ describe('actions/IOU', () => {
                 activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
+                betas: [CONST.BETAS.ALL],  accountDelegateEmail: '',
             });
             await waitForBatchedUpdates();
 
@@ -783,6 +785,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                accountDelegateEmail: '',
             });
             await waitForBatchedUpdates();
 
@@ -865,6 +868,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                    accountDelegateEmail: '',
             });
             await waitForBatchedUpdates();
 
@@ -918,7 +922,7 @@ describe('actions/IOU', () => {
                 activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
+                betas: [CONST.BETAS.ALL],  accountDelegateEmail: '',
             });
             await waitForBatchedUpdates();
 
@@ -983,7 +987,7 @@ describe('actions/IOU', () => {
                 activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints: [],
-                betas: [CONST.BETAS.ALL],
+                betas: [CONST.BETAS.ALL],  accountDelegateEmail: '',
             };
         }
 
@@ -1199,7 +1203,7 @@ describe('actions/IOU', () => {
                 activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints: [],
-                betas: [CONST.BETAS.ALL],
+                betas: [CONST.BETAS.ALL],  accountDelegateEmail: '',
             });
             await waitForBatchedUpdates();
 
@@ -1289,7 +1293,7 @@ describe('actions/IOU', () => {
                 activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints: [],
-                betas: [CONST.BETAS.ALL],
+                betas: [CONST.BETAS.ALL],  accountDelegateEmail: '',
             });
             await waitForBatchedUpdates();
 
@@ -1728,6 +1732,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                accountDelegateEmail: '',
             });
             return waitForBatchedUpdates()
                 .then(
@@ -1986,7 +1991,8 @@ describe('actions/IOU', () => {
                         quickAction: undefined,
                         betas: [CONST.BETAS.ALL],
                         personalDetails: {},
-                    });
+                        accountDelegateEmail: '',
+                        });
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -2217,6 +2223,7 @@ describe('actions/IOU', () => {
                             quickAction: undefined,
                             betas: [CONST.BETAS.ALL],
                             personalDetails: {},
+                            accountDelegateEmail: '',
                         });
                     }
                     return waitForBatchedUpdates();
@@ -2383,7 +2390,7 @@ describe('actions/IOU', () => {
                 isSelfTourViewed: false,
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
-                personalDetails: {},
+                personalDetails: {},  accountDelegateEmail: '',
             });
             return (
                 waitForBatchedUpdates()
@@ -2788,7 +2795,7 @@ describe('actions/IOU', () => {
                 activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
+                betas: [CONST.BETAS.ALL],  accountDelegateEmail: '',
             });
 
             mockFetch?.resume?.();
@@ -2855,7 +2862,7 @@ describe('actions/IOU', () => {
                 activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
+                betas: [CONST.BETAS.ALL],  accountDelegateEmail: '',
             });
             await waitForBatchedUpdates();
 
@@ -2902,6 +2909,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                accountDelegateEmail: '',
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
@@ -2932,6 +2940,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                accountDelegateEmail: '',
             });
             expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledTimes(1);
         });
@@ -2962,6 +2971,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                accountDelegateEmail: '',
             });
             // Verify that the iouReport is created successfully when isSelfTourViewed is true
             expect(iouReport).toBeDefined();
@@ -3010,7 +3020,7 @@ describe('actions/IOU', () => {
                 currentUserEmailParam: 'existing@example.com',
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
-                personalDetails: {},
+                personalDetails: {},  accountDelegateEmail: '',
             });
 
             await waitForBatchedUpdates();
@@ -3053,6 +3063,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                accountDelegateEmail: '',
             });
 
             await waitForBatchedUpdates();
@@ -3121,6 +3132,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                accountDelegateEmail: '',
             });
             waitForBatchedUpdates();
 
@@ -3187,6 +3199,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 personalDetails: testPersonalDetails,
                 betas: [CONST.BETAS.ALL],
+                accountDelegateEmail: '',
             });
 
             expect(iouReport).toBeDefined();
@@ -3257,7 +3270,7 @@ describe('actions/IOU', () => {
                 isSelfTourViewed: false,
                 quickAction: undefined,
                 personalDetails: testPersonalDetails,
-                betas: [CONST.BETAS.ALL],
+                betas: [CONST.BETAS.ALL],  accountDelegateEmail: '',
             });
 
             expect(iouReport).toBeDefined();
@@ -3299,7 +3312,7 @@ describe('actions/IOU', () => {
                 isSelfTourViewed: false,
                 quickAction: undefined,
                 personalDetails: {},
-                betas: [CONST.BETAS.ALL],
+                betas: [CONST.BETAS.ALL],  accountDelegateEmail: '',
             });
 
             // Should still create the expense even with empty personalDetails
@@ -3360,7 +3373,7 @@ describe('actions/IOU', () => {
                 activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
+                betas: [CONST.BETAS.ALL],  accountDelegateEmail: '',
             });
             await waitForBatchedUpdates();
 
@@ -3454,7 +3467,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 isSelfTourViewed: false,
                 personalDetails: {},
-                betas: [CONST.BETAS.ALL],
+                betas: [CONST.BETAS.ALL],  accountDelegateEmail: '',
             });
 
             await waitForBatchedUpdates();
@@ -3518,7 +3531,7 @@ describe('actions/IOU', () => {
                         quickAction: undefined,
                         isSelfTourViewed: false,
                         betas: [CONST.BETAS.ALL],
-                        personalDetails: {},
+                        personalDetails: {},  accountDelegateEmail: '',
                     });
                     return waitForBatchedUpdates();
                 })
@@ -3603,7 +3616,7 @@ describe('actions/IOU', () => {
                         quickAction: undefined,
                         isSelfTourViewed: false,
                         betas: [CONST.BETAS.ALL],
-                        personalDetails: {},
+                        personalDetails: {},  accountDelegateEmail: '',
                     });
                     return waitForBatchedUpdates();
                 })
@@ -3680,6 +3693,7 @@ describe('actions/IOU', () => {
                         isSelfTourViewed: false,
                         betas: [CONST.BETAS.ALL],
                         personalDetails: {},
+                        accountDelegateEmail: '',
                     });
                     return waitForBatchedUpdates();
                 })
@@ -3751,6 +3765,7 @@ describe('actions/IOU', () => {
                         isSelfTourViewed: false,
                         betas: [CONST.BETAS.ALL],
                         personalDetails: {},
+                        accountDelegateEmail: '',
                     });
                     return waitForBatchedUpdates();
                 })
@@ -3823,6 +3838,7 @@ describe('actions/IOU', () => {
                         isSelfTourViewed: false,
                         betas: [CONST.BETAS.ALL],
                         personalDetails: {},
+                        accountDelegateEmail: '',
                     });
                     return waitForBatchedUpdates();
                 })
@@ -6086,7 +6102,7 @@ describe('actions/IOU', () => {
                 isSelfTourViewed: false,
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
-                personalDetails: {},
+                personalDetails: {},  accountDelegateEmail: '',
             });
             return waitForBatchedUpdates()
                 .then(
@@ -6299,7 +6315,7 @@ describe('actions/IOU', () => {
                         policyName: "Carlos's Workspace",
                         introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                         currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
-                        currentUserEmailParam: CARLOS_EMAIL,
+                        currentUserEmailParam: CARLOS_EMAIL,  accountDelegateEmail: '',
                     });
                     return waitForBatchedUpdates();
                 })
@@ -6344,7 +6360,7 @@ describe('actions/IOU', () => {
                             isSelfTourViewed: false,
                             quickAction: undefined,
                             betas: [CONST.BETAS.ALL],
-                            personalDetails: {},
+                            personalDetails: {},  accountDelegateEmail: '',
                         });
                     }
                     return waitForBatchedUpdates();
@@ -6452,7 +6468,7 @@ describe('actions/IOU', () => {
                         policyName: "Carlos's Workspace",
                         introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                         currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
-                        currentUserEmailParam: CARLOS_EMAIL,
+                        currentUserEmailParam: CARLOS_EMAIL,  accountDelegateEmail: '',
                     });
                     return waitForBatchedUpdates();
                 })
@@ -6497,7 +6513,7 @@ describe('actions/IOU', () => {
                             isSelfTourViewed: false,
                             quickAction: undefined,
                             betas: [CONST.BETAS.ALL],
-                            personalDetails: {},
+                            personalDetails: {},  accountDelegateEmail: '',
                         });
                     }
                     return waitForBatchedUpdates();
@@ -6812,7 +6828,7 @@ describe('actions/IOU', () => {
                         policyName: "Carlos's Workspace",
                         introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                         currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
-                        currentUserEmailParam: CARLOS_EMAIL,
+                        currentUserEmailParam: CARLOS_EMAIL,  accountDelegateEmail: '',
                     });
                     return waitForBatchedUpdates();
                 })
@@ -6852,7 +6868,7 @@ describe('actions/IOU', () => {
                             isSelfTourViewed: false,
                             quickAction: undefined,
                             betas: [CONST.BETAS.ALL],
-                            personalDetails: {},
+                            personalDetails: {},  accountDelegateEmail: '',
                         });
                     }
                     return waitForBatchedUpdates();
@@ -6970,7 +6986,7 @@ describe('actions/IOU', () => {
                 isSelfTourViewed: false,
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
-                personalDetails: {},
+                personalDetails: {},  accountDelegateEmail: '',
             });
             await waitForBatchedUpdates();
 
@@ -7219,7 +7235,7 @@ describe('actions/IOU', () => {
                 isSelfTourViewed: false,
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
-                personalDetails: {},
+                personalDetails: {},  accountDelegateEmail: '',
             });
 
             await waitForBatchedUpdates();
@@ -7805,7 +7821,7 @@ describe('actions/IOU', () => {
                     isSelfTourViewed: false,
                     quickAction: undefined,
                     betas: [CONST.BETAS.ALL],
-                    personalDetails: {},
+                    personalDetails: {},  accountDelegateEmail: '',
                 });
             }
 
@@ -7883,7 +7899,7 @@ describe('actions/IOU', () => {
                 isSelfTourViewed: false,
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
-                personalDetails: {},
+                personalDetails: {},  accountDelegateEmail: '',
             });
             await waitForBatchedUpdates();
 
@@ -8251,7 +8267,7 @@ describe('actions/IOU', () => {
                         policyID,
                         introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                         currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
-                        currentUserEmailParam: CARLOS_EMAIL,
+                        currentUserEmailParam: CARLOS_EMAIL,  accountDelegateEmail: '',
                     });
 
                     // Change the approval mode for the policy since default is Submit and Close
@@ -8299,7 +8315,7 @@ describe('actions/IOU', () => {
                             isSelfTourViewed: false,
                             quickAction: undefined,
                             betas: [CONST.BETAS.ALL],
-                            personalDetails: {},
+                            personalDetails: {},  accountDelegateEmail: '',
                         });
                     }
                     return waitForBatchedUpdates();
@@ -8382,7 +8398,7 @@ describe('actions/IOU', () => {
                         policyID,
                         introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                         currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
-                        currentUserEmailParam: CARLOS_EMAIL,
+                        currentUserEmailParam: CARLOS_EMAIL,  accountDelegateEmail: '',
                     });
 
                     setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
@@ -8429,7 +8445,7 @@ describe('actions/IOU', () => {
                             isSelfTourViewed: false,
                             quickAction: undefined,
                             betas: [CONST.BETAS.ALL],
-                            personalDetails: {},
+                            personalDetails: {},  accountDelegateEmail: '',
                         });
                     }
                     return waitForBatchedUpdates();
@@ -8458,7 +8474,7 @@ describe('actions/IOU', () => {
                             engagementChoice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
                             introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
-                            currentUserEmailParam: CARLOS_EMAIL,
+                            currentUserEmailParam: CARLOS_EMAIL,  accountDelegateEmail: '',
                         });
                         return waitForBatchedUpdates();
                     })
@@ -8503,7 +8519,7 @@ describe('actions/IOU', () => {
                                 isSelfTourViewed: false,
                                 quickAction: undefined,
                                 betas: [],
-                                personalDetails: {},
+                                personalDetails: {},  accountDelegateEmail: '',
                             });
                         }
                         return waitForBatchedUpdates();
@@ -8549,7 +8565,7 @@ describe('actions/IOU', () => {
                                 isSelfTourViewed: false,
                                 quickAction: undefined,
                                 betas: [],
-                                personalDetails: {},
+                                personalDetails: {},  accountDelegateEmail: '',
                             });
                         }
                         return waitForBatchedUpdates();
@@ -8709,7 +8725,7 @@ describe('actions/IOU', () => {
                             engagementChoice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
                             introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
-                            currentUserEmailParam: CARLOS_EMAIL,
+                            currentUserEmailParam: CARLOS_EMAIL,  accountDelegateEmail: '',
                         });
                         return waitForBatchedUpdates();
                     })
@@ -8754,7 +8770,7 @@ describe('actions/IOU', () => {
                                 isSelfTourViewed: false,
                                 quickAction: undefined,
                                 betas: [],
-                                personalDetails: {},
+                                personalDetails: {},  accountDelegateEmail: '',
                             });
                         }
                         return waitForBatchedUpdates();
@@ -8800,7 +8816,7 @@ describe('actions/IOU', () => {
                                 isSelfTourViewed: false,
                                 quickAction: undefined,
                                 betas: [],
-                                personalDetails: {},
+                                personalDetails: {},  accountDelegateEmail: '',
                             });
                         }
                         return waitForBatchedUpdates();
@@ -8910,7 +8926,7 @@ describe('actions/IOU', () => {
                 policyName: 'Test Workspace with Dynamic External Workflow',
                 policyID,
                 introSelected: undefined,
-                currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                currentUserAccountIDParam: CARLOS_ACCOUNT_ID,  accountDelegateEmail: '',
                 currentUserEmailParam: CARLOS_EMAIL,
             });
             return waitForBatchedUpdates()
@@ -8977,7 +8993,7 @@ describe('actions/IOU', () => {
                             isSelfTourViewed: false,
                             quickAction: undefined,
                             betas: [CONST.BETAS.ALL],
-                            personalDetails: {},
+                            personalDetails: {},  accountDelegateEmail: '',
                         });
                     }
                     return waitForBatchedUpdates();
@@ -9653,7 +9669,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
                 quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
+                betas: [CONST.BETAS.ALL],  accountDelegateEmail: '',
                 personalDetails: {},
             });
 
@@ -9709,7 +9725,7 @@ describe('actions/IOU', () => {
                 introSelected: undefined,
                 activePolicyID: undefined,
                 quickAction: undefined,
-                recentWaypoints,
+                recentWaypoints,  accountDelegateEmail: '',
                 betas: [CONST.BETAS.ALL],
             });
 
@@ -10655,7 +10671,7 @@ describe('actions/IOU', () => {
                 policyName: "Carlos's Workspace",
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
-                currentUserEmailParam: CARLOS_EMAIL,
+                currentUserEmailParam: CARLOS_EMAIL,  accountDelegateEmail: '',
             });
             await waitForBatchedUpdates();
 
@@ -10694,7 +10710,7 @@ describe('actions/IOU', () => {
                     isSelfTourViewed: false,
                     quickAction: undefined,
                     betas: [CONST.BETAS.ALL],
-                    personalDetails: {},
+                    personalDetails: {},  accountDelegateEmail: '',
                 });
             }
             await waitForBatchedUpdates();
@@ -10752,7 +10768,7 @@ describe('actions/IOU', () => {
                 policyName: "Carlos's Workspace",
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
-                currentUserEmailParam: CARLOS_EMAIL,
+                currentUserEmailParam: CARLOS_EMAIL,  accountDelegateEmail: '',
                 activePolicyID: '123',
             });
             await waitForBatchedUpdates();
@@ -10791,7 +10807,7 @@ describe('actions/IOU', () => {
                     policyRecentlyUsedCurrencies: [],
                     isSelfTourViewed: false,
                     quickAction: undefined,
-                    betas: [CONST.BETAS.ALL],
+                    betas: [CONST.BETAS.ALL],  accountDelegateEmail: '',
                     personalDetails: {},
                 });
             }
@@ -11572,7 +11588,7 @@ describe('actions/IOU', () => {
                 activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
+                betas: [CONST.BETAS.ALL],  accountDelegateEmail: '',
             });
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -11688,7 +11704,7 @@ describe('actions/IOU', () => {
                     policyName: "Carlos's Workspace",
                     policyID,
                     introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
-                    currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                    currentUserAccountIDParam: CARLOS_ACCOUNT_ID,  accountDelegateEmail: '',
                     currentUserEmailParam: CARLOS_EMAIL,
                 });
 
@@ -11726,7 +11742,7 @@ describe('actions/IOU', () => {
                     isSelfTourViewed: false,
                     quickAction: undefined,
                     betas: [CONST.BETAS.ALL],
-                    personalDetails: {},
+                    personalDetails: {},  accountDelegateEmail: '',
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
@@ -11851,7 +11867,7 @@ describe('actions/IOU', () => {
                     policyID,
                     introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                     currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                    currentUserEmailParam: RORY_EMAIL,
+                    currentUserEmailParam: RORY_EMAIL,  accountDelegateEmail: '',
                 });
 
                 // Change the approval mode for the policy since default is Submit and Close
@@ -11888,7 +11904,7 @@ describe('actions/IOU', () => {
                     isSelfTourViewed: false,
                     quickAction: undefined,
                     betas: [CONST.BETAS.ALL],
-                    personalDetails: {},
+                    personalDetails: {},  accountDelegateEmail: '',
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
@@ -12017,7 +12033,7 @@ describe('actions/IOU', () => {
                     policyID,
                     introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                     currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
-                    currentUserEmailParam: CARLOS_EMAIL,
+                    currentUserEmailParam: CARLOS_EMAIL,  accountDelegateEmail: '',
                 });
 
                 setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
@@ -12055,7 +12071,7 @@ describe('actions/IOU', () => {
                     isSelfTourViewed: false,
                     quickAction: undefined,
                     betas: [CONST.BETAS.ALL],
-                    personalDetails: {},
+                    personalDetails: {},  accountDelegateEmail: '',
                 });
                 await waitForBatchedUpdates();
 
@@ -12192,7 +12208,7 @@ describe('actions/IOU', () => {
                     policyID,
                     introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                     currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
-                    currentUserEmailParam: CARLOS_EMAIL,
+                    currentUserEmailParam: CARLOS_EMAIL,  accountDelegateEmail: '',
                 });
 
                 // Change the approval mode for the policy since default is Submit and Close
@@ -12232,7 +12248,7 @@ describe('actions/IOU', () => {
                     isSelfTourViewed: false,
                     quickAction: undefined,
                     betas: [CONST.BETAS.ALL],
-                    personalDetails: {},
+                    personalDetails: {},  accountDelegateEmail: '',
                 });
                 await waitForBatchedUpdates();
 

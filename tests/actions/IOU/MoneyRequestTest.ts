@@ -79,6 +79,7 @@ describe('MoneyRequest', () => {
         const selfDMReport = createSelfDM(Number(SELF_DM_REPORT_ID), TEST_USER_ACCOUNT_ID);
 
         const baseParams = {
+            accountDelegateEmail: '',
             transactions: [fakeTransaction],
             iouType: CONST.IOU.TYPE.REQUEST,
             report: fakeReport,
@@ -302,6 +303,7 @@ describe('MoneyRequest', () => {
             selfDMReport,
             isSelfTourViewed: false,
             betas: [],
+            accountDelegateEmail: '',
         };
 
         beforeEach(async () => {
@@ -736,6 +738,7 @@ describe('MoneyRequest', () => {
             quickAction: fakeQuickAction,
             selfDMReport,
             betas: [CONST.BETAS.ALL],
+            accountDelegateEmail: '',
         };
         const splitShares: SplitShares = {
             [firstSplitParticipantID]: {

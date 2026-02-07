@@ -110,7 +110,8 @@ function IOURequestStepDistanceMap({
         );
     }, [optimisticWaypoints, transactionWaypoints, areTransactionWaypointsEmpty]);
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
-
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const accountDelegateEmail = account?.delegatedAccess?.delegate ?? '';
     const backupWaypoints = transactionBackup?.pendingFields?.waypoints ? transactionBackup?.comment?.waypoints : undefined;
     // When online, fetch the backup route to ensure the map is populated even if the user does not save the transaction.
     // Fetch the backup route first to ensure the backup transaction map is updated before the main transaction map.
@@ -323,6 +324,7 @@ function IOURequestStepDistanceMap({
             selfDMReport,
             policyForMovingExpenses,
             betas,
+            accountDelegateEmail,
         });
     }, [
         iouType,
@@ -357,6 +359,7 @@ function IOURequestStepDistanceMap({
         selfDMReport,
         reportNameValuePairs?.private_isArchived,
         betas,
+        accountDelegateEmail,
     ]);
 
     const getError = () => {

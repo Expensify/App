@@ -81,6 +81,8 @@ function IOURequestStepDistance({
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
 
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const accountDelegateEmail = account?.delegatedAccess?.delegate ?? '';
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`, {canBeMissing: true});
     const selfDMReport = useSelfDMReport();
     const policy = usePolicy(report?.policyID);
@@ -325,7 +327,8 @@ function IOURequestStepDistance({
             privateIsArchived: reportNameValuePairs?.private_isArchived,
             selfDMReport,
             policyForMovingExpenses,
-            betas,
+            betas,      
+            accountDelegateEmail,
         });
     }, [
         iouType,
@@ -360,6 +363,7 @@ function IOURequestStepDistance({
         selfDMReport,
         reportNameValuePairs?.private_isArchived,
         betas,
+        accountDelegateEmail,
     ]);
 
     const getError = () => {

@@ -162,6 +162,8 @@ function IOURequestStepConfirmation({
     const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT, {canBeMissing: true});
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const accountDelegateEmail = account?.delegatedAccess?.delegate ?? '';
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ReplaceReceipt', 'SmartScan']);
 
@@ -634,6 +636,7 @@ function IOURequestStepConfirmation({
                     isSelfTourViewed,
                     betas,
                     personalDetails,
+                    accountDelegateEmail,
                 });
                 existingIOUReport = iouReport;
             }
@@ -671,6 +674,7 @@ function IOURequestStepConfirmation({
             isSelfTourViewed,
             betas,
             personalDetails,
+            accountDelegateEmail,
         ],
     );
 
@@ -720,6 +724,7 @@ function IOURequestStepConfirmation({
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 quickAction,
                 betas,
+
             });
         },
         [
@@ -809,6 +814,7 @@ function IOURequestStepConfirmation({
                     quickAction,
                     recentWaypoints,
                     betas,
+                    accountDelegateEmail,
                 });
             }
         },

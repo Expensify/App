@@ -60,6 +60,7 @@ type CreateTransactionParams = {
     isSelfTourViewed: boolean;
     betas: OnyxEntry<Beta[]>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
+    accountDelegateEmail: string;
 };
 
 type InitialTransactionParams = {
@@ -104,6 +105,7 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     selfDMReport: OnyxEntry<Report>;
     isSelfTourViewed: boolean;
     betas: OnyxEntry<Beta[]>;
+    accountDelegateEmail: string;
 };
 
 type MoneyRequestStepDistanceNavigationParams = {
@@ -141,6 +143,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     gpsCoordinates?: string;
     gpsDistance?: number;
     betas: OnyxEntry<Beta[]>;
+    accountDelegateEmail: string;
 };
 
 function createTransaction({
@@ -166,6 +169,7 @@ function createTransaction({
     isSelfTourViewed,
     betas,
     personalDetails,
+    accountDelegateEmail,
 }: CreateTransactionParams) {
     const recentWaypoints = getRecentWaypoints();
 
@@ -202,6 +206,7 @@ function createTransaction({
                 quickAction,
                 recentWaypoints,
                 betas,
+                accountDelegateEmail,
             });
         } else {
             requestMoney({
@@ -235,6 +240,7 @@ function createTransaction({
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 isSelfTourViewed,
                 personalDetails,
+                accountDelegateEmail,
             });
         }
     }
@@ -289,6 +295,7 @@ function handleMoneyRequestStepScanParticipants({
     selfDMReport,
     isSelfTourViewed,
     betas,
+    accountDelegateEmail,
 }: MoneyRequestStepScanParticipantsFlowParams) {
     if (backTo) {
         Navigation.goBack(backTo);
@@ -392,6 +399,7 @@ function handleMoneyRequestStepScanParticipants({
                             isSelfTourViewed,
                             betas,
                             personalDetails,
+                            accountDelegateEmail,
                         });
                     },
                     (errorData) => {
@@ -417,6 +425,7 @@ function handleMoneyRequestStepScanParticipants({
                             isSelfTourViewed,
                             betas,
                             personalDetails,
+                            accountDelegateEmail,
                         });
                     },
                 );
@@ -442,6 +451,7 @@ function handleMoneyRequestStepScanParticipants({
                 isSelfTourViewed,
                 betas,
                 personalDetails,
+                accountDelegateEmail: '',
             });
             return;
         }
@@ -524,6 +534,7 @@ function handleMoneyRequestStepDistanceNavigation({
     gpsDistance,
     policyForMovingExpenses,
     betas,
+    accountDelegateEmail
 }: MoneyRequestStepDistanceNavigationParams) {
     const isManualDistance = manualDistance !== undefined;
     const isGPSDistance = gpsDistance !== undefined && gpsCoordinates !== undefined;
@@ -604,6 +615,7 @@ function handleMoneyRequestStepDistanceNavigation({
                     quickAction,
                     recentWaypoints,
                     betas,
+                    accountDelegateEmail,
                 });
                 return;
             }

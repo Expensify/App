@@ -708,7 +708,8 @@ describe('actions/Duplicate', () => {
                 targetReport: policyExpenseChat,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
-            });
+                accountDelegateEmail: '',
+                });
 
             await waitForBatchedUpdates();
 
@@ -767,6 +768,7 @@ describe('actions/Duplicate', () => {
                 targetReport: policyExpenseChat,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                accountDelegateEmail: '',
             });
 
             await waitForBatchedUpdates();
@@ -826,6 +828,7 @@ describe('actions/Duplicate', () => {
                 targetReport: policyExpenseChat,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                accountDelegateEmail: '',
             });
 
             await waitForBatchedUpdates();
