@@ -9,12 +9,14 @@ import ModalContext from '@components/Modal/ModalContext';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useInitialDimensions from '@hooks/useInitialWindowDimensions';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTackInputFocus from '@hooks/useTackInputFocus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isMobile, isMobileWebKit, isSafari} from '@libs/Browser';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import addViewportResizeListener from '@libs/VisualViewport';
+import getPlatform from '@libs/getPlatform';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 
@@ -83,34 +85,33 @@ type ScreenWrapperContainerProps = ForwardedFSClassProps &
          * Whether the screen is focused. (Only passed if wrapped in ScreenWrapper)
          */
         isFocused?: boolean;
-
-        /** Reference to the outer element */
-        ref?: ForwardedRef<View>;
     }>;
 
-function ScreenWrapperContainer({
-    children,
-    style,
-    testID,
-    bottomContent,
-    bottomContentStyle: bottomContentStyleProp,
-    keyboardAvoidingViewBehavior = 'padding',
-    keyboardVerticalOffset,
-    shouldEnableKeyboardAvoidingView = true,
-    shouldEnableMaxHeight = false,
-    shouldEnableMinHeight = false,
-    shouldEnablePickerAvoiding = true,
-    shouldDismissKeyboardBeforeClose = true,
-    shouldAvoidScrollOnVirtualViewport = true,
-    shouldUseCachedViewportHeight = false,
-    shouldKeyboardOffsetBottomSafeAreaPadding: shouldKeyboardOffsetBottomSafeAreaPaddingProp,
-    enableEdgeToEdgeBottomSafeAreaPadding,
-    includePaddingTop = true,
-    includeSafeAreaPaddingBottom = false,
-    isFocused = true,
-    ref,
-    forwardedFSClass,
-}: ScreenWrapperContainerProps) {
+const ScreenWrapperContainer = React.forwardRef<View, ScreenWrapperContainerProps>(function ScreenWrapperContainer(
+    {
+        children,
+        style,
+        testID,
+        bottomContent,
+        bottomContentStyle: bottomContentStyleProp,
+        keyboardAvoidingViewBehavior = 'padding',
+        keyboardVerticalOffset,
+        shouldEnableKeyboardAvoidingView = true,
+        shouldEnableMaxHeight = false,
+        shouldEnableMinHeight = false,
+        shouldEnablePickerAvoiding = true,
+        shouldDismissKeyboardBeforeClose = true,
+        shouldAvoidScrollOnVirtualViewport = true,
+        shouldUseCachedViewportHeight = false,
+        shouldKeyboardOffsetBottomSafeAreaPadding: shouldKeyboardOffsetBottomSafeAreaPaddingProp,
+        enableEdgeToEdgeBottomSafeAreaPadding,
+        includePaddingTop = true,
+        includeSafeAreaPaddingBottom = false,
+        isFocused = true,
+        forwardedFSClass,
+    }: ScreenWrapperContainerProps,
+    ref: ForwardedRef<View>,
+) {
     const {windowHeight} = useWindowDimensions(shouldUseCachedViewportHeight);
     const {initialHeight} = useInitialDimensions();
     const styles = useThemeStyles();
@@ -119,6 +120,8 @@ function ScreenWrapperContainer({
     const {isBlurred} = useInputBlurState();
     const {setIsBlurred} = useInputBlurActions();
     const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && isMobileWebKit());
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const shouldHideFromAccessibility = shouldUseNarrowLayout && getPlatform() === CONST.PLATFORM.WEB && isMobile() && !isFocused;
 
     const isUsingEdgeToEdgeMode = enableEdgeToEdgeBottomSafeAreaPadding !== undefined;
     const shouldKeyboardOffsetBottomSafeAreaPadding = shouldKeyboardOffsetBottomSafeAreaPaddingProp ?? isUsingEdgeToEdgeMode;
@@ -210,6 +213,9 @@ function ScreenWrapperContainer({
             {...panResponder.panHandlers}
             testID={testID}
             fsClass={forwardedFSClass}
+            tabIndex={-1}
+            accessibilityElementsHidden={shouldHideFromAccessibility}
+            aria-hidden={shouldHideFromAccessibility}
         >
             <View
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
@@ -237,7 +243,7 @@ function ScreenWrapperContainer({
             {showBottomContent && <View style={bottomContentStyle}>{bottomContent}</View>}
         </View>
     );
-}
+});
 
 ScreenWrapperContainer.displayName = 'ScreenWrapperContainer';
 
