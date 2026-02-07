@@ -29,6 +29,7 @@ import {SidebarOrderedReportsContextProvider} from '@hooks/useSidebarOrderedRepo
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import {connect} from '@libs/actions/Delegate';
+import markAllMessagesAsRead from '@libs/actions/Report/MarkAllMessageAsRead';
 import setFullscreenVisibility from '@libs/actions/setFullscreenVisibility';
 import {init, isClientTheLeader} from '@libs/ActiveClientManager';
 import {READ_COMMANDS} from '@libs/API/types';
@@ -338,7 +339,7 @@ function AuthScreens() {
 
         const unsubscribeMarkAllMessagesAsReadShortcut = KeyboardShortcut.subscribe(
             markAllMessagesAsReadShortcutConfig.shortcutKey,
-            () => Report.markAllMessagesAsRead(archivedReportsIdSet),
+            () => markAllMessagesAsRead(archivedReportsIdSet),
             markAllMessagesAsReadShortcutConfig.descriptionKey,
             markAllMessagesAsReadShortcutConfig.modifiers,
             true,
