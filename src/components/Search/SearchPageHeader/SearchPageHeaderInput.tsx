@@ -433,6 +433,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                                 reports={reports}
                                 allCards={nonPersonalAndWorkspaceCards}
                                 allFeeds={allFeeds}
+                                contextType={queryJSON.type}
                                 textInputRef={textInputRef}
                             />
                         </View>
@@ -509,6 +510,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                                 reports={reports}
                                 allCards={nonPersonalAndWorkspaceCards}
                                 allFeeds={allFeeds}
+                                contextType={queryJSON.type}
                                 textInputRef={textInputRef}
                             />
                         </View>

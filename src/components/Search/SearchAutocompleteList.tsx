@@ -112,6 +112,9 @@ type SearchAutocompleteListProps = {
     /** All cards */
     allCards: CardList | undefined;
 
+    /** The current search context type (from queryJSON) */
+    contextType?: SearchDataTypes;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<SelectionListHandle>;
 };
@@ -184,6 +187,7 @@ function SearchAutocompleteList({
     reports,
     allFeeds,
     allCards = CONST.EMPTY_OBJECT,
+    contextType,
     ref,
 }: SearchAutocompleteListProps) {
     const styles = useThemeStyles();
@@ -243,7 +247,7 @@ function SearchAutocompleteList({
     const [isInitialRender, setIsInitialRender] = useState(true);
     const parsedQuery = useMemo(() => parseForAutocomplete(autocompleteQueryValue), [autocompleteQueryValue]);
     const typeFilter = parsedQuery?.ranges?.find((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
-    const currentType = (typeFilter?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE) as SearchDataTypes;
+    const currentType = (typeFilter?.value ?? contextType ?? CONST.SEARCH.DATA_TYPES.EXPENSE) as SearchDataTypes;
 
     const groupByAutocompleteList = useMemo(() => {
         switch (currentType) {
