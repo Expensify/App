@@ -1,4 +1,4 @@
-import React, {useCallback, useContext} from 'react';
+import React, {useCallback, useContext, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
@@ -19,7 +19,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {canIOUBePaid} from '@libs/actions/IOU';
 import {getPayMoneyOnSearchInvoiceParams, payMoneyRequestOnSearch} from '@libs/actions/Search';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import {isInvoiceReport} from '@libs/ReportUtils';
+import {
+    hasReportBeenReopened as hasReportBeenReopenedUtils,
+    hasReportBeenRetracted as hasReportBeenRetractedUtils,
+    isInvoiceReport,
+    isReportOwner,
+    isWaitingForSubmissionFromCurrentUser as isWaitingForSubmissionFromCurrentUserReportUtils,
+} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -83,8 +89,20 @@ function ActionCell({
     const shouldOnlyShowElsewhere = !canBePaid && canIOUBePaid(iouReport, chatReport, policy, bankAccountList, transactions, true);
     const text = isChildListItem ? translate(actionTranslationsMap[CONST.SEARCH.ACTION_TYPES.VIEW]) : translate(actionTranslationsMap[action]);
     const shouldUseViewAction = action === CONST.SEARCH.ACTION_TYPES.VIEW || (parentAction === CONST.SEARCH.ACTION_TYPES.PAID && action === CONST.SEARCH.ACTION_TYPES.PAID);
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canBeMissing: true});
 
     const {currency} = iouReport ?? {};
+
+    const hasReportBeenRetracted = hasReportBeenReopenedUtils(iouReport, reportActions) || hasReportBeenRetractedUtils(iouReport, reportActions);
+
+    // The submit button should be success green color only if the user is submitter and the policy does not have Scheduled Submit turned on
+    // Or if the report has been reopened or retracted
+    const isWaitingForSubmissionFromCurrentUser = useMemo(() => {
+        const isOwnAndReportHasBeenRetracted = isReportOwner(iouReport) && hasReportBeenRetracted;
+        return isOwnAndReportHasBeenRetracted || isWaitingForSubmissionFromCurrentUserReportUtils(chatReport, policy);
+    }, [chatReport, policy, hasReportBeenRetracted, iouReport]);
+
+    const isSubmitAction = action === CONST.SEARCH.ACTION_TYPES.SUBMIT;
 
     const confirmPayment = useCallback(
         (type: ValueOf<typeof CONST.IOU.PAYMENT_TYPE> | undefined, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod | undefined) => {
@@ -186,7 +204,7 @@ function ActionCell({
             extraSmall={extraSmall}
             style={[styles.w100, shouldDisablePointerEvents && styles.pointerEventsNone]}
             isLoading={isLoading}
-            success
+            success={isSubmitAction ? isWaitingForSubmissionFromCurrentUser : true}
             isDisabled={isOffline || shouldDisablePointerEvents}
             shouldStayNormalOnDisable={shouldDisablePointerEvents}
             isNested
