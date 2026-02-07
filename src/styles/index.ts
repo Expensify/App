@@ -2135,7 +2135,6 @@ const staticStyles = (theme: ThemeColors) =>
                 ...(Platform.OS === 'android' && {
                     height: undefined,
                     lineHeight: undefined,
-                    alignSelf: 'stretch',
                     flexGrow: 1,
                     flexShrink: 1,
                 }),
@@ -2159,6 +2158,10 @@ const staticStyles = (theme: ThemeColors) =>
         textInputCollapseCompose: {
             maxHeight: '100%',
             flex: 4,
+        },
+
+        textInputComposeAfterClear: {
+            justifyContent: 'center',
         },
 
         // composer padding should not be modified unless thoroughly tested against the cases in this PR: #12669

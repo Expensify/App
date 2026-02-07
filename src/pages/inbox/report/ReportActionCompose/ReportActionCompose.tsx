@@ -311,7 +311,7 @@ function ReportActionCompose({
 
     const addAttachment = useCallback((file: FileObject | FileObject[]) => {
         attachmentFileRef.current = file;
-        const clear = composerRef.current?.clear;
+        const clear = composerRef.current?.clearWorklet;
         if (!clear) {
             throw new Error('The composerRef.clear function is not set yet. This should never happen, and indicates a developer error.');
         }
@@ -435,19 +435,18 @@ function ReportActionCompose({
 
     // Note: using JS refs is not well supported in reanimated, thus we need to store the function in a shared value
     // useSharedValue on web doesn't support functions, so we need to wrap it in an object.
-    const composerRefShared = useSharedValue<{
-        clear: (() => void) | undefined;
-    }>({clear: undefined});
+    const composerRefShared = useSharedValue<Partial<ComposerRef>>({});
 
     const handleSendMessage = useCallback(() => {
         if (isSendDisabled || !debouncedValidate.flush()) {
             return;
         }
 
-        scheduleOnUI(() => {
-            'worklet';
+        composerRef.current?.resetHeight();
+        setIsComposerFullSize(reportID, false);
 
-            const {clear: clearComposer} = composerRefShared.get();
+        scheduleOnUI(() => {
+            const {clearWorklet: clearComposer} = composerRefShared.get();
 
             if (!clearComposer) {
                 throw new Error('The composerRefShared.clear function is not set yet. This should never happen, and indicates a developer error.');
@@ -456,7 +455,7 @@ function ReportActionCompose({
             // This will cause onCleared to be triggered where we actually send the message
             clearComposer?.();
         });
-    }, [isSendDisabled, debouncedValidate, composerRefShared]);
+    }, [isSendDisabled, debouncedValidate, composerRefShared, reportID]);
 
     onSubmitAction = handleSendMessage;
 
@@ -569,7 +568,7 @@ function ReportActionCompose({
                             ref={(ref) => {
                                 composerRef.current = ref ?? undefined;
                                 composerRefShared.set({
-                                    clear: ref?.clear,
+                                    clearWorklet: ref?.clearWorklet,
                                 });
                             }}
                             suggestionsRef={suggestionsRef}
@@ -586,10 +585,10 @@ function ReportActionCompose({
                             isComposerFullSize={isComposerFullSize}
                             setIsFullComposerAvailable={setIsFullComposerAvailable}
                             onPasteFile={(files) => validateAttachments({files})}
-                            onCleared={submitForm}
+                            onClear={submitForm}
                             disabled={isBlockedFromConcierge || isEmojiPickerVisible()}
                             setIsCommentEmpty={setIsCommentEmpty}
-                            handleSendMessage={handleSendMessage}
+                            onEnterKeyPress={handleSendMessage}
                             shouldShowComposeInput={shouldShowComposeInput}
                             onFocus={onFocus}
                             onBlur={onBlur}
