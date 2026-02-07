@@ -14983,18 +14983,18 @@ describe('actions/IOU', () => {
 
             // Call should not throw when personalDetails is provided
             expect(() => {
-                convertBulkTrackedExpensesToIOU(
-                    [transactionID],
-                    targetReportID,
-                    false, // isASAPSubmitBetaEnabled
-                    currentUserAccountID,
-                    currentUserEmail,
-                    {}, // transactionViolations
-                    [], // policyRecentlyUsedCurrencies
-                    undefined, // quickAction
-                    testPersonalDetails,
-                    [CONST.BETAS.ALL],
-                );
+                convertBulkTrackedExpensesToIOU({
+                    transactionIDs: [transactionID],
+                    iouReport: targetReportID,
+                    chatReport: false,
+                    isASAPSubmitBetaEnabled: currentUserAccountID,
+                    currentUserAccountIDParam: currentUserEmail,
+                    currentUserEmailParam: {},
+                    transactionViolations: [],
+                    policyRecentlyUsedCurrencies: undefined,
+                    quickAction: testPersonalDetails,
+                    personalDetails: [CONST.BETAS.ALL],
+                });
             }).not.toThrow();
         });
 
@@ -15052,18 +15052,18 @@ describe('actions/IOU', () => {
             // The function should be able to look up payer email from personalDetails
             // Even if no transactions are provided, it should not throw
             expect(() => {
-                convertBulkTrackedExpensesToIOU(
-                    [], // empty transaction IDs
-                    targetReportID,
-                    false,
-                    currentUserAccountID,
-                    currentUserEmail,
-                    {},
-                    [],
-                    undefined,
-                    testPersonalDetails,
-                    [CONST.BETAS.ALL],
-                );
+                convertBulkTrackedExpensesToIOU({
+                    transactionIDs: [],
+                    iouReport: targetReportID,
+                    chatReport: false,
+                    isASAPSubmitBetaEnabled: currentUserAccountID,
+                    currentUserAccountIDParam: currentUserEmail,
+                    currentUserEmailParam: {},
+                    transactionViolations: [],
+                    policyRecentlyUsedCurrencies: undefined,
+                    quickAction: testPersonalDetails,
+                    personalDetails: [CONST.BETAS.ALL],
+                });
             }).not.toThrow();
         });
 
@@ -15091,18 +15091,18 @@ describe('actions/IOU', () => {
 
             // Should not throw even with empty personalDetails
             expect(() => {
-                convertBulkTrackedExpensesToIOU(
-                    [],
-                    targetReportID,
-                    false,
-                    currentUserAccountID,
-                    currentUserEmail,
-                    {},
-                    [],
-                    undefined,
-                    {}, // empty personalDetails
-                    [CONST.BETAS.ALL],
-                );
+                convertBulkTrackedExpensesToIOU({
+                    transactionIDs: [],
+                    iouReport: targetReportID,
+                    chatReport: false,
+                    isASAPSubmitBetaEnabled: currentUserAccountID,
+                    currentUserAccountIDParam: currentUserEmail,
+                    currentUserEmailParam: {},
+                    transactionViolations: [],
+                    policyRecentlyUsedCurrencies: undefined,
+                    quickAction: {},
+                    personalDetails: [CONST.BETAS.ALL],
+                });
             }).not.toThrow();
         });
 
@@ -15130,7 +15130,18 @@ describe('actions/IOU', () => {
 
             // Should not throw even with undefined personalDetails
             expect(() => {
-                convertBulkTrackedExpensesToIOU([], targetReportID, false, currentUserAccountID, currentUserEmail, {}, [], undefined, undefined, [CONST.BETAS.ALL]);
+                convertBulkTrackedExpensesToIOU({
+                    transactionIDs: [],
+                    iouReport: targetReportID,
+                    chatReport: false,
+                    isASAPSubmitBetaEnabled: currentUserAccountID,
+                    currentUserAccountIDParam: currentUserEmail,
+                    currentUserEmailParam: {},
+                    transactionViolations: [],
+                    policyRecentlyUsedCurrencies: undefined,
+                    quickAction: undefined,
+                    personalDetails: [CONST.BETAS.ALL],
+                });
             }).not.toThrow();
         });
     });

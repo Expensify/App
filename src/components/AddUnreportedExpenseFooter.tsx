@@ -47,6 +47,7 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`, {canBeMissing: true});
 
     const handleConfirm = () => {
         if (selectedIds.size === 0) {
@@ -57,18 +58,19 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             if (report && isIOUReport(report)) {
-                convertBulkTrackedExpensesToIOU(
-                    [...selectedIds],
-                    report.reportID,
+                convertBulkTrackedExpensesToIOU({
+                    transactionIDs: [...selectedIds],
+                    iouReport: report,
+                    chatReport,
                     isASAPSubmitBetaEnabled,
-                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    session?.email ?? '',
+                    currentUserAccountIDParam: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    currentUserEmailParam: session?.email ?? '',
                     transactionViolations,
-                    policyRecentlyUsedCurrencies ?? [],
+                    policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     quickAction,
                     personalDetails,
                     betas,
-                );
+                });
             } else {
                 changeTransactionsReport({
                     transactionIDs: [...selectedIds],
