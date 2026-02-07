@@ -1183,6 +1183,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitExpenseCannotBeEditedModalTitle: 'Ten wydatek nie może zostać edytowany',
         splitExpenseCannotBeEditedModalDescription: 'Zatwierdzonych ani opłaconych wydatków nie można edytować',
         splitExpenseDistanceErrorModalDescription: 'Napraw błąd stawki za dystans i spróbuj ponownie.',
+        splitExpensePerDiemRateErrorModalDescription: 'Napraw błąd stawki dziennej i spróbuj ponownie.',
         paySomeone: (name?: string) => `Zapłać ${name ?? 'ktoś'}`,
         expense: 'Wydatek',
         categorize: 'Skategoryzuj',

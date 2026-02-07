@@ -1180,6 +1180,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitExpenseCannotBeEditedModalDescription: '承認済みまたは支払済みの経費は編集できません',
         paySomeone: (name?: string) => `${name ?? '誰か'} を支払う`,
         splitExpenseDistanceErrorModalDescription: '距離レートのエラーを修正して、もう一度お試しください。',
+        splitExpensePerDiemRateErrorModalDescription: '日当レートのエラーを修正して、もう一度お試しください。',
         expense: '経費',
         categorize: 'カテゴリー分け',
         share: '共有',

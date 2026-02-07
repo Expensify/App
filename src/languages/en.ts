@@ -1200,6 +1200,7 @@ const translations = {
         splitExpenseCannotBeEditedModalDescription: 'Approved or paid expenses cannot be edited',
         paySomeone: (name?: string) => `Pay ${name ?? 'someone'}`,
         splitExpenseDistanceErrorModalDescription: 'Please fix the distance rate error and try again.',
+        splitExpensePerDiemRateErrorModalDescription: 'Please fix the per diem rate error and try again.',
         expense: 'Expense',
         categorize: 'Categorize',
         share: 'Share',

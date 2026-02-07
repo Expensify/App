@@ -1163,6 +1163,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitExpenseCannotBeEditedModalTitle: '此报销无法编辑',
         splitExpenseCannotBeEditedModalDescription: '已批准或已支付的报销无法编辑',
         splitExpenseDistanceErrorModalDescription: '请修复距离费率错误后重试。',
+        splitExpensePerDiemRateErrorModalDescription: '请修复每日津贴费率错误后重试。',
         paySomeone: (name?: string) => `支付 ${name ?? '某人'}`,
         expense: '报销',
         categorize: '分类',
