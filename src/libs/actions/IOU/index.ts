@@ -6117,7 +6117,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
  * Move multiple tracked expenses from self-DM to an IOU report
  */
 function convertBulkTrackedExpensesToIOU(
-    transactionIDs: string[],
+    transactions: OnyxTypes.Transaction[],
     targetReportID: string,
     isASAPSubmitBetaEnabled: boolean,
     currentUserAccountIDParam: number,
@@ -6165,8 +6165,8 @@ function convertBulkTrackedExpensesToIOU(
 
     const selfDMReportActions = getAllReportActions(selfDMReportID);
 
-    for (const transactionID of transactionIDs) {
-        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    for (const transaction of transactions) {
+        const transactionID = transaction.transactionID;
         if (!transaction) {
             Log.warn('[convertBulkTrackedExpensesToIOU] Transaction not found', {transactionID});
             continue;

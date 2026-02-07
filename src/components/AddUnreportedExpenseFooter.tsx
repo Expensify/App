@@ -53,12 +53,15 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
             setErrorMessage(translate('iou.selectUnreportedExpense'));
             return;
         }
+
         Navigation.dismissToSuperWideRHP();
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             if (report && isIOUReport(report)) {
                 convertBulkTrackedExpensesToIOU(
-                    [...selectedIds],
+                    [...selectedIds]
+                        .map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`])
+                        .filter((transaction): transaction is NonNullable<typeof transaction> => transaction !== undefined),
                     report.reportID,
                     isASAPSubmitBetaEnabled,
                     session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
