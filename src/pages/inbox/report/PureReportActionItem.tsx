@@ -59,6 +59,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {OnyxDataWithErrors} from '@libs/ErrorUtils';
 import {getLatestErrorMessageField, isReceiptError} from '@libs/ErrorUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
+import getPlatform from '@libs/getPlatform';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
@@ -2042,6 +2043,8 @@ function PureReportActionItem({
         );
     };
 
+    const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
+
     return (
         <View>
             {shouldShowCreatedAction && createdActionContent}
@@ -2063,7 +2066,7 @@ function PureReportActionItem({
                 preventDefaultContextMenu={draftMessage === undefined && !hasErrors}
                 withoutFocusOnSecondaryInteraction
                 accessibilityLabel={translate('accessibilityHints.chatMessage')}
-                accessible
+                accessible={!isIOSNative}
                 sentryLabel={CONST.SENTRY_LABEL.REPORT.PURE_REPORT_ACTION_ITEM}
             >
                 <Hoverable
