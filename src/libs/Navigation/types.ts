@@ -299,6 +299,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.NAME]: undefined;
     [SCREENS.WORKSPACE.DESCRIPTION]: undefined;
+    [SCREENS.WORKSPACE.CLIENT_ID]: undefined;
     [SCREENS.WORKSPACE.SHARE]: undefined;
     [SCREENS.WORKSPACE.INVITE]: {
         policyID: string;

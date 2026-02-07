@@ -149,6 +149,12 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         }
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_DESCRIPTION.getRoute(policyID));
     }, [policyID]);
+    const onPressClientID = useCallback(() => {
+        if (!policyID) {
+            return;
+        }
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CLIENT_ID.getRoute(policyID));
+    }, [policyID]);
     const onPressShare = useCallback(() => {
         if (!policyID) {
             return;
@@ -647,6 +653,27 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                     wrapperStyle={styles.sectionMenuItemTopDescription}
                                     onPress={onPressDescription}
                                     shouldRenderAsHTML
+                                />
+                            </OfflineWithFeedback>
+                        )}
+                        {!!account?.isApprovedAccountant && (
+                            <OfflineWithFeedback
+                                pendingAction={policy?.pendingFields?.clientID}
+                                errors={getLatestErrorField(policy ?? {}, 'clientID')}
+                                onClose={() => {
+                                    if (!policy?.id) {
+                                        return;
+                                    }
+                                    clearPolicyErrorField(policy.id, 'clientID');
+                                }}
+                            >
+                                <MenuItemWithTopDescription
+                                    title={policy?.clientID}
+                                    description={translate('workspace.common.clientID')}
+                                    shouldShowRightIcon={!readOnly}
+                                    interactive={!readOnly}
+                                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                                    onPress={onPressClientID}
                                 />
                             </OfflineWithFeedback>
                         )}

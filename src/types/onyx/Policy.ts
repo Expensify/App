@@ -1782,6 +1782,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The URL for the policy avatar */
         avatarURL?: string;
 
+        /** The client ID set by an Approved! Accountant for tracking purposes */
+        clientID?: string;
+
         /** Error objects keyed by field name containing errors keyed by microtime */
         errorFields?: OnyxCommon.ErrorFields;
 
