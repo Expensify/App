@@ -285,6 +285,7 @@ function CalendarPicker({
                                     onPress={handleOnPress}
                                     style={themeStyles.calendarDayRoot}
                                     accessibilityLabel={accessibilityDateLabel}
+                                    accessibilityHint=""
                                     accessibilityState={getAccessibilityState(isSelected)}
                                     aria-selected={isSelected}
                                     tabIndex={day ? 0 : -1}
