@@ -1666,6 +1666,7 @@ const translations = {
     },
     modal: {
         backdropLabel: 'Modal Backdrop',
+        dismissDialog: 'Dismiss dialog',
     },
     nextStep: {
         message: {
