@@ -2,7 +2,7 @@ import type {LinkAccount} from 'react-native-plaid-link-sdk';
 import type {PlaidAccount} from 'react-plaid-link';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type {CompanyCardFeed} from './CardFeeds';
+import type {CardFeedWithNumber} from './CardFeeds';
 import type PersonalDetails from './PersonalDetails';
 
 /** Assign card flow steps */
@@ -32,7 +32,7 @@ type AssignCardData = {
     encryptedCardNumber: string;
 
     /** The name of the feed */
-    bankName: CompanyCardFeed;
+    bankName: CardFeedWithNumber;
 
     /** The masked card number displayed to users (e.g., "XXXX1234" or "VISA - 1234"). This is the original card identifier and should not be edited. */
     cardName: string;
@@ -51,7 +51,7 @@ type AssignCardData = {
     dateOption: string;
 
     /** Bank ID for Plaid */
-    institutionId?: string;
+    institutionId?: CardFeedWithNumber;
 
     /** Access token for Plaid bank */
     plaidAccessToken?: string;

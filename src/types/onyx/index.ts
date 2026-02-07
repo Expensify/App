@@ -21,8 +21,10 @@ import type CardContinuousReconciliation from './CardContinuousReconciliation';
 import type CardFeeds from './CardFeeds';
 import type {
     AddNewCompanyCardFeed,
+    CardFeed,
     CardFeedsStatus,
     CardFeedsStatusByDomainID,
+    CardFeedWithDomainID,
     CombinedCardFeed,
     CombinedCardFeeds,
     CompanyCardFeed,
@@ -208,6 +210,8 @@ export type {
     CombinedCardFeeds,
     CardContinuousReconciliation,
     CompanyCardFeedWithDomainID,
+    CardFeed,
+    CardFeedWithDomainID,
     LastExportMethod,
     Locale,
     LockAccountDetails,

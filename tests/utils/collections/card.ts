@@ -3,11 +3,12 @@ import {format} from 'date-fns';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Card} from '@src/types/onyx';
+import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 
 export default function createRandomCard(
     index: number,
     options?: {
-        bank?: string;
+        bank?: CardFeedWithNumber;
         fundID?: string;
         state?: ValueOf<typeof CONST.EXPENSIFY_CARD.STATE>;
         fraud?: ValueOf<typeof CONST.EXPENSIFY_CARD.FRAUD_TYPES>;
@@ -16,7 +17,15 @@ export default function createRandomCard(
     },
 ): Card {
     const cardID = index > 0 ? index : randNumber();
-    const bank = options?.bank ?? rand([CONST.EXPENSIFY_CARD.BANK, 'vcf', 'stripe', 'oauth.chase.com', 'oauth.capitalone.com']);
+    const bank =
+        options?.bank ??
+        (rand([
+            CONST.EXPENSIFY_CARD.BANK,
+            CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+            CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE,
+            CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+            CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE,
+        ]) as CardFeedWithNumber);
     const state = options?.state ?? rand(Object.values(CONST.EXPENSIFY_CARD.STATE));
     const fraud = options?.fraud ?? rand(Object.values(CONST.EXPENSIFY_CARD.FRAUD_TYPES));
     const accountID = options?.accountID ?? randNumber();
@@ -81,12 +90,18 @@ function createRandomExpensifyCard(
 function createRandomCompanyCard(
     index: number,
     options?: {
-        bank?: string;
+        bank?: CardFeedWithNumber;
         accountID?: number;
         domainName?: string;
     },
 ): Card {
-    const banks = ['vcf', 'stripe', 'oauth.chase.com', 'oauth.capitalone.com', 'oauth.citibank.com'];
+    const banks = [
+        CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+        CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE,
+        CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+        CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE,
+        CONST.COMPANY_CARD.FEED_BANK_NAME.CITIBANK,
+    ];
     return createRandomCard(index, {
         ...options,
         bank: options?.bank ?? rand(banks),

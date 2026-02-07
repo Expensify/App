@@ -3525,6 +3525,7 @@ const CONST = {
             AMEX_FILE_DOWNLOAD: 'americanexpressfd.us',
             CSV: 'ccupload',
             MOCK_BANK: 'oauth.mockbank.com',
+            UPLOAD: 'upload',
         },
         FEED_KEY_SEPARATOR: '#',
         CARD_NUMBER_MASK_CHAR: 'X',
@@ -3643,6 +3644,8 @@ const CONST = {
             STRIPE: 'Stripe',
             WELLS_FARGO: 'Wells Fargo',
             MOCK_BANK: 'Mock Bank',
+            PEX: 'PEX',
+            EXPENSIFY: 'Expensify',
             OTHER: 'Other',
         },
         BANK_CONNECTIONS: {
@@ -3671,9 +3674,6 @@ const CONST = {
         },
         CARD_NAME: {
             CASH: '__CASH__',
-        },
-        BANK_NAME: {
-            UPLOAD: 'upload',
         },
         CARD_LIST_THRESHOLD: 8,
         DEFAULT_EXPORT_TYPE: 'default',
@@ -8125,6 +8125,7 @@ const CONST = {
             PURE_REPORT_ACTION_ITEM: 'Report-PureReportActionItem',
             MODERATION_BUTTON: 'Report-ModerationButton',
             MONEY_REQUEST_REPORT_ACTIONS_LIST_SELECT_ALL: 'MoneyRequestReportActionsList-SelectAll',
+            REPORT_ACTION_AVATAR: 'Report-ReportActionAvatar',
         },
         SIDEBAR: {
             SIGN_IN_BUTTON: 'Sidebar-SignInButton',
@@ -8274,42 +8275,44 @@ const CONST = {
         WORKSPACE: {
             TOGGLE_SETTINGS_ROW: 'Workspace-ToggleSettingsRow',
             WORKSPACE_MENU_ITEM: 'Workspace-WorkspaceMenuItem',
+            COMPANY_CARDS: {
+                TABLE_ITEM: 'Workspace-CompanyCards-TableItem',
+            },
         },
-    },
+        DOMAIN: {
+            /** Onyx prefix for domain admin account IDs */
+            EXPENSIFY_ADMIN_ACCESS_PREFIX: 'expensify_adminPermissions_',
+            /** Onyx prefix for domain security groups */
+            DOMAIN_SECURITY_GROUP_PREFIX: 'domain_securityGroup_',
+        },
 
-    DOMAIN: {
-        /** Onyx prefix for domain admin account IDs */
-        EXPENSIFY_ADMIN_ACCESS_PREFIX: 'expensify_adminPermissions_',
-        /** Onyx prefix for domain security groups */
-        DOMAIN_SECURITY_GROUP_PREFIX: 'domain_securityGroup_',
-    },
+        HOME: {
+            ANNOUNCEMENTS: [
+                {
+                    title: 'Start the year with smarter spending, admin controls, and more.',
+                    subtitle: 'Product update',
+                    url: 'https://use.expensify.com/blog/expensify-january-2026-product-update',
+                    publishedDate: '2026-01-28',
+                },
+                {
+                    title: 'Our favorite features + final upgrades of the year',
+                    subtitle: 'Product update',
+                    url: 'https://use.expensify.com/blog/expensify-2025-year-end-product-update',
+                    publishedDate: '2025-12-22',
+                },
+                {
+                    title: 'Uber for business + Expensify automates ride and meal receipts',
+                    subtitle: 'Product update',
+                    url: 'https://use.expensify.com/blog/uber-for-business-and-expensify-integration-update',
+                    publishedDate: '2025-12-01',
+                },
+            ],
+        },
 
-    HOME: {
-        ANNOUNCEMENTS: [
-            {
-                title: 'Start the year with smarter spending, admin controls, and more.',
-                subtitle: 'Product update',
-                url: 'https://use.expensify.com/blog/expensify-january-2026-product-update',
-                publishedDate: '2026-01-28',
-            },
-            {
-                title: 'Our favorite features + final upgrades of the year',
-                subtitle: 'Product update',
-                url: 'https://use.expensify.com/blog/expensify-2025-year-end-product-update',
-                publishedDate: '2025-12-22',
-            },
-            {
-                title: 'Uber for business + Expensify automates ride and meal receipts',
-                subtitle: 'Product update',
-                url: 'https://use.expensify.com/blog/uber-for-business-and-expensify-integration-update',
-                publishedDate: '2025-12-01',
-            },
-        ],
-    },
-
-    SECTION_LIST_ITEM_TYPE: {
-        HEADER: 'header',
-        ROW: 'row',
+        SECTION_LIST_ITEM_TYPE: {
+            HEADER: 'header',
+            ROW: 'row',
+        },
     },
 } as const;
 

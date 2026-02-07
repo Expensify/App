@@ -1,10 +1,9 @@
 import {getCombinedCardFeedsFromAllFeeds, getWorkspaceCardFeedsStatus} from '@libs/CardFeedUtils';
-import {filterInactiveCards, getCompanyCardFeedWithDomainID, isCardConnectionBroken} from '@libs/CardUtils';
+import {filterInactiveCards, getCardFeedWithDomainID, isCardConnectionBroken} from '@libs/CardUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card} from '@src/types/onyx';
-import type {CompanyCardFeed, CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type {CardErrors, CardFeedErrorsObject, CardFeedErrorState} from '@src/types/onyx/DerivedValues';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -45,7 +44,7 @@ export default createOnyxDerivedValueConfig({
         const cardsWithBrokenFeedConnection: Record<string, Card> = {};
 
         function addErrorsForCard(card: Card) {
-            const bankName = card.bank as CompanyCardFeedWithNumber | typeof CONST.EXPENSIFY_CARD.BANK;
+            const bankName = card.bank;
             const workspaceAccountID = Number(card.fundID);
 
             const isExpensifyCard = bankName === CONST.EXPENSIFY_CARD.BANK;
@@ -54,7 +53,7 @@ export default createOnyxDerivedValueConfig({
                 return;
             }
 
-            const feedNameWithDomainID = getCompanyCardFeedWithDomainID(bankName as CompanyCardFeed, workspaceAccountID);
+            const feedNameWithDomainID = getCardFeedWithDomainID(bankName, workspaceAccountID);
             const previousFeedErrors = cardFeedErrors[feedNameWithDomainID] ?? DEFAULT_CARD_FEED_ERROR_STATE;
 
             const feed = combinedCompanyCardFeeds?.[feedNameWithDomainID];
