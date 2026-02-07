@@ -1,6 +1,6 @@
 import {useCallback, useEffect} from 'react';
 import useDebouncedState from '@hooks/useDebouncedState';
-import useSidePanel from '@hooks/useSidePanel';
+import useSidePanelState from '@hooks/useSidePanelState';
 import {isChromeIOS} from '@libs/Browser';
 import CONST from '@src/CONST';
 
@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
  */
 export default function useTackInputFocus(enable = false): boolean {
     const [, isInputFocusDebounced, setIsInputFocus] = useDebouncedState(false);
-    const {shouldHideSidePanel} = useSidePanel();
+    const {shouldHideSidePanel} = useSidePanelState();
 
     const handleFocusIn = useCallback(
         (event: FocusEvent) => {
