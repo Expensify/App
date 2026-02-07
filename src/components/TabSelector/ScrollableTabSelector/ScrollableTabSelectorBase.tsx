@@ -1,84 +1,49 @@
-import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import useIsResizing from '@hooks/useIsResizing';
+import React, {useContext, useState} from 'react';
+import ScrollView from '@components/ScrollView';
+import getBackgroundColor from '@components/TabSelector/getBackground';
+import getOpacity from '@components/TabSelector/getOpacity';
+import type {TabSelectorBaseProps} from '@components/TabSelector/types';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
-import getBackgroundColor from './getBackground';
-import getOpacity from './getOpacity';
-import TabSelectorItem from './TabSelectorItem';
-import type {TabSelectorBaseProps} from './types';
+import {ScrollableTabSelectorContext} from './ScrollableTabSelectorContext';
+import ScrollableTabSelectorItem from './ScrollableTabSelectorItem';
+
+const MIN_SMOOTH_SCROLL_EVENT_THROTTLE = 16;
 
 /**
- * Navigation-agnostic tab selector UI that renders a row of TabSelectorItem components.
+ * Navigation-agnostic tab selector UI that renders a row of ScrollableTabSelectorItem components.
  *
  * This component owns the shared layout, width/position measurements, and animation helpers
  * (getOpacity / getBackgroundColor). It is reused by both navigation-based TabSelector and
  * inline tab selectors like SplitExpensePage.
  */
-function TabSelectorBase({
-    tabs,
-    activeTabKey,
-    onTabPress = () => {},
-    position,
-    shouldShowLabelWhenInactive = true,
-    equalWidth = false,
-    shouldShowProductTrainingTooltip = false,
-    renderProductTrainingTooltip,
-}: TabSelectorBaseProps) {
+function ScrollableTabSelectorBase({tabs, activeTabKey, onTabPress = () => {}, position, shouldShowLabelWhenInactive = true, equalWidth = false}: TabSelectorBaseProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const isResizing = useIsResizing();
 
     const routesLength = tabs.length;
 
     const defaultAffectedAnimatedTabs = Array.from({length: routesLength}, (_v, i) => i);
     const [affectedAnimatedTabs, setAffectedAnimatedTabs] = useState(defaultAffectedAnimatedTabs);
-    const viewRef = useRef<View>(null);
-    const [selectorWidth, setSelectorWidth] = useState(0);
-    const [selectorX, setSelectorX] = useState(0);
 
     const activeIndex = tabs.findIndex((tab) => tab.key === activeTabKey);
 
-    // After a tab change, reset affectedAnimatedTabs once the transition is done so
-    // tabs settle back into the default animated state.
-    useEffect(() => {
-        const timerID = setTimeout(() => {
-            setAffectedAnimatedTabs(defaultAffectedAnimatedTabs);
-        }, CONST.ANIMATED_TRANSITION);
-
-        return () => clearTimeout(timerID);
-    }, [defaultAffectedAnimatedTabs, activeIndex]);
-
-    const measure = () => {
-        viewRef.current?.measureInWindow((x, _y, width) => {
-            setSelectorX(x);
-            setSelectorWidth(width);
-        });
-    };
-
-    // Measure location/width after initial mount and when layout animations settle.
-    useLayoutEffect(() => {
-        const timerID = setTimeout(() => {
-            measure();
-        }, CONST.TOOLTIP_ANIMATION_DURATION);
-
-        return () => clearTimeout(timerID);
-    }, [measure]);
-
-    // Re-measure when resizing ends so tooltips and equal-width layouts stay aligned.
-    useEffect(() => {
-        if (isResizing) {
-            return;
-        }
-        measure();
-    }, [measure, isResizing]);
+    const {containerRef, onContainerLayout, onContainerScroll} = useContext(ScrollableTabSelectorContext);
 
     return (
-        <View
-            style={styles.tabSelector}
-            ref={viewRef}
+        <ScrollView
+            scrollEventThrottle={MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
+            onLayout={onContainerLayout}
+            onScroll={onContainerScroll}
+            ref={containerRef}
+            style={styles.scrollableTabSelector}
+            contentContainerStyle={{
+                flexGrow: 1,
+                paddingBottom: 12,
+                paddingHorizontal: 20,
+            }}
+            horizontal
+            showsHorizontalScrollIndicator={false}
         >
             {tabs.map((tab, index) => {
                 const isActive = index === activeIndex;
@@ -117,8 +82,9 @@ function TabSelectorBase({
                 };
 
                 return (
-                    <TabSelectorItem
+                    <ScrollableTabSelectorItem
                         key={tab.key}
+                        tabKey={tab.key}
                         icon={tab.icon}
                         title={tab.title}
                         onPress={handlePress}
@@ -128,18 +94,14 @@ function TabSelectorBase({
                         isActive={isActive}
                         testID={tab.testID}
                         shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
-                        shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
-                        renderProductTrainingTooltip={renderProductTrainingTooltip}
-                        parentWidth={selectorWidth}
-                        parentX={selectorX}
                         equalWidth={equalWidth}
                     />
                 );
             })}
-        </View>
+        </ScrollView>
     );
 }
 
-TabSelectorBase.displayName = 'TabSelectorBase';
+ScrollableTabSelectorBase.displayName = 'ScrollableTabSelectorBase';
 
-export default TabSelectorBase;
+export default ScrollableTabSelectorBase;
