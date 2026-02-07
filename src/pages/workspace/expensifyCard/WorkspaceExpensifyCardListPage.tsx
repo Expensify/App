@@ -177,6 +177,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                             currency={settlementCurrency}
                             isVirtual={!!item.nameValuePairs?.isVirtual}
                             isHovered={hovered}
+                            limitType={item.nameValuePairs?.limitType}
                         />
                     )}
                 </PressableWithFeedback>
