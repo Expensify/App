@@ -56,6 +56,7 @@ import {
     hasMissingSmartscanFields,
     hasRoute as hasRouteUtil,
     isMerchantMissing,
+    isScanning,
     isScanRequest as isScanRequestUtil,
 } from '@libs/TransactionUtils';
 import {getIsViolationFixed} from '@libs/Violations/ViolationsUtils';
@@ -402,7 +403,12 @@ function MoneyRequestConfirmationList({
         amountToBeUsed = perDiemRequestAmount;
     }
 
-    const formattedAmount = isDistanceRequestWithPendingRoute ? '' : convertToDisplayString(amountToBeUsed, isDistanceRequest ? currency : iouCurrencyCode);
+    let formattedAmount = convertToDisplayString(amountToBeUsed, isDistanceRequest ? currency : iouCurrencyCode);
+    if (isDistanceRequestWithPendingRoute) {
+        formattedAmount = '';
+    } else if (isScanning(transaction)) {
+        formattedAmount = translate('iou.receiptStatusTitle');
+    }
     const formattedAmountPerAttendee =
         isDistanceRequestWithPendingRoute || isScanRequest
             ? ''
