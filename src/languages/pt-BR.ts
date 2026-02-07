@@ -5162,9 +5162,15 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                     ctaText: 'Solicitação enviada',
                 },
                 bookOrManageYourTrip: {
-                    title: 'Reserve ou gerencie sua viagem',
-                    subtitle: 'Use o Expensify Travel para obter as melhores ofertas de viagem e gerenciar todas as suas despesas de negócios em um só lugar.',
-                    ctaText: 'Reservar ou gerenciar',
+                    title: 'Reserva de viagem',
+                    subtitle: 'Parabéns! Você já está pronto para reservar e gerenciar viagens neste workspace.',
+                    ctaText: 'Gerenciar viagens',
+                },
+                settings: {
+                    autoAddTripName: {
+                        title: 'Adicionar nomes de viagem às despesas',
+                        subtitle: 'Adicione automaticamente os nomes das viagens às descrições das despesas para viagens reservadas no Expensify.',
+                    },
                 },
                 travelInvoicing: {
                     travelBookingSection: {

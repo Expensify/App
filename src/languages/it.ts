@@ -5177,9 +5177,15 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     ctaText: 'Richiesta inviata',
                 },
                 bookOrManageYourTrip: {
-                    title: 'Prenota o gestisci il tuo viaggio',
-                    subtitle: 'Usa Expensify Travel per ottenere le migliori offerte di viaggio e gestire tutte le spese di lavoro in un unico posto.',
-                    ctaText: 'Prenota o gestisci',
+                    title: 'Prenotazione di viaggio',
+                    subtitle: 'Complimenti! Ora sei pronto per prenotare e gestire i viaggi in questo spazio di lavoro.',
+                    ctaText: 'Gestisci viaggi',
+                },
+                settings: {
+                    autoAddTripName: {
+                        title: 'Aggiungi nomi di viaggi alle spese',
+                        subtitle: 'Aggiungi automaticamente i nomi dei viaggi alle descrizioni delle spese per i viaggi prenotati in Expensify.',
+                    },
                 },
                 travelInvoicing: {
                     travelBookingSection: {

@@ -1,52 +1,61 @@
 import React from 'react';
-import BookTravelButton from '@components/BookTravelButton';
-import type {FeatureListItem} from '@components/FeatureList';
-import FeatureList from '@components/FeatureList';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import MenuItem from '@components/MenuItem';
+import Section from '@components/Section';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import colors from '@styles/theme/colors';
+import {setPolicyTravelSettings} from '@libs/actions/Policy/Travel';
+import {openTravelDotLink} from '@libs/openTravelDotLink';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 type GetStartedTravelProps = {
     policyID: string;
 };
 
 function GetStartedTravel({policyID}: GetStartedTravelProps) {
-    const handleCtaPress = () => {};
-
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const policy = usePolicy(policyID);
+    const icons = useMemoizedLazyExpensifyIcons(['LuggageWithLines', 'NewWindow'] as const);
 
-    const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'TravelAlerts', 'EmptyStateTravel'] as const);
+    const autoAddTripName = policy?.travelSettings?.autoAddTripName !== false;
 
-    const tripsFeatures: FeatureListItem[] = [
-        {
-            icon: illustrations.PiggyBank,
-            translationKey: 'travel.features.saveMoney',
-        },
-        {
-            icon: illustrations.TravelAlerts,
-            translationKey: 'travel.features.alerts',
-        },
-    ];
+    const toggleAutoAddTripName = (enabled: boolean) => {
+        setPolicyTravelSettings(policyID, {autoAddTripName: enabled});
+    };
+
+    const handleManageTravel = () => {
+        openTravelDotLink(policyID);
+    };
+
     return (
-        <FeatureList
-            menuItems={tripsFeatures}
+        <Section
             title={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.title')}
             subtitle={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.subtitle')}
-            onCtaPress={handleCtaPress}
-            illustrationBackgroundColor={colors.blue600}
-            illustration={illustrations.EmptyStateTravel}
-            illustrationStyle={styles.travelCardIllustration}
-            illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter]}
-            titleStyles={styles.textHeadlineH1}
-            footer={
-                <BookTravelButton
-                    text={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.ctaText')}
-                    activePolicyID={policyID}
-                />
-            }
-        />
+            titleStyles={[styles.accountSettingsSectionTitle]}
+            subtitleMuted
+            isCentralPane
+        >
+            <MenuItem
+                title={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.ctaText')}
+                icon={icons.LuggageWithLines}
+                onPress={handleManageTravel}
+                shouldShowRightIcon
+                iconRight={icons.NewWindow}
+                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3]}
+            />
+            <ToggleSettingOptionRow
+                title={translate('workspace.moreFeatures.travel.settings.autoAddTripName.title')}
+                subtitle={translate('workspace.moreFeatures.travel.settings.autoAddTripName.subtitle')}
+                shouldPlaceSubtitleBelowSwitch
+                switchAccessibilityLabel={translate('workspace.moreFeatures.travel.settings.autoAddTripName.title')}
+                isActive={autoAddTripName}
+                onToggle={toggleAutoAddTripName}
+                pendingAction={policy?.pendingFields?.travelSettings}
+                wrapperStyle={styles.mt3}
+            />
+        </Section>
     );
 }
 

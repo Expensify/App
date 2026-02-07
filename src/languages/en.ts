@@ -5149,9 +5149,15 @@ const translations = {
                     ctaText: 'Request sent',
                 },
                 bookOrManageYourTrip: {
-                    title: 'Book or manage your trip',
-                    subtitle: 'Use Expensify Travel to get the best travel offers and manage all your business expenses in a single place.',
-                    ctaText: 'Book or manage',
+                    title: 'Travel booking',
+                    subtitle: "Congrats! You're all set to book and manage travel on this workspace.",
+                    ctaText: 'Manage travel',
+                },
+                settings: {
+                    autoAddTripName: {
+                        title: 'Add trip names to expenses',
+                        subtitle: 'Automatically add trip names to expense descriptions for travel booked in Expensify.',
+                    },
                 },
                 travelInvoicing: {
                     travelBookingSection: {

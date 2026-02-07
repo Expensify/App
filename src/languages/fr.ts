@@ -5204,9 +5204,15 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     ctaText: 'Demande envoyée',
                 },
                 bookOrManageYourTrip: {
-                    title: 'Réserver ou gérer votre voyage',
-                    subtitle: 'Utilisez Expensify Travel pour obtenir les meilleures offres de voyage et gérer toutes vos dépenses professionnelles en un seul endroit.',
-                    ctaText: 'Réserver ou gérer',
+                    title: 'Réservation de voyage',
+                    subtitle: 'Félicitations ! Vous êtes prêt à réserver et gérer des voyages dans cet espace de travail.',
+                    ctaText: 'Gérer les déplacements',
+                },
+                settings: {
+                    autoAddTripName: {
+                        title: 'Ajouter des noms de voyage aux dépenses',
+                        subtitle: 'Ajouter automatiquement les noms de voyage aux descriptions des dépenses pour les voyages réservés dans Expensify.',
+                    },
                 },
                 travelInvoicing: {
                     travelBookingSection: {

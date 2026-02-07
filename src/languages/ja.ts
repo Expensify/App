@@ -5139,11 +5139,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     subtitle: '現在、Expensify Travel の有効化リクエストを確認中です。準備が整い次第、お知らせしますのでご安心ください。',
                     ctaText: 'リクエストを送信しました',
                 },
-                bookOrManageYourTrip: {
-                    title: '出張を予約または管理',
-                    subtitle: 'Expensify Travel を使って、最高の旅行プランを入手し、すべてのビジネス経費を一括管理しましょう。',
-                    ctaText: '予約または管理',
-                },
+                bookOrManageYourTrip: {title: '出張予約', subtitle: 'おめでとうございます！このワークスペースで旅行の予約と管理を行う準備が整いました。', ctaText: '出張を管理'},
+                settings: {autoAddTripName: {title: '経費に出張名を追加', subtitle: 'Expensifyで予約した出張について、経費の説明に出張名を自動的に追加します。'}},
                 travelInvoicing: {
                     travelBookingSection: {
                         title: '出張予約',
