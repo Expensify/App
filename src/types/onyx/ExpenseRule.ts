@@ -1,3 +1,5 @@
+import type * as OnyxCommon from './OnyxCommon';
+
 /** Model of tax rate on a personal rule */
 type PersonalRuleTaxRate = {
     /** The tax ID */
@@ -50,6 +52,12 @@ type ExpenseRule = {
 
     /** The tax rate set by the rule */
     tax?: Record<string, PersonalRuleTaxRate>;
+
+    /** The pending action for offline support */
+    pendingAction?: OnyxCommon.PendingAction;
+
+    /** Error messages for the rule */
+    errors?: OnyxCommon.Errors;
 };
 
 export type {PersonalRuleTaxRate, PolicyRuleTaxRate};

@@ -1,5 +1,5 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {getOwnedPaidPolicies, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getOwnedPaidPolicies, isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import type {Policy, PolicyReportField} from '@src/types/onyx';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
@@ -68,6 +68,23 @@ const policyTimeTrackingSelector = (policy: OnyxEntry<Policy>) =>
         units: policy.units,
     };
 
+const hasMultipleOutputCurrenciesSelector = (policies: OnyxCollection<Policy>) => {
+    const currencies = new Set<string>();
+
+    for (const policy of Object.values(policies ?? {})) {
+        if (!policy || !isPaidGroupPolicy(policy)) {
+            continue;
+        }
+
+        currencies.add(policy.outputCurrency);
+        if (currencies.size > 1) {
+            return true;
+        }
+    }
+
+    return false;
+};
+
 export {
     activePolicySelector,
     createPoliciesSelector,
@@ -76,4 +93,5 @@ export {
     activeAdminPoliciesSelector,
     createPoliciesForDomainCardsSelector,
     policyTimeTrackingSelector,
+    hasMultipleOutputCurrenciesSelector,
 };
