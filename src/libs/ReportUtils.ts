@@ -4781,10 +4781,7 @@ function canEditFieldOfMoneyRequest(
         return false;
     }
 
-    if (
-        (fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT || fieldToEdit === CONST.EDIT_REQUEST_FIELD.CURRENCY || fieldToEdit === CONST.EDIT_REQUEST_FIELD.DATE) &&
-        isCardTransactionTransactionUtils(transaction)
-    ) {
+    if ((fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT || fieldToEdit === CONST.EDIT_REQUEST_FIELD.CURRENCY) && isCardTransactionTransactionUtils(transaction)) {
         return false;
     }
 
