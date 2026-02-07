@@ -5,14 +5,11 @@ import type {OnyxCollection} from 'react-native-onyx';
 import WidgetContainer from '@components/WidgetContainer';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasSynchronizationErrorMessage, isConnectionInProgress} from '@libs/actions/connections';
-import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName, PolicyConnectionName} from '@src/types/onyx/Policy';
@@ -43,9 +40,7 @@ type BrokenCompanyCardConnection = {
 
 function TimeSensitiveSection() {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Stopwatch']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {login} = useCurrentUserPersonalDetails();
 
@@ -124,14 +119,7 @@ function TimeSensitiveSection() {
     // 5. Expensify card shipping
     // 6. Expensify card activation
     return (
-        <WidgetContainer
-            icon={icons.Stopwatch}
-            iconWidth={variables.iconSizeNormal}
-            iconHeight={variables.iconSizeNormal}
-            iconFill={theme.danger}
-            title={translate('homePage.timeSensitiveSection.title')}
-            titleColor={theme.danger}
-        >
+        <WidgetContainer title={translate('homePage.timeSensitiveSection.title')}>
             <View style={styles.getForYouSectionContainerStyle(shouldUseNarrowLayout)}>
                 {/* Priority 2: Broken company card connections */}
                 {brokenCompanyCardConnections.map((connection) => {
