@@ -111,7 +111,7 @@ function ConfirmContent({
     confirmText = '',
     cancelText = '',
     prompt = '',
-    success = true,
+    success = false,
     danger = false,
     shouldDisableConfirmButtonWhenOffline = false,
     shouldShowCancelButton = false,
@@ -163,6 +163,7 @@ function ConfirmContent({
                                 onPress={onCancel}
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('common.close')}
+                                sentryLabel={CONST.SENTRY_LABEL.CONFIRM_CONTENT.CLOSE_BUTTON}
                             >
                                 <Icon
                                     fill={theme.icon}

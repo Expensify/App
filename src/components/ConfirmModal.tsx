@@ -121,7 +121,7 @@ function ConfirmModal({
     confirmText = '',
     cancelText = '',
     prompt = '',
-    success = true,
+    success = false,
     danger = false,
     onCancel = () => {},
     onBackdropPress,
