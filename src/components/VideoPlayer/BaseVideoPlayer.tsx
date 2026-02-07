@@ -4,7 +4,7 @@ import {useVideoPlayer, VideoView} from 'expo-video';
 import debounce from 'lodash/debounce';
 import type {RefObject} from 'react';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import type {GestureResponderEvent} from 'react-native';
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
@@ -29,6 +29,29 @@ import useHandleNativeVideoControls from './useHandleNativeVideoControls';
 import * as VideoUtils from './utils';
 import VideoErrorIndicator from './VideoErrorIndicator';
 import VideoPlayerControls from './VideoPlayerControls';
+
+type DeviceAwarePressableWrapperProps = {
+    canUseTouchScreen: boolean;
+    children: React.ReactNode;
+    style?: StyleProp<ViewStyle>;
+};
+
+function DeviceAwarePressableWrapper({canUseTouchScreen, children, style}: DeviceAwarePressableWrapperProps) {
+    // Don't render PressableWithoutFeedback on non-touchable devices to prevent unexpected pointer event capture.
+    // This issue is left out on touchable devices since finger touch works fine.
+    // See: https://github.com/Expensify/App/issues/51246
+    return canUseTouchScreen ? (
+        <PressableWithoutFeedback
+            accessible={false}
+            style={style}
+            sentryLabel={CONST.SENTRY_LABEL.VIDEO_PLAYER.WRAPPER}
+        >
+            {children}
+        </PressableWithoutFeedback>
+    ) : (
+        <View style={style}>{children}</View>
+    );
+}
 
 function BaseVideoPlayer({
     url,
@@ -440,10 +463,10 @@ function BaseVideoPlayer({
 
     return (
         <>
-            {/* We need to wrap the video component in a component that will catch unhandled pointer events. Otherwise, these
-            events will bubble up the tree, and it will cause unexpected press behavior. */}
-            <PressableWithoutFeedback
-                accessible={false}
+            {/* We need to wrap the video component in a component that will catch unhandled pointer events on touch devices.
+            Otherwise, these events will bubble up the tree, and it will cause unexpected press behavior. */}
+            <DeviceAwarePressableWrapper
+                canUseTouchScreen={canUseTouchScreen}
                 style={[styles.cursorDefault, style]}
             >
                 <Hoverable shouldFreezeCapture={isPopoverVisible}>
@@ -557,7 +580,7 @@ function BaseVideoPlayer({
                         </View>
                     )}
                 </Hoverable>
-            </PressableWithoutFeedback>
+            </DeviceAwarePressableWrapper>
             <VideoPopoverMenu
                 isPopoverVisible={isPopoverVisible}
                 hidePopover={() => setIsPopoverVisible(false)}
