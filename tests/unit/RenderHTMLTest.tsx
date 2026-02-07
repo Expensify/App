@@ -1,12 +1,12 @@
 import {render} from '@testing-library/react-native';
 import React from 'react';
-import {unstable_TextAncestorContext as TextAncestorContext} from 'react-native';
-import {View} from 'react-native';
+import {unstable_TextAncestorContext as TextAncestorContext, View} from 'react-native';
 import RenderHTML from '@components/RenderHTML';
 
 jest.mock('@hooks/useWindowDimensions', () => () => ({windowWidth: 400}));
 jest.mock('react-native-render-html', () => {
-    const {View: MockView} = require('react-native') as typeof import('react-native');
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
+    const {View: MockView} = require('react-native');
     return {
         RenderHTMLConfigProvider: ({children}: {children: React.ReactNode}) => children,
         RenderHTMLSource: () => <MockView />,
