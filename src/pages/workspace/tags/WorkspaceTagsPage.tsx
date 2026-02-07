@@ -687,13 +687,14 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         shouldShow={!hasDependentTags && !hasIndependentTags}
                     />
                 ) : (
-                    <Text style={[styles.textNormal, styles.colorMuted]}>
-                        {!hasDependentTags && !hasIndependentTags && !!policyTagLists.at(0)?.name ? (
-                            <EmployeesSeeTagsAsText customTagName={policyTagLists.at(0)?.name ?? ''} />
-                        ) : (
-                            translate('workspace.tags.subtitle')
-                        )}
-
+                    <>
+                        <Text style={[styles.textNormal, styles.colorMuted]}>
+                            {!hasDependentTags && !hasIndependentTags && !!policyTagLists.at(0)?.name ? (
+                                <EmployeesSeeTagsAsText customTagName={policyTagLists.at(0)?.name ?? ''} />
+                            ) : (
+                                translate('workspace.tags.subtitle')
+                            )}
+                        </Text>
                         {hasDependentTags && (
                             <View style={[styles.renderHTML]}>
                                 <RenderHTML
@@ -706,7 +707,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                 />
                             </View>
                         )}
-                    </Text>
+                    </>
                 )}
             </View>
             {tagList.length > CONST.SEARCH_ITEM_LIMIT && (
