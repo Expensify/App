@@ -32,7 +32,7 @@ function AddDelegatePage() {
             {} as Record<string, boolean>,
         ) ?? {};
 
-    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized, toggleSelection} = useSearchSelector({
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized, toggleSelection, onListEndReached} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
         includeUserToInvite: true,
@@ -114,6 +114,7 @@ function AddDelegatePage() {
                         isLoadingNewOptions={!!isSearchingForReports}
                         disableMaintainingScrollPosition
                         shouldShowTextInput
+                        onEndReached={onListEndReached}
                     />
                 </View>
             </DelegateNoAccessWrapper>
