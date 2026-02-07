@@ -131,6 +131,9 @@ function Checkbox({
             style={[StyleUtils.getCheckboxPressableStyle(containerBorderRadius + 2), style]} // to align outline on focus, border-radius of pressable should be 2px more than Checkbox
             onKeyDown={handleSpaceOrEnterKey}
             role={CONST.ROLE.CHECKBOX}
+            accessibilityState={{
+                checked: isIndeterminate ? 'mixed' : isChecked,
+            }}
             /*  true  → checked
                 false → unchecked
                 mixed → indeterminate  */
