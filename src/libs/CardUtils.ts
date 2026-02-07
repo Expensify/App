@@ -23,7 +23,17 @@ import type {
     WorkspaceCardsList,
 } from '@src/types/onyx';
 import type {UnassignedCard} from '@src/types/onyx/Card';
-import type {CardFeed, CardFeedData, CardFeedWithDomainID, CardFeedWithNumber, CompanyCardFeedWithDomainID, CompanyCardFeedWithNumber, CompanyFeeds} from '@src/types/onyx/CardFeeds';
+import type {
+    BankName,
+    CardFeed,
+    CardFeedData,
+    CardFeedWithDomainID,
+    CardFeedWithNumber,
+    CardType,
+    CompanyCardFeedWithDomainID,
+    CompanyCardFeedWithNumber,
+    CompanyFeeds,
+} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {filterObject} from './ObjectUtils';
@@ -278,6 +288,19 @@ function getMCardNumberString(cardNumber: string): string {
     return cardNumber.replaceAll(/\s/g, '');
 }
 
+/**
+ * Returns the default Expensify Card limit type based on policy approval workflow.
+ * When approvals are configured (not optional), defaults to SMART; otherwise MONTHLY.
+ */
+function getDefaultExpensifyCardLimitType(policy?: OnyxEntry<Policy>): ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES> {
+    let approvalMode = policy?.approvalMode ?? CONST.POLICY.APPROVAL_MODE.ADVANCED;
+    if (policy?.type === CONST.POLICY.TYPE.PERSONAL) {
+        approvalMode = CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    }
+    const areApprovalsConfigured = approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    return areApprovalsConfigured ? CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART : CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY;
+}
+
 function getTranslationKeyForLimitType(limitType: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES> | undefined): TranslationPaths | '' {
     switch (limitType) {
         case CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART:
@@ -286,6 +309,8 @@ function getTranslationKeyForLimitType(limitType: ValueOf<typeof CONST.EXPENSIFY
             return 'workspace.card.issueNewCard.fixedAmount';
         case CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY:
             return 'workspace.card.issueNewCard.monthly';
+        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.SINGLE_USE:
+            return 'workspace.card.issueNewCard.singleUse';
         default:
             return '';
     }
@@ -368,6 +393,7 @@ function getCardFeedIcon(cardFeed: CardFeedWithNumber | CardFeedWithDomainID | u
         [CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE]: companyCardIllustrations.StripeCompanyCardDetailLarge,
         [CONST.COMPANY_CARD.FEED_BANK_NAME.CSV]: illustrations.GenericCSVCompanyCardLarge,
         [CONST.COMPANY_CARD.FEED_BANK_NAME.PEX]: illustrations.GenericCompanyCardLarge,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.MOCK_BANK]: illustrations.GenericCompanyCardLarge,
         [CONST.EXPENSIFY_CARD.BANK]: Illustrations.ExpensifyCardImage,
     };
 
@@ -441,23 +467,24 @@ function getCompanyFeeds(cardFeeds: OnyxEntry<CombinedCardFeeds>, shouldFilterOu
 
 function getBankName(feedType: CardFeedWithNumber | CardFeedWithDomainID): string {
     const feedNamesMapping = {
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: 'Visa',
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: 'Mastercard',
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX]: 'American Express',
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE]: 'Stripe',
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT]: 'American Express',
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.BANK_OF_AMERICA]: 'Bank of America',
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE]: 'Capital One',
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE]: 'Chase',
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.CITIBANK]: 'Citibank',
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.WELLS_FARGO]: 'Wells Fargo',
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.BREX]: 'Brex',
         [CONST.COMPANY_CARD.FEED_BANK_NAME.CSV]: CONST.COMPANY_CARDS.CARD_TYPE.CSV,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_1205]: 'American Express',
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_FILE_DOWNLOAD]: 'American Express',
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.PEX]: 'PEX',
-        [CONST.EXPENSIFY_CARD.BANK]: 'Expensify',
-    } satisfies Partial<Record<CardFeed, string>>;
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: CONST.COMPANY_CARDS.CARD_TYPE.VISA,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: CONST.COMPANY_CARDS.CARD_TYPE.MASTERCARD,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX]: CONST.COMPANY_CARDS.BANKS.AMEX,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE]: CONST.COMPANY_CARDS.BANKS.STRIPE,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT]: CONST.COMPANY_CARDS.BANKS.AMEX,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.BANK_OF_AMERICA]: CONST.COMPANY_CARDS.BANKS.BANK_OF_AMERICA,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE]: CONST.COMPANY_CARDS.BANKS.CAPITAL_ONE,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE]: CONST.COMPANY_CARDS.BANKS.CHASE,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.CITIBANK]: CONST.COMPANY_CARDS.BANKS.CITI_BANK,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.WELLS_FARGO]: CONST.COMPANY_CARDS.BANKS.WELLS_FARGO,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.BREX]: CONST.COMPANY_CARDS.BANKS.BREX,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_1205]: CONST.COMPANY_CARDS.BANKS.AMEX,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_FILE_DOWNLOAD]: CONST.COMPANY_CARDS.BANKS.AMEX,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.PEX]: CONST.COMPANY_CARDS.BANKS.PEX,
+        [CONST.EXPENSIFY_CARD.BANK]: CONST.COMPANY_CARDS.BANKS.AMEX,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.MOCK_BANK]: CONST.COMPANY_CARDS.BANKS.MOCK_BANK,
+    } satisfies Partial<Record<CardFeed, BankName | CardType>>;
 
     // In existing OldDot setups other variations of feeds could exist, ex: vcf2, vcf3, oauth.americanexpressfdx.com 2003
     const feedKey = (Object.keys(feedNamesMapping) as Array<keyof typeof feedNamesMapping>).find((feed) => feedType?.startsWith(feed));
@@ -483,6 +510,9 @@ const getBankCardDetailsImage = (bank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>
         [CONST.COMPANY_CARDS.BANKS.WELLS_FARGO]: companyCardIllustrations.WellsFargoCompanyCardDetail,
         [CONST.COMPANY_CARDS.BANKS.BREX]: companyCardIllustrations.BrexCompanyCardDetail,
         [CONST.COMPANY_CARDS.BANKS.STRIPE]: companyCardIllustrations.StripeCompanyCardDetail,
+        [CONST.COMPANY_CARDS.BANKS.MOCK_BANK]: illustrations.GenericCompanyCard,
+        [CONST.COMPANY_CARDS.BANKS.PEX]: illustrations.GenericCompanyCard,
+        [CONST.COMPANY_CARDS.BANKS.EXPENSIFY]: Illustrations.ExpensifyCardImage,
         [CONST.COMPANY_CARDS.BANKS.OTHER]: illustrations.GenericCompanyCard,
     };
     return iconMap[bank];
@@ -660,7 +690,7 @@ function splitCardFeedWithDomainID(feedName: CardFeedWithNumber | CardFeedWithDo
         return;
     }
 
-    return {feedName: feedNamePart as CardFeedWithNumber, domainID};
+    return {feedName: feedNamePart as CompanyCardFeedWithNumber, domainID};
 }
 
 function isSelectedFeedExpired(cardFeed: CombinedCardFeed | undefined): boolean {
@@ -1039,6 +1069,7 @@ function hasDisplayableAssignedCards(cardList: CardList | undefined): boolean {
 
 export {
     getAssignedCardSortKey,
+    getDefaultExpensifyCardLimitType,
     isExpensifyCard,
     getDomainCards,
     formatCardExpiration,

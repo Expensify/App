@@ -751,6 +751,8 @@ const CONST = {
         UBER_FOR_BUSINESS: 'uberForBusiness',
         NEW_DOT_DEW: 'newDotDEW',
         GPS_MILEAGE: 'gpsMileage',
+        NEW_DOT_HOME: 'newDotHome',
+        SINGLE_USE_AND_EXPIRE_BY_CARDS: 'singleUseAndExpireByCards',
         PERSONAL_CARD_IMPORT: 'personalCardImport',
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
     },
@@ -3522,6 +3524,7 @@ const CONST = {
             AMEX_DIRECT: 'oauth.americanexpressfdx.com',
             AMEX_FILE_DOWNLOAD: 'americanexpressfd.us',
             CSV: 'ccupload',
+            MOCK_BANK: 'oauth.mockbank.com',
             UPLOAD: 'upload',
         },
         FEED_KEY_SEPARATOR: '#',
@@ -3570,18 +3573,21 @@ const CONST = {
             SMART: 'smart',
             MONTHLY: 'monthly',
             FIXED: 'fixed',
+            SINGLE_USE: 'singleUse',
         },
         LIMIT_VALUE: 21474836,
         STEP_NAMES: ['1', '2', '3', '4', '5'],
         ASSIGNEE_EXCLUDED_STEP_NAMES: ['1', '2', '3', '4'],
+        SINGLE_USE_DISABLED_STEP_NAMES: ['1', '2', '3', '4'],
+        SINGLE_USE_AND_ASSIGNEE_EXCLUDED_STEP_NAMES: ['1', '2', '3'],
         STEP: {
             ASSIGNEE: 'Assignee',
             CARD_TYPE: 'CardType',
             LIMIT_TYPE: 'LimitType',
-            LIMIT: 'Limit',
             CARD_NAME: 'CardName',
             CONFIRMATION: 'Confirmation',
             INVITE_NEW_MEMBER: 'InviteNewMember',
+            EXPIRY_OPTIONS: 'ExpiryOptions',
         },
         CARD_TYPE: {
             PHYSICAL: 'physical',
@@ -3637,6 +3643,9 @@ const CONST = {
             CITI_BANK: 'Citibank',
             STRIPE: 'Stripe',
             WELLS_FARGO: 'Wells Fargo',
+            MOCK_BANK: 'Mock Bank',
+            PEX: 'PEX',
+            EXPENSIFY: 'Expensify',
             OTHER: 'Other',
         },
         BANK_CONNECTIONS: {
@@ -3647,6 +3656,7 @@ const CONST = {
             CAPITAL_ONE: 'capitalone',
             CITI_BANK: 'citibank',
             AMEX: 'americanexpressfdx',
+            MOCK_BANK: 'mockbank',
         },
         AMEX_CUSTOM_FEED: {
             CORPORATE: 'American Express Corporate Cards',
@@ -5565,10 +5575,6 @@ const CONST = {
         DISABLED: 'DISABLED',
         DISABLE: 'DISABLE',
     },
-    MULTIFACTOR_AUTHENTICATION_OUTCOME_TYPE: {
-        SUCCESS: 'success',
-        FAILURE: 'failure',
-    },
     MERGE_ACCOUNT_RESULTS: {
         SUCCESS: 'success',
         ERR_2FA: 'err_2fa',
@@ -7468,7 +7474,14 @@ const CONST = {
         CASH_BACK: 'earnedCashback',
     },
 
-    EXCLUDE_FROM_LAST_VISITED_PATH: [SCREENS.NOT_FOUND, SCREENS.SAML_SIGN_IN, SCREENS.VALIDATE_LOGIN, SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT, SCREENS.MONEY_REQUEST.STEP_SCAN] as string[],
+    EXCLUDE_FROM_LAST_VISITED_PATH: [
+        SCREENS.NOT_FOUND,
+        SCREENS.SAML_SIGN_IN,
+        SCREENS.VALIDATE_LOGIN,
+        SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT,
+        SCREENS.MONEY_REQUEST.STEP_SCAN,
+        ...Object.values(SCREENS.MULTIFACTOR_AUTHENTICATION),
+    ] as string[],
 
     CANCELLATION_TYPE: {
         MANUAL: 'manual',
@@ -8261,45 +8274,45 @@ const CONST = {
         },
         WORKSPACE: {
             TOGGLE_SETTINGS_ROW: 'Workspace-ToggleSettingsRow',
+            WORKSPACE_MENU_ITEM: 'Workspace-WorkspaceMenuItem',
             COMPANY_CARDS: {
                 TABLE_ITEM: 'Workspace-CompanyCards-TableItem',
             },
         },
-    },
+        DOMAIN: {
+            /** Onyx prefix for domain admin account IDs */
+            EXPENSIFY_ADMIN_ACCESS_PREFIX: 'expensify_adminPermissions_',
+            /** Onyx prefix for domain security groups */
+            DOMAIN_SECURITY_GROUP_PREFIX: 'domain_securityGroup_',
+        },
 
-    DOMAIN: {
-        /** Onyx prefix for domain admin account IDs */
-        EXPENSIFY_ADMIN_ACCESS_PREFIX: 'expensify_adminPermissions_',
-        /** Onyx prefix for domain security groups */
-        DOMAIN_SECURITY_GROUP_PREFIX: 'domain_securityGroup_',
-    },
+        HOME: {
+            ANNOUNCEMENTS: [
+                {
+                    title: 'Start the year with smarter spending, admin controls, and more.',
+                    subtitle: 'Product update',
+                    url: 'https://use.expensify.com/blog/expensify-january-2026-product-update',
+                    publishedDate: '2026-01-28',
+                },
+                {
+                    title: 'Our favorite features + final upgrades of the year',
+                    subtitle: 'Product update',
+                    url: 'https://use.expensify.com/blog/expensify-2025-year-end-product-update',
+                    publishedDate: '2025-12-22',
+                },
+                {
+                    title: 'Uber for business + Expensify automates ride and meal receipts',
+                    subtitle: 'Product update',
+                    url: 'https://use.expensify.com/blog/uber-for-business-and-expensify-integration-update',
+                    publishedDate: '2025-12-01',
+                },
+            ],
+        },
 
-    HOME: {
-        ANNOUNCEMENTS: [
-            {
-                title: 'Start the year with smarter spending, admin controls, and more.',
-                subtitle: 'Product update',
-                url: 'https://use.expensify.com/blog/expensify-january-2026-product-update',
-                publishedDate: '2026-01-28',
-            },
-            {
-                title: 'Our favorite features + final upgrades of the year',
-                subtitle: 'Product update',
-                url: 'https://use.expensify.com/blog/expensify-2025-year-end-product-update',
-                publishedDate: '2025-12-22',
-            },
-            {
-                title: 'Uber for business + Expensify automates ride and meal receipts',
-                subtitle: 'Product update',
-                url: 'https://use.expensify.com/blog/uber-for-business-and-expensify-integration-update',
-                publishedDate: '2025-12-01',
-            },
-        ],
-    },
-
-    SECTION_LIST_ITEM_TYPE: {
-        HEADER: 'header',
-        ROW: 'row',
+        SECTION_LIST_ITEM_TYPE: {
+            HEADER: 'header',
+            ROW: 'row',
+        },
     },
 } as const;
 

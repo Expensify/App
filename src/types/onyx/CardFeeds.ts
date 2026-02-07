@@ -27,6 +27,16 @@ type CardFeedWithNumber = CardFeed | `${CardFeed}${number}`;
  */
 type CardFeedWithDomainID = `${CardFeedWithNumber}${typeof CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${string}`;
 
+/**
+ * Bank name
+ */
+type BankName = ValueOf<typeof CONST.COMPANY_CARDS.BANKS>;
+
+/**
+ *
+ */
+type CardType = ValueOf<typeof CONST.COMPANY_CARDS.CARD_TYPE>;
+
 /** Statement period end */
 type StatementPeriodEnd = Exclude<ValueOf<typeof CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE>, typeof CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH>;
 
@@ -302,6 +312,8 @@ export type {
     CardFeed,
     CardFeedWithNumber,
     CardFeedWithDomainID,
+    BankName,
+    CardType,
     CompanyCardFeed,
     CompanyCardFeedWithNumber,
     CompanyCardFeedWithDomainID,
