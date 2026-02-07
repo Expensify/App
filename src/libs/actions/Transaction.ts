@@ -33,6 +33,7 @@ import {
     hasViolations as hasViolationsReportUtils,
     shouldEnableNegative,
 } from '@libs/ReportUtils';
+import {getSnapshotKeys} from '@libs/SearchUIUtils';
 import {isManagedCardTransaction, isOnHold, shouldClearConvertedAmount, waypointHasValidAddress} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
@@ -46,6 +47,7 @@ import type {
     ReportAction,
     ReportNextStepDeprecated,
     ReviewDuplicates,
+    SearchResults,
     Transaction,
     TransactionViolation,
     TransactionViolations,
@@ -757,6 +759,7 @@ type ChangeTransactionsReportProps = {
     isASAPSubmitBetaEnabled: boolean;
     accountID: number;
     email: string;
+    allSnapshots: OnyxCollection<SearchResults>;
     newReport?: OnyxEntry<Report>;
     policy?: OnyxEntry<Policy>;
     reportNextStep?: OnyxEntry<ReportNextStepDeprecated>;
@@ -771,6 +774,7 @@ function changeTransactionsReport({
     email,
     newReport,
     policy,
+    allSnapshots,
     reportNextStep,
     policyCategories,
     allTransactions,
@@ -808,6 +812,7 @@ function changeTransactionsReport({
             | typeof ONYXKEYS.COLLECTION.TRANSACTION
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
             | typeof ONYXKEYS.COLLECTION.NEXT_STEP
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
         >
     > = [];
     const successData: Array<
@@ -817,6 +822,7 @@ function changeTransactionsReport({
             | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
             | typeof ONYXKEYS.COLLECTION.TRANSACTION
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
         >
     > = [];
 
@@ -1079,16 +1085,122 @@ function changeTransactionsReport({
         const targetReportID = isUnreported ? selfDMReportID : reportID;
         const {amount: transactionAmount = 0, currency: transactionCurrency} = getTransactionDetails(transaction, undefined, undefined, allowNegative) ?? {};
         const oldReportTotal = oldReport?.total ?? 0;
-        const updatedReportTotal = transactionAmount < 0 ? oldReportTotal - transactionAmount : oldReportTotal + transactionAmount;
 
-        if (oldReport && oldReport.currency === transactionCurrency) {
-            updatedReportTotals[oldReportID] = updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : updatedReportTotal;
-            updatedReportNonReimbursableTotals[oldReportID] =
-                (updatedReportNonReimbursableTotals[oldReportID] ? updatedReportNonReimbursableTotals[oldReportID] : (oldReport?.nonReimbursableTotal ?? 0)) +
-                (transaction?.reimbursable ? 0 : transactionAmount);
-            updatedReportUnheldNonReimbursableTotals[oldReportID] =
-                (updatedReportUnheldNonReimbursableTotals[oldReportID] ? updatedReportUnheldNonReimbursableTotals[oldReportID] : (oldReport?.unheldNonReimbursableTotal ?? 0)) +
-                (transaction?.reimbursable && !isOnHold(transaction) ? 0 : transactionAmount);
+        if (oldReport) {
+            const oldReportCurrency = oldReport.currency;
+            const remainingTransactions = getReportTransactions(oldReportID).filter(
+                (t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !transactionIDs.includes(t.transactionID),
+            );
+
+            const willBeEmpty = remainingTransactions.length === 0;
+
+            if (willBeEmpty) {
+                updatedReportTotals[oldReportID] = 0;
+                updatedReportNonReimbursableTotals[oldReportID] = 0;
+                updatedReportUnheldNonReimbursableTotals[oldReportID] = 0;
+            } else if (oldReportCurrency === transactionCurrency) {
+                const baseTotal = updatedReportTotals[oldReportID] ?? oldReportTotal;
+
+                const baseNonReimb = updatedReportNonReimbursableTotals[oldReportID] ?? oldReport?.nonReimbursableTotal ?? 0;
+
+                const baseUnheld = updatedReportUnheldNonReimbursableTotals[oldReportID] ?? oldReport?.unheldNonReimbursableTotal ?? 0;
+
+                let addToNonReimb = 0;
+                let addToUnheld = 0;
+
+                if (!transaction?.reimbursable) {
+                    addToNonReimb = transactionAmount;
+
+                    if (!isOnHold(transaction)) {
+                        addToUnheld = transactionAmount;
+                    }
+                }
+
+                updatedReportTotals[oldReportID] = baseTotal + transactionAmount;
+                updatedReportNonReimbursableTotals[oldReportID] = baseNonReimb + addToNonReimb;
+                updatedReportUnheldNonReimbursableTotals[oldReportID] = baseUnheld + addToUnheld;
+            } else {
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${oldReport.reportID}`,
+                    value: {
+                        pendingFields: {
+                            preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        },
+                    },
+                });
+
+                failureData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${oldReport.reportID}`,
+                    value: {
+                        pendingFields: {
+                            preview: null,
+                            total: null,
+                        },
+                    },
+                });
+
+                successData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${oldReport.reportID}`,
+                    value: {
+                        pendingFields: {
+                            preview: null,
+                            total: null,
+                        },
+                    },
+                });
+
+                const allSnapshotKeys = getSnapshotKeys(allSnapshots);
+
+                if (allSnapshotKeys?.length && allSnapshotKeys.length > 0) {
+                    for (const key of allSnapshotKeys) {
+                        optimisticData.push({
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key,
+                            value: {
+                                data: {
+                                    [`${ONYXKEYS.COLLECTION.REPORT}${oldReport.reportID}`]: {
+                                        pendingFields: {
+                                            total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                        },
+                                    },
+                                },
+                            } as Partial<Report>,
+                        });
+
+                        failureData.push({
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key,
+                            value: {
+                                data: {
+                                    [`${ONYXKEYS.COLLECTION.REPORT}${oldReport.reportID}`]: {
+                                        pendingFields: {
+                                            total: null,
+                                        },
+                                    },
+                                },
+                            } as Partial<Report>,
+                        });
+
+                        successData.push({
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key,
+                            value: {
+                                data: {
+                                    [`${ONYXKEYS.COLLECTION.REPORT}${oldReport.reportID}`]: {
+                                        pendingFields: {
+                                            total: null,
+                                        },
+                                    },
+                                },
+                            } as Partial<Report>,
+                        });
+                    }
+                }
+            }
         }
 
         if (targetReportID) {
@@ -1116,6 +1228,89 @@ function changeTransactionsReport({
 
                 const currentUnheldNonReimbursableTotal = updatedReportUnheldNonReimbursableTotals[targetReportID] ?? targetReport?.unheldNonReimbursableTotal ?? 0;
                 updatedReportUnheldNonReimbursableTotals[targetReportID] = currentUnheldNonReimbursableTotal + (transactionReimbursable && !isOnHold(transaction) ? 0 : convertedAmount);
+            }
+
+            if (transactionCurrency !== targetReport?.currency) {
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`,
+                    value: {
+                        pendingFields: {
+                            preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        },
+                    },
+                });
+
+                failureData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`,
+                    value: {
+                        pendingFields: {
+                            preview: null,
+                            total: null,
+                        },
+                    },
+                });
+
+                successData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`,
+                    value: {
+                        pendingFields: {
+                            preview: null,
+                            total: null,
+                        },
+                    },
+                });
+
+                const allSnapshotKeys = getSnapshotKeys(allSnapshots);
+
+                if (allSnapshotKeys?.length && allSnapshotKeys.length > 0) {
+                    for (const key of allSnapshotKeys) {
+                        optimisticData.push({
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key,
+                            value: {
+                                data: {
+                                    [`${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`]: {
+                                        pendingFields: {
+                                            total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                        },
+                                    },
+                                },
+                            } as Partial<Report>,
+                        });
+
+                        failureData.push({
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key,
+                            value: {
+                                data: {
+                                    [`${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`]: {
+                                        pendingFields: {
+                                            total: null,
+                                        },
+                                    },
+                                },
+                            } as Partial<Report>,
+                        });
+
+                        successData.push({
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key,
+                            value: {
+                                data: {
+                                    [`${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`]: {
+                                        pendingFields: {
+                                            total: null,
+                                        },
+                                    },
+                                },
+                            } as Partial<Report>,
+                        });
+                    }
+                }
             }
         }
 

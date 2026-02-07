@@ -2059,7 +2059,7 @@ function getReportSections({
             }
 
             if (shouldShow) {
-                const reportPendingAction = reportItem?.pendingAction ?? reportItem?.pendingFields?.preview;
+                const reportPendingAction = reportItem?.pendingAction ?? reportItem?.pendingFields?.total ?? reportItem?.pendingFields?.createReport ?? reportItem?.pendingFields?.preview;
                 const shouldShowBlankTo = !reportItem || isOpenExpenseReport(reportItem);
                 const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`] ?? {};
                 const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, actions);
@@ -4511,6 +4511,16 @@ function getTableMinWidth(columns: SearchColumnType[]) {
     return minWidth;
 }
 
+type OnyxSnapshotKey = `${typeof ONYXKEYS.COLLECTION.SNAPSHOT}${string}`;
+
+function getSnapshotKeys(allSnapshots: OnyxCollection<OnyxTypes.SearchResults>) {
+    if (!allSnapshots) {
+        return [];
+    }
+
+    return Object.keys(allSnapshots || {}) as OnyxSnapshotKey[];
+}
+
 function shouldShowDeleteOption(
     selectedTransactions: Record<string, SelectedTransactionInfo>,
     currentSearchResults: SearchResults['data'] | undefined,
@@ -4613,6 +4623,7 @@ export {
     getSettlementStatus,
     getSettlementStatusBadgeProps,
     getTransactionFromTransactionListItem,
+    getSnapshotKeys,
     getSearchColumnTranslationKey,
     getTableMinWidth,
     getCustomColumns,

@@ -11629,6 +11629,7 @@ describe('actions/IOU', () => {
                 accountID: CARLOS_ACCOUNT_ID,
                 email: CARLOS_EMAIL,
                 newReport: result.current.report,
+                allSnapshots: {},
                 allTransactions,
             });
 
