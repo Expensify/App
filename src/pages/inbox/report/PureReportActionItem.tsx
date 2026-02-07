@@ -108,6 +108,7 @@ import {
     getRemovedFromApprovalChainMessage,
     getRenamedAction,
     getReportActionMessage,
+    getReportActionMessageText,
     getReportActionText,
     getSetAutoJoinMessage,
     getSettlementAccountLockedMessage,
@@ -1397,8 +1398,19 @@ function PureReportActionItem({
                 }
             }
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
-            const isFromNewDot = getOriginalMessage(action)?.isNewDot ?? false;
-            children = isFromNewDot ? emptyHTML : <ReportActionItemBasicMessage message={getMarkedReimbursedMessage(translate, action)} />;
+            children = <ReportActionItemBasicMessage message={getMarkedReimbursedMessage(translate, action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
+            // Skip the first fragment (actor's email) since it's already shown in the action header
+            const messageFragments = action.message;
+            let reimbursedMessage = getReportActionMessageText(action);
+            if (Array.isArray(messageFragments) && messageFragments.length > 1) {
+                reimbursedMessage = messageFragments
+                    .slice(1)
+                    .map((fragment) => fragment?.text ?? '')
+                    .join('')
+                    .trim();
+            }
+            children = <ReportActionItemBasicMessage message={reimbursedMessage} />;
         } else if (isUnapprovedAction(action)) {
             children = <ReportActionItemBasicMessage message={translate('iou.unapproved')} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {

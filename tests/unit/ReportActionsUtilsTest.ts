@@ -1529,6 +1529,89 @@ describe('ReportActionsUtils', () => {
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
             expect(actual).toBe(true);
         });
+
+        it('should return true for REIMBURSED action from OldDot', () => {
+            // Given a REIMBURSED action created from OldDot (no isNewDot flag)
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                reportActionID: '1',
+                created: '2025-01-01',
+                message: [
+                    {
+                        type: 'TEXT',
+                        style: 'normal',
+                        text: 'Reimbursed via ACH',
+                    },
+                ],
+            };
+
+            // Then the action should be visible
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(true);
+        });
+
+        it('should return false for REIMBURSED action from NewDot', () => {
+            // Given a REIMBURSED action created from NewDot (isNewDot=true)
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                reportActionID: '1',
+                created: '2025-01-01',
+                message: [
+                    {
+                        type: 'TEXT',
+                        style: 'normal',
+                        text: 'Reimbursed via ACH',
+                    },
+                ],
+                originalMessage: {isNewDot: true},
+            };
+
+            // Then the action should NOT be visible (IOU PAY action is shown instead)
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(false);
+        });
+
+        it('should return true for MARKED_REIMBURSED action from OldDot', () => {
+            // Given a MARKED_REIMBURSED action created from OldDot (no isNewDot flag)
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: '1',
+                created: '2025-01-01',
+                message: [
+                    {
+                        type: 'TEXT',
+                        style: 'normal',
+                        text: 'Marked as reimbursed',
+                    },
+                ],
+                originalMessage: {},
+            };
+
+            // Then the action should be visible
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(true);
+        });
+
+        it('should return false for MARKED_REIMBURSED action from NewDot', () => {
+            // Given a MARKED_REIMBURSED action created from NewDot (isNewDot=true)
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: '1',
+                created: '2025-01-01',
+                message: [
+                    {
+                        type: 'TEXT',
+                        style: 'normal',
+                        text: 'Marked as reimbursed',
+                    },
+                ],
+                originalMessage: {isNewDot: true},
+            };
+
+            // Then the action should NOT be visible (IOU PAY action is shown instead)
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(false);
+        });
     });
 
     describe('getPolicyChangeLogUpdateEmployee', () => {
