@@ -95,56 +95,55 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
     });
 
     // Store bar geometry for hit-testing (only constants, no arrays)
-    const barGeometry = useSharedValue({barWidth: 0, chartBottom: 0, yZero: 0});
+    const barWidth = useSharedValue(0);
+    const chartBottom = useSharedValue(0);
+    const yZero = useSharedValue(0);
 
     const handleChartBoundsChange = useCallback(
         (bounds: ChartBounds) => {
             const domainWidth = bounds.right - bounds.left;
             const calculatedBarWidth = ((1 - BAR_INNER_PADDING) * domainWidth) / data.length;
-            barGeometry.set({
-                ...barGeometry.get(),
-                barWidth: calculatedBarWidth,
-                chartBottom: bounds.bottom,
-            });
+            barWidth.set(calculatedBarWidth);
+            chartBottom.set(bounds.bottom);
+            yZero.set(0);
             setBarAreaWidth(domainWidth);
         },
-        [data.length, barGeometry],
+        [data.length, barWidth, chartBottom, yZero],
     );
 
     const handleScaleChange = useCallback(
         (_xScale: Scale, yScale: Scale) => {
-            barGeometry.set({
-                ...barGeometry.get(),
-                yZero: yScale(0),
-            });
+            yZero.set(yScale(0));
         },
-        [barGeometry],
+        [yZero],
     );
 
     const checkIsOverBar = useCallback(
         (args: HitTestArgs) => {
             'worklet';
 
-            const {barWidth, yZero} = barGeometry.get();
-            if (barWidth === 0) {
+            const currentBarWidth = barWidth.get();
+            const currentYZero = yZero.get();
+            if (currentBarWidth === 0) {
                 return false;
             }
-            const barLeft = args.targetX - barWidth / 2;
-            const barRight = args.targetX + barWidth / 2;
+            const barLeft = args.targetX - currentBarWidth / 2;
+            const barRight = args.targetX + currentBarWidth / 2;
             // For positive bars: targetY < yZero, bar goes from targetY (top) to yZero (bottom)
             // For negative bars: targetY > yZero, bar goes from yZero (top) to targetY (bottom)
-            const barTop = Math.min(args.targetY, yZero);
-            const barBottom = Math.max(args.targetY, yZero);
+            const barTop = Math.min(args.targetY, currentYZero);
+            const barBottom = Math.max(args.targetY, currentYZero);
 
             return args.cursorX >= barLeft && args.cursorX <= barRight && args.cursorY >= barTop && args.cursorY <= barBottom;
         },
-        [barGeometry],
+        [barWidth, yZero],
     );
 
     const {actionsRef, customGestures, activeDataIndex, isTooltipActive, tooltipStyle} = useChartInteractions({
         handlePress: handleBarPress,
         checkIsOver: checkIsOverBar,
-        barGeometry,
+        chartBottom,
+        yZero,
     });
 
     const tooltipData = useTooltipData(activeDataIndex, data, yAxisUnit, yAxisUnitPosition);
