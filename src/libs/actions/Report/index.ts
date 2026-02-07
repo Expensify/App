@@ -101,7 +101,7 @@ import {
 } from '@libs/PolicyUtils';
 import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import Pusher from '@libs/Pusher';
-import type {UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
+import type {ConciergeStreamChunkEvent, UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
 import * as ReportActionsFollowupUtils from '@libs/ReportActionFollowupUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {updateTitleFieldToMatchPolicy} from '@libs/ReportTitleUtils';
@@ -340,6 +340,9 @@ Onyx.connect({
 
 const typingWatchTimers: Record<string, NodeJS.Timeout> = {};
 
+/** In-memory accumulator for Concierge stream chunks, keyed by `${reportID}-${reportActionID}` */
+const conciergeStreamAccumulators: Record<string, string> = {};
+
 let reportIDDeeplinkedFromOldDot: string | undefined;
 Linking.getInitialURL().then((url) => {
     reportIDDeeplinkedFromOldDot = processReportIDDeeplink(url ?? '');
@@ -513,6 +516,49 @@ function unsubscribeFromLeavingRoomReportChannel(reportID: string | undefined) {
     const pusherChannelName = getReportChannelName(reportID);
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportID}`, false);
     Pusher.unsubscribe(pusherChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM);
+}
+
+/** Initialize Pusher subscription to listen for Concierge streaming response chunks on a report. */
+function subscribeToConciergeStreamEvents(reportID: string) {
+    if (!reportID) {
+        return;
+    }
+
+    const pusherChannelName = getReportChannelName(reportID);
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.CONCIERGE_STREAM_CHUNK, (event: ConciergeStreamChunkEvent) => {
+        const {chunk, reportActionID, isFinal} = event;
+        const accumulatorKey = `${reportID}-${reportActionID}`;
+
+        // Accumulate the chunk
+        if (!conciergeStreamAccumulators[accumulatorKey]) {
+            conciergeStreamAccumulators[accumulatorKey] = '';
+        }
+        conciergeStreamAccumulators[accumulatorKey] += chunk;
+
+        // Push accumulated HTML to Onyx
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_CONCIERGE_STREAM}${reportID}`, {
+            html: conciergeStreamAccumulators[accumulatorKey],
+            isFinal,
+        });
+
+        // Clean up accumulator when stream is complete
+        if (isFinal) {
+            delete conciergeStreamAccumulators[accumulatorKey];
+        }
+    }).catch((error: ReportError) => {
+        Log.hmmm('[Report] Failed to subscribe to Concierge stream events', {errorType: error.type, pusherChannelName});
+    });
+}
+
+/** Remove Pusher subscription for Concierge streaming events on a report. */
+function unsubscribeFromConciergeStreamEvents(reportID: string) {
+    if (!reportID) {
+        return;
+    }
+
+    const pusherChannelName = getReportChannelName(reportID);
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_CONCIERGE_STREAM}${reportID}`, null);
+    Pusher.unsubscribe(pusherChannelName, Pusher.TYPE.CONCIERGE_STREAM_CHUNK);
 }
 
 // New action subscriber array for report pages
@@ -6719,10 +6765,12 @@ export {
     subscribeToNewActionEvent,
     subscribeToReportLeavingEvents,
     subscribeToReportTypingEvents,
+    subscribeToConciergeStreamEvents,
     toggleEmojiReaction,
     togglePinnedState,
     toggleSubscribeToChildReport,
     unsubscribeFromLeavingRoomReportChannel,
+    unsubscribeFromConciergeStreamEvents,
     unsubscribeFromReportChannel,
     updateDescription,
     updateGroupChatAvatar,

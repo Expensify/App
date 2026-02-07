@@ -704,6 +704,7 @@ const ONYXKEYS = {
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
         REPORT_USER_IS_LEAVING_ROOM: 'reportUserIsLeavingRoom_',
+        REPORT_CONCIERGE_STREAM: 'reportConciergeStream_',
         REPORT_VIOLATIONS: 'reportViolations_',
         SECURITY_GROUP: 'securityGroup_',
         TRANSACTION: 'transactions_',
@@ -1169,6 +1170,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE]: boolean;
     [ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING]: OnyxTypes.ReportUserIsTyping;
     [ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM]: boolean;
+    [ONYXKEYS.COLLECTION.REPORT_CONCIERGE_STREAM]: OnyxTypes.ReportConciergeStream;
     [ONYXKEYS.COLLECTION.REPORT_VIOLATIONS]: OnyxTypes.ReportViolations;
     [ONYXKEYS.COLLECTION.SECURITY_GROUP]: OnyxTypes.SecurityGroup;
     [ONYXKEYS.COLLECTION.TRANSACTION]: OnyxTypes.Transaction;

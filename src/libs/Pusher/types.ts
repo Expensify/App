@@ -33,10 +33,18 @@ type PingPongEvent = Record<string, string | number> & {
     pingTimestamp: number;
 };
 
+type ConciergeStreamChunkEvent = {
+    chunk: string;
+    chunkIndex: number;
+    isFinal: boolean;
+    reportActionID: string;
+};
+
 type PusherEventMap = {
     [TYPE.USER_IS_TYPING]: UserIsTypingEvent;
     [TYPE.USER_IS_LEAVING_ROOM]: UserIsLeavingRoomEvent;
     [TYPE.PONG]: PingPongEvent;
+    [TYPE.CONCIERGE_STREAM_CHUNK]: ConciergeStreamChunkEvent;
 };
 
 type EventData<EventName extends string> = {chunk?: string; id?: string; index?: number; final?: boolean} & (EventName extends keyof PusherEventMap
@@ -91,6 +99,7 @@ export type {
     UserIsTypingEvent,
     UserIsLeavingRoomEvent,
     PingPongEvent,
+    ConciergeStreamChunkEvent,
     EventData,
     EventCallbackError,
     ChunkedDataEvents,

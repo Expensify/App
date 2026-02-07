@@ -6,7 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
-import {subscribeToReportTypingEvents, unsubscribeFromReportChannel} from '@userActions/Report';
+import {subscribeToConciergeStreamEvents, subscribeToReportTypingEvents, unsubscribeFromConciergeStreamEvents, unsubscribeFromReportChannel} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -34,6 +34,7 @@ function UserTypingEventListener({report}: UserTypingEventListenerProps) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 unsubscribeFromReportChannel(reportID);
+                unsubscribeFromConciergeStreamEvents(reportID);
             });
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -58,6 +59,7 @@ function UserTypingEventListener({report}: UserTypingEventListenerProps) {
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 interactionTask = InteractionManager.runAfterInteractions(() => {
                     subscribeToReportTypingEvents(reportID, currentUserAccountID);
+                    subscribeToConciergeStreamEvents(reportID);
                     didSubscribeToReportTypingEvents.current = true;
                 });
             }
@@ -69,6 +71,7 @@ function UserTypingEventListener({report}: UserTypingEventListenerProps) {
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     unsubscribeFromReportChannel(reportID);
+                    unsubscribeFromConciergeStreamEvents(reportID);
                 });
             }
         }

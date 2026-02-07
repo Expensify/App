@@ -119,6 +119,7 @@ import type ReportAction from './ReportAction';
 import type ReportActionReactions from './ReportActionReactions';
 import type ReportActionsDraft from './ReportActionsDraft';
 import type ReportActionsDrafts from './ReportActionsDrafts';
+import type ReportConciergeStream from './ReportConciergeStream';
 import type {GroupedTransactions, ReportLayoutGroupBy} from './ReportLayout';
 import type ReportMetadata from './ReportMetadata';
 import type ReportNameValuePairs from './ReportNameValuePairs';
@@ -286,6 +287,7 @@ export type {
     WalletTransfer,
     SupportalPermissionDenied,
     PurchaseList,
+    ReportConciergeStream,
     ReportUserIsTyping,
     PolicyReportField,
     RecentlyUsedReportFields,
