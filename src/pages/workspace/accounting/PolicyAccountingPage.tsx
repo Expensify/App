@@ -129,6 +129,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           shouldCallAfterModalHide: true,
                           disabled: isOffline,
                           iconRight: icons.NewWindow,
+                          shouldDimIconRight: false,
                       },
                   ]
                 : []),
@@ -141,6 +142,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           shouldCallAfterModalHide: true,
                           disabled: isOffline,
                           iconRight: icons.NewWindow,
+                          shouldDimIconRight: false,
                       },
                   ]
                 : [

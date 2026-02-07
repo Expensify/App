@@ -124,6 +124,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
         const currentUserMenuItem = createBaseMenuItem(currentUserPersonalDetails, undefined, {
             shouldShowRightIcon: true,
             iconRight: Expensicons.Checkmark,
+            shouldDimIconRight: false,
             success: true,
             isSelected: true,
         });
@@ -190,6 +191,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                     ref={buttonRef}
                     interactive={canSwitchAccounts}
                     pressDimmingValue={canSwitchAccounts ? undefined : 1}
+                    sentryLabel={CONST.SENTRY_LABEL.ACCOUNT_SWITCHER}
                     wrapperStyle={[styles.flexGrow1, styles.flex1, styles.mnw0, styles.justifyContentCenter]}
                 >
                     <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter]}>

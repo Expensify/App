@@ -158,6 +158,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Overrides the icon for shouldShowRightIcon */
         iconRight?: IconAsset;
 
+        /** Should apply semi transparency for right icon */
+        shouldDimIconRight?: boolean;
+
         /** Should render component on the right */
         shouldShowRightComponent?: boolean;
 
@@ -373,6 +376,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Should selected item be marked with checkmark */
         shouldShowSelectedItemCheck?: boolean;
 
+        /** Should use normal icon size */
+        shouldUseNormalIconSize?: boolean;
+
         /** Should use auto width for the icon container. */
         shouldIconUseAutoWidthStyle?: boolean;
 
@@ -475,6 +481,7 @@ function MenuItem({
     rightIconAccountID,
     iconAccountID,
     shouldShowRightIcon = false,
+    shouldDimIconRight = true,
     iconRight,
     furtherDetailsIcon,
     furtherDetails,
@@ -540,6 +547,7 @@ function MenuItem({
     avatarID,
     shouldRenderTooltip = false,
     shouldHideOnScroll = false,
+    shouldUseNormalIconSize = false,
     tooltipAnchorAlignment,
     tooltipWrapperStyle = {},
     tooltipShiftHorizontal = 0,
@@ -715,7 +723,7 @@ function MenuItem({
     };
 
     const isIDPassed = !!iconReportID || !!iconAccountID || iconAccountID === CONST.DEFAULT_NUMBER_ID;
-
+    const iconSize = hasSubMenuItems && !shouldUseNormalIconSize ? variables.iconSizeSmall : variables.iconSizeNormal;
     return (
         <View
             style={rootWrapperStyle}
@@ -1028,16 +1036,21 @@ function MenuItem({
                                                             styles.pointerEventsAuto,
                                                             StyleUtils.getMenuItemIconStyle(isCompact),
                                                             disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled,
-                                                            hasSubMenuItems && styles.opacitySemiTransparent,
                                                             hasSubMenuItems && styles.pl6,
+                                                            shouldDimIconRight && styles.opacitySemiTransparent,
+                                                            styles.alignItemsEnd,
                                                             rightIconWrapperStyle,
                                                         ]}
                                                     >
                                                         <Icon
                                                             src={iconRight ?? icons.ArrowRight}
-                                                            fill={StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive))}
-                                                            width={hasSubMenuItems ? variables.iconSizeSmall : variables.iconSizeNormal}
-                                                            height={hasSubMenuItems ? variables.iconSizeSmall : variables.iconSizeNormal}
+                                                            fill={
+                                                                shouldDimIconRight
+                                                                    ? StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive))
+                                                                    : theme.icon
+                                                            }
+                                                            width={iconSize}
+                                                            height={iconSize}
                                                         />
                                                     </View>
                                                 )}

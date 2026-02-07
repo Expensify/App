@@ -87,6 +87,7 @@ function AppDownloadLinksPage() {
                         iconRight={item.iconRight}
                         shouldBlockSelection
                         shouldShowRightIcon
+                        shouldDimIconRight={false}
                         role={CONST.ROLE.LINK}
                     />
                 ))}

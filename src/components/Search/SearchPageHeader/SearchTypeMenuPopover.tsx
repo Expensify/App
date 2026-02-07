@@ -42,6 +42,7 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
                     shouldUseModalPaddingStyle={false}
                     innerContainerStyle={{paddingBottom: unmodifiedPaddings.bottom}}
                     shouldAvoidSafariException
+                    shouldDimIconRight={false}
                     scrollContainerStyle={styles.pv0}
                 />
             )}

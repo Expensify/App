@@ -67,6 +67,7 @@ function ConsolePage() {
                 iconFill: activeFilterIndex === filterBy.all ? theme.iconSuccessFill : theme.icon,
                 iconRight: Expensicons.Checkmark,
                 shouldShowRightIcon: activeFilterIndex === filterBy.all,
+                shouldDimIconRight: false,
                 success: activeFilterIndex === filterBy.all,
                 onSelected: () => {
                     setActiveFilterIndex(filterBy.all);
@@ -78,6 +79,7 @@ function ConsolePage() {
                 iconFill: activeFilterIndex === filterBy.network ? theme.iconSuccessFill : theme.icon,
                 iconRight: Expensicons.CheckCircle,
                 shouldShowRightIcon: activeFilterIndex === filterBy.network,
+                shouldDimIconRight: false,
                 success: activeFilterIndex === filterBy.network,
                 onSelected: () => {
                     setActiveFilterIndex(filterBy.network);
