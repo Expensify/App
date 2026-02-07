@@ -7,8 +7,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import NetSuiteImportAddCustomListContent from './NetSuiteImportAddCustomListContent';
 
-function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
-    const [draftValues, draftValuesMetadata] = useOnyx(ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM_DRAFT);
+function NetSuiteImportAddCustomListPage({policy, route}: WithPolicyConnectionsProps) {
+    const [draftValues, draftValuesMetadata] = useOnyx(ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM_DRAFT, {canBeMissing: true});
     const isLoading = isLoadingOnyxValue(draftValuesMetadata);
 
     if (isLoading) {
@@ -18,6 +18,7 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
     return (
         <NetSuiteImportAddCustomListContent
             policy={policy}
+            policyIDParam={route.params.policyID}
             draftValues={draftValues}
         />
     );
