@@ -6535,7 +6535,11 @@ function populateOptimisticReportFormula(formula: string, report: OptimisticExpe
         return 'New report';
     }
 
-    const createdDate = report.lastVisibleActionCreated ? new Date(report.lastVisibleActionCreated) : undefined;
+    let createdDate;
+    if (report.lastVisibleActionCreated) {
+        const normalizedDate = report.lastVisibleActionCreated.endsWith('Z') ? report.lastVisibleActionCreated : `${report.lastVisibleActionCreated}Z`;
+        createdDate = new Date(normalizedDate);
+    }
 
     const result = formula
         // We don't translate because the server response is always in English
