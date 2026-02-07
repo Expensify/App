@@ -4118,6 +4118,12 @@ const CONST = {
         ERROR: 'error',
         INFO: 'info',
     },
+    ACTION_BADGE_VERBS: {
+        SUBMIT: 'submit',
+        APPROVE: 'approve',
+        PAY: 'pay',
+        EXPORT: 'export',
+    },
     REPORT_DETAILS_MENU_ITEM: {
         MEMBERS: 'member',
         INVITE: 'invite',

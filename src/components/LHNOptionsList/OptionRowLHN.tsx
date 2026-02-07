@@ -1,6 +1,7 @@
 import React, {useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
+import ActionBadge from '@components/ActionBadge';
 import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
@@ -55,6 +56,7 @@ function OptionRowLHN({
     shouldShowRBRorGBRTooltip,
     isScreenFocused = false,
     testID,
+    actionBadge,
 }: OptionRowLHNProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -331,30 +333,49 @@ function OptionRowLHN({
                                                 <Text style={[styles.textLabel]}>{optionItem.descriptiveText}</Text>
                                             </View>
                                         ) : null}
-                                        {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
-                                            <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
-                                                <Icon
-                                                    testID="RBR Icon"
-                                                    src={Expensicons.DotIndicator}
-                                                    fill={theme.danger}
-                                                />
-                                            </View>
-                                        )}
+                                        {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR &&
+                                            (actionBadge ? (
+                                                <View
+                                                    style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml2]}
+                                                    testID="Action Badge RBR"
+                                                >
+                                                    <ActionBadge
+                                                        verb={actionBadge.verb}
+                                                        isError
+                                                    />
+                                                </View>
+                                            ) : (
+                                                <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+                                                    <Icon
+                                                        testID="RBR Icon"
+                                                        src={Expensicons.DotIndicator}
+                                                        fill={theme.danger}
+                                                    />
+                                                </View>
+                                            ))}
                                     </View>
                                 </View>
                                 <View
                                     style={[styles.flexRow, styles.alignItemsCenter]}
                                     accessible={false}
                                 >
-                                    {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO && (
-                                        <View style={styles.ml2}>
-                                            <Icon
-                                                testID="GBR Icon"
-                                                src={Expensicons.DotIndicator}
-                                                fill={theme.success}
-                                            />
-                                        </View>
-                                    )}
+                                    {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO &&
+                                        (actionBadge ? (
+                                            <View
+                                                style={styles.ml2}
+                                                testID="Action Badge GBR"
+                                            >
+                                                <ActionBadge verb={actionBadge.verb} />
+                                            </View>
+                                        ) : (
+                                            <View style={styles.ml2}>
+                                                <Icon
+                                                    testID="GBR Icon"
+                                                    src={Expensicons.DotIndicator}
+                                                    fill={theme.success}
+                                                />
+                                            </View>
+                                        ))}
                                     {hasDraftComment && !!optionItem.isAllowedToComment && (
                                         <View
                                             style={styles.ml2}
