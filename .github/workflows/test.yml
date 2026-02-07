@@ -18,6 +18,7 @@ jobs:
     env:
       CI: true
       NODE_OPTIONS: "--experimental-vm-modules --max-old-space-size=8192"
+      JEST_WORKER_IDLE_MEMORY_LIMIT: "900MB"
     strategy:
       fail-fast: false
       matrix:

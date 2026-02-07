@@ -1,5 +1,6 @@
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {Connection} from 'react-native-onyx/dist/OnyxConnectionManager';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx/dist/types';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import {setAuthToken} from '@libs/Network/NetworkStore';
@@ -60,6 +61,7 @@ const createQueryPromiseWrapper = () =>
 // eslint-disable-next-line import/no-mutable-exports
 let queryPromiseWrapper = createQueryPromiseWrapper();
 let isFetchingForPendingUpdates = false;
+let onyxUpdatesConnection: Connection | undefined;
 
 const resetDeferralLogicVariables = () => {
     clearDeferredOnyxUpdates({shouldUnpauseSequentialQueue: false});
@@ -231,10 +233,14 @@ function updateAuthTokenIfNecessary(onyxUpdatesFromServer: OnyxEntry<OnyxUpdates
 }
 
 export default () => {
+    if (onyxUpdatesConnection) {
+        return;
+    }
+
     console.debug('[OnyxUpdateManager] Listening for updates from the server');
     // `Onyx updates` are not dependent on any changes on the UI,
     // so it is okay to use `connectWithoutView` here.
-    Onyx.connectWithoutView({
+    onyxUpdatesConnection = Onyx.connectWithoutView({
         key: ONYXKEYS.ONYX_UPDATES_FROM_SERVER,
         callback: (value) => {
             handleMissingOnyxUpdates(value);

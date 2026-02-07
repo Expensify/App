@@ -6,6 +6,7 @@
  * The primary purpose is to optimize performance by reducing redundant computations. More info can be found in the README.
  */
 import Onyx from 'react-native-onyx';
+import type {Connection} from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import Log from '@libs/Log';
 import IntlStore from '@src/languages/IntlStore';
@@ -15,11 +16,27 @@ import ONYX_DERIVED_VALUES from './ONYX_DERIVED_VALUES';
 import type {DerivedValueContext} from './types';
 import {setDerivedValue} from './utils';
 
+let isInitialized = false;
+const derivedValueConnections: Connection[] = [];
+
+function cleanupConnections() {
+    for (const connection of derivedValueConnections) {
+        Onyx.disconnect(connection);
+    }
+    derivedValueConnections.length = 0;
+}
+
 /**
  * Initialize all Onyx derived values, store them in Onyx, and setup listeners to update them when dependencies change.
  * Using connectWithoutView in this function since this is only executed once while initializing the App.
  */
 function init() {
+    if (isInitialized && derivedValueConnections.length > 0) {
+        cleanupConnections();
+    }
+
+    isInitialized = true;
+
     for (const [key, {compute, dependencies}] of ObjectUtils.typedEntries(ONYX_DERIVED_VALUES)) {
         let areAllConnectionsSet = false;
         let connectionsEstablishedCount = 0;
@@ -93,7 +110,7 @@ function init() {
                 const dependencyOnyxKey = dependencies[dependencyIndex];
 
                 if (OnyxUtils.isCollectionKey(dependencyOnyxKey)) {
-                    Onyx.connectWithoutView({
+                    const connection = Onyx.connectWithoutView({
                         key: dependencyOnyxKey,
                         waitForCollectionCallback: true,
                         callback: (value, collectionKey, sourceValue) => {
@@ -102,9 +119,10 @@ function init() {
                             recomputeDerivedValue(dependencyOnyxKey, sourceValue, dependencyIndex);
                         },
                     });
+                    derivedValueConnections.push(connection);
                 } else if (dependencyOnyxKey === ONYXKEYS.NVP_PREFERRED_LOCALE) {
                     // Special case for locale, we want to recompute derived values when the locale change actually loads.
-                    Onyx.connectWithoutView({
+                    const connection = Onyx.connectWithoutView({
                         key: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
                         initWithStoredValues: false,
                         callback: (value) => {
@@ -123,8 +141,9 @@ function init() {
                             recomputeDerivedValue(dependencyOnyxKey, localeValue, dependencyIndex);
                         },
                     });
+                    derivedValueConnections.push(connection);
                 } else {
-                    Onyx.connectWithoutView({
+                    const connection = Onyx.connectWithoutView({
                         key: dependencyOnyxKey,
                         callback: (value) => {
                             Log.info(`[OnyxDerived] dependency ${dependencyOnyxKey} for derived key ${key} changed, recomputing`);
@@ -133,6 +152,7 @@ function init() {
                             recomputeDerivedValue(dependencyOnyxKey, value, dependencyIndex);
                         },
                     });
+                    derivedValueConnections.push(connection);
                 }
             }
         });
