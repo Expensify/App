@@ -27,7 +27,7 @@ type MockFetch = jest.MockedFn<typeof fetch> & {
     fail: () => void;
     succeed: () => void;
     resume: () => Promise<void>;
-    mockAPICommand: <TCommand extends ApiCommand>(command: TCommand, responseHandler: (params: ApiRequestCommandParameters[TCommand]) => OnyxResponse) => void;
+    mockAPICommand: <TCommand extends ApiCommand, TKey extends OnyxKey>(command: TCommand, responseHandler: (params: ApiRequestCommandParameters[TCommand]) => OnyxResponse<TKey>) => void;
 };
 
 type ConnectionCallback<TKey extends OnyxKey> = NonNullable<ConnectOptions<TKey>['callback']>;
@@ -159,7 +159,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
     const originalXhr = HttpUtils.xhr;
 
     HttpUtils.xhr = jest.fn().mockImplementation(() => {
-        const mockedResponse: OnyxResponse = {
+        const mockedResponse: OnyxResponse<typeof ONYXKEYS.CREDENTIALS | typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.PERSONAL_DETAILS_LIST> = {
             onyxData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
@@ -195,7 +195,9 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
     return waitForBatchedUpdates()
         .then(() => {
             HttpUtils.xhr = jest.fn().mockImplementation(() => {
-                const mockedResponse: OnyxResponse = {
+                const mockedResponse: OnyxResponse<
+                    typeof ONYXKEYS.SESSION | typeof ONYXKEYS.CREDENTIALS | typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.BETAS | typeof ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID
+                > = {
                     onyxData: [
                         {
                             onyxMethod: Onyx.METHOD.MERGE,
@@ -250,7 +252,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
 function signOutTestUser() {
     const originalXhr = HttpUtils.xhr;
     HttpUtils.xhr = jest.fn().mockImplementation(() => {
-        const mockedResponse: OnyxResponse = {
+        const mockedResponse: OnyxResponse<never> = {
             jsonCode: 200,
         };
 
@@ -272,7 +274,7 @@ function signOutTestUser() {
 function getGlobalFetchMock(): typeof fetch {
     let queue: QueueItem[] = [];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let responses = new Map<string, (params: any) => OnyxResponse>();
+    let responses = new Map<string, (params: any) => OnyxResponse<any>>();
     let isPaused = false;
     let shouldFail = false;
 
@@ -327,7 +329,8 @@ function getGlobalFetchMock(): typeof fetch {
     };
     mockFetch.fail = () => (shouldFail = true);
     mockFetch.succeed = () => (shouldFail = false);
-    mockFetch.mockAPICommand = <TCommand extends ApiCommand>(command: TCommand, responseHandler: (params: ApiRequestCommandParameters[TCommand]) => OnyxResponse): void => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    mockFetch.mockAPICommand = <TCommand extends ApiCommand>(command: TCommand, responseHandler: (params: ApiRequestCommandParameters[TCommand]) => OnyxResponse<any>): void => {
         responses.set(command, responseHandler);
     };
     return mockFetch as typeof fetch;

@@ -52,7 +52,7 @@ import type {ExpenseRuleForm, MerchantRuleForm} from '@src/types/form';
 import type {AppReview, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, LoginList, Policy} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import type {OnyxServerUpdate, OnyxUpdatesFromServer} from '@src/types/onyx/OnyxUpdatesFromServer';
+import type {AnyOnyxServerUpdate, OnyxServerUpdate, OnyxUpdateEvent} from '@src/types/onyx/OnyxUpdatesFromServer';
 import type OnyxPersonalDetails from '@src/types/onyx/PersonalDetails';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -686,7 +686,7 @@ function isBlockedFromConcierge(blockedFromConciergeNVP: OnyxEntry<BlockedFromCo
     return isBefore(new Date(), new Date(blockedFromConciergeNVP.expiresAt));
 }
 
-function triggerNotifications(onyxUpdates: OnyxServerUpdate[]) {
+function triggerNotifications<TKey extends OnyxKey>(onyxUpdates: Array<OnyxServerUpdate<TKey>>) {
     for (const update of onyxUpdates) {
         if (!update.shouldNotify && !update.shouldShowPushNotification) {
             continue;
@@ -717,7 +717,7 @@ const isChannelMuted = (reportId: string) =>
         });
     });
 
-function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
+function playSoundForMessageType<TKey extends OnyxKey>(pushJSON: Array<OnyxServerUpdate<TKey>>) {
     const reportActionsOnly = pushJSON.filter((update) => update.key?.includes('reportActions_'));
     // "reportActions_5134363522480668" -> "5134363522480668"
     const reportID = reportActionsOnly
@@ -936,7 +936,7 @@ function subscribeToUserEvents() {
     // Handles the mega multipleEvents from Pusher which contains an array of single events.
     // Each single event is passed to PusherUtils in order to trigger the callbacks for that event
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, currentUserAccountID.toString(), (pushJSON) => {
-        const pushEventData = pushJSON as OnyxUpdatesFromServer;
+        const pushEventData = pushJSON;
         // If this is not the main client, we shouldn't process any data received from pusher.
         if (!ActiveClientManager.isClientTheLeader()) {
             Log.info('[Pusher] Received updates, but ignoring it since this is not the active client');
@@ -947,7 +947,7 @@ function subscribeToUserEvents() {
         const updates = {
             type: CONST.ONYX_UPDATE_TYPES.PUSHER,
             lastUpdateID: Number(pushEventData.lastUpdateID ?? CONST.DEFAULT_NUMBER_ID),
-            updates: pushEventData.updates ?? [],
+            updates: (pushEventData.updates as OnyxUpdateEvent[]) ?? [],
             previousUpdateID: Number(pushJSON.previousUpdateID ?? CONST.DEFAULT_NUMBER_ID),
         };
         Log.info('[subscribeToUserEvents] Applying Onyx updates');
@@ -957,7 +957,7 @@ function subscribeToUserEvents() {
     // Debounce the playSoundForMessageType function to avoid playing sounds too often, for example when a user comeback after offline and a lot of messages come in
     // See https://github.com/Expensify/App/issues/57961 for more details
     const debouncedPlaySoundForMessageType = debounce(
-        (pushJSONMessage: OnyxServerUpdate[]) => {
+        (pushJSONMessage: AnyOnyxServerUpdate[]) => {
             playSoundForMessageType(pushJSONMessage);
         },
         CONST.TIMING.PLAY_SOUND_MESSAGE_DEBOUNCE_TIME,
@@ -965,7 +965,7 @@ function subscribeToUserEvents() {
     );
 
     // Handles Onyx updates coming from Pusher through the mega multipleEvents.
-    PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE, (pushJSON: OnyxServerUpdate[]) => {
+    PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE, (pushJSON: AnyOnyxServerUpdate[]) => {
         debouncedPlaySoundForMessageType(pushJSON);
 
         return SequentialQueue.getCurrentRequest().then(() => {
@@ -1703,7 +1703,7 @@ function deleteExpenseRules(expenseRules: ExpenseRule[], selectedRuleKeys: strin
         value: JSON.stringify(rulesForAPI),
     };
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_EXPENSE_RULES>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_EXPENSE_RULES,
@@ -1711,7 +1711,7 @@ function deleteExpenseRules(expenseRules: ExpenseRule[], selectedRuleKeys: strin
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_EXPENSE_RULES>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_EXPENSE_RULES,
@@ -1719,7 +1719,7 @@ function deleteExpenseRules(expenseRules: ExpenseRule[], selectedRuleKeys: strin
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_EXPENSE_RULES>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_EXPENSE_RULES,
@@ -1793,7 +1793,7 @@ function saveExpenseRule(expenseRules: ExpenseRule[], newRule: ExpenseRule, exis
         value: JSON.stringify(rulesForAPI),
     };
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_EXPENSE_RULES>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_EXPENSE_RULES,
@@ -1801,7 +1801,7 @@ function saveExpenseRule(expenseRules: ExpenseRule[], newRule: ExpenseRule, exis
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_EXPENSE_RULES>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_EXPENSE_RULES,
@@ -1809,7 +1809,7 @@ function saveExpenseRule(expenseRules: ExpenseRule[], newRule: ExpenseRule, exis
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_EXPENSE_RULES>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_EXPENSE_RULES,

@@ -42,13 +42,13 @@ jest.mock('@src/libs/SearchUIUtils', () => ({
     getSuggestedSearches: jest.fn().mockReturnValue({}),
 }));
 
-const App = AppImport as AppActionsMock;
-const ApplyUpdates = ApplyUpdatesImport as ApplyUpdatesMock;
-const OnyxUpdateManagerUtils = OnyxUpdateManagerUtilsImport as OnyxUpdateManagerUtilsMock;
-
 const TEST_USER_ACCOUNT_ID = 1;
 const REPORT_ID = 'testReport1';
 const ONYX_KEY = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const;
+
+const App = AppImport as AppActionsMock<typeof ONYX_KEY>;
+const ApplyUpdates = ApplyUpdatesImport as ApplyUpdatesMock;
+const OnyxUpdateManagerUtils = OnyxUpdateManagerUtilsImport as OnyxUpdateManagerUtilsMock;
 
 const exampleReportAction = {
     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,

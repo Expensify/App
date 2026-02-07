@@ -3,7 +3,7 @@ import {format as timezoneFormat, toZonedTime} from 'date-fns-tz';
 import {Str} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
 import {DeviceEventEmitter, InteractionManager, Linking} from 'react-native';
-import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {PartialDeep, ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
@@ -5898,27 +5898,28 @@ function buildReportIDToThreadsReportIDsMap(): Record<string, string[]> {
  * @private
  * Recursively updates the policyID for a report and all its child reports.
  */
-function updatePolicyIdForReportAndThreads(
+function updatePolicyIdForReportAndThreads<TKey extends OnyxKey>(
     currentReportID: string,
     policyID: string,
     reportIDToThreadsReportIDsMap: Record<string, string[]>,
-    optimisticData: OnyxUpdate[],
-    failureData: OnyxUpdate[],
+    optimisticData: Array<OnyxUpdate<TKey | typeof ONYXKEYS.COLLECTION.REPORT>>,
+    failureData: Array<OnyxUpdate<TKey | typeof ONYXKEYS.COLLECTION.REPORT>>,
 ) {
-    const currentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`];
+    const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`;
+    const currentReport = allReports?.[reportKey];
     const originalPolicyID = currentReport?.policyID;
 
     if (originalPolicyID) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`,
+            key: reportKey,
             value: {policyID},
-        });
+        } as OnyxUpdate<TKey | typeof ONYXKEYS.COLLECTION.REPORT>);
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`,
+            key: reportKey,
             value: {policyID: originalPolicyID},
-        });
+        } as OnyxUpdate<TKey | typeof ONYXKEYS.COLLECTION.REPORT>);
     }
 
     // Recursively process child reports for the current report
@@ -6479,7 +6480,12 @@ function changeReportPolicyAndInviteSubmitter({
         return;
     }
     const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(employeeList, false, false));
-    const {optimisticData, successData, failureData, membersChats} = buildAddMembersToWorkspaceOnyxData(
+    const {
+        optimisticData: optimisticAddMembersData,
+        successData: successAddMembersData,
+        failureData: failureAddMembersData,
+        membersChats,
+    } = buildAddMembersToWorkspaceOnyxData(
         {[submitterEmail]: report.ownerAccountID},
         policy,
         policyMemberAccountIDs,
@@ -6512,9 +6518,10 @@ function changeReportPolicyAndInviteSubmitter({
         undefined,
         membersChats.reportCreationData[submitterEmail],
     );
-    optimisticData.push(...optimisticChangePolicyData);
-    successData.push(...successChangePolicyData);
-    failureData.push(...failureChangePolicyData);
+
+    const optimisticData = [...optimisticAddMembersData, ...optimisticChangePolicyData];
+    const successData = [...successAddMembersData, ...successChangePolicyData];
+    const failureData = [...failureAddMembersData, ...failureChangePolicyData];
 
     const params = {
         reportID: report.reportID,

@@ -23,7 +23,7 @@ const MOCK_ACCOUNT_ID = 'account-123';
 const MOCK_OLD_ACCOUNT_ID = 'account-456';
 const MOCK_ONYX_ERROR = {key: 'error'};
 
-function getQuickBooksConfig(update?: OnyxUpdate): QBOConnectionConfig | undefined {
+function getQuickBooksConfig<TKey extends OnyxKey>(update?: OnyxUpdate<TKey>): QBOConnectionConfig | undefined {
     if (!update || typeof update.value !== 'object' || update.value === null) {
         return undefined;
     }
@@ -33,7 +33,7 @@ function getQuickBooksConfig(update?: OnyxUpdate): QBOConnectionConfig | undefin
     return connection?.config;
 }
 
-function getRequiredQuickBooksConfig(update?: OnyxUpdate): QBOConnectionConfig {
+function getRequiredQuickBooksConfig<TKey extends OnyxKey>(update?: OnyxUpdate<TKey>): QBOConnectionConfig {
     const config = getQuickBooksConfig(update);
     if (!config) {
         throw new Error('QuickBooks config is missing from the provided Onyx update');

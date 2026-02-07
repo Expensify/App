@@ -372,7 +372,7 @@ function mergeTransactionRequest({
         value: sourceTransaction,
     };
     const transactionsOfSourceReport = getReportTransactions(sourceTransaction.reportID);
-    const optimisticSourceReportData: OnyxUpdate[] =
+    const optimisticSourceReportData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> =
         transactionsOfSourceReport.length === 1
             ? [
                   {
@@ -384,7 +384,7 @@ function mergeTransactionRequest({
             : [];
 
     // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-    const failureSourceReportData: OnyxUpdate[] =
+    const failureSourceReportData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> =
         transactionsOfSourceReport.length === 1
             ? [
                   {
@@ -395,7 +395,7 @@ function mergeTransactionRequest({
               ]
             : [];
     const iouActionOfSourceTransaction = getIOUActionForReportID(sourceTransaction.reportID, sourceTransaction.transactionID);
-    const optimisticSourceReportActionData: OnyxUpdate[] = iouActionOfSourceTransaction
+    const optimisticSourceReportActionData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = iouActionOfSourceTransaction
         ? [
               {
                   onyxMethod: Onyx.METHOD.MERGE,
@@ -408,7 +408,7 @@ function mergeTransactionRequest({
               },
           ]
         : [];
-    const successSourceReportActionData: OnyxUpdate[] = iouActionOfSourceTransaction
+    const successSourceReportActionData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = iouActionOfSourceTransaction
         ? [
               {
                   onyxMethod: Onyx.METHOD.MERGE,
@@ -422,7 +422,7 @@ function mergeTransactionRequest({
           ]
         : [];
 
-    const failureSourceReportActionData: OnyxUpdate[] = iouActionOfSourceTransaction
+    const failureSourceReportActionData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = iouActionOfSourceTransaction
         ? [
               {
                   onyxMethod: Onyx.METHOD.MERGE,
@@ -467,9 +467,8 @@ function mergeTransactionRequest({
         },
     );
 
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<UpdateMoneyRequestDataKeys | typeof ONYXKEYS.COLLECTION.MERGE_TRANSACTION>> = [
         ...(onyxTargetTransactionData.optimisticData ?? []),
         optimisticSourceTransactionData,
         ...optimisticSourceReportData,
@@ -478,9 +477,8 @@ function mergeTransactionRequest({
         ...optimisticSourceReportActionData,
     ];
 
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<UpdateMoneyRequestDataKeys>> = [
         ...(onyxTargetTransactionData.failureData ?? []),
         failureSourceTransactionData,
         ...failureSourceReportData,
@@ -488,7 +486,7 @@ function mergeTransactionRequest({
         ...failureSourceReportActionData,
     ];
 
-    const successData: OnyxUpdate[] = [];
+    const successData: Array<OnyxUpdate<UpdateMoneyRequestDataKeys>> = [];
     successData.push(...successSourceReportActionData);
     successData.push(...(onyxTargetTransactionData.successData ?? []));
 
