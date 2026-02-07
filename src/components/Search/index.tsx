@@ -984,8 +984,10 @@ function Search({
             }
 
             if (isTransactionMonthGroupListItemType(item)) {
+                // Extract the existing date filter to check for year-to-date or other date limits
+                const existingDateFilter = queryJSON.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
+                const {start: monthStart, end: monthEnd} = adjustTimeRangeToDateFilters(DateUtils.getMonthDateRange(item.year, item.month), existingDateFilter);
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
-                const {start: monthStart, end: monthEnd} = DateUtils.getMonthDateRange(item.year, item.month);
                 newFlatFilters.push({
                     key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                     filters: [
@@ -1033,8 +1035,10 @@ function Search({
                 if (yearGroupItem.year === undefined) {
                     return;
                 }
+                // Extract the existing date filter to check for year-to-date or other date limits
+                const existingDateFilter = queryJSON.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
+                const {start: yearStart, end: yearEnd} = adjustTimeRangeToDateFilters(DateUtils.getYearDateRange(yearGroupItem.year), existingDateFilter);
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
-                const {start: yearStart, end: yearEnd} = DateUtils.getYearDateRange(yearGroupItem.year);
                 newFlatFilters.push({
                     key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                     filters: [
@@ -1057,8 +1061,13 @@ function Search({
                 if (quarterGroupItem.year === undefined || quarterGroupItem.quarter === undefined) {
                     return;
                 }
+                // Extract the existing date filter to check for year-to-date or other date limits
+                const existingDateFilter = queryJSON.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
+                const {start: quarterStart, end: quarterEnd} = adjustTimeRangeToDateFilters(
+                    DateUtils.getQuarterDateRange(quarterGroupItem.year, quarterGroupItem.quarter),
+                    existingDateFilter,
+                );
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
-                const {start: quarterStart, end: quarterEnd} = DateUtils.getQuarterDateRange(quarterGroupItem.year, quarterGroupItem.quarter);
                 newFlatFilters.push({
                     key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                     filters: [
