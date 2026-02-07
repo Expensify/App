@@ -5,6 +5,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import DateUtils from '@libs/DateUtils';
 import {
+    canSendInvoiceFromWorkspace,
     getActivePolicies,
     getAllTaxRatesNamesAndValues,
     getCustomUnitsForDuplication,
@@ -1807,6 +1808,22 @@ describe('PolicyUtils', () => {
             };
             const result = getAllTaxRatesNamesAndValues(policies);
             expect(result.DUP_TAX).toEqual({name: 'First', value: '1'});
+        });
+    });
+
+    describe('canSendInvoiceFromWorkspace', () => {
+        it('returns true when areInvoicesEnabled is true', () => {
+            const policy = {areInvoicesEnabled: true} as Policy;
+            expect(canSendInvoiceFromWorkspace(policy)).toBe(true);
+        });
+
+        it('returns false when areInvoicesEnabled is false', () => {
+            const policy = {areInvoicesEnabled: false} as Policy;
+            expect(canSendInvoiceFromWorkspace(policy)).toBe(false);
+        });
+
+        it('returns false when policy is undefined', () => {
+            expect(canSendInvoiceFromWorkspace(undefined)).toBe(false);
         });
     });
 
