@@ -45,7 +45,8 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
         const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
         const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
         const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${props.route.params.reportID}`, {canEvict: false, canBeMissing: true});
-
+        const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+        const accountDelegateEmail = account?.delegatedAccess?.delegate ?? '';
         const parentReportAction = useParentReportAction(report);
         const linkedReportAction = useMemo(() => {
             let reportAction: OnyxEntry<OnyxTypes.ReportAction> = reportActions?.[`${props.route.params.reportActionID}`];
@@ -66,7 +67,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
             if (!shouldUseNarrowLayout || (!isEmptyObject(report) && !isEmptyObject(linkedReportAction))) {
                 return;
             }
-            openReport(props.route.params.reportID);
+            openReport(props.route.params.reportID, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined,undefined, undefined, accountDelegateEmail);
             // eslint-disable-next-line react-hooks/exhaustive-deps
         }, [shouldUseNarrowLayout, props.route.params.reportID]);
 

@@ -74,6 +74,8 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
             const isReportIdInRoute = !!props.route.params.reportID?.length;
             const isReportLoaded = !isEmptyObject(report) && !!report?.reportID;
             const isReportArchived = useReportIsArchived(report?.reportID);
+            const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+            const accountDelegateEmail = account?.delegatedAccess?.delegate ?? '';
             // The `isLoadingInitialReportActions` value will become `false` only after the first OpenReport API call is finished (either succeeded or failed)
             const shouldFetchReport = isReportIdInRoute && reportMetadata?.isLoadingInitialReportActions !== false;
 
@@ -85,7 +87,7 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
                     return;
                 }
 
-                openReport(props.route.params.reportID);
+                openReport(props.route.params.reportID, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined,undefined, undefined, accountDelegateEmail);
                 // eslint-disable-next-line react-hooks/exhaustive-deps
             }, [shouldFetchReport, isReportLoaded, props.route.params.reportID]);
 

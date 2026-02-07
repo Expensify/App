@@ -186,6 +186,8 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const accountDelegateEmail = account?.delegatedAccess?.delegate ?? '';
 
     const parentReportAction = useParentReportAction(reportOnyx);
 
@@ -598,7 +600,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             }
         }
 
-        openReport(reportIDFromRoute, reportActionIDFromRoute);
+        openReport(reportIDFromRoute, reportActionIDFromRoute, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined,undefined, undefined,accountDelegateEmail);
     }, [
         reportMetadata.isOptimisticReport,
         report,
@@ -612,6 +614,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         introSelected,
         isOnboardingCompleted,
         isInviteOnboardingComplete,
+        accountDelegateEmail,
     ]);
 
     useEffect(() => {

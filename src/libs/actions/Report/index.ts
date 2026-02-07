@@ -1057,6 +1057,7 @@ function openReport(
     parentReportID?: string,
     shouldAddPendingFields = true,
     optimisticSelfDMReport?: Report,
+    accountDelegateEmail?: string,
 ) {
     if (!reportID) {
         return;
@@ -1306,6 +1307,7 @@ function openReport(
                 engagementChoice: choice,
                 onboardingMessage,
                 companySize: introSelected?.companySize as OnboardingCompanySize,
+                accountDelegateEmail: accountDelegateEmail ?? '',
             });
 
             if (onboardingData) {
