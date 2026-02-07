@@ -5,75 +5,11 @@
 .search-icon {
     margin: auto 0px;
     margin-left: auto;
-}
-
-#sidebar-search {
-    background-color: var(--color-appBG);
-    width: 375px;
-    position: fixed;
-    display: flex;
-    flex-direction: column;
-    bottom: 0;
-    top: 0;
-    right: 0;
-    z-index: 2;
-}
-
-#sidebar-search > div:last-child {
-    flex-grow: 1;
-    overflow-y: auto;
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-    &::-webkit-scrollbar {
-        display: none;
-    }
-}
-
-@media only screen and (max-width: $breakpoint-tablet) {
-    #sidebar-search {
-        width: 100%;
-    }
-}
-
-.searchbar-title-wrapper {
-    display: flex;
-    align-items: center;
-    padding: 24px 20px;
-}
-
-.search-title {
-    font-size: 17px;
-    margin: 0;
-    padding: 0;
-    line-height: 24px;
-}
-
-#toggle-search-close {
-    display: flex;
-    align-items: center;
-    margin-right: 10px;
-}
-
-/* Sidebar Layer */
-#sidebar-layer {
-    position: fixed;
     display: none;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: var(--color-overlay);
-    z-index: 1;
-}
 
-.search-form {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 12px;
-    margin: 12px 20px 16px 20px;
+    @media only screen and (max-width: $breakpoint-tablet) {
+        display: block;
+    }
 }
 
 .search-input-wrapper {
@@ -164,6 +100,7 @@
     padding: 12px 20px;
     text-decoration: none;
     cursor: pointer;
+    border-radius: 8px;
     &:hover,
     &:focus {
         background-color: var(--color-highlightBG);
@@ -203,10 +140,60 @@
     height: 20px;
 }
 
-.search-loading,
+.lhn-search-form {
+    padding-bottom: 40px;
+}
+
+.lhn-search-input-wrapper {
+    height: 52px;
+    min-height: 52px;
+    background-color: var(--color-appBG);
+}
+
 .search-no-results,
 .search-error {
     padding: 0 20px;
     color: var(--color-text-supporting);
     font-size: 15px;
+}
+
+@keyframes skeleton-pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.skeleton-search-results {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.skeleton-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 20px 12px 0;
+}
+
+.skeleton-title,
+.skeleton-description {
+    border-radius: 4px;
+    background-color: var(--color-row-hover);
+    animation: skeleton-pulse 3s ease-in-out infinite;
+}
+
+.skeleton-title {
+    height: 15px;
+    width: 40%;
+    margin: 2.5px 0;
+}
+
+.skeleton-description {
+    height: 13px;
+    width: 70%;
+    margin: 1.5px 0;
 }

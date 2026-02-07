@@ -2,14 +2,45 @@
 ---
 
 <div class="homepage">
-    <h1 class="title">{{ site.data.routes.home.title }}</h1>
+    <div class="homepage-hero">
+        <div class="homepage-hero__content">
+            <h1 class="title homepage-title">{{ site.data.routes.home.title }}</h1>
+            <form id="homepage-search-form" class="homepage-search" action="/search">
+                <label class="search-input-wrapper homepage-search-input-wrapper" for="homepage-search-input">
+                    <input type="text" id="homepage-search-input" name="q" class="search-input" required autocomplete="off" />
+                    <span class="search-label">Search for something...</span>
+                </label>
+                <button type="submit" class="search-button homepage-search-button" aria-label="Search">
+                    <img src="/assets/images/search.svg" class="base-icon" />
+                </button>
+            </form>
+        </div>
+        <div class="homepage-hero__illustration">
+            <img src="/assets/images/playbook-help.svg" alt="ExpensifyHelp" />
+        </div>
+    </div>
 
-    <p>{{ site.data.routes.home.description }}</p>
+    <h2>Getting Started</h2>
+    <div class="cards-group getting-started-cards">
+        {% for card in site.data.routes.getting-started %}
+            <a class="hub-card" href="{{ card.href }}">
+                <div class="row">
+                    <div>
+                        <img class="icon" src="{{ card.icon }}" alt="{{ card.title }}" />
+                    </div>
+                    <div class="body">
+                        <h3 class="title with-margin">{{ card.title }}</h3>
+                        <p class="description">{{ card.description }}</p>
+                    </div>
+                </div>
+            </a>
+        {% endfor %}
+    </div>
 
-    <div class="cards-group">
-        {% for platform in site.data.routes.platforms %}
-            {% assign platform_href = platform.href %}
-            {% include platform-card.html href=platform.platform_href %}
+    <h2>Topics</h2>
+    <div class="cards-group getting-started-cards">
+        {% for topic in site.data.routes.topics %}
+            {% include topic-card.html topic=topic %}
         {% endfor %}
     </div>
 </div>
