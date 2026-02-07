@@ -15,6 +15,7 @@ import {canUseTouchScreen, hasHoverSupport} from '@libs/DeviceCapabilities';
 import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import getButtonState from '@libs/getButtonState';
+import getPlatform from '@libs/getPlatform';
 import mergeRefs from '@libs/mergeRefs';
 import Parser from '@libs/Parser';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
@@ -769,7 +770,7 @@ function MenuItem({
                                 role={role}
                                 accessibilityLabel={accessibilityLabel ?? defaultAccessibilityLabel}
                                 accessible={shouldBeAccessible}
-                                tabIndex={tabIndex}
+                                tabIndex={getPlatform() !== CONST.PLATFORM.WEB && !interactive ? -1 : tabIndex}
                                 onFocus={onFocus}
                                 sentryLabel={sentryLabel}
                             >
