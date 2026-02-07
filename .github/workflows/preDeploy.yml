@@ -21,7 +21,7 @@ jobs:
     secrets: inherit
 
   confirmPassingBuild:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: [typecheck, lint, test]
     if: ${{ always() }}
 
@@ -35,7 +35,7 @@ jobs:
           exit 1
 
   chooseDeployActions:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: confirmPassingBuild
     outputs:
       MERGED_PR: ${{ steps.getMergedPullRequest.outputs.number }}
@@ -68,7 +68,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
   skipDeploy:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: chooseDeployActions
     if: ${{ !fromJSON(needs.chooseDeployActions.outputs.SHOULD_DEPLOY) && github.actor != 'OSBotify' }}
     steps:

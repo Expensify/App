@@ -66,7 +66,7 @@ describe('SearchRouterUtils', () => {
                         params: {reportID: '11111'},
                     },
                     {
-                        name: SCREENS.RIGHT_MODAL.SEARCH_ROUTER,
+                        name: SCREENS.SEARCH_ROUTER.ROOT,
                         params: {},
                     },
                 ],
@@ -89,7 +89,7 @@ describe('SearchRouterUtils', () => {
                         params: {},
                     },
                     {
-                        name: SCREENS.RIGHT_MODAL.SEARCH_ROUTER,
+                        name: SCREENS.SEARCH_ROUTER.ROOT,
                         params: {},
                     },
                 ],
@@ -158,7 +158,7 @@ describe('SearchRouterUtils', () => {
                         params: {reportID: '99999'},
                     },
                     {
-                        name: SCREENS.RIGHT_MODAL.SEARCH_ROUTER,
+                        name: SCREENS.SEARCH_ROUTER.ROOT,
                         params: {},
                     },
                 ],

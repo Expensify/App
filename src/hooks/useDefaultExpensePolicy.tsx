@@ -14,10 +14,19 @@ export default function useDefaultExpensePolicy() {
     }
 
     // If there is exactly one group policy, use that as the default expense policy
-    const groupPolicies = Object.values(allPolicies ?? {}).filter((policy) => isPaidGroupPolicy(policy) && isPolicyAccessible(policy, login));
-    if (groupPolicies.length === 1) {
-        return groupPolicies.at(0);
+    let singlePolicy;
+    for (const policy of Object.values(allPolicies ?? {})) {
+        if (!policy || !isPaidGroupPolicy(policy) || !isPolicyAccessible(policy, login)) {
+            continue;
+        }
+
+        if (!singlePolicy) {
+            singlePolicy = policy;
+        } else {
+            singlePolicy = undefined;
+            break;
+        }
     }
 
-    return undefined;
+    return singlePolicy;
 }

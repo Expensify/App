@@ -78,9 +78,9 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const [selectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.SPLIT_EXPENSE_TAB_TYPE}`, {canBeMissing: true});
     const [draftTransaction, draftTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: false});
     const isLoadingDraftTransaction = isLoadingOnyxValue(draftTransactionMetadata);
-    const transactionReport = getReportOrDraftReport(draftTransaction?.reportID);
-    const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
-    const expenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? transactionReport : parentTransactionReport;
+    const draftTransactionReport = getReportOrDraftReport(draftTransaction?.reportID);
+    const parentTransactionReport = getReportOrDraftReport(draftTransactionReport?.parentReportID);
+    const expenseReport = draftTransactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? draftTransactionReport : parentTransactionReport;
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`, {canBeMissing: true});
     const [expenseReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`, {canBeMissing: true});
     const allTransactions = useAllTransactions();
@@ -95,7 +95,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const currentReport = report ?? searchContext?.currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`];
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getIOURequestPolicyID(transaction, currentReport)}`, {canBeMissing: true});
-
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const policy = usePolicy(currentReport?.policyID);
     const currentPolicy = Object.keys(policy?.employeeList ?? {}).length
         ? policy
@@ -123,8 +123,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const isPercentageMode = (selectedTab as string) === CONST.TAB.SPLIT.PERCENTAGE;
     const isDateMode = (selectedTab as string) === CONST.TAB.SPLIT.DATE;
     const childTransactions = getChildTransactions(allTransactions, allReports, transactionID);
-    const splitFieldDataFromChildTransactions = childTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction));
-    const splitFieldDataFromOriginalTransaction = initSplitExpenseItemData(transaction);
+    const splitFieldDataFromChildTransactions = childTransactions.map((childTransaction) => {
+        const childTransactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childTransaction?.reportID}`];
+        return initSplitExpenseItemData(childTransaction, childTransactionReport);
+    });
+    const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
+    const splitFieldDataFromOriginalTransaction = initSplitExpenseItemData(transaction, transactionReport);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const icons = useMemoizedLazyExpensifyIcons(['ArrowsLeftRight', 'Plus'] as const);
@@ -151,7 +155,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         if (draftTransaction?.errors) {
             clearSplitTransactionDraftErrors(transactionID);
         }
-        addSplitExpenseField(transaction, draftTransaction);
+        addSplitExpenseField(transaction, draftTransaction, transactionReport);
     };
 
     const onMakeSplitsEven = () => {
@@ -240,6 +244,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
             quickAction,
             iouReportNextStep,
+            betas,
         });
     };
 
@@ -482,7 +487,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                                                     data={options}
                                                     initiallyFocusedOptionKey={initiallyFocusedOptionKey ?? undefined}
                                                     onSelectRow={onSelectRow}
-                                                    listFooterContent={<View style={[shouldUseNarrowLayout && styles.mb3]} />}
+                                                    listFooterContent={listFooterContent}
                                                     mode={CONST.TAB.SPLIT.DATE}
                                                 />
                                                 {footerContent}

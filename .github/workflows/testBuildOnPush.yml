@@ -5,9 +5,13 @@ on:
     branches: [main]
     paths-ignore: ['docs/**', 'contributingGuides/**', 'help/**', '.github/**', 'scripts/**', 'tests/**', 'jest/**', '.claude/**']
 
+concurrency:
+  group: 'testBuildOnPush'
+  cancel-in-progress: false
+
 jobs:
   prep:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     outputs:
       APP_REF: ${{ github.sha }}
       APP_PR_NUMBER: ${{ steps.getMergedPullRequest.outputs.PR_NUMBER }}
@@ -73,7 +77,7 @@ jobs:
 
   postGitHubCommentBuildStarted:
     name: Post build started comment
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     if: ${{ needs.prep.outputs.POST_COMMENTS == 'true' }}
     needs: [prep]
     steps:
@@ -96,7 +100,7 @@ jobs:
     name: Build and deploy Web
     if: ${{ needs.prep.outputs.BUILD_WEB == 'true' && needs.prep.outputs.APP_PR_NUMBER }}
     needs: [prep]
-    runs-on: ubuntu-latest-xl
+    runs-on: blacksmith-16vcpu-ubuntu-2404
     env:
       PULL_REQUEST_NUMBER: ${{ needs.prep.outputs.APP_PR_NUMBER || '' }}
     steps:
@@ -135,7 +139,7 @@ jobs:
     name: Build Android HybridApp
     if: ${{ needs.prep.outputs.BUILD_MOBILE == 'true' }}
     needs: [prep]
-    runs-on: ubuntu-latest-xl
+    runs-on: blacksmith-16vcpu-ubuntu-2404
     env:
       PULL_REQUEST_NUMBER: ${{ needs.prep.outputs.APP_PR_NUMBER || '' }}
     outputs:
@@ -346,7 +350,7 @@ jobs:
         run: echo "ARTIFACT_URL=$ARTIFACT_URL" >> "$GITHUB_OUTPUT"
 
   postGithubComment:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     if: ${{ always() && needs.prep.outputs.POST_COMMENTS == 'true' }}
     name: Post a GitHub comment with app download links for testing
     needs: [prep, web, androidHybrid, iosHybrid]
@@ -372,7 +376,7 @@ jobs:
           WEB_LINK: https://${{ needs.prep.outputs.APP_PR_NUMBER }}.pr-testing.expensify.com
 
   buildSummary:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     if: ${{ always() && (needs.prep.outputs.APP_PR_NUMBER != '' || needs.androidHybrid.outputs.ROCK_ANDROID_ADHOC_INDEX_URL != '' || needs.iosHybrid.outputs.ROCK_IOS_ADHOC_INDEX_URL != '') }}
     name: Build Summary
     needs: [prep, web, androidHybrid, iosHybrid]
@@ -432,7 +436,6 @@ jobs:
               summary.addRaw(`\n**Mobile-Expensify Submodule SHA:** [${submoduleSHA}](${submoduleUrl})`);
             }
             
-
             const prUrl = '${{ needs.prep.outputs.PR_URL }}';
 
             if (prUrl) {
@@ -440,6 +443,5 @@ jobs:
             } else {
               summary.addRaw(`\n**PR Link:** No PR associated with this commit.`);
             }
-            
             
             summary.write();
