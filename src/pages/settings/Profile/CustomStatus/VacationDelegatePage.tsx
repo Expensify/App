@@ -2,13 +2,16 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import SelectionList from '@components/SelectionList/SelectionListWithSections';
+import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalDetailsByLogin from '@hooks/usePersonalDetailsByLogin';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchInServer} from '@libs/actions/Report';
@@ -34,6 +37,8 @@ function VacationDelegatePage() {
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
     const currentVacationDelegate = vacationDelegate?.delegate ?? '';
     const delegatePersonalDetails = getPersonalDetailByEmail(currentVacationDelegate);
+    const hasActiveDelegations = !!vacationDelegate?.delegatorFor?.length;
+    const personalDetailsByLogin = usePersonalDetailsByLogin();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
 
     const excludeLogins = useMemo(
@@ -166,6 +171,28 @@ function VacationDelegatePage() {
         ),
     };
 
+    const renderDelegatorList = () => {
+        return vacationDelegate?.delegatorFor?.map((delegatorEmail) => {
+            const delegatorDetails = personalDetailsByLogin[delegatorEmail.toLowerCase()];
+            const formattedLogin = formatPhoneNumber(delegatorDetails?.login ?? '');
+            const displayLogin = formattedLogin || delegatorEmail;
+
+            return (
+                <MenuItem
+                    key={delegatorEmail}
+                    title={delegatorDetails?.displayName ?? displayLogin}
+                    description={displayLogin}
+                    avatarID={delegatorDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
+                    icon={delegatorDetails?.avatar ?? icons.FallbackAvatar}
+                    iconType={CONST.ICON_TYPE_AVATAR}
+                    numberOfLinesDescription={1}
+                    containerStyle={[styles.pr2, styles.mt1]}
+                    interactive={false}
+                />
+            );
+        });
+    };
+
     return (
         <>
             <ScreenWrapper
@@ -176,20 +203,27 @@ function VacationDelegatePage() {
                     title={translate('statusPage.vacationDelegate')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_STATUS)}
                 />
-                <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                    <SelectionList
-                        sections={areOptionsInitialized ? sections : []}
-                        ListItem={UserListItem}
-                        onSelectRow={onSelectRow}
-                        textInputOptions={textInputOptions}
-                        showLoadingPlaceholder={!areOptionsInitialized}
-                        isLoadingNewOptions={!!isSearchingForReports}
-                        onEndReached={onListEndReached}
-                        disableMaintainingScrollPosition
-                        shouldSingleExecuteRowSelect
-                        shouldShowTextInput
-                    />
-                </View>
+                {hasActiveDelegations ? (
+                    <View style={[styles.mb2, styles.mt6]}>
+                        <Text style={[styles.mh5, styles.mb4]}>{translate('statusPage.cannotSetVacationDelegate')}</Text>
+                        {renderDelegatorList()}
+                    </View>
+                ) : (
+                    <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                        <SelectionList
+                            sections={areOptionsInitialized ? sections : []}
+                            ListItem={UserListItem}
+                            onSelectRow={onSelectRow}
+                            textInputOptions={textInputOptions}
+                            showLoadingPlaceholder={!areOptionsInitialized}
+                            isLoadingNewOptions={!!isSearchingForReports}
+                            onEndReached={onListEndReached}
+                            disableMaintainingScrollPosition
+                            shouldSingleExecuteRowSelect
+                            shouldShowTextInput
+                        />
+                    </View>
+                )}
             </ScreenWrapper>
             <ConfirmModal
                 isVisible={isWarningModalVisible}

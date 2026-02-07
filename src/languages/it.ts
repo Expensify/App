@@ -3136,6 +3136,7 @@ ${
         whenClearStatus: 'Quando dovremmo cancellare il tuo stato?',
         vacationDelegate: 'Delegato ferie',
         setVacationDelegate: `Imposta un delegato per le ferie per approvare i report per tuo conto mentre sei fuori ufficio.`,
+        cannotSetVacationDelegate: `Non puoi impostare un delegato per le ferie perché al momento sei il delegato per i seguenti membri:`,
         vacationDelegateError: 'Si è verificato un errore durante l’aggiornamento del tuo delegato per le ferie.',
         asVacationDelegate: ({nameOrEmail}: VacationDelegateParams) => `come delegato per le ferie di ${nameOrEmail}`,
         toAsVacationDelegate: ({submittedToName, vacationDelegateName}: SubmittedToVacationDelegateParams) => `a ${submittedToName} come delegato ferie per ${vacationDelegateName}`,
