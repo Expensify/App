@@ -57,7 +57,6 @@ describe('MultifactorAuthentication Scenarios Config', () => {
             expect(scenarioConfig).toHaveProperty('action');
             expect(scenarioConfig).toHaveProperty('allowedAuthenticationMethods');
             expect(scenarioConfig).toHaveProperty('screen');
-            expect(scenarioConfig).toHaveProperty('nativePromptTitle');
         }
     });
 

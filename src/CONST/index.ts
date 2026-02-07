@@ -21,6 +21,12 @@ import {LOCALES} from './LOCALES';
 const EMPTY_ARRAY = Object.freeze([]);
 const EMPTY_OBJECT = Object.freeze({});
 const EMPTY_SET = new Set<string>();
+const EMPTY_TODOS_REPORT_COUNTS = Object.freeze({
+    submit: 0,
+    approve: 0,
+    pay: 0,
+    export: 0,
+});
 
 // Using 28 days to align with OldDot and because all months are guaranteed to be at least 28 days.
 const MONTH_DAYS = Object.freeze([...Array(28).keys()].map((i) => i + 1));
@@ -743,10 +749,10 @@ const CONST = {
         EUR_BILLING: 'eurBilling',
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         UBER_FOR_BUSINESS: 'uberForBusiness',
-        CUSTOM_REPORT_NAMES: 'newExpensifyCustomReportNames',
-        ZERO_EXPENSES: 'zeroExpenses',
         NEW_DOT_DEW: 'newDotDEW',
         GPS_MILEAGE: 'gpsMileage',
+        NEW_DOT_HOME: 'newDotHome',
+        SINGLE_USE_AND_EXPIRE_BY_CARDS: 'singleUseAndExpireByCards',
         PERSONAL_CARD_IMPORT: 'personalCardImport',
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
     },
@@ -985,6 +991,7 @@ const CONST = {
     EMPTY_ARRAY,
     EMPTY_OBJECT,
     EMPTY_SET,
+    EMPTY_TODOS_REPORT_COUNTS,
     DEFAULT_NUMBER_ID,
     DEFAULT_MISSING_ID,
     DEFAULT_COUNTRY_CODE,
@@ -1720,6 +1727,8 @@ const CONST = {
         CONTEXT_FULLSTORY: 'Fullstory',
         CONTEXT_POLICIES: 'Policies',
         TAG_ACTIVE_POLICY: 'active_policy_id',
+        TAG_POLICIES_COUNT: 'policies_count',
+        TAG_REPORTS_COUNT: 'reports_count',
         TAG_NUDGE_MIGRATION_COHORT: 'nudge_migration_cohort',
         TAG_AUTHENTICATION_FUNCTION: 'authentication_function',
         TAG_AUTHENTICATION_ERROR_TYPE: 'authentication_error_type',
@@ -2981,6 +2990,10 @@ const CONST = {
             DISTANCE_ODOMETER: 'distance-odometer',
             TIME: 'time',
         },
+        ODOMETER_IMAGE_TYPE: {
+            START: 'start',
+            END: 'end',
+        },
         EXPENSE_TYPE: {
             DISTANCE: 'distance',
             MANUAL: 'manual',
@@ -3511,6 +3524,7 @@ const CONST = {
             AMEX_DIRECT: 'oauth.americanexpressfdx.com',
             AMEX_FILE_DOWNLOAD: 'americanexpressfd.us',
             CSV: 'ccupload',
+            MOCK_BANK: 'oauth.mockbank.com',
         },
         FEED_KEY_SEPARATOR: '#',
         CARD_NUMBER_MASK_CHAR: 'X',
@@ -3558,18 +3572,21 @@ const CONST = {
             SMART: 'smart',
             MONTHLY: 'monthly',
             FIXED: 'fixed',
+            SINGLE_USE: 'singleUse',
         },
         LIMIT_VALUE: 21474836,
         STEP_NAMES: ['1', '2', '3', '4', '5'],
         ASSIGNEE_EXCLUDED_STEP_NAMES: ['1', '2', '3', '4'],
+        SINGLE_USE_DISABLED_STEP_NAMES: ['1', '2', '3', '4'],
+        SINGLE_USE_AND_ASSIGNEE_EXCLUDED_STEP_NAMES: ['1', '2', '3'],
         STEP: {
             ASSIGNEE: 'Assignee',
             CARD_TYPE: 'CardType',
             LIMIT_TYPE: 'LimitType',
-            LIMIT: 'Limit',
             CARD_NAME: 'CardName',
             CONFIRMATION: 'Confirmation',
             INVITE_NEW_MEMBER: 'InviteNewMember',
+            EXPIRY_OPTIONS: 'ExpiryOptions',
         },
         CARD_TYPE: {
             PHYSICAL: 'physical',
@@ -3625,6 +3642,7 @@ const CONST = {
             CITI_BANK: 'Citibank',
             STRIPE: 'Stripe',
             WELLS_FARGO: 'Wells Fargo',
+            MOCK_BANK: 'Mock Bank',
             OTHER: 'Other',
         },
         BANK_CONNECTIONS: {
@@ -3635,6 +3653,7 @@ const CONST = {
             CAPITAL_ONE: 'capitalone',
             CITI_BANK: 'citibank',
             AMEX: 'americanexpressfdx',
+            MOCK_BANK: 'mockbank',
         },
         AMEX_CUSTOM_FEED: {
             CORPORATE: 'American Express Corporate Cards',
@@ -5556,10 +5575,6 @@ const CONST = {
         DISABLED: 'DISABLED',
         DISABLE: 'DISABLE',
     },
-    MULTIFACTOR_AUTHENTICATION_OUTCOME_TYPE: {
-        SUCCESS: 'success',
-        FAILURE: 'failure',
-    },
     MERGE_ACCOUNT_RESULTS: {
         SUCCESS: 'success',
         ERR_2FA: 'err_2fa',
@@ -7173,6 +7188,7 @@ const CONST = {
         VIEW: {
             TABLE: 'table',
             BAR: 'bar',
+            LINE: 'line',
         },
         SYNTAX_FILTER_KEYS: {
             TYPE: 'type',
@@ -7458,7 +7474,14 @@ const CONST = {
         CASH_BACK: 'earnedCashback',
     },
 
-    EXCLUDE_FROM_LAST_VISITED_PATH: [SCREENS.NOT_FOUND, SCREENS.SAML_SIGN_IN, SCREENS.VALIDATE_LOGIN, SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT, SCREENS.MONEY_REQUEST.STEP_SCAN] as string[],
+    EXCLUDE_FROM_LAST_VISITED_PATH: [
+        SCREENS.NOT_FOUND,
+        SCREENS.SAML_SIGN_IN,
+        SCREENS.VALIDATE_LOGIN,
+        SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT,
+        SCREENS.MONEY_REQUEST.STEP_SCAN,
+        ...Object.values(SCREENS.MULTIFACTOR_AUTHENTICATION),
+    ] as string[],
 
     CANCELLATION_TYPE: {
         MANUAL: 'manual',
@@ -7924,7 +7947,7 @@ const CONST = {
          * The Travel Invoicing feed type constant.
          * This feed is used for Travel Invoicing cards which are separate from regular Expensify Cards.
          */
-        PROGRAM_TRAVEL_US: 'TRAVEL_US',
+        PROGRAM_TRAVEL_US: 'PROGRAM_TRAVEL_US',
     },
     LAST_PAYMENT_METHOD: {
         LAST_USED: 'lastUsed',
@@ -8024,6 +8047,10 @@ const CONST = {
             NEW_WORKSPACE: 'FABMenu-NewWorkspace',
             QUICK_ACTION: 'FABMenu-QuickAction',
         },
+        ODOMETER_EXPENSE: {
+            CAPTURE_IMAGE_START: 'IOURequestStepDistanceOdometer-CaptureStartImage',
+            CAPTURE_IMAGE_END: 'IOURequestStepDistanceOdometer-CaptureEndImage',
+        },
         ATTACHMENT_CAROUSEL: {
             PREVIOUS_BUTTON: 'AttachmentCarousel-PreviousButton',
             NEXT_BUTTON: 'AttachmentCarousel-NextButton',
@@ -8068,6 +8095,8 @@ const CONST = {
         SEARCH: {
             SEARCH_BUTTON: 'Search-SearchButton',
             USER_SELECTION_CHECKBOX: 'Search-UserSelectionCheckbox',
+            TRANSACTION_GROUP_LIST_ITEM: 'Search-TransactionGroupListItem',
+            SELECT_ALL_BUTTON: 'Search-SelectAllButton',
         },
         REPORT: {
             FLOATING_MESSAGE_COUNTER: 'Report-FloatingMessageCounter',
@@ -8103,6 +8132,12 @@ const CONST = {
         LHN: {
             OPTION_ROW: 'LHN-OptionRow',
         },
+        SELECTION_LIST: {
+            BASE_LIST_ITEM: 'SelectionList-BaseListItem',
+        },
+        SELECTION_LIST_WITH_SECTIONS: {
+            BASE_LIST_ITEM: 'SelectionListWithSections-BaseListItem',
+        },
         CONTEXT_MENU: {
             REPLY_IN_THREAD: 'ContextMenu-ReplyInThread',
             MARK_AS_UNREAD: 'ContextMenu-MarkAsUnread',
@@ -8133,6 +8168,7 @@ const CONST = {
             EXPORT: 'MoreMenu-Export',
             EXPORT_FILE: 'MoreMenu-ExportFile',
             DOWNLOAD_PDF: 'MoreMenu-DownloadPDF',
+            CLOSE_PDF_MODAL: 'MoreMenu-ClosePDFModal',
             SUBMIT: 'MoreMenu-Submit',
             APPROVE: 'MoreMenu-Approve',
             UNAPPROVE: 'MoreMenu-Unapprove',
@@ -8164,6 +8200,11 @@ const CONST = {
             EXPORT_BUTTON: 'ReportPreview-ExportButton',
             VIEW_BUTTON: 'ReportPreview-ViewButton',
             ADD_EXPENSE_BUTTON: 'ReportPreview-AddExpenseButton',
+        },
+        REQUEST_CONFIRMATION_LIST: {
+            RESET_SPLIT_SHARES: 'RequestConfirmationList-ResetSplitShares',
+            RECEIPT_THUMBNAIL: 'RequestConfirmationList-ReceiptThumbnail',
+            PDF_RECEIPT_THUMBNAIL: 'RequestConfirmationList-PDFReceiptThumbnail',
         },
         TRANSACTION_PREVIEW: {
             CARD: 'TransactionPreview-Card',
@@ -8214,6 +8255,31 @@ const CONST = {
             PREV_MONTH: 'CalendarPicker-PrevMonth',
             NEXT_MONTH: 'CalendarPicker-NextMonth',
             DAY: 'CalendarPicker-Day',
+        },
+        REPORT_DETAILS: {
+            WORKSPACE_LINK: 'ReportDetails-WorkspaceLink',
+        },
+        REANIMATED_MODAL: {
+            BACKDROP: 'ReanimatedModal-Backdrop',
+        },
+        REQUEST_STEP: {
+            SCAN: {
+                MULTI_SCAN: 'Scan-MultiScan',
+                FLASH: 'Scan-Flash',
+                CHOOSE_FILE: 'Scan-ChooseFile',
+                CHOOSE_FILES: 'Scan-ChooseFiles',
+                SHUTTER: 'Scan-Shutter',
+            },
+        },
+        NEW_CHAT: {
+            SELECT_PARTICIPANT: 'NewChat-SelectParticipant',
+        },
+        WORKSPACE_EXPENSIFY_CARD: {
+            CARD_LIST_ROW: 'WorkspaceExpensifyCard-CardListRow',
+        },
+        WORKSPACE: {
+            TOGGLE_SETTINGS_ROW: 'Workspace-ToggleSettingsRow',
+            WORKSPACE_MENU_ITEM: 'Workspace-WorkspaceMenuItem',
         },
     },
 
@@ -8297,13 +8363,26 @@ type Country = keyof typeof CONST.ALL_COUNTRIES;
 type IOUType = ValueOf<typeof CONST.IOU.TYPE>;
 type IOUAction = ValueOf<typeof CONST.IOU.ACTION>;
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
+type OdometerImageType = ValueOf<typeof CONST.IOU.ODOMETER_IMAGE_TYPE>;
 type FeedbackSurveyOptionID = ValueOf<Pick<ValueOf<typeof CONST.FEEDBACK_SURVEY_OPTIONS>, 'ID'>>;
 type IOUActionParams = ValueOf<typeof CONST.IOU.ACTION_PARAMS>;
 
 type SubscriptionType = ValueOf<typeof CONST.SUBSCRIPTION.TYPE>;
 type CancellationType = ValueOf<typeof CONST.CANCELLATION_TYPE>;
 
-export type {Country, IOUAction, IOUType, IOURequestType, SubscriptionType, FeedbackSurveyOptionID, CancellationType, OnboardingInvite, OnboardingAccounting, IOUActionParams};
+export type {
+    Country,
+    IOUAction,
+    IOUType,
+    IOURequestType,
+    OdometerImageType,
+    SubscriptionType,
+    FeedbackSurveyOptionID,
+    CancellationType,
+    OnboardingInvite,
+    OnboardingAccounting,
+    IOUActionParams,
+};
 
 export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS, TASK_TO_FEATURE, FRAUD_PROTECTION_EVENT, COUNTRIES_US_BANK_FLOW};
 

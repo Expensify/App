@@ -6,9 +6,9 @@ describe('MultifactorAuthentication Biometrics SecureStore (native)', () => {
         expect(SECURE_STORE_VALUES.AUTH_TYPE.NONE.NAME).toBe('None');
         expect(SECURE_STORE_VALUES.AUTH_TYPE.CREDENTIALS.NAME).toBe('Credentials');
         expect(SECURE_STORE_VALUES.AUTH_TYPE.BIOMETRICS.NAME).toBe('Biometrics');
-        expect(SECURE_STORE_VALUES.AUTH_TYPE.FACE_ID.NAME).toBe('FaceID');
-        expect(SECURE_STORE_VALUES.AUTH_TYPE.TOUCH_ID.NAME).toBe('TouchID');
-        expect(SECURE_STORE_VALUES.AUTH_TYPE.OPTIC_ID.NAME).toBe('OpticID');
+        expect(SECURE_STORE_VALUES.AUTH_TYPE.FACE_ID.NAME).toBe('Face ID');
+        expect(SECURE_STORE_VALUES.AUTH_TYPE.TOUCH_ID.NAME).toBe('Touch ID');
+        expect(SECURE_STORE_VALUES.AUTH_TYPE.OPTIC_ID.NAME).toBe('Optic ID');
     });
 
     it('exposes wrapper methods as functions', () => {
