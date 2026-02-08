@@ -30,10 +30,12 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const ancestors = useAncestors(report);
 
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
+
     // We first check if the report is part of a policy - if not, then it's a personal request (1:1 request)
     // For personal requests, we need to allow both users to put the request on hold
     const isWorkspaceRequest = isReportInGroupPolicy(report);
-    const isApprover = !isCurrentUserSubmitter(report);
+    const isApprover = !isCurrentUserSubmitter(parentReport);
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
 
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
