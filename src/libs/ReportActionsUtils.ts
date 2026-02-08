@@ -1987,11 +1987,12 @@ function getTravelUpdateMessage(
                 });
             }
             if (details.type === CONST.RESERVATION_TYPE.TRAIN) {
-                return translate('travel.updates.railTicketUpdate', {
-                    origin: details.start.cityName ?? details.start.shortName ?? '',
-                    destination: details.end.cityName ?? details.end.shortName ?? '',
-                    startDate: formattedStartDate,
-                });
+                return translate(
+                    'travel.updates.railTicketUpdate',
+                    details.start.cityName ?? details.start.shortName ?? '',
+                    details.end.cityName ?? details.end.shortName ?? '',
+                    formattedStartDate,
+                );
             }
             return translate('travel.updates.flightUpdated', details.route?.airlineCode ?? '', details.start.shortName ?? '', details.end?.shortName ?? '', formattedStartDate);
 
@@ -2002,27 +2003,30 @@ function getTravelUpdateMessage(
                 });
             }
             if (details.type === CONST.RESERVATION_TYPE.TRAIN) {
-                return translate('travel.updates.railTicketUpdate', {
-                    origin: details.start.cityName ?? details.start.shortName ?? '',
-                    destination: details.end.cityName ?? details.end.shortName ?? '',
-                    startDate: formattedStartDate,
-                });
+                return translate(
+                    'travel.updates.railTicketUpdate',
+                    details.start.cityName ?? details.start.shortName ?? '',
+                    details.end.cityName ?? details.end.shortName ?? '',
+                    formattedStartDate,
+                );
             }
             return translate('travel.updates.flightUpdated', details.route?.airlineCode ?? '', details.start.shortName ?? '', details.end?.shortName ?? '', formattedStartDate);
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.REFUND:
-            return translate('travel.updates.railTicketRefund', {
-                origin: details.start.cityName ?? details.start.shortName ?? '',
-                destination: details.end.cityName ?? details.end.shortName ?? '',
-                startDate: formattedStartDate,
-            });
+            return translate(
+                'travel.updates.railTicketRefund',
+                details.start.cityName ?? details.start.shortName ?? '',
+                details.end.cityName ?? details.end.shortName ?? '',
+                formattedStartDate,
+            );
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.EXCHANGE:
-            return translate('travel.updates.railTicketExchange', {
-                origin: details.start.cityName ?? details.start.shortName ?? '',
-                destination: details.end.cityName ?? details.end.shortName ?? '',
-                startDate: formattedStartDate,
-            });
+            return translate(
+                'travel.updates.railTicketExchange',
+                details.start.cityName ?? details.start.shortName ?? '',
+                details.end.cityName ?? details.end.shortName ?? '',
+                formattedStartDate,
+            );
 
         default:
             return translate('travel.updates.defaultUpdate', {
@@ -2989,34 +2993,19 @@ function getWorkspaceReportFieldUpdateMessage(translate: LocalizedTranslate, act
     }
 
     if (updateType === 'addedOption' && fieldName && optionName) {
-        return translate('workspaceActions.addedReportFieldOption', {
-            fieldName,
-            optionName,
-        });
+        return translate('workspaceActions.addedReportFieldOption', fieldName, optionName);
     }
 
     if (updateType === 'changedOptionDisabled' && fieldName && optionName) {
-        return translate('workspaceActions.updateReportFieldOptionDisabled', {
-            fieldName,
-            optionName,
-            optionEnabled: !!optionEnabled,
-        });
+        return translate('workspaceActions.updateReportFieldOptionDisabled', fieldName, optionName, !!optionEnabled);
     }
 
     if (updateType === 'updatedAllDisabled' && fieldName && optionName) {
-        return translate('workspaceActions.updateReportFieldAllOptionsDisabled', {
-            fieldName,
-            optionName,
-            allEnabled: !!allEnabled,
-            toggledOptionsCount,
-        });
+        return translate('workspaceActions.updateReportFieldAllOptionsDisabled', fieldName, optionName, !!allEnabled, toggledOptionsCount);
     }
 
     if (updateType === 'removedOption' && fieldName && optionName) {
-        return translate('workspaceActions.removedReportFieldOption', {
-            fieldName,
-            optionName,
-        });
+        return translate('workspaceActions.removedReportFieldOption', fieldName, optionName);
     }
 
     return getReportActionText(action);
@@ -3528,12 +3517,7 @@ function getRemovedConnectionMessage(translate: LocalizedTranslate, reportAction
 
 function getRenamedAction(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>>, isExpenseReport: boolean, actorName?: string) {
     const originalMessage = getOriginalMessage(reportAction);
-    return translate('newRoomPage.renamedRoomAction', {
-        actorName,
-        isExpenseReport,
-        oldName: originalMessage?.oldName ?? '',
-        newName: originalMessage?.newName ?? '',
-    });
+    return translate('newRoomPage.renamedRoomAction', originalMessage?.oldName ?? '', originalMessage?.newName ?? '', isExpenseReport, actorName);
 }
 
 function getAddedApprovalRuleMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>) {

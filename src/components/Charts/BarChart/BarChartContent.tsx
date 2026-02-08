@@ -3,50 +3,35 @@ import React, {useCallback, useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import Animated, {useSharedValue} from 'react-native-reanimated';
-import type {ChartBounds, PointsArray} from 'victory-native';
+import type {ChartBounds, PointsArray, Scale} from 'victory-native';
 import {Bar, CartesianChart} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
-import {getChartColor} from '@components/Charts/chartColors';
-import ChartHeader from '@components/Charts/ChartHeader';
-import ChartTooltip from '@components/Charts/ChartTooltip';
-import {
-    BAR_INNER_PADDING,
-    BAR_ROUNDED_CORNERS,
-    CHART_COLORS,
-    CHART_CONTENT_MIN_HEIGHT,
-    CHART_PADDING,
-    DEFAULT_SINGLE_BAR_COLOR_INDEX,
-    DOMAIN_PADDING,
-    DOMAIN_PADDING_SAFETY_BUFFER,
-    FRAME_LINE_WIDTH,
-    X_AXIS_LINE_WIDTH,
-    Y_AXIS_LABEL_OFFSET,
-    Y_AXIS_LINE_WIDTH,
-    Y_AXIS_TICK_COUNT,
-} from '@components/Charts/constants';
+import ChartHeader from '@components/Charts/components/ChartHeader';
+import ChartTooltip from '@components/Charts/components/ChartTooltip';
+import {CHART_CONTENT_MIN_HEIGHT, CHART_PADDING, X_AXIS_LINE_WIDTH, Y_AXIS_LABEL_OFFSET, Y_AXIS_LINE_WIDTH, Y_AXIS_TICK_COUNT} from '@components/Charts/constants';
 import fontSource from '@components/Charts/font';
 import type {HitTestArgs} from '@components/Charts/hooks';
-import {useChartInteractions, useChartLabelFormats, useChartLabelLayout} from '@components/Charts/hooks';
-import type {BarChartProps} from '@components/Charts/types';
+import {useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useTooltipData} from '@components/Charts/hooks';
+import type {CartesianChartProps, ChartDataPoint} from '@components/Charts/types';
+import {calculateMinDomainPadding, DEFAULT_CHART_COLOR, getChartColor} from '@components/Charts/utils';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
-/**
- * Calculate minimum domainPadding required to prevent bars from overflowing chart edges.
- *
- * The issue: victory-native calculates bar width as (1 - innerPadding) * chartWidth / barCount,
- * but positions bars at indices [0, 1, ..., n-1] scaled to the chart width with domainPadding.
- * For small bar counts, the default padding is insufficient and bars overflow.
- */
-function calculateMinDomainPadding(chartWidth: number, barCount: number, innerPadding: number): number {
-    if (barCount <= 0) {
-        return 0;
-    }
-    const minPaddingRatio = (1 - innerPadding) / (2 * (barCount - 1 + innerPadding));
-    return Math.ceil(chartWidth * minPaddingRatio * DOMAIN_PADDING_SAFETY_BUFFER);
-}
+/** Inner padding between bars (0.3 = 30% of bar width) */
+const BAR_INNER_PADDING = 0.3;
+
+/** Extra pixel spacing between the chart boundary and the data range, applied per side (Victory's `domainPadding` prop) */
+const BASE_DOMAIN_PADDING = {top: 32, bottom: 0, left: 0, right: 0};
+
+type BarChartProps = CartesianChartProps & {
+    /** Callback when a bar is pressed */
+    onBarPress?: (dataPoint: ChartDataPoint, index: number) => void;
+
+    /** When true, all bars use the same color. When false (default), each bar uses a different color from the palette. */
+    useSingleColor?: boolean;
+};
 
 function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUnitPosition = 'left', useSingleColor = false, onBarPress}: BarChartProps) {
     const theme = useTheme();
@@ -55,9 +40,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
     const font = useFont(fontSource, variables.iconSizeExtraSmall);
     const [chartWidth, setChartWidth] = useState(0);
     const [barAreaWidth, setBarAreaWidth] = useState(0);
-    const [containerHeight, setContainerHeight] = useState(0);
-
-    const defaultBarColor = CHART_COLORS.at(DEFAULT_SINGLE_BAR_COLOR_INDEX);
+    const defaultBarColor = DEFAULT_CHART_COLOR;
 
     // prepare data for display
     const chartData = useMemo(() => {
@@ -67,9 +50,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
         }));
     }, [data]);
 
-    // Anchor Y-axis at zero so the baseline is always visible.
-    // When negative values are present, let victory-native auto-calculate the domain to avoid clipping.
-    const yAxisDomain = useMemo((): [number] | undefined => (data.some((point) => point.total < 0) ? undefined : [0]), [data]);
+    const yAxisDomain = useDynamicYDomain(data);
 
     // Handle bar press callback
     const handleBarPress = useCallback(
@@ -86,25 +67,22 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
     );
 
     const handleLayout = useCallback((event: LayoutChangeEvent) => {
-        const {width, height} = event.nativeEvent.layout;
-        setChartWidth(width);
-        setContainerHeight(height);
+        setChartWidth(event.nativeEvent.layout.width);
     }, []);
 
-    const {labelRotation, labelSkipInterval, truncatedLabels, maxLabelLength} = useChartLabelLayout({
+    const {labelRotation, labelSkipInterval, truncatedLabels, xAxisLabelHeight} = useChartLabelLayout({
         data,
         font,
-        chartWidth,
-        barAreaWidth,
-        containerHeight,
+        tickSpacing: barAreaWidth > 0 ? barAreaWidth / data.length : 0,
+        labelAreaWidth: barAreaWidth,
     });
 
     const domainPadding = useMemo(() => {
         if (chartWidth === 0) {
-            return {left: 0, right: 0, top: DOMAIN_PADDING.top, bottom: DOMAIN_PADDING.bottom};
+            return BASE_DOMAIN_PADDING;
         }
         const horizontalPadding = calculateMinDomainPadding(chartWidth, data.length, BAR_INNER_PADDING);
-        return {left: horizontalPadding, right: horizontalPadding + DOMAIN_PADDING.right, top: DOMAIN_PADDING.top, bottom: DOMAIN_PADDING.bottom};
+        return {...BASE_DOMAIN_PADDING, left: horizontalPadding, right: horizontalPadding};
     }, [chartWidth, data.length]);
 
     const {formatXAxisLabel, formatYAxisLabel} = useChartLabelFormats({
@@ -134,7 +112,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
     );
 
     const handleScaleChange = useCallback(
-        (_xScale: unknown, yScale: (value: number) => number) => {
+        (_xScale: Scale, yScale: Scale) => {
             barGeometry.set({
                 ...barGeometry.get(),
                 yZero: yScale(0),
@@ -169,29 +147,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
         barGeometry,
     });
 
-    const tooltipData = useMemo(() => {
-        if (activeDataIndex < 0 || activeDataIndex >= data.length) {
-            return null;
-        }
-        const dataPoint = data.at(activeDataIndex);
-        if (!dataPoint) {
-            return null;
-        }
-        const formatted = dataPoint.total.toLocaleString();
-        let formattedAmount = formatted;
-        if (yAxisUnit) {
-            // Add space for multi-character codes (e.g., "PLN 100") but not for symbols (e.g., "$100")
-            const separator = yAxisUnit.length > 1 ? ' ' : '';
-            formattedAmount = yAxisUnitPosition === 'left' ? `${yAxisUnit}${separator}${formatted}` : `${formatted}${separator}${yAxisUnit}`;
-        }
-        const totalSum = data.reduce((sum, point) => sum + Math.abs(point.total), 0);
-        const percent = totalSum > 0 ? Math.round((Math.abs(dataPoint.total) / totalSum) * 100) : 0;
-        return {
-            label: dataPoint.label,
-            amount: formattedAmount,
-            percentage: percent < 1 ? '<1%' : `${percent}%`,
-        };
-    }, [activeDataIndex, data, yAxisUnit, yAxisUnitPosition]);
+    const tooltipData = useTooltipData(activeDataIndex, data, yAxisUnit, yAxisUnitPosition);
 
     const renderBar = useCallback(
         (point: PointsArray[number], chartBounds: ChartBounds, barCount: number) => {
@@ -207,7 +163,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
                     color={barColor}
                     barCount={barCount}
                     innerPadding={BAR_INNER_PADDING}
-                    roundedCorners={BAR_ROUNDED_CORNERS}
+                    roundedCorners={{topLeft: 8, topRight: 8, bottomLeft: 8, bottomRight: 8}}
                 />
             );
         },
@@ -218,9 +174,9 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
     // This keeps bar area at ~250px while giving labels their needed vertical space
     const dynamicChartStyle = useMemo(
         () => ({
-            height: CHART_CONTENT_MIN_HEIGHT + (maxLabelLength ?? 0),
+            height: CHART_CONTENT_MIN_HEIGHT + (xAxisLabelHeight ?? 0),
         }),
-        [maxLabelLength],
+        [xAxisLabelHeight],
     );
 
     if (isLoading || !font) {
@@ -242,7 +198,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
                 titleIcon={titleIcon}
             />
             <View
-                style={[styles.barChartChartContainer, labelRotation === -90 ? dynamicChartStyle : undefined]}
+                style={[styles.barChartChartContainer, dynamicChartStyle]}
                 onLayout={handleLayout}
             >
                 {chartWidth > 0 && (
@@ -276,7 +232,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
                                 domain: yAxisDomain,
                             },
                         ]}
-                        frame={{lineWidth: FRAME_LINE_WIDTH}}
+                        frame={{lineWidth: 0}}
                         data={chartData}
                     >
                         {({points, chartBounds}) => <>{points.y.map((point) => renderBar(point, chartBounds, points.y.length))}</>}
@@ -297,3 +253,4 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
 }
 
 export default BarChartContent;
+export type {BarChartProps};

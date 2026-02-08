@@ -34,7 +34,8 @@ const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoring
 
 function getSelectedOptionData(option: Option): OptionData {
     // eslint-disable-next-line rulesdir/no-default-id-values
-    return {...option, selected: true, reportID: option.reportID ?? '-1'};
+    const reportID = option.reportID ?? '-1';
+    return {...option, selected: true, reportID, keyForList: option.keyForList ?? reportID};
 }
 
 /**
@@ -51,6 +52,7 @@ function getOptionDataFromAttendee(attendee: Attendee): OptionData {
         accountID: attendee.accountID ?? CONST.DEFAULT_NUMBER_ID,
         // eslint-disable-next-line rulesdir/no-default-id-values
         reportID: '-1',
+        keyForList: `${attendee.accountID ?? attendee.email}`,
         selected: true,
         icons: attendee.avatarUrl
             ? [
