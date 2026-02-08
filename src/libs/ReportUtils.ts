@@ -8851,17 +8851,18 @@ function generateIsEmptyReport(report: OnyxEntry<Report>, isReportArchived: bool
     return !lastVisibleMessage.lastMessageText;
 }
 
-// We need oneTransactionThreadReport to get the correct last visible action created
-function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEntry<Report>, isReportArchived: boolean | undefined): boolean {
-    if (!report) {
-        return false;
+/**
+ * Get the latest report action from other users
+ * @param reportActions - The report actions
+ * @param currentUserAccountID - The current user account ID
+ * @returns The latest report action from other users
+ */
+function getLatestReportActionFromOtherUsers(reportActions: ReportActions | null, currentUserAccountID: number | undefined): ReportAction | null {
+    if (!currentUserAccountID) {
+        return null;
     }
 
-    if (isEmptyReport(report, isReportArchived)) {
-        return false;
-    }
-    const reportActions = getAllReportActions(report.reportID);
-    const latestReportActionFromOtherUsers = Object.values(reportActions ?? {}).reduce((latest: ReportAction | null, current: ReportAction) => {
+    return Object.values(reportActions ?? {}).reduce((latest: ReportAction | null, current: ReportAction) => {
         if (
             !isDeletedAction(current) &&
             current.actorAccountID !== currentUserAccountID &&
@@ -8872,6 +8873,19 @@ function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEnt
         }
         return latest;
     }, null);
+}
+
+// We need oneTransactionThreadReport to get the correct last visible action created
+function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEntry<Report>, isReportArchived: boolean | undefined): boolean {
+    if (!report) {
+        return false;
+    }
+
+    if (isEmptyReport(report, isReportArchived)) {
+        return false;
+    }
+    const reportActions = getAllReportActions(report.reportID);
+    const latestReportActionFromOtherUsers = getLatestReportActionFromOtherUsers(reportActions, currentUserAccountID);
 
     // lastVisibleActionCreated and lastReadTime are both datetime strings and can be compared directly
     const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, oneTransactionThreadReport);
@@ -13224,6 +13238,7 @@ export {
     getBillableAndTaxTotal,
     getReportForHeader,
     isReportOpenOrUnsubmitted,
+    getLatestReportActionFromOtherUsers,
 };
 
 export type {
