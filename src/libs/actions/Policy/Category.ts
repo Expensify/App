@@ -338,7 +338,6 @@ function updateImportSpreadsheetData({added, updated}: {added: number; updated: 
     return onyxData;
 }
 
-
 function openPolicyCategoriesPage(policyID: string) {
     if (!policyID) {
         Log.warn('openPolicyCategoriesPage invalid params', {policyID});
@@ -843,43 +842,35 @@ function createPolicyCategory({
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE_CATEGORIES, parameters, onyxData);
 }
 
-function importPolicyCategories(
-    policyID: string,
-    categories: PolicyCategory[],
-    existingCategories?: OnyxEntry<PolicyCategories>,
-) {
+function importPolicyCategories(policyID: string, categories: PolicyCategory[], existingCategories?: OnyxEntry<PolicyCategories>) {
     const policyCategories = existingCategories ?? {};
     const hasExistingCategories = Object.keys(policyCategories).length > 0;
+    const seenNames = new Set<string>();
 
-const {added, updated} = categories.reduce(
-    (acc, category) => {
-        if (!category.name) {
+    const {added, updated} = categories.reduce(
+        (acc, category) => {
+            const name = category.name?.trim();
+            if (!name || seenNames.has(name)) {
+                return acc;
+            }
+            seenNames.add(name);
+
+            if (!hasExistingCategories) {
+                acc.added++;
+                return acc;
+            }
+
+            const existing = policyCategories[name];
+            if (!existing) {
+                acc.added++;
+            } else if (existing.enabled !== category.enabled || (existing['GL Code'] ?? '') !== (category['GL Code'] ?? '')) {
+                acc.updated++;
+            }
+
             return acc;
-        }
-
-        // 🔑 fallback
-        if (!hasExistingCategories) {
-            acc.added++;
-            return acc;
-        }
-
-        const name = category.name.trim();
-        const existing = policyCategories[name];
-
-        if (!existing) {
-            acc.added++;
-        } else if (
-            existing.enabled !== category.enabled ||
-            (existing['GL Code'] ?? '') !== (category['GL Code'] ?? '')
-        ) {
-            acc.updated++;
-        }
-
-        return acc;
-    },
-    {added: 0, updated: 0},
-);
-
+        },
+        {added: 0, updated: 0},
+    );
 
     const onyxData = updateImportSpreadsheetData({added, updated});
 
@@ -897,7 +888,6 @@ const {added, updated} = categories.reduce(
 
     API.write(WRITE_COMMANDS.IMPORT_CATEGORIES_SPREADSHEET, parameters, onyxData);
 }
-
 
 function renamePolicyCategory(policyData: PolicyData, policyCategory: {oldName: string; newName: string}) {
     const policy = policyData.policy;
