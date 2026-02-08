@@ -10,7 +10,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList, SearchReportActionsParamList} from '@libs/Navigation/types';
 import {getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {canEditMoneyRequest, isReportInGroupPolicy} from '@libs/ReportUtils';
+import {canEditMoneyRequest, isCurrentUserSubmitter, isReportInGroupPolicy} from '@libs/ReportUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import {clearErrorFields, clearErrors, setErrors} from '@userActions/FormActions';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,6 +33,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
     // We first check if the report is part of a policy - if not, then it's a personal request (1:1 request)
     // For personal requests, we need to allow both users to put the request on hold
     const isWorkspaceRequest = isReportInGroupPolicy(report);
+    const isApprover = !isCurrentUserSubmitter(report);
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
 
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
@@ -84,6 +85,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
             onSubmit={onSubmit}
             validate={validate}
             backTo={backTo}
+            isApprover={isApprover}
         />
     );
 }

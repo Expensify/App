@@ -10,6 +10,7 @@ import {putTransactionsOnHold} from '@libs/actions/IOU/Hold';
 import {holdMoneyRequestOnSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {isCurrentUserSubmitter} from '@libs/ReportUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import type {SearchReportActionsParamList} from '@navigation/types';
 import HoldReasonFormView from '@pages/iou/HoldReasonFormView';
@@ -27,6 +28,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const context = useSearchContext();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    const isApprover = !isCurrentUserSubmitter(report);
     const ancestors = useAncestors(report);
 
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
@@ -77,6 +79,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
             validate={validate}
             expenseCount={expenseCount}
             backTo={backTo}
+            isApprover={isApprover}
         />
     );
 }
