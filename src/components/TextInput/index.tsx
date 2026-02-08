@@ -4,11 +4,18 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileChrome} from '@libs/Browser';
 import DomUtils from '@libs/DomUtils';
 import Visibility from '@libs/Visibility';
+import CONST from '@src/CONST';
 import BaseTextInput from './BaseTextInput';
 import type {BaseTextInputProps} from './BaseTextInput/types';
 import * as styleConst from './styleConst';
 
 type RemoveVisibilityListener = () => void;
+
+let isRestoringKeyboardFocus = false;
+
+function getIsRestoringKeyboardFocus() {
+    return isRestoringKeyboardFocus;
+}
 
 function TextInput({ref, ...props}: BaseTextInputProps) {
     const styles = useThemeStyles();
@@ -25,15 +32,40 @@ function TextInput({ref, ...props}: BaseTextInputProps) {
             textInputRef.current?.setAttribute('name', props.name);
         }
 
-        removeVisibilityListener = Visibility.onVisibilityChange(() => {
-            if (!isMobileChrome() || !Visibility.isVisible() || !textInputRef.current || DomUtils.getActiveElement() !== textInputRef.current) {
+        // On mobile Chrome, restore keyboard after returning from background by blurring and
+        // refocusing with a delay. We use window.focus because visibilitychange doesn't always fire.
+        // See: https://developer.android.com/develop/ui/views/touch-and-input/keyboard-input/visibility#ShowReliably
+        const handleWindowFocus = () => {
+            if (!isMobileChrome() || !textInputRef.current) {
                 return;
             }
-            textInputRef.current.blur();
-            textInputRef.current.focus();
-        });
+
+            if (DomUtils.getActiveElement() !== textInputRef.current) {
+                return;
+            }
+
+            const inputElement = textInputRef.current;
+            isRestoringKeyboardFocus = true;
+
+            inputElement.blur();
+            setTimeout(() => {
+                inputElement.focus();
+                setTimeout(() => {
+                    isRestoringKeyboardFocus = false;
+                }, 100);
+            }, CONST.ANIMATED_TRANSITION);
+        };
+
+        if (typeof window !== 'undefined' && isMobileChrome()) {
+            window.addEventListener('focus', handleWindowFocus);
+        }
+
+        removeVisibilityListener = Visibility.onVisibilityChange(() => {});
 
         return () => {
+            if (typeof window !== 'undefined') {
+                window.removeEventListener('focus', handleWindowFocus);
+            }
             if (!removeVisibilityListener) {
                 return;
             }
@@ -78,3 +110,4 @@ function TextInput({ref, ...props}: BaseTextInputProps) {
 }
 
 export default TextInput;
+export {getIsRestoringKeyboardFocus};

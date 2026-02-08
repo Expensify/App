@@ -6,6 +6,7 @@ import {InteractionManager} from 'react-native';
 import type {StyleProp, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
 import {useInputBlurActions} from '@components/InputBlurContext';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import {getIsRestoringKeyboardFocus} from '@components/TextInput';
 import useDebounceNonReactive from '@hooks/useDebounceNonReactive';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -415,8 +416,7 @@ function FormProvider({
                                 return;
                             }
                             setTouchedInput(inputID);
-                            // We don't validate the form on blur in case the current screen is not focused
-                            if (shouldValidateOnBlur && isFocusedRef.current) {
+                            if (shouldValidateOnBlur && isFocusedRef.current && !getIsRestoringKeyboardFocus()) {
                                 onValidate(inputValues, !hasServerError);
                             }
                         }, VALIDATE_DELAY);
