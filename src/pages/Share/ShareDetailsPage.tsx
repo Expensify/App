@@ -151,11 +151,9 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                             .map((u) => ({
                                 login: u.login ?? '',
                                 accountID: u.accountID,
-                                personalDetails: personalDetails?.[u.accountID] ?? undefined,
                             })) ?? [];
 
-                    const ownerPersonalDetails = report?.ownerAccountID && personalDetails?.[report?.ownerAccountID] ? personalDetails[report?.ownerAccountID] : undefined;
-                    openReport(report.reportID, '', participants, ownerPersonalDetails, report, undefined, undefined, undefined);
+                    openReport(report.reportID, '', participants, personalDetails, report, undefined, undefined, undefined);
                 }
                 if (report.reportID) {
                     addAttachmentWithComment(report, report.reportID, ancestors, file, message, personalDetail.timezone);
