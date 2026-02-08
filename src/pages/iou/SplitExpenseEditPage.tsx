@@ -88,10 +88,13 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
+    const transactionDetailsAmount = transactionDetails?.amount ?? 0;
+
     const [draftTransactionWithSplitExpenses] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: false});
     const splitExpensesList = draftTransactionWithSplitExpenses?.comment?.splitExpenses;
 
-    const currentAmount = Number(splitExpenseDraftTransaction?.amount);
+    const currentAmount = transactionDetailsAmount >= 0 ? Math.abs(Number(splitExpenseDraftTransactionDetails?.amount)) : Number(splitExpenseDraftTransactionDetails?.amount);
     const currentDescription = getParsedComment(Parser.htmlToMarkdown(splitExpenseDraftTransactionDetails?.comment ?? ''));
 
     const shouldShowCategory = !!currentPolicy?.areCategoriesEnabled && !!policyCategories;

@@ -24,6 +24,7 @@ import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
+import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaypointItems from '@hooks/useWaypointItems';
@@ -81,6 +82,7 @@ function IOURequestStepDistanceMap({
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`, {canBeMissing: true});
+    const selfDMReport = useSelfDMReport();
     const policy = usePolicy(report?.policyID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`, {canBeMissing: true});
@@ -318,6 +320,7 @@ function IOURequestStepDistanceMap({
             introSelected,
             activePolicyID,
             privateIsArchived: reportNameValuePairs?.private_isArchived,
+            selfDMReport,
             policyForMovingExpenses,
             betas,
         });
@@ -351,9 +354,8 @@ function IOURequestStepDistanceMap({
         activePolicyID,
         reportNameValuePairs?.private_isArchived,
         policyForMovingExpenses,
-        personalPolicy?.autoReporting,
-        reportID,
-        currentUserPersonalDetails.accountID,
+        selfDMReport,
+        reportNameValuePairs?.private_isArchived,
         betas,
     ]);
 
@@ -473,6 +475,7 @@ function IOURequestStepDistanceMap({
         transaction?.transactionID,
         transactionBackup,
         waypoints,
+        parentReportNextStep,
         recentWaypoints,
     ]);
 

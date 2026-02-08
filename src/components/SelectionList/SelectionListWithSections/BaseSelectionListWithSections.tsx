@@ -39,6 +39,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     ListItem,
     textInputOptions,
     initiallyFocusedItemKey,
+    confirmButtonOptions,
     initialScrollIndex,
     onSelectRow,
     onDismissError,
@@ -183,12 +184,29 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     // Disable `Enter` shortcut if the active element is a button or checkbox
     const disableEnterShortcut = activeElementRole && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX].includes(activeElementRole as ButtonOrCheckBoxRoles);
 
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER || CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, selectFocusedItem, {
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedItem, {
         captureOnInputs: true,
         shouldBubble: !getFocusedItem(),
         shouldStopPropagation,
         isActive: !disableKeyboardShortcuts && isScreenFocused && focusedIndex >= 0 && !disableEnterShortcut,
     });
+
+    useKeyboardShortcut(
+        CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER,
+        (e) => {
+            if (confirmButtonOptions?.onConfirm) {
+                const focusedOption = getFocusedItem();
+                confirmButtonOptions?.onConfirm(e, focusedOption);
+                return;
+            }
+            selectFocusedItem();
+        },
+        {
+            captureOnInputs: true,
+            shouldBubble: !getFocusedItem(),
+            isActive: !disableKeyboardShortcuts && isScreenFocused && !confirmButtonOptions?.isDisabled,
+        },
+    );
 
     const textInputKeyPress = (event: TextInputKeyPressEvent) => {
         const key = event.nativeEvent.key;

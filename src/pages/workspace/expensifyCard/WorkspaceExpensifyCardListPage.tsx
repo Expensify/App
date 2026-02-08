@@ -162,8 +162,9 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             >
                 <PressableWithFeedback
                     role={CONST.ROLE.BUTTON}
-                    style={[styles.mh5, styles.br3, styles.mb3, styles.highlightBG]}
+                    style={[styles.mh5, styles.br3, styles.mb2, styles.highlightBG]}
                     accessibilityLabel="row"
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE_EXPENSIFY_CARD.CARD_LIST_ROW}
                     hoverStyle={[styles.hoveredComponentBG]}
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, item.cardID.toString()))}
                 >
