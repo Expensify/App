@@ -639,6 +639,10 @@ const translations = {
         week: 'Week',
         year: 'Year',
         quarter: 'Quarter',
+        concierge: {
+            sidePanelGreeting: "Hi there, I'm Concierge. How can I help?",
+            showPreviousMessages: 'Show previous messages',
+        },
     },
     supportalNoAccess: {
         title: 'Not so fast',

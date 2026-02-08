@@ -401,6 +401,10 @@ const translations: TranslationDeepObject<typeof en> = {
         week: 'Semana',
         year: 'Año',
         quarter: 'Trimestre',
+        concierge: {
+            sidePanelGreeting: 'Hola, soy Concierge. ¿En qué puedo ayudarte?',
+            showPreviousMessages: 'Mostrar mensajes anteriores',
+        },
     },
     supportalNoAccess: {
         title: 'No tan rápido',

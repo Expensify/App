@@ -2,8 +2,10 @@ import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import ConciergeSidePanelWelcome from '@components/ConciergeSidePanelWelcome';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -31,7 +33,7 @@ import {
     isMoneyRequestAction,
     shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
-import {buildOptimisticCreatedReportAction, buildOptimisticIOUReportAction, canUserPerformWriteAction, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
+import {buildOptimisticCreatedReportAction, buildOptimisticIOUReportAction, canUserPerformWriteAction, isConciergeChatReport, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -66,6 +68,9 @@ type ReportActionsViewProps = {
 
     /** If the report is a transaction thread report */
     isReportTransactionThread?: boolean;
+
+    /** Whether the report screen is being displayed in the side panel */
+    isInSidePanel?: boolean;
 };
 
 let listOldID = Math.round(Math.random() * 100);
@@ -79,11 +84,23 @@ function ReportActionsView({
     hasNewerActions,
     hasOlderActions,
     isReportTransactionThread,
+    isInSidePanel = false,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const isReportArchived = useReportIsArchived(report?.reportID);
     const canPerformWriteAction = useMemo(() => canUserPerformWriteAction(report, isReportArchived), [report, isReportArchived]);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+
+    // Determine if this is a Concierge chat displayed in the side panel
+    const isConciergeSidePanel = isInSidePanel && isConciergeChatReport(report, conciergeReportID);
+
+    // Track the session start timestamp for filtering history in the side panel
+    const sessionStartTimestamp = useRef(DateUtils.getDBTime());
+
+    // Track whether the user has sent a message in this side panel session
+    const [showFullHistory, setShowFullHistory] = useState(false);
 
     const getTransactionThreadReportActions = useCallback(
         (reportActions: OnyxEntry<OnyxTypes.ReportActions>): OnyxTypes.ReportAction[] => {
@@ -227,6 +244,51 @@ function ReportActionsView({
         [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs],
     );
 
+    // Concierge side panel: detect if user has sent a message this session
+    const hasUserSentMessage = useMemo(() => {
+        if (!isConciergeSidePanel) {
+            return false;
+        }
+        return visibleReportActions.some(
+            (action) => !isCreatedAction(action) && action.created >= sessionStartTimestamp.current && action.actorAccountID === currentUserAccountID,
+        );
+    }, [isConciergeSidePanel, visibleReportActions, currentUserAccountID]);
+
+    // Concierge side panel: check if there are previous messages before session start (excluding CREATED actions)
+    const hasPreviousMessages = useMemo(() => {
+        if (!isConciergeSidePanel) {
+            return false;
+        }
+        return visibleReportActions.some((action) => !isCreatedAction(action) && action.created < sessionStartTimestamp.current);
+    }, [isConciergeSidePanel, visibleReportActions]);
+
+    // Whether to show the welcome message (no user message sent yet and not showing full history)
+    const showConciergeSidePanelWelcome = !!isConciergeSidePanel && !hasUserSentMessage && !showFullHistory;
+
+    // Filter visible report actions for concierge side panel mode
+    const conciergeSidePanelFilteredVisibleActions = useMemo(() => {
+        if (!isConciergeSidePanel || showFullHistory) {
+            return visibleReportActions;
+        }
+        if (!hasUserSentMessage) {
+            // Show nothing when welcome message is displayed
+            return [];
+        }
+        // Show only messages from current session
+        return visibleReportActions.filter((action) => action.created >= sessionStartTimestamp.current);
+    }, [isConciergeSidePanel, showFullHistory, hasUserSentMessage, visibleReportActions]);
+
+    // Filter sorted report actions similarly for concierge side panel
+    const conciergeSidePanelFilteredReportActions = useMemo(() => {
+        if (!isConciergeSidePanel || showFullHistory) {
+            return reportActions;
+        }
+        if (!hasUserSentMessage) {
+            return [];
+        }
+        return reportActions.filter((action) => action.created >= sessionStartTimestamp.current);
+    }, [isConciergeSidePanel, showFullHistory, hasUserSentMessage, reportActions]);
+
     const newestReportAction = useMemo(() => reportActions?.at(0), [reportActions]);
     const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);
     const lastActionCreated = visibleReportActions.at(0)?.created;
@@ -258,6 +320,12 @@ function ReportActionsView({
         hasOlderActions,
         hasNewerActions,
     });
+
+    // Callback for "Show previous messages" button in concierge side panel
+    const handleShowPreviousMessages = useCallback(() => {
+        setShowFullHistory(true);
+        loadOlderChats(true);
+    }, [loadOlderChats]);
 
     /**
      * Runs when the FlatList finishes laying out
@@ -309,8 +377,18 @@ function ReportActionsView({
         return <ReportActionsSkeletonView />;
     }
 
-    if (!isReportTransactionThread && isMissingReportActions) {
+    if (!isReportTransactionThread && isMissingReportActions && !isConciergeSidePanel) {
         return <ReportActionsSkeletonView shouldAnimate={false} />;
+    }
+
+    // Show the concierge welcome message when in side panel mode with no user messages yet
+    if (showConciergeSidePanelWelcome) {
+        return (
+            <>
+                <ConciergeSidePanelWelcome />
+                <UserTypingEventListener report={report} />
+            </>
+        );
     }
 
     // AutoScroll is disabled when we do linking to a specific reportAction
@@ -323,14 +401,18 @@ function ReportActionsView({
                 parentReportAction={parentReportAction}
                 parentReportActionForTransactionThread={parentReportActionForTransactionThread}
                 onLayout={recordTimeToMeasureItemLayout}
-                sortedReportActions={reportActions}
-                sortedVisibleReportActions={visibleReportActions}
+                sortedReportActions={conciergeSidePanelFilteredReportActions}
+                sortedVisibleReportActions={conciergeSidePanelFilteredVisibleActions}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 loadOlderChats={loadOlderChats}
                 loadNewerChats={loadNewerChats}
                 listID={listID}
                 shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}
                 hasCreatedActionAdded={shouldAddCreatedAction}
+                isConciergeSidePanel={isConciergeSidePanel}
+                showFullHistory={showFullHistory}
+                hasPreviousMessages={hasPreviousMessages}
+                onShowPreviousMessages={handleShowPreviousMessages}
             />
             <UserTypingEventListener report={report} />
         </>

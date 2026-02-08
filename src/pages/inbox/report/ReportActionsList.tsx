@@ -7,6 +7,7 @@ import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'r
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
+import Button from '@components/Button';
 import InvertedFlatList from '@components/InvertedFlatList';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
@@ -120,6 +121,18 @@ type ReportActionsListProps = {
 
     /** Whether the optimistic CREATED report action was added */
     hasCreatedActionAdded?: boolean;
+
+    /** Whether this is a Concierge chat in the side panel */
+    isConciergeSidePanel?: boolean;
+
+    /** Whether the full message history should be shown */
+    showFullHistory?: boolean;
+
+    /** Whether there are previous messages that can be revealed */
+    hasPreviousMessages?: boolean;
+
+    /** Callback to show previous messages */
+    onShowPreviousMessages?: () => void;
 };
 
 // In the component we are subscribing to the arrival of new actions.
@@ -159,6 +172,10 @@ function ReportActionsList({
     shouldEnableAutoScrollToTopThreshold,
     parentReportActionForTransactionThread,
     hasCreatedActionAdded,
+    isConciergeSidePanel,
+    showFullHistory,
+    hasPreviousMessages,
+    onShowPreviousMessages,
 }: ReportActionsListProps) {
     const prevHasCreatedActionAdded = usePrevious(hasCreatedActionAdded);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -818,12 +835,25 @@ function ReportActionsList({
     const shouldShowSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
 
     const listFooterComponent = useMemo(() => {
+        // Show "Show previous messages" button in concierge side panel mode when history is hidden
+        if (isConciergeSidePanel && !showFullHistory && hasPreviousMessages) {
+            return (
+                <View style={[styles.alignItemsCenter, styles.pv3]}>
+                    <Button
+                        small
+                        text={translate('common.concierge.showPreviousMessages')}
+                        onPress={onShowPreviousMessages}
+                    />
+                </View>
+            );
+        }
+
         if (!shouldShowSkeleton) {
             return;
         }
 
         return <ReportActionsSkeletonView shouldAnimate={false} />;
-    }, [shouldShowSkeleton]);
+    }, [shouldShowSkeleton, isConciergeSidePanel, showFullHistory, hasPreviousMessages, onShowPreviousMessages, styles, translate]);
 
     const renderTopReportActions = useCallback(() => {
         const previewItems = sortedVisibleReportActions.slice(initialNumToRender ? -initialNumToRender : 0).reverse();
