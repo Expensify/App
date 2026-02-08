@@ -738,6 +738,7 @@ describe('areTransactionsEligibleForMerge', () => {
                 ...createRandomTransaction(1),
                 managedCard: false,
                 cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
+                reportID: CONST.REPORT.SPLIT_REPORT_ID,
                 comment: {
                     ...createRandomTransaction(1).comment,
                     originalTransactionID: 'original-1',
@@ -748,6 +749,7 @@ describe('areTransactionsEligibleForMerge', () => {
                 ...createRandomTransaction(2),
                 managedCard: false,
                 cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
+                reportID: CONST.REPORT.SPLIT_REPORT_ID,
                 comment: {
                     ...createRandomTransaction(2).comment,
                     originalTransactionID: 'original-2',

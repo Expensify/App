@@ -182,6 +182,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                         KeyboardUtils.dismiss();
                     }}
                     accessible={false}
+                    sentryLabel={CONST.SENTRY_LABEL.SHARE_DETAILS_PAGE.BACK_BUTTON}
                 >
                     <HeaderWithBackButton
                         title={translate('share.shareToExpensify')}
@@ -227,6 +228,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                             KeyboardUtils.dismiss();
                         }}
                         accessible={false}
+                        sentryLabel={CONST.SENTRY_LABEL.SHARE_DETAILS_PAGE.ATTACHMENT}
                     >
                         {shouldShowAttachment && (
                             <>

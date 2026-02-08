@@ -3,8 +3,10 @@ import {Gesture} from 'react-native-gesture-handler';
 import type {SharedValue} from 'react-native-reanimated';
 import {useAnimatedReaction, useAnimatedStyle, useDerivedValue} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
-import {TOOLTIP_BAR_GAP} from '@components/Charts/constants';
 import {useChartInteractionState} from './useChartInteractionState';
+
+/** Gap between bar top and tooltip bottom */
+const TOOLTIP_BAR_GAP = 8;
 
 /**
  * Arguments passed to the checkIsOver callback for hit-testing

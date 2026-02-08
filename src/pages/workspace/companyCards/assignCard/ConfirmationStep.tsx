@@ -23,7 +23,13 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import Navigation from '@navigation/Navigation';
-import {assignWorkspaceCompanyCard, clearAssignCardStepAndData, setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
+import {
+    assignWorkspaceCompanyCard,
+    clearAssignCardErrors as clearAssignCardErrorsAction,
+    clearAssignCardStepAndData,
+    setAddNewCompanyCardStepAndData,
+    setAssignCardStepAndData,
+} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -136,6 +142,11 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
         Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute({policyID, feed, cardID}), {compareParams: false});
     };
 
+    const clearAssignCardErrors = () => {
+        clearAssignCardErrorsAction();
+        setCardError(undefined);
+    };
+
     return (
         <InteractiveStepWrapper
             wrapperID="ConfirmationStep"
@@ -187,7 +198,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                     <OfflineWithFeedback
                         shouldDisplayErrorAbove
                         errors={assignCard?.errors ?? cardError}
-                        onClose={() => setCardError(undefined)}
+                        onClose={clearAssignCardErrors}
                         errorRowStyles={styles.mv2}
                     >
                         <Button
