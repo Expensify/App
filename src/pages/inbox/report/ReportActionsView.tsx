@@ -243,9 +243,7 @@ function ReportActionsView({
         if (!isConciergeSidePanel) {
             return false;
         }
-        return visibleReportActions.some(
-            (action) => !isCreatedAction(action) && action.created >= sessionStartTimestamp.current && action.actorAccountID === currentUserAccountID,
-        );
+        return visibleReportActions.some((action) => !isCreatedAction(action) && action.created >= sessionStartTimestamp.current && action.actorAccountID === currentUserAccountID);
     }, [isConciergeSidePanel, visibleReportActions, currentUserAccountID]);
 
     const hasPreviousMessages = useMemo(() => {

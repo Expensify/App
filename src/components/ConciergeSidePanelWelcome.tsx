@@ -1,9 +1,9 @@
 import React from 'react';
 import {View} from 'react-native';
+import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import Avatar from './Avatar';
 import Text from './Text';
 
@@ -19,9 +19,7 @@ function ConciergeSidePanelWelcome() {
                 size={CONST.AVATAR_SIZE.LARGE}
                 type={CONST.ICON_TYPE_AVATAR}
             />
-            <Text style={[styles.textHeadlineH1, styles.mt3, styles.textAlignCenter]}>
-                {translate('common.concierge.sidePanelGreeting')}
-            </Text>
+            <Text style={[styles.textHeadlineH1, styles.mt3, styles.textAlignCenter]}>{translate('common.concierge.sidePanelGreeting')}</Text>
         </View>
     );
 }
