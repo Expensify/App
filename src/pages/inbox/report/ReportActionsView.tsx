@@ -93,13 +93,8 @@ function ReportActionsView({
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
 
-    // Determine if this is a Concierge chat displayed in the side panel
     const isConciergeSidePanel = isInSidePanel && isConciergeChatReport(report, conciergeReportID);
-
-    // Track the session start timestamp for filtering history in the side panel
     const sessionStartTimestamp = useRef(DateUtils.getDBTime());
-
-    // Track whether the user has sent a message in this side panel session
     const [showFullHistory, setShowFullHistory] = useState(false);
 
     const getTransactionThreadReportActions = useCallback(
@@ -244,7 +239,6 @@ function ReportActionsView({
         [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs],
     );
 
-    // Concierge side panel: detect if user has sent a message this session
     const hasUserSentMessage = useMemo(() => {
         if (!isConciergeSidePanel) {
             return false;
@@ -254,7 +248,6 @@ function ReportActionsView({
         );
     }, [isConciergeSidePanel, visibleReportActions, currentUserAccountID]);
 
-    // Concierge side panel: check if there are previous messages before session start (excluding CREATED actions)
     const hasPreviousMessages = useMemo(() => {
         if (!isConciergeSidePanel) {
             return false;
@@ -262,23 +255,18 @@ function ReportActionsView({
         return visibleReportActions.some((action) => !isCreatedAction(action) && action.created < sessionStartTimestamp.current);
     }, [isConciergeSidePanel, visibleReportActions]);
 
-    // Whether to show the welcome message (no user message sent yet and not showing full history)
     const showConciergeSidePanelWelcome = !!isConciergeSidePanel && !hasUserSentMessage && !showFullHistory;
 
-    // Filter visible report actions for concierge side panel mode
     const conciergeSidePanelFilteredVisibleActions = useMemo(() => {
         if (!isConciergeSidePanel || showFullHistory) {
             return visibleReportActions;
         }
         if (!hasUserSentMessage) {
-            // Show nothing when welcome message is displayed
             return [];
         }
-        // Show only messages from current session
         return visibleReportActions.filter((action) => action.created >= sessionStartTimestamp.current);
     }, [isConciergeSidePanel, showFullHistory, hasUserSentMessage, visibleReportActions]);
 
-    // Filter sorted report actions similarly for concierge side panel
     const conciergeSidePanelFilteredReportActions = useMemo(() => {
         if (!isConciergeSidePanel || showFullHistory) {
             return reportActions;
@@ -321,11 +309,9 @@ function ReportActionsView({
         hasNewerActions,
     });
 
-    // Callback for "Show previous messages" button in concierge side panel
     const handleShowPreviousMessages = useCallback(() => {
         setShowFullHistory(true);
-        loadOlderChats(true);
-    }, [loadOlderChats]);
+    }, []);
 
     /**
      * Runs when the FlatList finishes laying out
@@ -377,11 +363,10 @@ function ReportActionsView({
         return <ReportActionsSkeletonView />;
     }
 
-    if (!isReportTransactionThread && isMissingReportActions && !isConciergeSidePanel) {
+    if (!isReportTransactionThread && isMissingReportActions) {
         return <ReportActionsSkeletonView shouldAnimate={false} />;
     }
 
-    // Show the concierge welcome message when in side panel mode with no user messages yet
     if (showConciergeSidePanelWelcome) {
         return (
             <>
@@ -410,7 +395,7 @@ function ReportActionsView({
                 shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}
                 hasCreatedActionAdded={shouldAddCreatedAction}
                 isConciergeSidePanel={isConciergeSidePanel}
-                showFullHistory={showFullHistory}
+                showHiddenHistory={!showFullHistory}
                 hasPreviousMessages={hasPreviousMessages}
                 onShowPreviousMessages={handleShowPreviousMessages}
             />

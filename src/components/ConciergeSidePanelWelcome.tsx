@@ -1,16 +1,16 @@
 import React from 'react';
 import {View} from 'react-native';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import Avatar from './Avatar';
 import Text from './Text';
 
 function ConciergeSidePanelWelcome() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {ConciergeAvatar} = useMemoizedLazyExpensifyIcons(['ConciergeAvatar']);
+    const {ConciergeAvatar} = useDefaultAvatars();
 
     return (
         <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.ph5]}>

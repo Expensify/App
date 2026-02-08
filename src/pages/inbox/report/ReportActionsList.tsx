@@ -125,8 +125,8 @@ type ReportActionsListProps = {
     /** Whether this is a Concierge chat in the side panel */
     isConciergeSidePanel?: boolean;
 
-    /** Whether the full message history should be shown */
-    showFullHistory?: boolean;
+    /** Whether the chat history is hidden (concierge side panel fresh state) */
+    showHiddenHistory?: boolean;
 
     /** Whether there are previous messages that can be revealed */
     hasPreviousMessages?: boolean;
@@ -173,7 +173,7 @@ function ReportActionsList({
     parentReportActionForTransactionThread,
     hasCreatedActionAdded,
     isConciergeSidePanel,
-    showFullHistory,
+    showHiddenHistory,
     hasPreviousMessages,
     onShowPreviousMessages,
 }: ReportActionsListProps) {
@@ -835,8 +835,7 @@ function ReportActionsList({
     const shouldShowSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
 
     const listFooterComponent = useMemo(() => {
-        // Show "Show previous messages" button in concierge side panel mode when history is hidden
-        if (isConciergeSidePanel && !showFullHistory && hasPreviousMessages) {
+        if (isConciergeSidePanel && showHiddenHistory && hasPreviousMessages) {
             return (
                 <View style={[styles.alignItemsCenter, styles.pv3]}>
                     <Button
@@ -853,7 +852,7 @@ function ReportActionsList({
         }
 
         return <ReportActionsSkeletonView shouldAnimate={false} />;
-    }, [shouldShowSkeleton, isConciergeSidePanel, showFullHistory, hasPreviousMessages, onShowPreviousMessages, styles, translate]);
+    }, [shouldShowSkeleton, isConciergeSidePanel, showHiddenHistory, hasPreviousMessages, onShowPreviousMessages, styles, translate]);
 
     const renderTopReportActions = useCallback(() => {
         const previewItems = sortedVisibleReportActions.slice(initialNumToRender ? -initialNumToRender : 0).reverse();
