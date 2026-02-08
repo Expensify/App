@@ -137,7 +137,7 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
     const operator = form.matchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
     const created = existingRule?.created ?? new Date().toISOString();
 
-    // Rule for Onyx optimistic update (includes null values to remove cleared fields)
+    const pendingAction = isEditing ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
     const ruleForOnyx = {
         ruleID: targetRuleID,
         filters: {
@@ -147,6 +147,7 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
         },
         ...ruleFieldsForOnyx,
         created,
+        pendingAction,
     };
 
     // Rule for API (excludes null values)
@@ -162,7 +163,6 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
     };
 
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
-    const pendingAction = isEditing ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
 
     // On failure: for new rules, remove the optimistic rule; for edits, restore the original rule
     const failureRuleValue = isEditing ? existingRule : null;
@@ -178,9 +178,6 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
                             [targetRuleID]: ruleForOnyx,
                         },
                     },
-                    pendingFields: {
-                        rules: pendingAction,
-                    },
                 },
             },
         ],
@@ -189,11 +186,13 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: policyKey,
                 value: {
-                    pendingFields: {
-                        rules: null,
-                    },
-                    errorFields: {
-                        rules: null,
+                    rules: {
+                        codingRules: {
+                            [targetRuleID]: {
+                                pendingAction: null,
+                                errors: null,
+                            },
+                        },
                     },
                 },
             },
@@ -205,14 +204,12 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
                 value: {
                     rules: {
                         codingRules: {
-                            [targetRuleID]: failureRuleValue,
+                            [targetRuleID]: {
+                                ...failureRuleValue,
+                                pendingAction: null,
+                                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
                         },
-                    },
-                    pendingFields: {
-                        rules: null,
-                    },
-                    errorFields: {
-                        rules: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                     },
                 },
             },
@@ -277,11 +274,10 @@ function deletePolicyCodingRule(policy: Policy, ruleID: string) {
                 value: {
                     rules: {
                         codingRules: {
-                            [ruleID]: null,
+                            [ruleID]: {
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                            },
                         },
-                    },
-                    pendingFields: {
-                        rules: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     },
                 },
             },
@@ -291,11 +287,10 @@ function deletePolicyCodingRule(policy: Policy, ruleID: string) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: policyKey,
                 value: {
-                    pendingFields: {
-                        rules: null,
-                    },
-                    errorFields: {
-                        rules: null,
+                    rules: {
+                        codingRules: {
+                            [ruleID]: null,
+                        },
                     },
                 },
             },
@@ -307,14 +302,12 @@ function deletePolicyCodingRule(policy: Policy, ruleID: string) {
                 value: {
                     rules: {
                         codingRules: {
-                            [ruleID]: existingRule,
+                            [ruleID]: {
+                                ...existingRule,
+                                pendingAction: null,
+                                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
                         },
-                    },
-                    pendingFields: {
-                        rules: null,
-                    },
-                    errorFields: {
-                        rules: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                     },
                 },
             },

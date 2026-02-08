@@ -58,7 +58,7 @@ function WorkspaceTimeTrackingDefaultRatePage({
                     }}
                     style={[styles.flex1, styles.mh5]}
                     enabledWhenOffline
-                    validate={(values) => getFieldRequiredErrors(values, [INPUT_IDS.RATE])}
+                    validate={(values) => getFieldRequiredErrors(values, [INPUT_IDS.RATE], translate)}
                 >
                     <InputWrapper
                         label={translate('workspace.moreFeatures.timeTracking.defaultHourlyRate')}
