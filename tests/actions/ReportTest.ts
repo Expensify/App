@@ -604,9 +604,12 @@ describe('actions/Report', () => {
             .then(() => waitForBatchedUpdates())
             .then(() => {
                 // Ensure report has expected lastMessageText after deleting 400 (in case derived state didn't update)
-                return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}` as const, {
-                    lastMessageText: 'Current User Comment 2',
-                } as Partial<OnyxTypes.Report>);
+                return Onyx.merge(
+                    `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}` as const,
+                    {
+                        lastMessageText: 'Current User Comment 2',
+                    } as Partial<OnyxTypes.Report>,
+                );
             })
             .then(() => waitForBatchedUpdates())
             .then(() => getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}` as const))
