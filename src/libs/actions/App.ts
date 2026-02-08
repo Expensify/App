@@ -178,10 +178,14 @@ function confirmReadyToOpenApp() {
 }
 
 function getNonOptimisticPolicyIDs(policies: OnyxCollection<OnyxTypes.Policy>): string[] {
-    return Object.values(policies ?? {})
-        .filter((policy) => policy && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)
-        .map((policy) => policy?.id)
-        .filter((id): id is string => !!id);
+    const result: string[] = [];
+    for (const policy of Object.values(policies ?? {})) {
+        if (!policy || policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || !policy.id) {
+            continue;
+        }
+        result.push(policy.id);
+    }
+    return result;
 }
 
 function setLocale(locale: Locale, currentPreferredLocale: Locale | undefined) {
@@ -737,7 +741,7 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
             }
 
             if (shouldNavigateToHomepage) {
-                Navigation.navigate(ROUTES.INBOX);
+                Navigation.navigate(ROUTES.HOME);
             }
 
             if (preservedUserSession) {
@@ -804,6 +808,7 @@ export {
     clearSupportalPermissionDenied,
     showSupportalPermissionDenied,
     setPreservedUserSession,
+    getNonOptimisticPolicyIDs,
     setPreservedAccount,
     KEYS_TO_PRESERVE,
 };

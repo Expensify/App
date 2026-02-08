@@ -1,0 +1,424 @@
+import React, {createContext, useCallback, useContext, useEffect, useMemo} from 'react';
+import type {ReactNode} from 'react';
+import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from '@components/MultifactorAuthentication/config';
+import {getOutcomePaths} from '@components/MultifactorAuthentication/config/outcomePaths';
+import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioParams} from '@components/MultifactorAuthentication/config/types';
+import useNetwork from '@hooks/useNetwork';
+import {requestValidateCodeAction} from '@libs/actions/User';
+import getPlatform from '@libs/getPlatform';
+import type {ChallengeType, MultifactorAuthenticationReason, OutcomePaths} from '@libs/MultifactorAuthentication/Biometrics/types';
+import Navigation from '@navigation/Navigation';
+import {clearLocalMFAPublicKeyList, requestAuthorizationChallenge, requestRegistrationChallenge} from '@userActions/MultifactorAuthentication';
+import {processRegistration, processScenario} from '@userActions/MultifactorAuthentication/processing';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type {DeviceBiometrics} from '@src/types/onyx';
+import {useMultifactorAuthenticationState} from './State';
+import useNativeBiometrics from './useNativeBiometrics';
+import type {AuthorizeResult, RegisterResult} from './useNativeBiometrics';
+
+let deviceBiometricsState: OnyxEntry<DeviceBiometrics>;
+
+// Use Onyx.connectWithoutView instead of useOnyx hook to access the device biometrics state.
+// This is a non-reactive read that allows us to check the current value (hasAcceptedSoftPrompt)
+// from within the process() callback without triggering calling it too many times during the
+// fresh registration flow
+Onyx.connectWithoutView({
+    key: ONYXKEYS.DEVICE_BIOMETRICS,
+    callback: (data) => {
+        deviceBiometricsState = data;
+    },
+});
+
+type ExecuteScenarioParams<T extends MultifactorAuthenticationScenario> = MultifactorAuthenticationScenarioParams<T> & Partial<OutcomePaths>;
+
+type MultifactorAuthenticationContextValue = {
+    /** Execute a multifactor authentication scenario */
+    executeScenario: <T extends MultifactorAuthenticationScenario>(scenario: T, params?: ExecuteScenarioParams<T>) => Promise<void>;
+
+    /** Cancel the current authentication flow and navigate to failure outcome */
+    cancel: () => void;
+};
+
+const MultifactorAuthenticationContext = createContext<MultifactorAuthenticationContextValue | undefined>(undefined);
+
+type MultifactorAuthenticationContextProviderProps = {
+    children: ReactNode;
+};
+
+/**
+ * Identifies the challenge type based on its properties.
+ * Registration challenges (require prior validateCode verification) have 'user' and 'rp'.
+ * Authorization challenges (no prior verification) have 'allowCredentials' and 'rpId'.
+ */
+function getChallengeType(challenge: unknown): ChallengeType | undefined {
+    if (typeof challenge === 'object' && challenge !== null) {
+        if ('user' in challenge && 'rp' in challenge) {
+            return CONST.MULTIFACTOR_AUTHENTICATION.CHALLENGE_TYPE.REGISTRATION;
+        }
+        if ('allowCredentials' in challenge && 'rpId' in challenge) {
+            return CONST.MULTIFACTOR_AUTHENTICATION.CHALLENGE_TYPE.AUTHENTICATION;
+        }
+    }
+    return undefined;
+}
+
+function MultifactorAuthenticationContextProvider({children}: MultifactorAuthenticationContextProviderProps) {
+    const {state, dispatch} = useMultifactorAuthenticationState();
+
+    const biometrics = useNativeBiometrics();
+    const {isOffline} = useNetwork();
+    const platform = getPlatform();
+    const isWeb = useMemo(() => platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.MOBILE_WEB, [platform]);
+
+    /**
+     * Internal process function that runs after each step.
+     * Uses if statements to determine and execute the next step in the flow.
+     */
+    const process = useCallback(async () => {
+        const {
+            error,
+            continuableError,
+            scenario,
+            softPromptApproved,
+            validateCode,
+            registrationChallenge,
+            authorizationChallenge,
+            payload,
+            outcomePaths,
+            isRegistrationComplete,
+            isAuthorizationComplete,
+            isFlowComplete,
+        } = state;
+
+        // 0. Check if one of the early exit conditions applies:
+        // - Flow is already complete,
+        // - User is offline,
+        // - Scenario is not set,
+        // - There's a continuable error:
+        //      Pause flow and wait for the user to fix it.
+        //      Continuable errors (like invalid validate code) are displayed on the current screen
+        //      and don't stop the entire flow - the user can retry without restarting
+        if (isFlowComplete || !scenario || isOffline || continuableError) {
+            return;
+        }
+
+        const paths = outcomePaths ?? getOutcomePaths(scenario);
+
+        // 1. Check if there's an error - stop processing
+        if (error) {
+            if (error.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.REGISTRATION_REQUIRED) {
+                clearLocalMFAPublicKeyList();
+                dispatch({type: 'REREGISTER'});
+                return;
+            }
+
+            Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME.getRoute(paths.failureOutcome), {forceReplace: true});
+            dispatch({type: 'SET_FLOW_COMPLETE', payload: true});
+            return;
+        }
+
+        // 2. Check if device is compatible
+        if (!biometrics.doesDeviceSupportBiometrics()) {
+            const {allowedAuthenticationMethods = [] as string[]} = scenario ? MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario] : {};
+
+            let reason: MultifactorAuthenticationReason = CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.UNSUPPORTED_DEVICE;
+
+            // If the user is using mobile app and the scenario allows native biometrics as a form of authentication,
+            // then they need to enable it in the system settings as well for doesDeviceSupportBiometrics to return true.
+            if (!isWeb && allowedAuthenticationMethods.includes(CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS)) {
+                reason = CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_ELIGIBLE_METHODS;
+            }
+
+            dispatch({
+                type: 'SET_ERROR',
+                payload: {
+                    reason,
+                },
+            });
+            return;
+        }
+
+        // 3. Check if registration is required (local credentials not known to server yet)
+        const isRegistrationRequired = !(await biometrics.areLocalCredentialsKnownToServer()) && !isRegistrationComplete;
+
+        if (isRegistrationRequired) {
+            // Need validate code before registration
+            if (!validateCode) {
+                requestValidateCodeAction();
+                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_MAGIC_CODE, {forceReplace: true});
+                return;
+            }
+
+            // Request registration challenge after validateCode is set
+            if (!registrationChallenge) {
+                const {challenge, reason: challengeReason} = await requestRegistrationChallenge(validateCode);
+
+                if (!challenge) {
+                    dispatch({type: 'SET_ERROR', payload: {reason: challengeReason}});
+                    return;
+                }
+
+                // IMPORTANT: Validate that we received a registration challenge.
+                // This check is safe here because the backend only issues registration challenges AFTER
+                // validateCode verification. The prior validation gate guarantees that if we receive
+                // a challenge of type 'registration', it's genuinely from the registration path. This security guarantee
+                // does NOT apply to authorization challenges (which skip validateCode verification). If the WebAuthN spec
+                // ever changes the structure of these challenges, update getChallengeType() accordingly.
+                const challengeType = getChallengeType(challenge);
+                if (challengeType !== CONST.MULTIFACTOR_AUTHENTICATION.CHALLENGE_TYPE.REGISTRATION) {
+                    dispatch({type: 'SET_ERROR', payload: {reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.INVALID_CHALLENGE_TYPE}});
+                    return;
+                }
+
+                dispatch({type: 'SET_REGISTRATION_CHALLENGE', payload: challenge});
+                return;
+            }
+
+            // Check if a soft prompt is needed
+            if (!softPromptApproved) {
+                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute(CONST.MULTIFACTOR_AUTHENTICATION.PROMPT.ENABLE_BIOMETRICS), {forceReplace: true});
+                return;
+            }
+
+            await biometrics.register(async (result: RegisterResult) => {
+                if (!result.success) {
+                    dispatch({
+                        type: 'SET_ERROR',
+                        payload: {
+                            reason: result.reason,
+                        },
+                    });
+                    return;
+                }
+
+                // Call backend to register the public key
+                const registrationResponse = await processRegistration({
+                    publicKey: result.publicKey,
+                    authenticationMethod: result.authenticationMethod.marqetaValue,
+                    challenge: registrationChallenge.challenge,
+                });
+
+                if (!registrationResponse.success) {
+                    dispatch({
+                        type: 'SET_ERROR',
+                        payload: {
+                            reason: registrationResponse.reason,
+                        },
+                    });
+                    return;
+                }
+
+                dispatch({type: 'SET_REGISTRATION_COMPLETE', payload: true});
+            });
+            return;
+        }
+
+        // Registration isn't required, but they have never seen the soft prompt
+        // this happens on ios if they delete and reinstall the app. Their keys are preserved in the secure store, but
+        // they'll be shown the "do you want to enable FaceID again" system prompt, so we want to show them the soft prompt
+        if (!deviceBiometricsState?.hasAcceptedSoftPrompt) {
+            Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute(CONST.MULTIFACTOR_AUTHENTICATION.PROMPT.ENABLE_BIOMETRICS), {forceReplace: true});
+            return;
+        }
+
+        // 4. Authorize the user if that has not already been done
+        if (!isAuthorizationComplete) {
+            if (!Navigation.isActiveRoute(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute('enable-biometrics'))) {
+                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute('enable-biometrics'), {forceReplace: true});
+            }
+
+            // Request authorization challenge if not already fetched
+            if (!authorizationChallenge) {
+                const {challenge, reason: challengeReason} = await requestAuthorizationChallenge();
+
+                if (!challenge) {
+                    dispatch({type: 'SET_ERROR', payload: {reason: challengeReason}});
+                    return;
+                }
+
+                // Validate that we received an authentication challenge
+                const challengeType = getChallengeType(challenge);
+                if (challengeType !== CONST.MULTIFACTOR_AUTHENTICATION.CHALLENGE_TYPE.AUTHENTICATION) {
+                    dispatch({type: 'SET_ERROR', payload: {reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.INVALID_CHALLENGE_TYPE}});
+                    return;
+                }
+
+                dispatch({type: 'SET_AUTHORIZATION_CHALLENGE', payload: challenge});
+                return;
+            }
+
+            await biometrics.authorize(
+                {
+                    scenario,
+                    challenge: authorizationChallenge,
+                },
+                async (result: AuthorizeResult) => {
+                    if (!result.success) {
+                        // Re-registration may be needed even though we checked credentials above, because:
+                        // - The local public key was deleted between the check and authorization
+                        // - The server no longer accepts the local public key (not in allowCredentials)
+                        if (result.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.KEYSTORE.REGISTRATION_REQUIRED) {
+                            await biometrics.resetKeysForAccount();
+                            dispatch({type: 'SET_REGISTRATION_COMPLETE', payload: false});
+                            dispatch({type: 'SET_AUTHORIZATION_CHALLENGE', payload: undefined});
+                        } else {
+                            dispatch({
+                                type: 'SET_ERROR',
+                                payload: {
+                                    reason: result.reason,
+                                },
+                            });
+                        }
+                        return;
+                    }
+
+                    // Call backend with signed challenge
+                    const scenarioAPIResponse = await processScenario(scenario, {
+                        signedChallenge: result.signedChallenge,
+                        authenticationMethod: result.authenticationMethod.marqetaValue,
+                        ...payload,
+                    });
+
+                    if (!scenarioAPIResponse.success) {
+                        dispatch({
+                            type: 'SET_ERROR',
+                            payload: {
+                                reason: scenarioAPIResponse.reason,
+                            },
+                        });
+                        return;
+                    }
+
+                    dispatch({type: 'SET_AUTHENTICATION_METHOD', payload: result.authenticationMethod});
+                    dispatch({type: 'SET_AUTHORIZATION_COMPLETE', payload: true});
+                },
+            );
+            return;
+        }
+
+        // 5. All steps completed - success
+        Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME.getRoute(paths.successOutcome), {forceReplace: true});
+        dispatch({type: 'SET_FLOW_COMPLETE', payload: true});
+    }, [biometrics, dispatch, isOffline, state, isWeb]);
+
+    /**
+     * Drives the MFA state machine forward whenever relevant state changes occur.
+     * This effect acts as the "engine" that progresses through the authentication flow:
+     * - Waits for a scenario to be set via executeScenario() before running
+     * - Re-evaluates the flow whenever key state fields change (e.g., validateCode entered, challenge received)
+     * - Each run of process() checks current state and advances to the next step or completes the flow
+     *
+     * TODO: This pattern will likely be refactored to address React rules violations and race condition risks.
+     * See: https://github.com/Expensify/App/issues/81197
+     */
+    useEffect(() => {
+        // Don't run until a scenario has been initiated
+        if (!state.scenario) {
+            return;
+        }
+
+        process();
+        // We intentionally omit `process` and `state` from dependencies.
+        // Including them would cause infinite re-renders since `process` is recreated on every state change.
+        // Instead, we list only the specific state fields that should trigger a re-run of the MFA flow.
+        // https://github.com/Expensify/App/issues/81197
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [
+        // Error states - need to handle failures and navigate to outcome screens
+        state.error,
+
+        // Core flow state - which scenario is active
+        state.scenario,
+
+        // User interactions - soft prompt approval triggers biometric registration
+        state.softPromptApproved,
+
+        // Magic code entry - required before registration challenge can be requested
+        state.validateCode,
+
+        // Challenge responses from backend - trigger next steps in registration/authorization
+        state.registrationChallenge,
+        state.authorizationChallenge,
+
+        // Completion flags - determine whether to continue or finish the flow
+        state.isRegistrationComplete,
+        state.isAuthorizationComplete,
+        state.isFlowComplete,
+    ]);
+
+    /**
+     * Initiates a multifactor authentication scenario.
+     * Dispatches the initial state setup with the specified scenario and optional parameters.
+     * The flow will automatically progress through registration (if needed) and authorization steps.
+     *
+     * @template T - The type of the multifactor authentication scenario
+     * @param scenario - The MFA scenario to process
+     * @param {ExecuteScenarioParams<T>} [params] - Optional parameters including:
+     *   - successOutcome: Navigation route for successful authentication (overrides default)
+     *   - failureOutcome: Navigation route for failed authentication (overrides default)
+     *   - Additional payload data to pass through the authentication flow
+     * @returns {Promise<void>} A promise that resolves when the scenario has been initialized
+     */
+    const executeScenario = useCallback(
+        async <T extends MultifactorAuthenticationScenario>(scenario: T, params?: ExecuteScenarioParams<T>): Promise<void> => {
+            const {successOutcome, failureOutcome, ...payload} = params ?? {};
+            const paths = getOutcomePaths(scenario);
+
+            dispatch({
+                type: 'INIT',
+                payload: {
+                    scenario,
+                    payload: Object.keys(payload).length > 0 ? payload : undefined,
+                    outcomePaths: {
+                        successOutcome: successOutcome ?? paths.successOutcome,
+                        failureOutcome: failureOutcome ?? paths.failureOutcome,
+                    },
+                },
+            });
+        },
+        [dispatch],
+    );
+
+    /**
+     * Cancel the current authentication flow.
+     * Sets an error state which triggers navigation to the failure outcome.
+     */
+    const cancel = useCallback(() => {
+        // Set error to trigger failure navigation
+        dispatch({
+            type: 'SET_ERROR',
+            payload: {
+                reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.EXPO.CANCELED,
+            },
+        });
+    }, [dispatch]);
+
+    const contextValue: MultifactorAuthenticationContextValue = useMemo(
+        () => ({
+            executeScenario,
+            cancel,
+        }),
+        [cancel, executeScenario],
+    );
+
+    return <MultifactorAuthenticationContext.Provider value={contextValue}>{children}</MultifactorAuthenticationContext.Provider>;
+}
+
+function useMultifactorAuthentication(): MultifactorAuthenticationContextValue {
+    const context = useContext(MultifactorAuthenticationContext);
+
+    if (!context) {
+        throw new Error('useMultifactorAuthentication must be used within a MultifactorAuthenticationContextProviders');
+    }
+
+    return context;
+}
+
+MultifactorAuthenticationContextProvider.displayName = 'MultifactorAuthenticationContextProvider';
+
+export {useMultifactorAuthentication, MultifactorAuthenticationContext, MultifactorAuthenticationContextProvider};
+export type {MultifactorAuthenticationContextValue, ExecuteScenarioParams};

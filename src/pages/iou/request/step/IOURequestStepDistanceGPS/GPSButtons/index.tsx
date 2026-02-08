@@ -6,6 +6,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {initGpsDraft, resetGPSDraftDetails} from '@libs/actions/GPSDraftDetails';
@@ -29,6 +30,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
     const [showStopConfirmation, setShowStopConfirmation] = useState(false);
     const [showZeroDistanceModal, setShowZeroDistanceModal] = useState(false);
     const [showDisabledServicesModal, setShowDisabledServicesModal] = useState(false);
+    const {isOffline} = useNetwork();
 
     const {asset: ReceiptLocationMarker} = useMemoizedLazyAsset(() => loadIllustration('ReceiptLocationMarker'));
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
@@ -129,7 +131,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
                 isVisible={showStopConfirmation}
                 onConfirm={() => {
                     setShowStopConfirmation(false);
-                    stopGpsTrip();
+                    stopGpsTrip(isOffline);
                 }}
                 onCancel={() => setShowStopConfirmation(false)}
                 confirmText={translate('gps.stopGpsTrackingModal.confirm')}

@@ -33,7 +33,7 @@ on:
 
 jobs:
   prep:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     outputs:
       APP_REF: ${{ steps.getHeadRef.outputs.REF || 'main' }}
       APP_PR_NUMBER: ${{ steps.extractAppPRNumber.outputs.PR_NUMBER }}
@@ -91,7 +91,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
   getMobileExpensifyPR:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: [prep]
     outputs:
       MOBILE_EXPENSIFY_PR: ${{ steps.mobileExpensifyPR.outputs.result }}
@@ -121,7 +121,7 @@ jobs:
             return found.trim();
 
   getMobileExpensifyRef:
-      runs-on: ubuntu-latest
+      runs-on: blacksmith-4vcpu-ubuntu-2404
       needs: [prep, getMobileExpensifyPR]
       outputs:
         MOBILE_EXPENSIFY_REF: ${{ steps.getHeadRef.outputs.REF || 'main' }}
@@ -145,7 +145,7 @@ jobs:
 
   postGitHubCommentBuildStarted:
     name: Post build started comment
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: [prep, getMobileExpensifyPR, getMobileExpensifyRef]
     steps:
       - name: Add build start comment to Expensify/App PR
@@ -182,7 +182,7 @@ jobs:
     name: Build and deploy Web
     if: ${{ inputs.WEB && needs.prep.outputs.APP_PR_NUMBER }}
     needs: [prep]
-    runs-on: ubuntu-latest-xl
+    runs-on: blacksmith-16vcpu-ubuntu-2404
     env:
       PULL_REQUEST_NUMBER: ${{ needs.prep.outputs.APP_PR_NUMBER }}
     steps:
@@ -221,7 +221,7 @@ jobs:
     name: Build Android HybridApp
     if: ${{ inputs.ANDROID }}
     needs: [prep, getMobileExpensifyPR, getMobileExpensifyRef]
-    runs-on: ubuntu-latest-xl
+    runs-on: blacksmith-16vcpu-ubuntu-2404
     env:
       PULL_REQUEST_NUMBER: ${{ needs.prep.outputs.APP_PR_NUMBER }}
     outputs:
@@ -319,8 +319,16 @@ jobs:
           # Specify the path (relative to the Android source directory) where the keystore should be placed.
           keystore-path: '../tools/buildtools/upload-key.keystore'
           comment-bot: false
-          rock-build-extra-params: '--extra-params -PreactNativeArchitectures=arm64-v8a,x86_64'
+          rock-build-extra-params: '--extra-params "-PreactNativeArchitectures=arm64-v8a,x86_64 --profile"'
           custom-ref: ${{ needs.prep.outputs.APP_REF }}
+
+      - name: Upload Gradle profile report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: gradle-profile-report
+          path: Mobile-Expensify/Android/build/reports/profile/
+          if-no-files-found: ignore
 
       - name: Set artifact URL output
         id: set-artifact-url
@@ -450,7 +458,7 @@ jobs:
         run: echo "ARTIFACT_URL=$ARTIFACT_URL" >> "$GITHUB_OUTPUT"
 
   postGithubComment:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     if: always()
     name: Post a GitHub comment with app download links for testing
     needs: [prep, getMobileExpensifyPR, web, androidHybrid, iosHybrid]
