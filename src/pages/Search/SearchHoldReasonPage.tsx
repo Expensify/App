@@ -1,8 +1,9 @@
-import React, {useCallback, useContext, useEffect} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo} from 'react';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchContext} from '@components/Search/SearchContext';
 import useAncestors from '@hooks/useAncestors';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
@@ -26,9 +27,22 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const {translate} = useLocalize();
     const {backTo = '', reportID} = route.params ?? {};
     const context = useSearchContext();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
-    const isApprover = !isCurrentUserSubmitter(report);
+
+    const isApprover = useMemo(() => {
+        if (report) {
+            return !isCurrentUserSubmitter(report);
+        }
+        // For bulk search hold (no reportID), check selected transactions' ownerAccountID
+        const transactions = Object.values(context.selectedTransactions);
+        if (transactions.length === 0) {
+            return true;
+        }
+        return !transactions.every((t) => t.ownerAccountID === currentUserAccountID);
+    }, [report, context.selectedTransactions, currentUserAccountID]);
+
     const ancestors = useAncestors(report);
 
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
