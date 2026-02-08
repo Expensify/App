@@ -8,7 +8,7 @@ import {moveSelectionToEnd, scrollToBottom} from '@libs/InputUtils';
 import isWindowReadyToFocus from '@libs/isWindowReadyToFocus';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
+import {useSplashScreenState} from '@src/SplashScreenStateContext';
 import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
 import useSidePanel from './useSidePanel';
@@ -24,7 +24,7 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
     const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const isPopoverVisible = modal?.willAlertModalBecomeVisible && modal?.isPopover;
 
-    const {splashScreenState} = useSplashScreenStateContext();
+    const {splashScreenState} = useSplashScreenState();
 
     const inputRef = useRef<TextInput | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);

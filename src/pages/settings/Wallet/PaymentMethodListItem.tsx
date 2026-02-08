@@ -1,4 +1,4 @@
-import React, {useCallback, useRef} from 'react';
+import React, {useMemo, useRef} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -29,6 +29,7 @@ type PaymentMethodItem = PaymentMethod & {
     canDismissError?: boolean;
     disabled?: boolean;
     shouldShowRightIcon?: boolean;
+    shouldShowThreeDotsMenu?: boolean;
     interactive?: boolean;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
     errors?: Errors;
@@ -94,24 +95,23 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean; onThreeDotsPress: () => void}>(null);
+    const isInSetupState = isAccountInSetupState(item);
+    const showThreeDotsMenu = item.shouldShowThreeDotsMenu !== false && !!threeDotsMenuItems && !isInSetupState;
 
     const handleRowPress = (e: GestureResponderEvent | KeyboardEvent | undefined) => {
-        if (isAccountInSetupState(item) || !threeDotsMenuItems || (item.cardID && item.onThreeDotsMenuPress)) {
+        if (!showThreeDotsMenu || (item.cardID && item.onThreeDotsMenuPress)) {
             item.onPress?.(e);
         } else if (threeDotsMenuRef.current) {
             threeDotsMenuRef.current.onThreeDotsPress();
         }
     };
 
-    const getBadgeText = useCallback(
-        (listItem: PaymentMethodItem) => {
-            if (isAccountInSetupState(listItem)) {
-                return translate('common.actionRequired');
-            }
-            return shouldShowDefaultBadge ? translate('paymentMethodList.defaultPaymentMethod') : undefined;
-        },
-        [shouldShowDefaultBadge, translate],
-    );
+    const badgeText = useMemo(() => {
+        if (isInSetupState) {
+            return translate('common.actionRequired');
+        }
+        return shouldShowDefaultBadge ? translate('paymentMethodList.defaultPaymentMethod') : undefined;
+    }, [isInSetupState, shouldShowDefaultBadge, translate]);
 
     return (
         <OfflineWithFeedback
@@ -119,6 +119,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
             pendingAction={item.pendingAction}
             errors={item.errors}
             errorRowStyles={styles.paymentMethodErrorRow}
+            shouldShowErrorMessages={!!item.errors}
         >
             <MenuItem
                 onPress={handleRowPress}
@@ -132,15 +133,15 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 iconHeight={item.iconHeight ?? item.iconSize}
                 iconWidth={item.iconWidth ?? item.iconSize}
                 iconStyles={item.iconStyles}
-                badgeText={getBadgeText(item)}
-                badgeIcon={isAccountInSetupState(item) ? icons.DotIndicator : undefined}
-                badgeSuccess={isAccountInSetupState(item) ? true : undefined}
+                badgeText={badgeText}
+                badgeIcon={isInSetupState ? icons.DotIndicator : undefined}
+                badgeSuccess={isInSetupState ? true : undefined}
                 wrapperStyle={[styles.paymentMethod, listItemStyle]}
-                iconRight={item.iconRight}
-                shouldShowRightIcon={!threeDotsMenuItems && item.shouldShowRightIcon}
-                shouldShowRightComponent={!!threeDotsMenuItems}
+                iconRight={isInSetupState ? undefined : item.iconRight}
+                shouldShowRightIcon={!showThreeDotsMenu && item.shouldShowRightIcon}
+                shouldShowRightComponent={showThreeDotsMenu}
                 rightComponent={
-                    threeDotsMenuItems ? (
+                    showThreeDotsMenu ? (
                         <View style={styles.alignSelfCenter}>
                             <ThreeDotsMenu
                                 shouldSelfPosition
@@ -150,6 +151,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                                 shouldOverlay
                                 isNested
                                 threeDotsMenuRef={threeDotsMenuRef}
+                                disabled={item.disabled}
                             />
                         </View>
                     ) : undefined

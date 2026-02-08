@@ -1,5 +1,6 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList} from '@src/types/onyx';
 import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
 import {getLastFourDigits} from './BankAccountUtils';
@@ -77,15 +78,35 @@ function getTravelSettlementAccount(cardSettings: OnyxEntry<ExpensifyCardSetting
 
 /**
  * Gets the settlement frequency for Travel Invoicing.
- * Returns 'daily' or 'monthly' based on whether a monthly settlement date is configured.
+ * - If monthlySettlementDate is truthy (a Date), frequency is Monthly.
+ * - If monthlySettlementDate is falsy (null/undefined), frequency is Daily.
+ * - If cardSettings is missing, default to Monthly per design doc.
  */
 function getTravelSettlementFrequency(cardSettings: OnyxEntry<ExpensifyCardSettings>): string {
+    // Default to monthly per design doc when no settings exist
     if (!cardSettings) {
-        return CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
+        return CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY;
     }
+    // If monthlySettlementDate is set, it's monthly; otherwise it's daily
     return cardSettings.monthlySettlementDate ? CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY : CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
 }
 
-export {getIsTravelInvoicingEnabled, hasTravelInvoicingSettlementAccount, getTravelLimit, getTravelSpend, getTravelSettlementAccount, getTravelSettlementFrequency};
+/**
+ * Gets the Onyx key for Travel Invoicing card settings.
+ * This function returns a properly typed key without requiring type assertions.
+ */
+function getTravelInvoicingCardSettingsKey(workspaceAccountID: number): `${typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${number}_${typeof CONST.TRAVEL.PROGRAM_TRAVEL_US}` {
+    return `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`;
+}
+
+export {
+    getIsTravelInvoicingEnabled,
+    hasTravelInvoicingSettlementAccount,
+    getTravelLimit,
+    getTravelSpend,
+    getTravelSettlementAccount,
+    getTravelSettlementFrequency,
+    getTravelInvoicingCardSettingsKey,
+};
 
 export type {TravelSettlementAccountInfo};

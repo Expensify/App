@@ -1,6 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubPageHeader from '@components/InteractiveStepSubPageHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -58,12 +59,16 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
         onComplete();
     }, [onComplete, values]);
 
-    const {CurrentPage, isEditing, currentPageName, pageIndex, prevPage, nextPage, moveTo} = useSubPage<CustomSubPageProps>({
+    const {CurrentPage, isEditing, currentPageName, pageIndex, prevPage, nextPage, moveTo, isRedirecting} = useSubPage<CustomSubPageProps>({
         pages: formPages,
         startFrom,
         onFinished: handleFinishStep,
         buildRoute: (pageName, action) => ROUTES.MISSING_PERSONAL_DETAILS.getRoute(pageName, action),
     });
+
+    if (isRedirecting) {
+        return <FullScreenLoadingIndicator />;
+    }
 
     const handleBackButtonPress = () => {
         if (isEditing) {

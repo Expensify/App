@@ -7,6 +7,7 @@ import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelectionListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -58,6 +59,9 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
     const personalDetails = usePersonalDetails();
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserAccountID = currentUserPersonalDetails.accountID;
+    const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
@@ -75,7 +79,10 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
 
             const optionData = getSelectedOptionData(participant);
             if (optionData) {
-                acc.push(optionData);
+                acc.push({
+                    ...optionData,
+                    keyForList: optionData.keyForList ?? optionData.reportID,
+                });
             }
 
             return acc;
@@ -104,6 +111,8 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
             draftComments,
             nvpDismissedProductTraining,
             loginList,
+            currentUserAccountID,
+            currentUserEmail,
             {
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeCurrentUser: true,
@@ -111,15 +120,15 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
             },
             countryCode,
         );
-    }, [options.reports, options.personalDetails, allPolicies, draftComments, nvpDismissedProductTraining, loginList, countryCode, personalDetails]);
+    }, [options.reports, options.personalDetails, allPolicies, draftComments, nvpDismissedProductTraining, loginList, countryCode, personalDetails, currentUserAccountID, currentUserEmail]);
 
     const filteredOptions = useMemo(() => {
-        return filterAndOrderOptions(optionsList, cleanSearchTerm, countryCode, loginList, {
+        return filterAndOrderOptions(optionsList, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             canInviteUser: false,
         });
-    }, [optionsList, cleanSearchTerm, countryCode, loginList]);
+    }, [optionsList, cleanSearchTerm, countryCode, loginList, currentUserAccountID, currentUserEmail, personalDetails]);
 
     const listData = useMemo<Array<Option & {keyForList: string; isSelected: boolean}>>(() => {
         const initialOptions: Array<Option & {keyForList: string; isSelected: boolean}> = [];

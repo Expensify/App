@@ -10,6 +10,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SelectionList from '@components/SelectionListWithSections';
 import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
 import type {SectionListDataType} from '@components/SelectionListWithSections/types';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -53,7 +54,6 @@ type MoneyRequestAttendeesSelectorProps = {
     /** The action of the IOU, i.e. create, split, move */
     action: IOUAction;
 };
-
 function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdded, iouType, action}: MoneyRequestAttendeesSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -68,15 +68,22 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserEmail = currentUserPersonalDetails.email ?? '';
+    const currentUserAccountID = currentUserPersonalDetails.accountID;
 
     const isPaidGroupPolicy = useMemo(() => isPaidGroupPolicyFn(policy), [policy]);
 
     const initialAttendeesRef = useRef(attendees);
-    const recentAttendeeLists = useMemo(() => getFilteredRecentAttendees(personalDetails, initialAttendeesRef.current, recentAttendees ?? []), [personalDetails, recentAttendees]);
+    const recentAttendeeLists = useMemo(
+        () => getFilteredRecentAttendees(personalDetails, initialAttendeesRef.current, recentAttendees ?? [], currentUserEmail, currentUserAccountID),
+        [personalDetails, recentAttendees, currentUserEmail, currentUserAccountID],
+    );
     const initialSelectedOptionsRef = useRef<OptionData[]>(
         attendees.map((attendee) => ({
             ...attendee,
             reportID: CONST.DEFAULT_NUMBER_ID.toString(),
+            keyForList: String(attendee.accountID) ?? (attendee.email || attendee.displayName),
             selected: true,
             login: attendee.email ? attendee.email : attendee.displayName,
             ...getPersonalDetailByEmail(attendee.email),
@@ -123,9 +130,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         () =>
             initialSelectedOptionsRef.current.map((option) => {
                 const isPolicyExpenseChat = option.isPolicyExpenseChat ?? false;
-                const participant = isPolicyExpenseChat
-                    ? getPolicyExpenseReportOption(option, personalDetails, reportAttributesDerived)
-                    : getParticipantsOption(option, personalDetails);
+                const participant = isPolicyExpenseChat ? getPolicyExpenseReportOption(option, personalDetails, reportAttributesDerived) : getParticipantsOption(option, personalDetails);
                 return {
                     ...participant,
                     reportID: participant.reportID ?? CONST.DEFAULT_NUMBER_ID.toString(),
@@ -287,15 +292,18 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                     status: orderedSearchOptions.userToInvite?.status ?? undefined,
                 },
                 loginList,
+                currentUserEmail,
             )
         ) {
             const participant = orderedSearchOptions.userToInvite.isPolicyExpenseChat
                 ? getPolicyExpenseReportOption(orderedSearchOptions.userToInvite, personalDetails, reportAttributesDerived)
                 : getParticipantsOption(orderedSearchOptions.userToInvite, personalDetails);
+
             const participantOption: OptionData = {
                 ...participant,
                 reportID: participant.reportID ?? CONST.DEFAULT_NUMBER_ID.toString(),
             };
+
             if (matchesSearchTerm(participantOption)) {
                 newSections.push({
                     title: undefined,
@@ -311,7 +319,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             !!orderedSearchOptions?.userToInvite,
             cleanSearchTerm,
             countryCode,
-            attendees.some((attendee) => getPersonalDetailSearchTerms(attendee).join(' ').toLowerCase().includes(cleanSearchTerm)),
+            attendees.some((attendee) => getPersonalDetailSearchTerms(attendee, currentUserAccountID).join(' ').toLowerCase().includes(cleanSearchTerm)),
         );
 
         return [newSections, headerMessage];
@@ -329,6 +337,9 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         countryCode,
         selectedOptions,
         translate,
+        currentUserAccountID,
+        currentUserEmail,
+        formattedInitialSelectedOptions,
     ]);
 
     const optionLength = useMemo(() => {

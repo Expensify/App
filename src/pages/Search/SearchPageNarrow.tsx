@@ -5,7 +5,7 @@ import Animated, {clamp, useAnimatedScrollHandler, useAnimatedStyle, useSharedVa
 import {scheduleOnRN} from 'react-native-worklets';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import {FullScreenBlockingViewContext} from '@components/FullScreenBlockingViewContextProvider';
+import {useFullScreenBlockingViewActions} from '@components/FullScreenBlockingViewContextProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
@@ -20,7 +20,7 @@ import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersB
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {BankAccountMenuItem, SearchParams, SearchQueryJSON} from '@components/Search/types';
-import useHandleBackButton from '@hooks/useHandleBackButton';
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -101,7 +101,7 @@ function SearchPageNarrow({
         return true;
     }, [isMobileSelectionModeEnabled, clearSelectedTransactions, topBarOffset, StyleUtils.searchHeaderDefaultOffset]);
 
-    useHandleBackButton(handleBackButtonPress);
+    useAndroidBackButtonHandler(handleBackButtonPress);
 
     const topBarAnimatedStyle = useAnimatedStyle(() => ({
         top: topBarOffset.get(),
@@ -148,7 +148,7 @@ function SearchPageNarrow({
         }
     }, []);
 
-    const {addRouteKey, removeRouteKey} = useContext(FullScreenBlockingViewContext);
+    const {addRouteKey, removeRouteKey} = useFullScreenBlockingViewActions();
     useEffect(() => {
         if (!searchRouterListVisible) {
             return;

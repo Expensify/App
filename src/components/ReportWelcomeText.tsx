@@ -15,6 +15,7 @@ import {
     getParticipantsAccountIDsForDisplay,
     getPolicyName,
     isChatRoom as isChatRoomReportUtils,
+    isConciergeChatReport,
     isInvoiceRoom as isInvoiceRoomReportUtils,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
     isSelfDM as isSelfDMReportUtils,
@@ -58,6 +59,8 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID || undefined}`, {canBeMissing: true});
     const isReportArchived = useReportIsArchived(report?.reportID);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+    const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
     const isChatRoom = isChatRoomReportUtils(report);
     const isSelfDM = isSelfDMReportUtils(report);
     const isInvoiceRoom = isInvoiceRoomReportUtils(report);
@@ -93,7 +96,9 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const reportDetailsLink = report?.reportID ? `${environmentURL}/${ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, Navigation.getReportRHPActiveRoute())}` : '';
 
     let welcomeHeroText = translate('reportActionsView.sayHello');
-    if (isInvoiceRoom) {
+    if (isConciergeChat) {
+        welcomeHeroText = translate('reportActionsView.askMeAnything');
+    } else if (isInvoiceRoom) {
         welcomeHeroText = translate('reportActionsView.sayHello');
     } else if (isChatRoom) {
         welcomeHeroText = translate('reportActionsView.welcomeToRoom', {roomName: reportName});

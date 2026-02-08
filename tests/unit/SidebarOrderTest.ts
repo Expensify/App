@@ -219,7 +219,7 @@ describe('Sidebar', () => {
                     // Then there should be a pencil icon and report one should be the first one because putting a draft on the active report should change its location
                     // in the ordered list
                     .then(() => {
-                        const pencilIcon = screen.queryAllByTestId('Pencil Icon');
+                        const pencilIcon = screen.queryAllByTestId('Pencil Icon', {includeHiddenElements: true});
                         expect(pencilIcon).toHaveLength(1);
                         const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
@@ -579,7 +579,7 @@ describe('Sidebar', () => {
 
                     // Then there should be a pencil icon showing
                     .then(() => {
-                        expect(screen.queryAllByTestId('Pencil Icon')).toHaveLength(1);
+                        expect(screen.queryAllByTestId('Pencil Icon', {includeHiddenElements: true})).toHaveLength(1);
                     })
 
                     // When the draft is removed
@@ -620,7 +620,7 @@ describe('Sidebar', () => {
 
                     // Then there should be a pencil icon showing
                     .then(() => {
-                        expect(screen.queryAllByTestId('Pin Icon')).toHaveLength(1);
+                        expect(screen.queryAllByTestId('Pin Icon', {includeHiddenElements: true})).toHaveLength(1);
                     })
 
                     // When the draft is removed
@@ -710,8 +710,8 @@ describe('Sidebar', () => {
                         const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
-                        expect(screen.queryAllByTestId('Pin Icon')).toHaveLength(1);
-                        expect(screen.queryAllByTestId('Pencil Icon')).toHaveLength(1);
+                        expect(screen.queryAllByTestId('Pin Icon', {includeHiddenElements: true})).toHaveLength(1);
+                        expect(screen.queryAllByTestId('Pencil Icon', {includeHiddenElements: true})).toHaveLength(1);
                         expect(displayNames.at(0)).toHaveTextContent('Email Four');
                         expect(displayNames.at(1)).toHaveTextContent('Email Two');
                         expect(displayNames.at(2)).toHaveTextContent('Email Three');

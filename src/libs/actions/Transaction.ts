@@ -52,9 +52,10 @@ import type {
 } from '@src/types/onyx';
 import type {OriginalMessageIOU, OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
 import type {OnyxData} from '@src/types/onyx/Request';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import type TransactionState from '@src/types/utils/TransactionStateType';
-import {getPolicyTagsData} from './Policy/Tag';
+import {getPolicyTags} from './IOU/index';
 
 let allTransactionDrafts: OnyxCollection<Transaction> = {};
 Onyx.connect({
@@ -94,6 +95,16 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
     callback: (val) => (allTransactionViolations = val ?? []),
 });
+
+/**
+ * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
+ * TODO: remove `getPolicyTagsData` from this file (https://github.com/Expensify/App/issues/72720)
+ * All usages of this function should be replaced with useOnyx hook in React components.
+ */
+function getPolicyTagsData(policyID: string | undefined) {
+    const allPolicyTags = getPolicyTags();
+    return allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
+}
 
 // Helper to safely check for a string 'name' property
 function isViolationWithName(violation: unknown): violation is {name: string} {
@@ -629,10 +640,14 @@ function dismissDuplicateTransactionViolation({
     });
 }
 
-function setReviewDuplicatesKey(values: Partial<ReviewDuplicates>) {
-    Onyx.merge(`${ONYXKEYS.REVIEW_DUPLICATES}`, {
-        ...values,
-    });
+function setReviewDuplicatesKey(values: Partial<ReviewDuplicates>, shouldUseSetMethod = false) {
+    if (shouldUseSetMethod) {
+        Onyx.set(`${ONYXKEYS.REVIEW_DUPLICATES}`, values);
+    } else {
+        Onyx.merge(`${ONYXKEYS.REVIEW_DUPLICATES}`, {
+            ...values,
+        });
+    }
 }
 
 function abandonReviewDuplicateTransactions() {
@@ -782,6 +797,7 @@ function changeTransactionsReport({
             | typeof ONYXKEYS.COLLECTION.TRANSACTION
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
             | typeof ONYXKEYS.COLLECTION.NEXT_STEP
+            | typeof ONYXKEYS.SELF_DM_REPORT_ID
         >
     > = [];
     const failureData: Array<
@@ -824,6 +840,11 @@ function changeTransactionsReport({
                         createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     },
                 },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.SELF_DM_REPORT_ID,
+                value: selfDMReport.reportID,
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -888,6 +909,8 @@ function changeTransactionsReport({
     let transactionsMoved = false;
     let shouldFixViolations = false;
 
+    // TODO: Replace getPolicyTagsData with useOnyx hook (https://github.com/Expensify/App/issues/72720)
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policyTagList = getPolicyTagsData(policy?.id);
     const policyHasDependentTags = hasDependentTags(policy, policyTagList);
 
@@ -1519,6 +1542,10 @@ function getDraftTransactions(draftTransactions?: OnyxCollection<Transaction>): 
     return Object.values(draftTransactions ?? allTransactionDrafts ?? {}).filter((transaction): transaction is Transaction => !!transaction);
 }
 
+function mergeTransactionIdsHighlightOnSearchRoute(type: SearchDataTypes, data: Record<string, boolean> | null) {
+    return Onyx.merge(ONYXKEYS.TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE, {[type]: data});
+}
+
 function getDuplicateTransactionDetails(transactionID?: string) {
     if (!transactionID) {
         return;
@@ -1549,5 +1576,6 @@ export {
     revert,
     changeTransactionsReport,
     setTransactionReport,
+    mergeTransactionIdsHighlightOnSearchRoute,
     getDuplicateTransactionDetails,
 };

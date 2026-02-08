@@ -11,6 +11,7 @@ import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -23,6 +24,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
@@ -38,6 +40,7 @@ import {
     isPendingDeletePolicy,
     isPolicyAdmin,
     isPolicyFeatureEnabled,
+    isTimeTrackingEnabled,
     shouldShowEmployeeListError,
     shouldShowSyncError,
     shouldShowTaxRateError,
@@ -54,7 +57,6 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-import useHasWorkspaceCompanyCardErrors from './companyCards/hooks/useHasWorkspaceCompanyCardErrors';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
@@ -107,6 +109,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         'Users',
         'Workflows',
         'LuggageWithLines',
+        'Clock',
     ] as const);
 
     const policy = policyDraft?.id ? policyDraft : policyProp;
@@ -129,6 +132,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const wasRendered = useRef(false);
     const prevPendingFields = usePrevious(policy?.pendingFields);
     const shouldDisplayLHB = !shouldUseNarrowLayout;
+    const isPolicyTimeTrackingEnabled = isTimeTrackingEnabled(policy);
     const policyFeatureStates = useMemo(
         () => ({
             [CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED]: policy?.areDistanceRatesEnabled,
@@ -145,6 +149,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             [CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]: policy?.arePerDiemRatesEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED]: isUberForBusinessEnabled && (policy?.receiptPartners?.enabled ?? false),
             [CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED]: policy?.isTravelEnabled,
+            [CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED]: isPolicyTimeTrackingEnabled,
         }),
         [
             policy?.areDistanceRatesEnabled,
@@ -163,6 +168,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             policy?.receiptPartners?.enabled,
             isUberForBusinessEnabled,
             policy?.isTravelEnabled,
+            isPolicyTimeTrackingEnabled,
         ],
     ) as PolicyFeatureStates;
 
@@ -183,6 +189,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
     const policyID = policy?.id;
     const policyName = policy?.name ?? '';
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
 
     const hasMembersError = shouldShowEmployeeListError(policy);
     const hasPolicyCategoryError = hasPolicyCategoriesError(policyCategories);
@@ -196,7 +203,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
     const [highlightedFeature, setHighlightedFeature] = useState<string | undefined>(undefined);
 
-    const hasCompanyCardFeedError = useHasWorkspaceCompanyCardErrors({policyID});
+    const {shouldShowRbrForWorkspaceAccountID} = useCardFeedErrors();
+    const shouldShowRBR = shouldShowRbrForWorkspaceAccountID[workspaceAccountID];
 
     const workspaceMenuItems: WorkspaceMenuItem[] = useMemo(() => {
         const protectedMenuItems: WorkspaceMenuItem[] = [];
@@ -323,7 +331,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                 icon: expensifyIcons.CreditCard,
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)))),
                 screenName: SCREENS.WORKSPACE.COMPANY_CARDS,
-                brickRoadIndicator: hasCompanyCardFeedError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                brickRoadIndicator: shouldShowRBR ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED,
             });
         }
@@ -335,6 +343,16 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policyID)))),
                 screenName: SCREENS.WORKSPACE.PER_DIEM,
                 highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED,
+            });
+        }
+
+        if (isBetaEnabled(CONST.BETAS.TIME_TRACKING) && featureStates?.[CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED]) {
+            protectedMenuItems.push({
+                translationKey: 'iou.time',
+                icon: expensifyIcons.Clock,
+                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TIME_TRACKING.getRoute(policyID)))),
+                screenName: SCREENS.WORKSPACE.TIME_TRACKING,
+                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED,
             });
         }
 
@@ -394,6 +412,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         expensifyIcons.CreditCard,
         expensifyIcons.CalendarSolid,
         expensifyIcons.InvoiceGeneric,
+        expensifyIcons.Clock,
         singleExecution,
         waitForNavigate,
         featureStates,
@@ -406,7 +425,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         highlightedFeature,
         shouldShowEnterCredentialsError,
         hasPolicyCategoryError,
-        hasCompanyCardFeedError,
+        shouldShowRBR,
+        isBetaEnabled,
     ]);
 
     // We only update feature states if they aren't pending.

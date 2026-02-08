@@ -26,7 +26,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {formatMemberForList, getHeaderMessage, getParticipantsOption} from '@libs/OptionsListUtils';
 import type {MemberForList} from '@libs/OptionsListUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
-import {getIneligibleInvitees, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
+import {getIneligibleInvitees, getMemberAccountIDsForWorkspace, getSoftExclusionsForGuideAndAccountManager, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
@@ -54,6 +54,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID}`, {canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const openWorkspaceInvitePage = () => {
         const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
         policyOpenWorkspaceInvitePage(route.params.policyID, Object.keys(policyMemberEmailsToAccountIDs));
@@ -77,6 +78,11 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             {} as Record<string, boolean>,
         );
     }, [policy?.employeeList]);
+
+    const softExclusions = useMemo(
+        () => getSoftExclusionsForGuideAndAccountManager(policy, account?.accountManagerAccountID, personalDetails),
+        [policy, account?.accountManagerAccountID, personalDetails],
+    );
 
     const initiallySelectedOptions = useMemo(() => {
         if (!invitedEmailsToAccountIDsDraft || !personalDetails) {
@@ -105,6 +111,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
         includeUserToInvite: true,
         excludeLogins: excludedUsers,
+        excludeFromSuggestionsOnly: softExclusions,
         includeRecentReports: false,
         shouldInitialize: didScreenTransitionEnd,
         initialSelected: initiallySelectedOptions,

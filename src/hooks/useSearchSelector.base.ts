@@ -8,6 +8,7 @@ import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDebounce from './useDebounce';
 import useDebouncedState from './useDebouncedState';
 import useOnyx from './useOnyx';
@@ -34,8 +35,11 @@ type UseSearchSelectorConfig = {
     /** Whether to include user to invite option */
     includeUserToInvite?: boolean;
 
-    /** Logins to exclude from results */
+    /** Logins to exclude from results (hard exclusions - cannot be selected at all) */
     excludeLogins?: Record<string, boolean>;
+
+    /** Logins to exclude from suggestions only (soft exclusions - can still be manually entered) */
+    excludeFromSuggestionsOnly?: Record<string, boolean>;
 
     /** Whether to include recent reports (for getMemberInviteOptions) */
     includeRecentReports?: boolean;
@@ -134,6 +138,7 @@ function useSearchSelectorBase({
     searchContext = 'search',
     includeUserToInvite = true,
     excludeLogins = CONST.EMPTY_OBJECT,
+    excludeFromSuggestionsOnly = CONST.EMPTY_OBJECT,
     includeRecentReports = false,
     getValidOptionsConfig = CONST.EMPTY_OBJECT,
     onSelectionChange,
@@ -166,6 +171,9 @@ function useSearchSelectorBase({
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserAccountID = currentUserPersonalDetails.accountID;
+    const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const personalDetails = usePersonalDetails();
 
     const onListEndReached = useDebounce(
@@ -178,6 +186,7 @@ function useSearchSelectorBase({
     const computedSearchTerm = useMemo(() => {
         return getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode);
     }, [debouncedSearchTerm, countryCode]);
+    const trimmedSearchInput = debouncedSearchTerm.trim();
 
     const baseOptions = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -198,29 +207,36 @@ function useSearchSelectorBase({
                     includeUserToInvite,
                     countryCode,
                     loginList,
+                    currentUserAccountID,
+                    currentUserEmail,
+                    personalDetails,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE:
-                return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, {
+                return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, {
                     betas: betas ?? [],
                     includeP2P: true,
                     includeSelectedOptions: false,
                     excludeLogins,
+                    excludeFromSuggestionsOnly,
                     includeRecentReports,
                     maxElements: maxResults,
                     maxRecentReportElements: maxRecentReportsToShow,
                     searchString: computedSearchTerm,
+                    searchInputValue: trimmedSearchInput,
                     includeUserToInvite,
                     personalDetails,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
-                return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, {
+                return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, {
                     ...getValidOptionsConfig,
                     betas: betas ?? [],
                     searchString: computedSearchTerm,
+                    searchInputValue: trimmedSearchInput,
                     maxElements: maxResults,
                     maxRecentReportElements: maxRecentReportsToShow,
                     includeUserToInvite,
                     excludeLogins,
+                    excludeFromSuggestionsOnly,
                     personalDetails,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_LOG:
@@ -230,6 +246,8 @@ function useSearchSelectorBase({
                     draftComments,
                     nvpDismissedProductTraining,
                     loginList,
+                    currentUserAccountID,
+                    currentUserEmail,
                     {
                         betas,
                         includeMultipleParticipantReports: true,
@@ -240,6 +258,7 @@ function useSearchSelectorBase({
                         includeThreads: true,
                         includeReadOnly: false,
                         searchString: computedSearchTerm,
+                        searchInputValue: trimmedSearchInput,
                         maxElements: maxResults,
                         includeUserToInvite,
                         personalDetails,
@@ -247,7 +266,7 @@ function useSearchSelectorBase({
                     countryCode,
                 );
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION:
-                return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, {
+                return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, {
                     betas,
                     selectedOptions,
                     includeMultipleParticipantReports: true,
@@ -261,22 +280,25 @@ function useSearchSelectorBase({
                     includeOwnedWorkspaceChats: true,
                     includeSelfDM: true,
                     searchString: computedSearchTerm,
+                    searchInputValue: trimmedSearchInput,
                     maxElements: maxResults,
                     includeUserToInvite,
                     personalDetails,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES:
-                return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, {
+                return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, {
                     ...getValidOptionsConfig,
                     betas: betas ?? [],
                     includeP2P: true,
                     includeSelectedOptions: false,
                     excludeLogins,
+                    excludeFromSuggestionsOnly,
                     loginsToExclude: excludeLogins,
                     includeRecentReports,
                     maxElements: maxResults,
                     maxRecentReportElements: maxRecentReportsToShow,
                     searchString: computedSearchTerm,
+                    searchInputValue: trimmedSearchInput,
                     includeUserToInvite,
                     includeCurrentUser,
                     shouldAcceptName: true,
@@ -298,12 +320,16 @@ function useSearchSelectorBase({
         countryCode,
         loginList,
         excludeLogins,
+        excludeFromSuggestionsOnly,
         includeRecentReports,
         maxRecentReportsToShow,
         getValidOptionsConfig,
         selectedOptions,
         includeCurrentUser,
+        currentUserAccountID,
+        currentUserEmail,
         personalDetails,
+        trimmedSearchInput,
     ]);
 
     const isOptionSelected = useMemo(() => {

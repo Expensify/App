@@ -13,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {savePreferredExportMethod as savePreferredExportMethodUtils} from '@libs/actions/Policy/Policy';
 import {exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
 import {canBeExported as canBeExportedUtils, getIntegrationIcon, isExported as isExportedUtils} from '@libs/ReportUtils';
-import type {ExportType} from '@pages/home/report/ReportDetailsExportPage';
+import type {ExportType} from '@pages/inbox/report/ReportDetailsExportPage';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

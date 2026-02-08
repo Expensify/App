@@ -34,7 +34,7 @@ function SearchTransactionsChangeReport() {
             Object.values(selectedTransactions).reduce(
                 (transactionsCollection, transactionItem) => {
                     // eslint-disable-next-line no-param-reassign
-                    transactionsCollection[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transaction.transactionID}`] = transactionItem.transaction;
+                    transactionsCollection[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transaction?.transactionID}`] = transactionItem.transaction;
                     return transactionsCollection;
                 },
                 {} as NonNullable<OnyxCollection<Transaction>>,
@@ -45,21 +45,25 @@ function SearchTransactionsChangeReport() {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`, {canBeMissing: true});
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const hasPerDiemTransactions = useHasPerDiemTransactions(selectedTransactionsKeys);
-    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const personalDetails = usePersonalDetails();
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
-    const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
     const firstTransactionKey = selectedTransactionsKeys.at(0);
     const firstTransactionReportID = firstTransactionKey ? selectedTransactions[firstTransactionKey]?.reportID : undefined;
     const selectedReportID =
         Object.values(selectedTransactions).every((transaction) => transaction.reportID === firstTransactionReportID) && firstTransactionReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
             ? firstTransactionReportID
             : undefined;
+    // Get the policyID from the selected transactions' report to pass to usePolicyForMovingExpenses
+    // This ensures the "Create report" button shows the correct workspace instead of the user's default
+    const selectedReportPolicyID = selectedReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`]?.policyID : undefined;
+    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions, selectedReportPolicyID);
+    const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
     const areAllTransactionsUnreported =
         selectedTransactionsKeys.length > 0 && selectedTransactionsKeys.every((transactionKey) => selectedTransactions[transactionKey]?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
     const targetOwnerAccountID = useMemo(() => {
@@ -86,7 +90,15 @@ function SearchTransactionsChangeReport() {
     }, [selectedTransactions, selectedTransactionsKeys]);
     const targetOwnerPersonalDetails = useMemo(() => getPersonalDetailsForAccountID(targetOwnerAccountID, personalDetails) as PersonalDetails, [personalDetails, targetOwnerAccountID]);
     const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
-        const optimisticReport = createNewReport(targetOwnerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpenses, false, shouldDismissEmptyReportsConfirmation);
+        const optimisticReport = createNewReport(
+            targetOwnerPersonalDetails,
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            policyForMovingExpenses,
+            betas,
+            false,
+            shouldDismissEmptyReportsConfirmation,
+        );
         const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
         setNavigationActionToMicrotaskQueue(() => {
             changeTransactionsReport({
