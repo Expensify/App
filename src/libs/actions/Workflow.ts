@@ -39,7 +39,7 @@ function createApprovalWorkflow({approvalWorkflow, policy, addExpenseApprovalsTa
         return;
     }
 
-    const previousEmployeeList = Object.fromEntries(Object.entries(policy.employeeList ?? {}).map(([key, value]) => [key, {...value}]));
+    const previousEmployeeList = Object.fromEntries(Object.entries(policy.employeeList ?? {}).map(([key, value]) => [key, {...value, pendingAction: null}]));
     const previousApprovalMode = policy.approvalMode;
     const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({previousEmployeeList, approvalWorkflow, type: CONST.APPROVAL_WORKFLOW.TYPE.CREATE});
 
@@ -108,7 +108,7 @@ function updateApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, membersToRem
 
     const previousDefaultApprover = getDefaultApprover(policy);
     const newDefaultApprover = approvalWorkflow.isDefault ? approvalWorkflow.approvers.at(0)?.email : undefined;
-    const previousEmployeeList = Object.fromEntries(Object.entries(policy.employeeList ?? {}).map(([key, value]) => [key, {...value}]));
+    const previousEmployeeList = Object.fromEntries(Object.entries(policy.employeeList ?? {}).map(([key, value]) => [key, {...value, pendingAction: null}]));
     const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({
         previousEmployeeList,
         approvalWorkflow,
@@ -179,7 +179,7 @@ function removeApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: Onyx
         return;
     }
 
-    const previousEmployeeList = Object.fromEntries(Object.entries(policy.employeeList ?? {}).map(([key, value]) => [key, {...value}]));
+    const previousEmployeeList = Object.fromEntries(Object.entries(policy.employeeList ?? {}).map(([key, value]) => [key, {...value, pendingAction: null}]));
     const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({previousEmployeeList, approvalWorkflow, type: CONST.APPROVAL_WORKFLOW.TYPE.REMOVE});
     const updatedEmployeeList = {...previousEmployeeList, ...updatedEmployees};
 
