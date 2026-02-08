@@ -497,10 +497,23 @@ describe('actions/Report', () => {
                     created: DateUtils.getDBTime(Date.now() - 3),
                 };
 
+                const USER_2_BASE_ACTION = {
+                    ...USER_1_BASE_ACTION,
+                    actorAccountID: USER_2_ACCOUNT_ID,
+                };
+
+                reportActionCreatedDate = DateUtils.getDBTime();
+
                 const optimisticReportActions: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                     value: {
+                        100: {
+                            ...USER_2_BASE_ACTION,
+                            message: [{type: 'COMMENT', html: 'Other user comment', text: 'Other user comment'}],
+                            created: reportActionCreatedDate,
+                            reportActionID: '100',
+                        },
                         200: {
                             ...USER_1_BASE_ACTION,
                             message: [{type: 'COMMENT', html: 'Current User Comment 1', text: 'Current User Comment 1'}],
@@ -523,8 +536,6 @@ describe('actions/Report', () => {
                         },
                     },
                 };
-
-                reportActionCreatedDate = DateUtils.getDBTime();
 
                 const optimisticReportActionsValue = optimisticReportActions.value as Record<string, OnyxTypes.ReportAction>;
 
@@ -581,6 +592,26 @@ describe('actions/Report', () => {
                 return waitForBatchedUpdates();
             })
             .then(() => {
+                // Mark action 100 (other user) as deleted so latestReportActionFromOtherUsers is null and report is considered read (lastReadTime >= lastVisibleActionCreated)
+                const deletedMessage = [{type: 'COMMENT' as const, html: '', text: '', deleted: 'true' as const}];
+                return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const, {
+                    100: {
+                        ...reportActions['100'],
+                        message: deletedMessage,
+                    } as OnyxTypes.ReportAction,
+                });
+            })
+            .then(() => waitForBatchedUpdates())
+            .then(() => {
+                // Ensure report has expected lastMessageText after deleting 400 (in case derived state didn't update)
+                return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}` as const, {
+                    lastMessageText: 'Current User Comment 2',
+                } as Partial<OnyxTypes.Report>);
+            })
+            .then(() => waitForBatchedUpdates())
+            .then(() => getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}` as const))
+            .then((currentReport) => {
+                report = currentReport ?? report;
                 expect(ReportUtils.isUnread(report, undefined, undefined)).toBe(false);
                 expect(report?.lastMessageText).toBe('Current User Comment 2');
             });
