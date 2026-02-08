@@ -9,19 +9,23 @@ const useScreenReaderStatus = (): boolean => {
     const [isScreenReaderEnabled, setIsScreenReaderEnabled] = useState(false);
     useEffect(() => {
         let isMounted = true;
-        AccessibilityInfo.isScreenReaderEnabled()
-            .then((enabled) => {
-                if (!isMounted) {
-                    return;
-                }
-                setIsScreenReaderEnabled(enabled);
-            })
-            .catch(() => {});
+        const isScreenReaderEnabledAsync = AccessibilityInfo.isScreenReaderEnabled;
+        if (isScreenReaderEnabledAsync) {
+            isScreenReaderEnabledAsync()
+                .then((enabled) => {
+                    if (!isMounted) {
+                        return;
+                    }
 
+                    setIsScreenReaderEnabled(enabled);
+                })
+                .catch(() => {});
+        }
         const subscription = AccessibilityInfo.addEventListener('screenReaderChanged', (enabled) => {
             if (!isMounted) {
                 return;
             }
+
             setIsScreenReaderEnabled(enabled);
         });
 

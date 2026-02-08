@@ -269,8 +269,7 @@ function BaseModal({
         ],
     );
 
-    const shouldShowBottomDockedDismissButton =
-        isSmallScreenWidth && type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && !!(onBackdropPress ?? onClose) && isScreenReaderEnabled;
+    const shouldShowBottomDockedDismissButton = isSmallScreenWidth && type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && !!(onBackdropPress ?? onClose) && isScreenReaderEnabled;
 
     const initialFocusTarget = useMemo(() => {
         if (!isWeb || !shouldShowBottomDockedDismissButton) {
@@ -422,6 +421,7 @@ function BaseModal({
                                     onPress={handleBackdropPress}
                                     accessibilityRole={CONST.ROLE.BUTTON}
                                     accessibilityLabel={translate('modal.dismissDialog')}
+                                    sentryLabel="Modal-DismissDialog"
                                     style={styles.bottomDockedModalDismissButton}
                                     shouldUseAutoHitSlop
                                 >
