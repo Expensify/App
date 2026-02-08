@@ -1663,6 +1663,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     modal: {
         backdropLabel: 'Modale achtergrond',
+        dismissDialog: 'Dialoog sluiten',
     },
     nextStep: {
         message: {
