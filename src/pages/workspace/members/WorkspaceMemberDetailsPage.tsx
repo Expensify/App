@@ -190,9 +190,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             return;
         }
 
-        // Remove the member first so they disappear immediately from the list
-        removeMemberAndCloseModal();
-
         // Update approval workflows after approver removal
         const updatedWorkflows = updateWorkflowDataOnApproverRemoval({
             approvalWorkflows,
@@ -212,6 +209,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                 }
             }
         });
+
+        // Remove the member first so they disappear immediately from the list
+        removeMemberAndCloseModal();
     };
 
     const showRemoveMemberModal = async () => {
