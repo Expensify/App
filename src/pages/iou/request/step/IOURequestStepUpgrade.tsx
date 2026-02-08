@@ -74,6 +74,7 @@ function IOURequestStepUpgrade({
     const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
 
     // Build transactions map from selectedTransactions (search results) instead of Onyx TRANSACTION collection
     // This ensures that transactions selected from search are properly included in the map passed to changeTransactionsReport
@@ -118,7 +119,7 @@ function IOURequestStepUpgrade({
         if (upgradePath === CONST.UPGRADE_PATHS.REPORTS && policyID && selectedTransactionsKeys.length > 0) {
             const newPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 
-            const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, newPolicy);
+            const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, newPolicy, betas);
 
             const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
 
@@ -196,6 +197,7 @@ function IOURequestStepUpgrade({
         session?.email,
         currentUserPersonalDetails,
         allTransactions,
+        betas,
     ]);
 
     const participant = transaction?.participants?.[0];
