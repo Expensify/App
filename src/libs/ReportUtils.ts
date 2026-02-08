@@ -8854,18 +8854,18 @@ function generateIsEmptyReport(report: OnyxEntry<Report>, isReportArchived: bool
 /**
  * Get the latest report action from other users
  * @param reportActions - The report actions
- * @param currentUserAccountID - The current user account ID
+ * @param accountID - The current user account ID (to exclude own actions)
  * @returns The latest report action from other users
  */
-function getLatestReportActionFromOtherUsers(reportActions: ReportActions | null, currentUserAccountID: number | undefined): ReportAction | null {
-    if (!currentUserAccountID) {
+function getLatestReportActionFromOtherUsers(reportActions: ReportActions | null, accountID: number | undefined): ReportAction | null {
+    if (!accountID) {
         return null;
     }
 
     return Object.values(reportActions ?? {}).reduce((latest: ReportAction | null, current: ReportAction) => {
         if (
             !isDeletedAction(current) &&
-            current.actorAccountID !== currentUserAccountID &&
+            current.actorAccountID !== accountID &&
             (!latest || current.created > latest.created) &&
             (!isWhisperAction(current) || current.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER)
         ) {
@@ -8892,7 +8892,7 @@ function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEnt
     const lastReadTime = report.lastReadTime ?? '';
     const lastMentionedTime = report.lastMentionedTime ?? '';
 
-    // If the user was mentioned and the comment got deleted the lastMentionedTime will be more recent than the lastVisibleActionCreated
+    // Unread when lastReadTime is before the latest action from other users (or lastVisibleActionCreated as fallback), or when the user was mentioned and has not read it
     return lastReadTime < (latestReportActionFromOtherUsers?.created ?? lastVisibleActionCreated ?? '') || lastReadTime < lastMentionedTime;
 }
 
