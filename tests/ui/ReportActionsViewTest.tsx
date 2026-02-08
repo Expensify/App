@@ -63,9 +63,7 @@ jest.mock('@pages/inbox/report/ReportActionsList', () =>
 jest.mock('@pages/inbox/report/UserTypingEventListener', () => jest.fn(() => null));
 jest.mock('@components/ConciergeSidePanelWelcome', () => jest.fn(() => null));
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 const mockReportActionsList: jest.Mock = jest.requireMock('@pages/inbox/report/ReportActionsList');
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 const mockConciergeSidePanelWelcome: jest.Mock = jest.requireMock('@components/ConciergeSidePanelWelcome');
 
 jest.mock('@libs/actions/Report', () => ({
