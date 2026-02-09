@@ -883,6 +883,15 @@ function Search({
         [selectedTransactions, setSelectedTransactions, filteredData, updateSelectAllMatchingItemsState, transactions, email, accountID, outstandingReportsByPolicyID, searchResults?.data],
     );
 
+    const startReportOpenTelemetry = useCallback((reportID: string) => {
+        Performance.markStart(CONST.TIMING.OPEN_REPORT_SEARCH);
+        Timing.start(CONST.TIMING.OPEN_REPORT_SEARCH);
+        startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`, {
+            name: 'Search',
+            op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
+        });
+    }, []);
+
     const onSelectRow = useCallback(
         (item: SearchListItem, transactionPreviewData?: TransactionPreviewData) => {
             if (isMobileSelectionModeEnabled) {
@@ -1076,6 +1085,18 @@ function Search({
                 return;
             }
 
+            // Handle task items - navigate to the task report
+            if (isTaskListItemType(item)) {
+                const reportID = item.reportID;
+                if (!reportID) {
+                    return;
+                }
+
+                startReportOpenTelemetry(reportID);
+                requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
+                return;
+            }
+
             // After handling all group types, item should be TransactionListItemType, ReportActionListItemType, or TransactionGroupListItemType
             if (!isTransactionItem && !isReportActionListItemType(item) && !isTransactionGroupListItemType(item)) {
                 return;
@@ -1098,12 +1119,7 @@ function Search({
                 return;
             }
 
-            Performance.markStart(CONST.TIMING.OPEN_REPORT_SEARCH);
-            Timing.start(CONST.TIMING.OPEN_REPORT_SEARCH);
-            startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`, {
-                name: 'Search',
-                op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
-            });
+            startReportOpenTelemetry(reportID);
 
             if (isTransactionGroupListItemType(item)) {
                 const groupItem = item as TransactionGroupListItemType;
@@ -1149,6 +1165,7 @@ function Search({
             searchKey,
             markReportIDAsMultiTransactionExpense,
             unmarkReportIDAsMultiTransactionExpense,
+            startReportOpenTelemetry,
         ],
     );
 
