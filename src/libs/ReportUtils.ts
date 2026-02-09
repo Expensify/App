@@ -12006,8 +12006,12 @@ function isChatUsedForOnboarding(optionOrReport: OnyxEntry<Report> | OptionData,
         return (optionOrReport as OptionData)?.isConciergeChat ?? isConciergeChatReport(optionOrReport);
     }
 
+    if (isChatThread(optionOrReport)) {
+        return false;
+    }
+
     return isPostingTasksInAdminsRoom(onboardingPurposeSelected)
-        ? isAdminRoom(optionOrReport) && !isChatThread(optionOrReport)
+        ? isAdminRoom(optionOrReport)
         : ((optionOrReport as OptionData)?.isConciergeChat ?? isConciergeChatReport(optionOrReport));
 }
 
