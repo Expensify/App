@@ -1,5 +1,5 @@
 import type {OnyxCollection} from 'react-native-onyx';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {AdditionalCardProps} from '@components/SelectionListWithSections/Search/CardListItem';
 import type IllustrationsType from '@styles/theme/illustrations/types';
 import CONST from '@src/CONST';
@@ -21,8 +21,6 @@ import {
     isCardHiddenFromSearch,
 } from './CardUtils';
 import type {CompanyCardFeedIcons} from './CardUtils';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from './Localize';
 import {getDescriptionForPolicyDomainCard, getPolicy} from './PolicyUtils';
 import type {OptionData} from './ReportUtils';
 
@@ -432,7 +430,7 @@ const generateSelectedCards = (
  *
  * The `allCards` parameter is only used to determine if we should add the "Expensify Card" feeds.
  */
-function getCardFeedsForDisplay(allCardFeeds: OnyxCollection<CardFeeds>, allCards: CardList | undefined): CardFeedsForDisplay {
+function getCardFeedsForDisplay(allCardFeeds: OnyxCollection<CardFeeds>, allCards: CardList | undefined, translate: LocalizedTranslate): CardFeedsForDisplay {
     const cardFeedsForDisplay = {} as CardFeedsForDisplay;
 
     for (const [domainKey, cardFeeds] of Object.entries(allCardFeeds ?? {})) {
@@ -454,8 +452,7 @@ function getCardFeedsForDisplay(allCardFeeds: OnyxCollection<CardFeeds>, allCard
                 id,
                 feed,
                 fundID,
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                name: getCustomOrFormattedFeedName(translateLocal, feed, cardFeeds?.settings?.companyCardNicknames?.[feed], false) ?? feed,
+                name: getCustomOrFormattedFeedName(translate, feed, cardFeeds?.settings?.companyCardNicknames?.[feed], false) ?? feed,
             };
         }
     }
@@ -487,7 +484,7 @@ function getCardFeedsForDisplay(allCardFeeds: OnyxCollection<CardFeeds>, allCard
  *
  * Note: "Expensify Card" feeds are not included.
  */
-function getCardFeedsForDisplayPerPolicy(allCardFeeds: OnyxCollection<CardFeeds>): Record<string, CardFeedForDisplay[]> {
+function getCardFeedsForDisplayPerPolicy(allCardFeeds: OnyxCollection<CardFeeds>, translate: LocalizedTranslate): Record<string, CardFeedForDisplay[]> {
     const cardFeedsForDisplayPerPolicy = {} as Record<string, CardFeedForDisplay[]>;
 
     for (const [domainKey, cardFeeds] of Object.entries(allCardFeeds ?? {})) {
@@ -506,8 +503,7 @@ function getCardFeedsForDisplayPerPolicy(allCardFeeds: OnyxCollection<CardFeeds>
                 id,
                 feed,
                 fundID,
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                name: getCustomOrFormattedFeedName(translateLocal, feed, cardFeeds?.settings?.companyCardNicknames?.[feed], false) ?? feed,
+                name: getCustomOrFormattedFeedName(translate, feed, cardFeeds?.settings?.companyCardNicknames?.[feed], false) ?? feed,
             });
         }
     }

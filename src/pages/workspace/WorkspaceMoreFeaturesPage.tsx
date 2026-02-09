@@ -184,6 +184,12 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 }
                 enablePolicyTravel(policyID, isEnabled);
             },
+            onPress: () => {
+                if (!policyID) {
+                    return;
+                }
+                Navigation.navigate(ROUTES.WORKSPACE_TRAVEL.getRoute(policyID));
+            },
         },
         {
             icon: illustrations.HandCard,

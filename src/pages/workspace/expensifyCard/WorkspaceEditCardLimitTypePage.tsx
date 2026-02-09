@@ -15,7 +15,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateExpensifyCardLimitType} from '@libs/actions/Card';
 import {openPolicyEditCardLimitTypePage} from '@libs/actions/Policy/Policy';
-import {filterInactiveCards} from '@libs/CardUtils';
+import {filterInactiveCards, getDefaultExpensifyCardLimitType} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getApprovalWorkflow} from '@libs/PolicyUtils';
@@ -44,7 +44,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
 
     const card = cardsList?.[cardID];
     const areApprovalsConfigured = getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
-    const defaultLimitType = areApprovalsConfigured ? CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART : CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY;
+    const defaultLimitType = getDefaultExpensifyCardLimitType(policy);
     const initialLimitType = card?.nameValuePairs?.limitType ?? defaultLimitType;
     const promptTranslationKey =
         initialLimitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY || initialLimitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED
