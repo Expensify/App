@@ -260,6 +260,7 @@ function AvatarWithDisplayName({
                                 onPress={showActorDetails}
                                 accessibilityLabel={title}
                                 role={getButtonRole(true)}
+                                sentryLabel={CONST.SENTRY_LABEL.AVATAR_WITH_DISPLAY_NAME.AVATAR}
                             >
                                 {multipleAvatars}
                             </PressableWithoutFeedback>
@@ -320,6 +321,7 @@ function AvatarWithDisplayName({
             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
             accessibilityLabel={title}
             role={CONST.ROLE.BUTTON}
+            sentryLabel={CONST.SENTRY_LABEL.AVATAR_WITH_DISPLAY_NAME.DETAILS_BUTTON}
         >
             {headerView}
         </PressableWithoutFeedback>
