@@ -629,16 +629,17 @@ describe('mergeTransactionRequest', () => {
             jest.advanceTimersByTime(10);
 
             // When a comment is added
-            addComment(
-                thread,
-                thread.reportID,
-                [
+            addComment({
+                report: thread,
+                notifyReportID: thread.reportID,
+                ancestors: [
                     {report: sourceReport, reportAction: sourceIOUAction, shouldDisplayNewMarker: false},
                     {report: chatReport, reportAction: previewAction, shouldDisplayNewMarker: false},
                 ],
-                'test comment',
-                CONST.DEFAULT_TIME_ZONE,
-            );
+                text: 'test comment',
+                timezoneParam: CONST.DEFAULT_TIME_ZONE,
+                currentUserAccountID: TEST_ACCOUNT_ID,
+            });
             await waitForBatchedUpdates();
 
             // Then the report should have 2 actions
