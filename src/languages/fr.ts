@@ -739,6 +739,8 @@ const translations: TranslationDeepObject<typeof en> = {
         looksLikeYouRanOutOfTime: 'On dirait que votre temps est écoulé ! Veuillez réessayer chez le commerçant.',
         youRanOutOfTime: 'Vous n’avez plus de temps',
         letsVerifyItsYou: 'Vérifions qu’il s’agit bien de vous',
+        nowLetsAuthenticateYou: 'Maintenant, procédons à votre authentification…',
+        letsAuthenticateYou: 'Authentifions votre identité…',
         verifyYourself: {
             biometrics: 'Vérifiez votre identité avec votre visage ou votre empreinte digitale',
         },
@@ -756,6 +758,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 'Vous n’avez enregistré aucun appareil pour la vérification par reconnaissance faciale, empreinte digitale ou passkey. Si vous en enregistrez, vous pourrez révoquer cet accès ici.',
             dismiss: 'Compris',
             error: 'La requête a échoué. Réessayez plus tard.',
+        },
+        unsupportedDevice: {
+            unsupportedDevice: 'Appareil non pris en charge',
+            pleaseDownloadMobileApp: `<centered-text><muted-text> Cette action n'est pas prise en charge sur votre appareil. Veuillez télécharger l'application Expensify depuis l'<a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> ou le <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> et réessayer.</muted-text></centered-text>`,
         },
     },
     validateCodeModal: {
@@ -1184,6 +1190,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitExpenseCannotBeEditedModalTitle: 'Cette dépense ne peut pas être modifiée',
         splitExpenseCannotBeEditedModalDescription: 'Les dépenses approuvées ou payées ne peuvent pas être modifiées',
         splitExpenseDistanceErrorModalDescription: 'Veuillez corriger l’erreur de taux de distance, puis réessayer.',
+        splitExpensePerDiemRateErrorModalDescription: 'Veuillez corriger l’erreur de taux de per diem et réessayer.',
         paySomeone: (name?: string) => `Payer ${name ?? 'quelqu’un'}`,
         expense: 'Dépense',
         categorize: 'Catégoriser',
@@ -3901,6 +3908,7 @@ ${
             card: 'Cartes',
             expensifyCard: 'Carte Expensify',
             companyCards: 'Cartes d’entreprise',
+            personalCards: 'Cartes personnelles',
             workflows: 'Workflows',
             workspace: 'Espace de travail',
             findWorkspace: 'Trouver un espace de travail',
@@ -5217,6 +5225,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                             currentTravelLimitLabel: 'Plafond de déplacement actuel',
                             settlementAccountLabel: 'Compte de règlement',
                             settlementFrequencyLabel: 'Fréquence de règlement',
+                            settlementFrequencyDescription:
+                                'Fréquence à laquelle Expensify prélèvera sur votre compte bancaire professionnel pour régler les transactions récentes d’Expensify Travel.',
                         },
                     },
                 },
@@ -5692,6 +5702,22 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 limitType: 'Type de limite',
                 disabledApprovalForSmartLimitError:
                     'Veuillez activer les approbations dans <strong>Workflows > Ajouter des approbations</strong> avant de configurer des limites intelligentes',
+                singleUse: 'À usage unique',
+                singleUseDescription: 'Expire après une transaction',
+                validFrom: 'Valide à partir du',
+                startDate: 'Date de début',
+                endDate: 'Date de fin',
+                noExpirationHint: 'Une carte sans date d’expiration n’expirera pas',
+                validFromTo: ({startDate, endDate}: {startDate: string; endDate: string}) => `Valide du ${startDate} au ${endDate}`,
+                validFromToWithoutText: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} au ${endDate}`,
+                combineWithExpiration: 'Combiner avec les options d’expiration pour un contrôle des dépenses supplémentaire',
+                enterValidDate: 'Entrez une date valide',
+                expirationDate: 'Date d’expiration',
+                limitAmount: 'Montant de la limite',
+                setExpiryOptions: 'Définir les options d’expiration',
+                setExpiryDate: 'Définir la date d’expiration',
+                setExpiryDateDescription: 'La carte expirera comme indiqué sur la carte',
+                amount: 'Montant',
             },
             deactivateCardModal: {
                 deactivate: 'Désactiver',
@@ -7560,8 +7586,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
     },
     cardTransactions: {
         notActivated: 'Non activé',
-        outOfPocket: 'Dépenses personnelles',
-        companySpend: 'Dépenses de l’entreprise',
+        outOfPocket: 'Remboursable',
+        companySpend: 'Non remboursable',
     },
     distance: {
         addStop: 'Ajouter un arrêt',
@@ -7650,6 +7676,11 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             title: 'Suivi GPS en cours',
             prompt: 'Voulez-vous vraiment abandonner le voyage et vous déconnecter ?',
             confirm: 'Ignorer et se déconnecter',
+        },
+        switchToODWarningTripInProgress: {
+            title: 'Suivi GPS en cours',
+            prompt: 'Voulez-vous vraiment arrêter le suivi GPS et passer à Expensify Classic ?',
+            confirm: 'Arrêter et changer',
         },
         locationServicesRequiredModal: {
             title: 'Accès à la localisation requis',
@@ -8464,6 +8495,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             enterDomainName: 'Saisissez votre nom de domaine ici',
             resetDomainInfo: `Cette action est <strong>définitive</strong> et les données suivantes seront supprimées : <br/> <ul><li>Connexions de cartes d’entreprise et toutes les dépenses non déclarées associées à ces cartes</li> <li>Paramètres SAML et de groupe</li> </ul> Tous les comptes, espaces de travail, notes de frais, dépenses et autres données seront conservés. <br/><br/>Remarque : vous pouvez supprimer ce domaine de votre liste de domaines en retirant l’adresse e-mail associée de vos <a href="#">méthodes de contact</a>.`,
         },
+        domainMembers: 'Membres du domaine',
         members: {
             title: 'Membres',
             findMember: 'Trouver un membre',

@@ -5,6 +5,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import DateUtils from '@libs/DateUtils';
 import {
+    areAllGroupPoliciesExpenseChatDisabled,
     getActivePolicies,
     getAllTaxRatesNamesAndValues,
     getCustomUnitsForDuplication,
@@ -1880,6 +1881,58 @@ describe('PolicyUtils', () => {
                 },
             ],
             approver: 'approver@example.com',
+        });
+    });
+
+    describe('areAllGroupPoliciesExpenseChatDisabled', () => {
+        it('should return false when policies is empty', () => {
+            const result = areAllGroupPoliciesExpenseChatDisabled({});
+            expect(result).toBe(false);
+        });
+
+        it('should return false when there are no group policies (only personal)', () => {
+            const policies: OnyxCollection<Policy> = {
+                '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.PERSONAL), isPolicyExpenseChatEnabled: false},
+                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), isPolicyExpenseChatEnabled: true},
+            };
+            const result = areAllGroupPoliciesExpenseChatDisabled(policies);
+            expect(result).toBe(false);
+        });
+
+        it('should return false when single group policy has expense chat enabled', () => {
+            const policies: OnyxCollection<Policy> = {
+                '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), isPolicyExpenseChatEnabled: true, pendingAction: null},
+            };
+            const result = areAllGroupPoliciesExpenseChatDisabled(policies);
+            expect(result).toBe(false);
+        });
+
+        it('should return false when multiple group policies and at least one has expense chat enabled', () => {
+            const policies: OnyxCollection<Policy> = {
+                '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), isPolicyExpenseChatEnabled: false, pendingAction: null},
+                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), isPolicyExpenseChatEnabled: true, pendingAction: null},
+                '3': {...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM), isPolicyExpenseChatEnabled: false, pendingAction: null},
+            };
+            const result = areAllGroupPoliciesExpenseChatDisabled(policies);
+            expect(result).toBe(false);
+        });
+
+        it('should return true when single group policy has expense chat disabled', () => {
+            const policies: OnyxCollection<Policy> = {
+                '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), isPolicyExpenseChatEnabled: false, pendingAction: null},
+            };
+            const result = areAllGroupPoliciesExpenseChatDisabled(policies);
+            expect(result).toBe(true);
+        });
+
+        it('should return true when all group policies have expense chat disabled', () => {
+            const policies: OnyxCollection<Policy> = {
+                '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), isPolicyExpenseChatEnabled: false, pendingAction: null},
+                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), isPolicyExpenseChatEnabled: false, pendingAction: null},
+                '3': {...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM), isPolicyExpenseChatEnabled: false, pendingAction: null},
+            };
+            const result = areAllGroupPoliciesExpenseChatDisabled(policies);
+            expect(result).toBe(true);
         });
     });
 

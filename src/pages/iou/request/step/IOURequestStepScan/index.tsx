@@ -34,6 +34,7 @@ import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSelfDMReport from '@hooks/useSelfDMReport';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {handleMoneyRequestStepScanParticipants} from '@libs/actions/IOU/MoneyRequest';
@@ -131,6 +132,8 @@ function IOURequestStepScan({
     const transactionTaxAmount = initialTransaction?.taxAmount ?? 0;
 
     const shouldAcceptMultipleFiles = !isEditing && !backTo;
+
+    const selfDMReport = useSelfDMReport();
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
@@ -345,6 +348,7 @@ function IOURequestStepScan({
                 isTestTransaction,
                 locationPermissionGranted,
                 policyTags,
+                selfDMReport,
                 policyForMovingExpenses,
                 isSelfTourViewed,
                 betas,
@@ -374,6 +378,7 @@ function IOURequestStepScan({
             shouldGenerateTransactionThreadReport,
             isArchived,
             personalPolicy?.autoReporting,
+            selfDMReport,
             isASAPSubmitBetaEnabled,
             transactionViolations,
             quickAction,

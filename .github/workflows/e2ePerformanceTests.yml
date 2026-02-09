@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   prep:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     name: Find the baseline and delta refs, and check for an existing build artifact for that commit
     outputs:
       BASELINE_REF: ${{ steps.getBaselineRef.outputs.BASELINE_REF }}
@@ -101,7 +101,7 @@ jobs:
       artifact-prefix: delta-${{ needs.prep.outputs.DELTA_REF }}
 
   runTestsInAWS:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     needs: [prep, buildBaseline, buildDelta]
     if: ${{ always() }}
     name: Run E2E tests in AWS device farm
@@ -311,7 +311,7 @@ jobs:
   cleanupDeltaRef:
     needs: [prep, runTestsInAWS]
     if: ${{ always() && needs.prep.outputs.IS_PR_MERGED != 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4
 

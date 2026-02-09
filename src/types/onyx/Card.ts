@@ -147,11 +147,23 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
         // eslint-disable-next-line @typescript-eslint/naming-convention
         expensifyCard_tokenReferenceIdList?: string[];
 
+        /** Date when card becomes valid (YYYY-MM-DD format) */
+        validFrom?: string;
+
+        /** Date when card expires (YYYY-MM-DD format) */
+        validThru?: string;
+
         /** Collection of errors coming from BE */
         errors?: OnyxCommon.Errors;
 
         /** Collection of form field errors  */
         errorFields?: OnyxCommon.ErrorFields;
+
+        /**
+         * Metadata about when and by whom the card was frozen.
+         * null/undefined if card is not frozen
+         */
+        frozen?: FrozenCardData | null;
     }> &
         OnyxCommon.OnyxValueWithOfflineFeedback<
             /** Type of export card */
@@ -278,6 +290,12 @@ type IssueNewCardData = {
 
     /** Currency of the card */
     currency: string;
+
+    /** Optional start date for card validity (YYYY-MM-DD) */
+    validFrom?: string;
+
+    /** Optional end date for card validity (YYYY-MM-DD) */
+    validThru?: string;
 };
 
 /** Model of Issue new card flow */
@@ -344,6 +362,17 @@ type CardAssignmentData = {
     pendingAction?: OnyxCommon.PendingAction;
 };
 
+/**
+ * Data for a frozen card
+ */
+type FrozenCardData = {
+    /** Account ID of the user who froze the card */
+    byAccountID: number;
+
+    /** UTC datetime when card was frozen (ISO format: YYYY-MM-DD HH:MM:SS) */
+    date: string;
+};
+
 export default Card;
 export type {
     ExpensifyCardDetails,
@@ -357,4 +386,5 @@ export type {
     ProvisioningCardData,
     AssignableCardsList,
     UnassignedCard,
+    FrozenCardData,
 };
