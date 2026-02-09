@@ -64,7 +64,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
-    const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true});
+    const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true});
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const {inputQuery: originalInputQuery} = queryJSON;
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
@@ -73,7 +73,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
         PersonalDetails: personalDetails,
         reports,
         taxRates,
-        cardList: nonPersonalAndWorkspaceCards,
+        cardList: personalAndWorkspaceCards,
         cardFeeds: allFeeds,
         policies,
         currentUserAccountID,
@@ -131,14 +131,14 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
             personalDetails,
             reports,
             taxRates,
-            nonPersonalAndWorkspaceCards,
+            personalAndWorkspaceCards,
             allFeeds,
             policies,
             currentUserAccountID,
             translate,
         );
         setAutocompleteSubstitutions(substitutionsMap);
-    }, [allFeeds, nonPersonalAndWorkspaceCards, originalInputQuery, personalDetails, reports, taxRates, policies, currentUserAccountID, translate]);
+    }, [allFeeds, personalAndWorkspaceCards, originalInputQuery, personalDetails, reports, taxRates, policies, currentUserAccountID, translate]);
 
     useEffect(() => {
         if (searchRouterListVisible) {
@@ -431,7 +431,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                                 ref={listRef}
                                 personalDetails={personalDetails}
                                 reports={reports}
-                                allCards={nonPersonalAndWorkspaceCards}
+                                allCards={personalAndWorkspaceCards}
                                 allFeeds={allFeeds}
                                 textInputRef={textInputRef}
                             />
@@ -507,7 +507,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                                 shouldSubscribeToArrowKeyEvents={isAutocompleteListVisible}
                                 personalDetails={personalDetails}
                                 reports={reports}
-                                allCards={nonPersonalAndWorkspaceCards}
+                                allCards={personalAndWorkspaceCards}
                                 allFeeds={allFeeds}
                                 textInputRef={textInputRef}
                             />
