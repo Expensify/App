@@ -8024,6 +8024,9 @@ const CONST = {
     },
 
     SENTRY_LABEL: {
+        ONBOARDING: {
+            INTERESTED_FEATURES_ITEM: 'OnboardingInterestedFeatures-Item',
+        },
         NAVIGATION_TAB_BAR: {
             EXPENSIFY_LOGO: 'NavigationTabBar-ExpensifyLogo',
             INBOX: 'NavigationTabBar-Inbox',
