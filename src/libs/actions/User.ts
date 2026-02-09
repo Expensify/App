@@ -1828,6 +1828,10 @@ function setDraftRule(ruleData: Partial<ExpenseRuleForm>) {
     Onyx.set(ONYXKEYS.FORMS.EXPENSE_RULE_FORM, ruleData);
 }
 
+function openTroubleshootSettingsPage() {
+    API.read(READ_COMMANDS.OPEN_TROUBLESHOOT_SETTINGS_PAGE, null);
+}
+
 function updateDraftRule(ruleData: Partial<ExpenseRuleForm>) {
     Onyx.merge(ONYXKEYS.FORMS.EXPENSE_RULE_FORM, ruleData);
 }
@@ -1899,4 +1903,5 @@ export {
     setDraftMerchantRule,
     updateDraftMerchantRule,
     clearDraftMerchantRule,
+    openTroubleshootSettingsPage,
 };

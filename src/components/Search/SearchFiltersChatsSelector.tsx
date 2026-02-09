@@ -30,9 +30,8 @@ const defaultListOptions = {
     headerMessage: '',
 };
 
-function getSelectedOptionData(option: Option): OptionData {
-    // eslint-disable-next-line rulesdir/no-default-id-values
-    return {...option, isSelected: true, reportID: option.reportID ?? '-1'};
+function getSelectedOptionData(option: Option & Pick<OptionData, 'reportID'>): OptionData {
+    return {...option, isSelected: true, keyForList: option.keyForList ?? option.reportID};
 }
 
 type SearchFiltersParticipantsSelectorProps = {

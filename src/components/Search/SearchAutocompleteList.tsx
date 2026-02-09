@@ -321,13 +321,18 @@ function SearchAutocompleteList({
 
     const taxAutocompleteList = useMemo(() => getAutocompleteTaxList(taxRates), [taxRates]);
 
-    const workspaceList = useMemo(
-        () =>
-            Object.values(policies)
-                .filter((singlePolicy) => !!singlePolicy && shouldShowPolicy(singlePolicy, false, currentUserEmail) && !singlePolicy?.isJoinRequestPending)
-                .map((singlePolicy) => ({id: singlePolicy?.id, name: singlePolicy?.name ?? ''})),
-        [policies, currentUserEmail],
-    );
+    const workspaceList = useMemo(() => {
+        const result = [];
+        for (const singlePolicy of Object.values(policies)) {
+            if (!singlePolicy || singlePolicy.isJoinRequestPending || !shouldShowPolicy(singlePolicy, false, currentUserEmail)) {
+                continue;
+            }
+
+            result.push({id: singlePolicy.id, name: singlePolicy.name ?? ''});
+        }
+
+        return result;
+    }, [policies, currentUserEmail]);
 
     const {currencyList} = useCurrencyList();
     const currencyAutocompleteList = useMemo(() => Object.keys(currencyList).filter((currency) => !currencyList[currency]?.retired), [currencyList]);

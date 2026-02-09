@@ -31,9 +31,12 @@ type BaseDomainMemberDetailsComponentProps = {
 
     /** List of additional fields (e.g., force 2FA) */
     children?: React.ReactNode;
+
+    /** Button to display below avatar picture */
+    avatarButton?: React.ReactNode;
 };
 
-function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children}: BaseDomainMemberDetailsComponentProps) {
+function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children, avatarButton}: BaseDomainMemberDetailsComponentProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Info']);
@@ -83,6 +86,7 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children}
                                     {displayName}
                                 </Text>
                             )}
+                            {avatarButton}
                         </View>
                         <View style={styles.w100}>
                             <MenuItemWithTopDescription
