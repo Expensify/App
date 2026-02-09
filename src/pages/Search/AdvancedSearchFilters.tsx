@@ -26,6 +26,7 @@ import {saveSearch} from '@libs/actions/Search';
 import {createCardFeedKey, getCardFeedKey, getCardFeedNamesWithType, getWorkspaceCardFeedKey} from '@libs/CardFeedUtils';
 import {getCardDescription} from '@libs/CardUtils';
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
+import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
 import {getAllTaxRates, getCleanedTagName} from '@libs/PolicyUtils';
@@ -344,12 +345,17 @@ function getFilterDisplayTitle(
             dateValue.push(isSearchDatePreset(dateOn) ? translate(`search.filters.date.presets.${dateOn}`) : translate('search.filters.date.on', dateOn));
         }
 
-        if (dateAfter) {
-            dateValue.push(translate('search.filters.date.after', dateAfter));
-        }
+        // Show as range if both after and before exist and no "on" value
+        if (dateAfter && dateBefore && !dateOn) {
+            dateValue.push(`${translate('common.range')}: ${DateUtils.getFormattedDateRangeForSearch(dateAfter, dateBefore, true)}`);
+        } else {
+            if (dateAfter) {
+                dateValue.push(translate('search.filters.date.after', dateAfter));
+            }
 
-        if (dateBefore) {
-            dateValue.push(translate('search.filters.date.before', dateBefore));
+            if (dateBefore) {
+                dateValue.push(translate('search.filters.date.before', dateBefore));
+            }
         }
 
         return dateValue.join(', ');
@@ -386,7 +392,9 @@ function getFilterDisplayTitle(
 
     if (key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
         const values: string[] = [];
+        const dateFieldPairs: Record<string, {after?: string; before?: string; on?: string}> = {};
 
+        // First pass: collect all date field values
         for (const [fieldKey, fieldValue] of Object.entries(filters)) {
             if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.NOT_PREFIX) || !fieldValue || !fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
                 continue;
@@ -402,26 +410,49 @@ function getFilterDisplayTitle(
                 .join(' ');
 
             if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.ON_PREFIX)) {
-                const dateString = isSearchDatePreset(fieldValue as string)
-                    ? translate(`search.filters.date.presets.${fieldValue as SearchDatePreset}`)
-                    : translate('search.filters.date.on', fieldValue as string);
-
-                values.push(translate('search.filters.reportField', {name: fieldName, value: dateString.toLowerCase()}));
-            }
-
-            if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX)) {
-                const dateString = translate('search.filters.date.after', fieldValue as string).toLowerCase();
-                values.push(translate('search.filters.reportField', {name: fieldName, value: dateString.toLowerCase()}));
-            }
-
-            if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX)) {
-                const dateString = translate('search.filters.date.before', fieldValue as string).toLowerCase();
-                values.push(translate('search.filters.reportField', {name: fieldName, value: dateString.toLowerCase()}));
-            }
-
-            if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX)) {
+                if (!dateFieldPairs[fieldName]) {
+                    dateFieldPairs[fieldName] = {};
+                }
+                dateFieldPairs[fieldName].on = fieldValue as string;
+            } else if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX)) {
+                if (!dateFieldPairs[fieldName]) {
+                    dateFieldPairs[fieldName] = {};
+                }
+                dateFieldPairs[fieldName].after = fieldValue as string;
+            } else if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX)) {
+                if (!dateFieldPairs[fieldName]) {
+                    dateFieldPairs[fieldName] = {};
+                }
+                dateFieldPairs[fieldName].before = fieldValue as string;
+            } else if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX)) {
                 const valueString = translate('search.filters.reportField', {name: fieldName, value: fieldValue as string});
                 values.push(valueString);
+            }
+        }
+
+        // Second pass: format date fields
+        for (const [fieldName, dateValues] of Object.entries(dateFieldPairs)) {
+            if (dateValues.on) {
+                const dateString = isSearchDatePreset(dateValues.on)
+                    ? translate(`search.filters.date.presets.${dateValues.on as SearchDatePreset}`)
+                    : translate('search.filters.date.on', dateValues.on);
+                values.push(translate('search.filters.reportField', {name: fieldName, value: dateString.toLowerCase()}));
+            }
+
+            // Show as range if both after and before exist and no "on" value
+            if (dateValues.after && dateValues.before && !dateValues.on) {
+                const rangeString = `${translate('common.range')}: ${DateUtils.getFormattedDateRangeForSearch(dateValues.after, dateValues.before, true)}`;
+                values.push(translate('search.filters.reportField', {name: fieldName, value: rangeString.toLowerCase()}));
+            } else {
+                if (dateValues.after) {
+                    const dateString = translate('search.filters.date.after', dateValues.after).toLowerCase();
+                    values.push(translate('search.filters.reportField', {name: fieldName, value: dateString.toLowerCase()}));
+                }
+
+                if (dateValues.before) {
+                    const dateString = translate('search.filters.date.before', dateValues.before).toLowerCase();
+                    values.push(translate('search.filters.reportField', {name: fieldName, value: dateString.toLowerCase()}));
+                }
             }
         }
 

@@ -1,18 +1,22 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import {format, parseISO} from 'date-fns';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
 import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
 import type {ReportFieldDateKey, SearchDateFilterKeys} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import DateUtils from '@libs/DateUtils';
 import {getDatePresets} from '@libs/SearchUIUtils';
 import type {SearchDateModifier, SearchDateModifierLower} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import type {SearchDatePresetFilterBaseHandle} from './DatePresetFilterBase';
+import type {SearchDatePresetFilterBaseHandle, SearchDateValues} from './DatePresetFilterBase';
 import DatePresetFilterBase from './DatePresetFilterBase';
 
 type DateFilterBaseProps = {
@@ -30,6 +34,17 @@ function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
     const [searchAdvancedFiltersForm, searchAdvancedFiltersFormMetadata] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
     const isSearchAdvancedFiltersFormLoading = isLoadingOnyxValue(searchAdvancedFiltersFormMetadata);
     const [selectedDateModifier, setSelectedDateModifier] = useState<SearchDateModifier | null>(null);
+    const [shouldShowRangeError, setShouldShowRangeError] = useState(false);
+    const [trackedDateValues, setTrackedDateValues] = useState<SearchDateValues>({
+        [CONST.SEARCH.DATE_MODIFIERS.ON]: undefined,
+        [CONST.SEARCH.DATE_MODIFIERS.AFTER]: undefined,
+        [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: undefined,
+        [CONST.SEARCH.DATE_MODIFIERS.RANGE]: undefined,
+    });
+
+    const handleDateValuesChange = useCallback((dateValues: SearchDateValues) => {
+        setTrackedDateValues(dateValues);
+    }, []);
 
     const dateOnKey = dateKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)
         ? (dateKey.replace(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX, CONST.SEARCH.REPORT_FIELD.ON_PREFIX) as ReportFieldDateKey)
@@ -52,6 +67,7 @@ function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
             [CONST.SEARCH.DATE_MODIFIERS.ON]: dateOnValue,
             [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: dateBeforeValue,
             [CONST.SEARCH.DATE_MODIFIERS.AFTER]: dateAfterValue,
+            [CONST.SEARCH.DATE_MODIFIERS.RANGE]: undefined,
         }),
         [dateAfterValue, dateBeforeValue, dateOnValue],
     );
@@ -60,6 +76,14 @@ function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
         const hasFeed = !!searchAdvancedFiltersForm?.feed?.length;
         return getDatePresets(dateKey, hasFeed);
     }, [dateKey, searchAdvancedFiltersForm?.feed]);
+
+    // Auto-detect Range mode when both after and before values exist on initial load only
+    useEffect(() => {
+        if (!isSearchAdvancedFiltersFormLoading && dateAfterValue && dateBeforeValue && !dateOnValue) {
+            setSelectedDateModifier(CONST.SEARCH.DATE_MODIFIERS.RANGE);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isSearchAdvancedFiltersFormLoading]);
 
     const computedTitle = useMemo(() => {
         if (selectedDateModifier) {
@@ -89,12 +113,33 @@ function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
         }
 
         if (selectedDateModifier) {
+            // For Range, validate that both dates are selected
+            if (selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
+                const dateValues = searchDatePresetFilterBaseRef.current.getDateValues();
+                const hasFrom = !!dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER];
+                const hasTo = !!dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE];
+
+                if (!hasFrom || !hasTo) {
+                    setShouldShowRangeError(true);
+                    return;
+                }
+            }
+
             searchDatePresetFilterBaseRef.current.setDateValueOfSelectedDateModifier();
             setSelectedDateModifier(null);
+            setShouldShowRangeError(false);
             return;
         }
 
         const dateValues = searchDatePresetFilterBaseRef.current.getDateValues();
+        const hasFrom = !!dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER];
+        const hasTo = !!dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE];
+
+        if (hasFrom !== hasTo) {
+            setSelectedDateModifier(CONST.SEARCH.DATE_MODIFIERS.RANGE);
+            setShouldShowRangeError(true);
+            return;
+        }
 
         onSubmit({
             [dateOnKey]: dateValues[CONST.SEARCH.DATE_MODIFIERS.ON] ?? null,
@@ -113,12 +158,12 @@ function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
     };
 
     return (
-        <>
+        <View style={styles.flex1}>
             <HeaderWithBackButton
                 title={computedTitle}
                 onBackButtonPress={goBack}
             />
-            <ScrollView contentContainerStyle={[styles.flexGrow1]}>
+            <ScrollView contentContainerStyle={[styles.flexGrow1, styles.pb5]}>
                 <DatePresetFilterBase
                     ref={searchDatePresetFilterBaseRef}
                     defaultDateValues={defaultDateValues}
@@ -126,21 +171,39 @@ function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
                     onSelectDateModifier={setSelectedDateModifier}
                     presets={presets}
                     isSearchAdvancedFiltersFormLoading={isSearchAdvancedFiltersFormLoading}
+                    shouldShowRangeError={shouldShowRangeError}
+                    onDateValuesChange={handleDateValuesChange}
+                    forceVerticalCalendars
+                />
+                {selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE && (trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] || trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]) && (
+                    <Text style={[styles.textMicroSupporting, styles.mh5, styles.mt3]}>
+                        {`${translate('common.range')}: `}
+                        <Text style={[styles.textMicroSupporting, styles.textStrong]}>
+                            {trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] && trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]
+                                ? DateUtils.getFormattedDateRangeForSearch(
+                                      trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] as string,
+                                      trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE] as string,
+                                      true,
+                                  )
+                                : format(parseISO((trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] ?? trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]) as string), 'MMM d, yyyy')}
+                        </Text>
+                    </Text>
+                )}
+                <View style={styles.flexGrow1} />
+                <Button
+                    text={translate('common.reset')}
+                    onPress={reset}
+                    style={[styles.mh4, styles.mt4]}
+                    large
+                />
+                <FormAlertWithSubmitButton
+                    buttonText={translate('common.save')}
+                    containerStyles={[styles.m4, styles.mt3]}
+                    onSubmit={save}
+                    enabledWhenOffline
                 />
             </ScrollView>
-            <Button
-                text={translate('common.reset')}
-                onPress={reset}
-                style={[styles.mh4, styles.mt4]}
-                large
-            />
-            <FormAlertWithSubmitButton
-                buttonText={translate('common.save')}
-                containerStyles={[styles.m4, styles.mt3, styles.mb5]}
-                onSubmit={save}
-                enabledWhenOffline
-            />
-        </>
+        </View>
     );
 }
 

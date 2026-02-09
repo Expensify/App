@@ -10,8 +10,10 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isSearchDatePreset} from '@libs/SearchQueryUtils';
+import DateUtils from '@libs/DateUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
+import RangeDatePicker from './RangeDatePicker';
 
 type SearchDateValues = Record<SearchDateModifier, string | undefined>;
 
@@ -45,6 +47,15 @@ type DatePresetFilterBaseProps = {
     /** Whether the search advanced filters form Onyx data is loading or not */
     isSearchAdvancedFiltersFormLoading?: boolean;
 
+    /** Whether to show the range validation error */
+    shouldShowRangeError?: boolean;
+
+    /** Callback when date values change (useful for parent to track range display text) */
+    onDateValuesChange?: (dateValues: SearchDateValues) => void;
+
+    /** Force vertical stacking of calendars in range picker */
+    forceVerticalCalendars?: boolean;
+
     /** The ref handle */
     ref: Ref<DatePresetFilterBaseHandle>;
 };
@@ -59,7 +70,7 @@ type DatePresetFilterBaseProps = {
  * - On save: if a date modifier is selected (i.e. user clicked save at the calendar picker) you should `setDateValueOfSelectedDateModifier` otherwise `getDateValues`
  * - On reset: if a date modifier is selected (i.e. user clicked reset at the calendar picker) you should `clearDateValueOfSelectedDateModifier` otherwise `clearDateValues`
  */
-function DatePresetFilterBase({defaultDateValues, selectedDateModifier, onSelectDateModifier, presets, isSearchAdvancedFiltersFormLoading, ref}: DatePresetFilterBaseProps) {
+function DatePresetFilterBase({defaultDateValues, selectedDateModifier, onSelectDateModifier, presets, isSearchAdvancedFiltersFormLoading, shouldShowRangeError = false, onDateValuesChange, forceVerticalCalendars = false, ref}: DatePresetFilterBaseProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -77,6 +88,10 @@ function DatePresetFilterBase({defaultDateValues, selectedDateModifier, onSelect
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isSearchAdvancedFiltersFormLoading]);
 
+    useEffect(() => {
+        onDateValuesChange?.(dateValues);
+    }, [dateValues, onDateValuesChange]);
+
     const setDateValue = useCallback((dateModifier: SearchDateModifier, value: string | undefined) => {
         setDateValues((prevDateValues) => {
             if (dateModifier === CONST.SEARCH.DATE_MODIFIERS.ON && isSearchDatePreset(value)) {
@@ -84,6 +99,7 @@ function DatePresetFilterBase({defaultDateValues, selectedDateModifier, onSelect
                     [CONST.SEARCH.DATE_MODIFIERS.ON]: value,
                     [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: undefined,
                     [CONST.SEARCH.DATE_MODIFIERS.AFTER]: undefined,
+                    [CONST.SEARCH.DATE_MODIFIERS.RANGE]: undefined,
                 };
             }
 
@@ -95,6 +111,11 @@ function DatePresetFilterBase({defaultDateValues, selectedDateModifier, onSelect
                 };
             }
 
+            // When setting After or Before individually, clear Range mode
+            if (dateModifier === CONST.SEARCH.DATE_MODIFIERS.AFTER || dateModifier === CONST.SEARCH.DATE_MODIFIERS.BEFORE) {
+                return {...prevDateValues, [dateModifier]: value, [CONST.SEARCH.DATE_MODIFIERS.RANGE]: undefined};
+            }
+
             return {...prevDateValues, [dateModifier]: value};
         });
     }, []);
@@ -103,12 +124,16 @@ function DatePresetFilterBase({defaultDateValues, selectedDateModifier, onSelect
         const dateOn = dateValues[CONST.SEARCH.DATE_MODIFIERS.ON];
         const dateAfter = dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER];
         const dateBefore = dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE];
+        const isRangeMode = !!dateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE];
 
         return {
             // dateOn could be a preset e.g. Last month which should not be displayed as the On field
             [CONST.SEARCH.DATE_MODIFIERS.ON]: isSearchDatePreset(dateOn) ? undefined : dateOn,
-            [CONST.SEARCH.DATE_MODIFIERS.AFTER]: dateAfter,
-            [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: dateBefore,
+            // Show After/Before on their items only when NOT in Range mode
+            [CONST.SEARCH.DATE_MODIFIERS.AFTER]: isRangeMode ? undefined : dateAfter,
+            [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: isRangeMode ? undefined : dateBefore,
+            // Show Range only when explicitly in Range mode AND both dates are set
+            [CONST.SEARCH.DATE_MODIFIERS.RANGE]: isRangeMode && dateAfter && dateBefore ? 'range' : undefined,
         };
     }, [dateValues]);
 
@@ -135,11 +160,22 @@ function DatePresetFilterBase({defaultDateValues, selectedDateModifier, onSelect
             },
 
             clearDateValues() {
-                setDateValues({[CONST.SEARCH.DATE_MODIFIERS.ON]: undefined, [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: undefined, [CONST.SEARCH.DATE_MODIFIERS.AFTER]: undefined});
+                setDateValues({
+                    [CONST.SEARCH.DATE_MODIFIERS.ON]: undefined,
+                    [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: undefined,
+                    [CONST.SEARCH.DATE_MODIFIERS.AFTER]: undefined,
+                    [CONST.SEARCH.DATE_MODIFIERS.RANGE]: undefined,
+                });
             },
 
             setDateValueOfSelectedDateModifier() {
                 if (!selectedDateModifier) {
+                    return;
+                }
+
+                // For Range, mark as Range mode (values are already set via setDateValue)
+                if (selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
+                    setDateValue(CONST.SEARCH.DATE_MODIFIERS.RANGE, 'range');
                     return;
                 }
 
@@ -148,6 +184,14 @@ function DatePresetFilterBase({defaultDateValues, selectedDateModifier, onSelect
 
             clearDateValueOfSelectedDateModifier() {
                 if (!selectedDateModifier) {
+                    return;
+                }
+
+                // For Range, clear Range flag and both After and Before values
+                if (selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
+                    setDateValue(CONST.SEARCH.DATE_MODIFIERS.RANGE, undefined);
+                    setDateValue(CONST.SEARCH.DATE_MODIFIERS.AFTER, undefined);
+                    setDateValue(CONST.SEARCH.DATE_MODIFIERS.BEFORE, undefined);
                     return;
                 }
 
@@ -198,7 +242,31 @@ function DatePresetFilterBase({defaultDateValues, selectedDateModifier, onSelect
                 description={dateDisplayValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]}
                 onPress={() => selectDateModifier(CONST.SEARCH.DATE_MODIFIERS.BEFORE)}
             />
+            <MenuItem
+                shouldShowRightIcon
+                viewMode={CONST.OPTION_MODE.COMPACT}
+                title={translate('common.range')}
+                description={
+                    dateDisplayValues[CONST.SEARCH.DATE_MODIFIERS.RANGE] && dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] && dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]
+                        ? DateUtils.getFormattedDateRangeForSearch(
+                              dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] as string,
+                              dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE] as string,
+                              true,
+                          )
+                        : undefined
+                }
+                onPress={() => selectDateModifier(CONST.SEARCH.DATE_MODIFIERS.RANGE)}
+            />
         </>
+    ) : selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE ? (
+        <RangeDatePicker
+            fromValue={dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER]}
+            toValue={dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]}
+            onFromSelected={(date) => setDateValue(CONST.SEARCH.DATE_MODIFIERS.AFTER, date)}
+            onToSelected={(date) => setDateValue(CONST.SEARCH.DATE_MODIFIERS.BEFORE, date)}
+            shouldShowError={shouldShowRangeError}
+            forceVertical={forceVerticalCalendars}
+        />
     ) : (
         <CalendarPicker
             value={ephemeralDateValue}

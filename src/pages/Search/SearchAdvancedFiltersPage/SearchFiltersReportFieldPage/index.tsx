@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
+import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isSearchDatePreset} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
@@ -49,12 +50,17 @@ function SearchFiltersReportFieldPage() {
                     dateValues.push(isSearchDatePreset(onValue) ? translate(`search.filters.date.presets.${onValue}`) : translate('search.filters.date.on', onValue));
                 }
 
-                if (afterValue) {
-                    dateValues.push(translate('search.filters.date.after', afterValue));
-                }
+                // Show as range if both after and before exist and no "on" value
+                if (afterValue && beforeValue && !onValue) {
+                    dateValues.push(`${translate('common.range')}: ${DateUtils.getFormattedDateRangeForSearch(afterValue, beforeValue, true)}`);
+                } else {
+                    if (afterValue) {
+                        dateValues.push(translate('search.filters.date.after', afterValue));
+                    }
 
-                if (beforeValue) {
-                    dateValues.push(translate('search.filters.date.before', beforeValue));
+                    if (beforeValue) {
+                        dateValues.push(translate('search.filters.date.before', beforeValue));
+                    }
                 }
 
                 return {key: field.fieldID, name: field.name, value: dateValues.join(', '), field};

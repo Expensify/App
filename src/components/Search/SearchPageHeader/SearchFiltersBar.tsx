@@ -1,6 +1,6 @@
 import {isUserValidatedSelector} from '@selectors/Account';
 import {emailSelector} from '@selectors/Session';
-import React, {useCallback, useContext, useMemo, useRef} from 'react';
+import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
 import type {ReactNode} from 'react';
 import {FlatList, View} from 'react-native';
 import Button from '@components/Button';
@@ -98,6 +98,9 @@ function SearchFiltersBar({
     const currentPolicy = usePolicy(currentSelectedPolicyID);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
+
+    // Track which date filters were set via Range mode (persists while component is mounted)
+    const [dateRangeFlags, setDateRangeFlags] = useState<Partial<Record<SearchDateFilterKeys, boolean>>>({});
     // type, groupBy, status, and view values are not guaranteed to respect the ts type as they come from user input
     const {type: unsafeType, groupBy: unsafeGroupBy, status: unsafeStatus, view: unsafeView, flatFilters} = queryJSON;
     const [selectedIOUReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentSelectedReportID}`, {canBeMissing: true});
@@ -240,11 +243,13 @@ function SearchFiltersBar({
     }, [flatFilters, translate]);
 
     const createDateDisplayValue = useCallback(
-        (filterValues: {on?: string; after?: string; before?: string}): [SearchDateValues, string[]] => {
+        (filterValues: {on?: string; after?: string; before?: string}, isRange: boolean = false): [SearchDateValues, string[]] => {
+            const shouldUseRange = isRange || (!!filterValues.after && !!filterValues.before && !filterValues.on);
             const value: SearchDateValues = {
                 [CONST.SEARCH.DATE_MODIFIERS.ON]: filterValues.on,
                 [CONST.SEARCH.DATE_MODIFIERS.AFTER]: filterValues.after,
                 [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: filterValues.before,
+                [CONST.SEARCH.DATE_MODIFIERS.RANGE]: shouldUseRange ? 'range' : undefined,
             };
 
             const displayText: string[] = [];
@@ -253,11 +258,15 @@ function SearchFiltersBar({
                     isSearchDatePreset(value.On) ? translate(`search.filters.date.presets.${value.On}`) : `${translate('common.on')} ${DateUtils.formatToReadableString(value.On)}`,
                 );
             }
-            if (value.After) {
-                displayText.push(`${translate('common.after')} ${DateUtils.formatToReadableString(value.After)}`);
-            }
-            if (value.Before) {
-                displayText.push(`${translate('common.before')} ${DateUtils.formatToReadableString(value.Before)}`);
+            if (shouldUseRange && value.After && value.Before) {
+                displayText.push(`${translate('common.range')}: ${DateUtils.getFormattedDateRangeForSearch(value.After, value.Before, true)}`);
+            } else {
+                if (value.After) {
+                    displayText.push(`${translate('common.after')} ${DateUtils.formatToReadableString(value.After)}`);
+                }
+                if (value.Before) {
+                    displayText.push(`${translate('common.before')} ${DateUtils.formatToReadableString(value.Before)}`);
+                }
             }
 
             return [value, displayText];
@@ -267,32 +276,41 @@ function SearchFiltersBar({
 
     const [date, displayDate] = useMemo(
         () =>
-            createDateDisplayValue({
-                on: searchAdvancedFiltersForm.dateOn,
-                after: searchAdvancedFiltersForm.dateAfter,
-                before: searchAdvancedFiltersForm.dateBefore,
-            }),
-        [searchAdvancedFiltersForm.dateOn, searchAdvancedFiltersForm.dateAfter, searchAdvancedFiltersForm.dateBefore, createDateDisplayValue],
+            createDateDisplayValue(
+                {
+                    on: searchAdvancedFiltersForm.dateOn,
+                    after: searchAdvancedFiltersForm.dateAfter,
+                    before: searchAdvancedFiltersForm.dateBefore,
+                },
+                dateRangeFlags[CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE] ?? false,
+            ),
+        [searchAdvancedFiltersForm.dateOn, searchAdvancedFiltersForm.dateAfter, searchAdvancedFiltersForm.dateBefore, createDateDisplayValue, dateRangeFlags],
     );
 
     const [posted, displayPosted] = useMemo(
         () =>
-            createDateDisplayValue({
-                on: searchAdvancedFiltersForm.postedOn,
-                after: searchAdvancedFiltersForm.postedAfter,
-                before: searchAdvancedFiltersForm.postedBefore,
-            }),
-        [searchAdvancedFiltersForm.postedOn, searchAdvancedFiltersForm.postedAfter, searchAdvancedFiltersForm.postedBefore, createDateDisplayValue],
+            createDateDisplayValue(
+                {
+                    on: searchAdvancedFiltersForm.postedOn,
+                    after: searchAdvancedFiltersForm.postedAfter,
+                    before: searchAdvancedFiltersForm.postedBefore,
+                },
+                dateRangeFlags[CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED] ?? false,
+            ),
+        [searchAdvancedFiltersForm.postedOn, searchAdvancedFiltersForm.postedAfter, searchAdvancedFiltersForm.postedBefore, createDateDisplayValue, dateRangeFlags],
     );
 
     const [withdrawn, displayWithdrawn] = useMemo(
         () =>
-            createDateDisplayValue({
-                on: searchAdvancedFiltersForm.withdrawnOn,
-                after: searchAdvancedFiltersForm.withdrawnAfter,
-                before: searchAdvancedFiltersForm.withdrawnBefore,
-            }),
-        [searchAdvancedFiltersForm.withdrawnOn, searchAdvancedFiltersForm.withdrawnAfter, searchAdvancedFiltersForm.withdrawnBefore, createDateDisplayValue],
+            createDateDisplayValue(
+                {
+                    on: searchAdvancedFiltersForm.withdrawnOn,
+                    after: searchAdvancedFiltersForm.withdrawnAfter,
+                    before: searchAdvancedFiltersForm.withdrawnBefore,
+                },
+                dateRangeFlags[CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN] ?? false,
+            ),
+        [searchAdvancedFiltersForm.withdrawnOn, searchAdvancedFiltersForm.withdrawnAfter, searchAdvancedFiltersForm.withdrawnBefore, createDateDisplayValue, dateRangeFlags],
     );
 
     const [withdrawalTypeOptions, withdrawalType] = useMemo(() => {
@@ -423,8 +441,12 @@ function SearchFiltersBar({
 
     const createDatePickerComponent = useCallback(
         (filterKey: SearchDateFilterKeys, value: SearchDateValues, translationKey: TranslationPaths) => {
-            return ({closeOverlay}: PopoverComponentProps) => {
+            return ({closeOverlay, setPopoverWidth}: PopoverComponentProps) => {
                 const onChange = (selectedDates: SearchDateValues) => {
+                    // Track whether these dates were set via Range mode
+                    const isRange = !!selectedDates[CONST.SEARCH.DATE_MODIFIERS.RANGE];
+                    setDateRangeFlags((prev) => ({...prev, [filterKey]: isRange}));
+
                     const dateFormValues = {
                         [`${filterKey}On`]: selectedDates[CONST.SEARCH.DATE_MODIFIERS.ON],
                         [`${filterKey}After`]: selectedDates[CONST.SEARCH.DATE_MODIFIERS.AFTER],
@@ -440,6 +462,7 @@ function SearchFiltersBar({
                         value={value}
                         onChange={onChange}
                         closeOverlay={closeOverlay}
+                        setPopoverWidth={setPopoverWidth}
                         presets={getDatePresets(filterKey, true)}
                     />
                 );

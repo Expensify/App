@@ -1,4 +1,5 @@
 import React from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Icon from '@components/Icon';
@@ -14,15 +15,18 @@ type ArrowIconProps = {
 
     /** Specifies direction of icon */
     direction?: ValueOf<typeof CONST.DIRECTION>;
+
+    /** Optional style overrides for the container */
+    containerStyle?: StyleProp<ViewStyle>;
 };
 
-function ArrowIcon({disabled = false, direction = CONST.DIRECTION.RIGHT}: ArrowIconProps) {
+function ArrowIcon({disabled = false, direction = CONST.DIRECTION.RIGHT, containerStyle}: ArrowIconProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     return (
-        <View style={[styles.p1, StyleUtils.getDirectionStyle(direction), disabled ? styles.buttonOpacityDisabled : {}]}>
+        <View style={[styles.p1, containerStyle, StyleUtils.getDirectionStyle(direction), disabled ? styles.buttonOpacityDisabled : {}]}>
             <Icon
                 fill={theme.icon}
                 src={icons.ArrowRight}
