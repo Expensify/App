@@ -125,7 +125,9 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     };
 
     const closeModal = () => {
+        onDeny();
         setShowModal(false);
+        setHasError(false);
         resetPermissionFlow();
     };
 
