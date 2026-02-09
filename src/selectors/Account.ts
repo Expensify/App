@@ -9,6 +9,8 @@ const primaryLoginSelector = (account: OnyxEntry<Account>) => account?.primaryLo
 
 const delegatesSelector = (account: OnyxEntry<Account>) => account?.delegatedAccess?.delegates;
 
+const delegateEmailSelector = (account: OnyxEntry<Account>) => account?.delegatedAccess?.delegate;
+
 const hasBiometricsRegisteredSelector = (data: OnyxEntry<Account>) => data?.multifactorAuthenticationPublicKeyIDs && data.multifactorAuthenticationPublicKeyIDs.length > 0;
 
-export {isActingAsDelegateSelector, isUserValidatedSelector, primaryLoginSelector, delegatesSelector, hasBiometricsRegisteredSelector};
+export {isActingAsDelegateSelector, isUserValidatedSelector, primaryLoginSelector, delegatesSelector, delegateEmailSelector, hasBiometricsRegisteredSelector};
