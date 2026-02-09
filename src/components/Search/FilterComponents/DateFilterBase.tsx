@@ -132,15 +132,6 @@ function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
         }
 
         const dateValues = searchDatePresetFilterBaseRef.current.getDateValues();
-        const hasFrom = !!dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER];
-        const hasTo = !!dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE];
-
-        if (hasFrom !== hasTo) {
-            setSelectedDateModifier(CONST.SEARCH.DATE_MODIFIERS.RANGE);
-            setShouldShowRangeError(true);
-            return;
-        }
-
         onSubmit({
             [dateOnKey]: dateValues[CONST.SEARCH.DATE_MODIFIERS.ON] ?? null,
             [dateBeforeKey]: dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE] ?? null,

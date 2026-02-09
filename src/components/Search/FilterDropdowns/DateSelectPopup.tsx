@@ -106,16 +106,6 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
         }
 
         const dateValues = searchDatePresetFilterBaseRef.current.getDateValues();
-        const hasFrom = !!dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER];
-        const hasTo = !!dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE];
-
-        if (hasFrom !== hasTo) {
-            // Partial range: force user to complete both dates and show inline error
-            setSelectedDateModifier(CONST.SEARCH.DATE_MODIFIERS.RANGE);
-            setShouldShowRangeError(true);
-            return;
-        }
-
         onChange(dateValues);
         closeOverlay();
     }, [closeOverlay, onChange, selectedDateModifier]);
