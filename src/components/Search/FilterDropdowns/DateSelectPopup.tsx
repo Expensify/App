@@ -158,7 +158,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
 
     const maxPopupHeight = Math.round(windowHeight * 0.85);
 
-    const mobileButtonStyle = isSmallScreenWidth ? styles.flex1 : {minWidth: 120};
+    const buttonStyle = isSmallScreenWidth || !selectedDateModifier ? styles.flex1 : {minWidth: 120};
     const buttonRowSpacing = selectedDateModifier ? styles.mt4 : styles.mt2;
     const topPaddingStyle = selectedDateModifier ? (isSmallScreenWidth ? styles.pt0 : styles.pt4) : undefined;
 
@@ -213,24 +213,24 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
                     </Text>
                 )}
             </ScrollView>
-            <View style={[styles.flexRow, styles.ph5, buttonRowSpacing, styles.alignItemsCenter, isSmallScreenWidth && styles.gap2]}>
+            <View style={[styles.flexRow, styles.ph5, buttonRowSpacing, styles.alignItemsCenter, (isSmallScreenWidth || !selectedDateModifier) && styles.gap2]}>
                 {shouldShowInlineRangeText && (
                     <Text style={[styles.textLabelSupporting, styles.flex1, styles.mr3]}>
                         {`${translate('common.range')}: `}
                         <Text style={[styles.textLabelSupporting, styles.textStrong]}>{rangeText}</Text>
                     </Text>
                 )}
-                {!shouldShowInlineRangeText && !isSmallScreenWidth && <View style={styles.flex1} />}
+                {!shouldShowInlineRangeText && !isSmallScreenWidth && selectedDateModifier && <View style={styles.flex1} />}
                 <Button
                     medium
-                    style={[!isSmallScreenWidth && styles.mr2, mobileButtonStyle]}
+                    style={[!isSmallScreenWidth && selectedDateModifier && styles.mr2, buttonStyle]}
                     text={translate('common.reset')}
                     onPress={resetChanges}
                 />
                 <Button
                     success
                     medium
-                    style={[mobileButtonStyle]}
+                    style={[buttonStyle]}
                     text={translate('common.apply')}
                     onPress={applyChanges}
                 />
