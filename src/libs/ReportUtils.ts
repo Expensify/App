@@ -10299,7 +10299,7 @@ function getTaskAssigneeChatOnyxData(
     if (assigneeChatReportID !== parentReportID) {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const displayname = allPersonalDetails?.[assigneeAccountID]?.displayName || allPersonalDetails?.[assigneeAccountID]?.login || '';
-        optimisticAssigneeAddComment = buildOptimisticTaskCommentReportAction(taskReportID, title, assigneeAccountID, `assigned to ${displayname}`, parentReportID,accountDelegateEmail);
+        optimisticAssigneeAddComment = buildOptimisticTaskCommentReportAction(taskReportID, title, assigneeAccountID, `assigned to ${displayname}`, parentReportID, accountDelegateEmail);
         const lastAssigneeCommentText = formatReportLastMessageText(getReportActionText(optimisticAssigneeAddComment.reportAction as ReportAction));
         const optimisticAssigneeReport = {
             lastVisibleActionCreated: currentTime,

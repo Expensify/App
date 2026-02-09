@@ -729,6 +729,7 @@ describe('Unread Indicators', () => {
             quickAction: undefined,
             recentWaypoints,
             betas: [CONST.BETAS.ALL],
+            accountDelegateEmail: '',
         });
         await waitForBatchedUpdates();
 

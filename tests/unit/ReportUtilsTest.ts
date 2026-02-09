@@ -490,6 +490,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID: '1',
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                accountDelegateEmail: '',
             });
 
             expect(title).toHaveBeenCalledWith(
@@ -520,6 +521,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID: '1',
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                accountDelegateEmail: '',
             });
 
             expect(description).toHaveBeenCalledWith(
@@ -548,6 +550,7 @@ describe('ReportUtils', () => {
                 adminsChatReportID,
                 selectedInterestedFeatures: ['areCompanyCardsEnabled'],
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                accountDelegateEmail: '',
             });
             expect(result?.guidedSetupData).toHaveLength(0);
             expect(result?.optimisticData.filter((i) => i.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`)).toHaveLength(0);
@@ -571,6 +574,7 @@ describe('ReportUtils', () => {
                 adminsChatReportID,
                 selectedInterestedFeatures: ['areCompanyCardsEnabled'],
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                accountDelegateEmail: '',
             });
             // Without the beta, tasks SHOULD be generated (old behavior)
             expect(result?.guidedSetupData).toHaveLength(3);
@@ -590,6 +594,7 @@ describe('ReportUtils', () => {
                 adminsChatReportID,
                 selectedInterestedFeatures: ['areCompanyCardsEnabled'],
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                accountDelegateEmail: '',
             });
             expect(result?.guidedSetupData).toHaveLength(3);
             expect(result?.optimisticData.filter((i) => i.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`)).toHaveLength(0);
@@ -606,6 +611,7 @@ describe('ReportUtils', () => {
                 adminsChatReportID: '1',
                 selectedInterestedFeatures: ['categories', 'accounting', 'tags'],
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                accountDelegateEmail: '',
             });
 
             expect(result?.guidedSetupData.filter((data) => data.type === 'task')).toHaveLength(0);
@@ -623,6 +629,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID: '1',
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                accountDelegateEmail: '',
             });
 
             const personalDetailsCall = mergeSpy.mock.calls.find((call) => call[0] === ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -657,6 +664,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID: '1',
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                accountDelegateEmail: '',
             });
 
             expect(title).toHaveBeenCalledWith(

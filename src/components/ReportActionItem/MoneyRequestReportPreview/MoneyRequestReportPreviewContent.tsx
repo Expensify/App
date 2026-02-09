@@ -271,6 +271,7 @@ function MoneyRequestReportPreviewContent({
                         paymentMethod,
                         activePolicy,
                         betas,
+                        accountDelegateEmail,
                     });
                 } else {
                     payMoneyRequest({
@@ -302,6 +303,7 @@ function MoneyRequestReportPreviewContent({
             activePolicy,
             policy,
             betas,
+            accountDelegateEmail,
         ],
     );
 

@@ -586,6 +586,7 @@ function MoneyReportHeader({
                     paymentMethod,
                     activePolicy,
                     betas,
+                    accountDelegateEmail,
                 });
             } else {
                 startAnimation();
