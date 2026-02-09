@@ -9,8 +9,7 @@ function formatRequiredFieldsTitle(translate: LocaleContextProps['translate'], p
     const enabledFields: string[] = [];
 
     // Attendees field should show first when both are selected and attendee tracking is enabled
-    // Respect feature flag - don't show attendees in title when feature is disabled
-    if (!CONST.IS_ATTENDEES_REQUIRED_FEATURE_DISABLED && isAttendeeTrackingEnabled && policyCategory.areAttendeesRequired) {
+    if (isAttendeeTrackingEnabled && policyCategory.areAttendeesRequired) {
         enabledFields.push(translate('iou.attendees'));
     }
 
@@ -35,9 +34,10 @@ function getIsMissingAttendeesViolation(
     iouAttendees: Attendee[] | string | undefined,
     userPersonalDetails: CurrentUserPersonalDetails,
     isAttendeeTrackingEnabled = false,
+    isControlPolicy = false,
 ) {
-    // Feature flag to quickly disable the attendees required feature
-    if (CONST.IS_ATTENDEES_REQUIRED_FEATURE_DISABLED) {
+    // Only enforce attendee requirement on Control policies
+    if (!isControlPolicy) {
         return false;
     }
 
@@ -76,16 +76,16 @@ function syncMissingAttendeesViolation<T extends {name: string}>(
     userPersonalDetails: CurrentUserPersonalDetails,
     isAttendeeTrackingEnabled: boolean,
     isControlPolicy: boolean,
+    isInvoice = false,
 ): T[] {
-    // Feature flag to quickly disable the attendees required feature
-    // When disabled, remove any existing missingAttendees violations and don't add new ones
-    if (CONST.IS_ATTENDEES_REQUIRED_FEATURE_DISABLED) {
-        return violations.filter((v) => v.name !== CONST.VIOLATIONS.MISSING_ATTENDEES);
+    // Don't show missingAttendees violation on invoices
+    if (isInvoice) {
+        return violations.filter((violation) => violation.name !== CONST.VIOLATIONS.MISSING_ATTENDEES);
     }
 
     const hasMissingAttendeesViolation = violations.some((v) => v.name === CONST.VIOLATIONS.MISSING_ATTENDEES);
     const shouldShowMissingAttendees =
-        isControlPolicy && getIsMissingAttendeesViolation(policyCategories ?? {}, category ?? '', attendees ?? [], userPersonalDetails, isAttendeeTrackingEnabled);
+        isControlPolicy && getIsMissingAttendeesViolation(policyCategories ?? {}, category ?? '', attendees ?? [], userPersonalDetails, isAttendeeTrackingEnabled, isControlPolicy);
 
     if (!hasMissingAttendeesViolation && shouldShowMissingAttendees) {
         // Add violation when it should show but isn't present from BE

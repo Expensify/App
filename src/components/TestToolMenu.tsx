@@ -7,6 +7,7 @@ import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import {revokeMultifactorAuthenticationCredentials} from '@libs/actions/MultifactorAuthentication';
 import {isUsingStagingApi} from '@libs/ApiUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
@@ -15,6 +16,7 @@ import {setIsDebugModeEnabled, setShouldUseStagingServer} from '@userActions/Use
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {hasBiometricsRegisteredSelector} from '@src/selectors/Account';
 import Button from './Button';
 import SoftKillTestToolRow from './SoftKillTestToolRow';
 import Switch from './Switch';
@@ -30,9 +32,15 @@ function TestToolMenu() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {clearLHNCache} = useSidebarOrderedReports();
+    const [hasBiometricsRegistered = false] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true, selector: hasBiometricsRegisteredSelector});
 
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
+
+    /**
+     * The wrapper is needed to prevent rapid double‑taps on native from triggering multiple navigations.
+     * Context: https://github.com/Expensify/App/pull/79475#discussion_r2708230681
+     */
     const navigateToBiometricsTestPage = singleExecution(
         waitForNavigate(() => {
             Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_BIOMETRICS_TEST);
@@ -43,7 +51,7 @@ function TestToolMenu() {
     const isAuthenticated = useIsAuthenticated();
 
     // Temporary hardcoded false, expected behavior: status fetched from the MultifactorAuthenticationContext
-    const biometricsTitle = translate('multifactorAuthentication.biometricsTest.troubleshootBiometricsStatus', {registered: false});
+    const biometricsTitle = translate('multifactorAuthentication.biometricsTest.troubleshootBiometricsStatus', {registered: hasBiometricsRegistered});
 
     return (
         <>
@@ -100,7 +108,7 @@ function TestToolMenu() {
                         />
                     </TestToolRow>
 
-                    {/* Allows you to test the Biometrics flow */}
+                    {/* Allows testing the biometric multifactor authentication flow */}
                     <TestToolRow title={biometricsTitle}>
                         <View style={[styles.flexRow, styles.gap2]}>
                             <Button
@@ -108,6 +116,16 @@ function TestToolMenu() {
                                 text={translate('multifactorAuthentication.biometricsTest.test')}
                                 onPress={() => navigateToBiometricsTestPage()}
                             />
+                            {hasBiometricsRegistered && (
+                                <Button
+                                    danger
+                                    small
+                                    text={translate('multifactorAuthentication.revoke.remove')}
+                                    onPress={() => {
+                                        revokeMultifactorAuthenticationCredentials();
+                                    }}
+                                />
+                            )}
                         </View>
                     </TestToolRow>
                 </>

@@ -16,7 +16,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsForm} from '@src/types/form';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import useExpensifyCardContext from './useExpensifyCardContext';
+import {useExpensifyCardActions} from './ExpensifyCardContextProvider';
 
 type ExpensifyCardMissingDetailsMagicCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_MISSING_DETAILS_CONFIRM_MAGIC_CODE>;
 
@@ -36,7 +36,7 @@ function ExpensifyCardMissingDetailsMagicCodePage({
 
     const validateLoginError = getLatestError(privateDetailsErrors);
     const primaryLogin = account?.primaryLogin ?? '';
-    const {setIsCardDetailsLoading, setCardsDetails, setCardsDetailsErrors} = useExpensifyCardContext();
+    const {setIsCardDetailsLoading, setCardsDetails, setCardsDetailsErrors} = useExpensifyCardActions();
 
     const clearError = useCallback(() => {
         if (isEmptyObject(validateLoginError) && isEmptyObject(validateCodeAction?.errorFields)) {

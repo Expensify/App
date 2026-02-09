@@ -3,6 +3,7 @@ import type {GestureResponderEvent, InputModeOptions, StyleProp, TextStyle, View
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {ListItem, ValidListItem} from './ListItem/types';
+import type {SelectionListWithSectionsHandle, SelectionListWithSectionsProps} from './SelectionListWithSections/types';
 
 /**
  * Base props shared between SelectionList and SelectionListWithSections.
@@ -95,6 +96,9 @@ type BaseSelectionListProps<TItem extends ListItem> = {
 
     /** Called when the list is scrolled and the user begins dragging */
     onScrollBeginDrag?: () => void;
+
+    /** Configuration for the confirm button */
+    confirmButtonOptions?: ConfirmButtonOptions<TItem>;
 };
 
 /**
@@ -115,9 +119,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> &
 
         /** Callback to fire when the item is long pressed */
         onLongPressRow?: (item: TItem) => void;
-
-        /** Configuration for the confirm button */
-        confirmButtonOptions?: ConfirmButtonOptions<TItem>;
 
         /** Custom header content to render instead of the default select all header */
         customListHeader?: React.ReactNode;
@@ -195,6 +196,9 @@ type SelectionListStyle = {
 
     /** Styles for the title container of the list item */
     listItemTitleContainerStyles?: StyleProp<ViewStyle>;
+
+    /** Styles for the error row of the list item */
+    listItemErrorRowStyles?: StyleProp<ViewStyle>;
 
     /** Styles for the section titles */
     sectionTitleStyles?: StyleProp<TextStyle>;
@@ -303,4 +307,16 @@ type DataDetailsType<TItem extends ListItem> = {
     disabledArrowKeyIndexes: number[];
 };
 
-export type {BaseSelectionListProps, DataDetailsType, SelectionListHandle, SelectionListProps, TextInputOptions, ConfirmButtonOptions, ListItem, ButtonOrCheckBoxRoles, SelectionListStyle};
+export type {
+    BaseSelectionListProps,
+    DataDetailsType,
+    SelectionListHandle,
+    SelectionListProps,
+    TextInputOptions,
+    ConfirmButtonOptions,
+    ListItem,
+    ButtonOrCheckBoxRoles,
+    SelectionListStyle,
+    SelectionListWithSectionsHandle,
+    SelectionListWithSectionsProps,
+};

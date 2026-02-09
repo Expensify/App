@@ -1,4 +1,12 @@
 {
+    "extraKnownMarketplaces": {
+        "callstack-agent-skills": {
+            "source": {
+                "source": "github",
+                "repo": "callstackincubator/agent-skills"
+            }
+        }
+    },
     "permissions": {
         "allow": [
             "mcp__playwright__browser_navigate",
@@ -19,5 +27,8 @@
             "mcp__playwright__browser_evaluate",
             "mcp__playwright__browser_handle_dialog"
         ]
+    },
+    "enabledPlugins": {
+        "react-native-best-practices@callstack-agent-skills": true
     }
 }

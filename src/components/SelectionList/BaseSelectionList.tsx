@@ -371,6 +371,7 @@ function BaseSelectionList<TItem extends ListItem>({
                     titleStyles={style?.listItemTitleStyles}
                     wrapperStyle={style?.listItemWrapperStyle}
                     titleContainerStyles={style?.listItemTitleContainerStyles}
+                    errorRowStyles={style?.listItemErrorRowStyles}
                     singleExecution={singleExecution}
                     shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                     shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
@@ -524,6 +525,7 @@ function BaseSelectionList<TItem extends ListItem>({
                         onEndReached={onEndReached}
                         onEndReachedThreshold={onEndReachedThreshold}
                         style={style?.listStyle}
+                        contentContainerStyle={styles.pb3}
                         initialScrollIndex={initialFocusedIndex}
                         onScrollBeginDrag={onScrollBeginDrag}
                         maintainVisibleContentPosition={{disabled: disableMaintainingScrollPosition}}

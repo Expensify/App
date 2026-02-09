@@ -26,6 +26,7 @@ function TableListItem<TItem extends ListItem>({
     titleContainerStyles,
     shouldUseDefaultRightHandSideCheckmark,
     shouldShowRightCaret,
+    errorRowStyles,
 }: TableListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -72,6 +73,7 @@ function TableListItem<TItem extends ListItem>({
             onDismissError={onDismissError}
             rightHandSideComponent={rightHandSideComponent}
             errors={item.errors}
+            errorRowStyles={errorRowStyles}
             pendingAction={item.pendingAction}
             keyForList={item.keyForList}
             onFocus={onFocus}
@@ -116,11 +118,11 @@ function TableListItem<TItem extends ListItem>({
                                 isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
                                 styles.sidebarLinkTextBold,
                                 styles.pre,
-                                item.alternateText ? styles.mb1 : null,
+                                !item.shouldHideAlternateText && item.alternateText ? styles.mb1 : null,
                                 styles.justifyContentCenter,
                             ]}
                         />
-                        {!!item.alternateText && (
+                        {!item.shouldHideAlternateText && !!item.alternateText && (
                             <TextWithTooltip
                                 shouldShowTooltip={showTooltip}
                                 text={item.alternateText}

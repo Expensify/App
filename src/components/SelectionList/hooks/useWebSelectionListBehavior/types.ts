@@ -1,6 +1,11 @@
+import type React from 'react';
+
 type UseWebSelectionListBehaviorOptions = {
     /** Whether to track hover style state (only used by flat SelectionList) */
     shouldTrackHoverStyle?: boolean;
+
+    /** Whether keyboard should be hidden on scroll */
+    shouldHideKeyboardOnScroll?: boolean;
 };
 
 type UseWebSelectionListBehaviorResult = {
@@ -15,6 +20,9 @@ type UseWebSelectionListBehaviorResult = {
 
     /** Setter for hover style state (only when shouldTrackHoverStyle is true) */
     setShouldDisableHoverStyle: React.Dispatch<React.SetStateAction<boolean>>;
+
+    /** Callback to handle scroll events (dismisses keyboard on touch scroll) */
+    onScroll: () => void;
 };
 
 export type {UseWebSelectionListBehaviorOptions, UseWebSelectionListBehaviorResult};

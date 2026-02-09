@@ -41,6 +41,7 @@ import {
     isAmountMissing,
     isMerchantMissing,
     isScanning,
+    isTimeRequest,
     isUnreportedAndHasInvalidDistanceRateTransaction,
 } from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -81,6 +82,9 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 
     /** formatted "merchant" value used for displaying and sorting on Reports page */
     formattedMerchant?: string;
+
+    /** Whether the card feed has been deleted */
+    isCardFeedDeleted?: boolean;
 
     /** information about whether to show merchant, that is provided on Reports page */
     shouldShowMerchant?: boolean;
@@ -205,9 +209,6 @@ function TransactionItemRow({
         if (!violations) {
             return undefined;
         }
-        if (CONST.IS_ATTENDEES_REQUIRED_FEATURE_DISABLED) {
-            return violations.filter((violation) => violation.name !== CONST.VIOLATIONS.MISSING_ATTENDEES);
-        }
         return violations;
     }, [violations]);
 
@@ -252,6 +253,9 @@ function TransactionItemRow({
     const exchangeRateMessage = getExchangeRate(transactionItem);
 
     const cardName = useMemo(() => {
+        if (transactionItem.isCardFeedDeleted) {
+            return translate('workspace.companyCards.deletedFeed');
+        }
         if (transactionItem.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME) {
             return '';
         }
@@ -260,7 +264,7 @@ function TransactionItemRow({
             return customCardNames[cardID];
         }
         return transactionItem.cardName;
-    }, [transactionItem.cardID, transactionItem.cardName, customCardNames]);
+    }, [transactionItem.cardID, transactionItem.cardName, transactionItem.isCardFeedDeleted, customCardNames, translate]);
 
     const columnComponent = useMemo(
         () => ({
@@ -528,7 +532,7 @@ function TransactionItemRow({
                     key={CONST.SEARCH.TABLE_COLUMNS.TAX_RATE}
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE)]}
                 >
-                    <TextCell text={getTaxName(transactionItem.policy, transactionItem) ?? transactionItem.taxValue ?? ''} />
+                    <TextCell text={isTimeRequest(transactionItem) ? '' : (getTaxName(transactionItem.policy, transactionItem) ?? transactionItem.taxValue ?? '')} />
                 </View>
             ),
             [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: (
@@ -536,10 +540,12 @@ function TransactionItemRow({
                     key={CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT}
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT, undefined, undefined, isTaxAmountColumnWide)]}
                 >
-                    <TaxCell
-                        transactionItem={transactionItem}
-                        shouldShowTooltip={shouldShowTooltip}
-                    />
+                    {isTimeRequest(transactionItem) ? null : (
+                        <TaxCell
+                            transactionItem={transactionItem}
+                            shouldShowTooltip={shouldShowTooltip}
+                        />
+                    )}
                 </View>
             ),
             [CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME]: (
@@ -778,6 +784,7 @@ function TransactionItemRow({
                             style={[styles.p3Half, styles.pl0half, styles.pr0half, styles.justifyContentCenter, styles.alignItemsEnd]}
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={CONST.ROLE.BUTTON}
+                            sentryLabel="TransactionItemRow-ArrowRight"
                         >
                             <Icon
                                 src={expensicons.ArrowRight}

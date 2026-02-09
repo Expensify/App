@@ -5,7 +5,7 @@ import SCREENS from '@src/SCREENS';
  * focus trap when rendered on a wide screen to allow navigation between them using the keyboard
  */
 const WIDE_LAYOUT_INACTIVE_SCREENS: string[] = [
-    SCREENS.HOME,
+    SCREENS.INBOX,
     SCREENS.SETTINGS.ROOT,
     SCREENS.REPORT,
     SCREENS.SETTINGS.PROFILE.ROOT,
@@ -37,6 +37,7 @@ const WIDE_LAYOUT_INACTIVE_SCREENS: string[] = [
     SCREENS.WORKSPACE.RULES,
     SCREENS.WORKSPACE.PER_DIEM,
     SCREENS.WORKSPACE.RECEIPT_PARTNERS,
+    SCREENS.WORKSPACE.TIME_TRACKING,
 ];
 
 export default WIDE_LAYOUT_INACTIVE_SCREENS;
