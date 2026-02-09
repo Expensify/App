@@ -1,4 +1,4 @@
-import React, {useCallback, useContext, useEffect, useMemo} from 'react';
+import React, {useCallback, useContext, useEffect} from 'react';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -31,16 +31,10 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
 
-    const isApprover = useMemo(() => {
-        if (report) {
-            return !isCurrentUserSubmitter(report);
-        }
-        const transactions = Object.values(context.selectedTransactions);
-        if (transactions.length === 0) {
-            return false;
-        }
-        return !transactions.every((t) => t.ownerAccountID === currentUserAccountID);
-    }, [report, context.selectedTransactions, currentUserAccountID]);
+    const selectedTransactionsList = Object.values(context.selectedTransactions);
+    const isApprover = report
+        ? !isCurrentUserSubmitter(report)
+        : selectedTransactionsList.length > 0 && !selectedTransactionsList.every((t) => t.ownerAccountID === currentUserAccountID);
 
     const ancestors = useAncestors(report);
 
