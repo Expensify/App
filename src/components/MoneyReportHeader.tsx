@@ -537,6 +537,10 @@ function MoneyReportHeader({
         optimisticNextStep = buildOptimisticNextStepForStrictPolicyRuleViolations();
     }
 
+    // Check if we have a local optimistic override (e.g., error states, offline submission)
+    // When there's an override, we should NOT use the new translated format as the override takes precedence
+    const hasOptimisticOverride = optimisticNextStep !== nextStep;
+
     const shouldShowNextStep = isFromPaidPolicy && !isInvoiceReport && !shouldShowStatusBar;
     const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, shouldShowPayButton);
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(moneyRequestReport?.reportID);
@@ -1746,8 +1750,14 @@ function MoneyReportHeader({
             betas,
         });
 
-    const showNextStepBar = shouldShowNextStep && !!(optimisticNextStep?.message?.length ?? (optimisticNextStep && 'messageKey' in optimisticNextStep));
-    const showNextStepSkeleton = shouldShowNextStep && !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline;
+    const effectiveNextStep = hasOptimisticOverride ? optimisticNextStep : (moneyRequestReport?.nextStep ?? optimisticNextStep);
+    const hasNextStepContent = !!(
+        effectiveNextStep &&
+        (('message' in effectiveNextStep && Array.isArray(effectiveNextStep.message) && effectiveNextStep.message.length > 0) ||
+            ('messageKey' in effectiveNextStep && effectiveNextStep.messageKey))
+    );
+    const showNextStepBar = shouldShowNextStep && hasNextStepContent;
+    const showNextStepSkeleton = shouldShowNextStep && !effectiveNextStep && !!isLoadingInitialReportActions && !isOffline;
     const shouldShowMoreContent = showNextStepBar || showNextStepSkeleton || !!statusBarProps || isReportInSearch;
 
     return (
@@ -1824,7 +1834,7 @@ function MoneyReportHeader({
             {shouldShowMoreContent && (
                 <View style={[styles.flexRow, styles.gap2, styles.justifyContentStart, styles.flexNoWrap, styles.ph5, styles.pb3]}>
                     <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.flexWrap, styles.justifyContentCenter]}>
-                        {showNextStepBar && <MoneyReportHeaderStatusBar nextStep={optimisticNextStep} />}
+                        {showNextStepBar && <MoneyReportHeaderStatusBar nextStep={effectiveNextStep} />}
                         {showNextStepSkeleton && <MoneyReportHeaderStatusBarSkeleton />}
                         {!!statusBarProps && (
                             <MoneyRequestHeaderStatusBar

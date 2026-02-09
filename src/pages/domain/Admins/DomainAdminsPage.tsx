@@ -7,7 +7,9 @@ import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hook
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {hasDomainAdminsSettingsErrors} from '@libs/DomainUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
@@ -23,9 +25,10 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const {domainAccountID} = route.params;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useMemoizedLazyIllustrations(['UserShield']);
-    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Plus']);
+    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Plus', 'DotIndicator']);
 
     const [adminAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         canBeMissing: true,
@@ -64,6 +67,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
         pendingAction: domainPendingAction?.[accountID]?.pendingAction,
     });
 
+    const hasSettingsErrors = hasDomainAdminsSettingsErrors(domainErrors);
     const headerContent = isAdmin ? (
         <>
             <Button
@@ -77,7 +81,9 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
             <Button
                 onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainAccountID))}
                 text={translate('domain.admins.settings')}
-                icon={icons.Gear}
+                icon={hasSettingsErrors ? icons.DotIndicator : icons.Gear}
+                iconFill={hasSettingsErrors ? theme.danger : undefined}
+                iconHoverFill={hasSettingsErrors ? theme.dangerHover : undefined}
                 innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
                 style={shouldUseNarrowLayout ? [styles.flexGrow1, styles.mb3] : undefined}
             />

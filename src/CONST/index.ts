@@ -1724,7 +1724,12 @@ const CONST = {
     },
     TELEMETRY: {
         CONTEXT_FULLSTORY: 'Fullstory',
+        CONTEXT_MEMORY: 'Memory',
         CONTEXT_POLICIES: 'Policies',
+        // Breadcrumb names
+        BREADCRUMB_CATEGORY_MEMORY: 'system.memory',
+        BREADCRUMB_MEMORY_PERIODIC: 'Periodic memory check',
+        BREADCRUMB_MEMORY_FOREGROUND: 'App foreground - memory check',
         TAG_ACTIVE_POLICY: 'active_policy_id',
         TAG_POLICIES_COUNT: 'policies_count',
         TAG_REPORTS_COUNT: 'reports_count',
@@ -1783,6 +1788,19 @@ const CONST = {
         ATTRIBUTE_FINISHED_MANUALLY: 'finished_manually',
         CONFIG: {
             SKELETON_MIN_DURATION: 10_000,
+            MEMORY_TRACKING_INTERVAL: 2 * 60 * 1000,
+
+            // Web Memory Thresholds (% of jsHeapSizeLimit)
+            MEMORY_THRESHOLD_WEB_CRITICAL: 85,
+            MEMORY_THRESHOLD_WEB_WARNING: 70,
+
+            // Android Memory Thresholds (% of device RAM - temporary solution)
+            MEMORY_THRESHOLD_ANDROID_CRITICAL: 85, // > 85% of device RAM
+            MEMORY_THRESHOLD_ANDROID_WARNING: 70, // > 70% of device RAM
+
+            // iOS Memory Thresholds (absolute MB - no heap limit API available)
+            MEMORY_THRESHOLD_IOS_CRITICAL_MB: 600, // > 600MB approaching jetsam on older devices
+            MEMORY_THRESHOLD_IOS_WARNING_MB: 300, // > 300MB monitor closely
         },
     },
     PRIORITY_MODE: {
@@ -4586,6 +4604,74 @@ const CONST = {
 
     PLAID_EXCLUDED_COUNTRIES: ['IR', 'CU', 'SY', 'UA', 'KP'] as string[],
     PLAID_SUPPORT_COUNTRIES: ['US', 'CA', 'GB', 'AT', 'BE', 'DK', 'EE', 'FI', 'FR', 'DE', 'IE', 'IT', 'LV', 'LT', 'NL', 'NO', 'PL', 'PT', 'ES', 'SE'] as string[],
+
+    BBA_SUPPORTED_COUNTRIES: [
+        'AT',
+        'AU',
+        'BE',
+        'BG',
+        'CA',
+        'CY',
+        'CZ',
+        'DE',
+        'DK',
+        'EE',
+        'ES',
+        'FI',
+        'FR',
+        'GR',
+        'HR',
+        'HU',
+        'IE',
+        'IT',
+        'LT',
+        'LU',
+        'LV',
+        'MT',
+        'NL',
+        'PL',
+        'PT',
+        'RO',
+        'SE',
+        'SI',
+        'SK',
+        'GB',
+        'US',
+    ] as string[],
+
+    BBA_COUNTRY_CURRENCY_MAP: {
+        AT: 'EUR',
+        AU: 'AUD',
+        BE: 'EUR',
+        BG: 'EUR',
+        CA: 'CAD',
+        CY: 'EUR',
+        CZ: 'EUR',
+        DE: 'EUR',
+        DK: 'EUR',
+        EE: 'EUR',
+        ES: 'EUR',
+        FI: 'EUR',
+        FR: 'EUR',
+        GR: 'EUR',
+        HR: 'EUR',
+        HU: 'EUR',
+        IE: 'EUR',
+        IT: 'EUR',
+        LT: 'EUR',
+        LU: 'EUR',
+        LV: 'EUR',
+        MT: 'EUR',
+        NL: 'EUR',
+        PL: 'EUR',
+        PT: 'EUR',
+        RO: 'EUR',
+        SE: 'EUR',
+        SI: 'EUR',
+        SK: 'EUR',
+        GB: 'GBP',
+        US: 'USD',
+    } as Record<string, string>,
 
     // Sources: https://github.com/Expensify/App/issues/14958#issuecomment-1442138427
     // https://github.com/Expensify/App/issues/14958#issuecomment-1456026810
@@ -7769,6 +7855,7 @@ const CONST = {
         HAS_PARTIALLY_SETUP_BANK_ACCOUNT_INFO: 'hasPartiallySetupBankAccountInfo',
         HAS_EMPLOYEE_CARD_FEED_ERRORS: 'hasEmployeeCardFeedErrors',
         HAS_POLICY_ADMIN_CARD_FEED_ERRORS: 'hasPolicyAdminCardFeedErrors',
+        HAS_DOMAIN_ERRORS: 'hasDomainErrors',
     },
 
     DEBUG: {
@@ -8273,6 +8360,9 @@ const CONST = {
         WORKSPACE: {
             TOGGLE_SETTINGS_ROW: 'Workspace-ToggleSettingsRow',
             WORKSPACE_MENU_ITEM: 'Workspace-WorkspaceMenuItem',
+        },
+        ACCOUNT_SWITCHER: {
+            SHOW_ACCOUNTS: 'AccountSwitcher-ShowAccounts',
         },
     },
 

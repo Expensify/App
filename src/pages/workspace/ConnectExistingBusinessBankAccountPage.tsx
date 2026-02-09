@@ -37,11 +37,7 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
     const {translate} = useLocalize();
 
     const handleAddBankAccountPress = () => {
-        if (hasFullyWorkingConnectedAccount) {
-            clearReimbursementAccount();
-        }
-
-        navigateToBankAccountRoute({policyID: hasFullyWorkingConnectedAccount ? undefined : policyID});
+        navigateToBankAccountRoute({policyID});
     };
 
     const handleItemPress = ({methodID, accountData}: PaymentMethodPressHandlerParams) => {

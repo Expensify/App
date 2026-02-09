@@ -44,7 +44,7 @@ import {
 } from '@userActions/BankAccounts';
 import {getPaymentMethods} from '@userActions/PaymentMethods';
 import {isCurrencySupportedForGlobalReimbursement} from '@userActions/Policy/Policy';
-import {clearReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
+import {clearReimbursementAccount, clearReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -122,9 +122,6 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     if (isFocused) {
         workspaceRoute = `${environmentURL}/${ROUTES.WORKSPACE_OVERVIEW.getRoute(policyIDParam, Navigation.getActiveRoute())}`;
     }
-    useEffect(() => {
-        return () => getPaymentMethods(true);
-    }, []);
 
     const contactMethodRoute = `${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo)}`;
     const isPreviousPolicy =
@@ -150,6 +147,18 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const [USDBankAccountStep, setUSDBankAccountStep] = useState<string | null>(subStepParam ?? null);
     const [isResettingBankAccount, setIsResettingBankAccount] = useState(false);
     const [isNonUSDSetup, setIsNonUSDSetup] = useState(policy ? isNonUSDWorkspace : achData?.currency !== CONST.CURRENCY.USD || reimbursementAccountDraft?.currency !== CONST.CURRENCY.USD);
+
+    useEffect(() => {
+        return () => {
+            // we want to clear reimbursementAccount and reimbursementAccountDraft when the setup is initiated from the Wallet
+            if (backTo === ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE || backTo === ROUTES.SETTINGS_WALLET) {
+                clearReimbursementAccountDraft();
+                clearReimbursementAccount();
+            }
+            getPaymentMethods(true);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useEffect(() => {
         if (!policyCurrency || isNonUSDSetup === (policyCurrency !== CONST.CURRENCY.USD)) {
@@ -201,7 +210,12 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
      * Retrieve verified business bank account currently being set up.
      */
     function fetchData(preserveCurrentStep = false) {
-        if (!policyIDParam && !bankAccountIDParam) {
+        if ((!policyIDParam && !bankAccountIDParam) || isLoadingOnyxValue(reimbursementAccountMetadata)) {
+            return;
+        }
+        if (bankAccountIDParam) {
+            // we don't need to send the stepToOpen and subStep when opening by bankAccountID - the step is returned from the backend
+            openReimbursementAccountPage({bankAccountID: Number(bankAccountIDParam)});
             return;
         }
         // We can specify a step to navigate to by using route params when the component mounts.
@@ -241,8 +255,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
 
         if (policyIDParam) {
             setReimbursementAccountLoading(true);
+            clearReimbursementAccountDraft();
         }
-        clearReimbursementAccountDraft();
 
         // If the step to open is empty, we want to clear the sub step, so the connect option view is shown to the user
         const isStepToOpenEmpty = getStepToOpenFromRouteParams(route, hasConfirmedUSDCurrency) === '';

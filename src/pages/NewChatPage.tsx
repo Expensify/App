@@ -277,7 +277,9 @@ function NewChatPage({ref}: NewChatPageProps) {
         undefined,
         reportAttributesDerived,
     );
-    sections.push(formatResults.section);
+    // Just a temporary fix to satisfy the type checker
+    // Will be fixed when migrating to use new SelectionListWithSections
+    sections.push({...formatResults.section, title: undefined, shouldShow: true});
 
     if (!firstKeyForList) {
         firstKeyForList = getFirstKeyForList(formatResults.section.data);
