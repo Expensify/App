@@ -6452,9 +6452,9 @@ function buildOptimisticTaskCommentReportAction(
     taskReportID: string,
     taskTitle: string,
     taskAssigneeAccountID: number,
-    accountDelegateEmail: string,
     text: string,
     parentReportID: string | undefined,
+    accountDelegateEmail: string,
     actorAccountID?: number,
     createdOffset = 0,
 ): OptimisticReportAction {
@@ -10299,7 +10299,7 @@ function getTaskAssigneeChatOnyxData(
     if (assigneeChatReportID !== parentReportID) {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const displayname = allPersonalDetails?.[assigneeAccountID]?.displayName || allPersonalDetails?.[assigneeAccountID]?.login || '';
-        optimisticAssigneeAddComment = buildOptimisticTaskCommentReportAction(taskReportID, title, assigneeAccountID, accountDelegateEmail, `assigned to ${displayname}`, parentReportID);
+        optimisticAssigneeAddComment = buildOptimisticTaskCommentReportAction(taskReportID, title, assigneeAccountID, `assigned to ${displayname}`, parentReportID,accountDelegateEmail);
         const lastAssigneeCommentText = formatReportLastMessageText(getReportActionText(optimisticAssigneeAddComment.reportAction as ReportAction));
         const optimisticAssigneeReport = {
             lastVisibleActionCreated: currentTime,
@@ -11560,9 +11560,9 @@ function prepareOnboardingOnyxData({
                 currentTask.reportID,
                 taskTitle,
                 0,
-                accountDelegateEmail,
                 `task for ${taskTitle}`,
                 targetChatReportID,
+                accountDelegateEmail,
                 actorAccountID,
                 index + 3,
             );
