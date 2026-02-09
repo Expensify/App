@@ -29,7 +29,7 @@ import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
 import {pushTransactionViolationsOnyxData} from '@libs/ReportUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 import type {PolicyTagList} from '@pages/workspace/tags/types';
-import {completeTask, getFinishOnboardingTaskOnyxData} from '@userActions/Task';
+import {getFinishOnboardingTaskOnyxData} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ImportedSpreadsheet, Policy, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags, Report, ReportAction} from '@src/types/onyx';
@@ -54,13 +54,6 @@ type CreatePolicyTagParams = {
     currentUserAccountID: number;
     policyHasCustomCategories: boolean;
 };
-
-/**
- * Checks if a task report is incomplete (not approved)
- */
-function isTaskIncomplete(taskReport: OnyxEntry<Report>): boolean {
-    return !!taskReport && (taskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || taskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED);
-}
 
 function openPolicyTagsPage(policyID: string) {
     if (!policyID) {
