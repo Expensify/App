@@ -560,7 +560,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         currentUserAccountIDParam,
         currentUserEmailParam,
         shouldCreateControlPolicy,
-        accountDelegateEmail
+        accountDelegateEmail,
     } = params;
 
     const policyIDWithDefault = policyID || generatePolicyID();
@@ -661,7 +661,12 @@ function savePolicyDraftByNewWorkspace({
  * When the exitTo route is 'workspace/new', we create a new
  * workspace and navigate to it
  */
-function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>, introSelected: OnyxEntry<OnyxTypes.IntroSelected>, activePolicyID: string | undefined, accountDelegateEmail: string) {
+function setUpPoliciesAndNavigate(
+    session: OnyxEntry<OnyxTypes.Session>,
+    introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
+    activePolicyID: string | undefined,
+    accountDelegateEmail: string,
+) {
     const currentUrl = getCurrentUrl();
     if (!session || !currentUrl?.includes('exitTo')) {
         return;

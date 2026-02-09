@@ -666,7 +666,7 @@ describe('actions/Task', () => {
                 isCreatedUsingMarkdown: false,
                 quickAction: {}, // quickAction is empty
                 accountDelegateEmail: mockAccountDelegateEmail,
-                });
+            });
 
             await waitForBatchedUpdatesWithAct();
 

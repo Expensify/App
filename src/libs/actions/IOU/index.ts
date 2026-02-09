@@ -6498,7 +6498,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         isSelfTourViewed,
         betas,
         personalDetails,
-        accountDelegateEmail
+        accountDelegateEmail,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
@@ -6892,7 +6892,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         quickAction,
         recentWaypoints = [],
         betas,
-        accountDelegateEmail
+        accountDelegateEmail,
     } = params;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
     const {policy, policyCategories, policyTagList} = policyData;
@@ -6923,7 +6923,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
         odometerEnd,
         isFromGlobalCreate,
         gpsCoordinates,
-
     } = transactionData;
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
     const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
@@ -6964,7 +6963,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
             linkedTrackedExpenseReportAction,
             linkedTrackedExpenseReportID,
             customUnitRateID,
-
         },
         quickAction,
     };
@@ -7029,7 +7027,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         activePolicyID,
         quickAction,
         betas,
-        accountDelegateEmail
+        accountDelegateEmail,
     }) ?? {};
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;
     const onyxData: TrackedExpenseParams['onyxData'] = trackExpenseInformationOnyxData;
@@ -9479,7 +9477,7 @@ function getPayMoneyRequestParams({
     activePolicy,
     iouReportCurrentNextStepDeprecated,
     betas,
-    accountDelegateEmail
+    accountDelegateEmail,
 }: {
     initialChatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -11402,7 +11400,20 @@ function completePaymentOnboarding(
 }
 
 function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
-    const {paymentType, chatReport, iouReport, introSelected, iouReportCurrentNextStepDeprecated, currentUserAccountID, paymentPolicyID, full = true, activePolicy, policy, betas,accountDelegateEmail} = params;
+    const {
+        paymentType,
+        chatReport,
+        iouReport,
+        introSelected,
+        iouReportCurrentNextStepDeprecated,
+        currentUserAccountID,
+        paymentPolicyID,
+        full = true,
+        activePolicy,
+        policy,
+        betas,
+        accountDelegateEmail,
+    } = params;
     if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
         return;

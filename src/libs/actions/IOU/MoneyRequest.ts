@@ -534,7 +534,7 @@ function handleMoneyRequestStepDistanceNavigation({
     gpsDistance,
     policyForMovingExpenses,
     betas,
-    accountDelegateEmail
+    accountDelegateEmail,
 }: MoneyRequestStepDistanceNavigationParams) {
     const isManualDistance = manualDistance !== undefined;
     const isGPSDistance = gpsDistance !== undefined && gpsCoordinates !== undefined;

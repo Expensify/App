@@ -600,7 +600,23 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             }
         }
 
-        openReport(reportIDFromRoute, reportActionIDFromRoute, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined,undefined, undefined,accountDelegateEmail);
+        openReport(
+            reportIDFromRoute,
+            reportActionIDFromRoute,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            accountDelegateEmail,
+        );
     }, [
         reportMetadata.isOptimisticReport,
         report,

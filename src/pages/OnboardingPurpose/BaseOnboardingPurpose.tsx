@@ -105,7 +105,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                         lastName: personalDetailsForm.lastName,
                         adminsChatReportID: onboardingAdminsChatReportID ?? undefined,
                         onboardingPolicyID,
-                        companySize: onboardingCompanySize, 
+                        companySize: onboardingCompanySize,
                         accountDelegateEmail,
                     });
 

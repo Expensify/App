@@ -724,7 +724,6 @@ function IOURequestStepConfirmation({
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 quickAction,
                 betas,
-
             });
         },
         [

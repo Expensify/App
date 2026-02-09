@@ -86,7 +86,16 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
 
             navigateAfterOnboardingWithMicrotaskQueue(isSmallScreenWidth, isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), onboardingPolicyID, mergedAccountConciergeReportID);
         },
-        [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingMessages, onboardingPolicyID, isBetaEnabled, isSmallScreenWidth, mergedAccountConciergeReportID, accountDelegateEmail],
+        [
+            onboardingPurposeSelected,
+            onboardingAdminsChatReportID,
+            onboardingMessages,
+            onboardingPolicyID,
+            isBetaEnabled,
+            isSmallScreenWidth,
+            mergedAccountConciergeReportID,
+            accountDelegateEmail,
+        ],
     );
 
     const handleSubmit = useCallback(

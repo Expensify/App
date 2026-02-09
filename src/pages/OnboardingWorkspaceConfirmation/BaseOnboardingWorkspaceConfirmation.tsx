@@ -81,7 +81,7 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboar
                       currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                       currentUserEmailParam: currentUserPersonalDetails.email ?? '',
                       shouldAddGuideWelcomeMessage: false,
-                      onboardingPurposeSelected,    
+                      onboardingPurposeSelected,
                       accountDelegateEmail,
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};

@@ -178,7 +178,7 @@ function ReportFooter({
                 policyID: report.policyID,
                 isCreatedUsingMarkdown: true,
                 quickAction,
-                ancestors,  
+                ancestors,
                 accountDelegateEmail,
             });
             return true;

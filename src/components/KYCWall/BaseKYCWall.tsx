@@ -63,7 +63,7 @@ function KYCWall({
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
-    const [account]=useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const accountDelegateEmail = account?.delegatedAccess?.delegate ?? '';
     const {formatPhoneNumber} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -213,6 +213,7 @@ function KYCWall({
             introSelected,
             formatPhoneNumber,
             lastPaymentMethod,
+            accountDelegateEmail,
         ],
     );
 

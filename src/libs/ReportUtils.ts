@@ -11556,7 +11556,16 @@ function prepareOnboardingOnyxData({
             const emailCreatingAction =
                 engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? (allPersonalDetails?.[actorAccountID]?.login ?? CONST.EMAIL.CONCIERGE) : CONST.EMAIL.CONCIERGE;
             const taskCreatedAction = buildOptimisticCreatedReportAction(emailCreatingAction);
-            const taskReportAction = buildOptimisticTaskCommentReportAction(currentTask.reportID, taskTitle, 0, accountDelegateEmail, `task for ${taskTitle}`, targetChatReportID, actorAccountID, index + 3);
+            const taskReportAction = buildOptimisticTaskCommentReportAction(
+                currentTask.reportID,
+                taskTitle,
+                0,
+                accountDelegateEmail,
+                `task for ${taskTitle}`,
+                targetChatReportID,
+                actorAccountID,
+                index + 3,
+            );
             currentTask.parentReportActionID = taskReportAction.reportAction.reportActionID;
 
             let isTaskAutoCompleted: boolean = task.autoCompleted;

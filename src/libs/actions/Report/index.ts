@@ -4531,7 +4531,7 @@ async function completeOnboarding({
     isInvitedAccountant,
     onboardingPurposeSelected,
     shouldWaitForRHPVariantInitialization = false,
-    accountDelegateEmail
+    accountDelegateEmail,
 }: CompleteOnboardingProps) {
     const onboardingData = prepareOnboardingOnyxData({
         introSelected,
@@ -4545,7 +4545,7 @@ async function completeOnboarding({
         selectedInterestedFeatures,
         isInvitedAccountant,
         onboardingPurposeSelected,
-        accountDelegateEmail
+        accountDelegateEmail,
     });
     if (!onboardingData) {
         return;

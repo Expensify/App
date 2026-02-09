@@ -298,7 +298,7 @@ function IOURequestStepScan({
                 selfDMReport,
                 isSelfTourViewed,
                 betas,
-                accountDelegateEmail
+                accountDelegateEmail,
             });
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps -- reportNameValuePairs?.private_isArchived is not needed

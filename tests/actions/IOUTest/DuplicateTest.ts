@@ -709,7 +709,7 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 accountDelegateEmail: '',
-                });
+            });
 
             await waitForBatchedUpdates();
 

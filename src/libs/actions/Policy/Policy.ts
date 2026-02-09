@@ -191,7 +191,7 @@ type BuildPolicyDataOptions = {
     onboardingPurposeSelected?: OnboardingPurpose;
     shouldAddGuideWelcomeMessage?: boolean;
     shouldCreateControlPolicy?: boolean;
-        accountDelegateEmail: string;
+    accountDelegateEmail: string;
 };
 
 type DuplicatePolicyDataOptions = {

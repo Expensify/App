@@ -85,7 +85,23 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
             if (!!report?.reportID || !route.params.reportID || !!reportDraft || !isEditing) {
                 return;
             }
-            openReport(route.params.reportID, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined,undefined, undefined, accountDelegateEmail);
+            openReport(
+                route.params.reportID,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                accountDelegateEmail,
+            );
             // eslint-disable-next-line react-hooks/exhaustive-deps
         }, []);
 

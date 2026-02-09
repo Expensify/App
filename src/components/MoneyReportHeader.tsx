@@ -599,7 +599,7 @@ function MoneyReportHeader({
                     activePolicy,
                     policy,
                     betas,
-                    accountDelegateEmail,   
+                    accountDelegateEmail,
                 });
                 if (currentSearchQueryJSON && !isOffline) {
                     search({
@@ -706,7 +706,7 @@ function MoneyReportHeader({
                     targetReport: activePolicyExpenseChat,
                     betas,
                     personalDetails,
-                    accountDelegateEmail
+                    accountDelegateEmail,
                 });
             }
         },
