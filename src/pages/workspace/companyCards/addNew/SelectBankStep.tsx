@@ -21,6 +21,7 @@ import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/t
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -34,6 +35,7 @@ function SelectBankStep() {
     const {isOffline} = useNetwork();
 
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
+    const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
     const [bankSelected, setBankSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | null>();
     const [hasError, setHasError] = useState(false);
     const isOtherBankSelected = bankSelected === CONST.COMPANY_CARDS.BANKS.OTHER;
@@ -66,20 +68,28 @@ function SelectBankStep() {
         setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE, data: {selectedBank: null}});
     };
 
-    const data = Object.values(CONST.COMPANY_CARDS.BANKS).map((bank) => ({
-        value: bank,
-        text: bank === CONST.COMPANY_CARDS.BANKS.OTHER ? translate('workspace.companyCards.addNewCard.other') : bank,
-        keyForList: bank,
-        isSelected: bankSelected === bank,
-        leftElement: (
-            <Icon
-                src={getBankCardDetailsImage(bank, illustrations, companyCardBankIcons)}
-                height={variables.iconSizeExtraLarge}
-                width={variables.iconSizeExtraLarge}
-                additionalStyles={styles.mr3}
-            />
-        ),
-    }));
+    const data = Object.values(CONST.COMPANY_CARDS.BANKS)
+        .filter((bank) => {
+            // Only show Mock Bank when Debug Mode is active and not in production
+            if (bank === CONST.COMPANY_CARDS.BANKS.MOCK_BANK) {
+                return isDebugModeEnabled && CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.PRODUCTION;
+            }
+            return true;
+        })
+        .map((bank) => ({
+            value: bank,
+            text: bank === CONST.COMPANY_CARDS.BANKS.OTHER ? translate('workspace.companyCards.addNewCard.other') : bank,
+            keyForList: bank,
+            isSelected: bankSelected === bank,
+            leftElement: (
+                <Icon
+                    src={getBankCardDetailsImage(bank, illustrations, companyCardBankIcons)}
+                    height={variables.iconSizeExtraLarge}
+                    width={variables.iconSizeExtraLarge}
+                    additionalStyles={styles.mr3}
+                />
+            ),
+        }));
 
     const confirmButtonOptions = useMemo(
         () => ({

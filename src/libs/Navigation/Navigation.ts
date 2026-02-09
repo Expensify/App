@@ -10,6 +10,7 @@ import Onyx from 'react-native-onyx';
 import type {Writable} from 'type-fest';
 import {ALL_WIDE_RIGHT_MODALS, SUPER_WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider/WIDE_RIGHT_MODALS';
 import SidePanelActions from '@libs/actions/SidePanel';
+import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {shallowCompare} from '@libs/ObjectUtils';
@@ -272,6 +273,7 @@ function isActiveRoute(routePath: Route): boolean {
  * @param options.forceReplace - If true, the navigation action will replace the current route instead of pushing a new one.
  */
 function navigate(route: Route, options?: LinkToOptions) {
+    clearSelectedText();
     if (!canNavigate('navigate', {route})) {
         if (!navigationRef.isReady()) {
             // Store intended route if the navigator is not yet available,
@@ -445,6 +447,8 @@ function goUp(backToRoute: Route, options?: GoBackOptions) {
  * @param options - Optional configuration that affects navigation logic
  */
 function goBack(backToRoute?: Route, options?: GoBackOptions) {
+    clearSelectedText();
+
     if (!canNavigate('goBack', {backToRoute})) {
         return;
     }
@@ -699,6 +703,7 @@ function getTopmostSuperWideRHPReportID(state: NavigationState = navigationRef.g
  * see the NAVIGATION.md documentation.
  */
 const dismissModal = ({ref = navigationRef, callback}: {ref?: NavigationRef; callback?: () => void} = {}) => {
+    clearSelectedText();
     isNavigationReady().then(() => {
         if (callback) {
             const subscription = DeviceEventEmitter.addListener(CONST.MODAL_EVENTS.CLOSED, () => {

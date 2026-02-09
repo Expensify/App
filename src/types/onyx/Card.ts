@@ -1,6 +1,5 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type {CompanyCardFeedWithDomainID} from './CardFeeds';
 import type * as OnyxCommon from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
 
@@ -148,11 +147,23 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
         // eslint-disable-next-line @typescript-eslint/naming-convention
         expensifyCard_tokenReferenceIdList?: string[];
 
+        /** Date when card becomes valid (YYYY-MM-DD format) */
+        validFrom?: string;
+
+        /** Date when card expires (YYYY-MM-DD format) */
+        validThru?: string;
+
         /** Collection of errors coming from BE */
         errors?: OnyxCommon.Errors;
 
         /** Collection of form field errors  */
         errorFields?: OnyxCommon.ErrorFields;
+
+        /**
+         * Metadata about when and by whom the card was frozen.
+         * null/undefined if card is not frozen
+         */
+        frozen?: FrozenCardData | null;
     }> &
         OnyxCommon.OnyxValueWithOfflineFeedback<
             /** Type of export card */
@@ -279,6 +290,12 @@ type IssueNewCardData = {
 
     /** Currency of the card */
     currency: string;
+
+    /** Optional start date for card validity (YYYY-MM-DD) */
+    validFrom?: string;
+
+    /** Optional end date for card validity (YYYY-MM-DD) */
+    validThru?: string;
 };
 
 /** Model of Issue new card flow */
@@ -346,18 +363,15 @@ type CardAssignmentData = {
 };
 
 /**
- * Pending action for a company card assignment
+ * Data for a frozen card
  */
-type FailedCompanyCardAssignment = CardAssignmentData & {
-    /** The domain or workspace account ID */
-    domainOrWorkspaceAccountID: number;
+type FrozenCardData = {
+    /** Account ID of the user who froze the card */
+    byAccountID: number;
 
-    /** The name of the feed */
-    feed: CompanyCardFeedWithDomainID;
+    /** UTC datetime when card was frozen (ISO format: YYYY-MM-DD HH:MM:SS) */
+    date: string;
 };
-
-/** Pending action for a company card assignment */
-type FailedCompanyCardAssignments = Record<string, FailedCompanyCardAssignment>;
 
 export default Card;
 export type {
@@ -368,10 +382,9 @@ export type {
     IssueNewCardData,
     WorkspaceCardsList,
     CardAssignmentData,
-    FailedCompanyCardAssignment,
-    FailedCompanyCardAssignments,
     CardLimitType,
     ProvisioningCardData,
     AssignableCardsList,
     UnassignedCard,
+    FrozenCardData,
 };

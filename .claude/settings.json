@@ -1,4 +1,12 @@
 {
+    "extraKnownMarketplaces": {
+        "callstack-agent-skills": {
+            "source": {
+                "source": "github",
+                "repo": "callstackincubator/agent-skills"
+            }
+        }
+    },
     "permissions": {
         "allow": [
             "mcp__playwright__browser_navigate",
