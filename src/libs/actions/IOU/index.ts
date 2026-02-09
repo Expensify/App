@@ -5812,7 +5812,7 @@ const getConvertTrackedExpenseInformation = (
             key: `${ONYXKEYS.COLLECTION.REPORT}${resolvedTransactionThreadReportID}`,
             value: {
                 parentReportID: moneyRequestReportID,
-                ...(moneyRequestPreviewReportActionID ? {parentReportActionID: moneyRequestPreviewReportActionID} : {}),
+                parentReportActionID: moneyRequestPreviewReportActionID,
             },
         });
 
