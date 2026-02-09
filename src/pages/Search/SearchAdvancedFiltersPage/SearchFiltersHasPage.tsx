@@ -3,11 +3,13 @@ import {View} from 'react-native';
 import FixedFooter from '@components/FixedFooter';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchFilterPageFooterButtons from '@components/Search/SearchFilterPageFooterButtons';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,6 +23,7 @@ import ROUTES from '@src/ROUTES';
 function SearchFiltersHasPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip} = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.HAS_FILTER_NEGATION);
     const [searchAdvancedFiltersForm, searchAdvancedFiltersFormResult] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
     const currentType = searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
     const [selectedItems, setSelectedItems] = useState<string[]>(() => {
@@ -76,12 +79,26 @@ function SearchFiltersHasPage() {
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight
         >
-            <HeaderWithBackButton
-                title={translate('search.has')}
-                onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
+            <EducationalTooltip
+                shouldRender={true}
+                renderTooltipContent={renderProductTrainingTooltip}
+                anchorAlignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                 }}
-            />
+                wrapperStyle={[styles.productTrainingTooltipWrapper, {maxWidth: 260}]}
+                shiftHorizontal={-16}
+                shiftVertical={40}
+            >
+                <View>
+                    <HeaderWithBackButton
+                        title={translate('search.has')}
+                        onBackButtonPress={() => {
+                            Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
+                        }}
+                    />
+                </View>
+            </EducationalTooltip>
             <View style={[styles.flex1]}>
                 <SelectionList
                     data={listData}
