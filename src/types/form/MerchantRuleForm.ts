@@ -12,7 +12,7 @@ type MerchantRuleForm = Form<
         [INPUT_IDS.BILLABLE]: boolean;
         [INPUT_IDS.CATEGORY]: string;
         [INPUT_IDS.DESCRIPTION]: string;
-        [INPUT_IDS.MATCH_TYPE]: string;
+        [INPUT_IDS.MATCH_TYPE]: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
         [INPUT_IDS.MERCHANT]: string;
         [INPUT_IDS.MERCHANT_TO_MATCH]: string;
         [INPUT_IDS.REIMBURSABLE]: boolean;

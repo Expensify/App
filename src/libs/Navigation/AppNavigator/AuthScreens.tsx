@@ -7,6 +7,7 @@ import OpenConfirmNavigateExpensifyClassicModal from '@components/ConfirmNavigat
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import GPSInProgressModal from '@components/GPSInProgressModal';
 import GPSTripStateChecker from '@components/GPSTripStateChecker';
 import {useInitialURLActions, useInitialURLState} from '@components/InitialURLContextProvider';
 import LockedAccountModalProvider from '@components/LockedAccountModalProvider';
@@ -529,16 +530,16 @@ function AuthScreens() {
                     SCREENS.SEARCH.ROOT,
                 ]}
             >
-                {/* This has to be the first navigator in auth screens. */}
-                <RootStack.Screen
-                    name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
-                    options={getFullscreenNavigatorOptions}
-                    getComponent={loadReportSplitNavigator}
-                />
+                {/* SCREENS.HOME has to be the first navigator in auth screens. */}
                 <RootStack.Screen
                     name={SCREENS.HOME}
                     options={rootNavigatorScreenOptions.fullScreenTabPage}
                     getComponent={loadHomePage}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
+                    options={getFullscreenNavigatorOptions}
+                    getComponent={loadReportSplitNavigator}
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
@@ -735,6 +736,7 @@ function AuthScreens() {
             {shouldShowRequire2FAPage && !isIn2FASetupFlow && <RequireTwoFactorAuthenticationPage />}
             <SearchRouterModal />
             <GPSTripStateChecker />
+            <GPSInProgressModal />
             <OpenAppFailureModal />
             <PriorityModeController />
             <OpenConfirmNavigateExpensifyClassicModal />

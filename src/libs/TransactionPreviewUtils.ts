@@ -5,7 +5,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {abandonReviewDuplicateTransactions, setReviewDuplicatesKey} from './actions/Transaction';
+import {setReviewDuplicatesKey} from './actions/Transaction';
 import {isCategoryMissing} from './CategoryUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -45,6 +45,7 @@ import {
     isScanning,
     isUnreportedAndHasInvalidDistanceRateTransaction,
 } from './TransactionUtils';
+import {isInvalidMerchantValue} from './ValidationUtils';
 import {filterReceiptViolations} from './Violations/ViolationsUtils';
 
 const emptyPersonalDetails: OnyxTypes.PersonalDetails = {
@@ -81,16 +82,18 @@ const getReviewNavigationRoute = (
     policyCategories: OnyxTypes.PolicyCategories | undefined,
     transactionReport: OnyxEntry<OnyxTypes.Report>,
 ) => {
-    // Clear the draft before selecting a different expense to prevent merging fields from the previous expense
+    // Use set method to prevent merging fields from the previous expense
     // (e.g., category, tag, tax) that may be not enabled/available in the new expense's policy.
-    abandonReviewDuplicateTransactions();
     const comparisonResult = compareDuplicateTransactionFields(transaction, duplicates, transactionReport, transaction?.transactionID, policyCategories);
-    setReviewDuplicatesKey({
-        ...comparisonResult.keep,
-        duplicates: duplicates.map((duplicate) => duplicate?.transactionID).filter(Boolean) as string[],
-        transactionID: transaction?.transactionID,
-        reportID: transaction?.reportID,
-    });
+    setReviewDuplicatesKey(
+        {
+            ...comparisonResult.keep,
+            duplicates: duplicates.map((duplicate) => duplicate?.transactionID).filter(Boolean) as string[],
+            transactionID: transaction?.transactionID,
+            reportID: transaction?.reportID,
+        },
+        true,
+    );
 
     if (comparisonResult.change.merchant) {
         return ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(threadReportID, backTo);
@@ -226,7 +229,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(iouReport?.policyID);
     const hasViolationsOfTypeNotice = hasNoticeTypeViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport, policy, true) && isPaidGroupPolicy;
-    const hasActionWithErrors = hasActionWithErrorsForTransaction(iouReport?.reportID, transaction);
+    const hasActionWithErrors = hasActionWithErrorsForTransaction(iouReport?.reportID, transaction, reportActions);
 
     const {amount: requestAmount, currency: requestCurrency} = transactionDetails;
 
@@ -275,9 +278,9 @@ function getTransactionPreviewTextAndTranslationPaths({
     }
 
     if (RBRMessage === undefined && hasDynamicExternalWorkflow(policy)) {
-        const dewFailedAction = getMostRecentActiveDEWSubmitFailedAction(reportActions);
-        if (dewFailedAction && isDynamicExternalWorkflowSubmitFailedAction(dewFailedAction)) {
-            const originalMessage = getOriginalMessage(dewFailedAction);
+        const dewSubmitFailedAction = getMostRecentActiveDEWSubmitFailedAction(reportActions);
+        if (dewSubmitFailedAction && isDynamicExternalWorkflowSubmitFailedAction(dewSubmitFailedAction)) {
+            const originalMessage = getOriginalMessage(dewSubmitFailedAction);
             const dewErrorMessage = originalMessage?.message;
             RBRMessage = dewErrorMessage ? {text: dewErrorMessage} : {translationPath: 'iou.error.other'};
         }
@@ -416,7 +419,8 @@ function createTransactionPreviewConditionals({
                 (violation) => violation.name === CONST.VIOLATIONS.MODIFIED_AMOUNT && (violation.type === CONST.VIOLATION_TYPES.VIOLATION || violation.type === CONST.VIOLATION_TYPES.NOTICE),
             ));
     const hasErrorOrOnHold = hasFieldErrors || (!isFullySettled && !isFullyApproved && isTransactionOnHold);
-    const hasReportViolationsOrActionErrors = (isReportOwner(iouReport) && hasReportViolations(iouReport?.reportID)) || hasActionWithErrorsForTransaction(iouReport?.reportID, transaction);
+    const hasReportViolationsOrActionErrors =
+        (isReportOwner(iouReport) && hasReportViolations(iouReport?.reportID)) || hasActionWithErrorsForTransaction(iouReport?.reportID, transaction, reportActions);
     const isDEWSubmitFailed = hasDynamicExternalWorkflow(policy) && !!getMostRecentActiveDEWSubmitFailedAction(reportActions);
     const shouldShowRBR = hasAnyViolations || hasErrorOrOnHold || hasReportViolationsOrActionErrors || hasReceiptError(transaction) || isDEWSubmitFailed;
 
@@ -430,11 +434,7 @@ function createTransactionPreviewConditionals({
  - the expense is not a distance expense with a pending route and amount = 0 - in this case,
    the merchant says: "Route pending...", which is already shown in the amount field;
 */
-    const shouldShowMerchant =
-        !!requestMerchant &&
-        requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT &&
-        requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT &&
-        !(isFetchingWaypoints && !requestAmount);
+    const shouldShowMerchant = !isInvalidMerchantValue(requestMerchant) && !(isFetchingWaypoints && !requestAmount);
     const shouldShowDescription = !!description && !shouldShowMerchant && !isScanning(transaction);
 
     return {

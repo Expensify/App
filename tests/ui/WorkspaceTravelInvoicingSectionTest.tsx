@@ -50,6 +50,14 @@ jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
     default: () => ({didScreenTransitionEnd: true}),
 }));
 
+jest.mock('@libs/Navigation/Navigation', () => ({
+    __esModule: true,
+    default: {
+        navigate: jest.fn(),
+        getActiveRoute: jest.fn(() => ''),
+    },
+}));
+
 const mockPolicy: Policy = {
     ...createRandomPolicy(parseInt(POLICY_ID, 10) || 1),
     type: CONST.POLICY.TYPE.CORPORATE,
@@ -81,7 +89,7 @@ describe('WorkspaceTravelInvoicingSection', () => {
     });
 
     describe('When Travel Invoicing is not configured', () => {
-        it('should show BookOrManageYourTrip when card settings are not available', async () => {
+        it('should render sections when card settings are not available', async () => {
             // Given no Travel Invoicing card settings exist
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
@@ -94,13 +102,15 @@ describe('WorkspaceTravelInvoicingSection', () => {
             // Wait for component to render
             await waitForBatchedUpdatesWithAct();
 
-            // Then the fallback component should be visible (BookOrManageYourTrip)
-            expect(screen.getByText('Book or manage your trip')).toBeTruthy();
+            // Then the Travel Booking section should be visible
+            expect(screen.getByText('Travel booking')).toBeTruthy();
+            // And the Central Invoicing section should be visible
+            expect(screen.getByText('Central invoicing')).toBeTruthy();
         });
 
-        it('should show BookOrManageYourTrip when paymentBankAccountID is not set', async () => {
+        it('should render sections when paymentBankAccountID is not set', async () => {
             // Given Travel Invoicing card settings exist but without paymentBankAccountID
-            const travelInvoicingKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${WORKSPACE_ACCOUNT_ID}_TRAVEL_US` as OnyxKey;
+            const travelInvoicingKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${WORKSPACE_ACCOUNT_ID}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}` as OnyxKey;
 
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
@@ -116,13 +126,15 @@ describe('WorkspaceTravelInvoicingSection', () => {
 
             await waitForBatchedUpdatesWithAct();
 
-            // Then the fallback component should be visible
-            expect(screen.getByText('Book or manage your trip')).toBeTruthy();
+            // Then the Travel Booking section should be visible
+            expect(screen.getByText('Travel booking')).toBeTruthy();
+            // And the Central Invoicing section should be visible
+            expect(screen.getByText('Central invoicing')).toBeTruthy();
         });
     });
 
     describe('When Travel Invoicing is configured', () => {
-        const travelInvoicingKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${WORKSPACE_ACCOUNT_ID}_TRAVEL_US` as OnyxKey;
+        const travelInvoicingKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${WORKSPACE_ACCOUNT_ID}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}` as OnyxKey;
         const bankAccountKey = ONYXKEYS.BANK_ACCOUNT_LIST;
 
         it('should render the section title when card settings are properly configured', async () => {
@@ -272,6 +284,38 @@ describe('WorkspaceTravelInvoicingSection', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then the settlement frequency label should be visible
+            expect(screen.getByText('Settlement frequency')).toBeTruthy();
+        });
+
+        it('should show correct frequency value and navigate on press', async () => {
+            // Given Travel Invoicing is configured with Monthly frequency (default if monthlySettlementDate exists)
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
+                await Onyx.merge(travelInvoicingKey, {
+                    paymentBankAccountID: 12345,
+                    remainingLimit: 50000,
+                    currentBalance: 10000,
+                    monthlySettlementDate: '2023-10-01',
+                });
+                await Onyx.merge(bankAccountKey, {
+                    12345: {
+                        accountData: {
+                            addressName: 'Test Company',
+                            accountNumber: '****1234',
+                            bankAccountID: 12345,
+                        },
+                    },
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // When rendering the component
+            renderWorkspaceTravelInvoicingSection();
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it should display "Monthly"
+            expect(screen.getByText('Monthly')).toBeTruthy();
             expect(screen.getByText('Settlement frequency')).toBeTruthy();
         });
     });

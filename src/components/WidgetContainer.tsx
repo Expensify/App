@@ -1,6 +1,7 @@
 import type {ReactNode} from 'react';
 import React from 'react';
 import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,24 +26,31 @@ type WidgetContainerProps = {
     /** The height of the icon. */
     iconHeight?: number;
 
+    /** The fill color of the icon */
+    iconFill?: string;
+
     /** The content to display inside the widget container */
     children: ReactNode;
+
+    /** Additional styles to pass to the container */
+    containerStyles?: StyleProp<ViewStyle>;
 };
 
-function WidgetContainer({children, icon, title, titleColor, iconWidth = variables.iconSizeNormal, iconHeight = variables.iconSizeNormal}: WidgetContainerProps) {
+function WidgetContainer({children, icon, title, titleColor, iconWidth = variables.iconSizeNormal, iconHeight = variables.iconSizeNormal, iconFill, containerStyles}: WidgetContainerProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
-        <View style={styles.widgetContainer}>
-            <View style={[styles.flexRow, styles.alignItemsStart, styles.mb5, shouldUseNarrowLayout ? styles.mh5 : styles.mh8, shouldUseNarrowLayout ? styles.mt5 : styles.mt8]}>
+        <View style={[styles.widgetContainer, containerStyles]}>
+            <View style={styles.getWidgetContainerHeaderStyle(shouldUseNarrowLayout)}>
                 {!!icon && (
-                    <View style={[styles.flexGrow0, styles.flexShrink0]}>
+                    <View style={styles.widgetContainerIconWrapper}>
                         <Icon
                             src={icon}
                             width={iconWidth}
                             height={iconHeight}
+                            fill={iconFill}
                         />
                     </View>
                 )}

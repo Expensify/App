@@ -6,19 +6,19 @@ import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 describe('ReportActionsUtils', () => {
     describe('validateAmount', () => {
         it('should pass the validation when amount is within the max digit and decimal', () => {
-            expect(validateAmount('12345678', 2, 8)).toBe(true);
-            expect(validateAmount('12345678', 0, 8)).toBe(true);
-            expect(validateAmount('12345678.12', 2, 8)).toBe(true);
-            expect(validateAmount('1234567.1', 2, 8)).toBe(true);
-            expect(validateAmount('12345678.123', 3, 8)).toBe(true);
+            expect(validateAmount('1234567890', 2, CONST.IOU.AMOUNT_MAX_LENGTH)).toBe(true);
+            expect(validateAmount('1234567890', 0, CONST.IOU.AMOUNT_MAX_LENGTH)).toBe(true);
+            expect(validateAmount('1234567890.12', 2, CONST.IOU.AMOUNT_MAX_LENGTH)).toBe(true);
+            expect(validateAmount('123456789.1', 2, CONST.IOU.AMOUNT_MAX_LENGTH)).toBe(true);
+            expect(validateAmount('1234567890.123', 3, CONST.IOU.AMOUNT_MAX_LENGTH)).toBe(true);
             expect(validateAmount('1234.1234', 4, 4)).toBe(true);
         });
 
         it("shouldn't pass the validation when amount is bigger than the max digit and decimal", () => {
-            expect(validateAmount('12345678.123', 2, 8)).toBe(false);
-            expect(validateAmount('12345678.1', 0, 8)).toBe(false);
-            expect(validateAmount('123456789.12', 2, 8)).toBe(false);
-            expect(validateAmount('123456789.1234', 3, 8)).toBe(false);
+            expect(validateAmount('1234567890.123', 2, CONST.IOU.AMOUNT_MAX_LENGTH)).toBe(false);
+            expect(validateAmount('1234567890.1', 0, CONST.IOU.AMOUNT_MAX_LENGTH)).toBe(false);
+            expect(validateAmount('12345678901.12', 2, CONST.IOU.AMOUNT_MAX_LENGTH)).toBe(false);
+            expect(validateAmount('12345678901.1234', 3, CONST.IOU.AMOUNT_MAX_LENGTH)).toBe(false);
             expect(validateAmount('1234.12345', 4, 4)).toBe(false);
         });
     });
@@ -173,7 +173,7 @@ describe('ReportActionsUtils', () => {
         it('should return false when when per diem amount exceeds AMOUNT_MAX_LENGTH', () => {
             const customUnit: TransactionCustomUnit = {
                 subRates: [
-                    {id: 'rate1', name: 'Breakfast', quantity: 1000, rate: 12345678}, // 1000 * $123,456.78 = $123,456,780.00
+                    {id: 'rate1', name: 'Breakfast', quantity: 100000, rate: 12345678}, // 100000 * $123,456.78 = $12,345,678,000.00
                 ],
             };
 

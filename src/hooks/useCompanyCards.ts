@@ -1,6 +1,5 @@
 import type {OnyxCollection, OnyxEntry, ResultMetadata} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
-import {getCompanyCardFeed, getCompanyFeeds, getPlaidInstitutionId, getSelectedFeed} from '@libs/CardUtils';
+import {getCompanyCardFeed, getCompanyFeeds, getSelectedFeed} from '@libs/CardUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardList} from '@src/types/onyx';
@@ -12,21 +11,18 @@ import type {CombinedCardFeed} from './useCardFeeds';
 import useCardsList from './useCardsList';
 import useOnyx from './useOnyx';
 
-type CardFeedType = ValueOf<typeof CONST.COMPANY_CARDS.FEED_TYPE>;
-
 type UseCompanyCardsProps = {
     policyID: string | undefined;
     feedName?: CompanyCardFeedWithDomainID;
 };
 
 type UseCompanyCardsResult = Partial<{
-    cardFeedType: CardFeedType;
     bankName: CompanyCardFeed;
     feedName: CompanyCardFeedWithDomainID;
     cardList: AssignableCardsList;
     assignedCards: CardList;
+    cardNamesToEncryptedCardNumberMapping: Record<string, string>;
     workspaceCardFeedsStatus: CardFeedsStatusByDomainID;
-    cardNames: string[];
     allCardFeeds: CombinedCardFeeds;
     companyCardFeeds: CompanyFeeds;
     selectedFeed: CombinedCardFeed;
@@ -58,17 +54,16 @@ function useCompanyCards({policyID, feedName: feedNameProp}: UseCompanyCardsProp
 
     const companyCardFeeds = getCompanyFeeds(allCardFeeds);
     const selectedFeed = feedName && companyCardFeeds[feedName];
-    const isPlaidCardFeed = !!getPlaidInstitutionId(feedName);
-
-    // Direct feeds include Plaid feeds and OAuth feeds (like oauth.chase.com) that have accountList
-    const isDirectFeed = isPlaidCardFeed || !!selectedFeed?.accountList;
-    let cardFeedType: CardFeedType = 'customFeed';
-    if (isDirectFeed) {
-        cardFeedType = 'directFeed';
-    }
 
     const {cardList, ...assignedCards} = cardsList ?? {};
-    const cardNames = cardFeedType === 'directFeed' ? (selectedFeed?.accountList ?? []) : Object.keys(cardList ?? {});
+    const cardNamesToEncryptedCardNumberMapping: Record<string, string> = {};
+
+    for (const cardName of selectedFeed?.accountList ?? []) {
+        cardNamesToEncryptedCardNumberMapping[cardName] = cardName;
+    }
+    for (const [cardName, encryptedCardNumber] of Object.entries(cardList ?? {})) {
+        cardNamesToEncryptedCardNumberMapping[cardName] = encryptedCardNumber;
+    }
 
     const onyxMetadata = {
         cardListMetadata,
@@ -79,7 +74,7 @@ function useCompanyCards({policyID, feedName: feedNameProp}: UseCompanyCardsProp
     const isInitiallyLoadingFeeds = isLoadingOnyxValue(allCardFeedsMetadata);
     const isNoFeed = !selectedFeed && !isInitiallyLoadingFeeds;
     const isFeedPending = !!selectedFeed?.pending;
-    const isFeedAdded = !isLoadingOnyxValue(allCardFeedsMetadata) && !isFeedPending && !isNoFeed;
+    const isFeedAdded = !isInitiallyLoadingFeeds && !isFeedPending && !isNoFeed;
 
     if (!policyID) {
         return {onyxMetadata, isInitiallyLoadingFeeds, isNoFeed, isFeedPending, isFeedAdded};
@@ -91,11 +86,10 @@ function useCompanyCards({policyID, feedName: feedNameProp}: UseCompanyCardsProp
         companyCardFeeds,
         cardList,
         assignedCards,
+        cardNamesToEncryptedCardNumberMapping,
         workspaceCardFeedsStatus,
-        cardNames,
         selectedFeed,
         bankName,
-        cardFeedType,
         onyxMetadata,
         isInitiallyLoadingFeeds,
         isNoFeed,
