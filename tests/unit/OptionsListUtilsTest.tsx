@@ -631,6 +631,7 @@ describe('OptionsListUtils', () => {
     const loginList = {};
     const CURRENT_USER_ACCOUNT_ID = 2;
     const CURRENT_USER_EMAIL = 'tonystark@expensify.com';
+    const POLICY_TAGS = {};
 
     const reportNameValuePairs = {
         private_isArchived: DateUtils.getDBTime(),
@@ -685,7 +686,7 @@ describe('OptionsListUtils', () => {
                 options: OPTIONS,
                 draftComments: {},
                 nvpDismissedProductTraining,
-                policyTags: undefined,
+                policyTags: POLICY_TAGS,
                 loginList,
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -715,7 +716,7 @@ describe('OptionsListUtils', () => {
                 includeUserToInvite: false,
                 includeRecentReports: true,
                 includeCurrentUser: true,
-                policyTags: {},
+                policyTags: POLICY_TAGS,
                 loginList,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
@@ -746,7 +747,7 @@ describe('OptionsListUtils', () => {
                 maxResults: undefined,
                 includeUserToInvite: false,
                 includeRecentReports: true,
-                policyTags: undefined,
+                policyTags: POLICY_TAGS,
                 loginList,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
@@ -1916,7 +1917,7 @@ describe('OptionsListUtils', () => {
                 options: OPTIONS,
                 draftComments: {},
                 nvpDismissedProductTraining,
-                policyTags: undefined,
+                policyTags: POLICY_TAGS,
                 loginList,
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1939,7 +1940,7 @@ describe('OptionsListUtils', () => {
                 draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                policyTags: undefined,
+                policyTags: POLICY_TAGS,
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
@@ -1970,7 +1971,7 @@ describe('OptionsListUtils', () => {
                 draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                policyTags: undefined,
+                policyTags: POLICY_TAGS,
 
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1995,7 +1996,7 @@ describe('OptionsListUtils', () => {
                 draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                policyTags: undefined,
+                policyTags: POLICY_TAGS,
 
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -2015,13 +2016,13 @@ describe('OptionsListUtils', () => {
             // cspell:disable-next-line
             const searchText = 'barryallen';
             // Given a set of options created from PERSONAL_DETAILS_WITH_PERIODS
-            const OPTIONS_WITH_PERIODS = createOptionList(PERSONAL_DETAILS_WITH_PERIODS, undefined, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS);
+            const OPTIONS_WITH_PERIODS = createOptionList(PERSONAL_DETAILS_WITH_PERIODS, POLICY_TAGS, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS);
             // When we call getSearchOptions with all betas
             const options = getSearchOptions({
                 options: OPTIONS_WITH_PERIODS,
                 draftComments: {},
                 nvpDismissedProductTraining,
-                policyTags: undefined,
+                policyTags: POLICY_TAGS,
 
                 loginList,
                 betas: [CONST.BETAS.ALL],
@@ -2048,7 +2049,7 @@ describe('OptionsListUtils', () => {
                 options: OPTIONS_WITH_WORKSPACE_ROOM,
                 draftComments: {},
                 nvpDismissedProductTraining,
-                policyTags: undefined,
+                policyTags: POLICY_TAGS,
 
                 loginList,
                 betas: [CONST.BETAS.ALL],
@@ -2072,7 +2073,7 @@ describe('OptionsListUtils', () => {
                 options: OPTIONS,
                 draftComments: {},
                 nvpDismissedProductTraining,
-                policyTags: undefined,
+                policyTags: POLICY_TAGS,
                 loginList,
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -2097,7 +2098,7 @@ describe('OptionsListUtils', () => {
                 options: OPTIONS_WITH_CHAT_ROOMS,
                 draftComments: {},
                 nvpDismissedProductTraining,
-                policyTags: undefined,
+                policyTags: POLICY_TAGS,
 
                 loginList,
                 betas: [CONST.BETAS.ALL],
@@ -2122,7 +2123,7 @@ describe('OptionsListUtils', () => {
                 options: OPTIONS,
                 draftComments: {},
                 nvpDismissedProductTraining,
-                policyTags: undefined,
+                policyTags: POLICY_TAGS,
 
                 loginList,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -2146,7 +2147,7 @@ describe('OptionsListUtils', () => {
             const options = getSearchOptions({
                 options: OPTIONS,
                 draftComments: {},
-                policyTags: undefined,
+                policyTags: POLICY_TAGS,
 
                 loginList,
                 nvpDismissedProductTraining,
@@ -2197,7 +2198,7 @@ describe('OptionsListUtils', () => {
                 nvpDismissedProductTraining,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
-                policyTags: undefined,
+                policyTags: POLICY_TAGS,
                 personalDetails: PERSONAL_DETAILS,
             });
             // When we call filterAndOrderOptions with a search value and excludeLogins
@@ -2219,7 +2220,7 @@ describe('OptionsListUtils', () => {
                 nvpDismissedProductTraining,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
-                policyTags: undefined,
+                policyTags: POLICY_TAGS,
                 personalDetails: PERSONAL_DETAILS,
             });
             // When we call filterAndOrderOptions with a search value and maxRecentReportsToShow set to 2
@@ -2251,7 +2252,7 @@ describe('OptionsListUtils', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
-                policyTags: undefined,
+                policyTags: POLICY_TAGS,
                 personalDetails: PERSONAL_DETAILS,
             });
             // When we call filterAndOrderOptions with a search value
@@ -2458,7 +2459,7 @@ describe('OptionsListUtils', () => {
                 },
             };
 
-            const OPTIONS_WITH_GROUP_CHAT = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS_WITH_GROUP_CHAT);
+            const OPTIONS_WITH_GROUP_CHAT = createOptionList(PERSONAL_DETAILS, POLICY_TAGS, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS_WITH_GROUP_CHAT);
 
             // When we call getSearchOptions with a search query that matches a participant display name
             const options = getSearchOptions({
@@ -2471,6 +2472,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
                 searchQuery: 'Spider-Man',
+                policyTags: POLICY_TAGS,
             });
 
             // Then one report should be returned
@@ -2498,7 +2500,7 @@ describe('OptionsListUtils', () => {
                 },
             };
 
-            const OPTIONS_WITH_GROUP_CHAT = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS_WITH_GROUP_CHAT);
+            const OPTIONS_WITH_GROUP_CHAT = createOptionList(PERSONAL_DETAILS, POLICY_TAGS, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS_WITH_GROUP_CHAT);
 
             // When we call getSearchOptions with a search query that matches a participant login
             const options = getSearchOptions({
@@ -2511,6 +2513,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
                 searchQuery: 'peterparker@expensify.com',
+                policyTags: POLICY_TAGS,
             });
 
             // Then one report should be returned
@@ -2538,7 +2541,7 @@ describe('OptionsListUtils', () => {
                 },
             };
 
-            const OPTIONS_WITH_GROUP_CHAT = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS_WITH_GROUP_CHAT);
+            const OPTIONS_WITH_GROUP_CHAT = createOptionList(PERSONAL_DETAILS, POLICY_TAGS, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS_WITH_GROUP_CHAT);
 
             // When we call getSearchOptions with a search query that matches a participant name
             const options = getSearchOptions({
@@ -2551,6 +2554,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
                 searchQuery: 'Black Panther',
+                policyTags: POLICY_TAGS,
             });
 
             // Then one report should be returned
@@ -2578,7 +2582,7 @@ describe('OptionsListUtils', () => {
                 },
             };
 
-            const OPTIONS_WITH_GROUP_CHAT = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS_WITH_GROUP_CHAT);
+            const OPTIONS_WITH_GROUP_CHAT = createOptionList(PERSONAL_DETAILS, POLICY_TAGS, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS_WITH_GROUP_CHAT);
 
             // When we call getSearchOptions with a search query that does not match any participant
             const options = getSearchOptions({
@@ -2591,6 +2595,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
                 searchQuery: 'Wolverine',
+                policyTags: POLICY_TAGS,
             });
 
             // Then no reports should be returned
@@ -2617,6 +2622,7 @@ describe('OptionsListUtils', () => {
 
             const OPTIONS_WITH_GROUP_CHAT_NO_PARTICIPANTS = createOptionList(
                 PERSONAL_DETAILS,
+                POLICY_TAGS,
                 CURRENT_USER_ACCOUNT_ID,
                 EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                 REPORTS_WITH_GROUP_CHAT_NO_PARTICIPANTS,
@@ -2632,6 +2638,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
+                policyTags: POLICY_TAGS,
             });
 
             // When we pass the returned options to filterAndOrderOptions with any search value
@@ -2962,7 +2969,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
-                policyTags: undefined,
+                policyTags: POLICY_TAGS,
                 personalDetails: PERSONAL_DETAILS,
             });
             // When we call filterAndOrderOptions with a search value that matches a personal detail
@@ -2983,7 +2990,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
-                policyTags: undefined,
+                policyTags: POLICY_TAGS,
                 personalDetails: PERSONAL_DETAILS,
             });
             // When we call filterAndOrderOptions with a search value that matches multiple items
@@ -3006,7 +3013,7 @@ describe('OptionsListUtils', () => {
                         options: OPTIONS_WITH_PERIODS,
                         draftComments: {},
                         nvpDismissedProductTraining,
-                        policyTags: undefined,
+                        policyTags: POLICY_TAGS,
 
                         loginList,
                         currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -3045,7 +3052,7 @@ describe('OptionsListUtils', () => {
                 options: OPTIONS,
                 draftComments: {},
                 nvpDismissedProductTraining,
-                policyTags: undefined,
+                policyTags: POLICY_TAGS,
 
                 loginList,
                 betas: [CONST.BETAS.ALL],
@@ -3072,7 +3079,7 @@ describe('OptionsListUtils', () => {
                 options: OPTIONS_WITH_SELF_DM,
                 draftComments: {},
                 nvpDismissedProductTraining,
-                policyTags: undefined,
+                policyTags: POLICY_TAGS,
 
                 loginList,
                 betas: [CONST.BETAS.ALL],
@@ -3745,7 +3752,7 @@ describe('OptionsListUtils', () => {
                     lastActorDetails: null,
                     isReportArchived: false,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    policyTags: {},
+                    policyTags: POLICY_TAGS,
                 });
                 const reportPreviewMessage = getReportPreviewMessage(iouReport, iouAction, true, false, null, true, reportPreviewAction);
                 const expected = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
@@ -3779,7 +3786,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 isReportArchived: false,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                policyTags: undefined,
+                policyTags: POLICY_TAGS,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getMovedTransactionMessage(translateLocal, movedTransactionAction)));
         });
@@ -3804,7 +3811,7 @@ describe('OptionsListUtils', () => {
                     lastActorDetails: null,
                     isReportArchived: false,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    policyTags: undefined,
+                    policyTags: POLICY_TAGS,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallySubmitted')));
             });
@@ -3830,7 +3837,7 @@ describe('OptionsListUtils', () => {
                     lastActorDetails: null,
                     isReportArchived: false,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    policyTags: undefined,
+                    policyTags: POLICY_TAGS,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallyApproved')));
             });
@@ -3856,7 +3863,7 @@ describe('OptionsListUtils', () => {
                     lastActorDetails: null,
                     isReportArchived: false,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    policyTags: undefined,
+                    policyTags: POLICY_TAGS,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallyForwarded')));
             });
@@ -3879,7 +3886,7 @@ describe('OptionsListUtils', () => {
                     lastActorDetails: null,
                     isReportArchived: false,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    policyTags: undefined,
+                    policyTags: POLICY_TAGS,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'workspaceActions.forcedCorporateUpgrade')));
             });
@@ -3901,7 +3908,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 isReportArchived: false,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                policyTags: undefined,
+                policyTags: POLICY_TAGS,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getChangedApproverActionMessage(translateLocal, takeControlAction)));
         });
@@ -3922,7 +3929,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 isReportArchived: false,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                policyTags: undefined,
+                policyTags: POLICY_TAGS,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getChangedApproverActionMessage(translateLocal, rerouteAction)));
         });
@@ -3943,7 +3950,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 isReportArchived: false,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                policyTags: undefined,
+                policyTags: POLICY_TAGS,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getMovedActionMessage(translateLocal, movedAction, report)));
         });
@@ -3968,7 +3975,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 isReportArchived: false,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                policyTags: undefined,
+                policyTags: POLICY_TAGS,
             });
 
             // Then it should return the DYNAMIC_EXTERNAL_WORKFLOW_ROUTED message
@@ -3994,7 +4001,7 @@ describe('OptionsListUtils', () => {
                 report,
                 lastActorDetails: null,
                 isReportArchived: false,
-                policyTags: {},
+                policyTags: POLICY_TAGS,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             });
             expect(result).toBe(expectedVisibleText);
@@ -4046,7 +4053,7 @@ describe('OptionsListUtils', () => {
                     isReportArchived: false,
                     policy,
                     reportMetadata,
-                    policyTags: undefined,
+                    policyTags: POLICY_TAGS,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
                 expect(lastMessage).toBe(translate(CONST.LOCALES.EN, 'iou.queuedToSubmitViaDEW'));
@@ -4080,7 +4087,7 @@ describe('OptionsListUtils', () => {
                     lastActorDetails: null,
                     isReportArchived: false,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    policyTags: undefined,
+                    policyTags: POLICY_TAGS,
                 });
                 expect(lastMessage).toBe(customErrorMessage);
             });
@@ -4110,7 +4117,7 @@ describe('OptionsListUtils', () => {
                     lastActorDetails: null,
                     isReportArchived: false,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    policyTags: undefined,
+                    policyTags: POLICY_TAGS,
                 });
                 expect(lastMessage).toBe(translate(CONST.LOCALES.EN, 'iou.error.genericCreateFailureMessage'));
             });
