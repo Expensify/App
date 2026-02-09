@@ -2,7 +2,7 @@
 import {render} from '@testing-library/react-native';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -11,7 +11,8 @@ import reportAttributes from '@libs/actions/OnyxDerived/configs/reportAttributes
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Policy, Report, Transaction} from '@src/types/onyx';
+import type {ACHAccount} from '@src/types/onyx/Policy';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import {createRandomCompanyCard, createRandomExpensifyCard} from '../utils/collections/card';
 import {createRandomReport} from '../utils/collections/reports';
@@ -525,6 +526,458 @@ describe('OnyxDerived', () => {
             expect(derivedCardList).toMatchObject({
                 '1': expect.objectContaining({cardID: 1}),
                 '2': expect.objectContaining({cardID: 2}),
+            });
+        });
+    });
+
+    describe('todos', () => {
+        beforeAll(async () => {
+            onyxDerivedTestSetup();
+        });
+
+        const CURRENT_USER_ACCOUNT_ID = 1;
+        const CURRENT_USER_EMAIL = 'tester@mail.com';
+        const OTHER_USER_ACCOUNT_ID = 2;
+
+        const POLICY_ID = 'policy123';
+        const POLICY_WITH_CONNECTION_ID = 'policy_with_connection';
+
+        // Helper functions that use collection utilities as base but allow precise control
+        const createMockReport = (reportID: string, overrides: Partial<Report> = {}): Report => {
+            return {
+                reportID,
+                chatReportID: `chat_${reportID}`,
+                policyID: POLICY_ID,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                managerID: OTHER_USER_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                parentReportID: '123',
+                parentReportActionID: '456',
+                reportName: 'Test Report',
+                currency: 'USD',
+                isOwnPolicyExpenseChat: false,
+                isPinned: false,
+                isWaitingOnBankAccount: false,
+                ...overrides,
+            };
+        };
+
+        const createMockPolicy = (policyID: string, overrides: Partial<Policy> = {}): OnyxEntry<Policy> => {
+            return {
+                id: policyID,
+                name: 'Test Policy',
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                role: CONST.POLICY.ROLE.USER,
+                ...overrides,
+            } as Policy;
+        };
+
+        const createMockTransaction = (transactionID: string, reportID: string, overrides: Partial<Transaction> = {}): Transaction => {
+            return {
+                transactionID,
+                reportID,
+                amount: 100,
+                modifiedAmount: 0,
+                reimbursable: true,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                currency: 'USD',
+                merchant: 'Test Merchant',
+                created: '2024-01-01',
+                ...overrides,
+            } as Transaction;
+        };
+
+        it('returns empty object when dependencies are not set', async () => {
+            await waitForBatchedUpdates();
+            const todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
+            expect(todos).toEqual({
+                reportsToSubmit: [],
+                reportsToApprove: [],
+                reportsToPay: [],
+                reportsToExport: [],
+                transactionsByReportID: {},
+            });
+        });
+
+        describe('categorizes reports correctly', () => {
+            const SUBMIT_REPORT_IDS = ['submit_1', 'submit_2', 'submit_3', 'submit_4'];
+            const APPROVE_REPORT_IDS = ['approve_1', 'approve_2', 'approve_3'];
+            const PAY_REPORT_IDS = ['pay_1', 'pay_2'];
+            const EXPORT_REPORT_ID = 'export_1';
+            const EXCLUDED_REPORT_IDS = ['excluded_1', 'excluded_2'];
+
+            beforeEach(async () => {
+                // Create 4 reports that can be submitted (open, owned by current user, with transactions)
+                const reportsToSubmit = SUBMIT_REPORT_IDS.map((id) =>
+                    createMockReport(id, {
+                        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                        ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                    }),
+                );
+
+                // Create 3 reports that can be approved (submitted, current user is manager, with transactions)
+                const reportsToApprove = APPROVE_REPORT_IDS.map((id) =>
+                    createMockReport(id, {
+                        stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                        statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                        ownerAccountID: OTHER_USER_ACCOUNT_ID,
+                        managerID: CURRENT_USER_ACCOUNT_ID,
+                    }),
+                );
+
+                // Create 2 reports that can be paid (approved, current user is admin/payer, with reimbursable transactions)
+                const reportsToPay = PAY_REPORT_IDS.map((id) =>
+                    createMockReport(id, {
+                        stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                        statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                        ownerAccountID: OTHER_USER_ACCOUNT_ID,
+                        managerID: CURRENT_USER_ACCOUNT_ID,
+                        total: -100,
+                        isWaitingOnBankAccount: false,
+                    }),
+                );
+
+                // Create 1 report that can be exported:
+                // - Approved status
+                // - User is admin
+                // - Policy has a valid accounting connection with auto-sync disabled
+                // - Not waiting on bank account
+                const reportToExport = createMockReport(EXPORT_REPORT_ID, {
+                    policyID: POLICY_WITH_CONNECTION_ID,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                    ownerAccountID: OTHER_USER_ACCOUNT_ID,
+                    isWaitingOnBankAccount: false,
+                });
+
+                // Create 2 reports that don't fit any condition:
+                // 1. A chat report (not expense type)
+                // 2. An expense report owned by another user that's not submitted (can't submit, approve, pay, or export)
+                const excludedReports = [
+                    createMockReport(EXCLUDED_REPORT_IDS.at(0) ?? '', {
+                        type: CONST.REPORT.TYPE.CHAT,
+                    }),
+                    createMockReport(EXCLUDED_REPORT_IDS.at(1) ?? '', {
+                        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                        ownerAccountID: OTHER_USER_ACCOUNT_ID,
+                        managerID: OTHER_USER_ACCOUNT_ID,
+                    }),
+                ];
+
+                // Create main policy (for submit, approve, pay reports)
+                const policy = createMockPolicy(POLICY_ID, {
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                });
+
+                // Create policy with accounting connection (for export report)
+                const policyWithConnection = {
+                    ...createMockPolicy(POLICY_WITH_CONNECTION_ID, {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    }),
+                    connections: {
+                        // QuickBooks Online connection with auto-sync disabled
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            lastSync: {
+                                isConnected: true,
+                                isSuccessful: true,
+                                isAuthenticationError: false,
+                                source: 'DIRECT',
+                            },
+                            config: {
+                                autoSync: {
+                                    jobID: 'job123',
+                                    enabled: false, // Auto-sync disabled so manual export is available
+                                },
+                            },
+                        },
+                    },
+                } as Policy;
+
+                const transactions: OnyxCollection<Transaction> = {};
+
+                for (const reportID of SUBMIT_REPORT_IDS) {
+                    const transactionID = `trans_submit_${reportID}`;
+                    transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = createMockTransaction(transactionID, reportID);
+                }
+
+                for (const reportID of APPROVE_REPORT_IDS) {
+                    const transactionID = `trans_approve_${reportID}`;
+                    transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = createMockTransaction(transactionID, reportID);
+                }
+
+                for (const reportID of PAY_REPORT_IDS) {
+                    const transactionID = `trans_pay_${reportID}`;
+                    transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = createMockTransaction(transactionID, reportID);
+                }
+
+                const reports: OnyxCollection<Report> = {};
+                for (const report of [...reportsToSubmit, ...reportsToApprove, ...reportsToPay, reportToExport, ...excludedReports]) {
+                    reports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = report;
+                }
+
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {
+                        email: CURRENT_USER_EMAIL,
+                        accountID: CURRENT_USER_ACCOUNT_ID,
+                    },
+                    [`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`]: policy,
+                    [`${ONYXKEYS.COLLECTION.POLICY}${POLICY_WITH_CONNECTION_ID}`]: policyWithConnection,
+                    ...reports,
+                    ...transactions,
+                } as OnyxMultiSetInput);
+
+                await waitForBatchedUpdates();
+            });
+
+            it('returns correct number of reports for each category', async () => {
+                const todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
+
+                expect(todos?.reportsToSubmit).toHaveLength(4);
+                expect(todos?.reportsToApprove).toHaveLength(3);
+                expect(todos?.reportsToPay).toHaveLength(2);
+                expect(todos?.reportsToExport).toHaveLength(1);
+            });
+
+            it('includes correct report IDs in each category', async () => {
+                const todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
+
+                const submitReportIDs = todos?.reportsToSubmit.map((r) => r.reportID) ?? [];
+                const approveReportIDs = todos?.reportsToApprove.map((r) => r.reportID) ?? [];
+                const payReportIDs = todos?.reportsToPay.map((r) => r.reportID) ?? [];
+                const exportReportIDs = todos?.reportsToExport.map((r) => r.reportID) ?? [];
+
+                expect(submitReportIDs).toEqual(expect.arrayContaining(SUBMIT_REPORT_IDS));
+                expect(approveReportIDs).toEqual(expect.arrayContaining(APPROVE_REPORT_IDS));
+                expect(payReportIDs).toEqual(expect.arrayContaining(PAY_REPORT_IDS));
+                expect(exportReportIDs).toContain(EXPORT_REPORT_ID);
+            });
+
+            it('excludes reports that do not match any category', async () => {
+                const todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
+
+                const allReportIDs = [
+                    ...(todos?.reportsToSubmit.map((r) => r.reportID) ?? []),
+                    ...(todos?.reportsToApprove.map((r) => r.reportID) ?? []),
+                    ...(todos?.reportsToPay.map((r) => r.reportID) ?? []),
+                    ...(todos?.reportsToExport.map((r) => r.reportID) ?? []),
+                ];
+
+                expect(allReportIDs).not.toContain(EXCLUDED_REPORT_IDS.at(0));
+                expect(allReportIDs).not.toContain(EXCLUDED_REPORT_IDS.at(1));
+            });
+
+            it('builds transactionsByReportID mapping correctly', async () => {
+                const todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
+
+                expect(todos?.transactionsByReportID).toBeDefined();
+                const firstSubmitReportID = SUBMIT_REPORT_IDS.at(0) ?? '';
+                expect(todos?.transactionsByReportID[firstSubmitReportID]).toHaveLength(1);
+                expect(todos?.transactionsByReportID[firstSubmitReportID]?.at(0)?.transactionID).toBe(`trans_submit_${firstSubmitReportID}`);
+                expect(todos?.transactionsByReportID[APPROVE_REPORT_IDS.at(0) ?? '']).toHaveLength(1);
+                expect(todos?.transactionsByReportID[PAY_REPORT_IDS.at(0) ?? '']).toHaveLength(1);
+            });
+
+            it('handles reports with multiple transactions', async () => {
+                // Add a second transaction to one of the submit reports
+                const reportID = SUBMIT_REPORT_IDS.at(0) ?? '';
+                const secondTransactionID = `trans_submit_${reportID}_2`;
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${secondTransactionID}`, createMockTransaction(secondTransactionID, reportID));
+                await waitForBatchedUpdates();
+
+                const todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
+
+                expect(todos?.transactionsByReportID[reportID]).toHaveLength(2);
+                expect(todos?.transactionsByReportID[reportID]?.map((t) => t.transactionID)).toEqual(expect.arrayContaining([`trans_submit_${reportID}`, secondTransactionID]));
+            });
+
+            it('handles reports without transactions', async () => {
+                const reportWithoutTransactions = createMockReport('no_transactions_report', {
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                });
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportWithoutTransactions.reportID}`, reportWithoutTransactions);
+                await waitForBatchedUpdates();
+
+                const todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
+
+                // The report should still be categorized, but transactionsByReportID should be undefined
+                expect(todos?.transactionsByReportID[reportWithoutTransactions.reportID]).toBeUndefined();
+            });
+
+            it('updates when report state changes', async () => {
+                // Start with a report that can be submitted
+                const reportID = SUBMIT_REPORT_IDS.at(0);
+                let todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
+                expect(todos?.reportsToSubmit.map((r) => r.reportID)).toContain(reportID);
+
+                // Change the report to submitted state
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                });
+                await waitForBatchedUpdates();
+
+                todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
+
+                // The report should no longer be in reportsToSubmit
+                expect(todos?.reportsToSubmit.map((r) => r.reportID)).not.toContain(reportID);
+            });
+
+            it('updates when transaction is added', async () => {
+                // Add a transaction to a report that previously had none
+                const reportID = 'new_report_with_transaction';
+                const report = createMockReport(reportID, {
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                });
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+                await waitForBatchedUpdates();
+
+                let todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
+                expect(todos?.transactionsByReportID[reportID] ?? []).toEqual([]);
+
+                const transactionID = `trans_${reportID}`;
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, createMockTransaction(transactionID, reportID));
+                await waitForBatchedUpdates();
+
+                todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
+                expect(todos?.transactionsByReportID[reportID]).toHaveLength(1);
+                expect(todos?.transactionsByReportID[reportID]?.at(0)?.transactionID).toBe(transactionID);
+            });
+        });
+
+        describe('uses primary login from personalDetailsList', () => {
+            const SECONDARY_LOGIN = '+15555551234'; // Phone number as secondary login
+            const PRIMARY_LOGIN = 'primary@example.com'; // Primary email
+
+            const createMockAchAccount = (reimburserLogin: string): ACHAccount => ({
+                reimburser: reimburserLogin,
+                bankAccountID: 1,
+                accountNumber: '1234567890',
+                routingNumber: '1234567890',
+                addressName: 'Test Address',
+                bankName: 'Test Bank',
+            });
+
+            const createPayableReport = (): Report =>
+                createMockReport('pay_report', {
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                    ownerAccountID: OTHER_USER_ACCOUNT_ID,
+                    managerID: CURRENT_USER_ACCOUNT_ID,
+                    total: -100,
+                    isWaitingOnBankAccount: false,
+                });
+
+            beforeEach(async () => {
+                await Onyx.clear();
+            });
+
+            it('uses primary login from personalDetailsList instead of session email for role checks', async () => {
+                const policy = createMockPolicy(POLICY_ID, {
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    achAccount: createMockAchAccount(PRIMARY_LOGIN),
+                });
+
+                const payReport = createPayableReport();
+                const transaction = createMockTransaction('trans_pay', 'pay_report');
+
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {
+                        email: SECONDARY_LOGIN, // User signed in with secondary login (phone)
+                        accountID: CURRENT_USER_ACCOUNT_ID,
+                    },
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                        [CURRENT_USER_ACCOUNT_ID]: {
+                            accountID: CURRENT_USER_ACCOUNT_ID,
+                            login: PRIMARY_LOGIN, // Primary login stored in personal details
+                            displayName: 'Test User',
+                        },
+                    },
+                    [`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`]: policy,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${payReport.reportID}`]: payReport,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+                } as OnyxMultiSetInput);
+
+                await waitForBatchedUpdates();
+
+                const todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
+
+                // The report should appear in reportsToPay because primary login matches reimburser
+                expect(todos?.reportsToPay).toHaveLength(1);
+                expect(todos?.reportsToPay.at(0)?.reportID).toBe('pay_report');
+            });
+
+            it('falls back to session email when personalDetailsList is not available', async () => {
+                const policy = createMockPolicy(POLICY_ID, {
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    achAccount: createMockAchAccount(CURRENT_USER_EMAIL),
+                });
+
+                const payReport = createPayableReport();
+                const transaction = createMockTransaction('trans_pay', 'pay_report');
+
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {
+                        email: CURRENT_USER_EMAIL,
+                        accountID: CURRENT_USER_ACCOUNT_ID,
+                    },
+                    // No PERSONAL_DETAILS_LIST set - should fall back to session email
+                    [`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`]: policy,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${payReport.reportID}`]: payReport,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+                } as OnyxMultiSetInput);
+
+                await waitForBatchedUpdates();
+
+                const todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
+
+                // The report should still appear in reportsToPay using session email fallback
+                expect(todos?.reportsToPay).toHaveLength(1);
+                expect(todos?.reportsToPay.at(0)?.reportID).toBe('pay_report');
+            });
+
+            it('does not show pay todo when secondary login does not match reimburser and personalDetailsList is missing', async () => {
+                const policy = createMockPolicy(POLICY_ID, {
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    achAccount: createMockAchAccount(PRIMARY_LOGIN),
+                });
+
+                const payReport = createPayableReport();
+                const transaction = createMockTransaction('trans_pay', 'pay_report');
+
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {
+                        email: SECONDARY_LOGIN, // Secondary login that doesn't match reimburser
+                        accountID: CURRENT_USER_ACCOUNT_ID,
+                    },
+                    // No PERSONAL_DETAILS_LIST - will fall back to session email which doesn't match
+                    [`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`]: policy,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${payReport.reportID}`]: payReport,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+                } as OnyxMultiSetInput);
+
+                await waitForBatchedUpdates();
+
+                const todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
+
+                // The report should NOT appear in reportsToPay because secondary login doesn't match
+                expect(todos?.reportsToPay).toHaveLength(0);
             });
         });
     });

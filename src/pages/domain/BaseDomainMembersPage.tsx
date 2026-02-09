@@ -58,7 +58,7 @@ type BaseDomainMembersPageProps = {
     getCustomRightElement?: (accountID: number) => React.ReactNode;
 
     /** Function to return additional row-specific properties like errors or pending actions */
-    getCustomRowProps?: (accountID: number, email?: string) => {errors?: Errors; pendingAction?: PendingAction};
+    getCustomRowProps?: (accountID: number, accountEmail?: string) => {errors?: Errors; pendingAction?: PendingAction};
 
     /** Callback fired when the user dismisses an error message for a specific row */
     onDismissError?: (item: MemberOption) => void;
@@ -168,6 +168,7 @@ function BaseDomainMembersPage({
                         containerStyle: styles.flex1,
                         listHeaderWrapperStyle: [styles.ph9, styles.pv3, styles.pb5],
                         listItemTitleContainerStyles: shouldUseNarrowLayout ? undefined : styles.pr3,
+                        listItemErrorRowStyles: [styles.ph4, styles.pb4],
                     }}
                     ListItem={TableListItem}
                     onSelectRow={onSelectRow}

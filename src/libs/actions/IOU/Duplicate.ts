@@ -475,6 +475,8 @@ type DuplicateExpenseTransactionParams = {
     targetPolicy?: OnyxEntry<OnyxTypes.Policy>;
     targetPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
     targetReport?: OnyxTypes.Report;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 };
 
 function duplicateExpenseTransaction({
@@ -491,6 +493,8 @@ function duplicateExpenseTransaction({
     targetPolicy,
     targetPolicyCategories,
     targetReport,
+    betas,
+    personalDetails,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -544,6 +548,8 @@ function duplicateExpenseTransaction({
         policyRecentlyUsedCurrencies,
         quickAction,
         isSelfTourViewed,
+        betas,
+        personalDetails,
     };
 
     // If no workspace is provided the expense should be unreported
@@ -564,6 +570,7 @@ function duplicateExpenseTransaction({
             activePolicyID,
             quickAction,
             recentWaypoints,
+            betas,
         };
         return trackExpense(trackExpenseParams);
     }

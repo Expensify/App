@@ -167,16 +167,11 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
 // This is separated from getMatchingFullScreenRoute because we want to use it only for the initial state.
 // We don't want to make this route mandatory e.g. after deep linking or opening a specific flow.
 function getDefaultFullScreenRoute(route?: NavigationPartialRoute) {
-    // We will use it if the reportID is not defined. Router of this navigator has logic to fill it with a report.
-    const fallbackRoute = {
-        name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
-    };
-
     if (route && isRouteWithReportID(route)) {
         const reportID = route.params.reportID;
 
         if (!allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID) {
-            return fallbackRoute;
+            return {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR};
         }
 
         return getInitialSplitNavigatorState(
@@ -190,7 +185,7 @@ function getDefaultFullScreenRoute(route?: NavigationPartialRoute) {
         );
     }
 
-    return fallbackRoute;
+    return {name: SCREENS.HOME};
 }
 
 function getOnboardingAdaptedState(state: PartialState<NavigationState>): PartialState<NavigationState> {

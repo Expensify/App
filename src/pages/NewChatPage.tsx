@@ -118,7 +118,7 @@ function useOptions() {
 
     const areOptionsInitialized = !isLoading;
 
-    const options = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, {
+    const options = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, allPersonalDetails, {
         selectedOptions,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
     });
@@ -161,6 +161,7 @@ function useOptions() {
                       personalDetails.find((option) => option.accountID === participant.accountID) ??
                       getUserToInviteOption({
                           searchValue: participant?.login,
+                          personalDetails: allPersonalDetails,
                           loginList,
                           currentUserEmail: personalData.email ?? '',
                           currentUserAccountID: personalData.accountID,
@@ -276,7 +277,9 @@ function NewChatPage({ref}: NewChatPageProps) {
         undefined,
         reportAttributesDerived,
     );
-    sections.push(formatResults.section);
+    // Just a temporary fix to satisfy the type checker
+    // Will be fixed when migrating to use new SelectionListWithSections
+    sections.push({...formatResults.section, title: undefined, shouldShow: true});
 
     if (!firstKeyForList) {
         firstKeyForList = getFirstKeyForList(formatResults.section.data);
@@ -322,7 +325,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         if (isOptionInList) {
             newSelectedOptions = reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
         } else {
-            newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID}];
+            newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID, keyForList: `${option.keyForList ?? option.reportID}`}];
             selectionListRef?.current?.scrollToIndex(0, true);
         }
 
@@ -404,6 +407,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         if (item.isSelected) {
             return (
                 <PressableWithFeedback
+                    sentryLabel={CONST.SENTRY_LABEL.NEW_CHAT.SELECT_PARTICIPANT}
                     onPress={() => toggleOption(item)}
                     disabled={item.isDisabled}
                     role={CONST.ROLE.CHECKBOX}
