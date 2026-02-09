@@ -39,6 +39,7 @@ import {generateAccountID} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {delegateEmailSelector} from '@src/selectors/Account';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
@@ -108,8 +109,7 @@ function ReportFooter({
         selector: isBlockedFromChatSelector,
         canBeMissing: true,
     });
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const accountDelegateEmail = account?.delegatedAccess?.delegate ?? '';
+    const [accountDelegateEmail = ''] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector, canBeMissing: true});
 
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
     const isReportArchived = useReportIsArchived(report?.reportID);
