@@ -15,8 +15,6 @@ const useRestartOnReceiptFailure = (transaction: OnyxEntry<Transaction>, reportI
     // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the request process.
     // skip this in case user is moving the transaction as the receipt path will be valid in that case
     useEffect(() => {
-        let isScanFilesCanBeRead = true;
-
         if (!transaction || action !== CONST.IOU.ACTION.CREATE) {
             return;
         }
@@ -29,16 +27,10 @@ const useRestartOnReceiptFailure = (transaction: OnyxEntry<Transaction>, reportI
             return;
         }
 
-        const onFailure = () => {
-            isScanFilesCanBeRead = false;
+        checkIfScanFileCanBeRead(itemReceiptFilename, itemReceiptPath, itemReceiptType, () => {}, () => {
             setMoneyRequestReceipt(transaction.transactionID, '', '', true);
-        };
-
-        checkIfScanFileCanBeRead(itemReceiptFilename, itemReceiptPath, itemReceiptType, () => {}, onFailure)?.then(() => {
+        })?.then(() => {
             const requestType = getRequestType(transaction);
-            if (isScanFilesCanBeRead || requestType !== CONST.IOU.REQUEST_TYPE.SCAN) {
-                return;
-            }
 
             removeDraftTransactions(true);
             navigateToStartMoneyRequestStep(requestType, iouType, transaction.transactionID, reportID);

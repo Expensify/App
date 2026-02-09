@@ -27,7 +27,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
     const isFocused = useIsFocused();
     const insets = useSafeAreaInsets();
 
-    const isResizing = useIsResizing();
+    const {isResizing} = useIsResizing();
 
     const shouldSuppressTooltip = !isFocused && shouldHideOnNavigate;
 

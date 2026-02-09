@@ -70,7 +70,7 @@ function TabSelectorBase({
 }: TabSelectorBaseProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const isResizing = useIsResizing();
+    const {isResizing} = useIsResizing();
 
     const routesLength = tabs.length;
 
