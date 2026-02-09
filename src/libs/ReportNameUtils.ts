@@ -587,7 +587,7 @@ function computeReportNameBasedOnReportAction(
     }
 
     if (isActionableJoinRequest(parentReportAction)) {
-        return getJoinRequestMessage(translate, parentReportAction);
+        return getJoinRequestMessage(translate, reportPolicy, parentReportAction);
     }
 
     if (isTaskReport(report) && isCanceledTaskReport(report, parentReportAction)) {
@@ -711,6 +711,10 @@ function computeChatThreadReportName(
     return reportActionMessage;
 }
 
+/**
+ * @internal Use this only for computation in derived report attributes
+ * In all other cases you should use `getReportName`
+ */
 function computeReportName(
     report?: Report,
     reports?: OnyxCollection<Report>,

@@ -2194,6 +2194,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} perderá o acesso a esta conta bancária empresarial. Ainda concluiremos quaisquer pagamentos em andamento.`,
         reachOutForHelp: 'Ela está sendo usada com o Cartão Expensify. <concierge-link>Entre em contato com o Concierge</concierge-link> se precisar parar de compartilhá-la.',
         unshareErrorModalTitle: 'Não é possível parar de compartilhar a conta bancária',
+        chaseAccountNumberDifferent: 'Por que meu número de conta é diferente?',
     },
     cardPage: {
         expensifyCard: 'Cartão Expensify',
@@ -2723,8 +2724,7 @@ ${amount} para ${merchant} - ${date}`,
                         5. Adicione suas próprias categorias no canto superior direito.
 
                         [Ir para as configurações de categorias do espaço de trabalho](${workspaceCategoriesLink}).
-
-                        ![Configurar categorias](${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)`),
+                    `),
             },
             combinedTrackSubmitExpenseTask: {
                 title: 'Enviar uma despesa',
@@ -2815,8 +2815,7 @@ ${
                         5. Adicione uma mensagem personalizada ao convite, se quiser!
 
                         [Leve-me para os membros do workspace](${workspaceMembersLink}).
-
-                        ![Convide sua equipe](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`),
+                    `),
             },
             setupCategoriesAndTags: {
                 title: ({workspaceCategoriesLink, workspaceTagsLink}) => `Configure [categorias](${workspaceCategoriesLink}) e [etiquetas](${workspaceTagsLink})`,
@@ -2841,7 +2840,7 @@ ${
 
                         [Leve-me para more features](${workspaceMoreFeaturesLink}).
 
-                        ![Configurar tags](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`),
+                    `),
             },
             inviteAccountantTask: {
                 title: ({workspaceMembersLink}) => `Convide seu [contador](${workspaceMembersLink})`,

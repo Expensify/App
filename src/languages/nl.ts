@@ -2199,6 +2199,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `${admin} verliest de toegang tot deze zakelijke bankrekening. We verwerken nog steeds alle betalingen die al in behandeling zijn.`,
         reachOutForHelp: 'Het wordt gebruikt met de Expensify Card. <concierge-link>Neem contact op met Concierge</concierge-link> als je het moet stoppen met delen.',
         unshareErrorModalTitle: 'Kan betaalrekening niet meer ontkoppelen',
+        chaseAccountNumberDifferent: 'Waarom is mijn rekeningnummer anders?',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -2730,8 +2731,7 @@ ${amount} voor ${merchant} - ${date}`,
                         5. Voeg je eigen categorieën toe rechtsboven.
 
                         [Breng me naar de categorie-instellingen van de workspace](${workspaceCategoriesLink}).
-
-                        ![Categorieën instellen](${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)`),
+                    `),
             },
             combinedTrackSubmitExpenseTask: {
                 title: 'Dien een uitgave in',
@@ -2822,8 +2822,7 @@ ${
                         5. Voeg een aangepast uitnodigingsbericht toe als je wilt!
 
                         [Breng me naar workspaceleden](${workspaceMembersLink}).
-
-                        ![Nodig je team uit](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`),
+                    `),
             },
             setupCategoriesAndTags: {
                 title: ({workspaceCategoriesLink, workspaceTagsLink}) => `Stel [categorieën](${workspaceCategoriesLink}) en [labels](${workspaceTagsLink}) in`,
@@ -2848,7 +2847,7 @@ ${
 
                         [Breng me naar more features](${workspaceMoreFeaturesLink}).
 
-                        ![Tags instellen](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`),
+                    `),
             },
             inviteAccountantTask: {
                 title: ({workspaceMembersLink}) => `Nodig je [boekhouder](${workspaceMembersLink}) uit`,

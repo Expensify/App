@@ -1625,7 +1625,7 @@ function PureReportActionItem({
         } else if (isActionableJoinRequest(action)) {
             children = (
                 <View>
-                    <ReportActionItemBasicMessage message={getJoinRequestMessage(translate, action)} />
+                    <ReportActionItemBasicMessage message={getJoinRequestMessage(translate, policy, action)} />
                     {actionableItemButtons.length > 0 && (
                         <ActionableItemButtons
                             items={actionableItemButtons}
@@ -1640,10 +1640,12 @@ function PureReportActionItem({
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DEMOTED_FROM_WORKSPACE)) {
             children = <ReportActionItemBasicMessage message={getDemotedFromWorkspaceMessage(translate, action)} />;
         } else if (isCardIssuedAction(action)) {
+            const shouldNavigateToCardDetails = isPolicyAdmin(policy);
             children = (
                 <IssueCardMessage
                     action={action}
                     policyID={report?.policyID}
+                    shouldNavigateToCardDetails={shouldNavigateToCardDetails}
                 />
             );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {

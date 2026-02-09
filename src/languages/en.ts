@@ -2236,7 +2236,8 @@ const translations = {
         unshareBankAccountDescription: 'Everyone below has access to this bank account. You can remove access at any point. We’ll still complete any payments in process.',
         unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} will lose access to this business bank account. We’ll still complete any payments in process.`,
         reachOutForHelp: 'It’s being used with the Expensify Card. <concierge-link>Reach out to Concierge</concierge-link> if you need to unshare it.',
-        unshareErrorModalTitle: 'Can’t unshare bank account',
+        unshareErrorModalTitle: `Can't unshare bank account`,
+        chaseAccountNumberDifferent: 'Why is my account number different?',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -2756,7 +2757,6 @@ const translations = {
 
                         [Take me to workspace category settings](${workspaceCategoriesLink}).
 
-                        ![Set up categories](${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)
                     `),
             },
             combinedTrackSubmitExpenseTask: {
@@ -2851,7 +2851,6 @@ const translations = {
 
                         [Take me to workspace members](${workspaceMembersLink}).
 
-                        ![Invite your team](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)
                     `),
             },
 
@@ -2879,7 +2878,6 @@ const translations = {
 
                         [Take me to more features](${workspaceMoreFeaturesLink}).
 
-                        ![Set up tags](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)
                     `),
             },
 

@@ -5123,7 +5123,8 @@ function clearDeleteTransactionNavigateBackUrl() {
 
 /** Deletes a report and un-reports all transactions on the report along with its reportActions, any linked reports and any linked IOU report actions. */
 function deleteAppReport(
-    reportID: string | undefined,
+    report: OnyxEntry<Report>,
+    selfDMReport: OnyxEntry<Report>,
     currentUserEmailParam: string,
     currentUserAccountIDParam: number,
     reportTransactions: Record<string, Transaction>,
@@ -5131,10 +5132,11 @@ function deleteAppReport(
     bankAccountList: OnyxEntry<BankAccountList>,
     hash?: number,
 ) {
-    if (!reportID) {
-        Log.warn('[Report] deleteReport called with no reportID');
+    if (!report?.reportID) {
+        Log.warn('[Report] deleteAppReport called with no reportID');
         return;
     }
+    const reportID = report.reportID;
 
     // Update search results to mark report as deleted when called from search
     if (hash) {
@@ -5161,25 +5163,22 @@ function deleteAppReport(
         OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>
     > = [];
 
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-
-    let selfDMReportID = findSelfDMReportID();
-    let selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
+    let selfDMReportID = selfDMReport?.reportID;
     let createdAction: ReportAction;
     let selfDMParameters: SelfDMParameters = {};
 
-    if (!selfDMReport) {
+    if (!selfDMReportID) {
         const currentTime = DateUtils.getDBTime();
-        selfDMReport = buildOptimisticSelfDMReport(currentTime);
-        selfDMReportID = selfDMReport.reportID;
+        const optimisticSelfDMReport = buildOptimisticSelfDMReport(currentTime);
+        selfDMReportID = optimisticSelfDMReport.reportID;
         createdAction = buildOptimisticCreatedReportAction(currentUserEmailParam ?? '', currentTime);
-        selfDMParameters = {reportID: selfDMReport.reportID, createdReportActionID: createdAction.reportActionID};
+        selfDMParameters = {reportID: optimisticSelfDMReport.reportID, createdReportActionID: createdAction.reportActionID};
         optimisticData.push(
             {
                 onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`,
                 value: {
-                    ...selfDMReport,
+                    ...optimisticSelfDMReport,
                     pendingFields: {
                         createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     },
@@ -5192,14 +5191,14 @@ function deleteAppReport(
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${selfDMReport.reportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${selfDMReportID}`,
                 value: {
                     isOptimisticReport: true,
                 },
             },
             {
                 onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
                 value: {
                     [createdAction.reportActionID]: createdAction,
                 },
@@ -5209,7 +5208,7 @@ function deleteAppReport(
         successData.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`,
                 value: {
                     pendingFields: {
                         createChat: null,
@@ -5218,14 +5217,14 @@ function deleteAppReport(
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${selfDMReport.reportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${selfDMReportID}`,
                 value: {
                     isOptimisticReport: false,
                 },
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
                 value: {
                     [createdAction.reportActionID]: {
                         pendingAction: null,
@@ -5434,7 +5433,6 @@ function deleteAppReport(
         value: null,
     });
 
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     failureData.push({
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
