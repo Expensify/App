@@ -8128,7 +8128,14 @@ describe('actions/IOU', () => {
             const ancestors = [];
             ancestors.push(...(iouReport && createIOUAction ? [{report: iouReport, reportAction: createIOUAction, shouldDisplayNewMarker: false}] : []));
             ancestors.push(...(chatReport && iouPreview ? [{report: chatReport, reportAction: iouPreview, shouldDisplayNewMarker: false}] : []));
-            addComment(thread, thread.reportID, ancestors, 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment({
+                report: thread,
+                notifyReportID: thread.reportID,
+                ancestors,
+                text: 'Testing a comment',
+                timezoneParam: CONST.DEFAULT_TIME_ZONE,
+                currentUserAccountID: CARLOS_ACCOUNT_ID,
+            });
             await waitForBatchedUpdates();
 
             // Then comment details should match the expected report action
@@ -8237,7 +8244,7 @@ describe('actions/IOU', () => {
 
             // Given a test user is signed in with Onyx setup and some initial data
             await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            subscribeToUserEvents();
+            subscribeToUserEvents(TEST_USER_ACCOUNT_ID);
             await waitForBatchedUpdates();
             await setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 
@@ -8378,7 +8385,14 @@ describe('actions/IOU', () => {
             jest.advanceTimersByTime(10);
 
             // When a comment is added
-            addComment(thread, thread.reportID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment({
+                report: thread,
+                notifyReportID: thread.reportID,
+                ancestors: [],
+                text: 'Testing a comment',
+                timezoneParam: CONST.DEFAULT_TIME_ZONE,
+                currentUserAccountID: CARLOS_ACCOUNT_ID,
+            });
             await waitForBatchedUpdates();
 
             // Then comment details should match the expected report action
