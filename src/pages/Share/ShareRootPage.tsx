@@ -160,11 +160,11 @@ function ShareRootPage() {
         // implementation, this fixes an animation glitch and matches the native internal delay
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
-            // Chat tab (0) / Room tab (1) according to OnyxTabNavigator (see below)
+            // Submit tab (0) / Share tab (1) according to OnyxTabNavigator (see below)
             if (index === 0) {
-                shareTabInputRef.current?.focus();
-            } else if (index === 1) {
                 submitTabInputRef.current?.focus();
+            } else if (index === 1) {
+                shareTabInputRef.current?.focus();
             }
         });
     };
@@ -188,8 +188,8 @@ function ShareRootPage() {
                         lazyLoadEnabled
                         onTabSelect={onTabSelectFocusHandler}
                     >
-                        <TopTab.Screen name={CONST.TAB.SHARE.SHARE}>{() => <ShareTab ref={shareTabInputRef} />}</TopTab.Screen>
                         {isFileScannable && <TopTab.Screen name={CONST.TAB.SHARE.SUBMIT}>{() => <SubmitTab ref={submitTabInputRef} />}</TopTab.Screen>}
+                        <TopTab.Screen name={CONST.TAB.SHARE.SHARE}>{() => <ShareTab ref={shareTabInputRef} />}</TopTab.Screen>
                     </OnyxTabNavigator>
                 ) : (
                     <TabNavigatorSkeleton />
