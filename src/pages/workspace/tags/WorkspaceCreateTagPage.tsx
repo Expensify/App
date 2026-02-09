@@ -104,7 +104,24 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
             Keyboard.dismiss();
             Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined);
         },
-        [policyID, policyTags, isQuickSettingsFlow, backTo, setupTagsTaskReport, setupCategoriesAndTagsTaskReport, policyHasCustomCategories],
+        [
+            policyID,
+            policyTags,
+            isQuickSettingsFlow,
+            backTo,
+            setupTagsTaskReport,
+            setupTagsTaskParentReport,
+            isSetupTagsTaskParentReportArchived,
+            setupTagsHasOutstandingChildTask,
+            setupTagsParentReportAction,
+            setupCategoriesAndTagsTaskReport,
+            setupCategoriesAndTagsTaskParentReport,
+            isSetupCategoriesAndTagsTaskParentReportArchived,
+            setupCategoriesAndTagsHasOutstandingChildTask,
+            setupCategoriesAndTagsParentReportAction,
+            currentUserPersonalDetails.accountID,
+            policyHasCustomCategories,
+        ],
     );
 
     return (
