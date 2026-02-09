@@ -62,6 +62,7 @@ import applyOnyxUpdatesReliably from './applyOnyxUpdatesReliably';
 import {openOldDotLink} from './Link';
 import {showReportActionNotification} from './Report';
 import {resendValidateCode as sessionResendValidateCode} from './Session';
+import Timing from './Timing';
 
 let currentUserAccountID = -1;
 let currentEmail = '';
@@ -821,6 +822,8 @@ function subscribeToPusherPong() {
         const latency = Date.now() - Number(pongEvent.pingTimestamp);
         Log.info(`[Pusher PINGPONG] The event took ${latency} ms`);
 
+        Timing.end(CONST.TIMING.PUSHER_PING_PONG);
+
         // When any PONG event comes in, reset this flag so that checkForLatePongReplies will resume looking for missed PONGs
         pongHasBeenMissed = false;
     });
@@ -856,6 +859,7 @@ function pingPusher() {
     const parameters: PusherPingParams = {pingID, pingTimestamp};
     API.writeWithNoDuplicatesConflictAction(WRITE_COMMANDS.PUSHER_PING, parameters);
     Log.info(`[Pusher PINGPONG] Sending a PING to the server: ${pingID} timestamp: ${pingTimestamp}`);
+    Timing.start(CONST.TIMING.PUSHER_PING_PONG);
 }
 
 function checkForLatePongReplies() {
@@ -1824,6 +1828,10 @@ function setDraftRule(ruleData: Partial<ExpenseRuleForm>) {
     Onyx.set(ONYXKEYS.FORMS.EXPENSE_RULE_FORM, ruleData);
 }
 
+function openTroubleshootSettingsPage() {
+    API.read(READ_COMMANDS.OPEN_TROUBLESHOOT_SETTINGS_PAGE, null);
+}
+
 function updateDraftRule(ruleData: Partial<ExpenseRuleForm>) {
     Onyx.merge(ONYXKEYS.FORMS.EXPENSE_RULE_FORM, ruleData);
 }
@@ -1895,4 +1903,5 @@ export {
     setDraftMerchantRule,
     updateDraftMerchantRule,
     clearDraftMerchantRule,
+    openTroubleshootSettingsPage,
 };

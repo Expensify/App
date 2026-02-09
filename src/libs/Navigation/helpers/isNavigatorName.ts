@@ -1,5 +1,5 @@
 import {SIDEBAR_TO_SPLIT, SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
-import type {FullScreenName, OnboardingFlowName, SplitNavigatorName, SplitNavigatorSidebarScreen, WorkspacesTabNavigatorName} from '@libs/Navigation/types';
+import type {FullScreenName, OnboardingFlowName, PublicScreenName, SplitNavigatorName, SplitNavigatorSidebarScreen, WorkspacesTabNavigatorName} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
@@ -8,6 +8,14 @@ const SIDEBARS_SET = new Set(Object.values(SPLIT_TO_SIDEBAR));
 const ONBOARDING_SCREENS_SET = new Set(Object.values(SCREENS.ONBOARDING));
 const SPLIT_NAVIGATORS_SET = new Set(Object.values(SIDEBAR_TO_SPLIT));
 const WORKSPACES_TAB_SET = new Set(Object.values([NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, SCREENS.WORKSPACES_LIST, NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR]));
+const PUBLIC_SCREENS_SET = new Set<PublicScreenName>([
+    SCREENS.TRANSITION_BETWEEN_APPS,
+    SCREENS.VALIDATE_LOGIN,
+    SCREENS.CONNECTION_COMPLETE,
+    SCREENS.BANK_CONNECTION_COMPLETE,
+    SCREENS.UNLINK_LOGIN,
+    SCREENS.SAML_SIGN_IN,
+]);
 
 /**
  * Functions defined below are used to check whether a screen belongs to a specific group.
@@ -41,4 +49,8 @@ function isWorkspacesTabScreenName(screen: string | undefined) {
     return checkIfScreenHasMatchingNameToSetValues<WorkspacesTabNavigatorName>(screen, WORKSPACES_TAB_SET);
 }
 
-export {isFullScreenName, isOnboardingFlowName, isSidebarScreenName, isSplitNavigatorName, isWorkspacesTabScreenName};
+function isPublicScreenName(screen: string | undefined) {
+    return checkIfScreenHasMatchingNameToSetValues<PublicScreenName>(screen, PUBLIC_SCREENS_SET);
+}
+
+export {isFullScreenName, isOnboardingFlowName, isPublicScreenName, isSidebarScreenName, isSplitNavigatorName, isWorkspacesTabScreenName};
