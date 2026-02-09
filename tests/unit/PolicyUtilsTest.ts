@@ -5,9 +5,11 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import DateUtils from '@libs/DateUtils';
 import {
+    areAllGroupPoliciesExpenseChatDisabled,
     getActivePolicies,
     getAllTaxRatesNamesAndValues,
     getCustomUnitsForDuplication,
+    getDefaultTimeTrackingRate,
     getEligibleBankAccountShareRecipients,
     getManagerAccountID,
     getPolicyEmployeeAccountIDs,
@@ -903,6 +905,7 @@ describe('PolicyUtils', () => {
                 employeeList: {
                     [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.USER},
                 },
+                pendingAction: null,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
@@ -920,6 +923,7 @@ describe('PolicyUtils', () => {
                 employeeList: {
                     [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
                 },
+                pendingAction: null,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
@@ -937,6 +941,7 @@ describe('PolicyUtils', () => {
                 employeeList: {
                     [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.USER},
                 },
+                pendingAction: null,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
@@ -954,9 +959,21 @@ describe('PolicyUtils', () => {
                 employeeList: {
                     [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
                 },
+                pendingAction: null,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
+            const result = isWorkspaceEligibleForReportChange(currentUserLogin, newPolicy);
+            expect(result).toBe(false);
+        });
+
+        it('returns false if policy is pending delete', async () => {
+            const currentUserLogin = employeeEmail;
+            const newPolicy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                isPolicyExpenseChatEnabled: true,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            };
             const result = isWorkspaceEligibleForReportChange(currentUserLogin, newPolicy);
             expect(result).toBe(false);
         });
@@ -1864,6 +1881,91 @@ describe('PolicyUtils', () => {
                 },
             ],
             approver: 'approver@example.com',
+        });
+    });
+
+    describe('areAllGroupPoliciesExpenseChatDisabled', () => {
+        it('should return false when policies is empty', () => {
+            const result = areAllGroupPoliciesExpenseChatDisabled({});
+            expect(result).toBe(false);
+        });
+
+        it('should return false when there are no group policies (only personal)', () => {
+            const policies: OnyxCollection<Policy> = {
+                '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.PERSONAL), isPolicyExpenseChatEnabled: false},
+                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), isPolicyExpenseChatEnabled: true},
+            };
+            const result = areAllGroupPoliciesExpenseChatDisabled(policies);
+            expect(result).toBe(false);
+        });
+
+        it('should return false when single group policy has expense chat enabled', () => {
+            const policies: OnyxCollection<Policy> = {
+                '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), isPolicyExpenseChatEnabled: true, pendingAction: null},
+            };
+            const result = areAllGroupPoliciesExpenseChatDisabled(policies);
+            expect(result).toBe(false);
+        });
+
+        it('should return false when multiple group policies and at least one has expense chat enabled', () => {
+            const policies: OnyxCollection<Policy> = {
+                '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), isPolicyExpenseChatEnabled: false, pendingAction: null},
+                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), isPolicyExpenseChatEnabled: true, pendingAction: null},
+                '3': {...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM), isPolicyExpenseChatEnabled: false, pendingAction: null},
+            };
+            const result = areAllGroupPoliciesExpenseChatDisabled(policies);
+            expect(result).toBe(false);
+        });
+
+        it('should return true when single group policy has expense chat disabled', () => {
+            const policies: OnyxCollection<Policy> = {
+                '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), isPolicyExpenseChatEnabled: false, pendingAction: null},
+            };
+            const result = areAllGroupPoliciesExpenseChatDisabled(policies);
+            expect(result).toBe(true);
+        });
+
+        it('should return true when all group policies have expense chat disabled', () => {
+            const policies: OnyxCollection<Policy> = {
+                '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), isPolicyExpenseChatEnabled: false, pendingAction: null},
+                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), isPolicyExpenseChatEnabled: false, pendingAction: null},
+                '3': {...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM), isPolicyExpenseChatEnabled: false, pendingAction: null},
+            };
+            const result = areAllGroupPoliciesExpenseChatDisabled(policies);
+            expect(result).toBe(true);
+        });
+    });
+
+    describe('getDefaultTimeTrackingRate', () => {
+        it('should return rate in subunits', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                units: {
+                    time: {
+                        enabled: true,
+                        rate: 20,
+                    },
+                },
+            };
+            expect(getDefaultTimeTrackingRate(policy)).toBe(2000);
+        });
+
+        it('should return 0 when the rate is 0, not undefined', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                units: {
+                    time: {
+                        enabled: true,
+                        rate: 0,
+                    },
+                },
+            };
+            expect(getDefaultTimeTrackingRate(policy)).toBe(0);
+        });
+
+        it('should return undefined when the rate is not defined on the policy', () => {
+            const policy = createRandomPolicy(1);
+            expect(getDefaultTimeTrackingRate(policy)).toBeUndefined();
         });
     });
 });
