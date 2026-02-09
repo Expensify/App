@@ -209,7 +209,7 @@ function useSearchHighlightAndScroll({
             // Find new transaction IDs that are not in the previousTransactionIDs and not already highlighted
             const newTransactionIDs = currentTransactionIDs.filter((id) => {
                 if (manualHighlightTransactionIDs.has(id)) {
-                    return true;
+                    return !highlightedIDs.current.has(`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`);
                 }
                 if (!triggeredByHookRef.current || !hasNewItemsRef.current) {
                     return false;
