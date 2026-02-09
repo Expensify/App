@@ -201,11 +201,6 @@ function ReportActionsList({
     const isMoneyRequestOrInvoiceReport = useMemo(() => isMoneyRequestReport(report) || isInvoiceReport(report), [report]);
     const shouldFocusToTopOnMount = useMemo(() => isTransactionThreadReport || isMoneyRequestOrInvoiceReport, [isMoneyRequestOrInvoiceReport, isTransactionThreadReport]);
     const topReportAction = sortedVisibleReportActions.at(-1);
-    const shouldRenderTopReportActionOutsideOfInvertedList = isTransactionThreadReport && topReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
-    const visibleReportActionsForInvertedList = useMemo(
-        () => (shouldRenderTopReportActionOutsideOfInvertedList ? sortedVisibleReportActions.slice(0, -1) : sortedVisibleReportActions),
-        [shouldRenderTopReportActionOutsideOfInvertedList, sortedVisibleReportActions],
-    );
     const [shouldScrollToEndAfterLayout, setShouldScrollToEndAfterLayout] = useState(shouldFocusToTopOnMount && !reportActionID);
     const isAnonymousUser = useIsAnonymousUser();
 
@@ -831,8 +826,7 @@ function ReportActionsList({
     }, [shouldShowSkeleton]);
 
     const renderTopReportActions = useCallback(() => {
-        const actionsToPreview = shouldRenderTopReportActionOutsideOfInvertedList ? visibleReportActionsForInvertedList : sortedVisibleReportActions;
-        const previewItems = actionsToPreview.slice(initialNumToRender ? -initialNumToRender : 0).reverse();
+        const previewItems = sortedVisibleReportActions.slice(initialNumToRender ? -initialNumToRender : 0).reverse();
         return (
             <>
                 {!shouldShowReportRecipientLocalTime && !hideComposer ? <View style={[styles.stickToBottom, styles.appBG, styles.zIndex10, styles.height4]} /> : undefined}
@@ -843,16 +837,7 @@ function ReportActionsList({
                 </View>
             </>
         );
-    }, [
-        hideComposer,
-        initialNumToRender,
-        renderItem,
-        shouldRenderTopReportActionOutsideOfInvertedList,
-        shouldShowReportRecipientLocalTime,
-        sortedVisibleReportActions,
-        styles,
-        visibleReportActionsForInvertedList,
-    ]);
+    }, [hideComposer, initialNumToRender, renderItem, shouldShowReportRecipientLocalTime, sortedVisibleReportActions, styles]);
 
     const onStartReached = useCallback(() => {
         if (!isSearchTopmostFullScreenRoute()) {
@@ -879,16 +864,13 @@ function ReportActionsList({
                 style={[styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
                 fsClass={reportActionsListFSClass}
             >
-                {shouldRenderTopReportActionOutsideOfInvertedList && topReportAction
-                    ? renderItem({item: topReportAction, index: sortedVisibleReportActions.length - 1} as ListRenderItemInfo<OnyxTypes.ReportAction>)
-                    : undefined}
-                {shouldScrollToEndAfterLayout ? renderTopReportActions() : undefined}
+                {shouldScrollToEndAfterLayout && topReportAction ? renderTopReportActions() : undefined}
                 <InvertedFlatList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                     ref={reportScrollManager.ref}
                     testID="report-actions-list"
                     style={styles.overscrollBehaviorContain}
-                    data={visibleReportActionsForInvertedList}
+                    data={sortedVisibleReportActions}
                     renderItem={renderItem}
                     renderScrollComponent={renderActionSheetAwareScrollView}
                     contentContainerStyle={[styles.chatContentScrollView, shouldFocusToTopOnMount ? styles.justifyContentEnd : undefined]}
