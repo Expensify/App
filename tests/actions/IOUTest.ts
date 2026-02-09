@@ -9385,6 +9385,83 @@ describe('actions/IOU', () => {
         });
     });
 
+    describe('convertTrackedExpenseToRequest optimistic re-parenting', () => {
+        it('should set parentReportID/parentReportActionID on the transaction thread report', async () => {
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            try {
+                requestMoney({
+                    action: CONST.IOU.ACTION.SUBMIT,
+                    report: {reportID: ''},
+                    participantParams: {
+                        payeeEmail: RORY_EMAIL,
+                        payeeAccountID: RORY_ACCOUNT_ID,
+                        participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                    },
+                    transactionParams: {
+                        amount: 10000,
+                        attendees: [],
+                        currency: CONST.CURRENCY.USD,
+                        created: '',
+                        merchant: 'KFC',
+                        comment: '',
+                        linkedTrackedExpenseReportAction: {
+                            reportActionID: 'linked-action-id',
+                            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                            created: '2024-10-30',
+                            childReportID: 'linked-thread-report-id',
+                        },
+                        actionableWhisperReportActionID: '1',
+                        linkedTrackedExpenseReportID: '1',
+                    },
+                    shouldGenerateTransactionThreadReport: true,
+                    isASAPSubmitBetaEnabled: false,
+                    currentUserAccountIDParam: 123,
+                    currentUserEmailParam: 'existing@example.com',
+                    transactionViolations: {},
+                    policyRecentlyUsedCurrencies: [],
+                    isSelfTourViewed: false,
+                    quickAction: undefined,
+                    personalDetails: {},
+                });
+
+                await waitForBatchedUpdates();
+
+                expect(writeSpy).toHaveBeenCalledTimes(1);
+
+                const [command, params, onyxData] = writeSpy.mock.calls.at(0) ?? [];
+                expect(command).toBe(WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST);
+
+                const typedParams = params as {
+                    transactionThreadReportID?: string;
+                    moneyRequestReportID?: string;
+                    moneyRequestPreviewReportActionID?: string;
+                };
+
+                expect(typedParams.transactionThreadReportID).toEqual(expect.any(String));
+                expect(typedParams.moneyRequestReportID).toEqual(expect.any(String));
+                expect(typedParams.moneyRequestPreviewReportActionID).toEqual(expect.any(String));
+
+                const optimisticData = ((onyxData as {optimisticData?: Array<{key: string; onyxMethod: string; value: unknown}>})?.optimisticData ?? []) as Array<{
+                    key: string;
+                    onyxMethod: string;
+                    value: unknown;
+                }>;
+
+                const threadReportKey = `${ONYXKEYS.COLLECTION.REPORT}${typedParams.transactionThreadReportID}`;
+                const threadReportUpdate = optimisticData.find((update) => update.onyxMethod === Onyx.METHOD.MERGE && update.key === threadReportKey);
+
+                expect(threadReportUpdate).toBeTruthy();
+                expect(threadReportUpdate?.value).toMatchObject({
+                    parentReportID: typedParams.moneyRequestReportID,
+                    parentReportActionID: typedParams.moneyRequestPreviewReportActionID,
+                });
+            } finally {
+                writeSpy.mockRestore();
+            }
+        });
+    });
+
     describe('canApproveIOU', () => {
         it('should return false if we have only pending card transactions', async () => {
             const policyID = '2';
