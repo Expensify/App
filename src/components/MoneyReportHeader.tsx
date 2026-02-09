@@ -66,12 +66,14 @@ import {
     generateReportID,
     getAddExpenseDropdownOptions,
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
+    getAvailableReportFields,
     getIntegrationIcon,
     getIntegrationNameFromExportMessage as getIntegrationNameFromExportMessageUtils,
     getNextApproverAccountID,
     getNonHeldAndFullAmount,
     getPolicyExpenseChat,
     getReasonAndReportActionThatRequiresAttention,
+    getReportFieldKey,
     getTransactionsWithReceipts,
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
@@ -84,6 +86,7 @@ import {
     isInvoiceReport as isInvoiceReportUtil,
     isOpenExpenseReport,
     isProcessingReport,
+    isReportFieldOfTypeTitle,
     isReportOwner,
     navigateOnDeleteExpense,
     navigateToDetailsPage,
@@ -1602,6 +1605,27 @@ function MoneyReportHeader({
             backButtonText: translate('iou.settlePayment', {formattedAmount: totalAmount}),
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.PAY,
             subMenuItems: Object.values(paymentButtonOptions),
+        },
+        [CONST.REPORT.SECONDARY_ACTIONS.TITLE]: {
+            value: CONST.REPORT.SECONDARY_ACTIONS.TITLE,
+            text: translate('common.title'),
+            icon: expensifyIcons.Document,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.TITLE,
+            onSelected: () => {
+                if (!moneyRequestReport || !policy) {
+                    return;
+                }
+
+                const titleField = getAvailableReportFields(moneyRequestReport, Object.values(policy?.fieldList ?? {})).find((reportField) => isReportFieldOfTypeTitle(reportField));
+
+                if (!titleField) {
+                    return;
+                }
+
+                const policyID = moneyRequestReport.policyID ?? '';
+                const fieldKey = getReportFieldKey(titleField.fieldID);
+                Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(moneyRequestReport.reportID, policyID, fieldKey, Navigation.getReportRHPActiveRoute()));
+            },
         },
     };
     const applicableSecondaryActions = secondaryActions

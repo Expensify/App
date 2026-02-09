@@ -39,12 +39,14 @@ import {
     canHoldUnholdReportAction,
     canRejectReportAction,
     doesReportContainRequestsFromMultipleUsers,
+    getAvailableReportFields,
     getTransactionDetails,
     hasExportError as hasExportErrorUtils,
     hasOnlyHeldExpenses,
     hasOnlyNonReimbursableTransactions,
     hasReportBeenReopened as hasReportBeenReopenedUtils,
     hasReportBeenRetracted as hasReportBeenRetractedUtils,
+    isAdminOwnerApproverOrReportOwner,
     isArchivedReport,
     isAwaitingFirstLevelApproval,
     isClosedReport as isClosedReportUtils,
@@ -59,6 +61,8 @@ import {
     isPayer as isPayerUtils,
     isProcessingReport as isProcessingReportUtils,
     isReportApproved as isReportApprovedUtils,
+    isReportFieldDisabled,
+    isReportFieldOfTypeTitle,
     isReportManager as isReportManagerUtils,
     isSelfDM as isSelfDMReportUtils,
     isSettled,
@@ -820,6 +824,27 @@ function isDuplicateAction(report: Report, reportTransactions: Transaction[]): b
     return true;
 }
 
+/**
+ * Check if the title action should be shown in the More menu.
+ * This allows users to edit the report title directly from the More menu.
+ */
+function isTitleAction(report: Report, policy?: Policy): boolean {
+    if (!policy || isInvoiceReportUtils(report)) {
+        return false;
+    }
+
+    const titleField = getAvailableReportFields(report, Object.values(policy?.fieldList ?? {})).find((reportField) => isReportFieldOfTypeTitle(reportField));
+
+    if (!titleField) {
+        return false;
+    }
+
+    const isFieldDisabled = isReportFieldDisabled(report, titleField, policy);
+    const shouldShowTitleField = !isFieldDisabled && isAdminOwnerApproverOrReportOwner(report, policy);
+
+    return shouldShowTitleField;
+}
+
 function getSecondaryReportActions({
     currentUserLogin,
     currentUserAccountID,
@@ -957,6 +982,10 @@ function getSecondaryReportActions({
     const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     if (isExpenseReportUtils(report) && isProcessingReportUtils(report) && isPolicyAdmin(policy) && isApprovalEnabled) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER);
+    }
+
+    if (isTitleAction(report, policy)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.TITLE);
     }
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
