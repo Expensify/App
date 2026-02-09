@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import type {NativeSyntheticEvent} from 'react-native';
+import type {KeyboardTypeOptions, NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -76,8 +76,11 @@ type NumberWithSymbolFormProps = {
     /** Function to clear the negative amount */
     clearNegative?: () => void;
 
-    /** Whether to allow flipping amount */
+    /** Whether to allow flipping amount (shows flip button and enables toggle mechanism) */
     allowFlippingAmount?: boolean;
+
+    /** Whether to allow negative values in the input (without showing flip button) */
+    shouldAllowNegative?: boolean;
 
     /** Whether the input is disabled or not */
     disabled?: boolean;
@@ -87,6 +90,9 @@ type NumberWithSymbolFormProps = {
 
     /** Callback when the user presses the submit key (Enter) */
     onSubmitEditing?: () => void;
+
+    /** Determines which keyboard to open */
+    keyboardType?: KeyboardTypeOptions;
 } & Omit<TextInputWithSymbolProps, 'formattedAmount' | 'onAmountChange' | 'placeholder' | 'onSelectionChange' | 'onKeyPress' | 'onMouseDown' | 'onMouseUp'>;
 
 type NumberWithSymbolFormRef = {
@@ -144,6 +150,7 @@ function NumberWithSymbolForm({
     shouldWrapInputInContainer = true,
     isNegative = false,
     allowFlippingAmount = false,
+    shouldAllowNegative = false,
     toggleNegative,
     clearNegative,
     ref,
@@ -152,6 +159,8 @@ function NumberWithSymbolForm({
     ...props
 }: NumberWithSymbolFormProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'PlusMinus']);
+    // Combined flag for validation - allows negative values either through flip mechanism or direct input
+    const canAcceptNegativeValues = allowFlippingAmount || shouldAllowNegative;
     const styles = useThemeStyles();
     const {toLocaleDigit, numberFormat, translate} = useLocalize();
 
@@ -222,7 +231,7 @@ function NumberWithSymbolForm({
 
             // Use a shallow copy of selection to trigger setSelection
             // More info: https://github.com/Expensify/App/issues/16385
-            if (!validateAmount(finalNumber, decimals, maxLength)) {
+            if (!validateAmount(finalNumber, decimals, maxLength, canAcceptNegativeValues)) {
                 setSelection((prevSelection) => ({...prevSelection}));
                 return;
             }
@@ -242,7 +251,7 @@ function NumberWithSymbolForm({
             });
             onInputChange?.(strippedNumber);
         },
-        [decimals, maxLength, onInputChange, allowFlippingAmount, toggleNegative],
+        [decimals, maxLength, onInputChange, allowFlippingAmount, toggleNegative, canAcceptNegativeValues],
     );
 
     /**
@@ -255,9 +264,9 @@ function NumberWithSymbolForm({
         const newNumberWithoutSpaces = stripSpacesFromAmount(text);
         const replacedCommasNumber = handleNegativeAmountFlipping(replaceCommasWithPeriod(newNumberWithoutSpaces), allowFlippingAmount, toggleNegative);
 
-        const withLeadingZero = addLeadingZero(replacedCommasNumber);
+        const withLeadingZero = addLeadingZero(replacedCommasNumber, canAcceptNegativeValues);
 
-        if (!validateAmount(withLeadingZero, decimals, maxLength)) {
+        if (!validateAmount(withLeadingZero, decimals, maxLength, canAcceptNegativeValues)) {
             setSelection((prevSelection) => ({...prevSelection}));
             return;
         }
@@ -280,7 +289,7 @@ function NumberWithSymbolForm({
     // Modifies the number to match changed decimals.
     useEffect(() => {
         // If the number supports decimals, we can return
-        if (validateAmount(currentNumber, decimals, maxLength, allowFlippingAmount)) {
+        if (validateAmount(currentNumber, decimals, maxLength, canAcceptNegativeValues)) {
             return;
         }
 
@@ -381,11 +390,11 @@ function NumberWithSymbolForm({
                 disabled={disabled}
                 prefixCharacter={symbol}
                 prefixStyle={styles.colorMuted}
-                keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
+                keyboardType={props.keyboardType ?? CONST.KEYBOARD_TYPE.DECIMAL_PAD}
                 // On android autoCapitalize="words" is necessary when keyboardType="decimal-pad" or inputMode="decimal" to prevent input lag.
                 // See https://github.com/Expensify/App/issues/51868 for more information
                 autoCapitalize="words"
-                inputMode={CONST.INPUT_MODE.DECIMAL}
+                inputMode={!props.keyboardType ? CONST.INPUT_MODE.DECIMAL : undefined}
                 errorText={errorText}
                 style={style}
                 autoFocus={props.autoFocus}
@@ -459,6 +468,7 @@ function NumberWithSymbolForm({
             toggleNegative={toggleNegative}
             onFocus={props.onFocus}
             accessibilityLabel={props.accessibilityLabel}
+            keyboardType={props.keyboardType}
         />
     );
 

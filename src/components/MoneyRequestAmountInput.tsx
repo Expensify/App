@@ -1,6 +1,6 @@
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useRef} from 'react';
-import type {BlurEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {BlurEvent, KeyboardTypeOptions, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import {convertToFrontendAmountAsString, getCurrencyDecimals, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
@@ -92,8 +92,11 @@ type MoneyRequestAmountInputProps = {
     /** Function to clear the negative amount */
     clearNegative?: () => void;
 
-    /** Whether to allow flipping amount */
+    /** Whether to allow flipping amount (shows flip button and enables toggle mechanism) */
     allowFlippingAmount?: boolean;
+
+    /** Whether to allow negative values in the input (without showing flip button) */
+    shouldAllowNegative?: boolean;
 
     /** The testID of the input. Used to locate this view in end-to-end tests. */
     testID?: string;
@@ -122,6 +125,9 @@ type MoneyRequestAmountInputProps = {
 
     /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
+
+    /** Determines which keyboard to open */
+    keyboardType?: KeyboardTypeOptions;
 } & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix' | 'onFocus' | 'onBlur'>;
 
 type Selection = {
@@ -161,6 +167,7 @@ function MoneyRequestAmountInput({
     shouldWrapInputInContainer = true,
     isNegative = false,
     allowFlippingAmount = false,
+    shouldAllowNegative = false,
     toggleNegative,
     clearNegative,
     ref,
@@ -255,10 +262,12 @@ function MoneyRequestAmountInput({
             autoGrowExtraSpace={autoGrowExtraSpace}
             submitBehavior={submitBehavior}
             allowFlippingAmount={allowFlippingAmount}
+            shouldAllowNegative={shouldAllowNegative}
             toggleNegative={toggleNegative}
             clearNegative={clearNegative}
             onFocus={props.onFocus}
             accessibilityLabel={`${translate('iou.amount')} (${currency})`}
+            keyboardType={props.keyboardType}
         />
     );
 }
