@@ -13,12 +13,7 @@ import CONST from '@src/CONST';
 function GreenSelectedDay({disabled, selected, children}: DayProps) {
     const themeStyles = useThemeStyles();
     return (
-        <View
-            style={[
-                themeStyles.calendarDayContainer,
-                selected ? themeStyles.buttonSuccess : {},
-            ]}
-        >
+        <View style={[themeStyles.calendarDayContainer, selected ? themeStyles.buttonSuccess : {}]}>
             <Text style={[disabled ? themeStyles.buttonOpacityDisabled : {}, selected ? themeStyles.buttonSuccessText : {}]}>{children}</Text>
         </View>
     );

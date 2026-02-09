@@ -5,8 +5,8 @@ import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
 import type {ReportFieldDateKey, SearchDateFilterKeys} from '@components/Search/types';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -166,20 +166,24 @@ function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
                     onDateValuesChange={handleDateValuesChange}
                     forceVerticalCalendars
                 />
-                {selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE && (trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] || trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]) && (
-                    <Text style={[styles.textMicroSupporting, styles.mh5, styles.mt3]}>
-                        {`${translate('common.range')}: `}
-                        <Text style={[styles.textMicroSupporting, styles.textStrong]}>
-                            {trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] && trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]
-                                ? DateUtils.getFormattedDateRangeForSearch(
-                                      trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] as string,
-                                      trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE] as string,
-                                      true,
-                                  )
-                                : format(parseISO((trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] ?? trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]) as string), 'MMM d, yyyy')}
+                {selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE &&
+                    (trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] || trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]) && (
+                        <Text style={[styles.textMicroSupporting, styles.mh5, styles.mt3]}>
+                            {`${translate('common.range')}: `}
+                            <Text style={[styles.textMicroSupporting, styles.textStrong]}>
+                                {trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] && trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]
+                                    ? DateUtils.getFormattedDateRangeForSearch(
+                                          trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] as string,
+                                          trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE] as string,
+                                          true,
+                                      )
+                                    : format(
+                                          parseISO((trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] ?? trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]) as string),
+                                          'MMM d, yyyy',
+                                      )}
+                            </Text>
                         </Text>
-                    </Text>
-                )}
+                    )}
                 <View style={styles.flexGrow1} />
                 <Button
                     text={translate('common.reset')}

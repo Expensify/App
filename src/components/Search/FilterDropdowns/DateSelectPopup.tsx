@@ -70,7 +70,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
         const hasAfter = !!value[CONST.SEARCH.DATE_MODIFIERS.AFTER];
         const hasBefore = !!value[CONST.SEARCH.DATE_MODIFIERS.BEFORE];
         const hasOn = !!value[CONST.SEARCH.DATE_MODIFIERS.ON];
-        
+
         if (hasAfter && hasBefore && !hasOn) {
             setSelectedDateModifier(CONST.SEARCH.DATE_MODIFIERS.RANGE);
         }
@@ -157,10 +157,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
             {isSmallScreenWidth && !selectedDateModifier && <Text style={[styles.textLabel, styles.ph5, styles.pb3]}>{label}</Text>}
             <ScrollView
                 style={[isSmallScreenWidth && styles.flexGrow1]}
-                contentContainerStyle={[
-                    !isSmallScreenWidth && !selectedDateModifier && styles.pt4,
-                    isSmallScreenWidth && selectedDateModifier && styles.pt0,
-                ]}
+                contentContainerStyle={[!isSmallScreenWidth && !selectedDateModifier && styles.pt4, isSmallScreenWidth && selectedDateModifier && styles.pt0]}
             >
                 {!!selectedDateModifier && isSmallScreenWidth && (
                     <HeaderWithBackButton
@@ -182,9 +179,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
                                 small
                             />
                         </PressableWithoutFeedback>
-                        <Text style={[styles.textLabelSupporting]}>
-                            {translate(`common.${selectedDateModifier.toLowerCase() as SearchDateModifierLower}`)}
-                        </Text>
+                        <Text style={[styles.textLabelSupporting]}>{translate(`common.${selectedDateModifier.toLowerCase() as SearchDateModifierLower}`)}</Text>
                     </View>
                 )}
                 <DatePresetFilterBase

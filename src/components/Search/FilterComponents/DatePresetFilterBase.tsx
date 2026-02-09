@@ -9,8 +9,8 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isSearchDatePreset} from '@libs/SearchQueryUtils';
 import DateUtils from '@libs/DateUtils';
+import {isSearchDatePreset} from '@libs/SearchQueryUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import RangeDatePicker from './RangeDatePicker';
@@ -70,7 +70,17 @@ type DatePresetFilterBaseProps = {
  * - On save: if a date modifier is selected (i.e. user clicked save at the calendar picker) you should `setDateValueOfSelectedDateModifier` otherwise `getDateValues`
  * - On reset: if a date modifier is selected (i.e. user clicked reset at the calendar picker) you should `clearDateValueOfSelectedDateModifier` otherwise `clearDateValues`
  */
-function DatePresetFilterBase({defaultDateValues, selectedDateModifier, onSelectDateModifier, presets, isSearchAdvancedFiltersFormLoading, shouldShowRangeError = false, onDateValuesChange, forceVerticalCalendars = false, ref}: DatePresetFilterBaseProps) {
+function DatePresetFilterBase({
+    defaultDateValues,
+    selectedDateModifier,
+    onSelectDateModifier,
+    presets,
+    isSearchAdvancedFiltersFormLoading,
+    shouldShowRangeError = false,
+    onDateValuesChange,
+    forceVerticalCalendars = false,
+    ref,
+}: DatePresetFilterBaseProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -248,11 +258,7 @@ function DatePresetFilterBase({defaultDateValues, selectedDateModifier, onSelect
                 title={translate('common.range')}
                 description={
                     dateDisplayValues[CONST.SEARCH.DATE_MODIFIERS.RANGE] && dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] && dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]
-                        ? DateUtils.getFormattedDateRangeForSearch(
-                              dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] as string,
-                              dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE] as string,
-                              true,
-                          )
+                        ? DateUtils.getFormattedDateRangeForSearch(dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] as string, dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE] as string, true)
                         : undefined
                 }
                 onPress={() => selectDateModifier(CONST.SEARCH.DATE_MODIFIERS.RANGE)}
