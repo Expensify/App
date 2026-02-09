@@ -26,30 +26,6 @@ import Log from './Log';
  *
  * Pattern: Follows the MATCH_RANK constant object pattern from
  * src/libs/filterArrayByMatch.ts for consistent codebase style.
- *
- * These values were chosen to satisfy the following matching requirements:
- *
- * MUST PASS (unique identifiers):
- *   - data-testid alone (50) - explicitly unique, developer-set
- *
- * SHOULD PASS (combined signals):
- *   - aria-label + role (10+5=15) - two semantic attributes
- *   - aria-label + text (10+30=40) - semantic + content
- *   - text + role (30+5=35) - content + semantic
- *
- * EDGE CASE (currently passes, may cause false positives):
- *   - text-prefix alone (30) - risky for elements with similar prefixes
- *     e.g., "Workspace Settings - Acme" vs "Workspace Settings - Beta"
- *
- * MUST FAIL (too weak):
- *   - aria-label alone (10) - single weak signal
- *   - role alone (5) - too generic, many elements share roles
- *
- * Threshold: 15 (aria-label + role is the minimum acceptable combination)
- *
- * Note: These values are intuitive estimates, not empirically tuned.
- * Future improvement: Consider requiring text-prefix to combine with
- * another signal to reduce false positive risk.
  */
 const ELEMENT_MATCH_SCORE = {
     /** aria-label exact match - often unique for interactive elements */
@@ -72,6 +48,8 @@ const TEXT_CONTENT_PREVIEW_LENGTH = 100;
 
 /** Characters to compare for fuzzy text prefix matching */
 const TEXT_CONTENT_PREFIX_LENGTH = 20;
+
+const SHOULD_LOG_DEBUG_INFO = typeof __DEV__ === 'boolean' ? __DEV__ : process.env.NODE_ENV !== 'production';
 
 /**
  * Element identification info for restoring focus after screen remount.
@@ -96,13 +74,71 @@ type CapturedFocus = {
     forRoute: string | null;
 };
 
+type InteractionType = 'keyboard' | 'pointer' | 'unknown';
+
+type InteractionTrigger = 'enterOrSpace' | 'escape' | 'pointer' | 'unknown';
+
+type RetrievalMode = 'keyboardSafe' | 'legacy';
+
+type ElementRefCandidateMetadata =
+    | {
+          source: 'interactionValidated';
+          confidence: 3;
+      }
+    | {
+          source: 'activeElementFallback';
+          confidence: 1;
+      }
+    | null;
+
+type ElementRefCandidateSource = 'interactionValidated' | 'activeElementFallback';
+
+type IdentifierCandidateMetadata =
+    | {
+          source: 'identifierMatchReady';
+          confidence: 2;
+      }
+    | null;
+
+type RouteFocusMetadata = {
+    interactionType: InteractionType;
+    interactionTrigger: InteractionTrigger;
+    elementRefCandidate: ElementRefCandidateMetadata;
+    identifierCandidate: IdentifierCandidateMetadata;
+};
+
+type InteractionProvenance = {
+    interactionType: InteractionType;
+    interactionTrigger: InteractionTrigger;
+    routeKey: string | null;
+};
+
+type ElementQueryStrategy = (tagNameSelector: string) => readonly HTMLElement[];
+
+type CandidateMatch = {
+    element: HTMLElement;
+    score: number;
+    hasDataTestIdMatch: boolean;
+    hasAriaLabelMatch: boolean;
+    hasRoleMatch: boolean;
+    hasTextExactMatch: boolean;
+    hasTextPrefixMatch: boolean;
+    isPrefixOnlyMatch: boolean;
+};
+
+const defaultElementQueryStrategy: ElementQueryStrategy = (tagNameSelector) =>
+    Array.from(document.querySelectorAll<HTMLElement>(tagNameSelector));
+
 // Module-level state (following ComposerFocusManager pattern)
 let lastInteractionCapture: CapturedFocus | null = null;
 /** Stores element identifiers for non-persistent screens (that unmount on navigation) */
 const routeElementIdentifierMap = new Map<string, ElementIdentifier>();
 /** Legacy: stores element references for persistent screens (that stay mounted) */
 const routeFocusMap = new Map<string, CapturedFocus>();
+/** Metadata scaffolding for retrieval-mode and confidence model migration */
+const routeFocusMetadataMap = new Map<string, RouteFocusMetadata>();
 let isInitialized = false;
+let elementQueryStrategy: ElementQueryStrategy = defaultElementQueryStrategy;
 
 // Track current focused screen's route key for immediate capture
 // This allows capturing to routeFocusMap during interaction, before screen unmounts
@@ -111,6 +147,188 @@ let currentFocusedRouteKey: string | null = null;
 // Track if the most recent user interaction was via keyboard (Enter/Space)
 // Used by modals to determine if they should auto-focus their content on open
 let wasKeyboardInteraction = false;
+let lastInteractionProvenance: InteractionProvenance | null = null;
+
+function logFocusDebug(message: string, metadata?: Record<string, unknown>): void {
+    if (!SHOULD_LOG_DEBUG_INFO) {
+        return;
+    }
+    Log.info(message, false, metadata);
+}
+
+type RouteFocusEntryUpdate = {
+    element?: CapturedFocus | null;
+    identifier?: ElementIdentifier | null;
+    metadata?: RouteFocusMetadata | null;
+};
+
+function updateRouteFocusEntry(routeKey: string, update: RouteFocusEntryUpdate): void {
+    if (update.element !== undefined) {
+        if (update.element) {
+            routeFocusMap.set(routeKey, update.element);
+        } else {
+            routeFocusMap.delete(routeKey);
+        }
+    }
+
+    if (update.identifier !== undefined) {
+        if (update.identifier) {
+            routeElementIdentifierMap.set(routeKey, update.identifier);
+        } else {
+            routeElementIdentifierMap.delete(routeKey);
+        }
+    }
+
+    if (update.metadata !== undefined) {
+        if (update.metadata) {
+            routeFocusMetadataMap.set(routeKey, update.metadata);
+        } else {
+            routeFocusMetadataMap.delete(routeKey);
+        }
+    }
+}
+
+function clearRouteFocusEntry(routeKey: string): void {
+    updateRouteFocusEntry(routeKey, {element: null, identifier: null, metadata: null});
+}
+
+function setInteractionProvenance(provenance: InteractionProvenance): void {
+    lastInteractionProvenance = provenance;
+}
+
+function clearInteractionProvenance(): void {
+    lastInteractionProvenance = null;
+}
+
+function clearInteractionProvenanceForRoute(routeKey: string): void {
+    if (lastInteractionProvenance?.routeKey !== routeKey) {
+        return;
+    }
+    clearInteractionProvenance();
+}
+
+function resolveInteractionMetadataForRoute(routeKey: string): Pick<RouteFocusMetadata, 'interactionType' | 'interactionTrigger'> {
+    if (!lastInteractionProvenance || lastInteractionProvenance.routeKey !== routeKey) {
+        return {
+            interactionType: 'unknown',
+            interactionTrigger: 'unknown',
+        };
+    }
+
+    return {
+        interactionType: lastInteractionProvenance.interactionType,
+        interactionTrigger: lastInteractionProvenance.interactionTrigger,
+    };
+}
+
+function createRouteFocusMetadata({
+    interactionType,
+    interactionTrigger,
+    elementRefCandidateSource,
+    hasIdentifierCandidate,
+}: {
+    interactionType: InteractionType;
+    interactionTrigger: InteractionTrigger;
+    elementRefCandidateSource: ElementRefCandidateSource;
+    hasIdentifierCandidate: boolean;
+}): RouteFocusMetadata {
+    const elementRefCandidate: ElementRefCandidateMetadata =
+        elementRefCandidateSource === 'interactionValidated'
+            ? {
+                  source: 'interactionValidated',
+                  confidence: 3,
+              }
+            : {
+                  source: 'activeElementFallback',
+                  confidence: 1,
+              };
+
+    return {
+        interactionType,
+        interactionTrigger,
+        elementRefCandidate,
+        identifierCandidate: hasIdentifierCandidate
+            ? {
+                  source: 'identifierMatchReady',
+                  confidence: 2,
+              }
+            : null,
+    };
+}
+
+function buildCandidateMatch(candidate: HTMLElement, identifier: ElementIdentifier): CandidateMatch {
+    const hasAriaLabelMatch = !!identifier.ariaLabel && candidate.getAttribute('aria-label') === identifier.ariaLabel;
+    const hasRoleMatch = !!identifier.role && candidate.getAttribute('role') === identifier.role;
+    const hasDataTestIdMatch = !!identifier.dataTestId && candidate.getAttribute('data-testid') === identifier.dataTestId;
+
+    const candidateText = (candidate.textContent ?? '').slice(0, TEXT_CONTENT_PREVIEW_LENGTH).trim();
+    const textPrefix = identifier.textContentPreview.slice(0, TEXT_CONTENT_PREFIX_LENGTH);
+
+    const hasTextExactMatch = !!identifier.textContentPreview && candidateText === identifier.textContentPreview;
+    const hasTextPrefixMatch = !!identifier.textContentPreview && !!textPrefix && !hasTextExactMatch && candidateText.startsWith(textPrefix);
+
+    const isPrefixOnlyMatch = hasTextPrefixMatch && !hasAriaLabelMatch && !hasRoleMatch && !hasDataTestIdMatch;
+
+    let score = 0;
+    if (hasAriaLabelMatch) {
+        score += ELEMENT_MATCH_SCORE.ARIA_LABEL;
+    }
+    if (hasRoleMatch) {
+        score += ELEMENT_MATCH_SCORE.ROLE;
+    }
+    if (hasDataTestIdMatch) {
+        score += ELEMENT_MATCH_SCORE.DATA_TESTID;
+    }
+    if (hasTextExactMatch) {
+        score += ELEMENT_MATCH_SCORE.TEXT_EXACT;
+    } else if (hasTextPrefixMatch) {
+        score += ELEMENT_MATCH_SCORE.TEXT_PREFIX;
+    }
+
+    return {
+        element: candidate,
+        score,
+        hasDataTestIdMatch,
+        hasAriaLabelMatch,
+        hasRoleMatch,
+        hasTextExactMatch,
+        hasTextPrefixMatch,
+        isPrefixOnlyMatch,
+    };
+}
+
+function isCandidateBetter(candidate: CandidateMatch, bestCandidate: CandidateMatch | null): boolean {
+    if (!bestCandidate) {
+        return true;
+    }
+
+    if (candidate.score !== bestCandidate.score) {
+        return candidate.score > bestCandidate.score;
+    }
+
+    if (candidate.hasDataTestIdMatch !== bestCandidate.hasDataTestIdMatch) {
+        return candidate.hasDataTestIdMatch;
+    }
+
+    if (candidate.hasAriaLabelMatch !== bestCandidate.hasAriaLabelMatch) {
+        return candidate.hasAriaLabelMatch;
+    }
+
+    if (candidate.hasTextExactMatch !== bestCandidate.hasTextExactMatch) {
+        return candidate.hasTextExactMatch;
+    }
+
+    if (candidate.hasRoleMatch !== bestCandidate.hasRoleMatch) {
+        return candidate.hasRoleMatch;
+    }
+
+    if (candidate.hasTextPrefixMatch !== bestCandidate.hasTextPrefixMatch) {
+        return candidate.hasTextPrefixMatch;
+    }
+
+    // Preserve original DOM order for full ties by keeping existing best candidate.
+    return false;
+}
 
 /**
  * Extract identification info from an element that can be used to find
@@ -130,65 +348,45 @@ function extractElementIdentifier(element: HTMLElement): ElementIdentifier {
 /**
  * Find an element in the current DOM that matches the stored identifier.
  * Uses a scoring system to find the best match.
- *
- * Design rationale: The ideal solution would be stable `data-testid` attributes on all
- * focusable elements (e.g., `workspace-row-{workspaceId}`), enabling deterministic matching.
- * However, retrofitting stable IDs across every focusable element in the app is a massive
- * undertaking. This fingerprinting approach provides a pragmatic alternative that works
- * generically without requiring component-level changes, covering the majority of focus
- * restoration cases while gracefully degrading (no restore) when no match is found.
  */
 function findMatchingElement(identifier: ElementIdentifier): HTMLElement | null {
-    // Query for elements with matching tagName
-    const candidates = document.querySelectorAll<HTMLElement>(identifier.tagName);
+    const candidates = Array.from(elementQueryStrategy(identifier.tagName));
 
     if (candidates.length === 0) {
         return null;
     }
 
-    let bestMatch: HTMLElement | null = null;
-    let bestScore = 0;
+    let bestMatch: CandidateMatch | null = null;
+    let prefixOnlyCandidateCount = 0;
 
     for (const candidate of candidates) {
-        let score = 0;
+        const candidateMatch = buildCandidateMatch(candidate, identifier);
 
-        // Match aria-label (high weight - often unique for list items)
-        if (identifier.ariaLabel && candidate.getAttribute('aria-label') === identifier.ariaLabel) {
-            score += ELEMENT_MATCH_SCORE.ARIA_LABEL;
+        if (candidateMatch.isPrefixOnlyMatch) {
+            prefixOnlyCandidateCount += 1;
         }
 
-        // Match role
-        if (identifier.role && candidate.getAttribute('role') === identifier.role) {
-            score += ELEMENT_MATCH_SCORE.ROLE;
-        }
-
-        // Match data-testid (highest weight if available)
-        if (identifier.dataTestId && candidate.getAttribute('data-testid') === identifier.dataTestId) {
-            score += ELEMENT_MATCH_SCORE.DATA_TESTID;
-        }
-
-        // Match textContent (critical for list items like workspace rows)
-        // Check exact match first (higher score), then prefix match for robustness
-        const candidateText = (candidate.textContent ?? '').slice(0, TEXT_CONTENT_PREVIEW_LENGTH).trim();
-        if (identifier.textContentPreview && candidateText === identifier.textContentPreview) {
-            score += ELEMENT_MATCH_SCORE.TEXT_EXACT;
-        } else if (identifier.textContentPreview && candidateText.startsWith(identifier.textContentPreview.slice(0, TEXT_CONTENT_PREFIX_LENGTH))) {
-            score += ELEMENT_MATCH_SCORE.TEXT_PREFIX;
-        }
-
-        if (score > bestScore) {
-            bestScore = score;
-            bestMatch = candidate;
+        if (isCandidateBetter(candidateMatch, bestMatch)) {
+            bestMatch = candidateMatch;
         }
     }
 
-    // Require minimum score to avoid false positives
-    // aria-label match (10) + either role (5) or textContent prefix (30)
-    if (bestScore >= MIN_MATCH_SCORE) {
-        return bestMatch;
+    if (!bestMatch || bestMatch.score < MIN_MATCH_SCORE) {
+        return null;
     }
 
-    return null;
+    // Prefix-only matches are weak signals. If multiple elements are prefix-only matches,
+    // we avoid restoring to any of them to prevent unstable or incorrect focus targets.
+    if (bestMatch.isPrefixOnlyMatch && prefixOnlyCandidateCount > 1) {
+        logFocusDebug('[NavigationFocusManager] Prefix-only match is ambiguous, skipping restoration', {
+            tagName: identifier.tagName,
+            prefix: identifier.textContentPreview.slice(0, TEXT_CONTENT_PREFIX_LENGTH),
+            candidateCount: prefixOnlyCandidateCount,
+        });
+        return null;
+    }
+
+    return bestMatch.element;
 }
 
 /**
@@ -198,6 +396,11 @@ function findMatchingElement(identifier: ElementIdentifier): HTMLElement | null 
 function handleInteraction(event: PointerEvent): void {
     // Mouse/touch interaction clears any pending keyboard flag
     wasKeyboardInteraction = false;
+    setInteractionProvenance({
+        interactionType: 'pointer',
+        interactionTrigger: 'pointer',
+        routeKey: currentFocusedRouteKey,
+    });
 
     const targetElement = event.target as HTMLElement;
 
@@ -207,14 +410,10 @@ function handleInteraction(event: PointerEvent): void {
         // protection (not time-based) to preserve the anchor element (e.g., "More" button)
         // that opened the menu. This ensures focus restoration works regardless of how
         // long the user takes to click a menu item. See issue #76921 for details.
-        //
-        // The protection only applies when: (1) target is a menuitem, AND (2) prior
-        // capture is NOT a menuitem (i.e., it's an anchor like "More" button).
-        // Non-menuitems always capture, correctly overwriting any prior capture.
         const isMenuitem = !!targetElement.closest('[role="menuitem"]');
         const isPriorCaptureAnchor = lastInteractionCapture && !lastInteractionCapture.element.closest('[role="menuitem"]');
         if (isMenuitem && isPriorCaptureAnchor) {
-            Log.info('[NavigationFocusManager] Skipped menuitem capture - preserving non-menuitem anchor', false, {
+            logFocusDebug('[NavigationFocusManager] Skipped menuitem capture - preserving non-menuitem anchor', {
                 menuitemLabel: targetElement.closest('[role="menuitem"]')?.getAttribute('aria-label'),
                 anchorLabel: lastInteractionCapture?.element.getAttribute('aria-label'),
             });
@@ -236,15 +435,22 @@ function handleInteraction(event: PointerEvent): void {
         // This enables focus restoration even after screen unmounts and remounts with new DOM
         if (currentFocusedRouteKey) {
             const identifier = extractElementIdentifier(elementToCapture);
-            routeElementIdentifierMap.set(currentFocusedRouteKey, identifier);
-            // Also store element reference for persistent screens (fallback)
-            routeFocusMap.set(currentFocusedRouteKey, {
-                element: elementToCapture,
-                forRoute: currentFocusedRouteKey,
+            updateRouteFocusEntry(currentFocusedRouteKey, {
+                element: {
+                    element: elementToCapture,
+                    forRoute: currentFocusedRouteKey,
+                },
+                identifier,
+                metadata: createRouteFocusMetadata({
+                    interactionType: 'pointer',
+                    interactionTrigger: 'pointer',
+                    elementRefCandidateSource: 'interactionValidated',
+                    hasIdentifierCandidate: true,
+                }),
             });
         }
 
-        Log.info('[NavigationFocusManager] Captured element on pointerdown', false, {
+        logFocusDebug('[NavigationFocusManager] Captured element on pointerdown', {
             tagName: elementToCapture.tagName,
             ariaLabel: elementToCapture.getAttribute('aria-label'),
             role: elementToCapture.getAttribute('role'),
@@ -266,6 +472,11 @@ function handleKeyDown(event: KeyboardEvent): void {
     // ALWAYS set keyboard interaction flag for modal auto-focus and navigation
     // This must happen BEFORE any early returns (e.g., menuitem protection)
     wasKeyboardInteraction = true;
+    setInteractionProvenance({
+        interactionType: 'keyboard',
+        interactionTrigger: event.key === 'Escape' ? 'escape' : 'enterOrSpace',
+        routeKey: currentFocusedRouteKey,
+    });
 
     // For Escape key (back navigation), we only need the flag, not element capture
     // Element capture is for forward navigation to know where to return focus
@@ -276,12 +487,10 @@ function handleKeyDown(event: KeyboardEvent): void {
     const activeElement = document.activeElement as HTMLElement;
 
     if (activeElement && activeElement !== document.body && activeElement.tagName !== 'HTML') {
-        // Menu items are transient - use state-based protection to preserve anchor.
-        // See handleInteraction comment for full explanation. Issue #76921.
         const isMenuitem = !!activeElement.closest('[role="menuitem"]');
         const isPriorCaptureAnchor = lastInteractionCapture && !lastInteractionCapture.element.closest('[role="menuitem"]');
         if (isMenuitem && isPriorCaptureAnchor) {
-            Log.info('[NavigationFocusManager] Skipped menuitem capture on keydown - preserving non-menuitem anchor', false, {
+            logFocusDebug('[NavigationFocusManager] Skipped menuitem capture on keydown - preserving non-menuitem anchor', {
                 menuitemLabel: activeElement.closest('[role="menuitem"]')?.getAttribute('aria-label'),
                 anchorLabel: lastInteractionCapture?.element.getAttribute('aria-label'),
             });
@@ -296,15 +505,22 @@ function handleKeyDown(event: KeyboardEvent): void {
         // IMMEDIATE CAPTURE: Store element identifier for non-persistent screens
         if (currentFocusedRouteKey) {
             const identifier = extractElementIdentifier(activeElement);
-            routeElementIdentifierMap.set(currentFocusedRouteKey, identifier);
-            // Also store element reference for persistent screens (fallback)
-            routeFocusMap.set(currentFocusedRouteKey, {
-                element: activeElement,
-                forRoute: currentFocusedRouteKey,
+            updateRouteFocusEntry(currentFocusedRouteKey, {
+                element: {
+                    element: activeElement,
+                    forRoute: currentFocusedRouteKey,
+                },
+                identifier,
+                metadata: createRouteFocusMetadata({
+                    interactionType: 'keyboard',
+                    interactionTrigger: 'enterOrSpace',
+                    elementRefCandidateSource: 'interactionValidated',
+                    hasIdentifierCandidate: true,
+                }),
             });
         }
 
-        Log.info('[NavigationFocusManager] Captured element on keydown', false, {
+        logFocusDebug('[NavigationFocusManager] Captured element on keydown', {
             tagName: activeElement.tagName,
             ariaLabel: activeElement.getAttribute('aria-label'),
             role: activeElement.getAttribute('role'),
@@ -344,7 +560,12 @@ function destroy(): void {
     isInitialized = false;
     routeFocusMap.clear();
     routeElementIdentifierMap.clear();
+    routeFocusMetadataMap.clear();
     lastInteractionCapture = null;
+    clearInteractionProvenance();
+    currentFocusedRouteKey = null;
+    wasKeyboardInteraction = false;
+    elementQueryStrategy = defaultElementQueryStrategy;
 }
 
 /**
@@ -360,6 +581,7 @@ function destroy(): void {
 function captureForRoute(routeKey: string): void {
     let elementToStore: HTMLElement | null = null;
     let captureSource: 'interaction' | 'activeElement' | 'none' = 'none';
+    let metadataForStore: RouteFocusMetadata | null = null;
 
     // Try to use the element captured during user interaction if it belongs to this route
     if (lastInteractionCapture) {
@@ -371,25 +593,30 @@ function captureForRoute(routeKey: string): void {
         const isValidCapture = forRoute === routeKey;
 
         if (forRoute === null) {
-            // This should be rare - only happens if interaction occurs before any route is registered
-            // Reject to be safe rather than potentially restoring focus to wrong screen
-            Log.info('[NavigationFocusManager] Capture has no route - rejecting for safety', false, {
+            logFocusDebug('[NavigationFocusManager] Capture has no route - rejecting for safety', {
                 requestedRoute: routeKey,
                 capturedLabel: capturedElement.getAttribute('aria-label'),
             });
         } else if (!isValidCapture) {
-            Log.info('[NavigationFocusManager] Capture is for different route - rejecting', false, {
+            logFocusDebug('[NavigationFocusManager] Capture is for different route - rejecting', {
                 captureRoute: forRoute,
                 requestedRoute: routeKey,
             });
         } else if (!isInDOM) {
-            Log.info('[NavigationFocusManager] Captured element no longer in DOM - falling back to activeElement', false, {
+            logFocusDebug('[NavigationFocusManager] Captured element no longer in DOM - falling back to activeElement', {
                 routeKey,
                 capturedLabel: capturedElement.getAttribute('aria-label'),
             });
         } else {
+            const interactionMetadata = resolveInteractionMetadataForRoute(routeKey);
             elementToStore = capturedElement;
             captureSource = 'interaction';
+            metadataForStore = createRouteFocusMetadata({
+                interactionType: interactionMetadata.interactionType,
+                interactionTrigger: interactionMetadata.interactionTrigger,
+                elementRefCandidateSource: 'interactionValidated',
+                hasIdentifierCandidate: routeElementIdentifierMap.has(routeKey),
+            });
         }
     }
 
@@ -404,18 +631,28 @@ function captureForRoute(routeKey: string): void {
         //   all focusable elements are removed, or in certain browser/JSDOM states.
         //   Neither represents a meaningful focus target for restoration.
         if (activeElement && activeElement !== document.body && activeElement !== document.documentElement) {
+            const interactionMetadata = resolveInteractionMetadataForRoute(routeKey);
             elementToStore = activeElement;
             captureSource = 'activeElement';
+            metadataForStore = createRouteFocusMetadata({
+                interactionType: interactionMetadata.interactionType,
+                interactionTrigger: interactionMetadata.interactionTrigger,
+                elementRefCandidateSource: 'activeElementFallback',
+                hasIdentifierCandidate: routeElementIdentifierMap.has(routeKey),
+            });
         }
     }
 
     // Store the element if we found a valid one
     if (elementToStore) {
-        routeFocusMap.set(routeKey, {
-            element: elementToStore,
-            forRoute: routeKey,
+        updateRouteFocusEntry(routeKey, {
+            element: {
+                element: elementToStore,
+                forRoute: routeKey,
+            },
+            metadata: metadataForStore,
         });
-        Log.info('[NavigationFocusManager] Stored focus for route', false, {
+        logFocusDebug('[NavigationFocusManager] Stored focus for route', {
             routeKey,
             source: captureSource,
             tagName: elementToStore.tagName,
@@ -423,7 +660,7 @@ function captureForRoute(routeKey: string): void {
             role: elementToStore.getAttribute('role'),
         });
     } else {
-        Log.info('[NavigationFocusManager] No valid element to store for route', false, {
+        logFocusDebug('[NavigationFocusManager] No valid element to store for route', {
             routeKey,
             activeElement: document.activeElement?.tagName,
         });
@@ -431,6 +668,7 @@ function captureForRoute(routeKey: string): void {
 
     // Clear the interaction capture after use
     lastInteractionCapture = null;
+    clearInteractionProvenance();
 }
 
 /**
@@ -449,13 +687,11 @@ function retrieveForRoute(routeKey: string): HTMLElement | null {
     const identifier = routeElementIdentifierMap.get(routeKey);
 
     // Remove from maps regardless (one-time use)
-    routeFocusMap.delete(routeKey);
-    routeElementIdentifierMap.delete(routeKey);
+    clearRouteFocusEntry(routeKey);
 
     // Strategy 1: Try element reference (works for persistent screens)
-    // No timestamp check - cleanupRemovedRoutes handles lifecycle
     if (captured && document.body.contains(captured.element)) {
-        Log.info('[NavigationFocusManager] Retrieved focus for route (element reference)', false, {
+        logFocusDebug('[NavigationFocusManager] Retrieved focus for route (element reference)', {
             routeKey,
             tagName: captured.element.tagName,
             ariaLabel: captured.element.getAttribute('aria-label'),
@@ -464,12 +700,10 @@ function retrieveForRoute(routeKey: string): HTMLElement | null {
     }
 
     // Strategy 2: Use element identifier to find matching element in new DOM
-    // (Critical for non-persistent screens that remounted)
-    // No timestamp check - cleanupRemovedRoutes handles lifecycle
     if (identifier) {
         const matchedElement = findMatchingElement(identifier);
         if (matchedElement) {
-            Log.info('[NavigationFocusManager] Retrieved focus for route (identifier match)', false, {
+            logFocusDebug('[NavigationFocusManager] Retrieved focus for route (identifier match)', {
                 routeKey,
                 tagName: matchedElement.tagName,
                 ariaLabel: matchedElement.getAttribute('aria-label'),
@@ -477,7 +711,7 @@ function retrieveForRoute(routeKey: string): HTMLElement | null {
             return matchedElement;
         }
 
-        Log.info('[NavigationFocusManager] No matching element found for identifier', false, {
+        logFocusDebug('[NavigationFocusManager] No matching element found for identifier', {
             routeKey,
             identifier: {
                 tagName: identifier.tagName,
@@ -488,7 +722,7 @@ function retrieveForRoute(routeKey: string): HTMLElement | null {
     }
 
     if (!captured && !identifier) {
-        Log.info('[NavigationFocusManager] No stored focus for route', false, {routeKey});
+        logFocusDebug('[NavigationFocusManager] No stored focus for route', {routeKey});
     }
 
     return null;
@@ -501,8 +735,8 @@ function retrieveForRoute(routeKey: string): HTMLElement | null {
  * @param routeKey - The route.key from React Navigation
  */
 function clearForRoute(routeKey: string): void {
-    routeFocusMap.delete(routeKey);
-    routeElementIdentifierMap.delete(routeKey);
+    clearRouteFocusEntry(routeKey);
+    clearInteractionProvenanceForRoute(routeKey);
 }
 
 /**
@@ -516,6 +750,18 @@ function hasStoredFocus(routeKey: string): boolean {
     return routeFocusMap.has(routeKey) || routeElementIdentifierMap.has(routeKey);
 }
 
+function getRetrievalModeForRoute(routeKey: string): RetrievalMode {
+    const metadata = routeFocusMetadataMap.get(routeKey);
+    if (!metadata || metadata.interactionType !== 'keyboard') {
+        return 'legacy';
+    }
+    return 'keyboardSafe';
+}
+
+function getRouteFocusMetadata(routeKey: string): RouteFocusMetadata | null {
+    return routeFocusMetadataMap.get(routeKey) ?? null;
+}
+
 /**
  * Register the currently focused screen's route key.
  * This enables immediate capture to routeFocusMap during interactions,
@@ -525,6 +771,9 @@ function hasStoredFocus(routeKey: string): boolean {
  * @param routeKey - The route.key from React Navigation
  */
 function registerFocusedRoute(routeKey: string): void {
+    if (currentFocusedRouteKey !== routeKey) {
+        clearInteractionProvenance();
+    }
     currentFocusedRouteKey = routeKey;
 }
 
@@ -559,15 +808,6 @@ function clearKeyboardInteractionFlag(): void {
 /**
  * Get the last captured element that is NOT a menuitem.
  * Used for focus restoration when a modal triggered from a menu closes.
- *
- * This leverages the menuitem protection logic: when a user clicks a menuitem
- * (like "Delete workspace"), the original anchor (like "More" button) is preserved.
- * This method returns that preserved anchor for focus restoration.
- *
- * @returns The captured anchor element, or null if:
- *   - No element was captured
- *   - The captured element is no longer in DOM
- *   - The captured element IS a menuitem (not an anchor)
  */
 function getCapturedAnchorElement(): HTMLElement | null {
     // Only available on web where document exists
@@ -579,18 +819,17 @@ function getCapturedAnchorElement(): HTMLElement | null {
 
     // Verify element is still in DOM
     if (!document.body.contains(element)) {
-        Log.info('[NavigationFocusManager] getCapturedAnchorElement: element no longer in DOM');
+        logFocusDebug('[NavigationFocusManager] getCapturedAnchorElement: element no longer in DOM');
         return null;
     }
 
     // Only return non-menuitem elements (anchors like "More" button)
-    // Menuitems are transient and shouldn't be returned
     if (element.closest('[role="menuitem"]')) {
-        Log.info('[NavigationFocusManager] getCapturedAnchorElement: element is menuitem, returning null');
+        logFocusDebug('[NavigationFocusManager] getCapturedAnchorElement: element is menuitem, returning null');
         return null;
     }
 
-    Log.info('[NavigationFocusManager] getCapturedAnchorElement: returning anchor', false, {
+    logFocusDebug('[NavigationFocusManager] getCapturedAnchorElement: returning anchor', {
         tagName: element.tagName,
         ariaLabel: element.getAttribute('aria-label'),
     });
@@ -601,25 +840,36 @@ function getCapturedAnchorElement(): HTMLElement | null {
 /**
  * Removes focus data for routes that are no longer in the navigation state.
  * Called from handleStateChange in NavigationRoot.tsx.
- *
- * This follows the same pattern as cleanPreservedNavigatorStates and
- * cleanStaleScrollOffsets - lifecycle tied to navigation state changes.
  */
 function cleanupRemovedRoutes(state: State): void {
     const activeKeys = extractNavigationKeys(state.routes);
-
-    for (const key of routeFocusMap.keys()) {
-        if (!activeKeys.has(key)) {
-            routeFocusMap.delete(key);
-            Log.info('[NavigationFocusManager] Cleaned up focus data for removed route', false, {routeKey: key});
-        }
+    const knownRouteKeys = new Set<string>([...routeFocusMap.keys(), ...routeElementIdentifierMap.keys(), ...routeFocusMetadataMap.keys()]);
+    const provenanceRouteKey = lastInteractionProvenance?.routeKey;
+    if (provenanceRouteKey) {
+        knownRouteKeys.add(provenanceRouteKey);
     }
 
-    for (const key of routeElementIdentifierMap.keys()) {
-        if (!activeKeys.has(key)) {
-            routeElementIdentifierMap.delete(key);
+    for (const key of knownRouteKeys) {
+        if (activeKeys.has(key)) {
+            continue;
         }
+
+        clearRouteFocusEntry(key);
+        clearInteractionProvenanceForRoute(key);
+        logFocusDebug('[NavigationFocusManager] Cleaned up focus data for removed route', {routeKey: key});
     }
+}
+
+/**
+ * Testing seam only. Allows unit tests to provide deterministic candidate sets
+ * without coupling tests to global document.querySelectorAll.
+ */
+function setElementQueryStrategyForTests(queryStrategy?: ElementQueryStrategy): void {
+    elementQueryStrategy = queryStrategy ?? defaultElementQueryStrategy;
+}
+
+function getInteractionProvenanceForTests(): InteractionProvenance | null {
+    return lastInteractionProvenance;
 }
 
 export default {
@@ -629,10 +879,14 @@ export default {
     retrieveForRoute,
     clearForRoute,
     hasStoredFocus,
+    getRetrievalModeForRoute,
+    getRouteFocusMetadata,
     registerFocusedRoute,
     unregisterFocusedRoute,
     wasRecentKeyboardInteraction,
     clearKeyboardInteractionFlag,
     getCapturedAnchorElement,
     cleanupRemovedRoutes,
+    setElementQueryStrategyForTests,
+    getInteractionProvenanceForTests,
 };

@@ -138,6 +138,112 @@ describe('PopoverMenu utils', () => {
     });
 });
 
+describe('PopoverMenu initialFocus role/query behavior', () => {
+    afterEach(() => {
+        document.body.innerHTML = '';
+    });
+
+    function simulateComputeInitialFocus(container: HTMLElement): HTMLElement | false {
+        const firstMenuItem = container.querySelector('[role="menuitem"]');
+        return firstMenuItem instanceof HTMLElement ? firstMenuItem : false;
+    }
+
+    it('returns false when items use role button (default PopoverMenu path)', () => {
+        const container = document.createElement('div');
+
+        const item1 = document.createElement('div');
+        item1.setAttribute('role', 'button');
+        item1.textContent = 'Request money';
+
+        const item2 = document.createElement('div');
+        item2.setAttribute('role', 'button');
+        item2.textContent = 'Split expense';
+
+        container.appendChild(item1);
+        container.appendChild(item2);
+        document.body.appendChild(container);
+
+        expect(simulateComputeInitialFocus(container)).toBe(false);
+    });
+
+    it('returns first item when role menuitem is present', () => {
+        const container = document.createElement('div');
+        const item1 = document.createElement('div');
+        item1.setAttribute('role', 'menuitem');
+        item1.textContent = 'Settings';
+        const item2 = document.createElement('div');
+        item2.setAttribute('role', 'menuitem');
+        item2.textContent = 'Sign out';
+
+        container.appendChild(item1);
+        container.appendChild(item2);
+        document.body.appendChild(container);
+
+        expect(simulateComputeInitialFocus(container)).toBe(item1);
+    });
+
+    it('returns false when container is empty', () => {
+        const container = document.createElement('div');
+        document.body.appendChild(container);
+
+        expect(simulateComputeInitialFocus(container)).toBe(false);
+    });
+
+    it('finds deeply nested menuitem', () => {
+        const container = document.createElement('div');
+        const wrapper = document.createElement('div');
+        const innerWrapper = document.createElement('div');
+        const menuItem = document.createElement('div');
+        menuItem.setAttribute('role', 'menuitem');
+        menuItem.textContent = 'Nested action';
+
+        innerWrapper.appendChild(menuItem);
+        wrapper.appendChild(innerWrapper);
+        container.appendChild(wrapper);
+        document.body.appendChild(container);
+
+        expect(simulateComputeInitialFocus(container)).toBe(menuItem);
+    });
+
+    it('returns false for mixed roles without menuitem', () => {
+        const container = document.createElement('div');
+        const roles = ['button', 'link', 'option', 'tab'];
+        for (const role of roles) {
+            const item = document.createElement('div');
+            item.setAttribute('role', role);
+            container.appendChild(item);
+        }
+        document.body.appendChild(container);
+
+        expect(simulateComputeInitialFocus(container)).toBe(false);
+    });
+
+    it('demonstrates keyboard-open mismatch: role button items produce no target', () => {
+        const wasOpenedViaKeyboard = true;
+        const isWeb = true;
+        const container = document.createElement('div');
+
+        for (let i = 0; i < 5; i++) {
+            const item = document.createElement('div');
+            item.setAttribute('role', 'button');
+            item.textContent = `Action ${i}`;
+            container.appendChild(item);
+        }
+        document.body.appendChild(container);
+
+        const computeInitialFocus = (() => {
+            if (!wasOpenedViaKeyboard || !isWeb) {
+                return false;
+            }
+            return () => simulateComputeInitialFocus(container);
+        })();
+
+        expect(typeof computeInitialFocus).toBe('function');
+        const focusTarget = typeof computeInitialFocus === 'function' ? computeInitialFocus() : computeInitialFocus;
+        expect(focusTarget).toBe(false);
+    });
+});
+
 jest.mock('@components/PopoverWithMeasuredContent', () => {
     return {
         // eslint-disable-next-line @typescript-eslint/naming-convention

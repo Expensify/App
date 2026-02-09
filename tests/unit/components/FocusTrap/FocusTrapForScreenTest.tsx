@@ -38,6 +38,7 @@ import React from 'react';
 // Mock variables to control test behavior
 let mockIsFocused = true;
 let mockRouteName = 'TestScreen';
+let mockRouteKey: string | undefined = 'test-route';
 
 // Track focus trap callbacks for testing
 type FocusTrapCallbacks = {
@@ -51,7 +52,7 @@ let capturedFocusTrapOptions: FocusTrapCallbacks = {};
 // Mock @react-navigation/native - overrides global mock for configurable test values
 jest.mock('@react-navigation/native', () => ({
     useIsFocused: () => mockIsFocused,
-    useRoute: () => ({name: mockRouteName, key: 'test-route'}),
+    useRoute: () => ({name: mockRouteName, key: mockRouteKey}),
     // useNavigation needed for beforeRemove listener in FocusTrapForScreen
     useNavigation: () => ({
         addListener: jest.fn(() => jest.fn()),
@@ -182,6 +183,7 @@ function callSetReturnFocus(element: HTMLElement): HTMLElement | false | undefin
 function resetMocks() {
     mockIsFocused = true;
     mockRouteName = 'TestScreen';
+    mockRouteKey = 'test-route';
     capturedFocusTrapOptions = {};
 
     // Clean up DOM
@@ -498,6 +500,22 @@ describe('FocusTrapForScreen', () => {
 
             // When/Then: onActivate should not throw
             expect(() => capturedFocusTrapOptions.onActivate?.()).not.toThrow();
+        });
+
+        it('should no-op safely if route key is missing in malformed mocks', () => {
+            mockRouteKey = undefined;
+
+            expect(() =>
+                render(
+                    <FocusTrapForScreen>
+                        <div data-testid="content">Test Content</div>
+                    </FocusTrapForScreen>,
+                ),
+            ).not.toThrow();
+
+            expect(typeof capturedFocusTrapOptions.initialFocus).toBe('function');
+            const initialFocusFn = capturedFocusTrapOptions.initialFocus as () => HTMLElement | false;
+            expect(initialFocusFn()).toBe(false);
         });
     });
 

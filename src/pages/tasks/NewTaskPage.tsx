@@ -15,7 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
-import blurActiveElement from '@libs/Accessibility/blurActiveElement';
+import blurActiveInputElement from '@libs/Accessibility/blurActiveInputElement';
 import {createTaskAndNavigate, dismissModalAndClearOutTaskInfo, getAssignee, getShareDestination, setShareDestinationValue} from '@libs/actions/Task';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -61,10 +61,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
         focusTimeoutRef.current = setTimeout(() => {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
-                const activeElement = document?.activeElement;
-                if (activeElement instanceof HTMLElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
-                    blurActiveElement();
-                }
+                blurActiveInputElement();
             });
         }, CONST.ANIMATED_TRANSITION);
         return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);

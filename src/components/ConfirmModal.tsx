@@ -6,11 +6,16 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
-import Log from '@libs/Log';
 import NavigationFocusManager from '@libs/NavigationFocusManager';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import ConfirmContent from './ConfirmContent';
+import {
+    getInitialFocusTarget,
+    isWebPlatform,
+    restoreCapturedAnchorFocus,
+    shouldTryKeyboardInitialFocus,
+} from './ConfirmModal/focusRestore';
 import Modal from './Modal';
 import type BaseModalProps from './Modal/types';
 
@@ -191,19 +196,12 @@ function ConfirmModal({
                 if (wasKeyboard) {
                     NavigationFocusManager.clearKeyboardInteractionFlag();
                 }
-                Log.info('[ConfirmModal] Keyboard state captured on open', false, {
-                    wasKeyboard,
-                });
             }
 
             // Capture the anchor element for focus restoration
             // This must happen NOW, before user clicks within the modal (which would overwrite it)
             if (capturedAnchorRef.current === null) {
                 capturedAnchorRef.current = NavigationFocusManager.getCapturedAnchorElement();
-                Log.info('[ConfirmModal] Captured anchor for focus restoration', false, {
-                    hasAnchor: !!capturedAnchorRef.current,
-                    anchorLabel: capturedAnchorRef.current?.getAttribute('aria-label'),
-                });
             }
         } else if (!isVisible && prevVisible) {
             // Reset keyboard ref when modal closes (allows next open to capture)
@@ -225,33 +223,17 @@ function ConfirmModal({
      */
     const computeInitialFocus = (): HTMLElement | false => {
         const platform = getPlatform();
+        const shouldTryFocus = shouldTryKeyboardInitialFocus(!!wasOpenedViaKeyboardRef.current);
 
         // Check ref LAZILY - this runs when FocusTrap activates (after useLayoutEffect)
-        if (!wasOpenedViaKeyboardRef.current || platform !== CONST.PLATFORM.WEB) {
+        if (!shouldTryFocus || !isWebPlatform(platform)) {
             return false;
         }
 
-        // CRITICAL: Scope query to this modal's container
-        // This prevents focusing buttons from OTHER open modals
-        // in nested scenarios (e.g., ThreeDotsMenu → PopoverMenu → ConfirmModal)
-        const container = modalContainerRef.current as unknown as HTMLElement;
-        if (!container) {
-            // Fallback: If container ref not set, use last dialog (legacy behavior)
-            Log.warn('[ConfirmModal] modalContainerRef is null, falling back to last dialog');
-            const dialogs = document.querySelectorAll('[role="dialog"]');
-            const lastDialog = dialogs[dialogs.length - 1];
-            const firstButton = lastDialog?.querySelector('button');
-            return firstButton instanceof HTMLElement ? firstButton : false;
-        }
-
-        const firstButton = container.querySelector('button');
-
-        Log.info('[ConfirmModal] initialFocus activated via keyboard', false, {
-            foundButton: !!firstButton,
-            buttonText: firstButton?.textContent?.slice(0, 30),
+        return getInitialFocusTarget({
+            isOpenedViaKeyboard: shouldTryFocus,
+            containerElementRef: modalContainerRef.current,
         });
-
-        return firstButton instanceof HTMLElement ? firstButton : false;
     };
 
     // Perf: Prevents from rendering whole confirm modal on initial render.
@@ -266,14 +248,10 @@ function ConfirmModal({
             isVisible={isVisible}
             shouldSetModalVisibility={shouldSetModalVisibility}
             onModalHide={() => {
-                // Restore focus to captured anchor (web only)
-                // This improves accessibility by returning focus to the trigger element
-                if (getPlatform() === CONST.PLATFORM.WEB && capturedAnchorRef.current && document.body.contains(capturedAnchorRef.current)) {
-                    capturedAnchorRef.current.focus();
-                    Log.info('[ConfirmModal] Restored focus to captured anchor', false, {
-                        anchorLabel: capturedAnchorRef.current.getAttribute('aria-label'),
-                    });
+                if (isWebPlatform(getPlatform())) {
+                    restoreCapturedAnchorFocus(capturedAnchorRef.current);
                 }
+
                 // Reset the ref AFTER focus restoration (not in useLayoutEffect)
                 capturedAnchorRef.current = null;
                 onModalHide();

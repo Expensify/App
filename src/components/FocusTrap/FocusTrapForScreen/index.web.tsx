@@ -52,6 +52,8 @@ function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
     const route = useRoute();
     const navigation = useNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // route.key is required by React Navigation type contracts, but we still guard malformed test mocks.
+    const routeKey = typeof route.key === 'string' && route.key.length > 0 ? route.key : undefined;
 
     // Track previous focus state to detect transitions
     const prevIsFocused = useRef(isFocused);
@@ -59,32 +61,41 @@ function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
     // Track if this screen was navigated to (vs initial page load)
     // This prevents focus restoration on initial page load (Issue #46109)
     const wasNavigatedTo = useRef(false);
+    const shouldRestoreFocusWithoutTrap = useRef(false);
 
     // Unregister focused route on unmount
     useEffect(() => {
         return () => {
-            NavigationFocusManager.unregisterFocusedRoute(route.key);
+            if (!routeKey) {
+                return;
+            }
+            NavigationFocusManager.unregisterFocusedRoute(routeKey);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [routeKey]);
 
     // Register/unregister focused route for immediate capture
     useEffect(() => {
-        if (isFocused) {
-            NavigationFocusManager.registerFocusedRoute(route.key);
-        } else {
-            NavigationFocusManager.unregisterFocusedRoute(route.key);
+        if (!routeKey) {
+            return;
         }
-    }, [isFocused, route.key]);
+        if (isFocused) {
+            NavigationFocusManager.registerFocusedRoute(routeKey);
+        } else {
+            NavigationFocusManager.unregisterFocusedRoute(routeKey);
+        }
+    }, [isFocused, routeKey]);
 
     // Capture focus before screen is removed from navigation stack
     // This handles back navigation where screen may unmount before useLayoutEffect runs
     useEffect(() => {
+        if (!routeKey) {
+            return;
+        }
         const unsubscribe = navigation.addListener('beforeRemove', () => {
-            NavigationFocusManager.captureForRoute(route.key);
+            NavigationFocusManager.captureForRoute(routeKey);
         });
         return unsubscribe;
-    }, [navigation, route.key]);
+    }, [navigation, routeKey]);
 
     const isActive = useMemo(() => {
         if (typeof focusTrapSettings?.active !== 'undefined') {
@@ -107,12 +118,18 @@ function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
         return isFocused;
     }, [isFocused, shouldUseNarrowLayout, route.name, focusTrapSettings?.active]);
 
-    // Capture focus when screen loses focus (navigating away) and restore when returning
-    // useLayoutEffect runs synchronously, minimizing the timing window
+    // Capture focus transitions synchronously.
+    // Keep this effect minimal to avoid doing deferred restore work in layout phase.
     useLayoutEffect(() => {
+        if (!routeKey) {
+            prevIsFocused.current = isFocused;
+            shouldRestoreFocusWithoutTrap.current = false;
+            return;
+        }
+
         const wasFocused = prevIsFocused.current;
         const isNowFocused = isFocused;
-        const hasStored = NavigationFocusManager.hasStoredFocus(route.key);
+        const hasStored = NavigationFocusManager.hasStoredFocus(routeKey);
 
         // Detect returning to screen: either normal transition or fresh mount with stored focus
         // Fresh mount case: non-persistent screens remount with isFocused=true, so prevIsFocused
@@ -123,32 +140,39 @@ function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
 
         if (wasFocused && !isNowFocused) {
             // Screen is losing focus (forward navigation) - capture the focused element
-            NavigationFocusManager.captureForRoute(route.key);
+            NavigationFocusManager.captureForRoute(routeKey);
         }
 
         if (isReturningToScreen && hasStored) {
-            // For screens where FocusTrap is not active (e.g., wide layout screens in WIDE_LAYOUT_INACTIVE_SCREENS),
-            // we need to manually restore focus since initialFocus callback won't be called.
-            // For active traps, initialFocus handles focus restoration.
             if (!isActive) {
-                const capturedElement = NavigationFocusManager.retrieveForRoute(route.key);
-                if (capturedElement && isElementFocusable(capturedElement)) {
-                    // Defer focus until after browser paint. useLayoutEffect runs synchronously
-                    // before paint, and immediate focus() may not work reliably.
-                    // Using requestAnimationFrame (not setTimeout) as it semantically means
-                    // "after next paint" - the element is already validated via isElementFocusable().
-                    requestAnimationFrame(() => {
-                        capturedElement.focus();
-                    });
-                }
+                shouldRestoreFocusWithoutTrap.current = true;
             } else {
                 // For active traps, let initialFocus handle it
                 wasNavigatedTo.current = true;
+                shouldRestoreFocusWithoutTrap.current = false;
             }
+        } else {
+            shouldRestoreFocusWithoutTrap.current = false;
         }
 
         prevIsFocused.current = isFocused;
-    }, [isFocused, route.key, isActive]);
+    }, [isFocused, routeKey, isActive]);
+
+    useEffect(() => {
+        if (!routeKey || !isFocused || isActive || !shouldRestoreFocusWithoutTrap.current) {
+            return;
+        }
+
+        shouldRestoreFocusWithoutTrap.current = false;
+        const capturedElement = NavigationFocusManager.retrieveForRoute(routeKey);
+        if (!capturedElement || !isElementFocusable(capturedElement)) {
+            return;
+        }
+
+        requestAnimationFrame(() => {
+            capturedElement.focus();
+        });
+    }, [isActive, isFocused, routeKey]);
 
     return (
         <FocusTrap
@@ -181,8 +205,12 @@ function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
                     // Reset the flag
                     wasNavigatedTo.current = false;
 
+                    if (!routeKey) {
+                        return false;
+                    }
+
                     // Retrieve the element captured when we left this screen
-                    const capturedElement = NavigationFocusManager.retrieveForRoute(route.key);
+                    const capturedElement = NavigationFocusManager.retrieveForRoute(routeKey);
 
                     // Use captured element if it's still focusable
                     if (capturedElement && isElementFocusable(capturedElement)) {

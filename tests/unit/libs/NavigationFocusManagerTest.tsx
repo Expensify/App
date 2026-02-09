@@ -157,6 +157,270 @@ describe('NavigationFocusManager Gap Tests', () => {
         });
     });
 
+    describe('Element matching determinism', () => {
+        it('should allow injecting a query strategy for matching tests', () => {
+            const originalButton = document.createElement('button');
+            originalButton.setAttribute('aria-label', 'Anchor');
+            originalButton.setAttribute('role', 'button');
+            originalButton.textContent = 'Workspace Settings';
+            document.body.appendChild(originalButton);
+
+            NavigationFocusManager.registerFocusedRoute('query-strategy-route');
+            const pointerEvent = new PointerEvent('pointerdown', {
+                bubbles: true,
+                cancelable: true,
+            });
+            Object.defineProperty(pointerEvent, 'target', {value: originalButton});
+            document.dispatchEvent(pointerEvent);
+            NavigationFocusManager.unregisterFocusedRoute('query-strategy-route');
+            originalButton.remove();
+
+            const recreatedButton = document.createElement('button');
+            recreatedButton.setAttribute('aria-label', 'Anchor');
+            recreatedButton.setAttribute('role', 'button');
+            recreatedButton.textContent = 'Workspace Settings';
+            document.body.appendChild(recreatedButton);
+
+            const queryStrategy = jest.fn(() => [recreatedButton]);
+            NavigationFocusManager.setElementQueryStrategyForTests(queryStrategy);
+
+            const retrieved = NavigationFocusManager.retrieveForRoute('query-strategy-route');
+
+            expect(queryStrategy).toHaveBeenCalledWith('BUTTON');
+            expect(retrieved).toBe(recreatedButton);
+        });
+
+        it('should prefer aria-label match over text-only exact match when scores tie', () => {
+            const originalButton = document.createElement('button');
+            originalButton.setAttribute('aria-label', 'Workspace actions');
+            originalButton.setAttribute('role', 'button');
+            originalButton.textContent = 'Workspace Settings - Alpha';
+            document.body.appendChild(originalButton);
+
+            NavigationFocusManager.registerFocusedRoute('tie-break-route');
+            const pointerEvent = new PointerEvent('pointerdown', {
+                bubbles: true,
+                cancelable: true,
+            });
+            Object.defineProperty(pointerEvent, 'target', {value: originalButton});
+            document.dispatchEvent(pointerEvent);
+            NavigationFocusManager.unregisterFocusedRoute('tie-break-route');
+            originalButton.remove();
+
+            const textOnlyCandidate = document.createElement('button');
+            textOnlyCandidate.setAttribute('role', 'button');
+            textOnlyCandidate.textContent = 'Workspace Settings - Alpha';
+            document.body.appendChild(textOnlyCandidate);
+
+            const ariaCandidate = document.createElement('button');
+            ariaCandidate.setAttribute('aria-label', 'Workspace actions');
+            ariaCandidate.setAttribute('role', 'button');
+            ariaCandidate.textContent = 'Workspace Settings - Alpha Copy';
+            document.body.appendChild(ariaCandidate);
+
+            const retrieved = NavigationFocusManager.retrieveForRoute('tie-break-route');
+            expect(retrieved).toBe(ariaCandidate);
+        });
+
+        it('should reject ambiguous prefix-only collisions', () => {
+            const originalButton = document.createElement('button');
+            originalButton.textContent = 'Workspace Settings - Alpha';
+            document.body.appendChild(originalButton);
+
+            NavigationFocusManager.registerFocusedRoute('prefix-ambiguous-route');
+            const pointerEvent = new PointerEvent('pointerdown', {
+                bubbles: true,
+                cancelable: true,
+            });
+            Object.defineProperty(pointerEvent, 'target', {value: originalButton});
+            document.dispatchEvent(pointerEvent);
+            NavigationFocusManager.unregisterFocusedRoute('prefix-ambiguous-route');
+            originalButton.remove();
+
+            const candidateA = document.createElement('button');
+            candidateA.textContent = 'Workspace Settings - Beta';
+            document.body.appendChild(candidateA);
+
+            const candidateB = document.createElement('button');
+            candidateB.textContent = 'Workspace Settings - Gamma';
+            document.body.appendChild(candidateB);
+
+            const retrieved = NavigationFocusManager.retrieveForRoute('prefix-ambiguous-route');
+            expect(retrieved).toBeNull();
+        });
+    });
+
+    describe('Phase 1 metadata scaffolding', () => {
+        it('should write pointer metadata for interaction capture and keep retrieval mode legacy', () => {
+            const button = document.createElement('button');
+            button.setAttribute('aria-label', 'Pointer anchor');
+            document.body.appendChild(button);
+
+            NavigationFocusManager.registerFocusedRoute('pointer-metadata-route');
+            const pointerEvent = new PointerEvent('pointerdown', {bubbles: true, cancelable: true});
+            Object.defineProperty(pointerEvent, 'target', {value: button});
+            document.dispatchEvent(pointerEvent);
+            NavigationFocusManager.unregisterFocusedRoute('pointer-metadata-route');
+
+            NavigationFocusManager.captureForRoute('pointer-metadata-route');
+            const metadata = NavigationFocusManager.getRouteFocusMetadata('pointer-metadata-route');
+
+            expect(metadata).toEqual({
+                interactionType: 'pointer',
+                interactionTrigger: 'pointer',
+                elementRefCandidate: {source: 'interactionValidated', confidence: 3},
+                identifierCandidate: {source: 'identifierMatchReady', confidence: 2},
+            });
+            expect(NavigationFocusManager.getRetrievalModeForRoute('pointer-metadata-route')).toBe('legacy');
+        });
+
+        it('should write keyboard metadata for Enter captures', () => {
+            const button = document.createElement('button');
+            button.setAttribute('aria-label', 'Keyboard anchor');
+            document.body.appendChild(button);
+            button.focus();
+
+            NavigationFocusManager.registerFocusedRoute('keyboard-metadata-route');
+            const keyEvent = new KeyboardEvent('keydown', {key: 'Enter', bubbles: true});
+            document.dispatchEvent(keyEvent);
+            NavigationFocusManager.unregisterFocusedRoute('keyboard-metadata-route');
+
+            NavigationFocusManager.captureForRoute('keyboard-metadata-route');
+            const metadata = NavigationFocusManager.getRouteFocusMetadata('keyboard-metadata-route');
+
+            expect(metadata).toEqual({
+                interactionType: 'keyboard',
+                interactionTrigger: 'enterOrSpace',
+                elementRefCandidate: {source: 'interactionValidated', confidence: 3},
+                identifierCandidate: {source: 'identifierMatchReady', confidence: 2},
+            });
+            expect(NavigationFocusManager.getRetrievalModeForRoute('keyboard-metadata-route')).toBe('keyboardSafe');
+        });
+
+        it('should record escape provenance without creating an Escape interaction capture', () => {
+            const button = document.createElement('button');
+            document.body.appendChild(button);
+            button.focus();
+
+            NavigationFocusManager.registerFocusedRoute('escape-metadata-route');
+            const escapeEvent = new KeyboardEvent('keydown', {key: 'Escape', bubbles: true});
+            document.dispatchEvent(escapeEvent);
+            NavigationFocusManager.unregisterFocusedRoute('escape-metadata-route');
+
+            expect(NavigationFocusManager.getInteractionProvenanceForTests()).toEqual({
+                interactionType: 'keyboard',
+                interactionTrigger: 'escape',
+                routeKey: 'escape-metadata-route',
+            });
+
+            NavigationFocusManager.captureForRoute('escape-metadata-route');
+            const metadata = NavigationFocusManager.getRouteFocusMetadata('escape-metadata-route');
+
+            expect(metadata).toEqual({
+                interactionType: 'keyboard',
+                interactionTrigger: 'escape',
+                elementRefCandidate: {source: 'activeElementFallback', confidence: 1},
+                identifierCandidate: null,
+            });
+            expect(NavigationFocusManager.getRetrievalModeForRoute('escape-metadata-route')).toBe('keyboardSafe');
+        });
+
+        it('should classify fallback from provenance, not from global keyboard flag', () => {
+            const button = document.createElement('button');
+            document.body.appendChild(button);
+            button.focus();
+
+            NavigationFocusManager.registerFocusedRoute('source-route');
+            const enterEvent = new KeyboardEvent('keydown', {key: 'Enter', bubbles: true});
+            document.dispatchEvent(enterEvent);
+
+            // Capture for a different route to force interaction mismatch + fallback path.
+            // If classification used wasRecentKeyboardInteraction, this would incorrectly
+            // become keyboard metadata despite route mismatch.
+            NavigationFocusManager.captureForRoute('target-route');
+
+            const metadata = NavigationFocusManager.getRouteFocusMetadata('target-route');
+            expect(metadata).toEqual({
+                interactionType: 'unknown',
+                interactionTrigger: 'unknown',
+                elementRefCandidate: {source: 'activeElementFallback', confidence: 1},
+                identifierCandidate: null,
+            });
+            expect(NavigationFocusManager.getRetrievalModeForRoute('target-route')).toBe('legacy');
+        });
+
+        it('should default to legacy retrieval mode when metadata is missing', () => {
+            expect(NavigationFocusManager.getRouteFocusMetadata('missing-route')).toBeNull();
+            expect(NavigationFocusManager.getRetrievalModeForRoute('missing-route')).toBe('legacy');
+        });
+
+        it('should clear metadata and provenance in cleanupRemovedRoutes and destroy', () => {
+            const button = document.createElement('button');
+            document.body.appendChild(button);
+            button.focus();
+
+            NavigationFocusManager.registerFocusedRoute('lifecycle-route');
+            const pointerEvent = new PointerEvent('pointerdown', {bubbles: true, cancelable: true});
+            Object.defineProperty(pointerEvent, 'target', {value: button});
+            document.dispatchEvent(pointerEvent);
+            NavigationFocusManager.captureForRoute('lifecycle-route');
+
+            const escapeEvent = new KeyboardEvent('keydown', {key: 'Escape', bubbles: true});
+            document.dispatchEvent(escapeEvent);
+
+            expect(NavigationFocusManager.getRouteFocusMetadata('lifecycle-route')).not.toBeNull();
+            expect(NavigationFocusManager.getInteractionProvenanceForTests()).not.toBeNull();
+
+            const mockNavigationState = {
+                routes: [{key: 'other-route', name: 'OtherScreen'}],
+                index: 0,
+                stale: false,
+                type: 'stack',
+                key: 'root',
+                routeNames: ['OtherScreen'],
+            };
+            NavigationFocusManager.cleanupRemovedRoutes(mockNavigationState);
+
+            expect(NavigationFocusManager.getRouteFocusMetadata('lifecycle-route')).toBeNull();
+            expect(NavigationFocusManager.getInteractionProvenanceForTests()).toBeNull();
+
+            NavigationFocusManager.destroy();
+            NavigationFocusManager.initialize();
+            expect(NavigationFocusManager.getRouteFocusMetadata('lifecycle-route')).toBeNull();
+            expect(NavigationFocusManager.getInteractionProvenanceForTests()).toBeNull();
+        });
+
+        it('should clear provenance-only route state in cleanupRemovedRoutes', () => {
+            const button = document.createElement('button');
+            document.body.appendChild(button);
+            button.focus();
+
+            NavigationFocusManager.registerFocusedRoute('escape-only-route');
+            const escapeEvent = new KeyboardEvent('keydown', {key: 'Escape', bubbles: true});
+            document.dispatchEvent(escapeEvent);
+            NavigationFocusManager.unregisterFocusedRoute('escape-only-route');
+
+            expect(NavigationFocusManager.getRouteFocusMetadata('escape-only-route')).toBeNull();
+            expect(NavigationFocusManager.getInteractionProvenanceForTests()).toEqual({
+                interactionType: 'keyboard',
+                interactionTrigger: 'escape',
+                routeKey: 'escape-only-route',
+            });
+
+            const mockNavigationState = {
+                routes: [{key: 'other-route', name: 'OtherScreen'}],
+                index: 0,
+                stale: false,
+                type: 'stack',
+                key: 'root',
+                routeNames: ['OtherScreen'],
+            };
+            NavigationFocusManager.cleanupRemovedRoutes(mockNavigationState);
+
+            expect(NavigationFocusManager.getInteractionProvenanceForTests()).toBeNull();
+        });
+    });
+
     describe('Gap 2: Non-Pointer/Enter/Space Navigation Triggers', () => {
         it('should NOT capture element on non-Enter/Space keydown', () => {
             // Given: A focused element
@@ -1760,7 +2024,6 @@ describe('NavigationFocusManager Gap Tests', () => {
 
             it('should not duplicate event listeners after StrictMode cycle', () => {
                 // Given: Track how many times the handler is called
-                let captureCount = 0;
                 const originalAddEventListener = document.addEventListener.bind(document);
                 const listenerCalls: string[] = [];
 
@@ -1910,7 +2173,7 @@ describe('NavigationFocusManager Gap Tests', () => {
 
                 // Then: Should not have captured the pre-destroy event
                 // (captureForRoute may fall back to activeElement, but not the pointer event)
-                const retrieved = NavigationFocusManager.retrieveForRoute('post-destroy-route');
+                NavigationFocusManager.retrieveForRoute('post-destroy-route');
 
                 // The button might be captured via activeElement fallback if it's focused,
                 // but the pointerdown capture should not have occurred
@@ -1999,12 +2262,9 @@ describe('NavigationFocusManager Gap Tests', () => {
                 document.body.appendChild(button);
 
                 let eventDefaultPrevented = false;
-                let eventPropagationStopped = false;
 
                 button.addEventListener('pointerdown', (e) => {
                     eventDefaultPrevented = e.defaultPrevented;
-                    // Can't directly check propagation stopped, but we got here so it wasn't
-                    eventPropagationStopped = false;
                 });
 
                 // When: Pointerdown fires through NavigationFocusManager
@@ -2380,4 +2640,5 @@ describe('NavigationFocusManager Gap Tests', () => {
             });
         });
     });
+
 });

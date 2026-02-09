@@ -14,7 +14,7 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import blurActiveElement from '@libs/Accessibility/blurActiveElement';
+import blurActiveInputElement from '@libs/Accessibility/blurActiveInputElement';
 import {
     adjustRemainingSplitShares,
     computePerDiemExpenseAmount,
@@ -1114,10 +1114,7 @@ function MoneyRequestConfirmationList({
                 InteractionManager.runAfterInteractions(() => {
                     // Only blur input elements to dismiss keyboard.
                     // Don't blur other elements to preserve focus restoration on back navigation.
-                    const activeElement = document?.activeElement;
-                    if (activeElement instanceof HTMLElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
-                        blurActiveElement();
-                    }
+                    blurActiveInputElement();
                 });
             }, CONST.ANIMATED_TRANSITION);
             return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);

@@ -199,6 +199,10 @@ function getSelectedItemIndex(menuItems: PopoverMenuItem[]) {
     return menuItems.findIndex((option) => option.isSelected);
 }
 
+function getMenuContainerElement(containerRefValue: unknown): HTMLElement | null {
+    return containerRefValue instanceof HTMLElement ? containerRefValue : null;
+}
+
 /**
  * Return a stable string key for a menu item.
  * Prefers explicit `key` property on the item. If missing, falls back to `text`.
@@ -342,18 +346,13 @@ function BasePopoverMenu({
             // CRITICAL: Scope query to this menu's container
             // This prevents focusing menuitems from OTHER open modals
             // in nested scenarios (e.g., ThreeDotsMenu → PopoverMenu → ConfirmModal)
-            const container = menuContainerRef.current as unknown as HTMLElement;
+            const container = getMenuContainerElement(menuContainerRef.current);
             if (!container) {
                 Log.warn('[PopoverMenu] menuContainerRef is null during initialFocus');
                 return false;
             }
 
             const firstMenuItem = container.querySelector('[role="menuitem"]');
-
-            Log.info('[PopoverMenu] initialFocus activated via keyboard', false, {
-                foundMenuItem: !!firstMenuItem,
-                menuItemText: firstMenuItem?.textContent?.slice(0, 30),
-            });
 
             return firstMenuItem instanceof HTMLElement ? firstMenuItem : false;
         };
