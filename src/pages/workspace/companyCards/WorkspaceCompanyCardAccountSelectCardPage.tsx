@@ -90,11 +90,12 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
                             <RenderHTML
                                 html={
                                     isXeroConnection
-                                        ? translate('workspace.moreFeatures.companyCards.integrationExportTitleXero', {integration: exportMenuItem.description})
-                                        : translate('workspace.moreFeatures.companyCards.integrationExportTitle', {
-                                              integration: exportMenuItem.description,
-                                              exportPageLink: `${environmentURL}/${exportMenuItem.exportPageLink}`,
-                                          })
+                                        ? translate('workspace.moreFeatures.companyCards.integrationExportTitleXero', exportMenuItem.description)
+                                        : translate(
+                                              'workspace.moreFeatures.companyCards.integrationExportTitle',
+                                              exportMenuItem.description,
+                                              `${environmentURL}/${exportMenuItem.exportPageLink}`,
+                                          )
                                 }
                             />
                         </View>
