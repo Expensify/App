@@ -416,6 +416,7 @@ function FormProvider({
                                 return;
                             }
                             setTouchedInput(inputID);
+                            // Skip validation if the screen is not focused or keyboard focus is being restored (Android mWeb)
                             if (shouldValidateOnBlur && isFocusedRef.current && !getIsRestoringKeyboardFocus()) {
                                 onValidate(inputValues, !hasServerError);
                             }
