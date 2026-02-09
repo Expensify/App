@@ -7,6 +7,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
@@ -33,10 +34,6 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
     const policyID = route.params.policyID;
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const setupTagsTaskReportID = introSelected?.setupTags;
-    const [setupTagsTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${setupTagsTaskReportID}`, {canBeMissing: true});
-    const {taskReport: setupCategoriesAndTagsTaskReport} = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -67,9 +64,43 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
         [policyTags, translate],
     );
 
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+
+    const {
+        taskReport: setupTagsTaskReport,
+        taskParentReport: setupTagsTaskParentReport,
+        isOnboardingTaskParentReportArchived: isSetupTagsTaskParentReportArchived,
+        hasOutstandingChildTask: setupTagsHasOutstandingChildTask,
+        parentReportAction: setupTagsParentReportAction,
+    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_TAGS);
+
+    const {
+        taskReport: setupCategoriesAndTagsTaskReport,
+        taskParentReport: setupCategoriesAndTagsTaskParentReport,
+        isOnboardingTaskParentReportArchived: isSetupCategoriesAndTagsTaskParentReportArchived,
+        hasOutstandingChildTask: setupCategoriesAndTagsHasOutstandingChildTask,
+        parentReportAction: setupCategoriesAndTagsParentReportAction,
+    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS);
+
     const createTag = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
-            createPolicyTag(policyID, values.tagName.trim(), policyTags, setupTagsTaskReport, setupCategoriesAndTagsTaskReport, policyHasCustomCategories);
+            createPolicyTag({
+                policyID,
+                tagName: values.tagName.trim(),
+                policyTags: policyTags ?? {},
+                setupTagsTaskReport,
+                setupTagsTaskParentReport,
+                isSetupTagsTaskParentReportArchived,
+                setupTagsHasOutstandingChildTask,
+                setupTagsParentReportAction,
+                setupCategoriesAndTagsTaskReport,
+                setupCategoriesAndTagsTaskParentReport,
+                isSetupCategoriesAndTagsTaskParentReportArchived,
+                setupCategoriesAndTagsHasOutstandingChildTask,
+                setupCategoriesAndTagsParentReportAction,
+                currentUserAccountID: currentUserPersonalDetails.accountID,
+                policyHasCustomCategories,
+            });
             Keyboard.dismiss();
             Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined);
         },

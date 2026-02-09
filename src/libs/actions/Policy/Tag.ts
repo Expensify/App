@@ -29,13 +29,31 @@ import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
 import {pushTransactionViolationsOnyxData} from '@libs/ReportUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 import type {PolicyTagList} from '@pages/workspace/tags/types';
-import {completeTask} from '@userActions/Task';
+import {completeTask, getFinishOnboardingTaskOnyxData} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ImportedSpreadsheet, Policy, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags, Report} from '@src/types/onyx';
+import type {ImportedSpreadsheet, Policy, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags, Report, ReportAction} from '@src/types/onyx';
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {ApprovalRule} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
+
+type CreatePolicyTagParams = {
+    policyID: string;
+    tagName: string;
+    policyTags: PolicyTagLists;
+    setupTagsTaskReport: OnyxEntry<Report>;
+    setupTagsTaskParentReport: OnyxEntry<Report>;
+    isSetupTagsTaskParentReportArchived: boolean;
+    setupTagsHasOutstandingChildTask: boolean;
+    setupTagsParentReportAction: OnyxEntry<ReportAction>;
+    setupCategoriesAndTagsTaskReport: OnyxEntry<Report>;
+    setupCategoriesAndTagsTaskParentReport: OnyxEntry<Report>;
+    isSetupCategoriesAndTagsTaskParentReportArchived: boolean;
+    setupCategoriesAndTagsHasOutstandingChildTask: boolean;
+    setupCategoriesAndTagsParentReportAction: OnyxEntry<ReportAction>;
+    currentUserAccountID: number;
+    policyHasCustomCategories: boolean;
+};
 
 /**
  * Checks if a task report is incomplete (not approved)
@@ -120,14 +138,23 @@ function updateImportSpreadsheetData(tagsLength: number): OnyxData<typeof ONYXKE
     return onyxData;
 }
 
-function createPolicyTag(
-    policyID: string,
-    tagName: string,
-    policyTags: PolicyTagLists = {},
-    setupTagsTaskReport?: OnyxEntry<Report>,
-    setupCategoriesAndTagsTaskReport?: OnyxEntry<Report>,
-    policyHasCustomCategories?: boolean,
-) {
+function createPolicyTag({
+    policyID,
+    tagName,
+    policyTags = {},
+    setupTagsTaskReport,
+    setupTagsTaskParentReport,
+    isSetupTagsTaskParentReportArchived,
+    setupTagsHasOutstandingChildTask,
+    setupTagsParentReportAction,
+    setupCategoriesAndTagsTaskReport,
+    setupCategoriesAndTagsTaskParentReport,
+    isSetupCategoriesAndTagsTaskParentReportArchived,
+    setupCategoriesAndTagsHasOutstandingChildTask,
+    setupCategoriesAndTagsParentReportAction,
+    currentUserAccountID,
+    policyHasCustomCategories,
+}: CreatePolicyTagParams) {
     const policyTag = PolicyUtils.getTagLists(policyTags)?.at(0) ?? ({} as PolicyTagList);
     const newTagName = PolicyUtils.escapeTagName(tagName);
 
@@ -190,12 +217,28 @@ function createPolicyTag(
 
     API.write(WRITE_COMMANDS.CREATE_POLICY_TAG, parameters, onyxData);
 
-    if (isTaskIncomplete(setupTagsTaskReport)) {
-        completeTask(setupTagsTaskReport, false, false, undefined);
+    // Complete the "Set up tags" onboarding task
+    if (setupTagsTaskReport && currentUserAccountID) {
+        getFinishOnboardingTaskOnyxData(
+            setupTagsTaskReport,
+            setupTagsTaskParentReport,
+            isSetupTagsTaskParentReportArchived ?? false,
+            currentUserAccountID,
+            setupTagsHasOutstandingChildTask ?? false,
+            setupTagsParentReportAction,
+        );
     }
 
-    if (isTaskIncomplete(setupCategoriesAndTagsTaskReport) && policyHasCustomCategories) {
-        completeTask(setupCategoriesAndTagsTaskReport, false, false, undefined);
+    // Complete the combined "Set up categories and tags" task only if categories already exist
+    if (setupCategoriesAndTagsTaskReport && policyHasCustomCategories && currentUserAccountID) {
+        getFinishOnboardingTaskOnyxData(
+            setupCategoriesAndTagsTaskReport,
+            setupCategoriesAndTagsTaskParentReport,
+            isSetupCategoriesAndTagsTaskParentReportArchived ?? false,
+            currentUserAccountID,
+            setupCategoriesAndTagsHasOutstandingChildTask ?? false,
+            setupCategoriesAndTagsParentReportAction,
+        );
     }
 }
 

@@ -292,7 +292,23 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             // When creating a new tag
-            createPolicyTag(fakePolicy.id, newTagName, fakePolicyTags);
+            createPolicyTag({
+                policyID: fakePolicy.id,
+                tagName: newTagName,
+                policyTags: fakePolicyTags,
+                setupTagsTaskReport: undefined,
+                setupTagsTaskParentReport: undefined,
+                isSetupTagsTaskParentReportArchived: false,
+                setupTagsHasOutstandingChildTask: false,
+                setupTagsParentReportAction: undefined,
+                setupCategoriesAndTagsTaskReport: undefined,
+                setupCategoriesAndTagsTaskParentReport: undefined,
+                isSetupCategoriesAndTagsTaskParentReportArchived: false,
+                setupCategoriesAndTagsHasOutstandingChildTask: false,
+                setupCategoriesAndTagsParentReportAction: undefined,
+                currentUserAccountID: 0,
+                policyHasCustomCategories: false,
+            });
             await waitForBatchedUpdates();
 
             // Then the tag should appear optimistically with pending state so the user sees immediate feedback
@@ -327,7 +343,23 @@ describe('actions/Policy', () => {
             mockFetch.fail();
 
             // When the API fails
-            createPolicyTag(fakePolicy.id, newTagName, fakePolicyTags);
+            createPolicyTag({
+                policyID: fakePolicy.id,
+                tagName: newTagName,
+                policyTags: fakePolicyTags,
+                setupTagsTaskReport: undefined,
+                setupTagsTaskParentReport: undefined,
+                isSetupTagsTaskParentReportArchived: false,
+                setupTagsHasOutstandingChildTask: false,
+                setupTagsParentReportAction: undefined,
+                setupCategoriesAndTagsTaskReport: undefined,
+                setupCategoriesAndTagsTaskParentReport: undefined,
+                isSetupCategoriesAndTagsTaskParentReportArchived: false,
+                setupCategoriesAndTagsHasOutstandingChildTask: false,
+                setupCategoriesAndTagsParentReportAction: undefined,
+                currentUserAccountID: 0,
+                policyHasCustomCategories: false,
+            });
             await waitForBatchedUpdates();
             mockFetch.resume();
             await waitForBatchedUpdates();
@@ -349,7 +381,23 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             // When adding the first tag
-            createPolicyTag(fakePolicy.id, newTagName, {});
+            createPolicyTag({
+                policyID: fakePolicy.id,
+                tagName: newTagName,
+                policyTags: {},
+                setupTagsTaskReport: undefined,
+                setupTagsTaskParentReport: undefined,
+                isSetupTagsTaskParentReportArchived: false,
+                setupTagsHasOutstandingChildTask: false,
+                setupTagsParentReportAction: undefined,
+                setupCategoriesAndTagsTaskReport: undefined,
+                setupCategoriesAndTagsTaskParentReport: undefined,
+                isSetupCategoriesAndTagsTaskParentReportArchived: false,
+                setupCategoriesAndTagsHasOutstandingChildTask: false,
+                setupCategoriesAndTagsParentReportAction: undefined,
+                currentUserAccountID: 0,
+                policyHasCustomCategories: false,
+            });
             await waitForBatchedUpdates();
 
             // Then the tag should be created in a new list with pending state so the user sees immediate feedback
@@ -399,7 +447,23 @@ describe('actions/Policy', () => {
             });
 
             // When using data from useOnyx hook
-            createPolicyTag(fakePolicy.id, newTagName, result.current[0] ?? {});
+            createPolicyTag({
+                policyID: fakePolicy.id,
+                tagName: newTagName,
+                policyTags: result.current[0] ?? {},
+                setupTagsTaskReport: undefined,
+                setupTagsTaskParentReport: undefined,
+                isSetupTagsTaskParentReportArchived: false,
+                setupTagsHasOutstandingChildTask: false,
+                setupTagsParentReportAction: undefined,
+                setupCategoriesAndTagsTaskReport: undefined,
+                setupCategoriesAndTagsTaskParentReport: undefined,
+                isSetupCategoriesAndTagsTaskParentReportArchived: false,
+                setupCategoriesAndTagsHasOutstandingChildTask: false,
+                setupCategoriesAndTagsParentReportAction: undefined,
+                currentUserAccountID: 0,
+                policyHasCustomCategories: false,
+            });
             await waitForBatchedUpdates();
 
             // Then the tag should appear optimistically with pending state so the user sees immediate feedback
@@ -2243,7 +2307,23 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakeTags);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${fakeTaskReportID}`, fakeTaskReport);
 
-            createPolicyTag(fakePolicy.id, newTagName, fakeTags, fakeTaskReport, undefined, false);
+            createPolicyTag({
+                policyID: fakePolicy.id,
+                tagName: newTagName,
+                policyTags: fakeTags,
+                setupTagsTaskReport: fakeTaskReport,
+                setupTagsTaskParentReport: undefined,
+                isSetupTagsTaskParentReportArchived: false,
+                setupTagsHasOutstandingChildTask: false,
+                setupTagsParentReportAction: undefined,
+                setupCategoriesAndTagsTaskReport: undefined,
+                setupCategoriesAndTagsTaskParentReport: undefined,
+                isSetupCategoriesAndTagsTaskParentReportArchived: false,
+                setupCategoriesAndTagsHasOutstandingChildTask: false,
+                setupCategoriesAndTagsParentReportAction: undefined,
+                currentUserAccountID: 0,
+                policyHasCustomCategories: false,
+            });
 
             await waitForBatchedUpdates();
 
@@ -2276,7 +2356,23 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakeTags);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${fakeTaskReportID}`, fakeTaskReport);
 
-            createPolicyTag(fakePolicy.id, newTagName, fakeTags, undefined, fakeTaskReport, true);
+            createPolicyTag({
+                policyID: fakePolicy.id,
+                tagName: newTagName,
+                policyTags: fakeTags,
+                setupTagsTaskReport: undefined,
+                setupTagsTaskParentReport: undefined,
+                isSetupTagsTaskParentReportArchived: false,
+                setupTagsHasOutstandingChildTask: false,
+                setupTagsParentReportAction: undefined,
+                setupCategoriesAndTagsTaskReport: fakeTaskReport,
+                setupCategoriesAndTagsTaskParentReport: undefined,
+                isSetupCategoriesAndTagsTaskParentReportArchived: false,
+                setupCategoriesAndTagsHasOutstandingChildTask: false,
+                setupCategoriesAndTagsParentReportAction: undefined,
+                currentUserAccountID: 0,
+                policyHasCustomCategories: true,
+            });
 
             await waitForBatchedUpdates();
 
@@ -2309,7 +2405,23 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakeTags);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${fakeTaskReportID}`, fakeTaskReport);
 
-            createPolicyTag(fakePolicy.id, newTagName, fakeTags, undefined, fakeTaskReport, false);
+            createPolicyTag({
+                policyID: fakePolicy.id,
+                tagName: newTagName,
+                policyTags: fakeTags,
+                setupTagsTaskReport: undefined,
+                setupTagsTaskParentReport: undefined,
+                isSetupTagsTaskParentReportArchived: false,
+                setupTagsHasOutstandingChildTask: false,
+                setupTagsParentReportAction: undefined,
+                setupCategoriesAndTagsTaskReport: fakeTaskReport,
+                setupCategoriesAndTagsTaskParentReport: undefined,
+                isSetupCategoriesAndTagsTaskParentReportArchived: false,
+                setupCategoriesAndTagsHasOutstandingChildTask: false,
+                setupCategoriesAndTagsParentReportAction: undefined,
+                currentUserAccountID: 0,
+                policyHasCustomCategories: false,
+            });
 
             await waitForBatchedUpdates();
 
