@@ -209,6 +209,11 @@ type CardFeedErrorsDerivedValue = CardFeedErrors;
  */
 type NonPersonalAndWorkspaceCardListDerivedValue = CardList;
 
+/**
+ * The derived value for merged personal and workspace card feeds.
+ */
+type PersonalAndWorkspaceCardListDerivedValue = CardList;
+
 export default ReportAttributesDerivedValue;
 export type {
     ReportAttributes,
@@ -217,6 +222,7 @@ export type {
     ReportTransactionsAndViolations,
     OutstandingReportsByPolicyIDDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
+    PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
     AllCardFeedErrorsMap,
     CardFeedErrorsObject,

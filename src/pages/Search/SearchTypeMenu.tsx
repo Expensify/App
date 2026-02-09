@@ -76,7 +76,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true});
+    const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true});
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const taxRates = getAllTaxRates(allPolicies);
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
@@ -106,7 +106,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                     PersonalDetails: personalDetails,
                     reports,
                     taxRates,
-                    cardList: nonPersonalAndWorkspaceCards,
+                    cardList: personalAndWorkspaceCards,
                     cardFeeds: allFeeds,
                     policies: allPolicies,
                     currentUserAccountID,
@@ -157,7 +157,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             personalDetails,
             reports,
             taxRates,
-            nonPersonalAndWorkspaceCards,
+            personalAndWorkspaceCards,
             allFeeds,
             currentUserAccountID,
             allPolicies,

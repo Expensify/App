@@ -44,6 +44,7 @@ import type {
     CardFeedErrorsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
+    PersonalAndWorkspaceCardListDerivedValue,
     ReportAttributesDerivedValue,
     ReportTransactionsAndViolationsDerivedValue,
 } from './DerivedValues';
@@ -333,6 +334,7 @@ export type {
     ReportTransactionsAndViolationsDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
+    PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
