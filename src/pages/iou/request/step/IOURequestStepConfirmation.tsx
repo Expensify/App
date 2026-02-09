@@ -842,6 +842,7 @@ function IOURequestStepConfirmation({
             quickAction,
             recentWaypoints,
             betas,
+            accountDelegateEmail,
         ],
     );
 
