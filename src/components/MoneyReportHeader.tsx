@@ -1622,7 +1622,7 @@ function MoneyReportHeader({
                     return;
                 }
 
-                const policyID = moneyRequestReport.policyID ?? '';
+                const policyID = moneyRequestReport.policyID;
                 const fieldKey = getReportFieldKey(titleField.fieldID);
                 Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(moneyRequestReport.reportID, policyID, fieldKey, Navigation.getReportRHPActiveRoute()));
             },
