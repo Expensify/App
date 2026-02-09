@@ -1,7 +1,9 @@
+import {getReportOwnerAccountID} from '@selectors/Report';
 import React, {useCallback, useContext, useEffect} from 'react';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import useAncestors from '@hooks/useAncestors';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {putOnHold} from '@libs/actions/IOU/Hold';
@@ -10,7 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList, SearchReportActionsParamList} from '@libs/Navigation/types';
 import {getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {canEditMoneyRequest, isCurrentUserSubmitter, isReportInGroupPolicy} from '@libs/ReportUtils';
+import {canEditMoneyRequest, isReportInGroupPolicy} from '@libs/ReportUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import {clearErrorFields, clearErrors, setErrors} from '@userActions/FormActions';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,18 +26,19 @@ type HoldReasonPageProps =
 
 function HoldReasonPage({route}: HoldReasonPageProps) {
     const {translate} = useLocalize();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const {transactionID, reportID, backTo} = route.params;
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const ancestors = useAncestors(report);
 
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
+    const [parentReportOwnerAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true, selector: getReportOwnerAccountID});
 
     // We first check if the report is part of a policy - if not, then it's a personal request (1:1 request)
     // For personal requests, we need to allow both users to put the request on hold
     const isWorkspaceRequest = isReportInGroupPolicy(report);
-    const isApprover = !isCurrentUserSubmitter(parentReport);
+    const isApprover = parentReportOwnerAccountID !== currentUserAccountID;
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
 
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);

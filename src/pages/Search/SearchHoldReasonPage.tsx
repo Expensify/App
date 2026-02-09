@@ -35,10 +35,9 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
         if (report) {
             return !isCurrentUserSubmitter(report);
         }
-        // For bulk search hold (no reportID), check selected transactions' ownerAccountID
         const transactions = Object.values(context.selectedTransactions);
         if (transactions.length === 0) {
-            return true;
+            return false;
         }
         return !transactions.every((t) => t.ownerAccountID === currentUserAccountID);
     }, [report, context.selectedTransactions, currentUserAccountID]);

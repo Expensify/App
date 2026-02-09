@@ -32,7 +32,7 @@ type HoldReasonFormViewProps = {
     isApprover?: boolean;
 };
 
-function HoldReasonFormView({backTo, validate, onSubmit, expenseCount = 1, isApprover}: HoldReasonFormViewProps) {
+function HoldReasonFormView({backTo, validate, onSubmit, expenseCount = 1, isApprover = false}: HoldReasonFormViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
