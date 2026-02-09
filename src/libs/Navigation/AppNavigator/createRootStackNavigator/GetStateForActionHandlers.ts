@@ -140,8 +140,12 @@ function handlePushFullscreenAction(
 
     const lastFullScreenRoute = stateWithNavigator.routes.at(-1);
 
-    // Transitioning to all central screens in each split should be animated
-    if (lastFullScreenRoute?.key && targetScreen && !SCREENS_WITH_NAVIGATION_TAB_BAR.includes(targetScreen)) {
+    // Transitioning to all central screens in each split should be animated.
+    // For non-navigator fullscreen screens (no targetScreen), always animate since they are explicitly pushed
+    // (tab switching does not go through this handler).
+    const shouldAnimate = !!(lastFullScreenRoute?.key && (!targetScreen || !SCREENS_WITH_NAVIGATION_TAB_BAR.includes(targetScreen)));
+
+    if (shouldAnimate) {
         screensWithEnteringAnimation.add(lastFullScreenRoute.key);
     }
 

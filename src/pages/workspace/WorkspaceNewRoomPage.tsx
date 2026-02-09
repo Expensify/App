@@ -28,6 +28,7 @@ import variables from '@styles/variables';
 import {addPolicyReport, clearNewRoomFormError, setNewRoomFormLoading} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
@@ -52,7 +53,16 @@ function EmptyWorkspaceView() {
                 success
                 large
                 text={translate('footer.learnMore')}
-                onPress={() => Navigation.navigate(ROUTES.WORKSPACES_LIST.getRoute(Navigation.getActiveRoute()))}
+                onPress={() => {
+                    const activeRoute = Navigation.getActiveRoute();
+                    const targetRoute = ROUTES.WORKSPACES_LIST.getRoute(activeRoute);
+                    Navigation.dismissModal({
+                        callback: () => {
+                            Navigation.navigate(activeRoute as Route);
+                            Navigation.navigate(targetRoute);
+                        },
+                    });
+                }}
                 style={[styles.mh5, bottomSafeAreaPaddingStyle]}
             />
         </>

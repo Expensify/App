@@ -425,6 +425,25 @@ function AuthScreens() {
         };
     };
 
+    // When Workspaces_List is explicitly pushed (e.g. via "Learn More"), enable entering animation so iOS swipe-back gesture works.
+    // On wide layout or when opened as a tab, the default fullScreenTabPage options are used (no animation, no gesture).
+    const getWorkspacesListOptions = ({route}: {route: RouteProp<AuthScreensParamList>}) => {
+        const animationEnabled = shouldUseNarrowLayout && screensWithEnteringAnimation.has(route.key);
+
+        if (!animationEnabled) {
+            return rootNavigatorScreenOptions.fullScreenTabPage;
+        }
+
+        return {
+            ...rootNavigatorScreenOptions.fullScreenTabPage,
+            animation: Animations.SLIDE_FROM_RIGHT,
+            web: {
+                ...rootNavigatorScreenOptions.fullScreenTabPage.web,
+                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true, animationEnabled, shouldAnimateSidePanel: true}),
+            },
+        };
+    };
+
     // Animation is enabled when navigating to any screen different than split sidebar screen
     const getFullscreenNavigatorOptions = ({route}: {route: RouteProp<AuthScreensParamList>}) => {
         // We don't need to do anything special for the wide screen.
@@ -573,7 +592,7 @@ function AuthScreens() {
                 />
                 <RootStack.Screen
                     name={SCREENS.WORKSPACES_LIST}
-                    options={rootNavigatorScreenOptions.fullScreenTabPage}
+                    options={getWorkspacesListOptions}
                     component={WorkspacesListPage}
                 />
                 <RootStack.Screen
