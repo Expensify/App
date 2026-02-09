@@ -413,6 +413,7 @@ const SCREENS = {
         EXPENSIFY_CARD_NAME: 'Expensify_Card_Name',
         EXPENSIFY_CARD_LIMIT: 'Expensify_Card_Limit',
         EXPENSIFY_CARD_LIMIT_TYPE: 'Expensify_Card_Limit_Type',
+        EXPENSIFY_CARD_EXPIRY_OPTIONS: 'Expensify_Card_Expiry_Options',
     },
     DOMAIN_CARD: {
         DOMAIN_CARD_DETAIL: 'Domain_Card_Detail',
@@ -671,7 +672,6 @@ const SCREENS = {
         INVITE: 'Workspace_Invite',
         INVITE_MESSAGE: 'Workspace_Invite_Message',
         INVITE_MESSAGE_ROLE: 'Workspace_Invite_Message_Role',
-        INVITE_MESSAGE_APPROVER: 'Workspace_Invite_Message_Approver',
         CATEGORIES: 'Workspace_Categories',
         TAGS: 'Workspace_Tags',
         TAGS_SETTINGS: 'Tags_Settings',
@@ -748,6 +748,7 @@ const SCREENS = {
         DISTANCE_RATES: 'Distance_Rates',
         TRAVEL: 'Travel',
         TRAVEL_SETTINGS_ACCOUNT: 'Workspace_Travel_Settings_Account',
+        TRAVEL_SETTINGS_FREQUENCY: 'Workspace_Travel_Settings_Frequency',
         CREATE_DISTANCE_RATE: 'Create_Distance_Rate',
         CREATE_DISTANCE_RATE_UPGRADE: 'Create_Distance_Rate_Upgrade',
         DISTANCE_RATES_SETTINGS: 'Distance_Rates_Settings',

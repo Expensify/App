@@ -7,7 +7,7 @@ on:
 # The updateProduction and createNewStagingDeployCash jobs are executed when a StagingDeployCash is closed.
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     if: contains(github.event.issue.labels.*.name, 'StagingDeployCash')
     outputs:
       isValid: ${{ fromJSON(steps.isDeployer.outputs.IS_DEPLOYER) && !fromJSON(steps.checkDeployBlockers.outputs.HAS_DEPLOY_BLOCKERS) }}
@@ -85,7 +85,7 @@ jobs:
   # Remove DeployBlockerCash label from issues that had it since we just deployed production
   cleanupDeployBlockers:
     needs: updateProduction
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - run: |
           gh issue list \

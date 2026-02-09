@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   prep:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     outputs:
       APP_VERSION: ${{ steps.getAppVersion.outputs.VERSION }}
       TAG: ${{ steps.getTagName.outputs.TAG }}
@@ -84,7 +84,7 @@ jobs:
   android:
     name: Build and deploy Android HybridApp
     needs: prep
-    runs-on: ubuntu-latest-xl
+    runs-on: blacksmith-16vcpu-ubuntu-2404
     env:
       SHOULD_BUILD_APP: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
     steps:
@@ -471,7 +471,7 @@ jobs:
   web:
     name: Build and deploy Web
     needs: prep
-    runs-on: ubuntu-latest-xl
+    runs-on: blacksmith-16vcpu-ubuntu-2404
     steps:
       - name: Checkout
         # v4
@@ -559,7 +559,7 @@ jobs:
 
   postSlackMessageOnFailure:
     name: Post a Slack message when any platform fails to build or deploy
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     if: ${{ failure() }}
     needs: [android, ios, web]
     steps:
@@ -573,7 +573,7 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
   checkDeploymentSuccess:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     outputs:
       IS_AT_LEAST_ONE_PLATFORM_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAtLeastOnePlatform.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED }}
       IS_ALL_PLATFORMS_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAllPlatforms.outputs.IS_ALL_PLATFORMS_DEPLOYED }}
@@ -606,7 +606,7 @@ jobs:
           echo "IS_ALL_PLATFORMS_DEPLOYED is $isAllPlatformsDeployed"
 
   createRelease:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
     needs: [prep, checkDeploymentSuccess]
     steps:
@@ -734,7 +734,7 @@ jobs:
 
   postSlackMessageOnSuccess:
     name: Post a Slack message when all platforms deploy successfully
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED) }}
     needs: [prep, android, ios, web, checkDeploymentSuccess, createRelease]
     steps:
