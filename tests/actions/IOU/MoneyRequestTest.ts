@@ -841,6 +841,7 @@ describe('MoneyRequest', () => {
                 quickAction: baseParams.quickAction,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                accountDelegateEmail: '',
             });
 
             // The function must return after trackExpense and not call createDistanceRequest
