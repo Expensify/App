@@ -226,6 +226,19 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             return;
         }
 
+        // If account was just cleared (was not null, now is null), don't fetch yet
+        // Route params may be stale during this transition
+        if (!!prevReimbursementAccount && !reimbursementAccount) {
+            clearReimbursementAccountDraft();
+
+            const isStepToOpenEmpty = getStepToOpenFromRouteParams(route, hasConfirmedUSDCurrency) === '';
+            if (isStepToOpenEmpty) {
+                setBankAccountSubStep(null);
+                setPlaidEvent(null);
+            }
+            return;
+        }
+
         if (policyIDParam) {
             setReimbursementAccountLoading(true);
         }

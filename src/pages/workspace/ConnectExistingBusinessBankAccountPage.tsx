@@ -14,6 +14,7 @@ import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation
 import type {ConnectExistingBankAccountNavigatorParamList} from '@navigation/types';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import type {PaymentMethodPressHandlerParams} from '@pages/settings/Wallet/WalletPage/types';
+import {clearReimbursementAccount} from '@userActions/BankAccounts';
 import {setWorkspaceReimbursement} from '@userActions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
@@ -30,12 +31,17 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
     const policyName = policy?.name ?? '';
     const policyCurrency = policy?.outputCurrency ?? '';
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const hasFullyWorkingConnectedAccount = policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const handleAddBankAccountPress = () => {
-        navigateToBankAccountRoute({policyID});
+        if (hasFullyWorkingConnectedAccount) {
+            clearReimbursementAccount();
+        }
+
+        navigateToBankAccountRoute({policyID: hasFullyWorkingConnectedAccount ? undefined : policyID});
     };
 
     const handleItemPress = ({methodID, accountData}: PaymentMethodPressHandlerParams) => {
