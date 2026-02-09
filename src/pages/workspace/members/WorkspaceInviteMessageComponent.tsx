@@ -21,13 +21,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {openExternalLink} from '@libs/actions/Link';
-import {addMembersToWorkspace, clearWorkspaceInviteApproverDraft, clearWorkspaceInviteRoleDraft} from '@libs/actions/Policy/Member';
+import {addMembersToWorkspace, clearWorkspaceInviteRoleDraft} from '@libs/actions/Policy/Member';
 import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getDefaultApprover, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isControlPolicy} from '@libs/PolicyUtils';
+import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -81,23 +81,6 @@ function WorkspaceInviteMessageComponent({
         canBeMissing: true,
     });
     const [workspaceInviteRoleDraft = CONST.POLICY.ROLE.USER] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`, {canBeMissing: true});
-
-    const defaultApprover = getDefaultApprover(policy);
-    const [approverDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`, {canBeMissing: true});
-    const workspaceInviteApproverDraft = approverDraft ?? defaultApprover;
-    const approverDetails = getPersonalDetailByEmail(workspaceInviteApproverDraft);
-
-    const isControl = isControlPolicy(policy);
-    const shouldShowApproverRow = isControl && policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED && policy?.areWorkflowsEnabled;
-
-    // Validate approver is not empty and is a valid workspace member before sending to API
-    const isApproverValid = !!workspaceInviteApproverDraft && workspaceInviteApproverDraft in (policy?.employeeList ?? {});
-    const validatedApprover = isApproverValid ? workspaceInviteApproverDraft : undefined;
-
-    const navigateToApproverPage = useCallback(() => {
-        Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE_APPROVER.getRoute(policyID));
-    }, [policyID]);
-
     const isOnyxLoading = isLoadingOnyxValue(workspaceInviteMessageDraftResult, invitedEmailsToAccountIDsDraftResult, formDataResult);
     const personalDetailsOfInvitedEmails = getPersonalDetailsForAccountIDs(Object.values(invitedEmailsToAccountIDsDraft ?? {}), allPersonalDetails ?? {});
     const memberNames = Object.values(personalDetailsOfInvitedEmails)
@@ -155,15 +138,7 @@ function WorkspaceInviteMessageComponent({
         const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
         // Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
         // See https://github.com/Expensify/App/blob/main/README.md#workspace, we set conditions about who can leave the workspace
-        addMembersToWorkspace(
-            invitedEmailsToAccountIDsDraft ?? {},
-            `${welcomeNoteSubject}\n\n${welcomeNote}`,
-            policy,
-            policyMemberAccountIDs,
-            workspaceInviteRoleDraft,
-            formatPhoneNumber,
-            shouldShowApproverRow ? validatedApprover : undefined,
-        );
+        addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, `${welcomeNoteSubject}\n\n${welcomeNote}`, policy, policyMemberAccountIDs, workspaceInviteRoleDraft, formatPhoneNumber);
         setWorkspaceInviteMessageDraft(policyID, welcomeNote ?? null);
         clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
 
@@ -209,7 +184,6 @@ function WorkspaceInviteMessageComponent({
     useEffect(() => {
         return () => {
             clearWorkspaceInviteRoleDraft(policyID);
-            clearWorkspaceInviteApproverDraft(policyID);
         };
     }, [policyID]);
 
@@ -286,14 +260,6 @@ function WorkspaceInviteMessageComponent({
                                     Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE_ROLE.getRoute(policyID, Navigation.getActiveRoute()));
                                 }}
                             />
-                            {!!shouldShowApproverRow && (
-                                <MenuItemWithTopDescription
-                                    title={getDisplayNameOrDefault(approverDetails, workspaceInviteApproverDraft, false)}
-                                    description={translate('workflowsPage.approver')}
-                                    shouldShowRightIcon
-                                    onPress={navigateToApproverPage}
-                                />
-                            )}
                         </View>
                         <View style={[styles.mb3]}>
                             <Text style={[styles.textSupportingNormal]}>{translate('workspace.inviteMessage.inviteMessagePrompt')}</Text>
@@ -325,6 +291,7 @@ function WorkspaceInviteMessageComponent({
                             shouldSaveDraft
                         />
                         <PressableWithoutFeedback
+                            sentryLabel="WorkspaceInviteMessage-PrivacyLink"
                             onPress={openPrivacyURL}
                             role={CONST.ROLE.LINK}
                             accessibilityLabel={translate('common.privacy')}

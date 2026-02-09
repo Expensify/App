@@ -1173,14 +1173,16 @@ function getAmountFontSizeAndLineHeight(isSmallScreenWidth: boolean, windowWidth
  * to prevent large amounts from overflowing on small screens.
  */
 function getAmountInputFontSize(amountLength: number): TextStyle {
-    const baseFontSize = variables.iouAmountTextSize;
-    const minFontSize = 20;
+    const baseFontSize = variables.iouAmountTextSizeLarge;
+    const minFontSize = 20; // Minimum readable font size for amount display
+    const maxLengthBeforeScaling = 10; // Character count at which font scaling begins
+    const scalingFactor = 2; // Font size reduction per character over threshold
 
-    if (amountLength <= 10) {
+    if (amountLength <= maxLengthBeforeScaling) {
         return {fontSize: baseFontSize};
     }
 
-    const reduction = Math.min((amountLength - 10) * 2, baseFontSize - minFontSize);
+    const reduction = Math.min((amountLength - maxLengthBeforeScaling) * scalingFactor, baseFontSize - minFontSize);
     return {fontSize: baseFontSize - reduction};
 }
 
