@@ -351,6 +351,7 @@ describe('SidebarUtils', () => {
                 lastAction: undefined,
                 lastActionReport: undefined,
                 isReportArchived: undefined,
+                policyTags: undefined,
                 currentUserAccountID: 0,
             });
             const optionDataUnpinned = SidebarUtils.getOptionData({
@@ -367,6 +368,7 @@ describe('SidebarUtils', () => {
                 lastAction: undefined,
                 lastActionReport: undefined,
                 isReportArchived: undefined,
+                policyTags: undefined,
                 currentUserAccountID: 0,
             });
 
@@ -1169,6 +1171,7 @@ describe('SidebarUtils', () => {
                 lastAction,
                 lastActionReport: undefined,
                 isReportArchived: undefined,
+                policyTags: undefined,
                 currentUserAccountID: 0,
             });
 
@@ -1231,6 +1234,7 @@ describe('SidebarUtils', () => {
                 lastAction,
                 lastActionReport: undefined,
                 isReportArchived: undefined,
+                policyTags: undefined,
                 currentUserAccountID: 0,
             });
 
@@ -1296,6 +1300,7 @@ describe('SidebarUtils', () => {
                 lastAction,
                 lastActionReport: undefined,
                 isReportArchived: undefined,
+                policyTags: undefined,
                 currentUserAccountID: 0,
             });
 
@@ -1346,6 +1351,7 @@ describe('SidebarUtils', () => {
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    policyTags: undefined,
                     currentUserAccountID: 0,
                 });
 
@@ -1387,6 +1393,7 @@ describe('SidebarUtils', () => {
                     localeCompare,
                     isReportArchived: true,
                     lastActionReport: undefined,
+                    policyTags: undefined,
                     currentUserAccountID: 0,
                 });
 
@@ -1425,6 +1432,7 @@ describe('SidebarUtils', () => {
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    policyTags: undefined,
                     currentUserAccountID: 0,
                 });
 
@@ -1552,6 +1560,7 @@ describe('SidebarUtils', () => {
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    policyTags: undefined,
                     currentUserAccountID: 0,
                 });
 
@@ -1595,6 +1604,7 @@ describe('SidebarUtils', () => {
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    policyTags: undefined,
                     currentUserAccountID: 0,
                 });
 
@@ -1667,6 +1677,7 @@ describe('SidebarUtils', () => {
                     lastAction,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    policyTags: undefined,
                     currentUserAccountID: session.accountID,
                 });
 
@@ -1728,6 +1739,7 @@ describe('SidebarUtils', () => {
                     lastAction,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    policyTags: undefined,
                     currentUserAccountID: session.accountID,
                 });
 
@@ -1780,6 +1792,7 @@ describe('SidebarUtils', () => {
                     lastActionReport: undefined,
                     isReportArchived: undefined,
                     lastMessageTextFromReport: report.lastMessageText,
+                    policyTags: undefined,
                     currentUserAccountID: session.accountID,
                 });
 
@@ -1857,12 +1870,11 @@ describe('SidebarUtils', () => {
                     lastAction,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    policyTags: undefined,
                     currentUserAccountID: session.accountID,
                 });
-
                 expect(result?.alternateText).toBe(`You: ${getReportActionMessageText(lastAction)}`);
             });
-
             it('uses the 2nd-last visible message as alternateText when the latest action is a deleted IOU', async () => {
                 const MOCK_REPORT: Report = {
                     reportID: '1',
@@ -1976,6 +1988,7 @@ describe('SidebarUtils', () => {
                     lastAction,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    policyTags: undefined,
                     currentUserAccountID: 0,
                 });
 
@@ -2062,6 +2075,7 @@ describe('SidebarUtils', () => {
                     lastAction,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    policyTags: undefined,
                     currentUserAccountID: 0,
                 });
 
@@ -2160,6 +2174,7 @@ describe('SidebarUtils', () => {
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    policyTags: undefined,
                     currentUserAccountID: managerID,
                 });
 
@@ -2259,6 +2274,7 @@ describe('SidebarUtils', () => {
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    policyTags: undefined,
                     currentUserAccountID: managerID,
                 });
 

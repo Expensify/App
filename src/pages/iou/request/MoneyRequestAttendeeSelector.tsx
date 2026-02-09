@@ -68,6 +68,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const policy = usePolicy(activePolicyID);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}`, {canBeMissing: true});
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -217,6 +218,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             initialSelectedOptions,
             orderedAvailableOptions.recentReports,
             orderedAvailableOptions.personalDetails,
+            policyTags,
             currentUserAccountID,
             personalDetails,
             true,
@@ -260,7 +262,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 data: [orderedAvailableOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
                     return isPolicyExpenseChat
-                        ? getPolicyExpenseReportOption(participant, currentUserAccountID, personalDetails, reportAttributesDerived)
+                        ? getPolicyExpenseReportOption(participant, policyTags, currentUserAccountID, personalDetails, reportAttributesDerived)
                         : getParticipantsOption(participant, personalDetails);
                 }) as OptionData[],
                 shouldShow: true,
@@ -281,17 +283,18 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         didScreenTransitionEnd,
         searchTerm,
         initialSelectedOptions,
-        attendees,
         orderedAvailableOptions.recentReports,
         orderedAvailableOptions.personalDetails,
         orderedAvailableOptions.userToInvite,
+        policyTags,
+        currentUserAccountID,
         personalDetails,
         reportAttributesDerived,
         loginList,
-        countryCode,
-        translate,
-        currentUserAccountID,
         currentUserEmail,
+        countryCode,
+        attendees,
+        translate,
     ]);
 
     const optionLength = useMemo(() => {

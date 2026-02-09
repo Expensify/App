@@ -66,6 +66,8 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
+
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     // In case this is workspace split expense, we manually add the workspace as the second participant of the split expense
     // because we don't save any accountID in the report action's originalMessage other than the payee's accountID
@@ -73,7 +75,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     if (isPolicyExpenseChat(report)) {
         participants = [
             getParticipantsOption({accountID: participantAccountIDs.at(0), selected: true, reportID: ''}, personalDetails),
-            getPolicyExpenseReportOption({...report, selected: true, reportID}, currentUserPersonalDetails.accountID, personalDetails, reportAttributesDerived),
+            getPolicyExpenseReportOption({...report, selected: true, reportID}, policyTags, currentUserPersonalDetails.accountID, personalDetails, reportAttributesDerived),
         ];
     } else {
         participants = participantAccountIDs.map((accountID) => getParticipantsOption({accountID, selected: true, reportID: ''}, personalDetails));

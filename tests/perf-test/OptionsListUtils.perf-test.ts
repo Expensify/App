@@ -95,7 +95,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
-const options = createOptionList(personalDetails, MOCK_CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, reports);
+const options = createOptionList(personalDetails, undefined, MOCK_CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, reports);
 
 const ValidOptionsConfig = {
     betas: mockedBetas,
@@ -139,6 +139,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: MOCK_CURRENT_USER_EMAIL,
+                policyTags: undefined,
                 personalDetails,
             }),
         );
@@ -152,6 +153,7 @@ describe('OptionsListUtils', () => {
             allPolicies,
             {},
             nvpDismissedProductTraining,
+            undefined,
             loginList,
             MOCK_CURRENT_USER_ACCOUNT_ID,
             MOCK_CURRENT_USER_EMAIL,
@@ -168,6 +170,7 @@ describe('OptionsListUtils', () => {
             allPolicies,
             {},
             nvpDismissedProductTraining,
+            undefined,
             loginList,
             MOCK_CURRENT_USER_ACCOUNT_ID,
             MOCK_CURRENT_USER_EMAIL,
@@ -187,6 +190,7 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
                 loginList,
                 MOCK_CURRENT_USER_ACCOUNT_ID,
                 MOCK_CURRENT_USER_EMAIL,
@@ -268,6 +272,7 @@ describe('OptionsListUtils', () => {
                 Object.values(selectedOptions),
                 Object.values(filteredRecentReports),
                 Object.values(filteredPersonalDetails),
+                undefined,
                 MOCK_CURRENT_USER_ACCOUNT_ID,
                 mockedPersonalDetails,
                 true,
@@ -281,6 +286,6 @@ describe('OptionsListUtils', () => {
         const mockedPersonalDetails = getMockedPersonalDetails(PERSONAL_DETAILS_COUNT);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], MOCK_CURRENT_USER_ACCOUNT_ID, mockedPersonalDetails, true));
+        await measureFunction(() => formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], undefined, MOCK_CURRENT_USER_ACCOUNT_ID, mockedPersonalDetails, true));
     });
 });

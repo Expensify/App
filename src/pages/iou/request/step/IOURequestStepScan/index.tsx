@@ -118,6 +118,7 @@ function IOURequestStepScan({
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
@@ -346,6 +347,7 @@ function IOURequestStepScan({
                 files,
                 isTestTransaction,
                 locationPermissionGranted,
+                policyTags,
                 selfDMReport,
                 policyForMovingExpenses,
                 isSelfTourViewed,
@@ -384,6 +386,7 @@ function IOURequestStepScan({
             introSelected,
             activePolicyID,
             reportNameValuePairs?.private_isArchived,
+            policyTags,
             policyForMovingExpenses,
             isSelfTourViewed,
             betas,

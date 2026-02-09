@@ -63,17 +63,20 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
 
     const selectedOptions = useMemo<OptionData[]>(() => {
         return selectedReportIDs.map((id) => {
+            const reportObj = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`];
+            const reportPolicyTags = reportObj?.policyID ? policyTags?.[reportObj.policyID] : CONST.POLICY.DEFAULT_TAG_LIST;
             const report = getSelectedOptionData(
-                createOptionFromReport({...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id}, personalDetails, currentUserAccountID, reportAttributesDerived),
+                createOptionFromReport({...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id}, personalDetails, reportPolicyTags, currentUserAccountID, reportAttributesDerived),
             );
             const isReportArchived = archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
-            const alternateText = getAlternateText(report, {}, isReportArchived, currentUserAccountID, {});
+            const alternateText = getAlternateText(report, {}, reportPolicyTags, isReportArchived, currentUserAccountID, {});
             return {...report, alternateText};
         });
-    }, [archivedReportsIdSet, personalDetails, reportAttributesDerived, reports, selectedReportIDs, currentUserAccountID]);
+    }, [archivedReportsIdSet, personalDetails, reportAttributesDerived, reports, selectedReportIDs, currentUserAccountID, policyTags]);
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized || !isScreenTransitionEnd) {
@@ -89,9 +92,22 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             loginList,
             currentUserAccountID,
             currentUserEmail,
+            policyTags,
             personalDetails,
         });
-    }, [areOptionsInitialized, isScreenTransitionEnd, options, draftComments, nvpDismissedProductTraining, countryCode, loginList, currentUserAccountID, currentUserEmail, personalDetails]);
+    }, [
+        areOptionsInitialized,
+        isScreenTransitionEnd,
+        options,
+        draftComments,
+        nvpDismissedProductTraining,
+        countryCode,
+        loginList,
+        currentUserAccountID,
+        currentUserEmail,
+        policyTags,
+        personalDetails,
+    ]);
 
     const chatOptions = useMemo(() => {
         return filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, {
@@ -111,6 +127,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             selectedOptions,
             chatOptions.recentReports,
             chatOptions.personalDetails,
+            policyTags,
             currentUserAccountID,
             personalDetails,
             false,
@@ -149,6 +166,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         selectedReportIDs,
         translate,
         currentUserAccountID,
+        policyTags,
     ]);
 
     useEffect(() => {

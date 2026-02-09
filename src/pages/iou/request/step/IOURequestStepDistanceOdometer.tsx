@@ -405,7 +405,7 @@ function IOURequestStepDistanceOdometer({
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
                 return participantAccountID
                     ? getParticipantsOption(participant, personalDetails)
-                    : getReportOption(participant, reportNameValuePairs?.private_isArchived, policy, currentUserPersonalDetails.accountID, personalDetails, derivedReports);
+                    : getReportOption(participant, policyTags, reportNameValuePairs?.private_isArchived, policy, currentUserPersonalDetails.accountID, personalDetails, derivedReports);
             });
 
             if (shouldSkipConfirmation) {

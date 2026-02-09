@@ -206,6 +206,7 @@ function IOURequestStepDistanceManual({
                 introSelected,
                 activePolicyID,
                 privateIsArchived: reportNameValuePairs?.private_isArchived,
+                policyTags,
                 selfDMReport,
                 policyForMovingExpenses,
                 betas,

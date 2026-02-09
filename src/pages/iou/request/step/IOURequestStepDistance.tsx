@@ -323,6 +323,7 @@ function IOURequestStepDistance({
             introSelected,
             activePolicyID,
             privateIsArchived: reportNameValuePairs?.private_isArchived,
+            policyTags,
             selfDMReport,
             policyForMovingExpenses,
             betas,
@@ -332,7 +333,6 @@ function IOURequestStepDistance({
         report,
         policy,
         transaction,
-        reportID,
         transactionID,
         reportAttributesDerived,
         personalDetails,
@@ -345,7 +345,6 @@ function IOURequestStepDistance({
         shouldSkipConfirmation,
         defaultExpensePolicy,
         isArchived,
-        personalPolicy?.autoReporting,
         isASAPSubmitBetaEnabled,
         transactionViolations,
         lastSelectedDistanceRates,
@@ -358,8 +357,10 @@ function IOURequestStepDistance({
         reportNameValuePairs?.private_isArchived,
         policyForMovingExpenses,
         selfDMReport,
-        reportNameValuePairs?.private_isArchived,
         betas,
+        policyTags,
+        personalPolicy?.autoReporting,
+        reportID,
     ]);
 
     const getError = () => {

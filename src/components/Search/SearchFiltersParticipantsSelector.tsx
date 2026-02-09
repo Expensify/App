@@ -94,6 +94,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
     const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES, {canBeMissing: true});
 
@@ -116,6 +117,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             allPolicies,
             draftComments,
             nvpDismissedProductTraining,
+            policyTags,
             loginList,
             currentUserAccountID,
             currentUserEmail,
@@ -137,6 +139,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         allPolicies,
         draftComments,
         nvpDismissedProductTraining,
+        policyTags,
         loginList,
         countryCode,
         recentAttendeeLists,
@@ -203,6 +206,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             selectedOptions,
             chatOptions.recentReports,
             chatOptions.personalDetails,
+            policyTags,
             currentUserAccountID,
             personalDetails,
             true,
@@ -263,7 +267,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             sections: newSections,
             headerMessage: message,
         };
-    }, [areOptionsInitialized, cleanSearchTerm, selectedOptions, chatOptions, personalDetails, reportAttributesDerived, translate, formatPhoneNumber, currentUserAccountID]);
+    }, [areOptionsInitialized, cleanSearchTerm, selectedOptions, chatOptions, personalDetails, reportAttributesDerived, translate, formatPhoneNumber, currentUserAccountID, policyTags]);
 
     const resetChanges = useCallback(() => {
         setSelectedOptions([]);

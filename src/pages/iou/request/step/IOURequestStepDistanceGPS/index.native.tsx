@@ -66,6 +66,7 @@ function IOURequestStepDistanceGPS({
     const personalPolicy = usePersonalPolicy();
     const policy = usePolicy(report?.policyID);
     const isArchived = isArchivedReport(reportNameValuePairs);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`, {canBeMissing: true});
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
@@ -117,6 +118,7 @@ function IOURequestStepDistanceGPS({
             privateIsArchived: reportNameValuePairs?.private_isArchived,
             gpsCoordinates,
             gpsDistance: distance,
+            policyTags,
             selfDMReport,
             policyForMovingExpenses,
             betas,

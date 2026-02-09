@@ -299,6 +299,7 @@ describe('MoneyRequest', () => {
             quickAction: fakeQuickAction,
             files: [fakeReceiptFile],
             shouldGenerateTransactionThreadReport: false,
+            policyTags: {},
             selfDMReport,
             isSelfTourViewed: false,
             betas: [],
@@ -734,6 +735,7 @@ describe('MoneyRequest', () => {
             setDistanceRequestData: jest.fn(),
             translate: jest.fn().mockReturnValue('Pending...'),
             quickAction: fakeQuickAction,
+            policyTags: {},
             selfDMReport,
             betas: [CONST.BETAS.ALL],
         };
