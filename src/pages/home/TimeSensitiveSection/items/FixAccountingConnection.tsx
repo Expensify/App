@@ -26,7 +26,7 @@ function FixAccountingConnection({connectionName, policyID}: FixAccountingConnec
         <BaseWidgetItem
             icon={icons.Connect}
             iconBackgroundColor={colors.tangerine100}
-            iconFill={colors.tangerine700}
+            iconFill={colors.tangerine500}
             title={translate('homePage.timeSensitiveSection.fixAccountingConnection.title', {integrationName})}
             subtitle={translate('homePage.timeSensitiveSection.fixAccountingConnection.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.ctaFix')}
