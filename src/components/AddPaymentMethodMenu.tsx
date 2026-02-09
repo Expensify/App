@@ -62,6 +62,8 @@ function AddPaymentMethodMenu({
     const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [introSelected, introSelectedStatus] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [account]=useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const accountDelegateEmail = account?.delegatedAccess?.delegate ?? '';
 
     // Users can choose to pay with business bank account in case of Expense reports or in case of P2P IOU report
     // which then starts a bottom up flow and creates a Collect workspace where the payer is an admin and payee is an employee.
@@ -78,7 +80,7 @@ function AddPaymentMethodMenu({
             return;
         }
 
-        completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected);
+        completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, accountDelegateEmail);
         onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
     }, [introSelected, introSelectedStatus, introSelectedStatus.status, isPersonalOnlyOption, isVisible, onItemSelected]);
 
@@ -107,7 +109,7 @@ function AddPaymentMethodMenu({
                               text: translate('common.personalBankAccount'),
                               icon: icons.Bank,
                               onSelected: () => {
-                                  completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected);
+                                  completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, accountDelegateEmail);
                                   onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
                               },
                           },

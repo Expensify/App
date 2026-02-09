@@ -39,6 +39,8 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID, {canBeMissing: true});
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, {canBeMissing: true});
     const [conciergeChatReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const accountDelegateEmail = account?.delegatedAccess?.delegate ?? '';
     const {onboardingMessages} = useOnboardingMessages();
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
     // When we merge public email with work email, we now want to navigate to the
@@ -86,6 +88,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
             adminsChatReportID: onboardingAdminsChatReportID,
             onboardingPolicyID,
             shouldSkipTestDriveModal: !!onboardingPolicyID && !onboardingAdminsChatReportID,
+            accountDelegateEmail,
         });
 
         setOnboardingAdminsChatReportID();
@@ -102,6 +105,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
         isSmallScreenWidth,
         isBetaEnabled,
         mergedAccountConciergeReportID,
+        accountDelegateEmail,
     ]);
 
     return (

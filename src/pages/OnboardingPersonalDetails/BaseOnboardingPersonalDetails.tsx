@@ -44,7 +44,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const {onboardingMessages} = useOnboardingMessages();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [onboardingPersonalDetailsForm] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {canBeMissing: true});
-
+    const accountDelegateEmail = account?.delegatedAccess?.delegate ?? '';
     // When we merge public email with work email, we now want to navigate to the
     // concierge chat report of the new work email and not the last accessed report.
     const mergedAccountConciergeReportID = !onboardingValues?.shouldRedirectToClassicAfterMerge && onboardingValues?.shouldValidate ? conciergeChatReportID : undefined;
@@ -78,6 +78,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 adminsChatReportID: onboardingAdminsChatReportID,
                 onboardingPolicyID,
                 shouldSkipTestDriveModal: !!onboardingPolicyID && !mergedAccountConciergeReportID,
+                accountDelegateEmail,
             });
 
             setOnboardingAdminsChatReportID();
@@ -85,7 +86,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
 
             navigateAfterOnboardingWithMicrotaskQueue(isSmallScreenWidth, isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), onboardingPolicyID, mergedAccountConciergeReportID);
         },
-        [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingMessages, onboardingPolicyID, isBetaEnabled, isSmallScreenWidth, mergedAccountConciergeReportID],
+        [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingMessages, onboardingPolicyID, isBetaEnabled, isSmallScreenWidth, mergedAccountConciergeReportID, accountDelegateEmail],
     );
 
     const handleSubmit = useCallback(

@@ -4512,6 +4512,7 @@ type CompleteOnboardingProps = {
     isInvitedAccountant?: boolean;
     onboardingPurposeSelected?: OnboardingPurpose;
     shouldWaitForRHPVariantInitialization?: boolean;
+    accountDelegateEmail: string;
 };
 
 async function completeOnboarding({
@@ -4530,6 +4531,7 @@ async function completeOnboarding({
     isInvitedAccountant,
     onboardingPurposeSelected,
     shouldWaitForRHPVariantInitialization = false,
+    accountDelegateEmail
 }: CompleteOnboardingProps) {
     const onboardingData = prepareOnboardingOnyxData({
         introSelected,
@@ -4543,6 +4545,7 @@ async function completeOnboarding({
         selectedInterestedFeatures,
         isInvitedAccountant,
         onboardingPurposeSelected,
+        accountDelegateEmail
     });
     if (!onboardingData) {
         return;
