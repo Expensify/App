@@ -255,7 +255,15 @@ function getPayActionCallback(
     goToItem();
 }
 
-function getOnyxLoadingData(hash: number, queryJSON?: SearchQueryJSON, offset?: number, isOffline?: boolean, isSearchAPI = false): OnyxData<typeof ONYXKEYS.COLLECTION.SNAPSHOT> {
+function getOnyxLoadingData(
+    hash: number,
+    queryJSON?: SearchQueryJSON,
+    offset?: number,
+    isOffline?: boolean,
+    isSearchAPI = false,
+    shouldCalculateTotals?: boolean,
+): OnyxData<typeof ONYXKEYS.COLLECTION.SNAPSHOT> {
+    const shouldClearTotals = isSearchAPI && shouldCalculateTotals === false && offset === 0;
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -263,7 +271,8 @@ function getOnyxLoadingData(hash: number, queryJSON?: SearchQueryJSON, offset?: 
             value: {
                 search: {
                     ...(isSearchAPI && {isLoading: true}),
-                    ...(offset ? {offset} : {}),
+                    ...(offset !== undefined ? {offset} : {}),
+                    ...(shouldClearTotals ? {count: null, total: null, currency: null} : {}),
                 },
             },
         },
@@ -433,7 +442,7 @@ function search({
         return;
     }
 
-    const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline, true);
+    const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline, true, shouldCalculateTotals);
     const {flatFilters, limit, ...queryJSONWithoutFlatFilters} = queryJSON;
     const query = {
         ...queryJSONWithoutFlatFilters,
