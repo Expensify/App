@@ -3328,7 +3328,7 @@ describe('actions/IOU', () => {
 
             // Given a test user is signed in with Onyx setup and some initial data
             await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            subscribeToUserEvents(TEST_USER_ACCOUNT_ID);
+            subscribeToUserEvents();
             await waitForBatchedUpdates();
             await setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 
@@ -6693,7 +6693,7 @@ describe('actions/IOU', () => {
                 })
                 .then(() => {
                     // Then notifyNewAction should be called on the top most report.
-                    expect(notifyNewAction).toHaveBeenCalledWith(topMostReportID, undefined, true);
+                    expect(notifyNewAction).toHaveBeenCalledWith(topMostReportID, expect.anything());
                 });
         });
 
@@ -6941,7 +6941,7 @@ describe('actions/IOU', () => {
 
             // Given a test user is signed in with Onyx setup and some initial data
             await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            subscribeToUserEvents(TEST_USER_ACCOUNT_ID);
+            subscribeToUserEvents();
             await waitForBatchedUpdates();
             await setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 
@@ -7535,14 +7535,7 @@ describe('actions/IOU', () => {
             jest.advanceTimersByTime(10);
 
             // When a comment is added
-            addComment({
-                report: thread,
-                notifyReportID: thread.reportID,
-                ancestors: [],
-                text: 'Testing a comment',
-                timezoneParam: CONST.DEFAULT_TIME_ZONE,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-            });
+            addComment(thread, thread.reportID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
             await waitForBatchedUpdates();
 
             // Then comment details should match the expected report action
@@ -7649,14 +7642,7 @@ describe('actions/IOU', () => {
 
             jest.advanceTimersByTime(10);
 
-            addComment({
-                report: thread,
-                notifyReportID: thread.reportID,
-                ancestors: [],
-                text: 'Testing a comment',
-                timezoneParam: CONST.DEFAULT_TIME_ZONE,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-            });
+            addComment(thread, thread.reportID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
             await waitForBatchedUpdates();
 
             // Fetch the updated IOU Action from Onyx due to addition of comment to transaction thread.
@@ -7705,14 +7691,7 @@ describe('actions/IOU', () => {
             jest.advanceTimersByTime(10);
 
             if (IOU_REPORT_ID) {
-                addComment({
-                    report: IOU_REPORT,
-                    notifyReportID: IOU_REPORT_ID,
-                    ancestors: [],
-                    text: 'Testing a comment',
-                    timezoneParam: CONST.DEFAULT_TIME_ZONE,
-                    currentUserAccountID: RORY_ACCOUNT_ID,
-                });
+                addComment(IOU_REPORT, IOU_REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
             }
             await waitForBatchedUpdates();
 

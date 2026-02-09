@@ -96,13 +96,13 @@ const loadWorkspaceSplitNavigator = () => require<ReactComponentModule>('./Navig
 const loadDomainSplitNavigator = () => require<ReactComponentModule>('./Navigators/DomainSplitNavigator').default;
 const loadSearchNavigator = () => require<ReactComponentModule>('./Navigators/SearchFullscreenNavigator').default;
 
-function initializePusher(currentUserAccountID?: number) {
+function initializePusher() {
     return Pusher.init({
         appKey: CONFIG.PUSHER.APP_KEY,
         cluster: CONFIG.PUSHER.CLUSTER,
         authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
     }).then(() => {
-        User.subscribeToUserEvents(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID);
+        User.subscribeToUserEvents();
     });
 }
 
@@ -201,9 +201,9 @@ function AuthScreens() {
             return;
         }
         // This means sign in in RHP was successful, so we can subscribe to user events
-        initializePusher(session?.accountID);
+        initializePusher();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [session?.accountID]);
+    }, [session]);
 
     useAutoUpdateTimezone();
 
@@ -239,7 +239,7 @@ function AuthScreens() {
             parentSpan: getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT),
         });
         PusherConnectionManager.init();
-        initializePusher(session?.accountID).finally(() => {
+        initializePusher().finally(() => {
             endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT);
         });
 

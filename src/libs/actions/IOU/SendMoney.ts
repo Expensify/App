@@ -475,7 +475,7 @@ function getSendMoneyParams({
 }
 
 /**
- * @param currentUserAccountID - Account ID of the person sending the money
+ * @param managerID - Account ID of the person sending the money
  * @param recipient - The user receiving the money
  */
 function sendMoneyElsewhere(
@@ -484,7 +484,7 @@ function sendMoneyElsewhere(
     amount: number,
     currency: string,
     comment: string,
-    currentUserAccountID: number,
+    managerID: number,
     recipient: Participant,
     created?: string,
     merchant?: string,
@@ -497,7 +497,7 @@ function sendMoneyElsewhere(
         currency,
         commentParam: comment,
         paymentMethodType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-        managerID: currentUserAccountID,
+        managerID,
         recipient,
         created,
         merchant,
@@ -507,11 +507,11 @@ function sendMoneyElsewhere(
     API.write(WRITE_COMMANDS.SEND_MONEY_ELSEWHERE, params, {optimisticData, successData, failureData});
 
     dismissModalAndOpenReportInInboxTab(params.chatReportID);
-    notifyNewAction(params.chatReportID, undefined, true);
+    notifyNewAction(params.chatReportID, managerID);
 }
 
 /**
- * @param currentUserAccountID - Account ID of the person sending the money
+ * @param managerID - Account ID of the person sending the money
  * @param recipient - The user receiving the money
  */
 function sendMoneyWithWallet(
@@ -520,7 +520,7 @@ function sendMoneyWithWallet(
     amount: number,
     currency: string,
     comment: string,
-    currentUserAccountID: number,
+    managerID: number,
     recipient: Participant | OptionData,
     created?: string,
     merchant?: string,
@@ -533,7 +533,7 @@ function sendMoneyWithWallet(
         currency,
         commentParam: comment,
         paymentMethodType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
-        managerID: currentUserAccountID,
+        managerID,
         recipient,
         created,
         merchant,
@@ -543,7 +543,7 @@ function sendMoneyWithWallet(
     API.write(WRITE_COMMANDS.SEND_MONEY_WITH_WALLET, params, {optimisticData, successData, failureData});
 
     dismissModalAndOpenReportInInboxTab(params.chatReportID);
-    notifyNewAction(params.chatReportID, undefined, true);
+    notifyNewAction(params.chatReportID, managerID);
 }
 
 export {sendMoneyElsewhere, sendMoneyWithWallet};

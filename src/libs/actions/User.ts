@@ -686,7 +686,7 @@ function isBlockedFromConcierge(blockedFromConciergeNVP: OnyxEntry<BlockedFromCo
     return isBefore(new Date(), new Date(blockedFromConciergeNVP.expiresAt));
 }
 
-function triggerNotifications(onyxUpdates: OnyxServerUpdate[], currentUserAccountIDParam: number) {
+function triggerNotifications(onyxUpdates: OnyxServerUpdate[]) {
     for (const update of onyxUpdates) {
         if (!update.shouldNotify && !update.shouldShowPushNotification) {
             continue;
@@ -697,7 +697,7 @@ function triggerNotifications(onyxUpdates: OnyxServerUpdate[], currentUserAccoun
 
         for (const action of reportActions) {
             if (action) {
-                showReportActionNotification(reportID, action, currentUserAccountIDParam);
+                showReportActionNotification(reportID, action);
             }
         }
     }
@@ -927,15 +927,15 @@ function initializePusherPingPong() {
  * Handles the newest events from Pusher where a single mega multipleEvents contains
  * an array of singular events all in one event
  */
-function subscribeToUserEvents(currentUserAccountIDParam: number) {
+function subscribeToUserEvents() {
     // If we don't have the user's accountID yet (because the app isn't fully setup yet) we can't subscribe so return early
-    if (!currentUserAccountIDParam) {
+    if (currentUserAccountID === -1) {
         return;
     }
 
     // Handles the mega multipleEvents from Pusher which contains an array of single events.
     // Each single event is passed to PusherUtils in order to trigger the callbacks for that event
-    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, currentUserAccountIDParam.toString(), (pushJSON) => {
+    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, currentUserAccountID.toString(), (pushJSON) => {
         const pushEventData = pushJSON as OnyxUpdatesFromServer;
         // If this is not the main client, we shouldn't process any data received from pusher.
         if (!ActiveClientManager.isClientTheLeader()) {
@@ -971,7 +971,7 @@ function subscribeToUserEvents(currentUserAccountIDParam: number) {
         return SequentialQueue.getCurrentRequest().then(() => {
             // If we don't have the currentUserAccountID (user is logged out) or this is not the
             // main client we don't want to update Onyx with data from Pusher
-            if (currentUserAccountIDParam === -1) {
+            if (currentUserAccountID === -1) {
                 return;
             }
             if (!ActiveClientManager.isClientTheLeader()) {
@@ -980,7 +980,7 @@ function subscribeToUserEvents(currentUserAccountIDParam: number) {
             }
 
             const onyxUpdatePromise = Onyx.update(pushJSON).then(() => {
-                triggerNotifications(pushJSON, currentUserAccountIDParam);
+                triggerNotifications(pushJSON);
             });
 
             // Return a promise when Onyx is done updating so that the OnyxUpdatesManager can properly apply all

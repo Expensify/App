@@ -31,7 +31,6 @@ function resolveSuggestedFollowup(
     reportAction: OnyxEntry<ReportAction>,
     selectedFollowup: Followup,
     timezoneParam: Timezone,
-    currentUserAccountID: number,
     ancestors: Ancestor[] = [],
 ) {
     const reportID = report?.reportID;
@@ -53,7 +52,7 @@ function resolveSuggestedFollowup(
     });
 
     if (!selectedFollowup.response) {
-        addComment({report, notifyReportID: notifyReportID ?? reportID, ancestors, text: selectedFollowup.text, timezoneParam, currentUserAccountID});
+        addComment(report, notifyReportID ?? reportID, ancestors, selectedFollowup.text, timezoneParam);
         return;
     }
 
@@ -62,19 +61,9 @@ function resolveSuggestedFollowup(
     const optimisticConciergeReportActionID = rand64();
 
     // Post user's comment immediately
-    addComment({
-        report,
-        notifyReportID: notifyReportID ?? reportID,
-        ancestors,
-        text: selectedFollowup.text,
-        timezoneParam,
-        currentUserAccountID,
-        shouldPlaySound: false,
-        isInSidePanel: false,
-        pregeneratedResponseParams: {
-            optimisticConciergeReportActionID,
-            pregeneratedResponse: selectedFollowup.response,
-        },
+    addComment(report, notifyReportID ?? reportID, ancestors, selectedFollowup.text, timezoneParam, false, false, {
+        optimisticConciergeReportActionID,
+        pregeneratedResponse: selectedFollowup.response,
     });
 
     const optimisticConciergeAction = buildOptimisticAddCommentReportAction(

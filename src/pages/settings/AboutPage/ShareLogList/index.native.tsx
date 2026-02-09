@@ -22,14 +22,7 @@ function ShareLogList({logSource}: ShareLogListProps) {
         const ancestors = getAncestors(report, reportCollection, reportDraftCollection, reportActionsCollection);
         const src = `file://${logSource}`;
 
-        addAttachmentWithComment({
-            report,
-            notifyReportID: reportID,
-            ancestors,
-            attachments: {name: filename, source: src, uri: src, type: 'text/plain'} as File,
-            currentUserAccountID: personalDetail.accountID,
-            timezone: personalDetail.timezone,
-        });
+        addAttachmentWithComment(report, reportID, ancestors, {name: filename, source: src, uri: src, type: 'text/plain'} as File, undefined, personalDetail.timezone);
         const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportID);
         Navigation.navigate(routeToNavigate);
     };

@@ -193,21 +193,14 @@ describe('actions/Report', () => {
         // Set up Onyx with some test user data
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
             .then(() => {
-                User.subscribeToUserEvents(TEST_USER_ACCOUNT_ID);
+                User.subscribeToUserEvents();
                 return waitForBatchedUpdates();
             })
             .then(() => TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID))
             .then(() => {
                 // This is a fire and forget response, but once it completes we should be able to verify that we
                 // have an "optimistic" report action in Onyx.
-                Report.addComment({
-                    report: REPORT,
-                    notifyReportID: REPORT_ID,
-                    ancestors: [],
-                    text: 'Testing a comment',
-                    timezoneParam: CONST.DEFAULT_TIME_ZONE,
-                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
-                });
+                Report.addComment(REPORT, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -339,14 +332,7 @@ describe('actions/Report', () => {
                 }
 
                 // And leave a comment on a report
-                Report.addComment({
-                    report: REPORT,
-                    notifyReportID: REPORT_ID,
-                    ancestors: [],
-                    text: 'Testing a comment',
-                    timezoneParam: CONST.DEFAULT_TIME_ZONE,
-                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
-                });
+                Report.addComment(REPORT, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
 
                 // Then we should expect that there is on persisted request
                 expect(PersistedRequests.getAll().length).toBe(1);
@@ -389,7 +375,7 @@ describe('actions/Report', () => {
             .then(waitForNetworkPromises)
             .then(() => {
                 // Given a test user that is subscribed to Pusher events
-                User.subscribeToUserEvents(USER_1_ACCOUNT_ID);
+                User.subscribeToUserEvents();
                 return waitForBatchedUpdates();
             })
             .then(() => TestHelper.setPersonalDetails(USER_1_LOGIN, USER_1_ACCOUNT_ID))
@@ -469,14 +455,7 @@ describe('actions/Report', () => {
                 // When a new comment is added by the current user
 
                 currentTime = DateUtils.getDBTime();
-                Report.addComment({
-                    report,
-                    notifyReportID: REPORT_ID,
-                    ancestors: [],
-                    text: 'Current User Comment 1',
-                    timezoneParam: CONST.DEFAULT_TIME_ZONE,
-                    currentUserAccountID: USER_1_ACCOUNT_ID,
-                });
+                Report.addComment(report, REPORT_ID, [], 'Current User Comment 1', CONST.DEFAULT_TIME_ZONE);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -488,14 +467,7 @@ describe('actions/Report', () => {
 
                 // When another comment is added by the current user
                 currentTime = DateUtils.getDBTime();
-                Report.addComment({
-                    report,
-                    notifyReportID: REPORT_ID,
-                    ancestors: [],
-                    text: 'Current User Comment 2',
-                    timezoneParam: CONST.DEFAULT_TIME_ZONE,
-                    currentUserAccountID: USER_1_ACCOUNT_ID,
-                });
+                Report.addComment(report, REPORT_ID, [], 'Current User Comment 2', CONST.DEFAULT_TIME_ZONE);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -506,14 +478,7 @@ describe('actions/Report', () => {
 
                 // When another comment is added by the current user
                 currentTime = DateUtils.getDBTime();
-                Report.addComment({
-                    report,
-                    notifyReportID: REPORT_ID,
-                    ancestors: [],
-                    text: 'Current User Comment 3',
-                    timezoneParam: CONST.DEFAULT_TIME_ZONE,
-                    currentUserAccountID: USER_1_ACCOUNT_ID,
-                });
+                Report.addComment(report, REPORT_ID, [], 'Current User Comment 3', CONST.DEFAULT_TIME_ZONE);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -735,7 +700,7 @@ describe('actions/Report', () => {
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID)
             .then(waitForBatchedUpdates)
             .then(() => {
-                User.subscribeToUserEvents(TEST_USER_ACCOUNT_ID);
+                User.subscribeToUserEvents();
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -754,7 +719,7 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // Ensure we show a notification for this new report action
-                expect(Report.showReportActionNotification).toBeCalledWith(REPORT_ID, REPORT_ACTION, TEST_USER_ACCOUNT_ID);
+                expect(Report.showReportActionNotification).toBeCalledWith(REPORT_ID, REPORT_ACTION);
             });
     });
 
@@ -792,21 +757,14 @@ describe('actions/Report', () => {
         // Set up Onyx with some test user data
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
             .then(() => {
-                User.subscribeToUserEvents(TEST_USER_ACCOUNT_ID);
+                User.subscribeToUserEvents();
                 return waitForBatchedUpdates();
             })
             .then(() => TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID))
             .then(() => {
                 // This is a fire and forget response, but once it completes we should be able to verify that we
                 // have an "optimistic" report action in Onyx.
-                Report.addComment({
-                    report: REPORT,
-                    notifyReportID: REPORT_ID,
-                    ancestors: [],
-                    text: 'Testing a comment',
-                    timezoneParam: CONST.DEFAULT_TIME_ZONE,
-                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
-                });
+                Report.addComment(REPORT, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -928,21 +886,14 @@ describe('actions/Report', () => {
         // Set up Onyx with some test user data
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
             .then(() => {
-                User.subscribeToUserEvents(TEST_USER_ACCOUNT_ID);
+                User.subscribeToUserEvents();
                 return waitForBatchedUpdates();
             })
             .then(() => TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID))
             .then(() => {
                 // This is a fire and forget response, but once it completes we should be able to verify that we
                 // have an "optimistic" report action in Onyx.
-                Report.addComment({
-                    report: REPORT,
-                    notifyReportID: REPORT_ID,
-                    ancestors: [],
-                    text: 'Testing a comment',
-                    timezoneParam: CONST.DEFAULT_TIME_ZONE,
-                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
-                });
+                Report.addComment(REPORT, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -1106,14 +1057,7 @@ describe('actions/Report', () => {
 
         Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        Report.addComment({
-            report: REPORT,
-            notifyReportID: REPORT_ID,
-            ancestors: [],
-            text: 'Testing a comment',
-            timezoneParam: CONST.DEFAULT_TIME_ZONE,
-            currentUserAccountID: TEST_USER_ACCOUNT_ID,
-        });
+        Report.addComment(REPORT, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
@@ -1190,14 +1134,7 @@ describe('actions/Report', () => {
         const created = format(addSeconds(subMinutes(new Date(), 10), 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
         Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
-        Report.addComment({
-            report: REPORT,
-            notifyReportID: REPORT_ID,
-            ancestors: [],
-            text: 'Testing a comment',
-            timezoneParam: CONST.DEFAULT_TIME_ZONE,
-            currentUserAccountID: TEST_USER_ACCOUNT_ID,
-        });
+        Report.addComment(REPORT, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
 
         const reportActionID = PersistedRequests.getAll().at(0)?.data?.reportActionID as string | undefined;
         const newReportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
@@ -1235,14 +1172,7 @@ describe('actions/Report', () => {
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
 
-        Report.addComment({
-            report: REPORT,
-            notifyReportID: REPORT_ID,
-            ancestors: [],
-            text: 'Testing a comment',
-            timezoneParam: CONST.DEFAULT_TIME_ZONE,
-            currentUserAccountID: TEST_USER_ACCOUNT_ID,
-        });
+        Report.addComment(REPORT, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(1);
@@ -1300,14 +1230,7 @@ describe('actions/Report', () => {
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
-        Report.addComment({
-            report: REPORT,
-            notifyReportID: REPORT_ID,
-            ancestors: [],
-            text: 'Testing a comment',
-            timezoneParam: CONST.DEFAULT_TIME_ZONE,
-            currentUserAccountID: TEST_USER_ACCOUNT_ID,
-        });
+        Report.addComment(REPORT, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
         await waitForNetworkPromises();
 
         expect(PersistedRequests.getAll().length).toBe(1);
@@ -1357,7 +1280,7 @@ describe('actions/Report', () => {
 
         const file = new File([''], 'test.txt', {type: 'text/plain'});
         const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
-        Report.addAttachmentWithComment({report: REPORT, notifyReportID: REPORT_ID, ancestors: [], attachments: file, currentUserAccountID: 1});
+        Report.addAttachmentWithComment(REPORT, REPORT_ID, [], file);
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
@@ -1427,7 +1350,7 @@ describe('actions/Report', () => {
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
         const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
-        Report.addAttachmentWithComment({report: REPORT, notifyReportID: REPORT_ID, ancestors: [], attachments: file, currentUserAccountID: 1, text: 'Attachment with comment'});
+        Report.addAttachmentWithComment(REPORT, REPORT_ID, [], file, 'Attachment with comment');
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
@@ -1511,16 +1434,7 @@ describe('actions/Report', () => {
         const fileC = new File(['c'], 'c.txt', {type: 'text/plain'});
 
         const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
-        Report.addAttachmentWithComment({
-            report: REPORT,
-            notifyReportID: REPORT_ID,
-            ancestors: [],
-            attachments: [fileA, fileB, fileC],
-            currentUserAccountID: 1,
-            text: 'Hello world',
-            timezone: CONST.DEFAULT_TIME_ZONE,
-            shouldPlaySound,
-        });
+        Report.addAttachmentWithComment(REPORT, REPORT_ID, [], [fileA, fileB, fileC], 'Hello world', CONST.DEFAULT_TIME_ZONE, shouldPlaySound);
         const relevant = (await relevantPromise) as OnyxTypes.AnyRequest[];
 
         expect(playSoundMock).toHaveBeenCalledTimes(1);
@@ -1554,15 +1468,7 @@ describe('actions/Report', () => {
         const fileB = new File(['b'], 'b.txt', {type: 'text/plain'});
 
         const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
-        Report.addAttachmentWithComment({
-            report: REPORT,
-            notifyReportID: REPORT_ID,
-            ancestors: [],
-            attachments: [fileA, fileB],
-            currentUserAccountID: 1,
-            timezone: CONST.DEFAULT_TIME_ZONE,
-            shouldPlaySound,
-        });
+        Report.addAttachmentWithComment(REPORT, REPORT_ID, [], [fileA, fileB], undefined, CONST.DEFAULT_TIME_ZONE, shouldPlaySound);
         const relevant = (await relevantPromise) as OnyxTypes.AnyRequest[];
 
         expect(playSoundMock).toHaveBeenCalledTimes(1);
@@ -1595,7 +1501,7 @@ describe('actions/Report', () => {
         const file = new File(['a'], 'a.txt', {type: 'text/plain'});
 
         const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
-        Report.addAttachmentWithComment({report: REPORT, notifyReportID: REPORT_ID, ancestors: [], attachments: file, currentUserAccountID: 1});
+        Report.addAttachmentWithComment(REPORT, REPORT_ID, [], file);
         const relevant = (await relevantPromise) as OnyxTypes.AnyRequest[];
 
         expect(playSoundMock).toHaveBeenCalledTimes(0);
@@ -1618,14 +1524,7 @@ describe('actions/Report', () => {
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
         await Promise.resolve();
 
-        Report.addComment({
-            report: REPORT,
-            notifyReportID: REPORT_ID,
-            ancestors: [],
-            text: 'reactions with comment',
-            timezoneParam: CONST.DEFAULT_TIME_ZONE,
-            currentUserAccountID: TEST_USER_ACCOUNT_ID,
-        });
+        Report.addComment(REPORT, REPORT_ID, [], 'reactions with comment', CONST.DEFAULT_TIME_ZONE);
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
@@ -1725,14 +1624,7 @@ describe('actions/Report', () => {
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
-        Report.addComment({
-            report: REPORT,
-            notifyReportID: REPORT_ID,
-            ancestors: [],
-            text: 'Attachment with comment',
-            timezoneParam: CONST.DEFAULT_TIME_ZONE,
-            currentUserAccountID: TEST_USER_ACCOUNT_ID,
-        });
+        Report.addComment(REPORT, REPORT_ID, [], 'Attachment with comment', CONST.DEFAULT_TIME_ZONE);
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
@@ -1807,14 +1699,7 @@ describe('actions/Report', () => {
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
         await waitForBatchedUpdates();
 
-        Report.addComment({
-            report: REPORT,
-            notifyReportID: REPORT_ID,
-            ancestors: [],
-            text: 'Testing a comment',
-            timezoneParam: CONST.DEFAULT_TIME_ZONE,
-            currentUserAccountID: TEST_USER_ACCOUNT_ID,
-        });
+        Report.addComment(REPORT, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
 
         const newComment = PersistedRequests.getAll().at(0);
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
@@ -1867,14 +1752,7 @@ describe('actions/Report', () => {
 
         Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        Report.addComment({
-            report: REPORT,
-            notifyReportID: REPORT_ID,
-            ancestors: [],
-            text: 'Testing a comment',
-            timezoneParam: CONST.DEFAULT_TIME_ZONE,
-            currentUserAccountID: TEST_USER_ACCOUNT_ID,
-        });
+        Report.addComment(REPORT, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
@@ -1960,14 +1838,7 @@ describe('actions/Report', () => {
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        Report.addComment({
-            report: REPORT,
-            notifyReportID: REPORT.reportID,
-            ancestors: [],
-            text: 'Initial comment',
-            timezoneParam: CONST.DEFAULT_TIME_ZONE,
-            currentUserAccountID: TEST_USER_ACCOUNT_ID,
-        });
+        Report.addComment(REPORT, REPORT.reportID, [], 'Initial comment', CONST.DEFAULT_TIME_ZONE);
 
         // Get the reportActionID to edit and delete the comment
         const newComment = PersistedRequests.getAll().at(0);
@@ -3813,13 +3684,13 @@ describe('actions/Report', () => {
                 actorAccountID: TEST_USER_ACCOUNT_ID,
             };
 
-            const result = Report.explain(REPORT_ACTION, undefined, TestHelper.translateLocal, TEST_USER_ACCOUNT_ID, CONST.DEFAULT_TIME_ZONE);
+            const result = Report.explain(REPORT_ACTION, undefined, TestHelper.translateLocal, CONST.DEFAULT_TIME_ZONE);
 
             expect(result).toBeUndefined();
         });
 
         it('should return early if reportAction is not provided', () => {
-            const result = Report.explain(undefined, PARENT_REPORT_ID, TestHelper.translateLocal, TEST_USER_ACCOUNT_ID, CONST.DEFAULT_TIME_ZONE);
+            const result = Report.explain(undefined, PARENT_REPORT_ID, TestHelper.translateLocal, CONST.DEFAULT_TIME_ZONE);
 
             expect(result).toBeUndefined();
         });
@@ -3837,7 +3708,7 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CHILD_REPORT_ID}`, EXISTING_CHILD_REPORT);
             await waitForBatchedUpdates();
 
-            Report.explain(REPORT_ACTION, PARENT_REPORT_ID, TestHelper.translateLocal, TEST_USER_ACCOUNT_ID, CONST.DEFAULT_TIME_ZONE);
+            Report.explain(REPORT_ACTION, PARENT_REPORT_ID, TestHelper.translateLocal, CONST.DEFAULT_TIME_ZONE);
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_CHILD_REPORT.reportID));
@@ -3856,7 +3727,7 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
             await waitForBatchedUpdates();
 
-            Report.explain(REPORT_ACTION, PARENT_REPORT_ID, TestHelper.translateLocal, TEST_USER_ACCOUNT_ID, CONST.DEFAULT_TIME_ZONE);
+            Report.explain(REPORT_ACTION, PARENT_REPORT_ID, TestHelper.translateLocal, CONST.DEFAULT_TIME_ZONE);
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute('9876'));
@@ -3875,7 +3746,7 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CHILD_REPORT_ID}`, EXISTING_CHILD_REPORT);
             await waitForBatchedUpdates();
 
-            Report.explain(REPORT_ACTION, PARENT_REPORT_ID, TestHelper.translateLocal, TEST_USER_ACCOUNT_ID);
+            Report.explain(REPORT_ACTION, PARENT_REPORT_ID, TestHelper.translateLocal);
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_CHILD_REPORT.reportID));
@@ -3962,7 +3833,7 @@ describe('actions/Report', () => {
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.CHAT,
         } as OnyxTypes.Report;
-        const TEST_USER_ACCOUNT_ID = 1;
+
         it('should do nothing when reportAction has no unresolved followups', async () => {
             const htmlMessage = '<p>Just a regular message</p>';
             const reportAction = {
@@ -3982,7 +3853,7 @@ describe('actions/Report', () => {
             });
             await waitForBatchedUpdates();
 
-            resolveSuggestedFollowup(report, undefined, reportAction, {text: 'test question'}, CONST.DEFAULT_TIME_ZONE, TEST_USER_ACCOUNT_ID);
+            resolveSuggestedFollowup(report, undefined, reportAction, {text: 'test question'}, CONST.DEFAULT_TIME_ZONE);
             await waitForBatchedUpdates();
 
             // The report action should remain unchanged (no followup-list to resolve)
@@ -4010,7 +3881,7 @@ describe('actions/Report', () => {
             });
             await waitForBatchedUpdates();
 
-            resolveSuggestedFollowup(report, undefined, reportAction, {text: 'How do I set up QuickBooks?'}, CONST.DEFAULT_TIME_ZONE, TEST_USER_ACCOUNT_ID);
+            resolveSuggestedFollowup(report, undefined, reportAction, {text: 'How do I set up QuickBooks?'}, CONST.DEFAULT_TIME_ZONE);
             await waitForBatchedUpdates();
 
             // Verify the followup-list was marked as selected
@@ -4042,14 +3913,7 @@ describe('actions/Report', () => {
             });
             await waitForBatchedUpdates();
 
-            resolveSuggestedFollowup(
-                report,
-                undefined,
-                reportAction,
-                {text: 'How do I set up QuickBooks?', response: 'To set up QuickBooks, go to Settings...'},
-                CONST.DEFAULT_TIME_ZONE,
-                TEST_USER_ACCOUNT_ID,
-            );
+            resolveSuggestedFollowup(report, undefined, reportAction, {text: 'How do I set up QuickBooks?', response: 'To set up QuickBooks, go to Settings...'}, CONST.DEFAULT_TIME_ZONE);
             await waitForBatchedUpdates();
 
             // Verify the followup-list was marked as selected

@@ -321,7 +321,7 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
         });
         Navigation.dismissModalWithReport({reportID: parentReportID});
     }
-    notifyNewAction(parentReportID, optimisticAddCommentReport.reportAction, true);
+    notifyNewAction(parentReportID, currentUserAccountID, optimisticAddCommentReport.reportAction);
 }
 
 function buildTaskData(
@@ -1181,7 +1181,7 @@ function deleteTask(
     };
 
     API.write(WRITE_COMMANDS.CANCEL_TASK, parameters, {optimisticData, successData, failureData});
-    notifyNewAction(report.reportID, undefined, true);
+    notifyNewAction(report.reportID, currentUserAccountID);
 
     const urlToNavigateBack = getNavigationUrlOnTaskDelete(report);
     if (urlToNavigateBack) {

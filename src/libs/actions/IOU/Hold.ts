@@ -310,7 +310,7 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
     API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST, params, {optimisticData, successData, failureData});
 
     const currentReportID = getDisplayedReportID(reportID);
-    Navigation.setNavigationActionToMicrotaskQueue(() => notifyNewAction(currentReportID, undefined, true));
+    Navigation.setNavigationActionToMicrotaskQueue(() => notifyNewAction(currentReportID, userAccountID));
 }
 
 function putTransactionsOnHold(transactionsID: string[], comment: string, reportID: string, ancestors: Ancestor[] = []) {
@@ -518,7 +518,7 @@ function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntr
     );
 
     const currentReportID = getDisplayedReportID(reportID);
-    notifyNewAction(currentReportID, undefined, true);
+    notifyNewAction(currentReportID, userAccountID);
 }
 
 export {putOnHold, putTransactionsOnHold, unholdRequest};

@@ -5206,7 +5206,7 @@ function updateMoneyRequestDate({
         removeTransactionFromDuplicateTransactionViolation(data.onyxData, transactionID, transactions, transactionViolations);
     }
     const {params, onyxData} = data;
-    notifyNewAction(Navigation.getSearchTopmostReportId(), undefined, true);
+    notifyNewAction(Navigation.getSearchTopmostReportId(), currentUserAccountIDParam);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, params, onyxData);
 }
 
@@ -5354,7 +5354,7 @@ function updateMoneyRequestMerchant({
         });
     }
     const {params, onyxData} = data;
-    notifyNewAction(Navigation.getSearchTopmostReportId(), undefined, true);
+    notifyNewAction(Navigation.getSearchTopmostReportId(), currentUserAccountIDParam);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_MERCHANT, params, onyxData);
 }
 
@@ -5457,7 +5457,7 @@ function updateMoneyRequestTag({
         isASAPSubmitBetaEnabled,
         iouReportNextStep: parentReportNextStep,
     });
-    notifyNewAction(Navigation.getSearchTopmostReportId(), undefined, true);
+    notifyNewAction(Navigation.getSearchTopmostReportId(), currentUserAccountIDParam);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAG, params, onyxData);
 }
 
@@ -5504,7 +5504,7 @@ function updateMoneyRequestTaxAmount({
         iouReportNextStep: parentReportNextStep,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAX_AMOUNT, params, onyxData);
-    notifyNewAction(Navigation.getSearchTopmostReportId(), undefined, true);
+    notifyNewAction(Navigation.getSearchTopmostReportId(), currentUserAccountIDParam);
 }
 
 type UpdateMoneyRequestTaxRateParams = {
@@ -5559,7 +5559,7 @@ function updateMoneyRequestTaxRate({
     });
 
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAX_RATE, params, onyxData);
-    notifyNewAction(Navigation.getSearchTopmostReportId(), undefined, true);
+    notifyNewAction(Navigation.getSearchTopmostReportId(), currentUserAccountIDParam);
 }
 
 type UpdateMoneyRequestDistanceParams = {
@@ -5731,7 +5731,7 @@ function updateMoneyRequestCategory({
         hash,
         iouReportNextStep: parentReportNextStep,
     });
-    notifyNewAction(Navigation.getSearchTopmostReportId(), undefined, true);
+    notifyNewAction(Navigation.getSearchTopmostReportId(), currentUserAccountIDParam);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_CATEGORY, params, onyxData);
 }
 
@@ -5786,7 +5786,7 @@ function updateMoneyRequestDescription({
     }
     const {params, onyxData} = data;
     params.description = parsedComment;
-    notifyNewAction(Navigation.getSearchTopmostReportId(), undefined, true);
+    notifyNewAction(Navigation.getSearchTopmostReportId(), currentUserAccountIDParam);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DESCRIPTION, params, onyxData);
 }
 
@@ -5860,7 +5860,7 @@ function updateMoneyRequestDistanceRate({
     // `taxAmount` & `taxCode` only needs to be updated in the optimistic data, so we need to remove them from the params
     const {taxAmount, taxCode, ...paramsWithoutTaxUpdated} = params;
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE, paramsWithoutTaxUpdated, onyxData);
-    notifyNewAction(Navigation.getSearchTopmostReportId(), undefined, true);
+    notifyNewAction(Navigation.getSearchTopmostReportId(), currentUserAccountIDParam);
 }
 
 const getConvertTrackedExpenseInformation = (
@@ -6740,7 +6740,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
     if (activeReportID && !isMoneyRequestReport) {
         Navigation.setNavigationActionToMicrotaskQueue(() =>
             setTimeout(() => {
-                notifyNewAction(activeReportID, reportPreviewAction, payeeAccountID === currentUserAccountIDParam);
+                notifyNewAction(activeReportID, payeeAccountID, reportPreviewAction);
             }, CONST.TIMING.NOTIFY_NEW_ACTION_DELAY),
         );
     }
@@ -6857,7 +6857,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
     handleNavigateAfterExpenseCreate({activeReportID, transactionID: transaction.transactionID, isFromGlobalCreate});
 
     if (activeReportID) {
-        notifyNewAction(activeReportID, undefined, payeeAccountID === currentUserAccountIDParam);
+        notifyNewAction(activeReportID, payeeAccountID);
     }
 }
 
@@ -7218,7 +7218,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         });
     }
 
-    notifyNewAction(activeReportID, undefined, payeeAccountID === currentUserAccountIDParam);
+    notifyNewAction(activeReportID, payeeAccountID);
 }
 
 function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string | undefined, participants: Participant[], participantAccountIDs: number[], currentUserAccountID: number) {
@@ -8077,7 +8077,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     }
 
     if (!isMoneyRequestReport) {
-        notifyNewAction(activeReportID, undefined, true);
+        notifyNewAction(activeReportID, userAccountID);
     }
 }
 
@@ -8156,7 +8156,7 @@ function updateMoneyRequestAmountAndCurrency({
         removeTransactionFromDuplicateTransactionViolation(data.onyxData, transactionID, transactions, transactionViolations);
     }
     const {params, onyxData} = data;
-    notifyNewAction(Navigation.getSearchTopmostReportId(), undefined, true);
+    notifyNewAction(Navigation.getSearchTopmostReportId(), currentUserAccountIDParam);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY, params, onyxData);
 }
 
@@ -11336,8 +11336,7 @@ function cancelPayment(
         },
         {optimisticData, successData, failureData},
     );
-
-    notifyNewAction(expenseReport.reportID, undefined, true);
+    notifyNewAction(expenseReport.reportID, userAccountID);
 }
 
 /**
@@ -11420,7 +11419,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
 
     playSound(SOUNDS.SUCCESS);
     API.write(apiCommand, payMoneyRequestParams, {optimisticData, successData, failureData});
-    notifyNewAction(!full ? (Navigation.getTopmostReportId() ?? iouReport?.reportID) : iouReport?.reportID, undefined, true);
+    notifyNewAction(!full ? (Navigation.getTopmostReportId() ?? iouReport?.reportID) : iouReport?.reportID, userAccountID);
     return payMoneyRequestParams.optimisticHoldReportID;
 }
 
@@ -13030,7 +13029,7 @@ function markRejectViolationAsResolved(transactionID: string, reportID?: string)
     });
 
     const currentReportID = getDisplayedReportID(reportID);
-    notifyNewAction(currentReportID, undefined, true);
+    notifyNewAction(currentReportID, userAccountID);
 }
 
 function initSplitExpenseItemData(
