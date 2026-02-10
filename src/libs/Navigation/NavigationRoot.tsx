@@ -29,7 +29,7 @@ import ROUTES from '@src/ROUTES';
 import AppNavigator from './AppNavigator';
 import {cleanPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import getAdaptedStateFromPath from './helpers/getAdaptedStateFromPath';
-import {isWorkspacesTabScreenName} from './helpers/isNavigatorName';
+import {isSplitNavigatorName, isWorkspacesTabScreenName} from './helpers/isNavigatorName';
 import {saveSettingsTabPathToSessionStorage, saveWorkspacesTabPathToSessionStorage} from './helpers/lastVisitedTabPathUtils';
 import {linkingConfig} from './linkingConfig';
 import Navigation, {navigationRef} from './Navigation';
@@ -212,6 +212,13 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         // Now when this value is true, Navigation.goBack with the option {shouldPopToTop: true} will remove all visited central screens in the given tab from the navigation stack and go back to the LHN.
         // More context here: https://github.com/Expensify/App/pull/59300
         if (!shouldUseNarrowLayout) {
+            return;
+        }
+
+        const lastRoute = navigationRef?.getRootState()?.routes?.at(-1);
+
+        // Sidebar is a separate screen only in SplitNavigators, so shouldPopToSidebar should only be set when the last route is a SplitNavigator.
+        if (!isSplitNavigatorName(lastRoute?.name)) {
             return;
         }
 

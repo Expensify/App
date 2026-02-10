@@ -1,6 +1,7 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import TaxPicker from '@components/TaxPicker';
+import useCurrencyList from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -27,10 +28,10 @@ type IOURequestStepTaxRatePageProps = WithWritableReportOrNotFoundProps<typeof S
     transaction: OnyxEntry<Transaction>;
 };
 
-function getTaxAmount(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, selectedTaxCode: string, amount: number): number | undefined {
+function getTaxAmount(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, selectedTaxCode: string, amount: number, decimals: number): number | undefined {
     const taxPercentage = getTaxValue(policy, transaction, selectedTaxCode);
     if (taxPercentage) {
-        return calculateTaxAmount(taxPercentage, amount, getCurrency(transaction));
+        return calculateTaxAmount(taxPercentage, amount, decimals);
     }
 }
 
@@ -42,6 +43,7 @@ function IOURequestStepTaxRatePage({
     report,
 }: IOURequestStepTaxRatePageProps) {
     const {translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyList();
     const {policy} = usePolicyForTransaction({transaction, report, action, iouType});
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`, {canBeMissing: true});
@@ -67,6 +69,8 @@ function IOURequestStepTaxRatePage({
     };
 
     const taxRateTitle = getTaxName(policy, currentTransaction);
+    const currency = getCurrency(currentTransaction);
+    const decimals = getCurrencyDecimals(currency);
 
     const updateTaxRates = (taxes: TaxRatesOption) => {
         if (!currentTransaction || !taxes.code || !taxRates) {
@@ -74,7 +78,7 @@ function IOURequestStepTaxRatePage({
             return;
         }
 
-        const taxAmount = getTaxAmount(policy, currentTransaction, taxes.code, getAmount(currentTransaction, false, true));
+        const taxAmount = getTaxAmount(policy, currentTransaction, taxes.code, getAmount(currentTransaction, false, true), decimals);
         const taxValue = getTaxValue(policy, currentTransaction, taxes.code) ?? '';
 
         if (isEditingSplitBill) {

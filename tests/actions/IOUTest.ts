@@ -23,18 +23,23 @@ import {
     createDistanceRequest,
     deleteMoneyRequest,
     evenlyDistributeSplitExpenseAmounts,
+    getDeleteTrackExpenseInformation,
     getIOUReportActionToApproveOrPay,
     getPerDiemExpenseInformation,
     getReportOriginalCreationTimestamp,
     getReportPreviewAction,
     handleNavigateAfterExpenseCreate,
+    initDraftSplitExpenseDataForEdit,
     initMoneyRequest,
     initSplitExpense,
+    initSplitExpenseItemData,
     markRejectViolationAsResolved,
     payMoneyRequest,
     rejectMoneyRequest,
+    removeSplitExpenseField,
     replaceReceipt,
     requestMoney,
+    resetSplitExpensesByDateRange,
     retractReport,
     setDraftSplitTransaction,
     setMoneyRequestCategory,
@@ -54,6 +59,7 @@ import {
     updateMoneyRequestTaxAmount,
     updateMoneyRequestTaxRate,
     updateSplitExpenseAmountField,
+    updateSplitExpenseField,
 } from '@libs/actions/IOU';
 import {putOnHold} from '@libs/actions/IOU/Hold';
 import {getSendInvoiceInformation} from '@libs/actions/IOU/SendInvoice';
@@ -92,14 +98,14 @@ import * as API from '@src/libs/API';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList, Policy, PolicyTagLists, RecentlyUsedTags, RecentWaypoint, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
-import type {Accountant, Attendee, SplitExpense} from '@src/types/onyx/IOU';
+import type {IntroSelected, PersonalDetailsList, Policy, PolicyTagLists, RecentlyUsedTags, RecentWaypoint, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
+import type {Accountant, Attendee, Participant as IOUParticipant, SplitExpense} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Participant} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {ReportActions, ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
-import type {TransactionCollectionDataSet, WaypointCollection} from '@src/types/onyx/Transaction';
+import type {TransactionCollectionDataSet, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import SafeString from '@src/utils/SafeString';
@@ -201,6 +207,11 @@ const RORY_PARTICIPANT: Participant = {notificationPreference: CONST.REPORT.NOTI
 const VIT_EMAIL = 'vit@expensifail.com';
 const VIT_ACCOUNT_ID = 4;
 const VIT_PARTICIPANT: Participant = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, role: 'member'};
+
+const TEST_INTRO_SELECTED: IntroSelected = {
+    choice: CONST.ONBOARDING_CHOICES.SUBMIT,
+    isInviteOnboardingComplete: false,
+};
 
 OnyxUpdateManager();
 describe('actions/IOU', () => {
@@ -3328,7 +3339,7 @@ describe('actions/IOU', () => {
 
             // Given a test user is signed in with Onyx setup and some initial data
             await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            subscribeToUserEvents();
+            subscribeToUserEvents(TEST_USER_ACCOUNT_ID);
             await waitForBatchedUpdates();
             await setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 
@@ -6693,7 +6704,7 @@ describe('actions/IOU', () => {
                 })
                 .then(() => {
                     // Then notifyNewAction should be called on the top most report.
-                    expect(notifyNewAction).toHaveBeenCalledWith(topMostReportID, expect.anything());
+                    expect(notifyNewAction).toHaveBeenCalledWith(topMostReportID, undefined, true);
                 });
         });
 
@@ -6941,7 +6952,7 @@ describe('actions/IOU', () => {
 
             // Given a test user is signed in with Onyx setup and some initial data
             await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            subscribeToUserEvents();
+            subscribeToUserEvents(TEST_USER_ACCOUNT_ID);
             await waitForBatchedUpdates();
             await setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 
@@ -7303,7 +7314,7 @@ describe('actions/IOU', () => {
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
 
             // When Opening a thread report with the given details
-            openReport(thread.reportID, '', userLogins, thread, createIOUAction?.reportActionID);
+            openReport(thread.reportID, TEST_INTRO_SELECTED, undefined, userLogins, thread, createIOUAction?.reportActionID);
             await waitForBatchedUpdates();
 
             // Then The iou action has the transaction report id as a child report ID
@@ -7396,7 +7407,7 @@ describe('actions/IOU', () => {
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
 
             // When Opening a thread report with the given details
-            openReport(thread.reportID, '', userLogins, thread, createIOUAction?.reportActionID);
+            openReport(thread.reportID, TEST_INTRO_SELECTED, undefined, userLogins, thread, createIOUAction?.reportActionID);
             await waitForBatchedUpdates();
 
             // Then The iou action has the transaction report id as a child report ID
@@ -7500,7 +7511,7 @@ describe('actions/IOU', () => {
             expect(report?.reportID).toBeFalsy();
         });
 
-        it('does not delete the transaction thread if there are visible comments in the thread', async () => {
+        it('should delete the transaction thread regardless of whether there are visible comments in the thread.', async () => {
             // Given initial environment is set up
             await waitForBatchedUpdates();
 
@@ -7512,7 +7523,7 @@ describe('actions/IOU', () => {
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
             jest.advanceTimersByTime(10);
-            openReport(thread.reportID, '', userLogins, thread, createIOUAction?.reportActionID);
+            openReport(thread.reportID, TEST_INTRO_SELECTED, undefined, userLogins, thread, createIOUAction?.reportActionID);
             await waitForBatchedUpdates();
 
             Onyx.connect({
@@ -7535,7 +7546,14 @@ describe('actions/IOU', () => {
             jest.advanceTimersByTime(10);
 
             // When a comment is added
-            addComment(thread, thread.reportID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment({
+                report: thread,
+                notifyReportID: thread.reportID,
+                ancestors: [],
+                text: 'Testing a comment',
+                timezoneParam: CONST.DEFAULT_TIME_ZONE,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+            });
             await waitForBatchedUpdates();
 
             // Then comment details should match the expected report action
@@ -7553,6 +7571,22 @@ describe('actions/IOU', () => {
 
             mockFetch?.pause?.();
 
+            const allReportActions = await new Promise<OnyxCollection<ReportActions>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                    waitForCollectionCallback: true,
+                    callback: (actions) => {
+                        Onyx.disconnect(connection);
+                        resolve(actions);
+                    },
+                });
+            });
+
+            const reportActionsForIOUReport = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.iouReportID}`];
+            createIOUAction = Object.values(reportActionsForIOUReport ?? {}).find(
+                (reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => reportAction.reportActionID === createIOUAction?.reportActionID,
+            );
+
             if (transaction && createIOUAction) {
                 // When deleting expense
                 deleteMoneyRequest({
@@ -7568,28 +7602,32 @@ describe('actions/IOU', () => {
             }
             await waitForBatchedUpdates();
 
-            // Then the transaction thread report should still exist
+            // Then the transaction thread report should be ready to be deleted
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
                     waitForCollectionCallback: false,
                     callback: (report) => {
                         Onyx.disconnect(connection);
-                        expect(report).toBeTruthy();
+                        expect(report?.reportID).toBeFalsy();
                         resolve();
                     },
                 });
             });
 
             // When fetch resumes
-            // Then the transaction thread report should still exist
+            // Then the transaction thread report should be deleted
             mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            // Then the transaction thread report should be deleted
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
+                    waitForCollectionCallback: false,
                     callback: (report) => {
                         Onyx.disconnect(connection);
-                        expect(report).toBeTruthy();
+                        expect(report).toBeFalsy();
                         resolve();
                     },
                 });
@@ -7615,7 +7653,7 @@ describe('actions/IOU', () => {
             jest.advanceTimersByTime(10);
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
-            openReport(thread.reportID, '', userLogins, thread, createIOUAction?.reportActionID);
+            openReport(thread.reportID, TEST_INTRO_SELECTED, undefined, userLogins, thread, createIOUAction?.reportActionID);
 
             await waitForBatchedUpdates();
 
@@ -7642,7 +7680,14 @@ describe('actions/IOU', () => {
 
             jest.advanceTimersByTime(10);
 
-            addComment(thread, thread.reportID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment({
+                report: thread,
+                notifyReportID: thread.reportID,
+                ancestors: [],
+                text: 'Testing a comment',
+                timezoneParam: CONST.DEFAULT_TIME_ZONE,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+            });
             await waitForBatchedUpdates();
 
             // Fetch the updated IOU Action from Onyx due to addition of comment to transaction thread.
@@ -7691,7 +7736,14 @@ describe('actions/IOU', () => {
             jest.advanceTimersByTime(10);
 
             if (IOU_REPORT_ID) {
-                addComment(IOU_REPORT, IOU_REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
+                addComment({
+                    report: IOU_REPORT,
+                    notifyReportID: IOU_REPORT_ID,
+                    ancestors: [],
+                    text: 'Testing a comment',
+                    timezoneParam: CONST.DEFAULT_TIME_ZONE,
+                    currentUserAccountID: RORY_ACCOUNT_ID,
+                });
             }
             await waitForBatchedUpdates();
 
@@ -7896,7 +7948,7 @@ describe('actions/IOU', () => {
             jest.advanceTimersByTime(10);
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
-            openReport(thread.reportID, '', userLogins, thread, createIOUAction?.reportActionID);
+            openReport(thread.reportID, TEST_INTRO_SELECTED, undefined, userLogins, thread, createIOUAction?.reportActionID);
             await waitForBatchedUpdates();
 
             const allReportActions = await new Promise<OnyxCollection<ReportActions>>((resolve) => {
@@ -7996,6 +8048,462 @@ describe('actions/IOU', () => {
             if (chatReport?.reportID) {
                 expect(navigateToAfterDelete).toEqual(ROUTES.REPORT_WITH_ID.getRoute(chatReport?.reportID));
             }
+        });
+
+        it('update reportPreview with childVisibleActionCount if the IOU report is not deleted', async () => {
+            await waitForBatchedUpdates();
+            Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+                callback: (val) => (iouReport = val),
+            });
+            await waitForBatchedUpdates();
+
+            // Given a second expense in addition to the first one
+
+            jest.advanceTimersByTime(10);
+            const amount2 = 20000;
+            const comment2 = 'Send me money please 2';
+            if (chatReport) {
+                requestMoney({
+                    report: chatReport,
+                    participantParams: {
+                        payeeEmail: TEST_USER_LOGIN,
+                        payeeAccountID: TEST_USER_ACCOUNT_ID,
+                        participant: {login: RORY_EMAIL, accountID: RORY_ACCOUNT_ID},
+                    },
+                    transactionParams: {
+                        amount: amount2,
+                        attendees: [],
+                        currency: CONST.CURRENCY.USD,
+                        created: '',
+                        merchant: '',
+                        comment: comment2,
+                    },
+                    shouldGenerateTransactionThreadReport: true,
+                    isASAPSubmitBetaEnabled: false,
+                    transactionViolations: {},
+                    currentUserAccountIDParam: 123,
+                    currentUserEmailParam: 'existing@example.com',
+                    policyRecentlyUsedCurrencies: [],
+                    quickAction: undefined,
+                    isSelfTourViewed: false,
+                    betas: [CONST.BETAS.ALL],
+                    personalDetails: {},
+                });
+            }
+
+            await waitForBatchedUpdates();
+
+            // Then we expect the IOU report and reportPreview to update with new totals
+
+            expect(iouReport).toBeTruthy();
+            expect(iouReport).toHaveProperty('reportID');
+            expect(iouReport).toHaveProperty('chatReportID');
+            expect(iouReport?.total).toBe(30000);
+
+            await waitForBatchedUpdates();
+
+            // Given a transaction thread
+            thread = buildTransactionThread(createIOUAction, iouReport);
+
+            expect(thread.participants).toEqual({[CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN}});
+
+            const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
+            const userLogins = getLoginsByAccountIDs(participantAccountIDs);
+            jest.advanceTimersByTime(10);
+            openReport(thread.reportID, TEST_INTRO_SELECTED, '', userLogins, thread, createIOUAction?.reportActionID);
+            await waitForBatchedUpdates();
+
+            Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`,
+                callback: (val) => (reportActions = val),
+            });
+            await waitForBatchedUpdates();
+
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        expect(report).toBeTruthy();
+                        resolve();
+                    },
+                });
+            });
+
+            jest.advanceTimersByTime(10);
+
+            // When a comment is added
+            let iouPreview = getReportPreviewAction(chatReport?.reportID, iouReport?.reportID);
+            const ancestors = [];
+            ancestors.push(...(iouReport && createIOUAction ? [{report: iouReport, reportAction: createIOUAction, shouldDisplayNewMarker: false}] : []));
+            ancestors.push(...(chatReport && iouPreview ? [{report: chatReport, reportAction: iouPreview, shouldDisplayNewMarker: false}] : []));
+            addComment({
+                report: thread,
+                notifyReportID: thread.reportID,
+                ancestors,
+                text: 'Testing a comment',
+                timezoneParam: CONST.DEFAULT_TIME_ZONE,
+                currentUserAccountID: CARLOS_ACCOUNT_ID,
+            });
+            await waitForBatchedUpdates();
+
+            // Then comment details should match the expected report action
+            const resultAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
+            reportActionID = resultAction?.reportActionID;
+            expect(resultAction?.message).toEqual(REPORT_ACTION.message);
+            expect(resultAction?.person).toEqual(REPORT_ACTION.person);
+
+            await waitForBatchedUpdates();
+
+            // Then the childVisibleActionCount of createIOUAction and iouPreview should be increased by 1
+            const allReportActions = await new Promise<OnyxCollection<ReportActions>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                    waitForCollectionCallback: true,
+                    callback: (actions) => {
+                        Onyx.disconnect(connection);
+                        resolve(actions);
+                    },
+                });
+            });
+
+            const reportActionsForIOUReport = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.iouReportID}`];
+            createIOUAction = Object.values(reportActionsForIOUReport ?? {}).find(
+                (reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
+                    isMoneyRequestAction(reportAction) && reportAction.reportActionID === createIOUAction?.reportActionID,
+            );
+            expect(createIOUAction).toBeTruthy();
+            expect(createIOUAction?.childVisibleActionCount).toEqual(1);
+            expect(createIOUAction?.childCommenterCount).toEqual(1);
+
+            iouPreview = getReportPreviewAction(chatReport?.reportID, iouReport?.reportID);
+            expect(iouPreview).toBeTruthy();
+            expect(iouPreview?.childVisibleActionCount).toEqual(1);
+            expect(iouPreview?.childCommenterCount).toEqual(1);
+
+            // When we delete the first expense
+            mockFetch?.pause?.();
+            jest.advanceTimersByTime(10);
+            if (transaction && createIOUAction) {
+                deleteMoneyRequest({
+                    transactionID: transaction.transactionID,
+                    reportAction: createIOUAction,
+                    transactions: {},
+                    violations: {},
+                    iouReport,
+                    chatReport,
+                    allTransactionViolationsParam: {},
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                });
+            }
+
+            await waitForBatchedUpdates();
+
+            // Then we expect the reportPreview to update with new childVisibleActionCount
+
+            iouPreview = getReportPreviewAction(chatReport?.reportID, iouReport?.reportID);
+            expect(iouPreview).toBeTruthy();
+            expect(iouPreview?.childVisibleActionCount).toEqual(0);
+            expect(iouPreview?.childCommenterCount).toEqual(0);
+
+            // When we resume
+            mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            // Then we expect the reportPreview to update with new childVisibleActionCount
+            iouPreview = getReportPreviewAction(chatReport?.reportID, iouReport?.reportID);
+            expect(iouPreview).toBeTruthy();
+            expect(iouPreview?.childVisibleActionCount).toEqual(0);
+            expect(iouPreview?.childCommenterCount).toEqual(0);
+        });
+    });
+
+    describe('getDeleteTrackExpenseInformation', () => {
+        const amount = 10000;
+        const comment = 'Send me money please';
+        let selfDMReport: Report;
+        let createIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>;
+        let transaction: OnyxEntry<Transaction>;
+        let thread: OptimisticChatReport;
+        const TEST_USER_ACCOUNT_ID = 1;
+        const TEST_USER_LOGIN = 'test@test.com';
+        let reportActionID;
+        const REPORT_ACTION: OnyxEntry<ReportAction> = {
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            actorAccountID: TEST_USER_ACCOUNT_ID,
+            automatic: false,
+            avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+            message: [{type: 'COMMENT', html: 'Testing a comment', text: 'Testing a comment', translationKey: ''}],
+            person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
+            shouldShow: true,
+            created: DateUtils.getDBTime(),
+            reportActionID: '1',
+            originalMessage: {
+                html: '',
+                whisperedTo: [],
+            },
+        };
+
+        let reportActions: OnyxCollection<ReportAction>;
+
+        beforeEach(async () => {
+            // Given mocks are cleared and helpers are set up
+            jest.clearAllMocks();
+            PusherHelper.setup();
+
+            // Given a test user is signed in with Onyx setup and some initial data
+            await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            subscribeToUserEvents(TEST_USER_ACCOUNT_ID);
+            await waitForBatchedUpdates();
+            await setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
+
+            selfDMReport = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: '10',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
+            // Create a tracked expense
+            trackExpense({
+                report: selfDMReport,
+                isDraftPolicy: true,
+                action: CONST.IOU.ACTION.CREATE,
+                participantParams: {
+                    payeeEmail: TEST_USER_LOGIN,
+                    payeeAccountID: TEST_USER_ACCOUNT_ID,
+                    participant: {login: RORY_EMAIL, accountID: RORY_ACCOUNT_ID},
+                },
+                transactionParams: {
+                    amount,
+                    currency: 'USD',
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: comment,
+                    billable: false,
+                },
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                recentWaypoints,
+                betas: [CONST.BETAS.ALL],
+            });
+            await waitForBatchedUpdates();
+
+            // When fetching all reports from Onyx
+            const allReports = await new Promise<OnyxCollection<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.REPORT,
+                    waitForCollectionCallback: true,
+                    callback: (reports) => {
+                        Onyx.disconnect(connection);
+                        resolve(reports);
+                    },
+                });
+            });
+
+            // Then we should have exactly 2 reports
+            expect(Object.values(allReports ?? {}).length).toBe(2);
+
+            // Then one of them should be a chat report with relevant properties
+            const transactionThreadReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.CHAT);
+            if (transactionThreadReport) {
+                thread = transactionThreadReport;
+            }
+            expect(thread).toBeTruthy();
+            expect(thread).toHaveProperty('reportID');
+            expect(thread?.parentReportID).toBe(selfDMReport.reportID);
+            expect(thread).toHaveProperty('parentReportActionID');
+
+            await waitForBatchedUpdates();
+
+            // When fetching all report actions from Onyx
+            const allReportActions = await new Promise<OnyxCollection<ReportActions>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                    waitForCollectionCallback: true,
+                    callback: (actions) => {
+                        Onyx.disconnect(connection);
+                        resolve(actions);
+                    },
+                });
+            });
+
+            // Then we should find an IOU action with specific properties
+            const reportActionsForIOUReport = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`];
+            createIOUAction = Object.values(reportActionsForIOUReport ?? {}).find(
+                (reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => reportAction.reportActionID === thread?.parentReportActionID,
+            );
+            expect(createIOUAction).toBeTruthy();
+            expect(createIOUAction?.childReportID).toBe(thread?.reportID);
+
+            // When fetching all transactions from Onyx
+            const allTransactions = await new Promise<OnyxCollection<Transaction>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION,
+                    waitForCollectionCallback: true,
+                    callback: (transactions) => {
+                        Onyx.disconnect(connection);
+                        resolve(transactions);
+                    },
+                });
+            });
+
+            // Then we should find a specific transaction with relevant properties
+            transaction = Object.values(allTransactions ?? {}).find((t) => t);
+            expect(transaction).toBeTruthy();
+            expect(transaction?.amount).toBe(-amount);
+            expect(transaction?.reportID).toBe(CONST.REPORT.UNREPORTED_REPORT_ID);
+            expect(createIOUAction && getOriginalMessage(createIOUAction)?.IOUTransactionID).toBe(transaction?.transactionID);
+        });
+
+        afterEach(PusherHelper.teardown);
+
+        it('should delete the transaction thread regardless of whether there are visible comments in the thread, if isMovingTransactionFromTrackExpense equals false.', async () => {
+            // Given initial environment is set up
+            await waitForBatchedUpdates();
+
+            expect(thread.participants).toEqual({[CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN}});
+
+            const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
+            const userLogins = getLoginsByAccountIDs(participantAccountIDs);
+            jest.advanceTimersByTime(10);
+            openReport(thread.reportID, TEST_INTRO_SELECTED, '', userLogins, thread, createIOUAction?.reportActionID);
+            await waitForBatchedUpdates();
+
+            Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread?.reportID}`,
+                callback: (val) => (reportActions = val),
+            });
+            await waitForBatchedUpdates();
+
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        expect(report).toBeTruthy();
+                        resolve();
+                    },
+                });
+            });
+
+            jest.advanceTimersByTime(10);
+
+            // When a comment is added
+            addComment({
+                report: thread,
+                notifyReportID: thread.reportID,
+                ancestors: [],
+                text: 'Testing a comment',
+                timezoneParam: CONST.DEFAULT_TIME_ZONE,
+                currentUserAccountID: CARLOS_ACCOUNT_ID,
+            });
+            await waitForBatchedUpdates();
+
+            // Then comment details should match the expected report action
+            const resultAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
+            reportActionID = resultAction?.reportActionID;
+            expect(resultAction?.message).toEqual(REPORT_ACTION.message);
+            expect(resultAction?.person).toEqual(REPORT_ACTION.person);
+
+            await waitForBatchedUpdates();
+
+            // Then the report should have 2 actions
+            expect(Object.values(reportActions ?? {}).length).toBe(2);
+            const resultActionAfter = reportActionID ? reportActions?.[reportActionID] : undefined;
+            expect(resultActionAfter?.pendingAction).toBeUndefined();
+
+            const allReportActions = await new Promise<OnyxCollection<ReportActions>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                    waitForCollectionCallback: true,
+                    callback: (actions) => {
+                        Onyx.disconnect(connection);
+                        resolve(actions);
+                    },
+                });
+            });
+
+            const reportActionsForIOUReport = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`];
+            createIOUAction = Object.values(reportActionsForIOUReport ?? {}).find(
+                (reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => reportAction.reportActionID === createIOUAction?.reportActionID,
+            );
+            expect(createIOUAction).toBeTruthy();
+
+            // When deleting expense
+            const {optimisticData, successData, shouldDeleteTransactionThread} = getDeleteTrackExpenseInformation(
+                selfDMReport.reportID,
+                transaction?.transactionID,
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                createIOUAction!,
+                false,
+                undefined,
+                undefined,
+            );
+            await waitForBatchedUpdates();
+
+            // Then the transaction thread report should be ready to be deleted
+            expect(shouldDeleteTransactionThread).toBe(true);
+            expect(optimisticData).toEqual(
+                expect.arrayContaining([expect.objectContaining({key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`, value: expect.objectContaining({reportID: null})})]),
+            );
+            expect(optimisticData).toEqual(expect.arrayContaining([expect.objectContaining({key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`, value: null})]));
+            expect(successData).toEqual(expect.arrayContaining([expect.objectContaining({key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`, value: null})]));
+        });
+
+        it('should NOT delete the transaction thread regardless of whether there are no visible comments in the thread, if isMovingTransactionFromTrackExpense equals true.', async () => {
+            // Given initial environment is set up
+            await waitForBatchedUpdates();
+
+            expect(thread.participants).toEqual({[CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN}});
+
+            const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
+            const userLogins = getLoginsByAccountIDs(participantAccountIDs);
+            jest.advanceTimersByTime(10);
+            openReport(thread.reportID, TEST_INTRO_SELECTED, '', userLogins, thread, createIOUAction?.reportActionID);
+            await waitForBatchedUpdates();
+
+            Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread?.reportID}`,
+                callback: (val) => (reportActions = val),
+            });
+            await waitForBatchedUpdates();
+
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        expect(report).toBeTruthy();
+                        resolve();
+                    },
+                });
+            });
+
+            // When deleting expense
+            const {optimisticData, successData, shouldDeleteTransactionThread} = getDeleteTrackExpenseInformation(
+                selfDMReport.reportID,
+                transaction?.transactionID,
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                createIOUAction!,
+                false,
+                undefined,
+                true,
+            );
+            await waitForBatchedUpdates();
+
+            // Then the transaction thread report should be ready to be deleted
+            expect(shouldDeleteTransactionThread).toBe(false);
+            expect(optimisticData).not.toEqual(
+                expect.arrayContaining([expect.objectContaining({key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`, value: expect.objectContaining({reportID: null})})]),
+            );
+            expect(optimisticData).not.toEqual(expect.arrayContaining([expect.objectContaining({key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`, value: null})]));
+            expect(successData).not.toEqual(expect.arrayContaining([expect.objectContaining({key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`, value: null})]));
         });
     });
 
@@ -8655,6 +9163,7 @@ describe('actions/IOU', () => {
                             }
 
                             deleteWorkspace({
+                                policies: {[policy.id]: policy},
                                 policyID: policy.id,
                                 personalPolicyID: undefined,
                                 activePolicyID: undefined,
@@ -10973,6 +11482,98 @@ describe('actions/IOU', () => {
             expect(splitExpenses?.[0]?.amount).toBe(900);
             expect(splitExpenses?.[1]?.amount).toBe(800);
         });
+
+        it('should initialize split expense for distance transaction with customUnit and merchant', async () => {
+            const customUnitRateID = 'rate-123';
+            const customUnitID = 'distance-unit';
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                customUnits: {
+                    [customUnitID]: {
+                        customUnitID,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        enabled: true,
+                        attributes: {
+                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        },
+                        rates: {
+                            [customUnitRateID]: {
+                                customUnitRateID,
+                                currency: CONST.CURRENCY.USD,
+                                rate: 100,
+                                enabled: true,
+                                name: 'Default Rate',
+                                subRates: [],
+                            },
+                        },
+                    },
+                },
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await waitForBatchedUpdates();
+
+            const transaction: Transaction = {
+                transactionID: '123',
+                amount: -20000,
+                currency: 'USD',
+                merchant: '',
+                comment: {
+                    comment: 'Distance expense',
+                    splitExpenses: [],
+                    attendees: [],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID,
+                        customUnitRateID,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 200,
+                    },
+                },
+                category: 'Car',
+                created: DateUtils.getDBTime(),
+                reportID: '456',
+            };
+
+            let allTransactions: OnyxCollection<Transaction>;
+            let allReports: OnyxCollection<Report>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (value) => {
+                    allTransactions = value;
+                },
+            });
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.REPORT,
+                waitForCollectionCallback: true,
+                callback: (value) => {
+                    allReports = value;
+                },
+            });
+
+            initSplitExpense(allTransactions, allReports, transaction, policy);
+            await waitForBatchedUpdates();
+
+            const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
+
+            expect(draftTransaction).toBeTruthy();
+
+            const splitExpenses = draftTransaction?.comment?.splitExpenses;
+            expect(splitExpenses).toHaveLength(2);
+            expect(draftTransaction?.amount).toBe(20000);
+            expect(draftTransaction?.currency).toBe('USD');
+
+            expect(splitExpenses?.[0].amount).toBe(10000);
+            expect(splitExpenses?.[1].amount).toBe(10000);
+            expect(splitExpenses?.[0].customUnit?.quantity).toBe(100);
+            expect(splitExpenses?.[1].customUnit?.quantity).toBe(100);
+            expect(splitExpenses?.[0].merchant).toBeTruthy();
+            expect(splitExpenses?.[0].merchant).toContain('100');
+            expect(splitExpenses?.[1].merchant).toBeTruthy();
+            expect(splitExpenses?.[1].merchant).toContain('100');
+        });
     });
 
     describe('addSplitExpenseField', () => {
@@ -11110,6 +11711,114 @@ describe('actions/IOU', () => {
 
             // Verify: The existing split should still have reimbursable: false
             expect(splitExpenses?.[0].reimbursable).toBe(false);
+        });
+
+        it('should add new split expense field for distance transaction with customUnit and merchant', async () => {
+            const customUnitRateID = 'rate-456';
+            const customUnitID = 'distance-unit';
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                customUnits: {
+                    [customUnitID]: {
+                        customUnitID,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        enabled: true,
+                        attributes: {
+                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        },
+                        rates: {
+                            [customUnitRateID]: {
+                                customUnitRateID,
+                                currency: CONST.CURRENCY.USD,
+                                rate: 100,
+                                enabled: true,
+                                name: 'Default Rate',
+                                subRates: [],
+                            },
+                        },
+                    },
+                },
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await waitForBatchedUpdates();
+
+            const transaction: Transaction = {
+                transactionID: '123',
+                amount: -20000,
+                currency: 'USD',
+                merchant: '',
+                comment: {
+                    comment: 'Distance expense',
+                    splitExpenses: [],
+                    attendees: [],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID,
+                        customUnitRateID,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 200,
+                    },
+                },
+                category: 'Car',
+                created: DateUtils.getDBTime(),
+                reportID: '456',
+            };
+
+            const draftTransaction: Transaction = {
+                transactionID: '123',
+                amount: 20000,
+                currency: 'USD',
+                merchant: '',
+                comment: {
+                    comment: 'Distance expense',
+                    splitExpenses: [
+                        {
+                            transactionID: '789',
+                            amount: 10000,
+                            description: 'Distance expense',
+                            category: 'Car',
+                            tags: [],
+                            created: DateUtils.getDBTime(),
+                            customUnit: {
+                                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                                customUnitID,
+                                customUnitRateID,
+                                distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                                quantity: 100,
+                            },
+                        },
+                    ],
+                    attendees: [],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                },
+                category: 'Car',
+                created: DateUtils.getDBTime(),
+                reportID: '456',
+            };
+
+            const transactionReport: Report = {
+                reportID: '456',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                total: 20000,
+                currency: 'USD',
+            };
+
+            addSplitExpenseField(transaction, draftTransaction, transactionReport, policy);
+            await waitForBatchedUpdates();
+
+            const updatedDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
+            expect(updatedDraftTransaction).toBeTruthy();
+
+            const splitExpenses = updatedDraftTransaction?.comment?.splitExpenses;
+            expect(splitExpenses).toHaveLength(2);
+            expect(splitExpenses?.[1].amount).toBe(0);
+            expect(splitExpenses?.[1].customUnit).toBeTruthy();
+            expect(splitExpenses?.[1].customUnit?.quantity).toBe(0);
+            expect(splitExpenses?.[1].merchant).toBeDefined();
         });
     });
 
@@ -11351,6 +12060,113 @@ describe('actions/IOU', () => {
             expect(amounts).toEqual([-50, -51]);
             expect(amounts.reduce((a, b) => a + b, 0)).toBe(-101);
         });
+
+        it('should update distance and merchant for distance transactions when distributing amounts', async () => {
+            const customUnitRateID = 'rate-dist';
+            const customUnitID = 'distance-unit';
+            const originalTransactionID = 'orig-dist';
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                customUnits: {
+                    [customUnitID]: {
+                        customUnitID,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        enabled: true,
+                        attributes: {
+                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        },
+                        rates: {
+                            [customUnitRateID]: {
+                                customUnitRateID,
+                                currency: CONST.CURRENCY.USD,
+                                rate: 100,
+                                enabled: true,
+                                name: 'Default Rate',
+                                subRates: [],
+                            },
+                        },
+                    },
+                },
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, {
+                transactionID: originalTransactionID,
+                amount: -20000,
+                currency: 'USD',
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID,
+                        customUnitRateID,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 200,
+                    },
+                },
+            });
+            await waitForBatchedUpdates();
+
+            const draftTransaction: Transaction = {
+                transactionID: 'draft-dist',
+                amount: 20000,
+                currency: 'USD',
+                merchant: 'Test Merchant',
+                comment: {
+                    comment: 'Test comment',
+                    originalTransactionID,
+                    splitExpenses: [
+                        {
+                            transactionID: 'x',
+                            amount: 0,
+                            description: 'X',
+                            created: DateUtils.getDBTime(),
+                            customUnit: {
+                                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                                customUnitID,
+                                customUnitRateID,
+                                distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                                quantity: 0,
+                            },
+                        },
+                        {
+                            transactionID: 'y',
+                            amount: 0,
+                            description: 'Y',
+                            created: DateUtils.getDBTime(),
+                            customUnit: {
+                                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                                customUnitID,
+                                customUnitRateID,
+                                distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                                quantity: 0,
+                            },
+                        },
+                    ],
+                    attendees: [],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                },
+                created: DateUtils.getDBTime(),
+                reportID: 'rep-dist',
+            };
+
+            const originalTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
+            evenlyDistributeSplitExpenseAmounts(draftTransaction, originalTransaction, policy);
+            await waitForBatchedUpdates();
+
+            const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+            expect(updatedDraft).toBeTruthy();
+            const splitExpenses = updatedDraft?.comment?.splitExpenses ?? [];
+
+            expect(splitExpenses.at(0)?.amount).toBe(10000);
+            expect(splitExpenses.at(1)?.amount).toBe(10000);
+            expect(splitExpenses.at(0)?.customUnit?.quantity).toBe(100);
+            expect(splitExpenses.at(1)?.customUnit?.quantity).toBe(100);
+            expect(splitExpenses.at(0)?.merchant).toBeTruthy();
+            expect(splitExpenses.at(0)?.merchant).toContain('100');
+            expect(splitExpenses.at(1)?.merchant).toBeTruthy();
+            expect(splitExpenses.at(1)?.merchant).toContain('100');
+        });
     });
 
     describe('updateSplitExpenseAmountField', () => {
@@ -11392,6 +12208,807 @@ describe('actions/IOU', () => {
 
             const splitExpenses = updatedDraftTransaction?.comment?.splitExpenses;
             expect(splitExpenses?.[0].amount).toBe(20);
+        });
+
+        it('should update distance and merchant for distance transactions when amount changes', async () => {
+            const customUnitRateID = 'rate-update';
+            const customUnitID = 'distance-unit';
+            const originalTransactionID = '123';
+            const currentTransactionID = '789';
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                customUnits: {
+                    [customUnitID]: {
+                        customUnitID,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        enabled: true,
+                        attributes: {
+                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        },
+                        rates: {
+                            [customUnitRateID]: {
+                                customUnitRateID,
+                                currency: CONST.CURRENCY.USD,
+                                rate: 100,
+                                enabled: true,
+                                name: 'Default Rate',
+                                subRates: [],
+                            },
+                        },
+                    },
+                },
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, {
+                transactionID: originalTransactionID,
+                amount: -20000,
+                currency: 'USD',
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID,
+                        customUnitRateID,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 200,
+                    },
+                },
+            });
+            await waitForBatchedUpdates();
+
+            const draftTransaction: Transaction = {
+                transactionID: '234',
+                amount: 20000,
+                currency: 'USD',
+                merchant: 'Test Merchant',
+                comment: {
+                    comment: 'Test comment',
+                    originalTransactionID,
+                    splitExpenses: [
+                        {
+                            transactionID: currentTransactionID,
+                            amount: 10000,
+                            description: 'Test comment',
+                            category: 'Car',
+                            tags: [],
+                            created: DateUtils.getDBTime(),
+                            customUnit: {
+                                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                                customUnitID,
+                                customUnitRateID,
+                                distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                                quantity: 100,
+                            },
+                        },
+                    ],
+                    attendees: [],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                },
+                category: 'Car',
+                created: DateUtils.getDBTime(),
+                reportID: '456',
+            };
+
+            updateSplitExpenseAmountField(draftTransaction, currentTransactionID, 15000, policy);
+            await waitForBatchedUpdates();
+
+            const updatedDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+            expect(updatedDraftTransaction).toBeTruthy();
+
+            const splitExpenses = updatedDraftTransaction?.comment?.splitExpenses;
+            expect(splitExpenses?.[0].amount).toBe(15000);
+            expect(splitExpenses?.[0].customUnit?.quantity).toBe(150);
+            expect(splitExpenses?.[0].merchant).toBeTruthy();
+            expect(splitExpenses?.[0].merchant).toContain('150');
+        });
+    });
+
+    describe('initSplitExpenseItemData', () => {
+        it('should create split expense item data from transaction', () => {
+            const transaction: Transaction = {
+                transactionID: '123',
+                amount: -100,
+                currency: 'USD',
+                merchant: 'Test Merchant',
+                comment: {
+                    comment: 'Test comment',
+                    splitExpenses: [],
+                    attendees: [],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                },
+                category: 'Food',
+                tag: 'lunch',
+                created: DateUtils.getDBTime(),
+                reportID: '456',
+            };
+
+            const transactionReport: Report = {
+                reportID: '456',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            const splitExpense = initSplitExpenseItemData(transaction, transactionReport);
+
+            expect(splitExpense.transactionID).toBe('123');
+            expect(splitExpense.amount).toBe(100);
+            expect(splitExpense.description).toBe('Test comment');
+            expect(splitExpense.category).toBe('Food');
+            expect(splitExpense.tags).toEqual(['lunch']);
+            expect(splitExpense.merchant).toBe('Test Merchant');
+            expect(splitExpense.reportID).toBe('456');
+        });
+
+        it('should use provided parameters over transaction data', () => {
+            const transaction: Transaction = {
+                transactionID: '123',
+                amount: -100,
+                currency: 'USD',
+                merchant: 'Original Merchant',
+                comment: {
+                    comment: 'Original comment',
+                    splitExpenses: [],
+                    attendees: [],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                },
+                category: 'Food',
+                tag: 'lunch',
+                created: DateUtils.getDBTime(),
+                reportID: '456',
+            };
+
+            const customUnit: TransactionCustomUnit = {
+                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                customUnitID: 'distance-unit',
+                customUnitRateID: 'rate-123',
+                distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                quantity: 50,
+            };
+
+            const transactionReport: Report = {
+                reportID: '456',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            const splitExpense = initSplitExpenseItemData(transaction, transactionReport, {
+                amount: 200,
+                transactionID: '999',
+                reportID: '888',
+                created: '2024-01-01',
+                merchant: 'Custom Merchant',
+                customUnit,
+            });
+
+            expect(splitExpense.transactionID).toBe('999');
+            expect(splitExpense.amount).toBe(200);
+            expect(splitExpense.reportID).toBe('888');
+            expect(splitExpense.created).toBe('2024-01-01');
+            expect(splitExpense.merchant).toBe('Custom Merchant');
+            expect(splitExpense.customUnit).toEqual(customUnit);
+        });
+
+        it('should handle transaction with waypoints and odometer readings', () => {
+            const transaction: Transaction = {
+                transactionID: '123',
+                amount: -100,
+                currency: 'USD',
+                merchant: 'Test Merchant',
+                comment: {
+                    comment: 'Test comment',
+                    splitExpenses: [],
+                    attendees: [],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    waypoints: {
+                        waypoint0: {lat: 0, lng: 0, name: 'Start'},
+                        waypoint1: {lat: 1, lng: 1, name: 'End'},
+                    },
+                    odometerStart: 1000,
+                    odometerEnd: 1200,
+                },
+                category: 'Food',
+                created: DateUtils.getDBTime(),
+                reportID: '456',
+            };
+
+            const transactionReport: Report = {
+                reportID: '456',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            const splitExpense = initSplitExpenseItemData(transaction, transactionReport);
+
+            expect(splitExpense.waypoints).toEqual(transaction.comment?.waypoints);
+            expect(splitExpense.odometerStart).toBe(1000);
+            expect(splitExpense.odometerEnd).toBe(1200);
+        });
+    });
+
+    describe('initDraftSplitExpenseDataForEdit', () => {
+        it('should create draft transaction for editing split expense', async () => {
+            const originalTransactionID = 'orig-123';
+            const splitExpenseTransactionID = 'split-456';
+            const reportID = 'report-789';
+
+            const originalTransaction: Transaction = {
+                transactionID: originalTransactionID,
+                amount: -20000,
+                currency: 'USD',
+                merchant: 'Original Merchant',
+                comment: {
+                    comment: 'Original comment',
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance-unit',
+                        customUnitRateID: 'rate-123',
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 200,
+                    },
+                },
+                category: 'Car',
+                created: DateUtils.getDBTime(),
+                reportID,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, originalTransaction);
+            await waitForBatchedUpdates();
+
+            const draftTransaction: Transaction = {
+                transactionID: 'draft-123',
+                amount: 20000,
+                currency: 'USD',
+                merchant: 'Draft Merchant',
+                comment: {
+                    comment: 'Draft comment',
+                    originalTransactionID,
+                    splitExpenses: [
+                        {
+                            transactionID: splitExpenseTransactionID,
+                            amount: 10000,
+                            description: 'Split expense',
+                            category: 'Car',
+                            tags: ['tag1'],
+                            created: DateUtils.getDBTime(),
+                            customUnit: {
+                                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                                customUnitID: 'distance-unit',
+                                customUnitRateID: 'rate-123',
+                                distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                                quantity: 100,
+                            },
+                            waypoints: {
+                                waypoint0: {lat: 0, lng: 0, name: 'Start'},
+                            },
+                            odometerStart: 1000,
+                            odometerEnd: 1100,
+                        },
+                    ],
+                    attendees: [],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                },
+                participants: [{accountID: 1}] as IOUParticipant[],
+                created: DateUtils.getDBTime(),
+                reportID,
+            };
+
+            initDraftSplitExpenseDataForEdit(draftTransaction, splitExpenseTransactionID, reportID);
+            await waitForBatchedUpdates();
+
+            const editDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
+            expect(editDraftTransaction).toBeTruthy();
+            expect(editDraftTransaction?.amount).toBe(10000);
+            expect(editDraftTransaction?.currency).toBe('USD');
+            expect(editDraftTransaction?.comment?.comment).toBe('Split expense');
+            expect(editDraftTransaction?.category).toBe('Car');
+            expect(editDraftTransaction?.tag).toBe('tag1');
+            expect(editDraftTransaction?.comment?.customUnit?.quantity).toBe(100);
+            expect(editDraftTransaction?.comment?.waypoints).toEqual({
+                waypoint0: {lat: 0, lng: 0, name: 'Start'},
+            });
+            expect(editDraftTransaction?.comment?.odometerStart).toBe(1000);
+            expect(editDraftTransaction?.comment?.odometerEnd).toBe(1100);
+        });
+
+        it('should not create draft if draftTransaction or splitExpenseTransactionID is missing', async () => {
+            initDraftSplitExpenseDataForEdit(undefined, 'split-456', 'report-789');
+            await waitForBatchedUpdates();
+
+            const editDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
+            expect(editDraftTransaction).toBeFalsy();
+        });
+    });
+
+    describe('resetSplitExpensesByDateRange', () => {
+        it('should reset split expenses and create new ones based on date range', async () => {
+            const transactionID = 'trans-123';
+            const startDate = '2024-01-01';
+            const endDate = '2024-01-03';
+
+            const transaction: Transaction = {
+                transactionID,
+                amount: -30000,
+                currency: 'USD',
+                merchant: 'Test Merchant',
+                comment: {
+                    comment: 'Test comment',
+                    splitExpenses: [],
+                    attendees: [],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                },
+                category: 'Food',
+                created: DateUtils.getDBTime(),
+                reportID: '456',
+            };
+
+            const transactionReport: Report = {
+                reportID: '456',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            resetSplitExpensesByDateRange(transaction, transactionReport, startDate, endDate);
+            await waitForBatchedUpdates();
+
+            const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+            expect(draftTransaction).toBeTruthy();
+
+            const splitExpenses = draftTransaction?.comment?.splitExpenses;
+            expect(splitExpenses).toHaveLength(3);
+            expect(splitExpenses?.[0].amount).toBe(10000);
+            expect(splitExpenses?.[1].amount).toBe(10000);
+            expect(splitExpenses?.[2].amount).toBe(10000);
+            expect(splitExpenses?.[0].created).toBe('2024-01-01');
+            expect(splitExpenses?.[1].created).toBe('2024-01-02');
+            expect(splitExpenses?.[2].created).toBe('2024-01-03');
+
+            expect(draftTransaction?.comment?.splitsStartDate).toBe(startDate);
+            expect(draftTransaction?.comment?.splitsEndDate).toBe(endDate);
+        });
+
+        it('should handle distance transactions with customUnit and merchant', async () => {
+            const customUnitRateID = 'rate-date';
+            const customUnitID = 'distance-unit';
+            const transactionID = 'trans-date';
+            const startDate = '2024-01-01';
+            const endDate = '2024-01-02';
+
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                customUnits: {
+                    [customUnitID]: {
+                        customUnitID,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        enabled: true,
+                        attributes: {
+                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        },
+                        rates: {
+                            [customUnitRateID]: {
+                                customUnitRateID,
+                                currency: CONST.CURRENCY.USD,
+                                rate: 100,
+                                enabled: true,
+                                name: 'Default Rate',
+                                subRates: [],
+                            },
+                        },
+                    },
+                },
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await waitForBatchedUpdates();
+
+            const transaction: Transaction = {
+                transactionID,
+                amount: -20000,
+                currency: 'USD',
+                merchant: '',
+                comment: {
+                    comment: 'Distance expense',
+                    splitExpenses: [],
+                    attendees: [],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID,
+                        customUnitRateID,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 200,
+                    },
+                },
+                category: 'Car',
+                created: DateUtils.getDBTime(),
+                reportID: '456',
+            };
+
+            const transactionReport: Report = {
+                reportID: '456',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            resetSplitExpensesByDateRange(transaction, transactionReport, startDate, endDate, policy);
+            await waitForBatchedUpdates();
+
+            const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+            expect(draftTransaction).toBeTruthy();
+
+            const splitExpenses = draftTransaction?.comment?.splitExpenses;
+            expect(splitExpenses).toHaveLength(2);
+            expect(splitExpenses?.[0].amount).toBe(10000);
+            expect(splitExpenses?.[1].amount).toBe(10000);
+            expect(splitExpenses?.[0].customUnit?.quantity).toBe(100);
+            expect(splitExpenses?.[1].customUnit?.quantity).toBe(100);
+            expect(splitExpenses?.[0].merchant).toBeTruthy();
+            expect(splitExpenses?.[0].merchant).toContain('100');
+            expect(splitExpenses?.[1].merchant).toBeTruthy();
+            expect(splitExpenses?.[1].merchant).toContain('100');
+        });
+
+        it('should not reset if transaction, startDate, or endDate is missing', async () => {
+            resetSplitExpensesByDateRange(undefined, undefined, '2024-01-01', '2024-01-03');
+            await waitForBatchedUpdates();
+        });
+    });
+
+    describe('removeSplitExpenseField', () => {
+        it('should remove split expense field from draft transaction', async () => {
+            const originalTransactionID = 'orig-remove';
+            const splitExpenseTransactionID = 'split-to-remove';
+
+            const draftTransaction: Transaction = {
+                transactionID: 'draft-remove',
+                amount: 30000,
+                currency: 'USD',
+                merchant: 'Test Merchant',
+                comment: {
+                    comment: 'Test comment',
+                    originalTransactionID,
+                    splitExpenses: [
+                        {
+                            transactionID: 'split-keep-1',
+                            amount: 10000,
+                            description: 'Keep 1',
+                            created: DateUtils.getDBTime(),
+                        },
+                        {
+                            transactionID: splitExpenseTransactionID,
+                            amount: 10000,
+                            description: 'To Remove',
+                            created: DateUtils.getDBTime(),
+                        },
+                        {
+                            transactionID: 'split-keep-2',
+                            amount: 10000,
+                            description: 'Keep 2',
+                            created: DateUtils.getDBTime(),
+                        },
+                    ],
+                    attendees: [],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                },
+                created: DateUtils.getDBTime(),
+                reportID: 'rep-remove',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, draftTransaction);
+            await waitForBatchedUpdates();
+
+            removeSplitExpenseField(draftTransaction, splitExpenseTransactionID);
+            await waitForBatchedUpdates();
+
+            const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+            expect(updatedDraft).toBeTruthy();
+
+            const splitExpenses = updatedDraft?.comment?.splitExpenses;
+            expect(splitExpenses).toHaveLength(2);
+            expect(splitExpenses?.find((s) => s.transactionID === splitExpenseTransactionID)).toBeUndefined();
+            expect(splitExpenses?.find((s) => s.transactionID === 'split-keep-1')).toBeTruthy();
+            expect(splitExpenses?.find((s) => s.transactionID === 'split-keep-2')).toBeTruthy();
+            expect(updatedDraft?.comment?.splitsStartDate).toBeFalsy();
+            expect(updatedDraft?.comment?.splitsEndDate).toBeFalsy();
+        });
+
+        it('should not remove if draftTransaction or splitExpenseTransactionID is missing', async () => {
+            removeSplitExpenseField(undefined, 'split-123');
+            await waitForBatchedUpdates();
+        });
+    });
+
+    describe('updateSplitExpenseField', () => {
+        it('should update split expense field with new transaction details', async () => {
+            const originalTransactionID = 'orig-update';
+            const splitExpenseTransactionID = 'split-update';
+
+            const originalTransaction: Transaction = {
+                transactionID: originalTransactionID,
+                amount: -20000,
+                currency: 'USD',
+                merchant: 'Original Merchant',
+                comment: {
+                    comment: 'Original comment',
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                },
+                category: 'Food',
+                created: DateUtils.getDBTime(),
+                reportID: '456',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, originalTransaction);
+            await waitForBatchedUpdates();
+
+            const originalTransactionDraft: Transaction = {
+                transactionID: 'draft-orig',
+                amount: 20000,
+                currency: 'USD',
+                merchant: 'Draft Merchant',
+                comment: {
+                    comment: 'Draft comment',
+                    originalTransactionID,
+                    splitExpenses: [
+                        {
+                            transactionID: splitExpenseTransactionID,
+                            amount: 10000,
+                            description: 'Original description',
+                            category: 'Food',
+                            tags: ['tag1'],
+                            created: '2024-01-01',
+                        },
+                    ],
+                    attendees: [],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                },
+                created: DateUtils.getDBTime(),
+                reportID: '456',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, originalTransactionDraft);
+            await waitForBatchedUpdates();
+
+            const splitExpenseDraftTransaction: Transaction = {
+                transactionID: 'draft-split',
+                amount: 15000,
+                currency: 'USD',
+                merchant: 'Updated Merchant',
+                comment: {
+                    comment: 'Updated description',
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    originalTransactionID,
+                    waypoints: {
+                        waypoint0: {lat: 0, lng: 0, name: 'Start'},
+                    },
+                    odometerStart: 1000,
+                    odometerEnd: 1100,
+                },
+                category: 'Car',
+                tag: 'tag2',
+                created: DateUtils.getDBTime(),
+                reportID: '456',
+            };
+
+            updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID, originalTransaction);
+            await waitForBatchedUpdates();
+
+            const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+            expect(updatedDraft).toBeTruthy();
+
+            const splitExpenses = updatedDraft?.comment?.splitExpenses;
+            const updatedSplit = splitExpenses?.find((s) => s.transactionID === splitExpenseTransactionID);
+            expect(updatedSplit).toBeTruthy();
+            expect(updatedSplit?.amount).toBe(15000);
+            expect(updatedSplit?.description).toBe('Updated description');
+            expect(updatedSplit?.category).toBe('Car');
+            expect(updatedSplit?.tags).toEqual(['tag2']);
+            expect(updatedSplit?.waypoints).toEqual({
+                waypoint0: {lat: 0, lng: 0, name: 'Start'},
+            });
+            expect(updatedSplit?.odometerStart).toBe(1000);
+            expect(updatedSplit?.odometerEnd).toBe(1100);
+        });
+
+        it('should recalculate amount for distance transactions when distance changes', async () => {
+            const customUnitRateID = 'rate-update-field';
+            const customUnitID = 'distance-unit';
+            const originalTransactionID = 'orig-dist-update';
+            const splitExpenseTransactionID = 'split-dist-update';
+
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                customUnits: {
+                    [customUnitID]: {
+                        customUnitID,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        enabled: true,
+                        attributes: {
+                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        },
+                        rates: {
+                            [customUnitRateID]: {
+                                customUnitRateID,
+                                currency: CONST.CURRENCY.USD,
+                                rate: 100,
+                                enabled: true,
+                                name: 'Default Rate',
+                                subRates: [],
+                            },
+                        },
+                    },
+                },
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await waitForBatchedUpdates();
+
+            const originalTransaction: Transaction = {
+                transactionID: originalTransactionID,
+                amount: -20000,
+                currency: 'USD',
+                merchant: '',
+                comment: {
+                    comment: 'Distance expense',
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID,
+                        customUnitRateID,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 200,
+                    },
+                },
+                category: 'Car',
+                created: DateUtils.getDBTime(),
+                reportID: '456',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, originalTransaction);
+            await waitForBatchedUpdates();
+
+            const originalTransactionDraft: Transaction = {
+                transactionID: 'draft-orig-dist',
+                amount: 20000,
+                currency: 'USD',
+                merchant: '',
+                comment: {
+                    comment: 'Draft comment',
+                    originalTransactionID,
+                    splitExpenses: [
+                        {
+                            transactionID: splitExpenseTransactionID,
+                            amount: 10000,
+                            description: 'Original',
+                            category: 'Car',
+                            tags: [],
+                            created: DateUtils.getDBTime(),
+                            customUnit: {
+                                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                                customUnitID,
+                                customUnitRateID,
+                                distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                                quantity: 100,
+                            },
+                        },
+                    ],
+                    attendees: [],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                },
+                created: DateUtils.getDBTime(),
+                reportID: '456',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, originalTransactionDraft);
+            await waitForBatchedUpdates();
+
+            const splitExpenseDraftTransaction: Transaction = {
+                transactionID: 'draft-split-dist',
+                amount: 0,
+                currency: 'USD',
+                merchant: '',
+                comment: {
+                    comment: 'Updated description',
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    originalTransactionID,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID,
+                        customUnitRateID,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 150,
+                    },
+                },
+                category: 'Car',
+                created: DateUtils.getDBTime(),
+                reportID: '456',
+            };
+
+            updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID, originalTransaction, policy);
+            await waitForBatchedUpdates();
+
+            const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+            expect(updatedDraft).toBeTruthy();
+
+            const splitExpenses = updatedDraft?.comment?.splitExpenses;
+            const updatedSplit = splitExpenses?.find((s) => s.transactionID === splitExpenseTransactionID);
+            expect(updatedSplit).toBeTruthy();
+            expect(updatedSplit?.amount).toBe(15000);
+            expect(updatedSplit?.customUnit?.quantity).toBe(150);
+            expect(updatedSplit?.merchant).toBeTruthy();
+            expect(updatedSplit?.merchant).toContain('150');
+        });
+
+        it('should reset date range if created date is modified', async () => {
+            const originalTransactionID = 'orig-date-reset';
+            const splitExpenseTransactionID = 'split-date-reset';
+
+            const originalTransaction: Transaction = {
+                transactionID: originalTransactionID,
+                amount: -20000,
+                currency: 'USD',
+                merchant: '',
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                },
+                created: DateUtils.getDBTime(),
+                reportID: '456',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, originalTransaction);
+            await waitForBatchedUpdates();
+
+            const originalTransactionDraft: Transaction = {
+                transactionID: 'draft-date',
+                amount: 20000,
+                currency: 'USD',
+                merchant: '',
+                comment: {
+                    originalTransactionID,
+                    splitsStartDate: '2024-01-01',
+                    splitsEndDate: '2024-01-03',
+                    splitExpenses: [
+                        {
+                            transactionID: splitExpenseTransactionID,
+                            amount: 10000,
+                            description: 'Test',
+                            created: '2024-01-01',
+                        },
+                    ],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                },
+                created: DateUtils.getDBTime(),
+                reportID: '456',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, originalTransactionDraft);
+            await waitForBatchedUpdates();
+
+            const splitExpenseDraftTransaction: Transaction = {
+                transactionID: 'draft-split-date',
+                amount: 10000,
+                currency: 'USD',
+                merchant: '',
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    originalTransactionID,
+                },
+                created: '2024-01-05',
+                reportID: '456',
+            };
+
+            updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID, originalTransaction);
+            await waitForBatchedUpdates();
+
+            const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+            expect(updatedDraft).toBeTruthy();
+            expect(updatedDraft?.comment?.splitsStartDate).toBeFalsy();
+            expect(updatedDraft?.comment?.splitsEndDate).toBeFalsy();
         });
     });
 

@@ -271,7 +271,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                         shouldShowBackButton={shouldUseNarrowLayout}
                         icon={ReceiptPartners}
                         shouldUseHeadlineHeader
-                        onBackButtonPress={Navigation.popToSidebar}
+                        onBackButtonPress={Navigation.goBack}
                     />
                     <ScrollView
                         contentContainerStyle={styles.pt3}

@@ -988,7 +988,6 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'cardID':
         case 'originalAmount':
         case 'convertedAmount':
-        case 'convertedTaxAmount':
         case 'groupAmount':
         case 'groupExchangeRate':
             return validateNumber(value);
@@ -1065,7 +1064,6 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     amount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     taxAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     convertedAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                    convertedTaxAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     taxCode: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     billable: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     category: CONST.RED_BRICK_ROAD_PENDING_ACTION,

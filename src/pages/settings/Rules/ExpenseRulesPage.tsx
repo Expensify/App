@@ -244,7 +244,7 @@ function ExpenseRulesPage() {
                         return;
                     }
 
-                    Navigation.popToSidebar();
+                    Navigation.goBack();
                 }}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldUseHeadlineHeader={!selectionModeHeader}
