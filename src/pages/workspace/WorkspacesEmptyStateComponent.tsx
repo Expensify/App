@@ -7,7 +7,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import ROUTES from '@src/ROUTES';
 import useWorkspacesEmptyStateIllustration from './useWorkspacesEmptyStateIllustration';
@@ -27,7 +26,7 @@ function WorkspacesEmptyStateComponent() {
             title={translate('workspace.emptyWorkspace.title')}
             subtitle={translate('workspace.emptyWorkspace.subtitle')}
             titleStyles={styles.pt2}
-            headerStyles={[styles.overflowHidden, StyleUtils.getBackgroundColorStyle(colors.pink800), StyleUtils.getHeight(variables.sectionIllustrationHeight)]}
+            headerStyles={[styles.overflowHidden, StyleUtils.getHeight(variables.sectionIllustrationHeight)]}
             buttons={
                 isRestrictedPolicyCreation
                     ? []

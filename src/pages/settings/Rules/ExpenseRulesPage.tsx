@@ -262,7 +262,7 @@ function ExpenseRulesPage() {
                         headerMedia={LottieAnimations.GenericEmptyState}
                         title={translate('expenseRulesPage.emptyRules.title')}
                         subtitle={translate('expenseRulesPage.emptyRules.subtitle')}
-                        headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
+                        headerStyles={[styles.emptyStateCardIllustrationContainer]}
                         lottieWebViewStyles={styles.emptyStateFolderWebStyles}
                         headerContentStyles={styles.emptyStateFolderWebStyles}
                     />

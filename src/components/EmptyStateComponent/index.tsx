@@ -18,7 +18,6 @@ import type {EmptyStateComponentProps} from './types';
 const VIDEO_ASPECT_RATIO = 400 / 225;
 
 function EmptyStateComponent({
-    SkeletonComponent,
     headerMediaType,
     headerMedia,
     buttons,
@@ -88,14 +87,6 @@ function EmptyStateComponent({
 
     return (
         <View style={[{minHeight: minModalHeight}, styles.flexGrow1, styles.flexShrink0, containerStyles]}>
-            {!!SkeletonComponent && (
-                <View style={[styles.skeletonBackground, styles.overflowHidden]}>
-                    <SkeletonComponent
-                        gradientOpacityEnabled
-                        shouldAnimate={false}
-                    />
-                </View>
-            )}
             <View style={styles.emptyStateForeground}>
                 <View style={[styles.emptyStateContent, cardStyles]}>
                     <View style={[styles.emptyStateHeader, styles.emptyStateHeaderPosition(headerMediaType === CONST.EMPTY_STATE_MEDIA.ILLUSTRATION), headerStyles]}>{HeaderComponent}</View>
@@ -112,7 +103,7 @@ function EmptyStateComponent({
                             ))}
                         {children}
                         {!isEmpty(buttons) && (
-                            <View style={[styles.gap2, styles.mt5, !shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn, styles.justifyContentCenter]}>
+                            <View style={[styles.gap2, styles.mt5, !shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn, styles.justifyContentCenter, styles.alignItemsCenter]}>
                                 {buttons?.map(({buttonText, buttonAction, success, icon, isDisabled, style, dropDownOptions}) =>
                                     dropDownOptions ? (
                                         <ButtonWithDropdownMenu
@@ -122,7 +113,7 @@ function EmptyStateComponent({
                                             customText={buttonText}
                                             options={dropDownOptions}
                                             isSplitButton={false}
-                                            style={[styles.flex1, style]}
+                                            style={style}
                                         />
                                     ) : (
                                         <Button
@@ -131,9 +122,8 @@ function EmptyStateComponent({
                                             onPress={buttonAction}
                                             text={buttonText}
                                             icon={icon}
-                                            large
                                             isDisabled={isDisabled}
-                                            style={[styles.flex1, style]}
+                                            style={style}
                                         />
                                     ),
                                 )}

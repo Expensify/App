@@ -9,7 +9,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToConciergeChat} from '@libs/actions/Report';
-import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -26,7 +25,7 @@ function WorkspaceCompanyCardsFeedPendingPage() {
                 containerStyles={styles.mt5}
                 headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
                 headerMedia={CompanyCardsPendingState}
-                headerStyles={[styles.emptyStateCardIllustrationContainer, {backgroundColor: colors.ice800}]}
+                headerStyles={[styles.emptyStateCardIllustrationContainer]}
                 headerContentStyles={styles.pendingStateCardIllustration}
                 title={translate('workspace.moreFeatures.companyCards.pendingFeedTitle')}
             >

@@ -488,7 +488,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                             headerMedia={LottieAnimations.GenericEmptyState}
                             title={translate('workspace.perDiem.emptyList.title')}
                             subtitle={translate('workspace.perDiem.emptyList.subtitle')}
-                            headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
+                            headerStyles={[styles.emptyStateCardIllustrationContainer]}
                             lottieWebViewStyles={styles.emptyStateFolderWebStyles}
                             headerContentStyles={styles.emptyStateFolderWebStyles}
                             buttons={[

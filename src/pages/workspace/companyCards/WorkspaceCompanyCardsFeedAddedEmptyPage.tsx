@@ -6,7 +6,6 @@ import Text from '@components/Text';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 
 type WorkspaceCompanyCardsFeedAddedEmptyPageProps = {
@@ -29,7 +28,7 @@ function WorkspaceCompanyCardsFeedAddedEmptyPage({shouldShowGBDisclaimer}: Works
                 headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
                 headerMedia={illustrations.CompanyCardsEmptyState}
                 containerStyles={styles.mt5}
-                headerStyles={[styles.emptyStateCardIllustrationContainer, styles.justifyContentStart, {backgroundColor: colors.blue700}]}
+                headerStyles={[styles.emptyStateCardIllustrationContainer, styles.justifyContentStart]}
                 headerContentStyles={styles.emptyStateCardIllustration}
                 title={translate('workspace.moreFeatures.companyCards.emptyAddedFeedTitle')}
                 subtitle={translate('workspace.moreFeatures.companyCards.emptyAddedFeedDescription')}

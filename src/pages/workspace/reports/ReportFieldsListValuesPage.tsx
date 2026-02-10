@@ -382,7 +382,7 @@ function ReportFieldsListValuesPage({
                             SkeletonComponent={TableListItemSkeleton}
                             headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
                             headerMedia={illustrations.FolderWithPapers}
-                            headerStyles={styles.emptyFolderDarkBG}
+                            headerStyles={undefined}
                             headerContentStyles={styles.emptyStateFolderWithPaperIconSize}
                         />
                     </ScrollView>

@@ -5285,8 +5285,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         emptyStateContent: {
-            backgroundColor: theme.cardBG,
-            borderRadius: variables.componentBorderRadiusLarge,
             maxWidth: 400,
             width: '100%',
         },
@@ -5300,10 +5298,7 @@ const staticStyles = (theme: ThemeColors) =>
             height: 220,
         },
 
-        emptyStateVideo: {
-            borderTopLeftRadius: variables.componentBorderRadiusLarge,
-            borderTopRightRadius: variables.componentBorderRadiusLarge,
-        },
+        emptyStateVideo: {},
 
         emptyStateFolderWithPaperIconSize: {
             width: 160,
@@ -5669,8 +5664,6 @@ const staticStyles = (theme: ThemeColors) =>
             right: 0,
         },
         emptyStateHeader: {
-            borderTopLeftRadius: variables.componentBorderRadiusLarge,
-            borderTopRightRadius: variables.componentBorderRadiusLarge,
             minHeight: 200,
         },
         sidePanelOverlay: {

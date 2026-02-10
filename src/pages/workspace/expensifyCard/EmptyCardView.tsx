@@ -12,7 +12,6 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 
 type EmptyCardViewProps = {
@@ -50,11 +49,10 @@ function EmptyCardView({isBankAccountVerified, policyID, buttons}: EmptyCardView
                             ? [
                                   {
                                       overflow: 'hidden',
-                                      backgroundColor: colors.green700,
                                   },
                                   shouldUseNarrowLayout && {maxHeight: 280},
                               ]
-                            : [styles.emptyStateCardIllustrationContainer, {backgroundColor: colors.ice800}]
+                            : [styles.emptyStateCardIllustrationContainer]
                     }
                     title={translate(`workspace.expensifyCard.${isBankAccountVerified ? 'issueAndManageCards' : 'verificationInProgress'}`)}
                     subtitle={translate(`workspace.expensifyCard.${isBankAccountVerified ? 'getStartedIssuing' : 'verifyingTheDetails'}`)}
