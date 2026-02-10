@@ -41,6 +41,15 @@ type DraggableListProps<T> = {
     /** Whether keyboard navigation is active for this list. Defaults to false. */
     isKeyboardActive?: boolean;
 
+    /** Called when arrow down is pressed at the last enabled item. Receives a function to set focus in this list. */
+    onArrowDownOverflow?: () => void;
+
+    /** Called when arrow up is pressed at the first enabled item. Receives a function to set focus in this list. */
+    onArrowUpOverflow?: () => void;
+
+    /** Index to focus when the list becomes keyboard-active. -1 means no initial focus. */
+    activeFocusIndex?: number;
+
     /** Rendered at the bottom of all the items. Just like in the FlatList. */
     ListFooterComponent?: React.ReactElement;
 

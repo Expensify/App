@@ -175,9 +175,30 @@ function SearchColumnsPage() {
     const onSelectGroupItem = (item: ListItem) => onSelectItem(item, 'group');
     const onSelectTypeItem = (item: ListItem) => onSelectItem(item, 'type');
 
-    const setGroupListActive = () => setActiveList('group');
-    const setTypeListActive = () => setActiveList('type');
+    const [typeFocusIndex, setTypeFocusIndex] = useState(-1);
+    const [groupFocusIndex, setGroupFocusIndex] = useState(-1);
+
+    const setGroupListActive = () => {
+        setActiveList('group');
+        setGroupFocusIndex(-1);
+    };
+    const setTypeListActive = () => {
+        setActiveList('type');
+        setTypeFocusIndex(-1);
+    };
     const deactivateListKeyboard = () => setActiveList('none');
+
+    const onGroupArrowDownOverflow = () => {
+        const firstEnabledTypeIndex = typeColumnsList.findIndex((item) => !item.isDisabled);
+        setTypeFocusIndex(firstEnabledTypeIndex);
+        setActiveList('type');
+    };
+
+    const onTypeArrowUpOverflow = () => {
+        const lastEnabledGroupIndex = groupColumnsList.findLastIndex((item) => !item.isDisabled);
+        setGroupFocusIndex(lastEnabledGroupIndex);
+        setActiveList('group');
+    };
 
     const onGroupDragEnd = ({data}: {data: typeof allColumnsList}) => {
         const newGroupColumns = data.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
@@ -267,6 +288,8 @@ function SearchColumnsPage() {
                                     onDragEnd={onGroupDragEnd}
                                     onSelectRow={onSelectGroupItem}
                                     isKeyboardActive={activeList === 'group'}
+                                    activeFocusIndex={groupFocusIndex}
+                                    onArrowDownOverflow={onGroupArrowDownOverflow}
                                     renderItem={renderGroupItem}
                                 />
                             </View>
@@ -290,6 +313,8 @@ function SearchColumnsPage() {
                             onDragEnd={onTypeDragEnd}
                             onSelectRow={onSelectTypeItem}
                             isKeyboardActive={activeList === 'type'}
+                            activeFocusIndex={typeFocusIndex}
+                            onArrowUpOverflow={groupBy ? onTypeArrowUpOverflow : undefined}
                             renderItem={renderTypeItem}
                         />
                     </View>

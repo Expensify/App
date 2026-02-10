@@ -2,7 +2,7 @@ import type {DragEndEvent} from '@dnd-kit/core';
 import {closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors} from '@dnd-kit/core';
 import {restrictToParentElement, restrictToVerticalAxis} from '@dnd-kit/modifiers';
 import {arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy} from '@dnd-kit/sortable';
-import React, {Fragment} from 'react';
+import React, {Fragment, useEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import ScrollView from '@components/ScrollView';
@@ -27,6 +27,9 @@ function DraggableList<T>({
     onDragEnd: onDragEndCallback,
     onSelectRow,
     isKeyboardActive = false,
+    onArrowUpOverflow,
+    onArrowDownOverflow,
+    activeFocusIndex = -1,
     // eslint-disable-next-line @typescript-eslint/naming-convention
     ListFooterComponent,
     disableScroll,
@@ -45,7 +48,16 @@ function DraggableList<T>({
         maxIndex: data.length - 1,
         disabledIndexes: disabledArrowKeyIndexes,
         isActive: isKeyboardActive,
+        disableCyclicTraversal: true,
     });
+
+    const prevIsKeyboardActive = useRef(isKeyboardActive);
+    useEffect(() => {
+        if (isKeyboardActive && !prevIsKeyboardActive.current && activeFocusIndex >= 0) {
+            setFocusedIndex(activeFocusIndex);
+        }
+        prevIsKeyboardActive.current = isKeyboardActive;
+    }, [isKeyboardActive, activeFocusIndex, setFocusedIndex]);
 
     const selectFocusedOption = () => {
         const focusedItem = data.at(focusedIndex);
@@ -57,6 +69,27 @@ function DraggableList<T>({
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         isActive: isKeyboardActive && focusedIndex >= 0 && !!onSelectRow,
     });
+
+    const lastEnabledIndex = data.findLastIndex((item, index) => !disabledArrowKeyIndexes.includes(index));
+    const firstEnabledIndex = data.findIndex((_, index) => !disabledArrowKeyIndexes.includes(index));
+
+    useKeyboardShortcut(
+        CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN,
+        () => {
+            onArrowDownOverflow?.();
+            setFocusedIndex(-1);
+        },
+        {isActive: isKeyboardActive && focusedIndex === lastEnabledIndex && !!onArrowDownOverflow},
+    );
+
+    useKeyboardShortcut(
+        CONST.KEYBOARD_SHORTCUTS.ARROW_UP,
+        () => {
+            onArrowUpOverflow?.();
+            setFocusedIndex(-1);
+        },
+        {isActive: isKeyboardActive && focusedIndex === firstEnabledIndex && !!onArrowUpOverflow},
+    );
 
     /**
      * Function to be called when the user finishes dragging an item
