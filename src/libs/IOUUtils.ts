@@ -272,7 +272,7 @@ function insertTagIntoTransactionTagsString(transactionTags: string, tag: string
         return tag;
     }
 
-    const tagArray = getTagArrayFromName(transactionTags);
+    const tagArray = transactionTags ? getTagArrayFromName(transactionTags) : [];
     tagArray[tagIndex] = tag;
 
     while (tagArray.length > 0 && !tagArray.at(-1)) {
