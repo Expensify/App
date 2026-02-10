@@ -522,6 +522,238 @@ const results = items.map((item) => {
 
 ---
 
+### [PERF-14] Use `useSyncExternalStore` for external store subscriptions
+
+- **Search patterns**: `addEventListener`, `subscribe`, `useEffect`, `useState`
+
+- **Condition**: Flag ONLY when ALL of these are true:
+
+  - A `useEffect` subscribes to an external source (DOM events, third-party store, browser API)
+  - Inside the listener, at least one `setState` call directly mirrors an external value
+    (e.g., `setWidth(window.innerWidth)`, `setOnline(navigator.onLine)`)
+  - The pattern for that state variable follows: subscribe in setup, unsubscribe in cleanup,
+    `setState(externalValue)` in the listener
+  - Evaluate each state variable independently — if one state variable is a raw mirror of an
+    external value, flag it even if the same effect also manages other state for different purposes
+
+  **DO NOT flag if:**
+
+  - The specific state variable being flagged undergoes transformation, debouncing, or derives
+    from computation rather than directly mirroring the external value. Other state variables
+    in the same effect that DO directly mirror external values should still be flagged.
+  - The external API doesn't fit the `subscribe` / `getSnapshot` contract
+  - The code already uses `useSyncExternalStore`
+  - The subscription is managed by a library (e.g., Onyx's `useOnyx`)
+
+- **Reasoning**: [`useSyncExternalStore`](https://react.dev/learn/you-might-not-need-an-effect#subscribing-to-an-external-store) is React's purpose-built hook for reading external store values. It handles concurrent rendering edge cases (tearing), avoids the extra render pass of `useEffect` + `setState`, and makes the subscription contract explicit. Manual subscriptions via `useEffect` are more error-prone and miss these guarantees.
+
+Good:
+
+```tsx
+function subscribe(callback) {
+  window.addEventListener('online', callback);
+  window.addEventListener('offline', callback);
+  return () => {
+    window.removeEventListener('online', callback);
+    window.removeEventListener('offline', callback);
+  };
+}
+
+function useOnlineStatus() {
+  // ✅ Good: Subscribing to an external store with a built-in Hook
+  return useSyncExternalStore(
+    subscribe, // React won't resubscribe for as long as you pass the same function
+    () => navigator.onLine, // How to get the value on the client
+    () => true // How to get the value on the server
+  );
+}
+
+function ChatIndicator() {
+  const isOnline = useOnlineStatus();
+  // ...
+}
+```
+
+Bad:
+
+```tsx
+function useOnlineStatus() {
+  // Not ideal: Manual store subscription in an Effect
+  const [isOnline, setIsOnline] = useState(true);
+  useEffect(() => {
+    function updateState() {
+      setIsOnline(navigator.onLine);
+    }
+
+    updateState();
+
+    window.addEventListener('online', updateState);
+    window.addEventListener('offline', updateState);
+    return () => {
+      window.removeEventListener('online', updateState);
+      window.removeEventListener('offline', updateState);
+    };
+  }, []);
+  return isOnline;
+}
+
+function ChatIndicator() {
+  const isOnline = useOnlineStatus();
+  // ...
+}
+```
+
+---
+
+### [PERF-15] Clean up async Effects to prevent race conditions
+
+- **Search patterns**: `useEffect`, `fetch(`, `async`, `await`, `.then(`, `setState`, `eslint-disable`
+
+- **Condition**: Flag when EITHER of these is true:
+
+  **Case 1 — Missing cleanup:**
+  - A `useEffect` performs async work (fetch, promise chain, async/await)
+  - The async callback performs side effects (setState, navigation, data mutations, deletions)
+  - There is no cleanup mechanism to discard stale responses (no `ignore` flag, no `AbortController`, no cancellation token)
+
+  **Case 2 — Suppressed dependency lint:**
+  - A `useEffect` performs async work and triggers side effects (setState, navigation, mutations)
+  - The dependency array has an `eslint-disable` comment suppressing `react-hooks/exhaustive-deps`
+  - This hides a dependency that could change and cause a race condition
+
+  **DO NOT flag if:**
+
+  - The Effect includes an `ignore`/`cancelled` boolean checked before `setState`
+  - The Effect uses `AbortController` to cancel the request on cleanup
+  - The async operation is truly fire-and-forget (no setState, no navigation, no mutations —
+    just logging or analytics that are safe to complete after unmount)
+  - The dependency array is empty `[]` with no suppressed lint, AND the async callback only
+    performs idempotent/safe operations (no navigation, no destructive mutations that could
+    fire after unmount)
+  - Data fetching is handled by a library/framework (e.g., Onyx, React Query)
+
+- **Reasoning**: When an Effect's dependencies change, the previous async operation [may still be in flight](https://react.dev/learn/you-might-not-need-an-effect#fetching-data). Without cleanup, a slow earlier response can overwrite the result of a faster later response, showing stale data. This is especially dangerous for search inputs and navigation where dependencies change rapidly.
+
+Good (ignore flag):
+
+```tsx
+useEffect(() => {
+    let ignore = false;
+
+    fetchResults(query).then((json) => {
+        if (!ignore) {
+            setResults(json);
+        }
+    });
+
+    return () => {
+        ignore = true;
+    };
+}, [query]);
+```
+
+Good (AbortController):
+
+```tsx
+useEffect(() => {
+    const controller = new AbortController();
+
+    fetch(`/api/search?q=${query}`, {signal: controller.signal})
+        .then((res) => res.json())
+        .then((data) => setResults(data))
+        .catch((e) => {
+            if (e.name !== 'AbortError') {
+                setError(e);
+            }
+        });
+
+    return () => controller.abort();
+}, [query]);
+```
+
+Bad:
+
+```tsx
+useEffect(() => {
+    fetchResults(query).then((json) => {
+        setResults(json);
+    });
+}, [query]);
+```
+
+---
+
+### [PERF-16] Guard initialization logic against double-execution
+
+- **Search patterns**: `useEffect` with empty dependency array `[]` containing initialization logic (API calls, storage access, authentication checks, SDK setup, global configuration, event handler registration)
+
+- **Condition**: Flag ONLY when ALL of these are true:
+
+  - A `useEffect` with empty dependency array `[]` runs non-idempotent initialization logic
+  - The logic would cause problems if executed twice (e.g., double API calls, invalidated tokens, duplicate SDK init, duplicate analytics sessions, duplicate deep link registrations)
+  - There is no guard mechanism (module-level flag or module-level execution)
+  - This applies at any level — app-wide init, feature screens, or individual components
+
+  **DO NOT flag if:**
+
+  - A module-level or ref-based guard variable prevents double execution. A proper execution
+    guard follows this pattern: `if (didInit) return; didInit = true;` — it checks a flag AND
+    sets it. Conditional checks on data/props (e.g., `if (!transaction) return`,
+    `if (action !== 'CREATE') return`) are NOT execution guards — they validate preconditions
+    but don't prevent the logic from running again if the same preconditions hold in a second
+    invocation (which happens in React Strict Mode).
+  - The logic is idempotent (safe to run twice with no side effects)
+  - NOTE: Navigation calls (e.g., `navigate()`), data deletion (e.g., `removeDraftTransactions()`),
+    and similar mutations are NOT idempotent — running them twice produces different/undesirable results.
+  - The logic is at module level, outside any component
+  - The Effect has non-empty dependencies (not one-time init)
+
+- **Reasoning**: React Strict Mode [intentionally double-invokes Effects](https://react.dev/learn/you-might-not-need-an-effect#initializing-the-application) in development to surface missing cleanup. Non-idempotent initialization — whether app-wide (auth tokens, global config) or per-feature (SDK setup, analytics session creation, deep link handler registration) — can break when executed twice. Guarding with a module-level flag or moving initialization outside the component ensures it runs exactly once regardless of rendering mode.
+
+Good (module-level guard):
+
+```tsx
+let didInit = false;
+
+function App() {
+    useEffect(() => {
+        if (didInit) {
+            return;
+        }
+        didInit = true;
+
+        loadDataFromLocalStorage();
+        checkAuthToken();
+    }, []);
+}
+```
+
+Good (module-level execution):
+
+```tsx
+if (typeof window !== 'undefined') {
+    checkAuthToken();
+    loadDataFromLocalStorage();
+}
+
+function App() {
+    // ...
+}
+```
+
+Bad:
+
+```tsx
+function App() {
+    useEffect(() => {
+        loadDataFromLocalStorage();
+        checkAuthToken();
+    }, []);
+}
+```
+
+---
+
 ### [CONSISTENCY-1] Avoid platform-specific checks within components
 
 - **Search patterns**: `Platform.OS`, `isAndroid`, `isIOS`, `Platform\.select`

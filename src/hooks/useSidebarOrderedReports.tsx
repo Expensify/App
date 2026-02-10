@@ -222,6 +222,8 @@ function SidebarOrderedReportsContextProvider({
         clearCacheDummyCounter,
     ]);
 
+    // useDeepCompareRef prevents unnecessary useCallback recreations when these have same content but different reference.
+    // Without this, getOrderedReportIDs would be recreated on every render, causing expensive orderedReportIDs recalculation.
     const deepComparedReportsToDisplayInLHN = useDeepCompareRef(reportsToDisplayInLHN);
     const deepComparedReportsDrafts = useDeepCompareRef(reportsDrafts);
 

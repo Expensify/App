@@ -37,7 +37,13 @@ import {
     updateReportPreview,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import {buildOptimisticTransaction, getChildTransactions, isOnHold, isPerDiemRequest as isPerDiemRequestTransactionUtils} from '@libs/TransactionUtils';
+import {
+    buildOptimisticTransaction,
+    getChildTransactions,
+    isDistanceRequest as isDistanceRequestTransactionUtils,
+    isOnHold,
+    isPerDiemRequest as isPerDiemRequestTransactionUtils,
+} from '@libs/TransactionUtils';
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import {notifyNewAction} from '@userActions/Report';
 import {removeDraftSplitTransaction, removeDraftTransaction} from '@userActions/TransactionEdit';
@@ -218,7 +224,7 @@ function splitBill({
 
     dismissModalAndOpenReportInInboxTab(existingSplitChatReportID);
 
-    notifyNewAction(splitData.chatReportID, currentUserAccountID);
+    notifyNewAction(splitData.chatReportID, undefined, true);
 }
 
 /**
@@ -308,7 +314,7 @@ function splitBillAndOpenReport({
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
 
     dismissModalAndOpenReportInInboxTab(splitData.chatReportID);
-    notifyNewAction(splitData.chatReportID, currentUserAccountID);
+    notifyNewAction(splitData.chatReportID, undefined, true);
 }
 
 /**
@@ -679,7 +685,7 @@ function startSplitBill({
     API.write(WRITE_COMMANDS.START_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
 
     Navigation.dismissModalWithReport({reportID: splitChatReport.reportID});
-    notifyNewAction(splitChatReport.reportID, currentUserAccountID);
+    notifyNewAction(splitChatReport.reportID, undefined, true);
 
     // Return the split transactionID for testing purpose
     return {splitTransactionID: splitTransaction.transactionID};
@@ -991,7 +997,7 @@ function completeSplitBill(
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
     dismissModalAndOpenReportInInboxTab(chatReportID);
-    notifyNewAction(chatReportID, sessionAccountID);
+    notifyNewAction(chatReportID, undefined, true);
 }
 
 function updateSplitTransactions({
@@ -1072,6 +1078,11 @@ function updateSplitTransactions({
                     comment: currentDescription,
                 },
                 reimbursable: split?.reimbursable,
+                quantity: split.customUnit?.quantity ?? undefined,
+                customUnitRateID: split.customUnit?.customUnitRateID,
+                odometerStart: split.odometerStart,
+                odometerEnd: split.odometerEnd,
+                waypoints: split.waypoints,
             };
         }) ?? [];
     changesInReportTotal -= splitExpensesTotal;
@@ -1113,6 +1124,8 @@ function updateSplitTransactions({
             return transactionID === existingTransactionID;
         });
 
+        const splitExpenseMerchant = splitExpense.merchant ?? '';
+
         const requestMoneyInformation = {
             participantParams: {
                 participant: participants.at(0) ?? ({} as Participant),
@@ -1129,7 +1142,7 @@ function updateSplitTransactions({
                 modifiedAmount: splitExpense.amount ?? 0,
                 currency: originalTransactionDetails?.currency ?? CONST.CURRENCY.USD,
                 created: splitExpense.created,
-                merchant: splitExpense.merchant ?? '',
+                merchant: splitExpenseMerchant,
                 comment: splitExpense.description,
                 category: splitExpense.category,
                 tag: splitExpense.tags?.[0],
@@ -1143,6 +1156,12 @@ function updateSplitTransactions({
                 taxCode: originalTransactionDetails?.taxCode,
                 taxAmount: calculateIOUAmount(splitExpenses.length - 1, originalTransactionDetails?.taxAmount ?? 0, originalTransactionDetails?.currency ?? CONST.CURRENCY.USD, false),
                 billable: originalTransactionDetails?.billable,
+                waypoints: splitExpense.waypoints,
+                customUnit: splitExpense.customUnit,
+                // For distance transactions, also pass distance from customUnit.quantity so buildOptimisticTransaction sets it correctly
+                distance: splitExpense.customUnit?.quantity,
+                odometerStart: splitExpense.odometerStart,
+                odometerEnd: splitExpense.odometerEnd,
             },
             parentChatReport: getReportOrDraftReport(getReportOrDraftReport(expenseReport?.chatReportID)?.parentReportID),
             existingTransaction: originalTransaction,
@@ -1169,6 +1188,12 @@ function updateSplitTransactions({
                 taxCode: originalTransactionDetails?.taxCode,
                 taxAmount: calculateIOUAmount(splitExpenses.length - 1, originalTransactionDetails?.taxAmount ?? 0, originalTransactionDetails?.currency ?? CONST.CURRENCY.USD, false),
                 billable: originalTransactionDetails?.billable,
+                waypoints: splitExpense.waypoints,
+                customUnit: splitExpense.customUnit,
+                // For distance transactions, also pass distance from customUnit.quantity so buildOptimisticTransaction sets it correctly
+                distance: splitExpense.customUnit?.quantity ?? undefined,
+                odometerStart: splitExpense.odometerStart,
+                odometerEnd: splitExpense.odometerEnd,
             };
             requestMoneyInformation.existingTransaction = undefined;
         }
@@ -1177,7 +1202,13 @@ function updateSplitTransactions({
         const parsedComment = getParsedComment(Parser.htmlToMarkdown(transactionParams.comment ?? ''));
         transactionParams.comment = parsedComment;
 
-        const {transactionThreadReportID, createdReportActionIDForThread, onyxData, iouAction} = getMoneyRequestInformation({
+        const {
+            transactionThreadReportID,
+            createdReportActionIDForThread,
+            onyxData,
+            iouAction,
+            transaction: optimisticTransactionFromGetMoneyRequest,
+        } = getMoneyRequestInformation({
             participantParams,
             parentChatReport,
             policyParams,
@@ -1211,6 +1242,11 @@ function updateSplitTransactions({
                 comment: currentSplit?.comment?.comment,
             } as TransactionChanges;
 
+            const oldTransactionChanges = {
+                ...existing,
+                quantity: splitTransaction.comment?.customUnit?.quantity ?? existing?.distance,
+            } as TransactionChanges;
+
             if (currentSplit) {
                 currentSplit.reimbursable = splitTransaction.reimbursable;
                 currentSplit.billable = splitTransaction.billable;
@@ -1218,7 +1254,7 @@ function updateSplitTransactions({
 
             for (const key of Object.keys(transactionChanges)) {
                 const newValue = transactionChanges[key as keyof typeof transactionChanges];
-                const oldValue = existing?.[key as keyof typeof existing];
+                const oldValue = oldTransactionChanges?.[key as keyof typeof oldTransactionChanges];
                 if (newValue === oldValue) {
                     delete transactionChanges[key as keyof typeof transactionChanges];
                     // Ensure we pass the currency to getUpdateMoneyRequestParams as well, so the amount message is created correctly
@@ -1263,6 +1299,23 @@ function updateSplitTransactions({
             currentSplit.transactionThreadReportID = transactionThreadReportID;
             currentSplit.createdReportActionIDForThread = createdReportActionIDForThread;
             currentSplit.splitReportActionID = iouAction.reportActionID;
+        }
+
+        // Ensure merchant from splitExpense is preserved in optimisticData for new and existing transactions
+        const transactionIDFromOptimistic = optimisticTransactionFromGetMoneyRequest?.transactionID;
+        if (transactionIDFromOptimistic && onyxData.optimisticData) {
+            const transactionUpdate = onyxData.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDFromOptimistic}`);
+            if (transactionUpdate && 'value' in transactionUpdate && typeof transactionUpdate.value === 'object' && transactionUpdate.value !== null) {
+                const transactionUpdateValue = transactionUpdate.value as OnyxTypes.Transaction;
+                const expectedMerchant = optimisticTransactionFromGetMoneyRequest?.merchant;
+                if (expectedMerchant && transactionUpdateValue.merchant !== expectedMerchant) {
+                    transactionUpdateValue.merchant = expectedMerchant;
+                    // For distance transactions, also update modifiedMerchant to ensure consistency
+                    if (isDistanceRequestTransactionUtils(transactionUpdateValue)) {
+                        transactionUpdateValue.modifiedMerchant = expectedMerchant;
+                    }
+                }
+            }
         }
 
         optimisticData.push(...(onyxData.optimisticData ?? []), ...(updateMoneyRequestParamsOnyxData.optimisticData ?? []));

@@ -89,13 +89,14 @@ function TransactionPreviewContent({
     const transactionPreviewCommonArguments = useMemo(
         () => ({
             iouReport: report,
+            policy,
             transaction,
             action,
             isBillSplit,
             violations,
             transactionDetails,
         }),
-        [action, report, isBillSplit, transaction, transactionDetails, violations],
+        [action, report, policy, isBillSplit, transaction, transactionDetails, violations],
     );
 
     const conditionals = useMemo(

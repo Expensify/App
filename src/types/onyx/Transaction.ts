@@ -446,9 +446,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The transaction tax amount */
         taxAmount?: number;
 
-        /** The transaction converted tax amount in report's currency */
-        convertedTaxAmount?: number;
-
         /** The transaction tax code */
         taxCode?: string;
 

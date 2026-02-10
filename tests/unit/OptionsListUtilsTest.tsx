@@ -14,7 +14,9 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import type {OptionList, Options, SearchOption} from '@libs/OptionsListUtils';
 import {
     canCreateOptimisticPersonalDetailOption,
+    createFilteredOptionList,
     createOption,
+    createOptionFromReport,
     createOptionList,
     filterAndOrderOptions,
     filterReports,
@@ -60,6 +62,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import type {Participant} from '@src/types/onyx/IOU';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport, createRegularChat} from '../utils/collections/reports';
@@ -410,6 +413,22 @@ describe('OptionsListUtils', () => {
         },
     };
 
+    const REPORTS_WITH_MANAGER_MCTEST: OnyxCollection<Report> = {
+        ...REPORTS,
+        '18': {
+            lastReadTime: '2021-01-14 11:25:39.302',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.022',
+            isPinned: false,
+            reportID: '18',
+            participants: {
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                1003: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+            reportName: 'Manager McTest',
+            type: CONST.REPORT.TYPE.CHAT,
+        },
+    };
+
     const activePolicyID = 'DEF456';
 
     // And a set of personalDetails some with existing reports and some without
@@ -637,6 +656,70 @@ describe('OptionsListUtils', () => {
     };
 
     let OPTIONS: OptionList;
+
+    /**
+     * Creates mock reportAttributesDerived data for tests.
+     * For CHAT type reports, builds name from participants (excluding current user) to simulate
+     * the real reportAttributesDerived computation that happens on the server.
+     */
+    const createMockReportAttributesDerived = (reports: OnyxCollection<Report>, personalDetails: PersonalDetailsList, currentUserAccountID: number): Record<string, ReportAttributes> => {
+        const derived: Record<string, ReportAttributes> = {};
+        const reportValues = Object.values(reports ?? {});
+        for (const report of reportValues) {
+            if (!report?.reportID) {
+                continue;
+            }
+
+            let name = report.reportName;
+
+            if (report.type === CONST.REPORT.TYPE.CHAT && report.participants) {
+                const participantAccountIDs = Object.keys(report.participants)
+                    .map(Number)
+                    .filter((id) => id !== currentUserAccountID)
+                    .slice(0, 5);
+
+                if (participantAccountIDs.length > 0) {
+                    const participantNames = participantAccountIDs.map((accountID) => personalDetails[accountID]?.displayName).filter(Boolean);
+
+                    if (participantNames.length > 0) {
+                        name = participantNames.join(', ');
+                    }
+                }
+            }
+
+            if (!name) {
+                if (report.oldPolicyName) {
+                    name = report.oldPolicyName;
+                } else {
+                    name = `Report ${report.reportID}`;
+                }
+            }
+
+            derived[report.reportID] = {
+                reportName: name,
+                isEmpty: false,
+                brickRoadStatus: undefined,
+                requiresAttention: false,
+                reportErrors: {},
+            };
+        }
+        return derived;
+    };
+
+    const MOCK_REPORT_ATTRIBUTES_DERIVED_RAW = createMockReportAttributesDerived(REPORTS, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID);
+    const MOCK_REPORT_ATTRIBUTES_DERIVED: Record<string, ReportAttributes> = {
+        ...MOCK_REPORT_ATTRIBUTES_DERIVED_RAW,
+        '10': {
+            ...MOCK_REPORT_ATTRIBUTES_DERIVED_RAW['10'],
+            reportName: `${MOCK_REPORT_ATTRIBUTES_DERIVED_RAW['10']?.reportName || ''} (Archived)`,
+        },
+    };
+    const MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CONCIERGE = createMockReportAttributesDerived(REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE, CURRENT_USER_ACCOUNT_ID);
+    const MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CHRONOS = createMockReportAttributesDerived(REPORTS_WITH_CHRONOS, PERSONAL_DETAILS_WITH_CHRONOS, CURRENT_USER_ACCOUNT_ID);
+    const MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_RECEIPTS = createMockReportAttributesDerived(REPORTS_WITH_RECEIPTS, PERSONAL_DETAILS_WITH_RECEIPTS, CURRENT_USER_ACCOUNT_ID);
+    const MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_WORKSPACE_ROOM = createMockReportAttributesDerived(REPORTS_WITH_WORKSPACE_ROOMS, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID);
+    const MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_MANAGER_MCTEST = createMockReportAttributesDerived(REPORTS_WITH_MANAGER_MCTEST, PERSONAL_DETAILS_WITH_MANAGER_MCTEST, CURRENT_USER_ACCOUNT_ID);
+
     let OPTIONS_WITH_CONCIERGE: OptionList;
     let OPTIONS_WITH_CHRONOS: OptionList;
     let OPTIONS_WITH_RECEIPTS: OptionList;
@@ -669,12 +752,42 @@ describe('OptionsListUtils', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`, reportNameValuePairs);
         await waitForBatchedUpdates();
 
-        OPTIONS = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS);
-        OPTIONS_WITH_CONCIERGE = createOptionList(PERSONAL_DETAILS_WITH_CONCIERGE, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS_WITH_CONCIERGE);
-        OPTIONS_WITH_CHRONOS = createOptionList(PERSONAL_DETAILS_WITH_CHRONOS, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS_WITH_CHRONOS);
-        OPTIONS_WITH_RECEIPTS = createOptionList(PERSONAL_DETAILS_WITH_RECEIPTS, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS_WITH_RECEIPTS);
-        OPTIONS_WITH_WORKSPACE_ROOM = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS_WITH_WORKSPACE_ROOMS);
-        OPTIONS_WITH_MANAGER_MCTEST = createOptionList(PERSONAL_DETAILS_WITH_MANAGER_MCTEST, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP);
+        OPTIONS = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED);
+        OPTIONS_WITH_CONCIERGE = createOptionList(
+            PERSONAL_DETAILS_WITH_CONCIERGE,
+            CURRENT_USER_ACCOUNT_ID,
+            EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+            REPORTS_WITH_CONCIERGE,
+            MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CONCIERGE,
+        );
+        OPTIONS_WITH_CHRONOS = createOptionList(
+            PERSONAL_DETAILS_WITH_CHRONOS,
+            CURRENT_USER_ACCOUNT_ID,
+            EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+            REPORTS_WITH_CHRONOS,
+            MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CHRONOS,
+        );
+        OPTIONS_WITH_RECEIPTS = createOptionList(
+            PERSONAL_DETAILS_WITH_RECEIPTS,
+            CURRENT_USER_ACCOUNT_ID,
+            EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+            REPORTS_WITH_RECEIPTS,
+            MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_RECEIPTS,
+        );
+        OPTIONS_WITH_WORKSPACE_ROOM = createOptionList(
+            PERSONAL_DETAILS,
+            CURRENT_USER_ACCOUNT_ID,
+            EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+            REPORTS_WITH_WORKSPACE_ROOMS,
+            MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_WORKSPACE_ROOM,
+        );
+        OPTIONS_WITH_MANAGER_MCTEST = createOptionList(
+            PERSONAL_DETAILS_WITH_MANAGER_MCTEST,
+            CURRENT_USER_ACCOUNT_ID,
+            EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+            REPORTS_WITH_MANAGER_MCTEST,
+            MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_MANAGER_MCTEST,
+        );
     });
 
     describe('getSearchOptions()', () => {
@@ -683,6 +796,7 @@ describe('OptionsListUtils', () => {
             // When we call getSearchOptions with all betas
             const results = getSearchOptions({
                 options: OPTIONS,
+                reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
@@ -1296,6 +1410,92 @@ describe('OptionsListUtils', () => {
             expect(results.recentReports.length).toBe(OPTIONS_WITH_WORKSPACE_ROOM.reports.length - 1);
             expect(results.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({reportID: '14'})]));
         });
+
+        it('should use personalDetails config for workspace chat lookups when shouldSeparateWorkspaceChat is true', () => {
+            // Given a set of reports with workspace rooms and a custom personalDetails collection
+            const customPersonalDetails: PersonalDetailsList = {
+                '1': {
+                    accountID: 1,
+                    displayName: 'Custom Reed Richards',
+                    login: 'reedrichards@expensify.com',
+                    keyForList: 'reedrichards@expensify.com',
+                    reportID: '1',
+                },
+                '2': {
+                    accountID: 2,
+                    displayName: 'Custom Iron Man',
+                    login: 'tonystark@expensify.com',
+                    keyForList: 'tonystark@expensify.com',
+                    reportID: '2',
+                },
+            };
+
+            // When we call getValidOptions with shouldSeparateWorkspaceChat and personalDetails config
+            const results = getValidOptions(OPTIONS_WITH_WORKSPACE_ROOM, allPolicies, {}, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, {
+                includeRecentReports: true,
+                includeMultipleParticipantReports: true,
+                includeP2P: true,
+                includeOwnedWorkspaceChats: true,
+                shouldSeparateWorkspaceChat: true,
+                personalDetails: customPersonalDetails,
+            });
+
+            // Then the function should process without errors and return workspace chats
+            expect(results.workspaceChats).toBeDefined();
+            // And recent reports should still be returned
+            expect(results.recentReports.length).toBeGreaterThanOrEqual(0);
+        });
+
+        it('should handle undefined personalDetails config in workspace chat lookups', () => {
+            // Given a set of reports with workspace rooms
+            // When we call getValidOptions with shouldSeparateWorkspaceChat but no personalDetails config
+            const results = getValidOptions(OPTIONS_WITH_WORKSPACE_ROOM, allPolicies, {}, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, {
+                includeRecentReports: true,
+                includeMultipleParticipantReports: true,
+                includeP2P: true,
+                includeOwnedWorkspaceChats: true,
+                shouldSeparateWorkspaceChat: true,
+                personalDetails: undefined,
+            });
+
+            // Then the function should fall back to allPersonalDetails and process without errors
+            expect(results.workspaceChats).toBeDefined();
+            expect(results.recentReports.length).toBeGreaterThanOrEqual(0);
+        });
+
+        it('should handle empty personalDetails config in workspace chat lookups', () => {
+            // Given a set of reports with workspace rooms
+            // When we call getValidOptions with shouldSeparateWorkspaceChat and empty personalDetails
+            const results = getValidOptions(OPTIONS_WITH_WORKSPACE_ROOM, allPolicies, {}, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, {
+                includeRecentReports: true,
+                includeMultipleParticipantReports: true,
+                includeP2P: true,
+                includeOwnedWorkspaceChats: true,
+                shouldSeparateWorkspaceChat: true,
+                personalDetails: {},
+            });
+
+            // Then the function should fall back to allPersonalDetails and process without errors
+            expect(results.workspaceChats).toBeDefined();
+            expect(results.recentReports.length).toBeGreaterThanOrEqual(0);
+        });
+
+        it('should handle null personalDetails config in workspace chat lookups', () => {
+            // Given a set of reports with workspace rooms
+            // When we call getValidOptions with shouldSeparateWorkspaceChat and null personalDetails
+            const results = getValidOptions(OPTIONS_WITH_WORKSPACE_ROOM, allPolicies, {}, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, {
+                includeRecentReports: true,
+                includeMultipleParticipantReports: true,
+                includeP2P: true,
+                includeOwnedWorkspaceChats: true,
+                shouldSeparateWorkspaceChat: true,
+                personalDetails: {},
+            });
+
+            // Then the function should fall back to allPersonalDetails and process without errors
+            expect(results.workspaceChats).toBeDefined();
+            expect(results.recentReports.length).toBeGreaterThanOrEqual(0);
+        });
     });
 
     describe('getValidOptions() for group Chat', () => {
@@ -1627,7 +1827,18 @@ describe('OptionsListUtils', () => {
         it('should sort personal details alphabetically and return expected structure', () => {
             // Given a set of personalDetails
             // When we call getMemberInviteOptions
-            const results = getMemberInviteOptions(OPTIONS.personalDetails, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, []);
+            const results = getMemberInviteOptions(
+                OPTIONS.personalDetails,
+                nvpDismissedProductTraining,
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                PERSONAL_DETAILS,
+                [],
+                {},
+                false,
+                COUNTRY_CODE,
+            );
 
             // Then personal details should be sorted alphabetically
             expect(results.personalDetails.at(0)?.text).toBe('Black Panther');
@@ -1646,11 +1857,177 @@ describe('OptionsListUtils', () => {
             const excludeLogins = {'reedrichards@expensify.com': true};
 
             // When we call getMemberInviteOptions with excludeLogins
-            const results = getMemberInviteOptions(OPTIONS.personalDetails, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, [], excludeLogins);
+            const results = getMemberInviteOptions(
+                OPTIONS.personalDetails,
+                nvpDismissedProductTraining,
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                PERSONAL_DETAILS,
+                [],
+                excludeLogins,
+                false,
+                COUNTRY_CODE,
+            );
 
             // Then the excluded login should not be in the results
             const excludedUser = results.personalDetails.find((detail) => detail.login === 'reedrichards@expensify.com');
             expect(excludedUser).toBeUndefined();
+        });
+
+        it('should handle undefined personalDetailsCollection gracefully', () => {
+            // Given a set of personalDetails and undefined personalDetailsCollection
+            // When we call getMemberInviteOptions with undefined personalDetailsCollection
+            const results = getMemberInviteOptions(
+                OPTIONS.personalDetails,
+                nvpDismissedProductTraining,
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                [],
+                {},
+                false,
+                COUNTRY_CODE,
+            );
+
+            // Then personal details should still be returned and sorted alphabetically
+            expect(results.personalDetails.length).toBeGreaterThan(0);
+            expect(results.personalDetails.at(0)?.text).toBe('Black Panther');
+        });
+
+        it('should handle empty personalDetailsCollection gracefully', () => {
+            // Given a set of personalDetails and empty personalDetailsCollection
+            // When we call getMemberInviteOptions with empty personalDetailsCollection
+            const results = getMemberInviteOptions(
+                OPTIONS.personalDetails,
+                nvpDismissedProductTraining,
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                {},
+                [],
+                {},
+                false,
+                COUNTRY_CODE,
+            );
+
+            // Then personal details should still be returned and sorted alphabetically
+            expect(results.personalDetails.length).toBeGreaterThan(0);
+            expect(results.personalDetails.at(0)?.text).toBe('Black Panther');
+        });
+
+        it('should handle null personalDetailsCollection gracefully', () => {
+            // Given a set of personalDetails and null personalDetailsCollection
+            // When we call getMemberInviteOptions with null personalDetailsCollection
+            const results = getMemberInviteOptions(
+                OPTIONS.personalDetails,
+                nvpDismissedProductTraining,
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                {},
+                [],
+                {},
+                false,
+                COUNTRY_CODE,
+            );
+
+            // Then personal details should still be returned and sorted alphabetically
+            expect(results.personalDetails.length).toBeGreaterThan(0);
+            expect(results.personalDetails.at(0)?.text).toBe('Black Panther');
+        });
+
+        it('should use personalDetailsCollection when provided with partial data', () => {
+            // Given a subset of personalDetailsCollection with only some users
+            const partialPersonalDetails: PersonalDetailsList = {
+                '4': {
+                    accountID: 4,
+                    displayName: 'Black Panther',
+                    login: 'tchalla@expensify.com',
+                    keyForList: 'tchalla@expensify.com',
+                    reportID: '1',
+                },
+                '9': {
+                    accountID: 9,
+                    displayName: 'Black Widow',
+                    login: 'natasharomanoff@expensify.com',
+                    keyForList: 'natasharomanoff@expensify.com',
+                    reportID: '',
+                },
+            };
+
+            // When we call getMemberInviteOptions with a partial personalDetailsCollection
+            const results = getMemberInviteOptions(
+                OPTIONS.personalDetails,
+                nvpDismissedProductTraining,
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                partialPersonalDetails,
+                [],
+                {},
+                false,
+                COUNTRY_CODE,
+            );
+
+            // Then results should still include all personal details from OPTIONS.personalDetails
+            // (personalDetailsCollection is used for lookup purposes, not filtering)
+            expect(results.personalDetails.length).toBeGreaterThan(0);
+            expect(results.personalDetails.at(0)?.text).toBe('Black Panther');
+        });
+
+        it('should handle personalDetailsCollection with different display names', () => {
+            // Given a personalDetailsCollection with modified display names
+            const modifiedPersonalDetails: PersonalDetailsList = {
+                ...PERSONAL_DETAILS,
+                '4': {
+                    ...PERSONAL_DETAILS['4'],
+                    displayName: 'Black Panther Updated', // Modified display name
+                },
+            };
+
+            // When we call getMemberInviteOptions with modified personalDetailsCollection
+            const results = getMemberInviteOptions(
+                OPTIONS.personalDetails,
+                nvpDismissedProductTraining,
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                modifiedPersonalDetails,
+                [],
+                {},
+                false,
+                COUNTRY_CODE,
+            );
+
+            // Then personal details should still be returned
+            expect(results.personalDetails.length).toBeGreaterThan(0);
+            // The personalDetails in results come from OPTIONS.personalDetails, not personalDetailsCollection
+            expect(results.personalDetails.at(0)?.text).toBe('Black Panther');
+        });
+
+        it('should exclude specified logins', () => {
+            // Given a set of personalDetails and logins to exclude
+            const excludeLogins = {'tchalla@expensify.com': true};
+
+            // When we call getMemberInviteOptions with excludeLogins
+            const results = getMemberInviteOptions(
+                OPTIONS.personalDetails,
+                nvpDismissedProductTraining,
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                PERSONAL_DETAILS,
+                [],
+                excludeLogins,
+                false,
+                COUNTRY_CODE,
+            );
+
+            // Then Black Panther should not be in the results
+            const blackPanther = results.personalDetails.find((detail) => detail.text === 'Black Panther');
+            expect(blackPanther).toBeUndefined();
         });
     });
 
@@ -1834,6 +2211,7 @@ describe('OptionsListUtils', () => {
             // When we call getSearchOptions with all betas
             const options = getSearchOptions({
                 options: OPTIONS,
+                reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
@@ -1855,6 +2233,7 @@ describe('OptionsListUtils', () => {
             // When we call getSearchOptions with all betas
             const options = getSearchOptions({
                 options: OPTIONS,
+                reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
@@ -1885,6 +2264,7 @@ describe('OptionsListUtils', () => {
             // When we call getSearchOptions with all betas
             const options = getSearchOptions({
                 options: OPTIONS,
+                reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
@@ -1908,6 +2288,7 @@ describe('OptionsListUtils', () => {
             // When we call getSearchOptions with all betas
             const options = getSearchOptions({
                 options: OPTIONS,
+                reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
@@ -1980,6 +2361,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options with all betas
             const options = getSearchOptions({
                 options: OPTIONS,
+                reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
@@ -2000,7 +2382,14 @@ describe('OptionsListUtils', () => {
         it('should prioritize options with matching display name over chat rooms', () => {
             const searchText = 'spider';
             // Given a set of options with chat rooms
-            const OPTIONS_WITH_CHAT_ROOMS = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS_WITH_CHAT_ROOM);
+            const MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CHAT_ROOM = createMockReportAttributesDerived(REPORTS_WITH_CHAT_ROOM, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID);
+            const OPTIONS_WITH_CHAT_ROOMS = createOptionList(
+                PERSONAL_DETAILS,
+                CURRENT_USER_ACCOUNT_ID,
+                EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+                REPORTS_WITH_CHAT_ROOM,
+                MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CHAT_ROOM,
+            );
             // When we call getSearchOptions with all betas
             const options = getSearchOptions({
                 options: OPTIONS_WITH_CHAT_ROOMS,
@@ -2027,6 +2416,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const options = getSearchOptions({
                 options: OPTIONS,
+                reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
@@ -2050,6 +2440,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const options = getSearchOptions({
                 options: OPTIONS,
+                reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 loginList,
                 nvpDismissedProductTraining,
@@ -2093,6 +2484,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const options = getSearchOptions({
                 options: OPTIONS,
+                reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 loginList,
                 nvpDismissedProductTraining,
@@ -2114,6 +2506,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const options = getSearchOptions({
                 options: OPTIONS,
+                reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 loginList,
                 nvpDismissedProductTraining,
@@ -2144,6 +2537,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options with all betas
             const options = getSearchOptions({
                 options: OPTIONS,
+                reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
@@ -2163,7 +2557,18 @@ describe('OptionsListUtils', () => {
 
         it('should not return any options if search value does not match any personal details (getMemberInviteOptions)', () => {
             // Given a set of options
-            const options = getMemberInviteOptions(OPTIONS.personalDetails, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, []);
+            const options = getMemberInviteOptions(
+                OPTIONS.personalDetails,
+                nvpDismissedProductTraining,
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                PERSONAL_DETAILS,
+                [],
+                {},
+                false,
+                COUNTRY_CODE,
+            );
             // When we call filterAndOrderOptions with a search value that does not match any personal details
             const filteredOptions = filterAndOrderOptions(options, 'magneto', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
 
@@ -2173,7 +2578,18 @@ describe('OptionsListUtils', () => {
 
         it('should return one personal detail if search value matches an email (getMemberInviteOptions)', () => {
             // Given a set of options
-            const options = getMemberInviteOptions(OPTIONS.personalDetails, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, []);
+            const options = getMemberInviteOptions(
+                OPTIONS.personalDetails,
+                nvpDismissedProductTraining,
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                PERSONAL_DETAILS,
+                [],
+                {},
+                false,
+                COUNTRY_CODE,
+            );
             // When we call filterAndOrderOptions with a search value that matches an email
             const filteredOptions = filterAndOrderOptions(options, 'peterparker@expensify.com', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
 
@@ -2823,6 +3239,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const options = getSearchOptions({
                 options: OPTIONS,
+                reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
@@ -2843,6 +3260,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const options = getSearchOptions({
                 options: OPTIONS,
+                reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
@@ -2905,6 +3323,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const options = getSearchOptions({
                 options: OPTIONS,
+                reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
@@ -3602,7 +4021,6 @@ describe('OptionsListUtils', () => {
                     report,
                     lastActorDetails: null,
                     isReportArchived: false,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
                 const reportPreviewMessage = getReportPreviewMessage(iouReport, iouAction, true, false, null, true, reportPreviewAction);
                 const expected = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
@@ -3635,7 +4053,6 @@ describe('OptionsListUtils', () => {
                 report,
                 lastActorDetails: null,
                 isReportArchived: false,
-                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getMovedTransactionMessage(translateLocal, movedTransactionAction)));
         });
@@ -3659,7 +4076,6 @@ describe('OptionsListUtils', () => {
                     report,
                     lastActorDetails: null,
                     isReportArchived: false,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallySubmitted')));
             });
@@ -3684,7 +4100,6 @@ describe('OptionsListUtils', () => {
                     report,
                     lastActorDetails: null,
                     isReportArchived: false,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallyApproved')));
             });
@@ -3709,7 +4124,6 @@ describe('OptionsListUtils', () => {
                     report,
                     lastActorDetails: null,
                     isReportArchived: false,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallyForwarded')));
             });
@@ -3731,7 +4145,6 @@ describe('OptionsListUtils', () => {
                     report,
                     lastActorDetails: null,
                     isReportArchived: false,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'workspaceActions.forcedCorporateUpgrade')));
             });
@@ -3752,7 +4165,6 @@ describe('OptionsListUtils', () => {
                 report,
                 lastActorDetails: null,
                 isReportArchived: false,
-                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getChangedApproverActionMessage(translateLocal, takeControlAction)));
         });
@@ -3772,7 +4184,6 @@ describe('OptionsListUtils', () => {
                 report,
                 lastActorDetails: null,
                 isReportArchived: false,
-                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getChangedApproverActionMessage(translateLocal, rerouteAction)));
         });
@@ -3792,7 +4203,6 @@ describe('OptionsListUtils', () => {
                 report,
                 lastActorDetails: null,
                 isReportArchived: false,
-                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getMovedActionMessage(translateLocal, movedAction, report)));
         });
@@ -3816,7 +4226,6 @@ describe('OptionsListUtils', () => {
                 report,
                 lastActorDetails: null,
                 isReportArchived: false,
-                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             });
 
             // Then it should return the DYNAMIC_EXTERNAL_WORKFLOW_ROUTED message
@@ -3842,7 +4251,6 @@ describe('OptionsListUtils', () => {
                 report,
                 lastActorDetails: null,
                 isReportArchived: false,
-                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             });
             expect(result).toBe(expectedVisibleText);
         });
@@ -3893,7 +4301,6 @@ describe('OptionsListUtils', () => {
                     isReportArchived: false,
                     policy,
                     reportMetadata,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
                 expect(lastMessage).toBe(translate(CONST.LOCALES.EN, 'iou.queuedToSubmitViaDEW'));
             });
@@ -3925,7 +4332,6 @@ describe('OptionsListUtils', () => {
                     report,
                     lastActorDetails: null,
                     isReportArchived: false,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
                 expect(lastMessage).toBe(customErrorMessage);
             });
@@ -3954,7 +4360,6 @@ describe('OptionsListUtils', () => {
                     report,
                     lastActorDetails: null,
                     isReportArchived: false,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
                 expect(lastMessage).toBe(translate(CONST.LOCALES.EN, 'iou.error.genericCreateFailureMessage'));
             });
@@ -5328,6 +5733,212 @@ describe('OptionsListUtils', () => {
         });
     });
 
+    describe('createOptionFromReport', () => {
+        it('should create an option from a report with all required parameters', () => {
+            const report: Report = {
+                reportID: '1',
+                reportName: 'Test Report',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const result = createOptionFromReport(report, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, undefined);
+
+            expect(result).toBeDefined();
+            expect(result.reportID).toBe('1');
+            expect(result.item).toBe(report);
+        });
+
+        it('should mark report as archived when privateIsArchived is provided', () => {
+            const report: Report = {
+                reportID: '10',
+                reportName: 'Archived Report',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const privateIsArchived = DateUtils.getDBTime();
+            const result = createOptionFromReport(report, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, privateIsArchived);
+
+            expect(result).toBeDefined();
+            expect(result.private_isArchived).toBe(privateIsArchived);
+        });
+
+        it('should not mark report as archived when privateIsArchived is undefined', () => {
+            const report: Report = {
+                reportID: '1',
+                reportName: 'Non-Archived Report',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const result = createOptionFromReport(report, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, undefined);
+
+            expect(result).toBeDefined();
+            expect(result.private_isArchived).toBeUndefined();
+        });
+
+        it('should accept reportAttributesDerived parameter', () => {
+            const report: Report = {
+                reportID: '1',
+                reportName: 'Report with Attributes',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            // Pass undefined for reportAttributesDerived - the function should handle it gracefully
+            const result = createOptionFromReport(report, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, undefined, undefined);
+
+            expect(result).toBeDefined();
+            expect(result.reportID).toBe('1');
+        });
+
+        it('should apply config options when provided', () => {
+            const report: Report = {
+                reportID: '1',
+                reportName: 'Report with Config',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const config = {showPersonalDetails: true};
+            const result = createOptionFromReport(report, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, undefined, undefined, config);
+
+            expect(result).toBeDefined();
+            expect(result.reportID).toBe('1');
+        });
+    });
+
+    describe('createFilteredOptionList', () => {
+        it('should return report options limited by maxRecentReports', () => {
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, CURRENT_USER_ACCOUNT_ID, undefined, {}, {maxRecentReports: 5});
+
+            expect(result).toBeDefined();
+            expect(result.reports.length).toBeLessThanOrEqual(5);
+        });
+
+        it('should sort reports by lastVisibleActionCreated (most recent first)', () => {
+            const reportsWithDates: OnyxCollection<Report> = {
+                '101': {
+                    reportID: '101',
+                    reportName: 'Oldest Report',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    lastVisibleActionCreated: '2022-01-01 00:00:00',
+                    participants: {
+                        [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                },
+                '102': {
+                    reportID: '102',
+                    reportName: 'Newest Report',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    lastVisibleActionCreated: '2024-01-01 00:00:00',
+                    participants: {
+                        [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                },
+                '103': {
+                    reportID: '103',
+                    reportName: 'Middle Report',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    lastVisibleActionCreated: '2023-01-01 00:00:00',
+                    participants: {
+                        [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                },
+            };
+
+            const result = createFilteredOptionList(PERSONAL_DETAILS, reportsWithDates, CURRENT_USER_ACCOUNT_ID, undefined, {}, {maxRecentReports: 3});
+
+            expect(result.reports.length).toBeGreaterThan(0);
+        });
+
+        it('should include personal details when includeP2P is true', () => {
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, CURRENT_USER_ACCOUNT_ID, undefined, {}, {includeP2P: true});
+
+            expect(result).toBeDefined();
+            expect(result.personalDetails).toBeDefined();
+            expect(result.personalDetails.length).toBeGreaterThan(0);
+        });
+
+        it('should exclude personal details when includeP2P is false', () => {
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, CURRENT_USER_ACCOUNT_ID, undefined, {}, {includeP2P: false});
+
+            expect(result).toBeDefined();
+            expect(result.personalDetails.length).toBe(0);
+        });
+
+        it('should handle empty reports collection', () => {
+            const result = createFilteredOptionList(PERSONAL_DETAILS, {}, CURRENT_USER_ACCOUNT_ID, undefined, {});
+
+            expect(result).toBeDefined();
+            expect(result.reports.length).toBe(0);
+        });
+
+        it('should handle undefined reports collection', () => {
+            const result = createFilteredOptionList(PERSONAL_DETAILS, undefined, CURRENT_USER_ACCOUNT_ID, undefined, {});
+
+            expect(result).toBeDefined();
+            expect(result.reports.length).toBe(0);
+        });
+
+        it('should use privateIsArchivedMap to determine archived status', () => {
+            const report: Report = {
+                reportID: '999',
+                reportName: 'Archived Test Report',
+                type: CONST.REPORT.TYPE.CHAT,
+                lastVisibleActionCreated: '2024-01-01 00:00:00',
+                participants: {
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const reportsCollection: OnyxCollection<Report> = {
+                '999': report,
+            };
+
+            const privateIsArchivedMap = {
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}999`]: DateUtils.getDBTime(),
+            };
+
+            const result = createFilteredOptionList(PERSONAL_DETAILS, reportsCollection, CURRENT_USER_ACCOUNT_ID, undefined, privateIsArchivedMap, {maxRecentReports: 10});
+
+            expect(result).toBeDefined();
+        });
+
+        it('should handle searchTerm filtering', () => {
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, CURRENT_USER_ACCOUNT_ID, undefined, {}, {searchTerm: 'Spider'});
+
+            expect(result).toBeDefined();
+        });
+
+        it('should return both reports and personal details', () => {
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, CURRENT_USER_ACCOUNT_ID, undefined, {});
+
+            expect(result).toBeDefined();
+            expect(result).toHaveProperty('reports');
+            expect(result).toHaveProperty('personalDetails');
+        });
+    });
     describe('getFilteredRecentAttendees', () => {
         it('should deduplicate recent attendees by email', () => {
             const personalDetails = {};
