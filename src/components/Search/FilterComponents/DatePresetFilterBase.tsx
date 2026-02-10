@@ -129,7 +129,19 @@ function DatePresetFilterBase({
 
             // When setting After or Before individually, clear Range mode
             if (dateModifier === CONST.SEARCH.DATE_MODIFIERS.AFTER || dateModifier === CONST.SEARCH.DATE_MODIFIERS.BEFORE) {
-                return {...prevDateValues, [dateModifier]: value, [CONST.SEARCH.DATE_MODIFIERS.RANGE]: undefined};
+                const nextDateValues = {...prevDateValues, [dateModifier]: value, [CONST.SEARCH.DATE_MODIFIERS.RANGE]: undefined};
+                const nextAfter = dateModifier === CONST.SEARCH.DATE_MODIFIERS.AFTER ? value : nextDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER];
+                const nextBefore = dateModifier === CONST.SEARCH.DATE_MODIFIERS.BEFORE ? value : nextDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE];
+
+                if (nextAfter && nextBefore && nextAfter > nextBefore) {
+                    if (dateModifier === CONST.SEARCH.DATE_MODIFIERS.AFTER) {
+                        nextDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE] = undefined;
+                    } else {
+                        nextDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] = undefined;
+                    }
+                }
+
+                return nextDateValues;
             }
 
             return {...prevDateValues, [dateModifier]: value};
