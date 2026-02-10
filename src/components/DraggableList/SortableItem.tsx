@@ -35,6 +35,7 @@ function SortableItem({id, children, disabled = false, isFocused = false, isItem
             role="option"
             aria-selected={isFocused}
             // When keyboard-managed, override dnd-kit's tabIndex to prevent double focus (outer wrapper + inner control)
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...(isKeyboardManaged && {tabIndex: isItemDisabled ? -1 : 0})}
         >
             {children}
