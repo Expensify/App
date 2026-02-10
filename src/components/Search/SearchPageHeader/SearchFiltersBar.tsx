@@ -75,6 +75,43 @@ type FilterItem = {
     filterKey: SearchAdvancedFiltersKey;
 };
 
+type TranslateFunction = (key: TranslationPaths) => string;
+
+export function createDateDisplayValueHelper(
+    filterValues: {on?: string; after?: string; before?: string},
+    translate: TranslateFunction,
+    isRange = false,
+): [SearchDateValues, string[]] {
+    const shouldUseRange = isRange || (!!filterValues.after && !!filterValues.before && !filterValues.on);
+    const value: SearchDateValues = {
+        [CONST.SEARCH.DATE_MODIFIERS.ON]: filterValues.on,
+        [CONST.SEARCH.DATE_MODIFIERS.AFTER]: filterValues.after,
+        [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: filterValues.before,
+        [CONST.SEARCH.DATE_MODIFIERS.RANGE]: shouldUseRange ? 'range' : undefined,
+    };
+
+    const displayText: string[] = [];
+    if (value.On) {
+        displayText.push(
+            isSearchDatePreset(value.On)
+                ? translate(`search.filters.date.presets.${value.On}`)
+                : `${translate('common.on')} ${DateUtils.formatToReadableString(value.On)}`,
+        );
+    }
+    if (shouldUseRange && value.After && value.Before) {
+        displayText.push(`${translate('common.range')}: ${DateUtils.getFormattedDateRangeForSearch(value.After, value.Before, true)}`);
+    } else {
+        if (value.After) {
+            displayText.push(`${translate('common.after')} ${DateUtils.formatToReadableString(value.After)}`);
+        }
+        if (value.Before) {
+            displayText.push(`${translate('common.before')} ${DateUtils.formatToReadableString(value.Before)}`);
+        }
+    }
+
+    return [value, displayText];
+}
+
 type SearchFiltersBarProps = {
     queryJSON: SearchQueryJSON;
     headerButtonsOptions: Array<DropdownOption<SearchHeaderOptionValue>>;
@@ -243,34 +280,8 @@ function SearchFiltersBar({
     }, [flatFilters, translate]);
 
     const createDateDisplayValue = useCallback(
-        (filterValues: {on?: string; after?: string; before?: string}, isRange = false): [SearchDateValues, string[]] => {
-            const shouldUseRange = isRange || (!!filterValues.after && !!filterValues.before && !filterValues.on);
-            const value: SearchDateValues = {
-                [CONST.SEARCH.DATE_MODIFIERS.ON]: filterValues.on,
-                [CONST.SEARCH.DATE_MODIFIERS.AFTER]: filterValues.after,
-                [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: filterValues.before,
-                [CONST.SEARCH.DATE_MODIFIERS.RANGE]: shouldUseRange ? 'range' : undefined,
-            };
-
-            const displayText: string[] = [];
-            if (value.On) {
-                displayText.push(
-                    isSearchDatePreset(value.On) ? translate(`search.filters.date.presets.${value.On}`) : `${translate('common.on')} ${DateUtils.formatToReadableString(value.On)}`,
-                );
-            }
-            if (shouldUseRange && value.After && value.Before) {
-                displayText.push(`${translate('common.range')}: ${DateUtils.getFormattedDateRangeForSearch(value.After, value.Before, true)}`);
-            } else {
-                if (value.After) {
-                    displayText.push(`${translate('common.after')} ${DateUtils.formatToReadableString(value.After)}`);
-                }
-                if (value.Before) {
-                    displayText.push(`${translate('common.before')} ${DateUtils.formatToReadableString(value.Before)}`);
-                }
-            }
-
-            return [value, displayText];
-        },
+        (filterValues: {on?: string; after?: string; before?: string}, isRange = false): [SearchDateValues, string[]] =>
+            createDateDisplayValueHelper(filterValues, translate, isRange),
         [translate],
     );
 
