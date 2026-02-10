@@ -77,11 +77,7 @@ type FilterItem = {
 
 type TranslateFunction = (key: TranslationPaths) => string;
 
-export function createDateDisplayValueHelper(
-    filterValues: {on?: string; after?: string; before?: string},
-    translate: TranslateFunction,
-    isRange = false,
-): [SearchDateValues, string[]] {
+export function createDateDisplayValueHelper(filterValues: {on?: string; after?: string; before?: string}, translate: TranslateFunction, isRange = false): [SearchDateValues, string[]] {
     const shouldUseRange = isRange || (!!filterValues.after && !!filterValues.before && !filterValues.on);
     const value: SearchDateValues = {
         [CONST.SEARCH.DATE_MODIFIERS.ON]: filterValues.on,
@@ -92,11 +88,7 @@ export function createDateDisplayValueHelper(
 
     const displayText: string[] = [];
     if (value.On) {
-        displayText.push(
-            isSearchDatePreset(value.On)
-                ? translate(`search.filters.date.presets.${value.On}`)
-                : `${translate('common.on')} ${DateUtils.formatToReadableString(value.On)}`,
-        );
+        displayText.push(isSearchDatePreset(value.On) ? translate(`search.filters.date.presets.${value.On}`) : `${translate('common.on')} ${DateUtils.formatToReadableString(value.On)}`);
     }
     if (shouldUseRange && value.After && value.Before) {
         displayText.push(`${translate('common.range')}: ${DateUtils.getFormattedDateRangeForSearch(value.After, value.Before, true)}`);
@@ -280,8 +272,7 @@ function SearchFiltersBar({
     }, [flatFilters, translate]);
 
     const createDateDisplayValue = useCallback(
-        (filterValues: {on?: string; after?: string; before?: string}, isRange = false): [SearchDateValues, string[]] =>
-            createDateDisplayValueHelper(filterValues, translate, isRange),
+        (filterValues: {on?: string; after?: string; before?: string}, isRange = false): [SearchDateValues, string[]] => createDateDisplayValueHelper(filterValues, translate, isRange),
         [translate],
     );
 
