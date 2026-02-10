@@ -140,7 +140,10 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
         if (rangeFrom && rangeTo) {
             rangeText = DateUtils.getFormattedDateRangeForSearch(rangeFrom, rangeTo, true);
         } else if (rangeFrom || rangeTo) {
-            rangeText = format(parseISO((rangeFrom ?? rangeTo)!), 'MMM d, yyyy');
+            const singleRangeValue = rangeFrom ?? rangeTo;
+            if (singleRangeValue) {
+                rangeText = format(parseISO(singleRangeValue), 'MMM d, yyyy');
+            }
         }
     }
 
@@ -209,7 +212,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
                         <Text style={[styles.textLabelSupporting, styles.textStrong]}>{rangeText}</Text>
                     </Text>
                 )}
-                {!shouldShowInlineRangeText && !isSmallScreenWidth && selectedDateModifier && <View style={styles.flex1} />}
+                {!shouldShowInlineRangeText && !isSmallScreenWidth && !!selectedDateModifier && <View style={styles.flex1} />}
                 <Button
                     medium
                     style={[!isSmallScreenWidth && selectedDateModifier && styles.mr2, buttonStyle]}

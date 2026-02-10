@@ -150,11 +150,18 @@ function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
         back();
     };
 
-    const hasRangeInput = !!(trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] ?? trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]);
-    const rangeDisplayText =
-        trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] && trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]
-            ? DateUtils.getFormattedDateRangeForSearch(trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER]!, trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]!, true)
-            : format(parseISO((trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] ?? trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE])!), 'MMM d, yyyy');
+    const rangeFromValue = trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER];
+    const rangeToValue = trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE];
+    const hasRangeInput = !!(rangeFromValue ?? rangeToValue);
+    let rangeDisplayText = '';
+    if (rangeFromValue && rangeToValue) {
+        rangeDisplayText = DateUtils.getFormattedDateRangeForSearch(rangeFromValue, rangeToValue, true);
+    } else if (rangeFromValue || rangeToValue) {
+        const singleRangeValue = rangeFromValue ?? rangeToValue;
+        if (singleRangeValue) {
+            rangeDisplayText = format(parseISO(singleRangeValue), 'MMM d, yyyy');
+        }
+    }
 
     return (
         <View style={styles.flex1}>

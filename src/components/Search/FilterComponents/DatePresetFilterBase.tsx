@@ -232,10 +232,10 @@ function DatePresetFilterBase({
         [selectedDateModifier, dateValues, ephemeralDateValue, setDateValue, updateDateValues],
     );
 
+    const rangeFromValue = dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER];
+    const rangeToValue = dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE];
     const rangeDescription =
-        dateDisplayValues[CONST.SEARCH.DATE_MODIFIERS.RANGE] && dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] && dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]
-            ? DateUtils.getFormattedDateRangeForSearch(dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER]!, dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]!, true)
-            : undefined;
+        dateDisplayValues[CONST.SEARCH.DATE_MODIFIERS.RANGE] && rangeFromValue && rangeToValue ? DateUtils.getFormattedDateRangeForSearch(rangeFromValue, rangeToValue, true) : undefined;
 
     if (!selectedDateModifier) {
         return (

@@ -10,11 +10,10 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScrollView from '@components/ScrollView';
-import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchDatePreset, SearchFilterKey} from '@components/Search/types';
+import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterKey} from '@components/Search/types';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -582,7 +581,7 @@ function getFilterExpenseDisplayTitle(filters: Partial<SearchAdvancedFiltersForm
         : undefined;
 }
 
-function getFilterInDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, _: LocaleContextProps['translate'], reports: OnyxCollection<Report> | undefined, currentUserAccountID: number) {
+function getFilterInDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, _: LocaleContextProps['translate'], reports: OnyxCollection<Report> | undefined) {
     return filters.in
         ?.map((id) => getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`]))
         ?.filter(Boolean)
@@ -602,7 +601,6 @@ function AdvancedSearchFilters() {
 
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: emailSelector});
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const taxRates = getAllTaxRates(policies);
 
@@ -669,7 +667,7 @@ function AdvancedSearchFilters() {
             ) {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters[key] ?? [], personalDetails, formatPhoneNumber);
             } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
-                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate, reports, currentUserAccountID);
+                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate, reports);
             } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
                 const workspacesData = workspaces.flatMap((value) => value.data);
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, workspacesData);
