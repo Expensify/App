@@ -336,7 +336,7 @@ function MoneyRequestConfirmationList({
         if (
             !['-1', CONST.CUSTOM_UNITS.FAKE_P2P_ID].includes(customUnitRateID) ||
             !isDistanceRequest ||
-            !isPolicyExpenseChat ||
+            (!isPolicyExpenseChat && !policy?.id) ||
             !transactionID ||
             !lastSelectedRate ||
             isMovingTransactionFromTrackExpense
