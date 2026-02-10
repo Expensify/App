@@ -1,9 +1,31 @@
-import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import type {PropsWithChildren} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import PopoverMenu, {buildKeyPathFromIndexPath, getItemKey, resolveIndexPathByKeyPath} from '@components/PopoverMenu';
+import PopoverMenu, {buildKeyPathFromIndexPath, getInitialFocusTargetFromContainer, getItemKey, resolveIndexPathByKeyPath} from '@components/PopoverMenu';
+import CONST from '@src/CONST';
+
+const mockRegisteredKeyboardShortcuts = new Map<string, (event?: KeyboardEvent) => void>();
+
+jest.mock('@hooks/useKeyboardShortcut', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: (shortcut: {shortcutKey: string}, callback: (event?: KeyboardEvent) => void, config?: {isActive?: boolean}) => {
+        if (config?.isActive === false) {
+            return;
+        }
+        mockRegisteredKeyboardShortcuts.set(shortcut.shortcutKey, callback);
+    },
+}));
+
+function triggerShortcut(shortcutKey: string, event?: KeyboardEvent) {
+    const callback = mockRegisteredKeyboardShortcuts.get(shortcutKey);
+    if (!callback) {
+        throw new Error(`Shortcut callback not registered for key: ${shortcutKey}`);
+    }
+    callback(event);
+}
 
 describe('PopoverMenu utils', () => {
     const menuItems: PopoverMenuItem[] = [
@@ -143,50 +165,49 @@ describe('PopoverMenu initialFocus role/query behavior', () => {
         document.body.innerHTML = '';
     });
 
-    function simulateComputeInitialFocus(container: HTMLElement): HTMLElement | false {
-        const firstMenuItem = container.querySelector('[role="menuitem"]');
-        return firstMenuItem instanceof HTMLElement ? firstMenuItem : false;
-    }
-
-    it('returns false when items use role button (default PopoverMenu path)', () => {
+    it('returns first role=button row (default PopoverMenu path)', () => {
         const container = document.createElement('div');
 
         const item1 = document.createElement('div');
         item1.setAttribute('role', 'button');
+        item1.tabIndex = 0;
         item1.textContent = 'Request money';
 
         const item2 = document.createElement('div');
         item2.setAttribute('role', 'button');
+        item2.tabIndex = 0;
         item2.textContent = 'Split expense';
 
         container.appendChild(item1);
         container.appendChild(item2);
         document.body.appendChild(container);
 
-        expect(simulateComputeInitialFocus(container)).toBe(false);
+        expect(getInitialFocusTargetFromContainer(container)).toBe(item1);
     });
 
     it('returns first item when role menuitem is present', () => {
         const container = document.createElement('div');
         const item1 = document.createElement('div');
         item1.setAttribute('role', 'menuitem');
+        item1.tabIndex = 0;
         item1.textContent = 'Settings';
         const item2 = document.createElement('div');
         item2.setAttribute('role', 'menuitem');
+        item2.tabIndex = 0;
         item2.textContent = 'Sign out';
 
         container.appendChild(item1);
         container.appendChild(item2);
         document.body.appendChild(container);
 
-        expect(simulateComputeInitialFocus(container)).toBe(item1);
+        expect(getInitialFocusTargetFromContainer(container)).toBe(item1);
     });
 
     it('returns false when container is empty', () => {
         const container = document.createElement('div');
         document.body.appendChild(container);
 
-        expect(simulateComputeInitialFocus(container)).toBe(false);
+        expect(getInitialFocusTargetFromContainer(container)).toBe(false);
     });
 
     it('finds deeply nested menuitem', () => {
@@ -195,6 +216,7 @@ describe('PopoverMenu initialFocus role/query behavior', () => {
         const innerWrapper = document.createElement('div');
         const menuItem = document.createElement('div');
         menuItem.setAttribute('role', 'menuitem');
+        menuItem.tabIndex = 0;
         menuItem.textContent = 'Nested action';
 
         innerWrapper.appendChild(menuItem);
@@ -202,23 +224,62 @@ describe('PopoverMenu initialFocus role/query behavior', () => {
         container.appendChild(wrapper);
         document.body.appendChild(container);
 
-        expect(simulateComputeInitialFocus(container)).toBe(menuItem);
+        expect(getInitialFocusTargetFromContainer(container)).toBe(menuItem);
     });
 
-    it('returns false for mixed roles without menuitem', () => {
+    it('returns first actionable candidate for mixed roles', () => {
         const container = document.createElement('div');
-        const roles = ['button', 'link', 'option', 'tab'];
+        const roles = ['link', 'tab', 'button', 'option'];
         for (const role of roles) {
             const item = document.createElement('div');
             item.setAttribute('role', role);
+            if (role === 'button') {
+                item.tabIndex = 0;
+            }
             container.appendChild(item);
         }
         document.body.appendChild(container);
 
-        expect(simulateComputeInitialFocus(container)).toBe(false);
+        const firstActionable = container.querySelector('[role="button"]');
+        expect(getInitialFocusTargetFromContainer(container)).toBe(firstActionable);
     });
 
-    it('demonstrates keyboard-open mismatch: role button items produce no target', () => {
+    it('skips disabled, aria-disabled, inert and tabIndex=-1 candidates', () => {
+        const container = document.createElement('div');
+
+        const disabled = document.createElement('div');
+        disabled.setAttribute('role', 'button');
+        disabled.setAttribute('disabled', '');
+
+        const ariaDisabled = document.createElement('div');
+        ariaDisabled.setAttribute('role', 'button');
+        ariaDisabled.setAttribute('aria-disabled', 'true');
+
+        const inertParent = document.createElement('div');
+        inertParent.setAttribute('inert', '');
+        const inertChild = document.createElement('div');
+        inertChild.setAttribute('role', 'button');
+        inertParent.appendChild(inertChild);
+
+        const nonFocusable = document.createElement('div');
+        nonFocusable.setAttribute('role', 'button');
+        nonFocusable.tabIndex = -1;
+
+        const actionable = document.createElement('div');
+        actionable.setAttribute('role', 'button');
+        actionable.tabIndex = 0;
+
+        container.appendChild(disabled);
+        container.appendChild(ariaDisabled);
+        container.appendChild(inertParent);
+        container.appendChild(nonFocusable);
+        container.appendChild(actionable);
+        document.body.appendChild(container);
+
+        expect(getInitialFocusTargetFromContainer(container)).toBe(actionable);
+    });
+
+    it('uses first actionable target for keyboard-open role=button rows (fix verification for prior mismatch test)', () => {
         const wasOpenedViaKeyboard = true;
         const isWeb = true;
         const container = document.createElement('div');
@@ -226,6 +287,7 @@ describe('PopoverMenu initialFocus role/query behavior', () => {
         for (let i = 0; i < 5; i++) {
             const item = document.createElement('div');
             item.setAttribute('role', 'button');
+            item.tabIndex = 0;
             item.textContent = `Action ${i}`;
             container.appendChild(item);
         }
@@ -235,12 +297,26 @@ describe('PopoverMenu initialFocus role/query behavior', () => {
             if (!wasOpenedViaKeyboard || !isWeb) {
                 return false;
             }
-            return () => simulateComputeInitialFocus(container);
+            return () => getInitialFocusTargetFromContainer(container);
         })();
 
         expect(typeof computeInitialFocus).toBe('function');
         const focusTarget = typeof computeInitialFocus === 'function' ? computeInitialFocus() : computeInitialFocus;
-        expect(focusTarget).toBe(false);
+        expect(focusTarget).toBe(container.firstElementChild);
+    });
+
+    it('keeps mouse/touch open behavior unchanged (no initial focus)', () => {
+        const wasOpenedViaKeyboard = false;
+        const isWeb = true;
+
+        const computeInitialFocus = (() => {
+            if (!wasOpenedViaKeyboard || !isWeb) {
+                return false;
+            }
+            return () => false;
+        })();
+
+        expect(computeInitialFocus).toBe(false);
     });
 });
 
@@ -259,16 +335,28 @@ jest.mock('@components/FocusableMenuItem', () => {
     return {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         __esModule: true,
-        default: (props: {title: string; pressableTestID?: string; onPress?: (event: GestureResponderEvent) => void}) => (
+        default: (props: {
+            title: string;
+            pressableTestID?: string;
+            onPress?: (event: GestureResponderEvent) => void;
+            onFocus?: () => void;
+            focused?: boolean;
+        }) => (
             <Pressable
                 testID={props.pressableTestID}
                 onPress={props.onPress}
+                onFocus={props.onFocus}
                 accessibilityLabel="Pressable"
+                accessibilityState={{selected: !!props.focused}}
             >
                 <Text>{props.title}</Text>
             </Pressable>
         ),
     };
+});
+
+afterEach(() => {
+    mockRegisteredKeyboardShortcuts.clear();
 });
 
 describe('PopoverMenu integration — submenu open/close behaviors', () => {
@@ -431,5 +519,54 @@ describe('PopoverMenu integration — submenu open/close behaviors', () => {
         await waitFor(() => {
             expect(screen.getByTestId('PopoverMenuItem-Sub B3')).toBeTruthy();
         });
+    });
+});
+
+describe('PopoverMenu keyboard focusedIndex synchronization', () => {
+    const anchorRef = React.createRef<View>();
+    const anchorPosition = {horizontal: 0, vertical: 0};
+
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('syncs focusedIndex via onFocus and Enter activates the auto-focused row', () => {
+        const onItemSelected = jest.fn();
+        const menuItems: PopoverMenuItem[] = [
+            {text: 'First action'},
+            {text: 'Second action'},
+        ];
+
+        render(
+            <PopoverMenu
+                isVisible
+                menuItems={menuItems}
+                onClose={() => {}}
+                onItemSelected={onItemSelected}
+                anchorPosition={anchorPosition}
+                anchorRef={anchorRef}
+                wasOpenedViaKeyboard
+            />,
+        );
+
+        // Before focus sync, Enter is a no-op because focusedIndex is -1.
+        act(() => {
+            triggerShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey);
+        });
+        expect(onItemSelected).not.toHaveBeenCalled();
+
+        // This mirrors the effect of keyboard initialFocus focusing the first actionable row.
+        // Even if focus is applied redundantly (FocusTrap + useSyncFocus), the onFocus-driven
+        // focusedIndex update is idempotent and harmless.
+        fireEvent(screen.getByTestId('PopoverMenuItem-First action'), 'focus');
+        const firstActionItem = screen.getByTestId('PopoverMenuItem-First action');
+        const accessibilityState = firstActionItem.props.accessibilityState as {selected?: boolean} | undefined;
+        expect(accessibilityState?.selected).toBe(true);
+
+        act(() => {
+            triggerShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey);
+        });
+
+        expect(onItemSelected).toHaveBeenCalledWith(expect.objectContaining({text: 'First action'}), 0, undefined);
     });
 });

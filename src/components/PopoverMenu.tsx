@@ -203,6 +203,42 @@ function getMenuContainerElement(containerRefValue: unknown): HTMLElement | null
     return containerRefValue instanceof HTMLElement ? containerRefValue : null;
 }
 
+function isFocusableActionablePopoverCandidate(candidate: Element): candidate is HTMLElement {
+    if (!(candidate instanceof HTMLElement)) {
+        return false;
+    }
+
+    const role = candidate.getAttribute('role');
+    const isPopoverActionRole = role === CONST.ROLE.BUTTON || role === CONST.ROLE.MENUITEM;
+    if (!isPopoverActionRole) {
+        return false;
+    }
+
+    if (candidate.hasAttribute('disabled') || candidate.getAttribute('aria-disabled') === 'true') {
+        return false;
+    }
+
+    if (candidate.hasAttribute('inert') || !!candidate.closest('[inert]')) {
+        return false;
+    }
+
+    if (candidate.tabIndex < 0) {
+        return false;
+    }
+
+    return true;
+}
+
+function getInitialFocusTargetFromContainer(container: HTMLElement): HTMLElement | false {
+    const candidates = container.querySelectorAll('[role="button"], [role="menuitem"]');
+    for (const candidate of candidates) {
+        if (isFocusableActionablePopoverCandidate(candidate)) {
+            return candidate;
+        }
+    }
+    return false;
+}
+
 /**
  * Return a stable string key for a menu item.
  * Prefers explicit `key` property on the item. If missing, falls back to `text`.
@@ -352,9 +388,7 @@ function BasePopoverMenu({
                 return false;
             }
 
-            const firstMenuItem = container.querySelector('[role="menuitem"]');
-
-            return firstMenuItem instanceof HTMLElement ? firstMenuItem : false;
+            return getInitialFocusTargetFromContainer(container);
         };
     })();
 
@@ -687,5 +721,6 @@ export default React.memo(
         prevProps.withoutOverlay === nextProps.withoutOverlay &&
         prevProps.shouldSetModalVisibility === nextProps.shouldSetModalVisibility,
 );
+export {getInitialFocusTargetFromContainer};
 export type {PopoverMenuItem, PopoverMenuProps};
 export {getItemKey, buildKeyPathFromIndexPath, resolveIndexPathByKeyPath};

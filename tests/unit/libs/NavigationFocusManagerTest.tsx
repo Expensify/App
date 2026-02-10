@@ -2066,6 +2066,96 @@ describe('NavigationFocusManager Gap Tests', () => {
             });
         });
 
+        describe('Risk: Hot Reload Module Replacement', () => {
+            it('should de-duplicate listeners across module replacement and keep new instance active', () => {
+                const oldManager = NavigationFocusManager;
+
+                jest.resetModules();
+                // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+                const newManager = require('@libs/NavigationFocusManager').default as NavigationFocusManagerType;
+                newManager.initialize();
+
+                const button = document.createElement('button');
+                button.id = 'hot-reload-button';
+                document.body.appendChild(button);
+
+                oldManager.registerFocusedRoute('hot-reload-old-route');
+                newManager.registerFocusedRoute('hot-reload-new-route');
+
+                const pointerEvent = new PointerEvent('pointerdown', {bubbles: true, cancelable: true});
+                Object.defineProperty(pointerEvent, 'target', {value: button});
+                document.dispatchEvent(pointerEvent);
+
+                const oldRetrieved = oldManager.retrieveForRoute('hot-reload-old-route');
+                const newRetrieved = newManager.retrieveForRoute('hot-reload-new-route');
+
+                expect(oldRetrieved).toBeNull();
+                expect(newRetrieved).toBe(button);
+
+                oldManager.unregisterFocusedRoute('hot-reload-old-route');
+                newManager.unregisterFocusedRoute('hot-reload-new-route');
+                newManager.destroy();
+            });
+
+            it('should keep new listeners active when stale old instance calls destroy()', () => {
+                const oldManager = NavigationFocusManager;
+
+                jest.resetModules();
+                // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+                const newManager = require('@libs/NavigationFocusManager').default as NavigationFocusManagerType;
+                newManager.initialize();
+
+                oldManager.destroy();
+
+                const button = document.createElement('button');
+                button.id = 'stale-destroy-button';
+                document.body.appendChild(button);
+
+                newManager.registerFocusedRoute('stale-destroy-new-route');
+                const pointerEvent = new PointerEvent('pointerdown', {bubbles: true, cancelable: true});
+                Object.defineProperty(pointerEvent, 'target', {value: button});
+                document.dispatchEvent(pointerEvent);
+
+                const newRetrieved = newManager.retrieveForRoute('stale-destroy-new-route');
+                expect(newRetrieved).toBe(button);
+
+                newManager.unregisterFocusedRoute('stale-destroy-new-route');
+                newManager.destroy();
+            });
+
+            it('should keep new listeners active when stale old instance calls initialize()', () => {
+                const oldManager = NavigationFocusManager;
+
+                jest.resetModules();
+                // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+                const newManager = require('@libs/NavigationFocusManager').default as NavigationFocusManagerType;
+                newManager.initialize();
+
+                oldManager.initialize();
+
+                const button = document.createElement('button');
+                button.id = 'stale-initialize-button';
+                document.body.appendChild(button);
+
+                oldManager.registerFocusedRoute('stale-initialize-old-route');
+                newManager.registerFocusedRoute('stale-initialize-new-route');
+
+                const pointerEvent = new PointerEvent('pointerdown', {bubbles: true, cancelable: true});
+                Object.defineProperty(pointerEvent, 'target', {value: button});
+                document.dispatchEvent(pointerEvent);
+
+                const oldRetrieved = oldManager.retrieveForRoute('stale-initialize-old-route');
+                const newRetrieved = newManager.retrieveForRoute('stale-initialize-new-route');
+
+                expect(oldRetrieved).toBeNull();
+                expect(newRetrieved).toBe(button);
+
+                oldManager.unregisterFocusedRoute('stale-initialize-old-route');
+                newManager.unregisterFocusedRoute('stale-initialize-new-route');
+                newManager.destroy();
+            });
+        });
+
         describe('Risk: Idempotent Initialization', () => {
             it('should be safe to call initialize() multiple times', () => {
                 // Given: Manager already initialized

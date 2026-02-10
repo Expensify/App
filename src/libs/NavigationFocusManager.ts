@@ -129,6 +129,31 @@ type CandidateMatch = {
 const defaultElementQueryStrategy: ElementQueryStrategy = (tagNameSelector) =>
     Array.from(document.querySelectorAll<HTMLElement>(tagNameSelector));
 
+type ListenerRegistry = {
+    pointerdown: ((event: PointerEvent) => void) | null;
+    keydown: ((event: KeyboardEvent) => void) | null;
+    owner: symbol | null;
+};
+
+const LISTENER_REGISTRY_KEY = Symbol.for('expensify.NavigationFocusManager.listeners');
+const listenerOwnerToken = Symbol('NavigationFocusManager.instance');
+
+function getListenerRegistry(): ListenerRegistry {
+    const globalObject = globalThis as Record<PropertyKey, unknown>;
+    const existingRegistry = globalObject[LISTENER_REGISTRY_KEY] as ListenerRegistry | undefined;
+    if (existingRegistry) {
+        return existingRegistry;
+    }
+
+    const nextRegistry: ListenerRegistry = {
+        pointerdown: null,
+        keydown: null,
+        owner: null,
+    };
+    globalObject[LISTENER_REGISTRY_KEY] = nextRegistry;
+    return nextRegistry;
+}
+
 // Module-level state (following ComposerFocusManager pattern)
 let lastInteractionCapture: CapturedFocus | null = null;
 /** Stores element identifiers for non-persistent screens (that unmount on navigation) */
@@ -529,34 +554,7 @@ function handleKeyDown(event: KeyboardEvent): void {
     }
 }
 
-/**
- * Initialize the manager by attaching global capture-phase listeners.
- * Should be called once at app startup.
- */
-function initialize(): void {
-    if (isInitialized || typeof document === 'undefined') {
-        return;
-    }
-
-    // Capture phase runs BEFORE the event reaches target handlers
-    // This ensures we capture the focused element before any navigation logic
-    document.addEventListener('pointerdown', handleInteraction, {capture: true});
-    document.addEventListener('keydown', handleKeyDown, {capture: true});
-
-    isInitialized = true;
-}
-
-/**
- * Cleanup listeners. Should be called on app unmount.
- */
-function destroy(): void {
-    if (!isInitialized || typeof document === 'undefined') {
-        return;
-    }
-
-    document.removeEventListener('pointerdown', handleInteraction, {capture: true});
-    document.removeEventListener('keydown', handleKeyDown, {capture: true});
-
+function clearLocalStateOnDestroy(): void {
     isInitialized = false;
     routeFocusMap.clear();
     routeElementIdentifierMap.clear();
@@ -566,6 +564,72 @@ function destroy(): void {
     currentFocusedRouteKey = null;
     wasKeyboardInteraction = false;
     elementQueryStrategy = defaultElementQueryStrategy;
+}
+
+/**
+ * Initialize the manager by attaching global capture-phase listeners.
+ * Should be called once at app startup.
+ */
+function initialize(): void {
+    if (isInitialized || typeof document === 'undefined') {
+        return;
+    }
+
+    const listenerRegistry = getListenerRegistry();
+    const hasCurrentListeners = listenerRegistry.pointerdown === handleInteraction && listenerRegistry.keydown === handleKeyDown;
+    if (hasCurrentListeners) {
+        listenerRegistry.owner = listenerOwnerToken;
+        isInitialized = true;
+        return;
+    }
+
+    if (listenerRegistry.pointerdown) {
+        document.removeEventListener('pointerdown', listenerRegistry.pointerdown, {capture: true});
+    }
+    if (listenerRegistry.keydown) {
+        document.removeEventListener('keydown', listenerRegistry.keydown, {capture: true});
+    }
+
+    // Capture phase runs BEFORE the event reaches target handlers
+    // This ensures we capture the focused element before any navigation logic
+    document.addEventListener('pointerdown', handleInteraction, {capture: true});
+    document.addEventListener('keydown', handleKeyDown, {capture: true});
+
+    listenerRegistry.pointerdown = handleInteraction;
+    listenerRegistry.keydown = handleKeyDown;
+    listenerRegistry.owner = listenerOwnerToken;
+    isInitialized = true;
+}
+
+/**
+ * Cleanup listeners. Should be called on app unmount.
+ */
+function destroy(): void {
+    if (typeof document !== 'undefined') {
+        const listenerRegistry = getListenerRegistry();
+
+        if (listenerRegistry.pointerdown === handleInteraction) {
+            document.removeEventListener('pointerdown', handleInteraction, {capture: true});
+            listenerRegistry.pointerdown = null;
+        }
+
+        if (listenerRegistry.keydown === handleKeyDown) {
+            document.removeEventListener('keydown', handleKeyDown, {capture: true});
+            listenerRegistry.keydown = null;
+        }
+
+        if (!listenerRegistry.pointerdown && !listenerRegistry.keydown) {
+            listenerRegistry.owner = null;
+        } else if (
+            listenerRegistry.owner === listenerOwnerToken &&
+            listenerRegistry.pointerdown !== handleInteraction &&
+            listenerRegistry.keydown !== handleKeyDown
+        ) {
+            listenerRegistry.owner = null;
+        }
+    }
+
+    clearLocalStateOnDestroy();
 }
 
 /**
