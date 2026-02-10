@@ -594,12 +594,12 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                     onPress={navigateToSettings}
                 />
             </View>
-            <View style={[styles.navigationTabBarFABItem, styles.ph0, styles.floatingActionButtonPosition]}>
-                <NavigationTabBarFloatingActionButton />
-            </View>
 
             {shouldShowFloatingButtons && (
                 <>
+                    <View style={[styles.navigationTabBarFABItem, styles.ph0, styles.floatingActionButtonPosition]}>
+                        <NavigationTabBarFloatingActionButton />
+                    </View>
                     <FloatingGPSButton />
                     <FloatingCameraButton />
                 </>

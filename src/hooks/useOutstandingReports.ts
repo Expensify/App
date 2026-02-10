@@ -24,22 +24,16 @@ export default function useOutstandingReports(selectedReportID: string | undefin
     }
 
     if (!selectedPolicyID || selectedPolicyID === personalPolicyID || isSelfDM(selectedReport)) {
-        return Object.values(allPoliciesID ?? {})
-            .filter((policyID) => personalPolicyID !== policyID)
-            .flatMap((policyID) => {
-                if (!policyID) {
-                    return [];
-                }
-                const reports = getOutstandingReportsForUser(
-                    policyID,
-                    ownerAccountID,
-                    outstandingReportsByPolicyID?.[policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
-                    reportNameValuePairs,
-                    isEditing,
-                );
+        const result = [];
+        for (const policyID of Object.values(allPoliciesID ?? {})) {
+            if (!policyID || policyID === personalPolicyID) {
+                continue;
+            }
 
-                return reports;
-            });
+            const reports = getOutstandingReportsForUser(policyID, ownerAccountID, outstandingReportsByPolicyID[policyID] ?? {}, reportNameValuePairs, isEditing);
+            result.push(...reports);
+        }
+        return result;
     }
 
     return getOutstandingReportsForUser(selectedPolicyID, ownerAccountID, outstandingReportsByPolicyID?.[selectedPolicyID ?? CONST.DEFAULT_NUMBER_ID] ?? {}, reportNameValuePairs, isEditing);

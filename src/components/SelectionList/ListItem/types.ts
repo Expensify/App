@@ -1,5 +1,5 @@
 import type {ReactElement, ReactNode} from 'react';
-import type {AccessibilityState, BlurEvent, NativeSyntheticEvent, StyleProp, TargetedEvent, TextStyle, ViewStyle} from 'react-native';
+import type {AccessibilityState, BlurEvent, NativeSyntheticEvent, Role, StyleProp, TargetedEvent, TextStyle, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
@@ -10,6 +10,7 @@ import type CONST from '@src/CONST';
 import type {SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import type BaseListItem from './BaseListItem';
 import type InviteMemberListItem from './InviteMemberListItem';
 import type MultiSelectListItem from './MultiSelectListItem';
@@ -177,6 +178,9 @@ type CommonListItemProps<TItem extends ListItem> = {
     /** Styles for the checkbox wrapper view if select multiple option is on */
     selectMultipleStyle?: StyleProp<ViewStyle>;
 
+    /** Styles applied for the error row of the list item */
+    errorRowStyles?: StyleProp<ViewStyle>;
+
     /** Whether to wrap long text up to 2 lines */
     isMultilineSupported?: boolean;
 
@@ -195,9 +199,13 @@ type CommonListItemProps<TItem extends ListItem> = {
     /** Accessibility State tells a person using either VoiceOver on iOS or TalkBack on Android the state of the element currently focused on */
     accessibilityState?: AccessibilityState;
 
+    /** Accessibility role for the list item (e.g. 'checkbox' for multi-select options so screen readers announce checked state) */
+    accessibilityRole?: Role;
+
     /** Whether to show the right caret icon */
     shouldShowRightCaret?: boolean;
-} & TRightHandSideComponent<TItem>;
+} & TRightHandSideComponent<TItem> &
+    WithSentryLabel;
 
 type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;
 
@@ -293,6 +301,8 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     shouldShowBlueBorderOnFocus?: boolean;
     keyForList: string;
     errors?: Errors | ReceiptErrors | null;
+    /** Additional style object for the error row */
+    errorRowStyles?: StyleProp<ViewStyle>;
     pendingAction?: PendingAction | null;
     FooterComponent?: ReactElement;
     children?: ReactElement<ListItemProps<TItem>> | ((hovered: boolean) => ReactElement<ListItemProps<TItem>>);

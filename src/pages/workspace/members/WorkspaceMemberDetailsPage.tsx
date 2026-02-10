@@ -134,10 +134,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     ];
     const isUserExporter = exporters.includes(details.login);
 
-    let confirmModalPrompt = translate('workspace.people.removeMembersWarningPrompt', {
-        memberName: displayName,
-        ownerName: policyOwnerDisplayName,
-    });
+    let confirmModalPrompt = translate('workspace.people.removeMembersWarningPrompt', displayName, policyOwnerDisplayName);
 
     if (isTechnicalContact) {
         confirmModalPrompt = translate('workspace.people.removeMemberPromptTechContact', {
@@ -154,7 +151,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             workspaceOwner: policyOwnerDisplayName,
         });
     } else if (!isApprover) {
-        confirmModalPrompt = translate('workspace.people.removeMemberPrompt', {memberName: displayName});
+        confirmModalPrompt = translate('workspace.people.removeMemberPrompt', displayName);
     } else if (isApprover) {
         confirmModalPrompt = translate('workspace.people.removeMemberPromptApprover', {
             approver: displayName,

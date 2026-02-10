@@ -44,6 +44,7 @@ const FAKE_OPEN_REPORT_ID = 'FAKE_OPEN_REPORT_ID';
 const FAKE_OPEN_REPORT_SECOND_USER_ID = 'FAKE_OPEN_REPORT_SECOND_USER_ID';
 const FAKE_PROCESSING_REPORT_ID = 'FAKE_PROCESSING_REPORT_ID';
 const FAKE_APPROVED_REPORT_ID = 'FAKE_APPROVED_REPORT_ID';
+const FAKE_CHAT_REPORT_ID = '12345';
 const openReport = {
     reportID: FAKE_OPEN_REPORT_ID,
     ownerAccountID: CURRENT_USER_ID,
@@ -70,11 +71,19 @@ const secondUserOpenReport = {
     stateNum: CONST.REPORT.STATE_NUM.OPEN,
     statusNum: CONST.REPORT.STATUS_NUM.OPEN,
 };
+const chatReport = {
+    reportID: FAKE_CHAT_REPORT_ID,
+    ownerAccountID: CURRENT_USER_ID,
+    type: CONST.REPORT.TYPE.CHAT,
+    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+};
 const reportCollectionDataSet = {
     [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OPEN_REPORT_ID}`]: openReport,
     [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_PROCESSING_REPORT_ID}`]: processingReport,
     [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_APPROVED_REPORT_ID}`]: approvedReport,
     [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OPEN_REPORT_SECOND_USER_ID}`]: secondUserOpenReport,
+    [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_CHAT_REPORT_ID}`]: chatReport,
 } as OnyxCollection<Report>;
 const defaultDistanceRatePolicyID1: Record<string, Rate> = {
     customUnitRateID1: {
@@ -490,27 +499,27 @@ describe('TransactionUtils', () => {
 
     describe('calculateTaxAmount', () => {
         it('returns 0 for undefined percentage', () => {
-            const result = TransactionUtils.calculateTaxAmount(undefined, 10000, 'USD');
+            const result = TransactionUtils.calculateTaxAmount(undefined, 10000, 2);
             expect(result).toBe(0);
         });
 
         it('returns 0 for empty percentage', () => {
-            const result = TransactionUtils.calculateTaxAmount('', 10000, 'USD');
+            const result = TransactionUtils.calculateTaxAmount('', 10000, 2);
             expect(result).toBe(0);
         });
 
         it('returns 0 for zero percentage', () => {
-            const result = TransactionUtils.calculateTaxAmount('0%', 10000, 'USD');
+            const result = TransactionUtils.calculateTaxAmount('0%', 10000, 2);
             expect(result).toBe(0);
         });
 
         it('returns 0 for zero amount', () => {
-            const result = TransactionUtils.calculateTaxAmount('10%', 0, 'USD');
+            const result = TransactionUtils.calculateTaxAmount('10%', 0, 2);
             expect(result).toBe(0);
         });
 
         it('returns correct tax amount for valid percentage and amount', () => {
-            const result = TransactionUtils.calculateTaxAmount('10%', 10000, 'USD');
+            const result = TransactionUtils.calculateTaxAmount('10%', 10000, 2);
             expect(result).toBe(9.09);
         });
     });
@@ -711,6 +720,84 @@ describe('TransactionUtils', () => {
             const transaction = generateTransaction({pendingAction});
             const result = TransactionUtils.isTransactionPendingDelete(transaction);
             expect(result).toEqual(expected);
+        });
+    });
+
+    describe('isExpenseSplit', () => {
+        it('should return false when transaction is assigned to a chat/DM report (not an expense report)', () => {
+            const transaction = generateTransaction({
+                reportID: FAKE_CHAT_REPORT_ID,
+                comment: {
+                    source: CONST.IOU.TYPE.SPLIT,
+                    originalTransactionID: 'original123',
+                },
+            });
+            expect(TransactionUtils.isExpenseSplit(transaction)).toBe(false);
+        });
+
+        it('should return true when transaction is in split report and has split comment', () => {
+            const transaction = generateTransaction({
+                reportID: CONST.REPORT.SPLIT_REPORT_ID,
+                comment: {
+                    source: CONST.IOU.TYPE.SPLIT,
+                    originalTransactionID: 'original123',
+                },
+            });
+            expect(TransactionUtils.isExpenseSplit(transaction)).toBe(true);
+        });
+
+        it('should return true when transaction is unreported and has split comment', () => {
+            const transaction = generateTransaction({
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                comment: {
+                    source: CONST.IOU.TYPE.SPLIT,
+                    originalTransactionID: 'original123',
+                },
+            });
+            expect(TransactionUtils.isExpenseSplit(transaction)).toBe(true);
+        });
+
+        it('should return true when transaction has no reportID and has split comment', () => {
+            const transaction = generateTransaction({
+                reportID: undefined,
+                comment: {
+                    source: CONST.IOU.TYPE.SPLIT,
+                    originalTransactionID: 'original123',
+                },
+            });
+            expect(TransactionUtils.isExpenseSplit(transaction)).toBe(true);
+        });
+
+        it('should return true when transaction is on expense report (regression: still treat as split)', () => {
+            const transaction = generateTransaction({
+                reportID: FAKE_OPEN_REPORT_ID,
+                comment: {
+                    source: CONST.IOU.TYPE.SPLIT,
+                    originalTransactionID: 'original123',
+                },
+            });
+            expect(TransactionUtils.isExpenseSplit(transaction)).toBe(true);
+        });
+
+        it('should return false when transaction comment source is not split', () => {
+            const transaction = generateTransaction({
+                reportID: CONST.REPORT.SPLIT_REPORT_ID,
+                comment: {
+                    source: CONST.IOU.TYPE.REQUEST,
+                    originalTransactionID: 'original123',
+                },
+            });
+            expect(TransactionUtils.isExpenseSplit(transaction)).toBe(false);
+        });
+
+        it('should return false when transaction comment is missing originalTransactionID', () => {
+            const transaction = generateTransaction({
+                reportID: CONST.REPORT.SPLIT_REPORT_ID,
+                comment: {
+                    source: CONST.IOU.TYPE.SPLIT,
+                },
+            });
+            expect(TransactionUtils.isExpenseSplit(transaction)).toBe(false);
         });
     });
 

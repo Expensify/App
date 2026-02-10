@@ -166,10 +166,11 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
         if (approverEmail) {
             const approverAccountID = policyMemberEmailsToAccountIDs[approverEmail];
-            return translate('workspace.people.removeMembersWarningPrompt', {
-                memberName: getDisplayNameForParticipant({accountID: approverAccountID, formatPhoneNumber}),
-                ownerName: getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber}),
-            });
+            return translate(
+                'workspace.people.removeMembersWarningPrompt',
+                getDisplayNameForParticipant({accountID: approverAccountID, formatPhoneNumber}),
+                getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber}),
+            );
         }
 
         const exporters = getConnectionExporters(policy);
