@@ -238,7 +238,11 @@ function setApprovalWorkflowApprover({approver, approverIndex, currentApprovalWo
     approvers[approverIndex] = approver;
 
     // Check if the approver forwards to other approvers and add them to the list
-    if (policy.employeeList[approver.email]?.forwardsTo) {
+    // Only auto-populate the chain when a genuinely new approver is selected, not when
+    // re-confirming an existing one (which would re-read the stale forwardsTo chain from
+    // policy.employeeList and undo the user's in-progress edits)
+    const isNewApprover = currentApprovalWorkflow.approvers[approverIndex]?.email !== approver.email;
+    if (isNewApprover && policy.employeeList[approver.email]?.forwardsTo) {
         const additionalApprovers = calculateApprovers({employees: policy.employeeList, firstEmail: approver.email, personalDetailsByEmail});
 
         approvers.splice(approverIndex, approvers.length, ...additionalApprovers);
