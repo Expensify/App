@@ -22,6 +22,7 @@ function OptionRowLHNData({
     isOptionFocused = false,
     fullReport,
     reportAttributes,
+    reportAttributesDerived,
     oneTransactionThreadReport,
     reportNameValuePairs,
     reportActions,
@@ -81,6 +82,7 @@ function OptionRowLHNData({
             movedToReport,
             policyTags,
             currentUserAccountID,
+            reportAttributesDerived,
         });
         if (deepEqual(item, optionItemRef.current)) {
             return optionItemRef.current;
@@ -118,6 +120,7 @@ function OptionRowLHNData({
         movedToReport,
         policyTags,
         currentUserAccountID,
+        reportAttributesDerived,
     ]);
 
     return (

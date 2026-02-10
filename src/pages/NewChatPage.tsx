@@ -1,5 +1,4 @@
 import {useFocusEffect} from '@react-navigation/native';
-import reportsSelector from '@selectors/Attributes';
 import isEmpty from 'lodash/isEmpty';
 import reject from 'lodash/reject';
 import type {Ref} from 'react';
@@ -46,6 +45,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import KeyboardUtils from '@src/utils/keyboard';
 
@@ -56,7 +56,7 @@ type SelectedOption = ListItem &
         reportID?: string;
     };
 
-function useOptions() {
+function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined) {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
@@ -114,6 +114,7 @@ function useOptions() {
             personalDetails: allPersonalDetails,
         },
         countryCode,
+        reportAttributesDerived,
     );
 
     const unselectedOptions = filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID)));
@@ -183,6 +184,7 @@ function useOptions() {
             return;
         }
 
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setSelectedOptions((prevSelectedOptions) => {
             if (
                 prevSelectedOptions.length === draftSelectedOptions.length &&
@@ -240,7 +242,8 @@ function NewChatPage({ref}: NewChatPageProps) {
     const currentUserAccountID = personalData.accountID;
     const {top} = useSafeAreaInsets();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
+    const [reportAttributesDerivedFull] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true});
+    const reportAttributesDerived = reportAttributesDerivedFull?.reports;
     const selectionListRef = useRef<SelectionListHandle | null>(null);
     const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: true});
     const allPersonalDetails = usePersonalDetails();
@@ -263,7 +266,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         personalDetails,
         userToInvite,
         areOptionsInitialized,
-    } = useOptions();
+    } = useOptions(reportAttributesDerived);
 
     const sections: Section[] = [];
     let firstKeyForList = '';
@@ -280,7 +283,9 @@ function NewChatPage({ref}: NewChatPageProps) {
         undefined,
         reportAttributesDerived,
     );
-    sections.push(formatResults.section);
+    // Just a temporary fix to satisfy the type checker
+    // Will be fixed when migrating to use new SelectionListWithSections
+    sections.push({...formatResults.section, title: undefined, shouldShow: true});
 
     if (!firstKeyForList) {
         firstKeyForList = getFirstKeyForList(formatResults.section.data);

@@ -242,8 +242,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 policy: itemPolicy,
                 isReportArchived: !!itemReportNameValuePairs?.private_isArchived,
                 reportMetadata: itemReportMetadata,
-                currentUserAccountID,
                 policyTags: itemPolicyTags,
+                reportAttributesDerived: reportAttributes,
             });
             const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
 
@@ -270,6 +270,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     reportID={reportID}
                     fullReport={item}
                     reportAttributes={itemReportAttributes}
+                    reportAttributesDerived={reportAttributes}
                     oneTransactionThreadReport={itemOneTransactionThreadReport}
                     reportNameValuePairs={itemReportNameValuePairs}
                     reportActions={itemReportActions}

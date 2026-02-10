@@ -15,7 +15,6 @@ import PrevNextButtons from '@components/PrevNextButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useFetchRoute from '@hooks/useFetchRoute';
 import useFilesValidation from '@hooks/useFilesValidation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -145,12 +144,6 @@ function IOURequestStepConfirmation({
     const transaction = useMemo(
         () => (!isLoadingCurrentTransaction ? (optimisticTransaction ?? existingTransaction) : undefined),
         [existingTransaction, optimisticTransaction, isLoadingCurrentTransaction],
-    );
-    const transactionsCategories = useDeepCompareRef(
-        transactions.map(({transactionID, category}) => ({
-            transactionID,
-            category,
-        })),
     );
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
@@ -400,7 +393,7 @@ function IOURequestStepConfirmation({
         }
         // We don't want to clear out category every time the transactions change
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [policy?.id, policyCategories, transactionsCategories]);
+    }, [policy?.id, policyCategories, transactions.length]);
 
     const policyDistance = Object.values(policy?.customUnits ?? {}).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
     const defaultCategory = policyDistance?.defaultCategory ?? '';

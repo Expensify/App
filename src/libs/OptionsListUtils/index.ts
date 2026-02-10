@@ -94,7 +94,7 @@ import {
     shouldReportActionBeVisible,
     withDEWRoutedActionsArray,
 } from '@libs/ReportActionsUtils';
-import {computeReportName} from '@libs/ReportNameUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
     canUserPerformWriteAction,
@@ -352,7 +352,7 @@ function isPersonalDetailsReady(personalDetails: OnyxEntry<PersonalDetailsList>)
 /**
  * Get the participant option for a report.
  */
-function getParticipantsOption(participant: OptionData | Participant, personalDetails: OnyxEntry<PersonalDetailsList>): Participant {
+function getParticipantsOption(participant: OptionData | Participant, personalDetails: OnyxEntry<PersonalDetailsList>): Participant & {keyForList: string} {
     const detail = participant.accountID ? getPersonalDetailsForAccountIDs([participant.accountID], personalDetails)[participant.accountID] : undefined;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const login = detail?.login || participant.login || '';
@@ -464,6 +464,7 @@ function getAlternateText(
     isReportArchived: boolean | undefined,
     currentUserAccountID: number,
     lastActorDetails: Partial<PersonalDetails> | null = {},
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
 ) {
     const report = getReportOrDraftReport(option.reportID);
     const isAdminRoom = reportUtilsIsAdminRoom(report);
@@ -473,7 +474,7 @@ function getAlternateText(
     const formattedLastMessageText =
         formatReportLastMessageText(Parser.htmlToText(option.lastMessageText ?? '')) ||
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails, isReportArchived, currentUserAccountID, policyTags});
+        getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails, isReportArchived, policyTags, reportAttributesDerived});
     const reportPrefix = getReportSubtitlePrefix(report);
     const formattedLastMessageTextWithPrefix = reportPrefix + formattedLastMessageText;
 
@@ -608,7 +609,7 @@ function getLastMessageTextForReport({
     isReportArchived = false,
     policyTags,
     reportMetadata,
-    currentUserAccountID,
+    reportAttributesDerived,
 }: {
     translate: LocalizedTranslate;
     report: OnyxEntry<Report>;
@@ -619,7 +620,7 @@ function getLastMessageTextForReport({
     isReportArchived?: boolean;
     policyTags: OnyxEntry<PolicyTagLists>;
     reportMetadata?: OnyxEntry<ReportMetadata>;
-    currentUserAccountID: number;
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
 }): string {
     const reportID = report?.reportID;
     const lastReportAction = reportID ? lastVisibleReportActions[reportID] : undefined;
@@ -666,7 +667,7 @@ function getLastMessageTextForReport({
             : undefined;
         // For workspace chats, use the report title
         if (reportUtilsIsPolicyExpenseChat(report) && !isEmptyObject(iouReport)) {
-            const reportName = computeReportName(iouReport, undefined, undefined, undefined, undefined, undefined, undefined, currentUserAccountID);
+            const reportName = reportAttributesDerived?.[iouReport.reportID]?.reportName ?? '';
             lastMessageTextFromReport = formatReportLastMessageText(reportName);
         } else {
             const reportPreviewMessage = getReportPreviewMessage(
@@ -764,7 +765,7 @@ function getLastMessageTextForReport({
     } else if (lastReportAction?.actionName && isOldDotReportAction(lastReportAction)) {
         lastMessageTextFromReport = getMessageOfOldDotReportAction(translate, lastReportAction, false);
     } else if (isActionableJoinRequest(lastReportAction)) {
-        lastMessageTextFromReport = getJoinRequestMessage(translate, lastReportAction);
+        lastMessageTextFromReport = getJoinRequestMessage(translate, policy, lastReportAction);
     } else if (
         lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM ||
         lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_ROOM
@@ -954,26 +955,24 @@ function createOption(
             report,
             lastActorDetails,
             isReportArchived: !!result.private_isArchived,
-            currentUserAccountID,
             policyTags,
+            reportAttributesDerived,
         });
         result.alternateText =
             showPersonalDetails && personalDetail?.login
                 ? personalDetail.login
-                : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview}, policyTags, !!result.private_isArchived, currentUserAccountID, lastActorDetails);
+                : getAlternateText(
+                      result,
+                      {showChatPreviewLine, forcePolicyNamePreview},
+                      policyTags,
+                      !!result.private_isArchived,
+                      currentUserAccountID,
+                      lastActorDetails,
+                      reportAttributesDerived,
+                  );
 
-        const personalDetailsForCompute: PersonalDetailsList | undefined = personalDetails ?? undefined;
-        const computedReportName = computeReportName(
-            report,
-            allReports,
-            allPolicies,
-            undefined,
-            undefined,
-            personalDetailsForCompute,
-            allReportActions,
-            currentUserAccountID,
-            result.private_isArchived,
-        );
+        const computedReportName = getReportName(report, reportAttributesDerived);
+
         reportName = showPersonalDetails
             ? getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber: formatPhoneNumberPhoneUtils}) || formatPhoneNumberPhoneUtils(personalDetail?.login ?? '')
             : computedReportName;
@@ -1047,7 +1046,7 @@ function getReportOption(
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
-        option.text = computeReportName(report, undefined, undefined, undefined, undefined, personalDetails, undefined, currentUserAccountID, privateIsArchived);
+        option.text = getReportName(report, reportAttributesDerived);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('workspace.common.invoices');
     } else {
@@ -1106,7 +1105,7 @@ function getReportDisplayOption(
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
-        option.text = computeReportName(report, undefined, undefined, undefined, undefined, personalDetails, undefined, currentUserAccountID, privateIsArchived);
+        option.text = getReportName(report, reportAttributesDerived);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('workspace.common.invoices');
     } else if (unknownUserDetails) {
@@ -2052,7 +2051,7 @@ function isValidReport(option: SearchOption<Report>, policy: OnyxEntry<Policy>, 
     const isCurrentUserOwnedPolicyExpenseChatThatCouldShow =
         option.isPolicyExpenseChat && option.ownerAccountID === currentUserAccountID && includeOwnedWorkspaceChats && !option.private_isArchived;
 
-    const shouldShowInvoiceRoom = includeInvoiceRooms && isInvoiceRoom(option.item) && isPolicyAdmin(policy) && !option.private_isArchived && canSendInvoiceFromWorkspace(option.policyID);
+    const shouldShowInvoiceRoom = includeInvoiceRooms && isInvoiceRoom(option.item) && isPolicyAdmin(policy) && !option.private_isArchived && canSendInvoiceFromWorkspace(policy);
 
     /*
     Exclude the report option if it doesn't meet any of the following conditions:
@@ -2093,6 +2092,7 @@ function prepareReportOptionsForDisplay(
     currentUserAccountID: number,
     config: GetValidReportsConfig,
     policyTags: OnyxCollection<PolicyTagLists>,
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
 ): Array<SearchOption<Report>> {
     const {
         showChatPreviewLine = false,
@@ -2124,7 +2124,15 @@ function prepareReportOptionsForDisplay(
          * By default, generated options does not have the chat preview line enabled.
          * If showChatPreviewLine or forcePolicyNamePreview are true, let's generate and overwrite the alternate text.
          */
-        const alternateText = getAlternateText(option, {showChatPreviewLine, forcePolicyNamePreview}, reportPolicyTags, !!option.private_isArchived, currentUserAccountID);
+        const alternateText = getAlternateText(
+            option,
+            {showChatPreviewLine, forcePolicyNamePreview},
+            reportPolicyTags,
+            !!option.private_isArchived,
+            currentUserAccountID,
+            {},
+            reportAttributesDerived,
+        );
         const isSelected = isReportSelected(option, selectedOptions);
 
         let isOptionUnread = option.isUnread;
@@ -2267,6 +2275,7 @@ function getValidOptions(
         ...config
     }: GetOptionsConfig = {},
     countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
 ): Options {
     const restrictedLogins = getRestrictedLogins(config, options, canShowManagerMcTest, nvpDismissedProductTraining);
 
@@ -2366,6 +2375,7 @@ function getValidOptions(
                     personalDetails,
                 },
                 policyTags,
+                reportAttributesDerived,
             ).at(0);
         }
 
@@ -2386,6 +2396,7 @@ function getValidOptions(
                 personalDetails,
             },
             policyTags,
+            reportAttributesDerived,
         );
 
         workspaceChats = prepareReportOptionsForDisplay(
@@ -2402,6 +2413,7 @@ function getValidOptions(
                 personalDetails,
             },
             policyTags,
+            reportAttributesDerived,
         );
     } else if (recentAttendees && recentAttendees?.length > 0) {
         recentAttendees.filter((attendee) => {
@@ -2524,7 +2536,8 @@ type SearchOptionsConfig = {
     loginList: OnyxEntry<Login>;
     currentUserAccountID: number;
     currentUserEmail: string;
-    personalDetails: OnyxEntry<PersonalDetailsList>;
+    personalDetails?: OnyxEntry<PersonalDetailsList>;
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
 };
 
 /**
@@ -2549,6 +2562,7 @@ function getSearchOptions({
     loginList,
     currentUserAccountID,
     currentUserEmail,
+    reportAttributesDerived,
     personalDetails,
 }: SearchOptionsConfig): Options {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
@@ -2587,6 +2601,7 @@ function getSearchOptions({
             personalDetails,
         },
         countryCode,
+        reportAttributesDerived,
     );
 
     Timing.end(CONST.TIMING.LOAD_SEARCH_OPTIONS);
@@ -2659,6 +2674,7 @@ function getFilteredRecentAttendees(
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             login: attendee.email || attendee.displayName,
             ...getPersonalDetailByEmail(attendee.email),
+            keyForList: `${currentUserAccountID}`,
         }))
         .map((attendee) => getParticipantsOption(attendee, personalDetails));
 
@@ -2802,6 +2818,7 @@ function formatSectionsFromSearchTerm(
         return {
             section: {
                 title: undefined,
+                sectionIndex: 0,
                 data: shouldGetOptionDetails
                     ? selectedOptions.map((participant) => {
                           const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
@@ -2810,7 +2827,6 @@ function formatSectionsFromSearchTerm(
                               : getParticipantsOption(participant, personalDetails);
                       })
                     : selectedOptions,
-                shouldShow: selectedOptions.length > 0,
             },
         };
     }
@@ -2830,6 +2846,7 @@ function formatSectionsFromSearchTerm(
     return {
         section: {
             title: undefined,
+            sectionIndex: 0,
             data: shouldGetOptionDetails
                 ? selectedParticipantsWithoutDetails.map((participant) => {
                       const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
@@ -2838,7 +2855,6 @@ function formatSectionsFromSearchTerm(
                           : getParticipantsOption(participant, personalDetails);
                   })
                 : selectedParticipantsWithoutDetails,
-            shouldShow: selectedParticipantsWithoutDetails.length > 0,
         },
     };
 }
@@ -3192,7 +3208,9 @@ function getManagerMcTestParticipant(currentUserAccountID: number, personalDetai
         : getPersonalDetailByEmail(CONST.EMAIL.MANAGER_MCTEST);
     const managerMcTestReport =
         managerMcTestPersonalDetails?.accountID && currentUserAccountID ? getChatByParticipants([managerMcTestPersonalDetails?.accountID, currentUserAccountID]) : undefined;
-    return managerMcTestPersonalDetails ? {...getParticipantsOption(managerMcTestPersonalDetails, allPersonalDetails), reportID: managerMcTestReport?.reportID} : undefined;
+    return managerMcTestPersonalDetails
+        ? {...getParticipantsOption({...managerMcTestPersonalDetails, keyForList: `${managerMcTestPersonalDetails?.accountID}`}, allPersonalDetails), reportID: managerMcTestReport?.reportID}
+        : undefined;
 }
 
 function shallowOptionsListCompare(a: OptionList, b: OptionList): boolean {

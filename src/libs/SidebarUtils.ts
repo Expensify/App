@@ -682,6 +682,7 @@ function getOptionData({
     policyTags,
     translate,
     currentUserAccountID,
+    reportAttributesDerived,
 }: {
     report: OnyxEntry<Report>;
     oneTransactionThreadReport: OnyxEntry<Report>;
@@ -702,6 +703,7 @@ function getOptionData({
     movedFromReport?: OnyxEntry<Report>;
     movedToReport?: OnyxEntry<Report>;
     currentUserAccountID: number;
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -840,8 +842,8 @@ function getOptionData({
             movedToReport,
             policy,
             isReportArchived,
-            currentUserAccountID,
             policyTags,
+            reportAttributesDerived,
         });
     }
 
@@ -863,7 +865,7 @@ function getOptionData({
             const actionMessage = getReportActionMessageText(lastAction);
             result.alternateText = actionMessage ? `${lastActorDisplayName}: ${actionMessage}` : '';
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM) {
-            result.alternateText = translate('report.actions.type.leftTheChatWithName', {nameOrEmail: lastActorDisplayName});
+            result.alternateText = translate('report.actions.type.leftTheChatWithName', lastActorDisplayName);
         } else if (isInviteOrRemovedAction(lastAction)) {
             let actorDetails;
             if (lastAction.actorAccountID) {
