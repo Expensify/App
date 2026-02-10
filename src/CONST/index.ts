@@ -8306,6 +8306,9 @@ const CONST = {
         PRODUCT_TRAINING: {
             TOOLTIP: 'ProductTraining-Tooltip',
         },
+        ONBOARDING: {
+            INTERESTED_FEATURES_ITEM: 'Onboarding-InterestedFeaturesItem',
+        },
     },
 
     DOMAIN: {

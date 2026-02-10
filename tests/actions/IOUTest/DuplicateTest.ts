@@ -468,7 +468,14 @@ describe('actions/Duplicate', () => {
                 const ancestors = [];
                 ancestors.push(...(updatedIouAction ? [{report: expenseReport, reportAction: updatedIouAction, shouldDisplayNewMarker: false}] : []));
                 ancestors.push(...(updatedPreviewAction ? [{report: chatReport, reportAction: updatedPreviewAction, shouldDisplayNewMarker: false}] : []));
-                addComment(thread, thread.reportID, ancestors, message, CONST.DEFAULT_TIME_ZONE);
+                addComment({
+                    report: thread,
+                    notifyReportID: thread.reportID,
+                    ancestors,
+                    text: message,
+                    timezoneParam: CONST.DEFAULT_TIME_ZONE,
+                    currentUserAccountID: RORY_ACCOUNT_ID,
+                });
                 await waitForBatchedUpdates();
             };
             await addCommentToThread(transactionThreadReport1, iouAction1ID, 'Testing a comment');
