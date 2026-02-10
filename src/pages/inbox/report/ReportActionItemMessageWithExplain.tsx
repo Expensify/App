@@ -40,9 +40,9 @@ function ReportActionItemMessageWithExplain({message, action, reportID}: ReportA
             }
 
             const actionOriginalReportID = getOriginalReportID(reportID, action);
-            explain(action, actionOriginalReportID, translate, personalDetail?.timezone);
+            explain(action, actionOriginalReportID, translate, personalDetail.accountID, personalDetail?.timezone);
         },
-        [action, reportID, translate, personalDetail?.timezone],
+        [action, reportID, translate, personalDetail?.timezone, personalDetail.accountID],
     );
 
     return (

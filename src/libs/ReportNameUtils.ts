@@ -347,10 +347,7 @@ function getMoneyRequestReportName({report, policy, invoiceReceiverPolicy}: {rep
 
     if (isReportApproved({report})) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.managerApprovedAmount', {
-            manager: payerOrApproverName,
-            amount: formattedAmount,
-        });
+        return translateLocal('iou.managerApprovedAmount', payerOrApproverName, formattedAmount);
     }
 
     if (report?.isWaitingOnBankAccount) {
@@ -590,7 +587,7 @@ function computeReportNameBasedOnReportAction(
     }
 
     if (isActionableJoinRequest(parentReportAction)) {
-        return getJoinRequestMessage(translate, parentReportAction);
+        return getJoinRequestMessage(translate, reportPolicy, parentReportAction);
     }
 
     if (isTaskReport(report) && isCanceledTaskReport(report, parentReportAction)) {
@@ -714,6 +711,10 @@ function computeChatThreadReportName(
     return reportActionMessage;
 }
 
+/**
+ * @internal Use this only for computation in derived report attributes
+ * In all other cases you should use `getReportName`
+ */
 function computeReportName(
     report?: Report,
     reports?: OnyxCollection<Report>,
