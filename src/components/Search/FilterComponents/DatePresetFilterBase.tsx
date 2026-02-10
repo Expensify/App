@@ -108,45 +108,48 @@ function DatePresetFilterBase({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isSearchAdvancedFiltersFormLoading]);
 
-    const setDateValue = useCallback((dateModifier: SearchDateModifier, value: string | undefined) => {
-        updateDateValues((prevDateValues) => {
-            if (dateModifier === CONST.SEARCH.DATE_MODIFIERS.ON && isSearchDatePreset(value)) {
-                return {
-                    [CONST.SEARCH.DATE_MODIFIERS.ON]: value,
-                    [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: undefined,
-                    [CONST.SEARCH.DATE_MODIFIERS.AFTER]: undefined,
-                    [CONST.SEARCH.DATE_MODIFIERS.RANGE]: undefined,
-                };
-            }
-
-            if (dateModifier !== CONST.SEARCH.DATE_MODIFIERS.ON && isSearchDatePreset(prevDateValues[CONST.SEARCH.DATE_MODIFIERS.ON])) {
-                return {
-                    ...prevDateValues,
-                    [dateModifier]: value,
-                    [CONST.SEARCH.DATE_MODIFIERS.ON]: undefined,
-                };
-            }
-
-            // When setting After or Before individually, clear Range mode
-            if (dateModifier === CONST.SEARCH.DATE_MODIFIERS.AFTER || dateModifier === CONST.SEARCH.DATE_MODIFIERS.BEFORE) {
-                const nextDateValues = {...prevDateValues, [dateModifier]: value, [CONST.SEARCH.DATE_MODIFIERS.RANGE]: undefined};
-                const nextAfter = dateModifier === CONST.SEARCH.DATE_MODIFIERS.AFTER ? value : nextDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER];
-                const nextBefore = dateModifier === CONST.SEARCH.DATE_MODIFIERS.BEFORE ? value : nextDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE];
-
-                if (nextAfter && nextBefore && nextAfter > nextBefore) {
-                    if (dateModifier === CONST.SEARCH.DATE_MODIFIERS.AFTER) {
-                        nextDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE] = undefined;
-                    } else {
-                        nextDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] = undefined;
-                    }
+    const setDateValue = useCallback(
+        (dateModifier: SearchDateModifier, value: string | undefined) => {
+            updateDateValues((prevDateValues) => {
+                if (dateModifier === CONST.SEARCH.DATE_MODIFIERS.ON && isSearchDatePreset(value)) {
+                    return {
+                        [CONST.SEARCH.DATE_MODIFIERS.ON]: value,
+                        [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: undefined,
+                        [CONST.SEARCH.DATE_MODIFIERS.AFTER]: undefined,
+                        [CONST.SEARCH.DATE_MODIFIERS.RANGE]: undefined,
+                    };
                 }
 
-                return nextDateValues;
-            }
+                if (dateModifier !== CONST.SEARCH.DATE_MODIFIERS.ON && isSearchDatePreset(prevDateValues[CONST.SEARCH.DATE_MODIFIERS.ON])) {
+                    return {
+                        ...prevDateValues,
+                        [dateModifier]: value,
+                        [CONST.SEARCH.DATE_MODIFIERS.ON]: undefined,
+                    };
+                }
 
-            return {...prevDateValues, [dateModifier]: value};
-        });
-    }, [updateDateValues]);
+                // When setting After or Before individually, clear Range mode
+                if (dateModifier === CONST.SEARCH.DATE_MODIFIERS.AFTER || dateModifier === CONST.SEARCH.DATE_MODIFIERS.BEFORE) {
+                    const nextDateValues = {...prevDateValues, [dateModifier]: value, [CONST.SEARCH.DATE_MODIFIERS.RANGE]: undefined};
+                    const nextAfter = dateModifier === CONST.SEARCH.DATE_MODIFIERS.AFTER ? value : nextDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER];
+                    const nextBefore = dateModifier === CONST.SEARCH.DATE_MODIFIERS.BEFORE ? value : nextDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE];
+
+                    if (nextAfter && nextBefore && nextAfter > nextBefore) {
+                        if (dateModifier === CONST.SEARCH.DATE_MODIFIERS.AFTER) {
+                            nextDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE] = undefined;
+                        } else {
+                            nextDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] = undefined;
+                        }
+                    }
+
+                    return nextDateValues;
+                }
+
+                return {...prevDateValues, [dateModifier]: value};
+            });
+        },
+        [updateDateValues],
+    );
 
     const dateDisplayValues = useMemo<SearchDateValues>(() => {
         const dateOn = dateValues[CONST.SEARCH.DATE_MODIFIERS.ON];
