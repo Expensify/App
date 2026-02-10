@@ -7,7 +7,7 @@ keywords: [New Expensify, retract report, edit submitted report, resubmit report
 
 If you submitted a report too early or need to make changes, you can easily update it by retracting the report using **Retract**. This returns the report to an editable state.
 
-**Note:** Report actions like creating, submitting, or retracting can only be done in your own account. If you need to help a teammate, consider asking them to add you as a [Copilot](https://help.expensify.com/articles/new-expensify/settings/Copilot-Access). 
+**Note:** Workspace Admins can create reports on behalf of employees by moving expenses to a new report. Report actions like submitting or retracting can only be done in your own account. If you need to help a teammate with these actions, consider asking them to add you as a [Copilot](https://help.expensify.com/articles/new-expensify/settings/Copilot-Access). 
 
 # When to Retract a Report
 
@@ -15,7 +15,7 @@ This option is helpful when:
 - You submitted a report too early.
 - Expenses were added by mistake.
 - Additional receipts or notes are needed.
-- You want to move expenses to a different report.
+- You want to move expenses to a different report or create a new report.
 
 You can retract reports with the following statuses:
 - **Outstanding reports**: Only the submitter (or a Workspace Admin submitting their own report) can use **Retract**.

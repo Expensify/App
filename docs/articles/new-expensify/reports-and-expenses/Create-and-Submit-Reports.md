@@ -1,12 +1,12 @@
 ---
 title: Create-and-Submit-Reports.md
 description: Learn how to use New Expensify’s report-first flow to create, edit, submit, and retract expense reports.
-keywords: [New Expensify, create report, submit report, retract report, add expenses, fix report]
+keywords: [New Expensify, create report, submit report, retract report, add expenses, fix report, admin create report, create report on behalf, move expenses to new report]
 ---
 
 Easily manage your business expenses in New Expensify with our streamlined report-first workflow. This guide walks you through creating, editing, submitting, and even retracting expense reports when needed.
 
-**Note:** Report actions like creating, submitting, or retracting can only be done in your own account. If you need to help a teammate, consider asking them to add you as a [Copilot](https://help.expensify.com/articles/new-expensify/settings/Copilot-Access). 
+**Note:** Workspace Admins can create reports on behalf of employees by moving expenses to a new report (see "How Admins can create reports on behalf of employees" below). Report actions like submitting or retracting can only be done in your own account. If you need to help a teammate with these actions, consider asking them to add you as a [Copilot](https://help.expensify.com/articles/new-expensify/settings/Copilot-Access). 
 
 # How to create and submit reports in New Expensify
 
@@ -61,6 +61,34 @@ Submitted a report too early? Need to add or remove an expense? You can **retrac
 **Retract** means returning a report from **done** or **outstanding** back to the **draft** state so you can edit it.
 
 **Note:** Only the person who submitted the report can retract it.
+
+---
+
+# How Admins can create reports on behalf of employees
+
+Workspace Admins can create new reports in an employee's account by moving expenses to a new report. This is useful when processing company card expenses or organizing expenses across different accounting periods.
+
+## Create a report by moving a single expense
+
+1. Open a reported or unreported company card expense from a Report, Expense, or Inbox, or open a reported reimbursable expense.
+2. Click on the **Report** title line in the expense details.
+3. Select **Create report** on the employee's default workspace (you must be an admin on this workspace).
+4. The new report is created and the expense is moved to that report.
+
+**Note:** If the expense is already on a report, it can only be moved if the report is in Draft or Outstanding status.
+
+## Create a report by moving multiple expenses
+
+1. Select 2 or more reported or unreported company card expenses from a Report, Expense, or Inbox, or reported reimbursable expenses.
+2. Click the **select multiple** button.
+3. Select **Move expenses**.
+4. Select **Create report**.
+5. The new report is created and the expenses are moved to that report.
+
+This feature is particularly helpful for:
+- Processing unreported company card expenses so accounting can be completed
+- Splitting expenses from multiple accounting periods into separate reports
+- Moving expenses from an existing Draft report to a new report
 
 ---
 
@@ -120,7 +148,7 @@ Best for managers submitting on behalf of a team.
 
 ## How can an Admin take these actions for another employee?
 
-Admins can’t directly create or submit reports on behalf of others. If you need to manage someone else’s reports, ask them to add you as a [Copilot](https://help.expensify.com/articles/new-expensify/settings/Copilot-Access).
+Admins can create reports on behalf of employees by moving expenses to a new report (see "How Admins can create reports on behalf of employees" above). However, Admins cannot directly submit or retract reports for others. If you need to submit or manage someone else's reports, ask them to add you as a [Copilot](https://help.expensify.com/articles/new-expensify/settings/Copilot-Access).
 
 ## What happens if I forget to submit a report?
 
