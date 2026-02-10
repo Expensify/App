@@ -133,7 +133,6 @@ function SearchColumnsPage() {
     const typeColumnsList = allColumnsList.filter((column) => allTypeCustomColumns.includes(column.keyForList));
     const groupColumnsList = allColumnsList.filter((column) => allGroupCustomColumns.includes(column.keyForList));
 
-    // Track which list is active for keyboard navigation to prevent conflicts when both lists are rendered
     const [activeList, setActiveList] = useState<ActiveList>(groupBy ? 'group' : 'type');
 
     const isDefaultState =
@@ -176,11 +175,8 @@ function SearchColumnsPage() {
     const onSelectGroupItem = (item: ListItem) => onSelectItem(item, 'group');
     const onSelectTypeItem = (item: ListItem) => onSelectItem(item, 'type');
 
-    // Update active list on hover for keyboard navigation (addresses bot comment about focus-based switching)
     const setGroupListActive = () => setActiveList('group');
     const setTypeListActive = () => setActiveList('type');
-    // Deactivate list keyboard navigation when hovering over other areas (like Save button)
-    // This ensures Enter key works on Save button after using arrow keys in the list
     const deactivateListKeyboard = () => setActiveList('none');
 
     const onGroupDragEnd = ({data}: {data: typeof allColumnsList}) => {
