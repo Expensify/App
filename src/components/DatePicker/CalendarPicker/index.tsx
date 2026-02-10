@@ -201,6 +201,7 @@ function CalendarPicker({
                     testID="currentYearButton"
                     accessibilityLabel={`${currentYearView}, ${translate('common.currentYear')}`}
                     role={CONST.ROLE.BUTTON}
+                    sentryLabel="CalendarPicker-YearPicker"
                 >
                     <Text
                         style={themeStyles.sidebarLinkTextBold}
@@ -229,6 +230,7 @@ function CalendarPicker({
                         hoverDimmingValue={1}
                         accessibilityLabel={translate('common.previous')}
                         role={CONST.ROLE.BUTTON}
+                        sentryLabel="CalendarPicker-PrevMonth"
                     >
                         <ArrowIcon
                             disabled={!hasAvailableDatesPrevMonth}
@@ -243,6 +245,7 @@ function CalendarPicker({
                         hoverDimmingValue={1}
                         accessibilityLabel={translate('common.next')}
                         role={CONST.ROLE.BUTTON}
+                        sentryLabel="CalendarPicker-NextMonth"
                     >
                         <ArrowIcon disabled={!hasAvailableDatesNextMonth} />
                     </PressableWithFeedback>
@@ -292,6 +295,7 @@ function CalendarPicker({
                                     accessible={!!day}
                                     dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                     role={CONST.ROLE.BUTTON}
+                                    sentryLabel="CalendarPicker-SelectDay"
                                 >
                                     {({hovered, pressed}) => (
                                         <DayComponent

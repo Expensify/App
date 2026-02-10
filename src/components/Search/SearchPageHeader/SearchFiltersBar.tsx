@@ -243,7 +243,7 @@ function SearchFiltersBar({
     }, [flatFilters, translate]);
 
     const createDateDisplayValue = useCallback(
-        (filterValues: {on?: string; after?: string; before?: string}, isRange: boolean = false): [SearchDateValues, string[]] => {
+        (filterValues: {on?: string; after?: string; before?: string}, isRange = false): [SearchDateValues, string[]] => {
             const shouldUseRange = isRange || (!!filterValues.after && !!filterValues.before && !filterValues.on);
             const value: SearchDateValues = {
                 [CONST.SEARCH.DATE_MODIFIERS.ON]: filterValues.on,

@@ -232,69 +232,78 @@ function DatePresetFilterBase({
         [selectedDateModifier, dateValues, ephemeralDateValue, setDateValue, updateDateValues],
     );
 
-    return !selectedDateModifier ? (
-        <>
-            {presets?.map((preset) => (
-                <SingleSelectListItem
-                    key={preset}
-                    showTooltip
-                    item={{
-                        text: translate(`search.filters.date.presets.${preset}`),
-                        isSelected: dateValues[CONST.SEARCH.DATE_MODIFIERS.ON] === preset,
-                    }}
-                    onSelectRow={() => setDateValue(CONST.SEARCH.DATE_MODIFIERS.ON, preset)}
-                    wrapperStyle={styles.flexReset}
+    const rangeDescription =
+        dateDisplayValues[CONST.SEARCH.DATE_MODIFIERS.RANGE] && dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] && dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]
+            ? DateUtils.getFormattedDateRangeForSearch(dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER]!, dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]!, true)
+            : undefined;
+
+    if (!selectedDateModifier) {
+        return (
+            <>
+                {presets?.map((preset) => (
+                    <SingleSelectListItem
+                        key={preset}
+                        showTooltip
+                        item={{
+                            text: translate(`search.filters.date.presets.${preset}`),
+                            isSelected: dateValues[CONST.SEARCH.DATE_MODIFIERS.ON] === preset,
+                        }}
+                        onSelectRow={() => setDateValue(CONST.SEARCH.DATE_MODIFIERS.ON, preset)}
+                        wrapperStyle={styles.flexReset}
+                    />
+                ))}
+                {shouldShowHorizontalRule && (
+                    <SpacerView
+                        shouldShow
+                        style={[StyleUtils.getBorderColorStyle(theme.border), styles.mh3]}
+                    />
+                )}
+                <MenuItem
+                    shouldShowRightIcon
+                    viewMode={CONST.OPTION_MODE.COMPACT}
+                    title={translate('common.on')}
+                    description={dateDisplayValues[CONST.SEARCH.DATE_MODIFIERS.ON]}
+                    onPress={() => selectDateModifier(CONST.SEARCH.DATE_MODIFIERS.ON)}
                 />
-            ))}
-            {shouldShowHorizontalRule && (
-                <SpacerView
-                    shouldShow
-                    style={[StyleUtils.getBorderColorStyle(theme.border), styles.mh3]}
+                <MenuItem
+                    shouldShowRightIcon
+                    viewMode={CONST.OPTION_MODE.COMPACT}
+                    title={translate('common.after')}
+                    description={dateDisplayValues[CONST.SEARCH.DATE_MODIFIERS.AFTER]}
+                    onPress={() => selectDateModifier(CONST.SEARCH.DATE_MODIFIERS.AFTER)}
                 />
-            )}
-            <MenuItem
-                shouldShowRightIcon
-                viewMode={CONST.OPTION_MODE.COMPACT}
-                title={translate('common.on')}
-                description={dateDisplayValues[CONST.SEARCH.DATE_MODIFIERS.ON]}
-                onPress={() => selectDateModifier(CONST.SEARCH.DATE_MODIFIERS.ON)}
+                <MenuItem
+                    shouldShowRightIcon
+                    viewMode={CONST.OPTION_MODE.COMPACT}
+                    title={translate('common.before')}
+                    description={dateDisplayValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]}
+                    onPress={() => selectDateModifier(CONST.SEARCH.DATE_MODIFIERS.BEFORE)}
+                />
+                <MenuItem
+                    shouldShowRightIcon
+                    viewMode={CONST.OPTION_MODE.COMPACT}
+                    title={translate('common.range')}
+                    description={rangeDescription}
+                    onPress={() => selectDateModifier(CONST.SEARCH.DATE_MODIFIERS.RANGE)}
+                />
+            </>
+        );
+    }
+
+    if (selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
+        return (
+            <RangeDatePicker
+                fromValue={dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER]}
+                toValue={dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]}
+                onFromSelected={(date) => setDateValue(CONST.SEARCH.DATE_MODIFIERS.AFTER, date)}
+                onToSelected={(date) => setDateValue(CONST.SEARCH.DATE_MODIFIERS.BEFORE, date)}
+                shouldShowError={shouldShowRangeError}
+                forceVertical={forceVerticalCalendars}
             />
-            <MenuItem
-                shouldShowRightIcon
-                viewMode={CONST.OPTION_MODE.COMPACT}
-                title={translate('common.after')}
-                description={dateDisplayValues[CONST.SEARCH.DATE_MODIFIERS.AFTER]}
-                onPress={() => selectDateModifier(CONST.SEARCH.DATE_MODIFIERS.AFTER)}
-            />
-            <MenuItem
-                shouldShowRightIcon
-                viewMode={CONST.OPTION_MODE.COMPACT}
-                title={translate('common.before')}
-                description={dateDisplayValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]}
-                onPress={() => selectDateModifier(CONST.SEARCH.DATE_MODIFIERS.BEFORE)}
-            />
-            <MenuItem
-                shouldShowRightIcon
-                viewMode={CONST.OPTION_MODE.COMPACT}
-                title={translate('common.range')}
-                description={
-                    dateDisplayValues[CONST.SEARCH.DATE_MODIFIERS.RANGE] && dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] && dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]
-                        ? DateUtils.getFormattedDateRangeForSearch(dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] as string, dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE] as string, true)
-                        : undefined
-                }
-                onPress={() => selectDateModifier(CONST.SEARCH.DATE_MODIFIERS.RANGE)}
-            />
-        </>
-    ) : selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE ? (
-        <RangeDatePicker
-            fromValue={dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER]}
-            toValue={dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]}
-            onFromSelected={(date) => setDateValue(CONST.SEARCH.DATE_MODIFIERS.AFTER, date)}
-            onToSelected={(date) => setDateValue(CONST.SEARCH.DATE_MODIFIERS.BEFORE, date)}
-            shouldShowError={shouldShowRangeError}
-            forceVertical={forceVerticalCalendars}
-        />
-    ) : (
+        );
+    }
+
+    return (
         <CalendarPicker
             value={ephemeralDateValue}
             onSelected={setEphemeralDateValue}

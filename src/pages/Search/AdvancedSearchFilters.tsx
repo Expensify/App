@@ -30,7 +30,7 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
 import {getAllTaxRates, getCleanedTagName} from '@libs/PolicyUtils';
-import {computeReportName} from '@libs/ReportNameUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {
     buildCannedSearchQuery,
     buildQueryStringFromFilterFormValues,
@@ -433,9 +433,7 @@ function getFilterDisplayTitle(
         // Second pass: format date fields
         for (const [fieldName, dateValues] of Object.entries(dateFieldPairs)) {
             if (dateValues.on) {
-                const dateString = isSearchDatePreset(dateValues.on)
-                    ? translate(`search.filters.date.presets.${dateValues.on as SearchDatePreset}`)
-                    : translate('search.filters.date.on', dateValues.on);
+                const dateString = isSearchDatePreset(dateValues.on) ? translate(`search.filters.date.presets.${dateValues.on}`) : translate('search.filters.date.on', dateValues.on);
                 values.push(translate('search.filters.reportField', {name: fieldName, value: dateString.toLowerCase()}));
             }
 
@@ -586,7 +584,7 @@ function getFilterExpenseDisplayTitle(filters: Partial<SearchAdvancedFiltersForm
 
 function getFilterInDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, _: LocaleContextProps['translate'], reports: OnyxCollection<Report> | undefined, currentUserAccountID: number) {
     return filters.in
-        ?.map((id) => computeReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reports, undefined, undefined, undefined, undefined, undefined, currentUserAccountID))
+        ?.map((id) => getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`]))
         ?.filter(Boolean)
         ?.join(', ');
 }

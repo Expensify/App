@@ -79,9 +79,11 @@ function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
 
     // Auto-detect Range mode when both after and before values exist on initial load only
     useEffect(() => {
-        if (!isSearchAdvancedFiltersFormLoading && dateAfterValue && dateBeforeValue && !dateOnValue) {
-            setSelectedDateModifier(CONST.SEARCH.DATE_MODIFIERS.RANGE);
+        if (isSearchAdvancedFiltersFormLoading || !dateAfterValue || !dateBeforeValue || dateOnValue) {
+            return;
         }
+
+        setSelectedDateModifier(CONST.SEARCH.DATE_MODIFIERS.RANGE);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isSearchAdvancedFiltersFormLoading]);
 
@@ -148,6 +150,12 @@ function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
         back();
     };
 
+    const hasRangeInput = !!(trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] ?? trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]);
+    const rangeDisplayText =
+        trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] && trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]
+            ? DateUtils.getFormattedDateRangeForSearch(trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER]!, trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]!, true)
+            : format(parseISO((trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] ?? trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE])!), 'MMM d, yyyy');
+
     return (
         <View style={styles.flex1}>
             <HeaderWithBackButton
@@ -166,24 +174,12 @@ function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
                     onDateValuesChange={handleDateValuesChange}
                     forceVerticalCalendars
                 />
-                {selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE &&
-                    (trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] || trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]) && (
-                        <Text style={[styles.textMicroSupporting, styles.mh5, styles.mt3]}>
-                            {`${translate('common.range')}: `}
-                            <Text style={[styles.textMicroSupporting, styles.textStrong]}>
-                                {trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] && trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]
-                                    ? DateUtils.getFormattedDateRangeForSearch(
-                                          trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] as string,
-                                          trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE] as string,
-                                          true,
-                                      )
-                                    : format(
-                                          parseISO((trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] ?? trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]) as string),
-                                          'MMM d, yyyy',
-                                      )}
-                            </Text>
-                        </Text>
-                    )}
+                {selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE && hasRangeInput && (
+                    <Text style={[styles.textMicroSupporting, styles.mh5, styles.mt3]}>
+                        {`${translate('common.range')}: `}
+                        <Text style={[styles.textMicroSupporting, styles.textStrong]}>{rangeDisplayText}</Text>
+                    </Text>
+                )}
                 <View style={styles.flexGrow1} />
                 <Button
                     text={translate('common.reset')}

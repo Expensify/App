@@ -108,7 +108,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
         const dateValues = searchDatePresetFilterBaseRef.current.getDateValues();
         onChange(dateValues);
         closeOverlay();
-    }, [closeOverlay, onChange, selectedDateModifier]);
+    }, [clearSelection, closeOverlay, onChange, selectedDateModifier]);
 
     const resetChanges = useCallback(() => {
         if (!searchDatePresetFilterBaseRef.current) {
@@ -130,7 +130,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
             [CONST.SEARCH.DATE_MODIFIERS.RANGE]: undefined,
         });
         closeOverlay();
-    }, [closeOverlay, onChange, selectedDateModifier]);
+    }, [clearSelection, closeOverlay, onChange, selectedDateModifier]);
 
     const isInRangeMode = selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE;
     const rangeFrom = trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER];
@@ -140,7 +140,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
         if (rangeFrom && rangeTo) {
             rangeText = DateUtils.getFormattedDateRangeForSearch(rangeFrom, rangeTo, true);
         } else if (rangeFrom || rangeTo) {
-            rangeText = format(parseISO((rangeFrom ?? rangeTo) as string), 'MMM d, yyyy');
+            rangeText = format(parseISO((rangeFrom ?? rangeTo)!), 'MMM d, yyyy');
         }
     }
 
@@ -150,7 +150,10 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
 
     const buttonStyle = isSmallScreenWidth || !selectedDateModifier ? styles.flex1 : {minWidth: 120};
     const buttonRowSpacing = selectedDateModifier ? styles.mt4 : styles.mt2;
-    const topPaddingStyle = selectedDateModifier ? (isSmallScreenWidth ? styles.pt0 : styles.pt4) : undefined;
+    let topPaddingStyle;
+    if (selectedDateModifier) {
+        topPaddingStyle = isSmallScreenWidth ? styles.pt0 : styles.pt4;
+    }
 
     return (
         <View style={[topPaddingStyle, styles.pb4, isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && {maxHeight: maxPopupHeight}]}>
@@ -172,6 +175,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
                             onPress={clearSelection}
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('common.back')}
+                            sentryLabel="DateSelectPopup-Back"
                         >
                             <Icon
                                 src={backArrowIcon.BackArrow}
@@ -191,7 +195,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
                     shouldShowRangeError={shouldShowRangeError}
                     onDateValuesChange={setTrackedDateValues}
                 />
-                {isSmallScreenWidth && rangeText && (
+                {isSmallScreenWidth && !!rangeText && (
                     <Text style={[styles.textMicroSupporting, styles.ph5, styles.mt4, styles.textAlignCenter]}>
                         {`${translate('common.range')}: `}
                         <Text style={[styles.textMicroSupporting, styles.textStrong]}>{rangeText}</Text>
