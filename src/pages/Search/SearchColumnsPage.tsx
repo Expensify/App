@@ -256,7 +256,10 @@ function SearchColumnsPage() {
                                 <Text style={styles.textLabelSupporting}>{translate('search.groupColumns')}</Text>
                             </View>
 
-                            <View onPointerEnter={setGroupListActive}>
+                            <View
+                                onPointerEnter={setGroupListActive}
+                                onFocus={setGroupListActive}
+                            >
                                 <DraggableList
                                     disableScroll
                                     data={groupColumnsList}
@@ -276,7 +279,10 @@ function SearchColumnsPage() {
                         </>
                     )}
 
-                    <View onPointerEnter={setTypeListActive}>
+                    <View
+                        onPointerEnter={setTypeListActive}
+                        onFocus={setTypeListActive}
+                    >
                         <DraggableList
                             disableScroll
                             data={typeColumnsList}
@@ -292,6 +298,7 @@ function SearchColumnsPage() {
             <View
                 style={[styles.ph5, styles.pb5]}
                 onPointerEnter={deactivateListKeyboard}
+                onFocus={deactivateListKeyboard}
             >
                 <Button
                     large
