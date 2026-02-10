@@ -1,5 +1,6 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {isApproveAction, isExportAction, isPrimaryPayAction, isSubmitAction} from '@libs/ReportPrimaryActionUtils';
+import {isApproveAction, isExportAction, isPrimaryPayAction} from '@libs/ReportPrimaryActionUtils';
+import {isArchivedReport, isCurrentUserSubmitter, isOpenExpenseReport} from '@libs/ReportUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,41 +37,41 @@ const createTodosReportsAndTransactions = ({
 
     const reports = Object.values(allReports ?? {});
     if (reports.length === 0) {
-        return {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport, transactionsByReportID};
-    }
+            return {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport, transactionsByReportID};
+        }
 
-    if (allTransactions) {
-        for (const transaction of Object.values(allTransactions)) {
-            if (!transaction?.reportID) {
+        if (allTransactions) {
+            for (const transaction of Object.values(allTransactions)) {
+                if (!transaction?.reportID) {
+                    continue;
+                }
+                (transactionsByReportID[transaction.reportID] ??= []).push(transaction);
+            }
+        }
+
+        for (const report of reports) {
+            if (!report?.reportID || report.type !== CONST.REPORT.TYPE.EXPENSE) {
                 continue;
             }
-            (transactionsByReportID[transaction.reportID] ??= []).push(transaction);
+            const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+            const reportNameValuePair = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`];
+            const reportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? []);
+            const reportTransactions = transactionsByReportID[report.reportID] ?? [];
+            const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`];
+            const shouldShowInSubmitTodo = isOpenExpenseReport(report) && isCurrentUserSubmitter(report) && reportTransactions.length > 0 && !isArchivedReport(reportNameValuePair);
+            if (shouldShowInSubmitTodo) {
+                reportsToSubmit.push(report);
+            }
+            if (isApproveAction(report, reportTransactions, currentUserAccountID, reportMetadata, policy)) {
+                reportsToApprove.push(report);
+            }
+            if (isPrimaryPayAction(report, currentUserAccountID, login, bankAccountList, policy, reportNameValuePair)) {
+                reportsToPay.push(report);
+            }
+            if (isExportAction(report, login, policy, reportActions)) {
+                reportsToExport.push(report);
+            }
         }
-    }
-
-    for (const report of reports) {
-        if (!report?.reportID || report.type !== CONST.REPORT.TYPE.EXPENSE) {
-            continue;
-        }
-        const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-        const reportNameValuePair = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`];
-        const reportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? []);
-        const reportTransactions = transactionsByReportID[report.reportID] ?? [];
-        const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`];
-
-        if (isSubmitAction(report, reportTransactions, reportMetadata, policy, reportNameValuePair, undefined, login, currentUserAccountID)) {
-            reportsToSubmit.push(report);
-        }
-        if (isApproveAction(report, reportTransactions, currentUserAccountID, reportMetadata, policy)) {
-            reportsToApprove.push(report);
-        }
-        if (isPrimaryPayAction(report, currentUserAccountID, login, bankAccountList, policy, reportNameValuePair)) {
-            reportsToPay.push(report);
-        }
-        if (isExportAction(report, login, policy, reportActions)) {
-            reportsToExport.push(report);
-        }
-    }
 
     return {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport, transactionsByReportID};
 };
