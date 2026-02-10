@@ -45,6 +45,14 @@ function clearReimbursementAccount() {
     Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA);
 }
 
+function setIsChangingToNewBankAccount() {
+    Onyx.set(ONYXKEYS.IS_CHANGING_TO_NEW_BANK_ACCOUNT, true);
+}
+
+function cancelChangingToNewBankAccount() {
+    Onyx.set(ONYXKEYS.IS_CHANGING_TO_NEW_BANK_ACCOUNT, false);
+}
+
 /**
  * Triggers a modal to open allowing the user to reset their bank account
  */
@@ -79,4 +87,6 @@ export {
     setBankAccountState,
     setReimbursementAccountOptionPressed,
     updateReimbursementAccount,
+    setIsChangingToNewBankAccount,
+    cancelChangingToNewBankAccount,
 };

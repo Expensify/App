@@ -109,6 +109,9 @@ type PaymentMethodListProps = {
     /* Currency of payment method to filter by */
     filterCurrency?: string;
 
+    /* bank account ID of account that we do not want to show (ie: it's already connected) */
+    excludeBankAccountID?: number;
+
     /** Whether to show the default badge for the payment method */
     shouldHideDefaultBadge?: boolean;
 
@@ -159,6 +162,7 @@ function PaymentMethodList({
     itemIconRight,
     filterType,
     filterCurrency,
+    excludeBankAccountID,
     shouldHideDefaultBadge = false,
     threeDotsMenuItems,
     onThreeDotsMenuPress,
@@ -378,13 +382,14 @@ function PaymentMethodList({
             );
         }
 
-        if (filterType ?? filterCurrency) {
+        if (filterType ?? filterCurrency ?? excludeBankAccountID) {
             combinedPaymentMethods = combinedPaymentMethods.filter((paymentMethod) => {
                 const account = paymentMethod as BankAccount;
                 const typeMatches = !filterType || account.accountData?.type === filterType;
                 const currencyMatches = !filterCurrency || account.bankCurrency === filterCurrency;
+                const shouldInclude = !excludeBankAccountID || account.methodID !== excludeBankAccountID;
 
-                return typeMatches && currencyMatches;
+                return typeMatches && currencyMatches && shouldInclude;
             });
         }
 

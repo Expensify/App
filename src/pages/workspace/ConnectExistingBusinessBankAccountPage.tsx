@@ -9,15 +9,17 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
+import mapCurrencyToCountry from '@libs/mapCurrencyToCountry';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {ConnectExistingBankAccountNavigatorParamList} from '@navigation/types';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import type {PaymentMethodPressHandlerParams} from '@pages/settings/Wallet/WalletPage/types';
-import {clearReimbursementAccount} from '@userActions/BankAccounts';
+import {updateReimbursementAccountDraft} from '@userActions/BankAccounts';
 import {setWorkspaceReimbursement} from '@userActions/Policy/Policy';
-import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
+import {clearReimbursementAccount, clearReimbursementAccountDraft, navigateToBankAccountRoute, setIsChangingToNewBankAccount} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
@@ -32,12 +34,20 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
     const policyCurrency = policy?.outputCurrency ?? '';
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const hasFullyWorkingConnectedAccount = policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
+    const fullyWorkingConnectedAccountBankAccountID = policy?.achAccount?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const handleAddBankAccountPress = () => {
-        navigateToBankAccountRoute({policyID});
+        if (hasFullyWorkingConnectedAccount) {
+            clearReimbursementAccount();
+            clearReimbursementAccountDraft();
+            updateReimbursementAccountDraft({country: mapCurrencyToCountry(policyCurrency) as Country, currency: policyCurrency});
+            setIsChangingToNewBankAccount();
+        }
+
+        navigateToBankAccountRoute(hasFullyWorkingConnectedAccount ? {} : {policyID});
     };
 
     const handleItemPress = ({methodID, accountData}: PaymentMethodPressHandlerParams) => {
@@ -88,6 +98,7 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
                     itemIconRight={icons.ArrowRight}
                     filterType={CONST.BANK_ACCOUNT.TYPE.BUSINESS}
                     filterCurrency={policyCurrency}
+                    excludeBankAccountID={fullyWorkingConnectedAccountBankAccountID}
                     shouldHideDefaultBadge
                 />
             </ScrollView>

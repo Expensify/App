@@ -44,7 +44,7 @@ import {
 } from '@userActions/BankAccounts';
 import {getPaymentMethods} from '@userActions/PaymentMethods';
 import {isCurrencySupportedForGlobalReimbursement} from '@userActions/Policy/Policy';
-import {clearReimbursementAccount, clearReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
+import {cancelChangingToNewBankAccount, clearReimbursementAccount, clearReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -84,6 +84,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const [onfidoToken = ''] = useOnyx(ONYXKEYS.ONFIDO_TOKEN, {canBeMissing: true});
     const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const topmostFullScreenRoute = useRootNavigationState((state) => state?.routes.findLast((lastRoute) => isFullScreenName(lastRoute.name)));
+    const [isChangingBusinessBankAccount] = useOnyx(ONYXKEYS.IS_CHANGING_TO_NEW_BANK_ACCOUNT, {canBeMissing: true});
 
     const {isBetaEnabled} = usePermissions();
     const policyName = policy?.name ?? '';
@@ -155,6 +156,9 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
                 clearReimbursementAccountDraft();
                 clearReimbursementAccount();
             }
+
+            // When user closes RHP, we want to make sure that he is not in the changing account flow anymore so data can be refetched
+            cancelChangingToNewBankAccount();
             getPaymentMethods(true);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -210,7 +214,11 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
      * Retrieve verified business bank account currently being set up.
      */
     function fetchData(preserveCurrentStep = false) {
-        if ((!policyIDParam && !bankAccountIDParam) || isLoadingOnyxValue(reimbursementAccountMetadata)) {
+        if (
+            (!policyIDParam && !bankAccountIDParam) ||
+            isLoadingOnyxValue(reimbursementAccountMetadata) ||
+            (policyIDParam !== undefined && backTo === ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policyIDParam))
+        ) {
             return;
         }
         if (bankAccountIDParam) {
@@ -240,16 +248,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             return;
         }
 
-        // If account was just cleared (was not null, now is null), don't fetch yet
-        // Route params may be stale during this transition
-        if (!!prevReimbursementAccount && !reimbursementAccount) {
-            clearReimbursementAccountDraft();
-
-            const isStepToOpenEmpty = getStepToOpenFromRouteParams(route, hasConfirmedUSDCurrency) === '';
-            if (isStepToOpenEmpty) {
-                setBankAccountSubStep(null);
-                setPlaidEvent(null);
-            }
+        if (isChangingBusinessBankAccount) {
             return;
         }
 
