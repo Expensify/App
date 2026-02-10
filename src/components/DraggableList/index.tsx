@@ -26,7 +26,7 @@ function DraggableList<T>({
     keyExtractor,
     onDragEnd: onDragEndCallback,
     onSelectRow,
-    isKeyboardActive = true,
+    isKeyboardActive = false,
     // eslint-disable-next-line @typescript-eslint/naming-convention
     ListFooterComponent,
     disableScroll,
@@ -97,6 +97,7 @@ function DraggableList<T>({
                 disabled={isDragDisabled}
                 isFocused={isFocused}
                 isItemDisabled={isItemDisabled}
+                isKeyboardManaged={isKeyboardActive}
             >
                 {itemWithFocus}
             </SortableItem>

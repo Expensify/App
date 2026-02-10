@@ -38,7 +38,7 @@ type DraggableListProps<T> = {
     /** Called when a row is selected via Enter key */
     onSelectRow?: (item: T) => void;
 
-    /** Whether keyboard navigation is active for this list. Defaults to true. */
+    /** Whether keyboard navigation is active for this list. Defaults to false. */
     isKeyboardActive?: boolean;
 
     /** Rendered at the bottom of all the items. Just like in the FlatList. */
@@ -57,6 +57,8 @@ type SortableItemProps = {
     isFocused?: boolean;
     /** Whether this item is disabled (not selectable, skipped in Tab navigation) */
     isItemDisabled?: boolean;
+    /** Whether keyboard navigation manages this item's tabIndex */
+    isKeyboardManaged?: boolean;
 };
 
 export default DraggableListProps;
