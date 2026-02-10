@@ -11040,7 +11040,6 @@ function submitReport(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
-                ...expenseReport,
                 ...(shouldAddOptimisticSubmitAction
                     ? {
                           lastMessageText: getReportActionText(optimisticSubmittedReportAction),
@@ -11067,7 +11066,6 @@ function submitReport(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
-                ...expenseReport,
                 // For DEW policies, don't optimistically update stateNum, statusNum, or nextStep
                 ...(isDEWPolicy
                     ? {}
@@ -11096,7 +11094,6 @@ function submitReport(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
             value: {
-                ...parentReport,
                 // In case its a manager who force submitted the report, they are the next user who needs to take an action
                 hasOutstandingChildRequest: isCurrentUserManager,
                 iouReportID: null,
