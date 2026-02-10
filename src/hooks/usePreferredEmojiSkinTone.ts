@@ -7,16 +7,18 @@ import useOnyx from './useOnyx';
 export default function usePreferredEmojiSkinTone() {
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
 
+    const numericPreferredSkinTone = Number(preferredSkinTone);
+
     const updatePreferredSkinTone = useCallback(
         (skinTone: number) => {
-            if (Number(preferredSkinTone) === Number(skinTone)) {
+            if (numericPreferredSkinTone === skinTone) {
                 return;
             }
 
             updatePreferredSkinToneAction(skinTone);
         },
-        [preferredSkinTone],
+        [numericPreferredSkinTone],
     );
 
-    return [preferredSkinTone, updatePreferredSkinTone] as const;
+    return [numericPreferredSkinTone, updatePreferredSkinTone] as const;
 }
