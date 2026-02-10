@@ -613,6 +613,7 @@ function duplicateExpenseTransaction({
             const distanceParams: CreateDistanceRequestInformation = {
                 ...params,
                 participants,
+                iouRequestType: getRequestType(transaction),
                 existingTransaction: {
                     ...(params.transactionParams ?? {}),
                     comment: transaction.comment,
