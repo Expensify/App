@@ -936,6 +936,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitByPercentage: 'Dividir por porcentaje',
         splitByDate: 'Dividir por fecha',
         addSplit: 'Añadir división',
+        editReportTitle: 'Editar nombre del informe',
         makeSplitsEven: 'Igualar divisiones',
         editSplits: 'Editar divisiones',
         totalAmountGreaterThanOriginal: ({amount}) => `El importe total es ${amount} mayor que el gasto original.`,

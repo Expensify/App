@@ -1568,6 +1568,7 @@ const translations: TranslationDeepObject<typeof en> = {
             });
             return `${formatList(fragments)} via les <a href="${policyRulesRoute}">règles de l’espace de travail</a>`;
         },
+        editReportTitle: 'Modifier le titre de la note de frais',
     },
     transactionMerge: {
         listPage: {

@@ -1553,6 +1553,7 @@ const translations: TranslationDeepObject<typeof en> = {
             });
             return `${formatList(fragments)}（<a href="${policyRulesRoute}">ワークスペースルール</a>経由）`;
         },
+        editReportTitle: 'レポートタイトルを編集',
     },
     transactionMerge: {
         listPage: {

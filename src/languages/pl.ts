@@ -1557,6 +1557,7 @@ const translations: TranslationDeepObject<typeof en> = {
             });
             return `${formatList(fragments)} przez <a href="${policyRulesRoute}">zasady przestrzeni roboczej</a>`;
         },
+        editReportTitle: 'Edytuj tytuł raportu',
     },
     transactionMerge: {
         listPage: {

@@ -239,6 +239,7 @@ function MoneyReportHeader({
         'Send',
         'Clear',
         'ReceiptScan',
+        'Pencil',
         'ThumbsUp',
         'CircularArrowBackwards',
         'ArrowSplit',
@@ -1608,8 +1609,8 @@ function MoneyReportHeader({
         },
         [CONST.REPORT.SECONDARY_ACTIONS.TITLE]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.TITLE,
-            text: translate('common.title'),
-            icon: expensifyIcons.Document,
+            text: translate('iou.editReportTitle'),
+            icon: expensifyIcons.Pencil,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.TITLE,
             onSelected: () => {
                 if (!moneyRequestReport || !policy) {

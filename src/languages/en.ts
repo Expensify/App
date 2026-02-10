@@ -1166,6 +1166,7 @@ const translations = {
         splitByPercentage: 'Split by percentage',
         splitByDate: 'Split by date',
         addSplit: 'Add split',
+        editReportTitle: 'Edit report title',
         makeSplitsEven: 'Make splits even',
         editSplits: 'Edit splits',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Total amount is ${amount} greater than the original expense.`,

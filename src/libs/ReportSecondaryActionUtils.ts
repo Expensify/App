@@ -975,6 +975,10 @@ function getSecondaryReportActions({
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
 
+    if (isTitleAction(report, policy)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.TITLE);
+    }
+
     if (isChangeWorkspaceAction(report, policies, reportActions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);
     }
@@ -982,10 +986,6 @@ function getSecondaryReportActions({
     const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     if (isExpenseReportUtils(report) && isProcessingReportUtils(report) && isPolicyAdmin(policy) && isApprovalEnabled) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER);
-    }
-
-    if (isTitleAction(report, policy)) {
-        options.push(CONST.REPORT.SECONDARY_ACTIONS.TITLE);
     }
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);

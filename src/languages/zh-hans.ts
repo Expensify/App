@@ -1529,6 +1529,7 @@ const translations: TranslationDeepObject<typeof en> = {
             });
             return `${formatList(fragments)} 通过 <a href="${policyRulesRoute}">工作区规则</a>`;
         },
+        editReportTitle: '编辑报表标题',
     },
     transactionMerge: {
         listPage: {

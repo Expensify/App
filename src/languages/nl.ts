@@ -1558,6 +1558,7 @@ const translations: TranslationDeepObject<typeof en> = {
             });
             return `${formatList(fragments)} via <a href="${policyRulesRoute}">werkruimte­regels</a>`;
         },
+        editReportTitle: 'Rapporttitel bewerken',
     },
     transactionMerge: {
         listPage: {
