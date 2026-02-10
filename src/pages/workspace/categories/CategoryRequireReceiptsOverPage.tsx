@@ -12,7 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {removePolicyCategoryReceiptsRequired, setPolicyCategoryReceiptsRequired} from '@userActions/Policy/Category';
+import {removePolicyCategoryReceiptsRequired, setPolicyCategoryItemizedReceiptsRequired, setPolicyCategoryReceiptsRequired} from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -96,6 +96,13 @@ function CategoryRequireReceiptsOverPage({
                     onSelectRow={(item) => {
                         if (typeof item.value === 'number') {
                             setPolicyCategoryReceiptsRequired(policyData, categoryName, item.value);
+                            // If receipt required is turned OFF (Never), also turn off itemized receipt required
+                            if (
+                                item.value === CONST.DISABLED_MAX_EXPENSE_VALUE &&
+                                policyCategories?.[categoryName]?.maxAmountNoItemizedReceipt !== CONST.DISABLED_MAX_EXPENSE_VALUE
+                            ) {
+                                setPolicyCategoryItemizedReceiptsRequired(policyData, categoryName, CONST.DISABLED_MAX_EXPENSE_VALUE);
+                            }
                         } else {
                             removePolicyCategoryReceiptsRequired(policyData, categoryName);
                         }
