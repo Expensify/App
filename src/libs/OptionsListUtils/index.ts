@@ -1282,7 +1282,7 @@ function processReport(
         reportMapEntry,
         reportOption: {
             item: report,
-            ...createOption(accountIDs, personalDetails, allPolicies, report, currentUserAccountID, reportAttributesDerived),
+            ...createOption(accountIDs, personalDetails, allPolicies, report, currentUserAccountID, undefined, reportAttributesDerived),
         },
     };
 }
