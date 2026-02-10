@@ -72,8 +72,8 @@ function DistanceRequestStartPage({
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.trackDistance'),
         [CONST.IOU.TYPE.SUBMIT]: translate('iou.trackDistance'),
-        [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', {name: getPayeeName(report)}),
-        [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', {name: getPayeeName(report)}),
+        [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', getPayeeName(report)),
+        [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', getPayeeName(report)),
         [CONST.IOU.TYPE.SPLIT]: translate('iou.splitExpense'),
         [CONST.IOU.TYPE.SPLIT_EXPENSE]: translate('iou.splitExpense'),
         [CONST.IOU.TYPE.TRACK]: translate('iou.trackDistance'),
@@ -113,6 +113,7 @@ function DistanceRequestStartPage({
                 policy,
                 personalPolicy,
                 isFromGlobalCreate,
+                isFromFloatingActionButton: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate ?? isFromGlobalCreate,
                 currentIouRequestType: transaction?.iouRequestType,
                 newIouRequestType: newIOUType,
                 report,
@@ -126,6 +127,8 @@ function DistanceRequestStartPage({
         },
         [
             transaction?.iouRequestType,
+            transaction?.isFromGlobalCreate,
+            transaction?.isFromFloatingActionButton,
             reportID,
             policy,
             personalPolicy,

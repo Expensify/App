@@ -2,12 +2,13 @@ import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import {isMoneyRequest, isMoneyRequestReport} from '@libs/ReportUtils';
+import {isMoneyRequest, isMoneyRequestReport, isOneTransactionReport} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report, ReportActions} from '@src/types/onyx';
-import {saveReportDraftComment} from './Report';
+import {openReport, saveReportDraftComment} from './Report';
 
 /**
  * replaceOptimisticReportWithActualReport
@@ -62,35 +63,69 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
     }
 
     // Handle cleanup of stale optimistic IOU report and its report preview separately
-    if ((isMoneyRequestReport(report) || isMoneyRequest(report)) && parentReportID && parentReportActionID) {
+    if (isMoneyRequestReport(report) && parentReportID && parentReportActionID) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+            [parentReportActionID]: null,
+        });
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
+        return;
+    }
+
+    // If an optimistic IOU action was created before we knew a preexisting IOU action for the thread existed,
+    // remove it to avoid duplicate IOU report actions
+    if (isMoneyRequest(report) && parentReportID && parentReportActionID) {
         const parentReportAction = allReportActions?.[parentReportID]?.[parentReportActionID];
-        if (parentReportAction?.childReportID === reportID) {
+        if (parentReportAction?.isOptimisticAction) {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
                 [parentReportActionID]: null,
             });
         }
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
-        return;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         // It is possible that we optimistically created a DM/group-DM for a set of users for which a report already exists.
+        // Or we optimistically created a transaction thread chat report for an IOU report action that already has an associated child chat report.
+        // Or we optimistically created a thread report under a comment that already has an associated child chat report.
         // In this case, the API will let us know by returning a preexistingReportID.
         // We should clear out the optimistically created report and re-route the user to the preexisting report.
+        const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`];
+        const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
         let callback = () => {
-            const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`];
-
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
-            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, {
-                ...report,
-                reportID: preexistingReportID,
-                preexistingReportID: null,
-                // Replacing the existing report's participants to avoid duplicates
-                participants: existingReport?.participants ?? report.participants,
-            });
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, null);
+
+            if (!parentReportActionID) {
+                // DMs and group-DMs don't have parent actions, so we only need to merge report data and preserve existing participants
+                Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, {
+                    ...report,
+                    reportID: preexistingReportID,
+                    preexistingReportID: null,
+                    // Replacing the existing report's participants to avoid duplicates
+                    participants: existingReport?.participants ?? report.participants,
+                });
+            } else {
+                // Thread reports have parent actions that need their childReportID updated to point to the preexisting thread
+                Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, {
+                    ...report,
+                    reportID: preexistingReportID,
+                    preexistingReportID: null,
+                });
+                // Non-optimistic parent actions already exist, so we update their childReportID;
+                // optimistic actions were already cleaned up above
+                const parentReportAction = parentReportID ? allReportActions?.[parentReportID]?.[parentReportActionID] : null;
+                if (parentReportAction && !parentReportAction.isOptimisticAction) {
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+                        [parentReportActionID]: {childReportID: preexistingReportID},
+                    });
+                }
+            }
         };
+
+        const isParentOneTransactionReport = isOneTransactionReport(parentReport);
+
+        // One-transaction reports display the expense via the parent IOU report screen, not the thread, so the draft belongs there
+        const reportToCopyDraftTo = !!parentReportID && isParentOneTransactionReport ? parentReportID : preexistingReportID;
 
         if (!navigationRef.isReady()) {
             callback();
@@ -116,22 +151,58 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
         if (isOptimisticReportFocused || isOptimisticReportInBackground) {
             const currCallback = callback;
             callback = () => {
-                currCallback();
                 if (isOptimisticReportFocused) {
-                    Navigation.setParams({reportID: preexistingReportID.toString()});
+                    if (!parentReportActionID || !isParentOneTransactionReport) {
+                        // We are either in a DM/group-DM that do not have a parent report,
+                        // a thread under any comment,
+                        // or transaction thread report under an IOU report action that its parent IOU report is not a one expense report,
+                        // we need to navigate to the preexisting report chat
+                        // because we will clear the optimistically created report in the currCallback
+                        Navigation.setParams({reportID: preexistingReportID.toString()});
+                    } else {
+                        // We are in a transaction thread report under an IOU report action where the parent IOU report is a one transaction report
+                        // We need to navigate to the one expense report screen instead of the preexisting report chat
+                        // because we will clear the optimistically created transaction thread report in the currCallback
+                        // and the one transaction should be accessed via the one expense report screen and not the preexisting report chat
+                        Navigation.setParams({reportID: parentReportID});
+                    }
                 } else if (isOptimisticReportInBackground) {
                     // Navigate to the correct backTo route with the preexisting report ID
                     Navigation.navigate(backTo.replace(`/r/${reportID}`, `/r/${preexistingReportID}`) as Route);
                 }
+                currCallback();
             };
 
             // The report screen will listen to this event and transfer the draft comment to the existing report
             // This will allow the newest draft comment to be transferred to the existing report
             DeviceEventEmitter.emit(`switchToPreExistingReport_${reportID}`, {
                 preexistingReportID,
+                reportToCopyDraftTo,
                 callback,
             });
 
+            return;
+        }
+
+        if (
+            parentReportID &&
+            isParentOneTransactionReport &&
+            (activeRoute.includes(ROUTES.REPORT_WITH_ID.getRoute(parentReportID)) || activeRoute.includes(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID})))
+        ) {
+            if (draftReportComment) {
+                // Draft must be saved first because the callback will clear the optimistic report and its associated draft
+                saveReportDraftComment(parentReportID, draftReportComment, () => {
+                    callback();
+
+                    // We are already on the parent one expense report, so just call the API to fetch report data
+                    openReport(parentReportID);
+                });
+            } else {
+                callback();
+
+                // We are already on the parent one expense report, so just call the API to fetch report data
+                openReport(parentReportID);
+            }
             return;
         }
 
@@ -142,7 +213,7 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
             return;
         }
 
-        saveReportDraftComment(preexistingReportID, draftReportComment, callback);
+        saveReportDraftComment(reportToCopyDraftTo, draftReportComment, callback);
     });
 }
 

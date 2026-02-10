@@ -6,6 +6,8 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MagicCodeInput from '@components/MagicCodeInput';
 import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
+import {useMultifactorAuthentication, useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
+import MultifactorAuthenticationTriggerCancelConfirmModal from '@components/MultifactorAuthentication/TriggerCancelConfirmModal';
 import MultifactorAuthenticationValidateCodeResendButton from '@components/MultifactorAuthentication/ValidateCodeResendButton';
 import type {MultifactorAuthenticationValidateCodeResendButtonHandle} from '@components/MultifactorAuthentication/ValidateCodeResendButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -16,6 +18,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
 import {isValidValidateCode} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
 import {clearAccountMessages} from '@userActions/Session';
@@ -23,7 +26,6 @@ import {resendValidateCode} from '@userActions/User';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type FormError = {
@@ -45,6 +47,11 @@ function MultifactorAuthenticationValidateCodePage() {
     const [inputCode, setInputCode] = useState('');
     const [formError, setFormError] = useState<FormError>({});
     const [canShowError, setCanShowError] = useState<boolean>(false);
+    const {cancel} = useMultifactorAuthentication();
+    const [isCancelModalVisible, setCancelModalVisibility] = useState(false);
+
+    const {state, dispatch} = useMultifactorAuthenticationState();
+    const {continuableError} = state;
 
     // Refs
     const inputRef = useRef<MagicCodeInputHandle>(null);
@@ -52,9 +59,23 @@ function MultifactorAuthenticationValidateCodePage() {
     const hasClearedInitialErrorsRef = useRef(false);
 
     // Derived state
-    const hasError = !!account && !isEmptyObject(account?.errors);
+    const hasAccountError = !!account && !isEmptyObject(account?.errors);
+    const hasContinuableError = !!continuableError;
+    const hasError = hasAccountError || hasContinuableError;
     const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
     const shouldDisableResendCode = isOffline ?? account?.isLoading;
+
+    // Check if this page can handle the continuable error, if not convert to regular error
+    useEffect(() => {
+        if (!continuableError) {
+            return;
+        }
+
+        if (continuableError.reason !== VALUES.REASON.BACKEND.INVALID_VALIDATE_CODE) {
+            // Cannot handle this error - convert to regular error which will stop the flow
+            dispatch({type: 'SET_ERROR', payload: {reason: continuableError.reason, message: continuableError.message}});
+        }
+    }, [continuableError, dispatch]);
 
     // Auto-blur on error
     useEffect(() => {
@@ -100,6 +121,13 @@ function MultifactorAuthenticationValidateCodePage() {
         // Clear backend errors
         if (account?.errors) {
             clearAccountMessages();
+        }
+
+        // Clear validateCode and continuable error when user starts typing after an error
+        // This ensures process() will re-trigger on submit even if user enters the same code
+        if (continuableError) {
+            dispatch({type: 'SET_VALIDATE_CODE', payload: undefined});
+            dispatch({type: 'CLEAR_CONTINUABLE_ERROR'});
         }
     };
 
@@ -147,21 +175,48 @@ function MultifactorAuthenticationValidateCodePage() {
         // Clear errors before submit
         setFormError({});
 
-        // Temporary navigation, expected behavior: trigger submit from the MultifactorAuthenticationContext
-        Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute(CONST.MULTIFACTOR_AUTHENTICATION.PROMPT.ENABLE_BIOMETRICS));
+        // Set validate code in state context - the process function will handle the rest
+        dispatch({type: 'SET_VALIDATE_CODE', payload: inputCode});
     };
 
-    const onGoBackPress = () => {
-        // Temporary navigation, expected behavior: trigger onBack from the MultifactorAuthenticationContext
-        // Close the RHP instead of returning to the invisible biometrics test screen
-        Navigation.dismissModal();
+    const showCancelModal = () => {
+        if (isOffline) {
+            Navigation.closeRHPFlow();
+        } else {
+            setCancelModalVisibility(true);
+        }
+    };
+
+    const hideCancelModal = () => {
+        setCancelModalVisibility(false);
+    };
+
+    const cancelFlow = () => {
+        if (isCancelModalVisible) {
+            hideCancelModal();
+        }
+        cancel();
+    };
+
+    const focusTrapConfirmModal = () => {
+        setCancelModalVisibility(true);
+        return false;
     };
 
     return (
-        <ScreenWrapper testID={MultifactorAuthenticationValidateCodePage.displayName}>
+        <ScreenWrapper
+            testID={MultifactorAuthenticationValidateCodePage.displayName}
+            focusTrapSettings={{
+                focusTrapOptions: {
+                    allowOutsideClick: focusTrapConfirmModal,
+                    clickOutsideDeactivates: focusTrapConfirmModal,
+                    escapeDeactivates: focusTrapConfirmModal,
+                },
+            }}
+        >
             <HeaderWithBackButton
                 title={translate('multifactorAuthentication.letsVerifyItsYou')}
-                onBackButtonPress={onGoBackPress}
+                onBackButtonPress={showCancelModal}
                 shouldShowBackButton
             />
             <FullPageOfflineBlockingView>
@@ -178,7 +233,8 @@ function MultifactorAuthenticationValidateCodePage() {
                         ref={inputRef}
                         maxLength={CONST.MAGIC_CODE_LENGTH}
                     />
-                    {hasError && <FormHelpMessage message={getLatestErrorMessage(account)} />}
+                    {hasContinuableError && <FormHelpMessage message={translate('validateCodeForm.error.incorrectMagicCode')} />}
+                    {hasAccountError && <FormHelpMessage message={getLatestErrorMessage(account)} />}
                     <MultifactorAuthenticationValidateCodeResendButton
                         ref={resendButtonRef}
                         shouldDisableResendCode={shouldDisableResendCode}
@@ -195,6 +251,12 @@ function MultifactorAuthenticationValidateCodePage() {
                     text={translate('common.verify')}
                     isLoading={isValidateCodeFormSubmitting}
                     isDisabled={isOffline}
+                />
+                <MultifactorAuthenticationTriggerCancelConfirmModal
+                    scenario={state.scenario}
+                    isVisible={isCancelModalVisible}
+                    onConfirm={cancelFlow}
+                    onCancel={hideCancelModal}
                 />
             </FullPageOfflineBlockingView>
         </ScreenWrapper>

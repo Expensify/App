@@ -1,7 +1,6 @@
 import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
 import {WRITE_COMMANDS} from '@libs/API/types';
 // eslint-disable-next-line no-restricted-syntax
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -64,6 +63,8 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await Onyx.set(`${ONYXKEYS.NVP_ACTIVE_POLICY_ID}`, fakePolicy.id);
             await Onyx.set(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM});
+            // Enable the suggestedFollowups beta so tasks are skipped in favor of backend-generated followups
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.SUGGESTED_FOLLOWUPS]);
             await waitForBatchedUpdates();
 
             let adminReportID;
@@ -176,13 +177,12 @@ describe('actions/Policy', () => {
                 expect(reportAction.actorAccountID).toBe(ESH_ACCOUNT_ID);
             }
 
-            // Following tasks are filtered in prepareOnboardingOnyxData: 'viewTour', 'addAccountingIntegration' and 'setupCategoriesAndTags' (-3)
-            const {onboardingMessages} = getOnboardingMessages();
-            const expectedManageTeamDefaultTasksCount = onboardingMessages[CONST.ONBOARDING_CHOICES.MANAGE_TEAM].tasks.length - 3;
+            // We do not pass tasks to `#admins` channel in favour of backed generated followup-list
+            const expectedManageTeamDefaultTasksCount = 0;
 
             // After filtering, two actions are added to the list =- signoff message (+1) and default create action (+1)
             const expectedReportActionsOfTypeCreatedCount = 1;
-            const expectedSignOffMessagesCount = 1;
+            const expectedSignOffMessagesCount = 0;
             expect(adminReportActions.length).toBe(expectedManageTeamDefaultTasksCount + expectedReportActionsOfTypeCreatedCount + expectedSignOffMessagesCount);
 
             let reportActionsOfTypeCreatedCount = 0;
@@ -291,7 +291,7 @@ describe('actions/Policy', () => {
                     perDiem: true,
                     reimbursements: true,
                     expenses: true,
-                    customUnits: true,
+                    distance: true,
                     invoices: true,
                     exportLayouts: true,
                 },
@@ -458,6 +458,56 @@ describe('actions/Policy', () => {
             for (const reportAction of workspaceReportActions) {
                 expect(reportAction.pendingAction).toBeFalsy();
             }
+        });
+
+        it('duplicate workspace disabled options', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            const fakePolicy = createRandomPolicy(12, CONST.POLICY.TYPE.TEAM);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+
+            const options = {
+                policyName: 'Distance Disabled Workspace',
+                policyID: fakePolicy.id,
+                targetPolicyID: policyID,
+                welcomeNote: 'Join my policy',
+                parts: {
+                    people: true,
+                    reports: false,
+                    connections: false,
+                    categories: false,
+                    tags: false,
+                    taxes: false,
+                    perDiem: false,
+                    reimbursements: false,
+                    expenses: false,
+                    distance: false,
+                    invoices: false,
+                    exportLayouts: false,
+                },
+                localCurrency: 'USD',
+            };
+
+            Policy.duplicateWorkspace(fakePolicy, options);
+            await waitForBatchedUpdates();
+
+            const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            // When these parts are disabled, the corresponding policy settings should be false
+            expect(policy?.areWorkflowsEnabled).toBe(false);
+            expect(policy?.areDistanceRatesEnabled).toBe(false);
+            expect(policy?.areInvoicesEnabled).toBe(false);
+            expect(policy?.arePerDiemRatesEnabled).toBe(false);
         });
 
         it('creates a new workspace with BASIC approval mode if the introSelected is MANAGE_TEAM', async () => {
@@ -1475,7 +1525,7 @@ describe('actions/Policy', () => {
             });
 
             const workspaceName = Policy.generateDefaultWorkspaceName(TEST_NON_PUBLIC_DOMAIN_EMAIL);
-            expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace}));
+            expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', displayNameForWorkspace));
         });
 
         it('should generate a workspace name based on the display name when the domain is public and display name is available', () => {
@@ -1488,7 +1538,7 @@ describe('actions/Policy', () => {
             });
 
             const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL);
-            expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace}));
+            expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', displayNameForWorkspace));
         });
 
         it('should generate a workspace name based on the username when the domain is public and display name is not available', () => {
@@ -1503,7 +1553,7 @@ describe('actions/Policy', () => {
             });
 
             const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL_2);
-            expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace}));
+            expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', displayNameForWorkspace));
         });
 
         it('should generate a workspace name with an incremented number when there are existing policies with similar names', async () => {
@@ -1521,7 +1571,7 @@ describe('actions/Policy', () => {
             await Onyx.set(ONYXKEYS.COLLECTION.POLICY, existingPolicies);
 
             const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL);
-            expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', {userName: TEST_DISPLAY_NAME, workspaceNumber: 2}));
+            expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', TEST_DISPLAY_NAME, 2));
         });
 
         it('should return "My Group Workspace" when the domain is SMS', () => {
@@ -1554,7 +1604,7 @@ describe('actions/Policy', () => {
             await Onyx.set(ONYXKEYS.COLLECTION.POLICY, existingPolicies);
 
             const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL);
-            expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', {userName: TEST_DISPLAY_NAME, workspaceNumber: 2}));
+            expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', TEST_DISPLAY_NAME, 2));
         });
     });
 

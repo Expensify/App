@@ -33,6 +33,7 @@ import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransaction
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
+import useSelfDMReport from '@hooks/useSelfDMReport';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {handleMoneyRequestStepScanParticipants} from '@libs/actions/IOU/MoneyRequest';
@@ -124,7 +125,7 @@ function IOURequestStepScan({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: hasSeenTourSelector});
-
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const defaultTaxCode = getDefaultTaxCode(policy, initialTransaction);
     const transactionTaxCode = (initialTransaction?.taxCode ? initialTransaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = initialTransaction?.taxAmount ?? 0;
@@ -134,6 +135,8 @@ function IOURequestStepScan({
     const [transactions, optimisticTransactions] = useOptimisticDraftTransactions(initialTransaction);
 
     const shouldAcceptMultipleFiles = !isEditing && !backTo;
+
+    const selfDMReport = useSelfDMReport();
 
     const blinkOpacity = useSharedValue(0);
     const blinkStyle = useAnimatedStyle(() => ({
@@ -161,7 +164,7 @@ function IOURequestStepScan({
 
     const {translate} = useLocalize();
 
-    const askForPermissions = () => {
+    const askForPermissions = useCallback(() => {
         // There's no way we can check for the BLOCKED status without requesting the permission first
         // https://github.com/zoontek/react-native-permissions/blob/a836e114ce3a180b2b23916292c79841a267d828/README.md?plain=1#L670
         CameraPermission.requestCameraPermission?.()
@@ -175,7 +178,7 @@ function IOURequestStepScan({
             .catch(() => {
                 setCameraPermissionStatus(RESULTS.UNAVAILABLE);
             });
-    };
+    }, [translate]);
 
     const focusIndicatorOpacity = useSharedValue(0);
     const focusIndicatorScale = useSharedValue(2);
@@ -295,7 +298,9 @@ function IOURequestStepScan({
                 locationPermissionGranted,
                 receiverPolicy,
                 chatReceiverPolicy,
+                selfDMReport,
                 isSelfTourViewed,
+                betas,
             });
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps -- reportNameValuePairs?.private_isArchived is not needed
@@ -324,6 +329,7 @@ function IOURequestStepScan({
             quickAction,
             policy,
             personalPolicy?.autoReporting,
+            selfDMReport,
             isASAPSubmitBetaEnabled,
             transactionViolations,
             policyRecentlyUsedCurrencies,
@@ -331,7 +337,9 @@ function IOURequestStepScan({
             chatReceiverPolicy,
             introSelected,
             activePolicyID,
+            reportNameValuePairs?.private_isArchived,
             isSelfTourViewed,
+            betas,
         ],
     );
 
@@ -570,6 +578,7 @@ function IOURequestStepScan({
         receiptFiles,
         submitReceipts,
         updateScanAndNavigate,
+        askForPermissions,
     ]);
 
     const toggleMultiScan = () => {
@@ -655,6 +664,7 @@ function IOURequestStepScan({
                                             <PressableWithFeedback
                                                 role={CONST.ROLE.BUTTON}
                                                 accessibilityLabel={translate('receipt.flash')}
+                                                sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
                                                 disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
                                                 onPress={() => setFlash((prevFlash) => !prevFlash)}
                                             >
@@ -702,6 +712,7 @@ function IOURequestStepScan({
                             <PressableWithFeedback
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('receipt.gallery')}
+                                sentryLabel={shouldAcceptMultipleFiles ? CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILES : CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILE}
                                 style={[styles.alignItemsStart, isMultiScanEnabled && styles.opacity0]}
                                 onPress={() => {
                                     openPicker({
@@ -726,6 +737,7 @@ function IOURequestStepScan({
                     <PressableWithFeedback
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('receipt.shutter')}
+                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.SHUTTER}
                         style={[styles.alignItemsCenter]}
                         onPress={capturePhoto}
                     >
@@ -741,6 +753,7 @@ function IOURequestStepScan({
                             accessibilityRole="button"
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('receipt.multiScan')}
+                            sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.MULTI_SCAN}
                             style={styles.alignItemsEnd}
                             onPress={toggleMultiScan}
                         >
@@ -755,6 +768,7 @@ function IOURequestStepScan({
                         <PressableWithFeedback
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('receipt.flash')}
+                            sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
                             style={[styles.alignItemsEnd, !hasFlash && styles.opacity0]}
                             disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
                             onPress={() => setFlash((prevFlash) => !prevFlash)}

@@ -1,4 +1,4 @@
-import {filterPersonalCards} from '@selectors/Card';
+import {filterOutPersonalCards} from '@selectors/Card';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -29,8 +29,9 @@ function SearchFiltersCardPage() {
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
 
-    const [userCardList, userCardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
+    const [userCardList, userCardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterOutPersonalCards, canBeMissing: true});
     const [workspaceCardFeeds, workspaceCardFeedsMetadata] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
+    const [policies, policiesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [searchAdvancedFiltersForm, searchAdvancedFiltersFormMetadata] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
@@ -55,8 +56,8 @@ function SearchFiltersCardPage() {
     const domainFeedsData = useMemo(() => getDomainFeedData(workspaceCardFeeds), [workspaceCardFeeds]);
 
     const cardFeedsSectionData = useMemo(
-        () => buildCardFeedsData(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, domainFeedsData, selectedCards, translate, illustrations, companyCardFeedIcons),
-        [domainFeedsData, workspaceCardFeeds, selectedCards, translate, illustrations, companyCardFeedIcons],
+        () => buildCardFeedsData(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, domainFeedsData, policies, selectedCards, translate, illustrations, companyCardFeedIcons),
+        [domainFeedsData, workspaceCardFeeds, policies, selectedCards, translate, illustrations, companyCardFeedIcons],
     );
 
     const shouldShowSearchInput =
@@ -194,7 +195,9 @@ function SearchFiltersCardPage() {
                             onChangeText={(value) => {
                                 setSearchTerm(value);
                             }}
-                            showLoadingPlaceholder={isLoadingOnyxValue(userCardListMetadata, workspaceCardFeedsMetadata, searchAdvancedFiltersFormMetadata) || !didScreenTransitionEnd}
+                            showLoadingPlaceholder={
+                                isLoadingOnyxValue(userCardListMetadata, workspaceCardFeedsMetadata, searchAdvancedFiltersFormMetadata, policiesMetadata) || !didScreenTransitionEnd
+                            }
                         />
                     </View>
                 </>

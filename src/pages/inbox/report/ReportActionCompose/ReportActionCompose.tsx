@@ -48,6 +48,7 @@ import {
     chatIncludesConcierge,
     getParentReport,
     getReportRecipientAccountIDs,
+    isAdminRoom,
     isChatRoom,
     isConciergeChatReport,
     isGroupChat,
@@ -216,6 +217,10 @@ function ReportActionCompose({
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isConciergeChat = useMemo(() => isConciergeChatReport(report), [report]);
+    const isAdminsRoom = useMemo(() => isAdminRoom(report), [report]);
+
+    // Show agent zero status indicator for both concierge chats and admin rooms
+    const shouldShowAgentZeroStatus = isConciergeChat || isAdminsRoom;
 
     const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
     const isExpensesReport = useMemo(() => reportTransactions && reportTransactions.length > 1, [reportTransactions]);
@@ -259,7 +264,7 @@ function ReportActionCompose({
         return translate('reportActionCompose.writeSomething');
     }, [includesConcierge, translate, userBlockedFromConcierge]);
 
-    const {displayLabel: agentZeroDisplayLabel, kickoffWaitingIndicator} = useAgentZeroStatusIndicator(reportID, isConciergeChat);
+    const {displayLabel: agentZeroDisplayLabel, kickoffWaitingIndicator} = useAgentZeroStatusIndicator(reportID, shouldShowAgentZeroStatus);
 
     const focus = () => {
         if (composerRef.current === null) {
@@ -336,7 +341,17 @@ function ReportActionCompose({
             }
 
             if (attachmentFileRef.current) {
-                addAttachmentWithComment(transactionThreadReport ?? report, reportID, ancestors, attachmentFileRef.current, newCommentTrimmed, personalDetail.timezone, true, isInSidePanel);
+                addAttachmentWithComment({
+                    report: transactionThreadReport ?? report,
+                    notifyReportID: reportID,
+                    ancestors,
+                    attachments: attachmentFileRef.current,
+                    currentUserAccountID: currentUserPersonalDetails.accountID,
+                    text: newCommentTrimmed,
+                    timezone: personalDetail.timezone,
+                    shouldPlaySound: true,
+                    isInSidePanel,
+                });
                 attachmentFileRef.current = null;
             } else {
                 Performance.markStart(CONST.TIMING.SEND_MESSAGE, {message: newCommentTrimmed});

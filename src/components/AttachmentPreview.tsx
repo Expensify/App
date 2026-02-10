@@ -52,7 +52,7 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
         if (!videoSource) {
             return;
         }
-        videoPlayer.generateThumbnailsAsync(1).then((thumbnails) => setThumbnail(thumbnails.at(0) ?? null));
+        videoPlayer.generateThumbnailsAsync([1]).then((thumbnails) => setThumbnail(thumbnails.at(0) ?? null));
     }, [videoPlayer, videoSource]);
 
     if (isVideo) {
