@@ -37,7 +37,6 @@ import {openOldDotLink} from '@libs/actions/Link';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {openSearch, setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
-import Timing from '@libs/actions/Timing';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
@@ -289,7 +288,7 @@ function Search({
     const suggestedSearches = useMemo(() => getSuggestedSearches(accountID, defaultCardFeed?.id), [defaultCardFeed?.id, accountID]);
     const searchKey = useMemo(() => Object.values(suggestedSearches).find((search) => search.similarSearchHash === similarSearchHash)?.key, [suggestedSearches, similarSearchHash]);
     const searchDataType = useMemo(() => (shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type), [shouldUseLiveData, searchResults?.search?.type]);
-    const shouldCalculateTotals = useSearchShouldCalculateTotals(searchKey, similarSearchHash, offset === 0);
+    const shouldCalculateTotals = useSearchShouldCalculateTotals(searchKey, hash, offset === 0);
 
     const previousReportActions = usePrevious(reportActions);
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
@@ -447,6 +446,7 @@ function Search({
             cardFeeds,
             isOffline,
             allTransactionViolations: violations,
+            customCardNames,
             allReportMetadata,
         });
         return [filteredData1, filteredData1.length, allLength];
@@ -469,6 +469,7 @@ function Search({
         policies,
         bankAccountList,
         violations,
+        customCardNames,
         allReportMetadata,
     ]);
 
@@ -545,6 +546,8 @@ function Search({
         setShouldShowFiltersBarLoading(shouldShowLoadingState && lastSearchType !== type);
     }, [lastSearchType, setShouldShowFiltersBarLoading, shouldShowLoadingState, type]);
 
+    const shouldRetrySearchWithTotalsRef = useRef(false);
+
     useEffect(() => {
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
         const isMigratedModalDisplayed = focusedRoute?.name === NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR || focusedRoute?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT;
@@ -554,11 +557,33 @@ function Search({
             return;
         }
 
+        if (searchResults?.search?.isLoading) {
+            if (shouldCalculateTotals && searchResults?.search?.count === undefined) {
+                shouldRetrySearchWithTotalsRef.current = true;
+            }
+            return;
+        }
+
         handleSearch({queryJSON, searchKey, offset, shouldCalculateTotals, prevReportsLength: filteredDataLength, isLoading: !!searchResults?.search?.isLoading});
 
         // We don't need to run the effect on change of isFocused.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [handleSearch, isOffline, offset, queryJSON, searchKey, shouldCalculateTotals]);
+
+    useEffect(() => {
+        if (!shouldRetrySearchWithTotalsRef.current || searchResults?.search?.isLoading || !shouldCalculateTotals) {
+            return;
+        }
+
+        // If count is already present, the latest response already contains totals and we can skip the re-query.
+        if (searchResults?.search?.count !== undefined) {
+            shouldRetrySearchWithTotalsRef.current = false;
+            return;
+        }
+
+        shouldRetrySearchWithTotalsRef.current = false;
+        handleSearch({queryJSON, searchKey, offset, shouldCalculateTotals: true, prevReportsLength: filteredDataLength, isLoading: false});
+    }, [filteredDataLength, handleSearch, offset, queryJSON, searchKey, searchResults?.search?.count, searchResults?.search?.isLoading, shouldCalculateTotals]);
 
     // When new data load, selectedTransactions is updated in next effect. We use this flag to whether selection is updated
     const isRefreshingSelection = useRef(false);
@@ -1076,8 +1101,8 @@ function Search({
                 return;
             }
 
-            // After handling all group types, item should be TransactionListItemType, ReportActionListItemType, or TransactionGroupListItemType
-            if (!isTransactionItem && !isReportActionListItemType(item) && !isTransactionGroupListItemType(item)) {
+            // After handling all group types, item should be TransactionListItemType, ReportActionListItemType, TaskListItemType, or TransactionGroupListItemType
+            if (!isTransactionItem && !isReportActionListItemType(item) && !isTaskListItemType(item) && !isTransactionGroupListItemType(item)) {
                 return;
             }
 
@@ -1099,16 +1124,14 @@ function Search({
             }
 
             Performance.markStart(CONST.TIMING.OPEN_REPORT_SEARCH);
-            Timing.start(CONST.TIMING.OPEN_REPORT_SEARCH);
             startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`, {
                 name: 'Search',
                 op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
             });
 
             if (isTransactionGroupListItemType(item)) {
-                const groupItem = item as TransactionGroupListItemType;
-                const firstTransaction = groupItem.transactions.at(0);
-                if (groupItem.isOneTransactionReport && firstTransaction && transactionPreviewData) {
+                const firstTransaction = item.transactions.at(0);
+                if (item.isOneTransactionReport && firstTransaction && transactionPreviewData) {
                     if (!firstTransaction?.reportAction?.childReportID) {
                         createAndOpenSearchTransactionThread(firstTransaction, backTo, firstTransaction?.reportAction?.childReportID, transactionPreviewData, false);
                     } else {
@@ -1116,7 +1139,7 @@ function Search({
                     }
                 }
 
-                if (groupItem.transactions.length > 1) {
+                if (item.transactions.length > 1) {
                     markReportIDAsMultiTransactionExpense(reportID);
                 } else {
                     unmarkReportIDAsMultiTransactionExpense(reportID);
@@ -1129,6 +1152,11 @@ function Search({
             if (isReportActionListItemType(item)) {
                 const reportActionID = reportActionItem.reportActionID;
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID, backTo}));
+                return;
+            }
+
+            if (isTaskListItemType(item)) {
+                requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
                 return;
             }
 

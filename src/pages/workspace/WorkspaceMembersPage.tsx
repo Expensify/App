@@ -823,7 +823,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     turnOffMobileSelectionMode();
                     return;
                 }
-                Navigation.popToSidebar();
+                Navigation.goBack();
             }}
         >
             {() => (
