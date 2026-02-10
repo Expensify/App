@@ -36,6 +36,7 @@ function SortableItem({id, children, disabled = false, isFocused = false, isItem
             {...(disabled ? {} : listeners)}
             role="option"
             aria-selected={isFocused}
+            // Override dnd-kit's tabIndex to prevent double focus (outer wrapper + inner MenuItem)
             tabIndex={tabIndex}
         >
             {children}
