@@ -114,6 +114,34 @@ function handleOpenDomainSplitAction(
     return prepareStateUnderWorkspaceOrDomainNavigator(state, configOptions, stackRouter, actionToPushDomainSplitNavigator, NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR);
 }
 
+/**
+ * Handles push(REPORTS_SPLIT_NAVIGATOR) with reuse: if an instance already exists in the stack,
+ * truncates to it instead of pushing a new one. Used for fast Inbox tab navigation on wide layout.
+ */
+function handlePushReportsSplitWithReuse(
+    state: StackNavigationState<ParamListBase>,
+    action: PushActionType,
+    configOptions: RouterConfigOptions,
+    stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
+) {
+    if (getIsNarrowLayout()) {
+        return handlePushFullscreenAction(state, action, configOptions, stackRouter);
+    }
+
+    const existingIndex = state.routes.findIndex((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
+
+    if (existingIndex >= 0 && existingIndex < state.routes.length - 1) {
+        const routes = state.routes.slice(0, existingIndex + 1);
+        return {
+            ...state,
+            routes,
+            index: routes.length - 1,
+        };
+    }
+
+    return handlePushFullscreenAction(state, action, configOptions, stackRouter);
+}
+
 function handlePushFullscreenAction(
     state: StackNavigationState<ParamListBase>,
     action: PushActionType,
@@ -230,6 +258,7 @@ export {
     handleOpenWorkspaceSplitAction,
     handleOpenDomainSplitAction,
     handlePushFullscreenAction,
+    handlePushReportsSplitWithReuse,
     handleReplaceReportsSplitNavigatorAction,
     screensWithEnteringAnimation,
     workspaceOrDomainSplitsWithoutEnteringAnimation,

@@ -12,6 +12,7 @@ import {
     handleOpenDomainSplitAction,
     handleOpenWorkspaceSplitAction,
     handlePushFullscreenAction,
+    handlePushReportsSplitWithReuse,
     handleReplaceReportsSplitNavigatorAction,
     handleToggleSidePanelWithHistoryAction,
 } from './GetStateForActionHandlers';
@@ -112,6 +113,10 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
 
             if (isReplaceAction(action) && action.payload.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
                 return handleReplaceReportsSplitNavigatorAction(state, action, configOptions, stackRouter);
+            }
+
+            if (isPushAction(action) && action.payload.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
+                return handlePushReportsSplitWithReuse(state, action, configOptions, stackRouter);
             }
 
             // When navigating to a specific workspace from WorkspaceListPage there should be entering animation for its sidebar (only case where we want animation for sidebar)

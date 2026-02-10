@@ -1,4 +1,4 @@
-import {useIsFocused} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
@@ -33,6 +33,13 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
     const onLayout = useCallback(() => {
         endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB);
     }, []);
+
+    // When popping back to Inbox, onLayout may not re-fire (view already laid out). End the span on focus so the metric is still recorded.
+    useFocusEffect(
+        useCallback(() => {
+            endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB);
+        }, []),
+    );
 
     return (
         <View
