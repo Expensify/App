@@ -837,6 +837,7 @@ function MoneyRequestReportActionsList({
                 title={translate('export.exportInProgress')}
                 prompt={translate('export.conciergeWillSend')}
                 confirmText={translate('common.buttonConfirm')}
+                success
                 shouldShowCancelButton={false}
             />
         </View>

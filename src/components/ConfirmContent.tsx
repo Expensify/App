@@ -205,7 +205,7 @@ function ConfirmContent({
                             />
                         )}
                         <Button
-                            success={success}
+                            success={shouldShowCancelButton ? true : success}
                             danger={danger}
                             style={shouldReverseStackedButtons ? styles.mt3 : styles.mt4}
                             onPress={onConfirm}
@@ -236,7 +236,7 @@ function ConfirmContent({
                             />
                         )}
                         <Button
-                            success={success}
+                            success={shouldShowCancelButton ? true : success}
                             danger={danger}
                             style={[styles.flex1]}
                             onPress={onConfirm}

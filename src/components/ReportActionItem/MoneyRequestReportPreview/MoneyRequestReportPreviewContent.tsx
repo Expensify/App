@@ -922,6 +922,7 @@ function MoneyRequestReportPreviewContent({
                 prompt={translate('customApprovalWorkflow.description')}
                 confirmText={translate('customApprovalWorkflow.goToExpensifyClassic')}
                 shouldShowCancelButton={false}
+                success
             />
         </View>
     );
