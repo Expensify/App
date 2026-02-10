@@ -151,7 +151,6 @@ function ReportActionItemMessageEdit({
     // The ref to check whether the comment saving is in progress
     const isCommentPendingSaved = useRef(false);
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {canBeMissing: true});
-    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {canBeMissing: true});
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const originalParentReportID = getOriginalReportID(originalReportID, action);
     const isOriginalParentReportArchived = useReportIsArchived(originalParentReportID);
@@ -326,7 +325,6 @@ function ReportActionItemMessageEdit({
             isOriginalParentReportArchived,
             email ?? '',
             Object.fromEntries(draftMessageVideoAttributeCache),
-            visibleReportActionsData ?? undefined,
         );
         deleteDraft();
     }, [
@@ -341,7 +339,6 @@ function ReportActionItemMessageEdit({
         isOriginalParentReportArchived,
         debouncedValidateCommentMaxLength,
         email,
-        visibleReportActionsData,
     ]);
 
     /**

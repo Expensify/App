@@ -74,11 +74,6 @@ type ReportTransactionsAndViolationsDerivedValue = Record<string, ReportTransact
 type OutstandingReportsByPolicyIDDerivedValue = Record<string, OnyxCollection<Report>>;
 
 /**
- * The derived value for visible report actions.
- */
-type VisibleReportActionsDerivedValue = Record<string, Record<string, boolean>>;
-
-/**
  * The errors of a card.
  */
 type CardErrors = {
@@ -109,11 +104,6 @@ type CardFeedErrorState = {
      * - The feed connection is broken.
      */
     shouldShowRBR: boolean;
-
-    /**
-     * Whether some failed card assignments.
-     */
-    hasFailedCardAssignments: boolean;
 
     /**
      * Whether a specific feed within a workspace/domain has errors.
@@ -214,6 +204,34 @@ type CardFeedErrorsDerivedValue = CardFeedErrors;
  */
 type NonPersonalAndWorkspaceCardListDerivedValue = CardList;
 
+/**
+ * Metadata for todo search results.
+ */
+type TodoMetadata = {
+    /** Total number of transactions across all reports */
+    count: number;
+    /** Sum of all report totals (in cents) */
+    total: number;
+    /** Currency of the first report, used as reference currency */
+    currency: string | undefined;
+};
+
+/**
+ * The derived value for todos.
+ */
+type TodosDerivedValue = {
+    /** Reports that need to be submitted */
+    reportsToSubmit: Report[];
+    /** Reports that need to be approved */
+    reportsToApprove: Report[];
+    /** Reports that need to be paid */
+    reportsToPay: Report[];
+    /** Reports that need to be exported */
+    reportsToExport: Report[];
+    /** Transactions grouped by report ID */
+    transactionsByReportID: Record<string, Transaction[]>;
+};
+
 export default ReportAttributesDerivedValue;
 export type {
     ReportAttributes,
@@ -221,9 +239,10 @@ export type {
     ReportTransactionsAndViolationsDerivedValue,
     ReportTransactionsAndViolations,
     OutstandingReportsByPolicyIDDerivedValue,
-    VisibleReportActionsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
+    TodosDerivedValue,
+    TodoMetadata,
     AllCardFeedErrorsMap,
     CardFeedErrorsObject,
     FeedErrors,

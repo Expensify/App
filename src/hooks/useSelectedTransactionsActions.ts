@@ -97,17 +97,16 @@ function useSelectedTransactionsActions({
     const knownOwnerIDs = new Set<number>();
     let hasUnknownOwner = false;
 
-    for (const selectedTransactionInfo of Object.values(selectedTransactionsMeta ?? {})) {
-        const ownerAccountID = selectedTransactionInfo?.ownerAccountID;
-        if (typeof ownerAccountID === 'number') {
-            knownOwnerIDs.add(ownerAccountID);
-        } else {
-            hasUnknownOwner = true;
-        }
-    }
-
     for (const selectedTransaction of selectedTransactionsList) {
+        const transactionID = selectedTransaction?.transactionID;
         const reportID = selectedTransaction?.reportID;
+
+        const metadataOwnerID = selectedTransactionsMeta?.[transactionID]?.ownerAccountID;
+        if (typeof metadataOwnerID === 'number') {
+            knownOwnerIDs.add(metadataOwnerID);
+            continue;
+        }
+
         if (!reportID || reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
             hasUnknownOwner = true;
             continue;

@@ -10,6 +10,13 @@ import pkg from '../../../package.json';
 import makeDebugTransport from './debugTransport';
 
 export default function (): void {
+    // With Sentry enabled in dev mode, profiling on iOS and Android does not work
+    // If you want to enable Sentry in dev, set ENABLE_SENTRY_ON_DEV=true in .env
+    // or comment out the condition below
+    if (isDevelopment() && !CONFIG.ENABLE_SENTRY_ON_DEV) {
+        return;
+    }
+
     const integrations = [navigationIntegration, tracingIntegration, browserProfilingIntegration].filter((integration) => !!integration);
 
     Sentry.init({

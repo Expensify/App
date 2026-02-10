@@ -903,14 +903,6 @@ function getFormattedSplitDateRange(translateParam: LocaleContextProps['translat
 }
 
 /**
- * Checks if the current time falls within the specified time range.
- */
-const isCurrentTimeWithinRange = (startTime: string, endTime: string): boolean => {
-    const now = Date.now();
-    return isAfter(now, new Date(startTime)) && isBefore(now, new Date(endTime));
-};
-
-/**
  * Converts a date to a string in the format MMMM d, yyyy
  */
 const formatToReadableString = (date: string): string => {
@@ -926,6 +918,25 @@ const formatInTimeZoneWithFallback: typeof formatInTimeZone = (date, timeZone, f
     } catch {
         return formatInTimeZone(date, timezoneNewToBackwardMap[timeZone as SelectedTimezone], formatStr, options);
     }
+};
+
+/**
+ * Convert a date to UTC by taking midnight (00:00:00) in the user's local timezone and expressing it as a UTC timestamp
+ */
+
+const normalizeDateToStartOfDay = (fromDate: string, timeZone: SelectedTimezone): string => {
+    const localDate = parse(fromDate, CONST.DATE.FNS_FORMAT_STRING, new Date());
+    const midnightLocal = startOfDay(localDate);
+    return getDBTime(fromZonedTime(midnightLocal, timeZone).valueOf());
+};
+
+/**
+ * Convert a date to UTC by taking end of day (23:59:59) in the user's local timezone and expressing it as a UTC timestamp
+ */
+const normalizeDateToEndOfDay = (thruDate: string, timeZone: SelectedTimezone): string => {
+    const localDate = parse(thruDate, CONST.DATE.FNS_FORMAT_STRING, new Date());
+    const endOfDayLocal = endOfDay(localDate);
+    return getDBTime(fromZonedTime(endOfDayLocal, timeZone).valueOf());
 };
 
 /**
@@ -1071,8 +1082,9 @@ const DateUtils = {
     isFutureDay,
     getFormattedDateRangeForPerDiem,
     getFormattedSplitDateRange,
-    isCurrentTimeWithinRange,
     formatInTimeZoneWithFallback,
+    normalizeDateToStartOfDay,
+    normalizeDateToEndOfDay,
     getMonthDateRange,
     getWeekDateRange,
     isDateStringInMonth,
