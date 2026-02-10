@@ -800,8 +800,8 @@ function isDuplicateAction(report: Report, reportTransactions: Transaction[]): b
 
     const reportTransaction = reportTransactions.at(0);
 
-    // Per diem and distance requests will be handled separately in a follow-up
-    if (isPerDiemRequestTransactionUtils(reportTransaction) || isDistanceRequestTransactionUtils(reportTransaction)) {
+    // Per diem requests will be handled separately in a follow-up
+    if (isPerDiemRequestTransactionUtils(reportTransaction)) {
         return false;
     }
 
