@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
-import {StyleSheet, View} from 'react-native';
+import {AccessibilityInfo, StyleSheet, View} from 'react-native';
 import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Checkbox from '@components/Checkbox';
@@ -25,6 +25,7 @@ import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Accessibility from '@libs/Accessibility';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -109,8 +110,10 @@ function BaseTextInput({
     const [isPrefixCharacterPaddingCalculated, setIsPrefixCharacterPaddingCalculated] = useState(() => !prefixCharacter);
     const labelScale = useSharedValue<number>(initialActiveLabel ? styleConst.ACTIVE_LABEL_SCALE : styleConst.INACTIVE_LABEL_SCALE);
     const labelTranslateY = useSharedValue<number>(initialActiveLabel ? styleConst.ACTIVE_LABEL_TRANSLATE_Y : styleConst.INACTIVE_LABEL_TRANSLATE_Y);
+    const isScreenReaderEnabled = Accessibility.useScreenReaderStatus();
     const input = useRef<TextInput | null>(null);
     const isLabelActive = useRef(initialActiveLabel);
+    const lastAnnouncedErrorTextRef = useRef('');
     const hasLabel = !!label?.length;
 
     useHtmlPaste(input, undefined, isMarkdownEnabled, maxLength);
@@ -225,6 +228,25 @@ function BaseTextInput({
         }
         hasValueRef.current = false;
     }, [value]);
+
+    useEffect(() => {
+        if (!isFocused || !isScreenReaderEnabled) {
+            return;
+        }
+
+        const trimmedErrorText = errorText.trim();
+        if (!trimmedErrorText) {
+            lastAnnouncedErrorTextRef.current = '';
+            return;
+        }
+
+        if (trimmedErrorText === lastAnnouncedErrorTextRef.current) {
+            return;
+        }
+
+        lastAnnouncedErrorTextRef.current = trimmedErrorText;
+        AccessibilityInfo.announceForAccessibility(trimmedErrorText);
+    }, [errorText, isFocused, isScreenReaderEnabled]);
 
     /**
      * Set Value & activateLabel
