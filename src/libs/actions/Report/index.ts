@@ -3136,6 +3136,7 @@ function buildNewReportOptimisticData(
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
             value: {
+                isLoadingInitialReportActions: false,
                 hasOnceLoadedReportActions: true,
             },
         },
