@@ -32,8 +32,16 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
-        if (isScreenReaderEnabled || !isScreenTransitionEnded || !isInputInitialized || !inputRef.current || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN || isPopoverVisible) {
-            return; // Skip focus when screen reader is active
+        if (
+            isScreenReaderEnabled === true ||
+            isScreenReaderEnabled === null ||
+            !isScreenTransitionEnded ||
+            !isInputInitialized ||
+            !inputRef.current ||
+            splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN ||
+            isPopoverVisible
+        ) {
+            return;
         }
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         const focusTaskHandle = InteractionManager.runAfterInteractions(() => {

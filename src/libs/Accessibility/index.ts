@@ -1,19 +1,36 @@
 import {useCallback, useEffect, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {AccessibilityInfo} from 'react-native';
+import Log from '@libs/Log';
 import moveAccessibilityFocus from './moveAccessibilityFocus';
 
 type HitSlop = {x: number; y: number};
 
-const useScreenReaderStatus = (): boolean => {
-    const [isScreenReaderEnabled, setIsScreenReaderEnabled] = useState(false);
+const useScreenReaderStatus = (): boolean | null => {
+    // null = status not yet known (async check still pending)
+    const [isScreenReaderEnabled, setIsScreenReaderEnabled] = useState<boolean | null>(null);
     useEffect(() => {
+        let isMounted = true;
+
         // Check initial screen reader status
-        AccessibilityInfo.isScreenReaderEnabled().then(setIsScreenReaderEnabled);
+        AccessibilityInfo.isScreenReaderEnabled()
+            .then((enabled) => {
+                if (!isMounted) {
+                    return;
+                }
+                setIsScreenReaderEnabled(enabled);
+            })
+            .catch((error) => {
+                Log.warn('[Accessibility] Failed to get initial screen reader status', {error});
+                if (isMounted) {
+                    setIsScreenReaderEnabled(false);
+                }
+            });
 
         const subscription = AccessibilityInfo.addEventListener('screenReaderChanged', setIsScreenReaderEnabled);
 
         return () => {
+            isMounted = false;
             subscription?.remove();
         };
     }, []);
