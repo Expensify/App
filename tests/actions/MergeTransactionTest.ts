@@ -1,11 +1,26 @@
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {getReportPreviewAction} from '@libs/actions/IOU';
 import {areTransactionsEligibleForMerge, mergeTransactionRequest, setMergeTransactionKey, setupMergeTransactionData} from '@libs/actions/MergeTransaction';
+import {addComment, openReport} from '@libs/actions/Report';
+import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
+import {getReportAction} from '@libs/ReportActionsUtils';
+import {buildTransactionThread} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {MergeTransaction as MergeTransactionType, Report, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {
+    MergeTransaction as MergeTransactionType,
+    OriginalMessageIOU,
+    Report,
+    ReportAction,
+    ReportActions,
+    Transaction,
+    TransactionViolation,
+    TransactionViolations,
+} from '@src/types/onyx';
 import createRandomMergeTransaction from '../utils/collections/mergeTransaction';
-import {createExpenseReport} from '../utils/collections/reports';
+import createRandomReportAction from '../utils/collections/reportActions';
+import {createExpenseReport, createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../utils/collections/transaction';
 import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
@@ -44,12 +59,19 @@ function createAllTransactionViolations(
     return allViolations;
 }
 
+const TEST_EMAIL = 'test@expensifail.com';
+const TEST_ACCOUNT_ID = 1;
+
 describe('mergeTransactionRequest', () => {
     let mockFetch: MockFetch;
 
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
+            initialKeyStates: {
+                [ONYXKEYS.SESSION]: {accountID: TEST_ACCOUNT_ID, email: TEST_EMAIL},
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[TEST_ACCOUNT_ID]: {accountID: TEST_ACCOUNT_ID, login: TEST_EMAIL}},
+            },
         });
     });
 
@@ -499,6 +521,321 @@ describe('mergeTransactionRequest', () => {
 
             expect(updatedSourceReport).toEqual(sourceReport);
             expect(updatedSourceReport?.reportID).toBe(sourceReport.reportID);
+        });
+
+        it('should delete the source transaction thread regardless of whether there are visible comments in the thread', async () => {
+            // Given: A source transaction that is one of multiple transactions in its report
+            const chatReportID = 'chat-report-123';
+            const sourceReportID = 'source-report-123';
+            const previewActionID = 'preview-action-123';
+            const chatReport: Report = {
+                ...createRandomReport(0, undefined),
+                policyID: CONST.POLICY.ID_FAKE,
+                parentReportID: undefined,
+                parentReportActionID: undefined,
+                reportID: chatReportID,
+                type: 'chat',
+            };
+            let previewAction: OnyxEntry<ReportAction> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                reportActionID: previewActionID,
+                childMoneyRequestCount: 2,
+                childVisibleActionCount: 0,
+                originalMessage: {linkedReportID: sourceReportID},
+            };
+            const sourceReport = {
+                ...createExpenseReport(1),
+                reportID: 'source-report-123',
+                chatReportID: chatReport.reportID,
+            };
+            const targetTransaction = {
+                ...createRandomTransaction(1),
+                transactionID: 'target123',
+                reportID: 'target-report-456',
+            };
+            const sourceTransaction = {
+                ...createRandomTransaction(2),
+                transactionID: 'source456',
+                reportID: sourceReport.reportID,
+            };
+            const otherTransaction = {
+                ...createRandomTransaction(3),
+                transactionID: 'other789',
+                reportID: sourceReport.reportID,
+            };
+            const mergeTransaction = {
+                ...createRandomMergeTransaction(1),
+                targetTransactionID: 'target123',
+                sourceTransactionID: 'source456',
+            };
+            const mergeTransactionID = 'merge789';
+
+            let sourceIOUAction: OnyxEntry<ReportAction> = {
+                reportActionID: 'source-action-123',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: '2024-01-01 12:00:00',
+                originalMessage: {
+                    IOUTransactionID: sourceTransaction.transactionID,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    IOUReportID: sourceReportID,
+                } as OriginalMessageIOU,
+                message: [{type: 'TEXT', text: 'Test IOU message'}],
+            };
+            const targetViolations: TransactionViolation[] = [];
+            const sourceViolations: TransactionViolation[] = [];
+
+            // Set up initial state
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`, targetTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`, sourceTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${otherTransaction.transactionID}`, otherTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceReport.reportID}`, sourceReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceReport.reportID}`, {[sourceIOUAction.reportActionID]: sourceIOUAction});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {[previewAction.reportActionID]: previewAction});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, mergeTransaction);
+
+            const thread = buildTransactionThread(sourceIOUAction, sourceReport);
+
+            expect(thread.participants).toEqual({
+                [TEST_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN},
+            });
+
+            const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
+            const userLogins = getLoginsByAccountIDs(participantAccountIDs);
+            jest.advanceTimersByTime(10);
+            openReport(thread.reportID, '', userLogins, thread, sourceIOUAction.reportActionID);
+            await waitForBatchedUpdates();
+
+            let transactionThreadReportActions: OnyxEntry<ReportActions>;
+            Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`,
+                callback: (val) => (transactionThreadReportActions = val),
+            });
+
+            await waitForBatchedUpdates();
+
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        expect(report).toBeTruthy();
+                        resolve();
+                    },
+                });
+            });
+
+            jest.advanceTimersByTime(10);
+
+            // When a comment is added
+            addComment({
+                report: thread,
+                notifyReportID: thread.reportID,
+                ancestors: [
+                    {report: sourceReport, reportAction: sourceIOUAction, shouldDisplayNewMarker: false},
+                    {report: chatReport, reportAction: previewAction, shouldDisplayNewMarker: false},
+                ],
+                text: 'test comment',
+                timezoneParam: CONST.DEFAULT_TIME_ZONE,
+                currentUserAccountID: TEST_ACCOUNT_ID,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the report should have 2 actions
+            expect(Object.values(transactionThreadReportActions ?? {}).length).toBe(2);
+
+            sourceIOUAction = getReportAction(sourceReport.reportID, sourceIOUAction.reportActionID);
+            previewAction = getReportAction(chatReport.reportID, previewActionID);
+            expect(sourceIOUAction?.childVisibleActionCount).toBe(1);
+            expect(previewAction?.childVisibleActionCount).toBe(1);
+
+            await waitForBatchedUpdates();
+
+            mockFetch?.pause?.();
+
+            // When: The merge request is executed
+            mergeTransactionRequest({
+                mergeTransactionID,
+                mergeTransaction,
+                targetTransaction,
+                sourceTransaction,
+                targetTransactionThreadReport: {reportID: 'target-report-456'},
+                targetTransactionThreadParentReport: undefined,
+                targetTransactionThreadParentReportNextStep: undefined,
+                allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, sourceTransaction.transactionID, targetViolations, sourceViolations),
+                policy: undefined,
+                policyTags: undefined,
+                policyCategories: undefined,
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'existing@example.com',
+                isASAPSubmitBetaEnabled: false,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then we expect the reportPreview to update with new childVisibleActionCount
+            previewAction = getReportPreviewAction(chatReport.reportID, sourceReport.reportID) as OnyxEntry<ReportAction>;
+            expect(previewAction).toBeTruthy();
+            expect(previewAction?.childVisibleActionCount).toEqual(0);
+            expect(previewAction?.childCommenterCount).toEqual(0);
+
+            // Then the transaction thread report should be ready to be deleted
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
+                    waitForCollectionCallback: false,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        expect(report?.reportID).toBeFalsy();
+                        resolve();
+                    },
+                });
+            });
+
+            // When we resume
+            mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            // Then we expect the reportPreview to update with new childVisibleActionCount
+            previewAction = getReportPreviewAction(chatReport.reportID, sourceReport.reportID) as OnyxEntry<ReportAction>;
+            expect(previewAction).toBeTruthy();
+            expect(previewAction?.childVisibleActionCount).toEqual(0);
+            expect(previewAction?.childCommenterCount).toEqual(0);
+
+            // Then the transaction thread report should be deleted
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
+                    waitForCollectionCallback: false,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        expect(report).toBeFalsy();
+                        resolve();
+                    },
+                });
+            });
+        });
+
+        it('should delete the transaction thread of the source unreported transaction', async () => {
+            // Given: A source transaction that is one of multiple transactions in its report
+            const selfDMReportID = 'selfDM-report-123';
+            const selfDMReport = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: selfDMReportID,
+            };
+            const targetTransaction = {
+                ...createRandomTransaction(1),
+                transactionID: 'target123',
+                reportID: 'target-report-456',
+            };
+            const sourceTransaction = {
+                ...createRandomTransaction(2),
+                transactionID: 'source456',
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            };
+            const mergeTransaction = {
+                ...createRandomMergeTransaction(1),
+                targetTransactionID: 'target123',
+                sourceTransactionID: 'source456',
+            };
+            const mergeTransactionID = 'merge789';
+
+            const sourceIOUAction: ReportAction = {
+                reportActionID: 'source-action-123',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: '2024-01-01 12:00:00',
+                originalMessage: {
+                    IOUTransactionID: sourceTransaction.transactionID,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    IOUReportID: selfDMReportID,
+                } as OriginalMessageIOU,
+                message: [{type: 'TEXT', text: 'Test IOU message'}],
+            };
+            const targetViolations: TransactionViolation[] = [];
+            const sourceViolations: TransactionViolation[] = [];
+
+            // Set up initial state
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`, targetTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`, sourceTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`, {[sourceIOUAction.reportActionID]: sourceIOUAction});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, mergeTransaction);
+
+            const thread = buildTransactionThread(sourceIOUAction, selfDMReport);
+
+            expect(thread.participants).toEqual({
+                [TEST_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN},
+            });
+
+            const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
+            const userLogins = getLoginsByAccountIDs(participantAccountIDs);
+            jest.advanceTimersByTime(10);
+            openReport(thread.reportID, '', userLogins, thread, sourceIOUAction.reportActionID);
+            await waitForBatchedUpdates();
+
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        expect(report).toBeTruthy();
+                        resolve();
+                    },
+                });
+            });
+
+            mockFetch?.pause?.();
+
+            // When: The merge request is executed
+            mergeTransactionRequest({
+                mergeTransactionID,
+                mergeTransaction,
+                targetTransaction,
+                sourceTransaction,
+                targetTransactionThreadReport: {reportID: 'target-report-456'},
+                targetTransactionThreadParentReport: undefined,
+                targetTransactionThreadParentReportNextStep: undefined,
+                allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, sourceTransaction.transactionID, targetViolations, sourceViolations),
+                policy: undefined,
+                policyTags: undefined,
+                policyCategories: undefined,
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'existing@example.com',
+                isASAPSubmitBetaEnabled: false,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then the transaction thread report should be ready to be deleted
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
+                    waitForCollectionCallback: false,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        expect(report?.reportID).toBeFalsy();
+                        resolve();
+                    },
+                });
+            });
+
+            // When we resume
+            mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            // Then the transaction thread report should be deleted
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
+                    waitForCollectionCallback: false,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        expect(report).toBeFalsy();
+                        resolve();
+                    },
+                });
+            });
         });
     });
 });

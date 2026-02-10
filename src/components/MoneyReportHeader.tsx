@@ -221,6 +221,8 @@ function MoneyReportHeader({
     const activePolicy = usePolicy(activePolicyID);
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
+    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID, {canBeMissing: true});
+    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Buildings',
@@ -536,6 +538,10 @@ function MoneyReportHeader({
     if (isBlockSubmitDueToStrictPolicyRules && isReportOwner(moneyRequestReport) && isOpenExpenseReport(moneyRequestReport)) {
         optimisticNextStep = buildOptimisticNextStepForStrictPolicyRuleViolations();
     }
+
+    // Check if we have a local optimistic override (e.g., error states, offline submission)
+    // When there's an override, we should NOT use the new translated format as the override takes precedence
+    const hasOptimisticOverride = optimisticNextStep !== nextStep;
 
     const shouldShowNextStep = isFromPaidPolicy && !isInvoiceReport && !shouldShowStatusBar;
     const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, shouldShowPayButton);
@@ -1510,7 +1516,7 @@ function MoneyReportHeader({
                     Navigation.goBack(backToRoute);
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {
-                        deleteAppReport(moneyRequestReport?.reportID, email ?? '', accountID, reportTransactions, allTransactionViolations, bankAccountList, currentSearchHash);
+                        deleteAppReport(moneyRequestReport, selfDMReport, email ?? '', accountID, reportTransactions, allTransactionViolations, bankAccountList, currentSearchHash);
                     });
                 });
             },
@@ -1746,8 +1752,14 @@ function MoneyReportHeader({
             betas,
         });
 
-    const showNextStepBar = shouldShowNextStep && !!(optimisticNextStep?.message?.length ?? (optimisticNextStep && 'messageKey' in optimisticNextStep));
-    const showNextStepSkeleton = shouldShowNextStep && !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline;
+    const effectiveNextStep = hasOptimisticOverride ? optimisticNextStep : (moneyRequestReport?.nextStep ?? optimisticNextStep);
+    const hasNextStepContent = !!(
+        effectiveNextStep &&
+        (('message' in effectiveNextStep && Array.isArray(effectiveNextStep.message) && effectiveNextStep.message.length > 0) ||
+            ('messageKey' in effectiveNextStep && effectiveNextStep.messageKey))
+    );
+    const showNextStepBar = shouldShowNextStep && hasNextStepContent;
+    const showNextStepSkeleton = shouldShowNextStep && !effectiveNextStep && !!isLoadingInitialReportActions && !isOffline;
     const shouldShowMoreContent = showNextStepBar || showNextStepSkeleton || !!statusBarProps || isReportInSearch;
 
     return (
@@ -1824,7 +1836,7 @@ function MoneyReportHeader({
             {shouldShowMoreContent && (
                 <View style={[styles.flexRow, styles.gap2, styles.justifyContentStart, styles.flexNoWrap, styles.ph5, styles.pb3]}>
                     <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.flexWrap, styles.justifyContentCenter]}>
-                        {showNextStepBar && <MoneyReportHeaderStatusBar nextStep={optimisticNextStep} />}
+                        {showNextStepBar && <MoneyReportHeaderStatusBar nextStep={effectiveNextStep} />}
                         {showNextStepSkeleton && <MoneyReportHeaderStatusBarSkeleton />}
                         {!!statusBarProps && (
                             <MoneyRequestHeaderStatusBar

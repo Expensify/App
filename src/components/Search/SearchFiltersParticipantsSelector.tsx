@@ -2,9 +2,8 @@ import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
-// eslint-disable-next-line no-restricted-imports
-import SelectionList from '@components/SelectionListWithSections';
-import UserSelectionListItem from '@components/SelectionListWithSections/Search/UserSelectionListItem';
+import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelectionListItem';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -456,23 +455,28 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
     const isLoadingNewOptions = !!isSearchingForReports;
     const showLoadingPlaceholder = !didScreenTransitionEnd || !areOptionsInitialized || !initialAccountIDs || !personalDetails;
 
+    const textInputOptions = useMemo(
+        () => ({
+            value: searchTerm,
+            label: translate('selectionList.nameEmailOrPhoneNumber'),
+            onChangeText: setSearchTerm,
+            headerMessage,
+        }),
+        [searchTerm, translate, setSearchTerm, headerMessage],
+    );
+
     return (
-        <SelectionList
-            canSelectMultiple
+        <SelectionListWithSections
             sections={sections}
             ListItem={UserSelectionListItem}
-            textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-            headerMessage={headerMessage}
-            textInputValue={searchTerm}
+            textInputOptions={textInputOptions}
+            shouldShowTextInput
             footerContent={footerContent}
-            showScrollIndicator
             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-            onChangeText={(value) => {
-                setSearchTerm(value);
-            }}
             onSelectRow={handleParticipantSelection}
             isLoadingNewOptions={isLoadingNewOptions}
             showLoadingPlaceholder={showLoadingPlaceholder}
+            canSelectMultiple
         />
     );
 }
