@@ -2139,6 +2139,12 @@ const staticStyles = (theme: ThemeColors) =>
                     flexGrow: 1,
                     flexShrink: 1,
                 }),
+
+                // On iOS, negative margin adjusts frame position for correct VoiceOver focus order. See #77499.
+                ...(Platform.OS === 'ios' && {
+                    marginTop: -5,
+                    paddingTop: 5,
+                }),
             },
             0,
         ),
@@ -5784,6 +5790,14 @@ const staticStyles = (theme: ThemeColors) =>
         barChartChartContainer: {
             minHeight: 250,
         },
+        lineChartContainer: {
+            borderRadius: variables.componentBorderRadiusLarge,
+            paddingTop: variables.qrShareHorizontalPadding,
+            paddingHorizontal: variables.qrShareHorizontalPadding,
+        },
+        lineChartChartContainer: {
+            minHeight: 250,
+        },
         discoverSectionImage: {
             width: '100%',
             height: undefined,
@@ -6310,12 +6324,6 @@ const plainStyles = (theme: ThemeColors) =>
                 marginHorizontal: shouldUseNarrowLayout ? 20 : 32,
                 marginTop: shouldUseNarrowLayout ? 20 : 32,
             }) satisfies ViewStyle,
-
-        widgetContainerIconWrapper: {
-            flexGrow: 0,
-            flexShrink: 0,
-            marginRight: 11,
-        },
 
         getWidgetItemIconContainerStyle: (backgroundColor: string) =>
             ({

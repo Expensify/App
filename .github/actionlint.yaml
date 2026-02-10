@@ -6,6 +6,11 @@ self-hosted-runner:
     - macos-15-xlarge
     - macos-12
     - ubuntu-24.04-v4
+    - blacksmith-32vcpu-ubuntu-2404
+    - blacksmith-16vcpu-ubuntu-2404
+    - blacksmith-8vcpu-ubuntu-2404
+    - blacksmith-4vcpu-ubuntu-2404
+    - blacksmith-2vcpu-ubuntu-2404
 
 paths:
   '**/*':

@@ -2,11 +2,14 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import {getReportPreviewAction} from '@libs/actions/IOU';
 import {duplicateExpenseTransaction, mergeDuplicates, resolveDuplicates} from '@libs/actions/IOU/Duplicate';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+import {addComment, openReport} from '@libs/actions/Report';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {getOriginalMessage} from '@libs/ReportActionsUtils';
-import {buildOptimisticIOUReport, buildOptimisticIOUReportAction} from '@libs/ReportUtils';
+import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
+import {getOriginalMessage, getReportAction} from '@libs/ReportActionsUtils';
+import {buildOptimisticIOUReport, buildOptimisticIOUReportAction, buildTransactionThread} from '@libs/ReportUtils';
 import {buildOptimisticTransaction, isTimeRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -21,6 +24,7 @@ import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import currencyList from '../../unit/currencyList.json';
 import createRandomPolicy from '../../utils/collections/policies';
 import createRandomPolicyCategories from '../../utils/collections/policyCategory';
+import createRandomReportAction from '../../utils/collections/reportActions';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
@@ -132,13 +136,14 @@ describe('actions/Duplicate', () => {
             {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION},
         ];
 
-        const createMockIouAction = (transactionID: string, reportActionID: string, childReportID: string): ReportAction => ({
+        const createMockIouAction = (transactionID: string, reportActionID: string, childReportID: string, IOUReportID?: string): ReportAction => ({
             reportActionID,
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             created: '2024-01-01 12:00:00',
             originalMessage: {
                 IOUTransactionID: transactionID,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                IOUReportID,
             } as OriginalMessageIOU,
             message: [{type: 'TEXT', text: 'Test IOU message'}],
             childReportID,
@@ -340,6 +345,219 @@ describe('actions/Duplicate', () => {
 
             // Then: Verify API was still called
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.MERGE_DUPLICATES, expect.objectContaining({}), expect.objectContaining({}));
+        });
+
+        it('should delete the thread reports of the duplicated transactions and update the comment count of the preview report', async () => {
+            // Given: Set up test data with main transaction and duplicates
+            const chatReportID = 'report123';
+            const reportID = 'report456';
+            const mainTransactionID = 'main123';
+            const duplicate1ID = 'dup456';
+            const duplicate2ID = 'dup789';
+            const duplicateTransactionIDs = [duplicate1ID, duplicate2ID];
+            const previewActionID = 'action123';
+            const iouAction1ID = 'action456';
+            const iouAction2ID = 'action789';
+
+            const chatReport: Report = {
+                ...createRandomReport(0, undefined),
+                policyID: CONST.POLICY.ID_FAKE,
+                parentReportID: undefined,
+                parentReportActionID: undefined,
+                reportID: chatReportID,
+                type: 'chat',
+            };
+            let previewAction: OnyxEntry<ReportAction> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                reportActionID: previewActionID,
+                childMoneyRequestCount: 3,
+                childVisibleActionCount: 0,
+                originalMessage: {linkedReportID: reportID},
+            };
+            const expenseReport: Report = {
+                ...createMockReport(reportID, 300),
+                chatReportID: chatReport.reportID,
+                parentReportID: chatReport.reportID,
+                parentReportActionID: previewAction.reportActionID,
+            };
+            const mainTransaction = createMockTransaction(mainTransactionID, reportID, 100);
+            const duplicateTransaction1 = createMockTransaction(duplicate1ID, reportID, 100);
+            const duplicateTransaction2 = createMockTransaction(duplicate2ID, reportID, 100);
+
+            const mainViolations = createMockViolations();
+            const duplicate1Violations = createMockViolations();
+            const duplicate2Violations = createMockViolations();
+
+            let iouAction1 = createMockIouAction(duplicate1ID, iouAction1ID, '', reportID) as OnyxEntry<ReportAction>;
+            let iouAction2 = createMockIouAction(duplicate2ID, iouAction2ID, '', reportID) as OnyxEntry<ReportAction>;
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${mainTransactionID}`, mainTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicate1ID}`, duplicateTransaction1);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicate2ID}`, duplicateTransaction2);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`, mainViolations);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`, duplicate1Violations);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate2ID}`, duplicate2Violations);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
+                [previewActionID]: previewAction,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [iouAction1ID]: iouAction1,
+                [iouAction2ID]: iouAction2,
+            });
+            await waitForBatchedUpdates();
+
+            const transactionThreadReport1 = buildTransactionThread(iouAction1, expenseReport);
+            const transactionThreadReport2 = buildTransactionThread(iouAction2, expenseReport);
+
+            expect(transactionThreadReport1.participants).toEqual({
+                [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN},
+            });
+            expect(transactionThreadReport2.participants).toEqual({
+                [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN},
+            });
+
+            const participantAccountIDs = Object.keys(transactionThreadReport1.participants ?? {}).map(Number);
+            const userLogins = getLoginsByAccountIDs(participantAccountIDs);
+            jest.advanceTimersByTime(10);
+            openReport(transactionThreadReport1.reportID, '', userLogins, transactionThreadReport1, iouAction1?.reportActionID);
+            openReport(transactionThreadReport2.reportID, '', userLogins, transactionThreadReport1, iouAction2?.reportActionID);
+            await waitForBatchedUpdates();
+
+            let transactionThreadReportActions1: OnyxEntry<ReportActions>;
+            let transactionThreadReportActions2: OnyxEntry<ReportActions>;
+            Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport1.reportID}`,
+                callback: (val) => (transactionThreadReportActions1 = val),
+            });
+            Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport2.reportID}`,
+                callback: (val) => (transactionThreadReportActions2 = val),
+            });
+            await waitForBatchedUpdates();
+
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport1.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        expect(report).toBeTruthy();
+                        resolve();
+                    },
+                });
+            });
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport2.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        expect(report).toBeTruthy();
+                        resolve();
+                    },
+                });
+            });
+
+            jest.advanceTimersByTime(10);
+
+            // When a comment is added
+            const addCommentToThread = async (thread: Report, iouActionID: string, message: string) => {
+                const updatedIouAction = getReportAction(expenseReport.reportID, iouActionID);
+                const updatedPreviewAction = getReportAction(chatReport.reportID, previewActionID);
+                const ancestors = [];
+                ancestors.push(...(updatedIouAction ? [{report: expenseReport, reportAction: updatedIouAction, shouldDisplayNewMarker: false}] : []));
+                ancestors.push(...(updatedPreviewAction ? [{report: chatReport, reportAction: updatedPreviewAction, shouldDisplayNewMarker: false}] : []));
+                addComment({
+                    report: thread,
+                    notifyReportID: thread.reportID,
+                    ancestors,
+                    text: message,
+                    timezoneParam: CONST.DEFAULT_TIME_ZONE,
+                    currentUserAccountID: RORY_ACCOUNT_ID,
+                });
+                await waitForBatchedUpdates();
+            };
+            await addCommentToThread(transactionThreadReport1, iouAction1ID, 'Testing a comment');
+            await addCommentToThread(transactionThreadReport1, iouAction1ID, 'Testing a comment1');
+            await addCommentToThread(transactionThreadReport2, iouAction2ID, 'Testing a comment2');
+
+            // Then the report should have 3 actions
+            expect(Object.values(transactionThreadReportActions1 ?? {}).length).toBe(3);
+            // And the report should have 2 actions
+            expect(Object.values(transactionThreadReportActions2 ?? {}).length).toBe(2);
+
+            iouAction1 = getReportAction(expenseReport.reportID, iouAction1ID);
+            iouAction2 = getReportAction(expenseReport.reportID, iouAction2ID);
+            previewAction = getReportAction(chatReport.reportID, previewActionID);
+            expect(iouAction1?.childVisibleActionCount).toBe(2);
+            expect(iouAction2?.childVisibleActionCount).toBe(1);
+            expect(previewAction?.childVisibleActionCount).toBe(3);
+
+            await waitForBatchedUpdates();
+
+            const mergeParams = {
+                transactionID: mainTransactionID,
+                transactionIDList: duplicateTransactionIDs,
+                created: '2024-01-01 12:00:00',
+                merchant: 'Updated Merchant',
+                amount: 100,
+                currency: CONST.CURRENCY.EUR,
+                category: 'Travel',
+                comment: 'Updated comment',
+                billable: true,
+                reimbursable: false,
+                tag: 'UpdatedProject',
+                receiptID: 123,
+                reportID,
+            };
+
+            // When: Call mergeDuplicates
+            mergeDuplicates(mergeParams);
+            await waitForBatchedUpdates();
+
+            // Then we expect the reportPreview to update with new childVisibleActionCount
+            previewAction = getReportPreviewAction(chatReport?.reportID, expenseReport?.reportID) ?? undefined;
+            expect(previewAction).toBeTruthy();
+            expect(previewAction?.childVisibleActionCount).toEqual(0);
+            expect(previewAction?.childCommenterCount).toEqual(0);
+
+            // Then the transaction thread report should be ready to be deleted
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport1.reportID}`,
+                    waitForCollectionCallback: false,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        expect(report?.reportID).toBeFalsy();
+                        resolve();
+                    },
+                });
+            });
+
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport2.reportID}`,
+                    waitForCollectionCallback: false,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        expect(report?.reportID).toBeFalsy();
+                        resolve();
+                    },
+                });
+            });
+
+            // Then the transaction thread report should be deleted in the success onyx data
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.MERGE_DUPLICATES,
+                expect.objectContaining(mergeParams),
+                expect.objectContaining({
+                    successData: expect.arrayContaining([
+                        expect.objectContaining({key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport1.reportID}`, value: null}),
+                        expect.objectContaining({key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport2.reportID}`, value: null}),
+                    ]),
+                }),
+            );
         });
     });
 

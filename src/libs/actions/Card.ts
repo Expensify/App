@@ -21,6 +21,7 @@ import type {
     UpdateExpensifyCardTitleParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import {isReportOpenOrUnsubmitted} from '@libs/ReportUtils';
@@ -28,6 +29,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CompanyCardFeedWithDomainID, Report, Transaction} from '@src/types/onyx';
 import type {CardLimitType, ExpensifyCardDetails, IssueNewCardData, IssueNewCardStep} from '@src/types/onyx/Card';
+import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
 type ReplacementReason = 'damaged' | 'stolen';
@@ -214,18 +216,10 @@ function activatePhysicalExpensifyCard(cardLastFourDigits: string, cardID: numbe
         cardID,
     };
 
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.ACTIVATE_PHYSICAL_EXPENSIFY_CARD, parameters, {
+    API.write(WRITE_COMMANDS.ACTIVATE_PHYSICAL_EXPENSIFY_CARD, parameters, {
         optimisticData,
         successData,
         failureData,
-    }).then((response) => {
-        if (!response) {
-            return;
-        }
-        if (response.pin) {
-            Onyx.set(ONYXKEYS.ACTIVATED_CARD_PIN, response.pin);
-        }
     });
 }
 
@@ -234,13 +228,6 @@ function activatePhysicalExpensifyCard(cardLastFourDigits: string, cardID: numbe
  */
 function clearCardListErrors(cardID: number) {
     Onyx.merge(ONYXKEYS.CARD_LIST, {[cardID]: {errors: null, isLoading: false}});
-}
-
-/**
- * Clears the PIN for an activated card
- */
-function clearActivatedCardPin() {
-    Onyx.set(ONYXKEYS.ACTIVATED_CARD_PIN, '');
 }
 
 function clearCardErrorField(cardID: number, fieldName: string) {
@@ -1172,12 +1159,12 @@ function configureExpensifyCardsForPolicy(policyID: string, workspaceAccountID: 
     });
 }
 
-function issueExpensifyCard(domainAccountID: number, policyID: string | undefined, feedCountry: string, validateCode: string, data?: IssueNewCardData) {
+function issueExpensifyCard(domainAccountID: number, policyID: string | undefined, feedCountry: string, validateCode: string, timeZone: SelectedTimezone, data?: IssueNewCardData) {
     if (!data) {
         return;
     }
 
-    const {assigneeEmail, limit, limitType, cardTitle, cardType} = data;
+    const {assigneeEmail, limit, limitType, cardTitle, cardType, validFrom, validThru} = data;
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD>> = [
         {
@@ -1238,7 +1225,12 @@ function issueExpensifyCard(domainAccountID: number, policyID: string | undefine
     // eslint-disable-next-line rulesdir/no-multiple-api-calls
     API.write(
         WRITE_COMMANDS.CREATE_ADMIN_ISSUED_VIRTUAL_CARD,
-        {...parameters, policyID},
+        {
+            ...parameters,
+            policyID,
+            validFrom: validFrom ? DateUtils.normalizeDateToStartOfDay(validFrom, timeZone) : undefined,
+            validThru: validThru ? DateUtils.normalizeDateToEndOfDay(validThru, timeZone) : undefined,
+        },
         {
             optimisticData,
             successData,
@@ -1446,7 +1438,6 @@ export {
     configureExpensifyCardsForPolicy,
     issueExpensifyCard,
     openCardDetailsPage,
-    clearActivatedCardPin,
     clearCardErrorField,
     clearCardNameValuePairsErrorField,
     setPersonalCardReimbursable,

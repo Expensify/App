@@ -52,7 +52,7 @@ export default function ImportOnyxState({setIsLoading}: ImportOnyxStateProps) {
             })
             .then(() => {
                 setIsUsingImportedState(true);
-                Navigation.navigate(ROUTES.INBOX);
+                Navigation.navigate(ROUTES.HOME);
             })
             .catch((error) => {
                 console.error('Error importing state:', error);
