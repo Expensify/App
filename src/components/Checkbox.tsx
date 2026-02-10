@@ -136,6 +136,9 @@ function Checkbox({
             onKeyDown={handleSpaceOrEnterKey}
             tabIndex={tabIndex}
             role={CONST.ROLE.CHECKBOX}
+            accessibilityState={{
+                checked: isIndeterminate ? 'mixed' : isChecked,
+            }}
             /*  true  → checked
                 false → unchecked
                 mixed → indeterminate  */

@@ -94,8 +94,9 @@ const SCREENS = {
         SAVED_SEARCH_RENAME_RHP: 'Search_Saved_Search_Rename_RHP',
         ADVANCED_FILTERS_IN_RHP: 'Search_Advanced_Filters_In_RHP',
         TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP',
+        TRANSACTION_HOLD_REASON_SEARCH: 'Search_Transaction_Hold_Reason_Search',
         SEARCH_REJECT_REASON_RHP: 'Search_Reject_Reason_RHP',
-        TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP: 'Search_Transactions_Change_Report_RHP',
+        TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP: 'Search_Transactions_Change_Report_Search',
     },
     SETTINGS: {
         ROOT: 'Settings_Root',
@@ -748,6 +749,7 @@ const SCREENS = {
         DISTANCE_RATES: 'Distance_Rates',
         TRAVEL: 'Travel',
         TRAVEL_SETTINGS_ACCOUNT: 'Workspace_Travel_Settings_Account',
+        TRAVEL_SETTINGS_FREQUENCY: 'Workspace_Travel_Settings_Frequency',
         CREATE_DISTANCE_RATE: 'Create_Distance_Rate',
         CREATE_DISTANCE_RATE_UPGRADE: 'Create_Distance_Rate_Upgrade',
         DISTANCE_RATES_SETTINGS: 'Distance_Rates_Settings',

@@ -42,8 +42,9 @@ function IssueNewCardConfirmMagicCodePage({route}: IssueNewCardConfirmMagicCodeP
             return;
         }
         if (backTo && shouldUseBackToParam) {
-            Navigation.goBack(backTo);
+            Navigation.goBack(backTo, {compareParams: false});
         } else {
+            Navigation.closeRHPFlow();
             Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID), {forceReplace: true});
         }
         clearIssueNewCardFlow(policyID);
