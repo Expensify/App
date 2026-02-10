@@ -606,6 +606,7 @@ const translations: TranslationDeepObject<typeof en> = {
         on: '开打开',
         before: '之前',
         after: '之后',
+        range: '范围',
         reschedule: '重新安排',
         general: '常规',
         workspacesTabTitle: '工作区',
@@ -7100,6 +7101,9 @@ ${reportName}
         exportAll: {
             selectAllMatchingItems: '选择所有匹配的项目',
             allMatchingItemsSelected: '已选中所有匹配项',
+        },
+        errors: {
+            pleaseSelectDatesForBothFromAndTo: '请选择起始和结束日期',
         },
     },
     genericErrorPage: {

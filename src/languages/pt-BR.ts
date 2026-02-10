@@ -609,6 +609,7 @@ const translations: TranslationDeepObject<typeof en> = {
         on: 'Ativado',
         before: 'Antes',
         after: 'Depois',
+        range: 'Intervalo',
         reschedule: 'Reagendar',
         general: 'Geral',
         workspacesTabTitle: 'Espaços de trabalho',
@@ -7238,6 +7239,9 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         exportAll: {
             selectAllMatchingItems: 'Selecione todos os itens correspondentes',
             allMatchingItemsSelected: 'Todos os itens correspondentes selecionados',
+        },
+        errors: {
+            pleaseSelectDatesForBothFromAndTo: 'Selecione datas para De e Até',
         },
     },
     genericErrorPage: {

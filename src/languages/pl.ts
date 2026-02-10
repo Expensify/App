@@ -610,6 +610,7 @@ const translations: TranslationDeepObject<typeof en> = {
         on: 'Włączone',
         before: 'Przed',
         after: 'PoPo',
+        range: 'Zakres',
         reschedule: 'Przełóż',
         general: 'Ogólne',
         workspacesTabTitle: 'Przestrzenie robocze',
@@ -7238,6 +7239,9 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         exportAll: {
             selectAllMatchingItems: 'Zaznacz wszystkie pasujące elementy',
             allMatchingItemsSelected: 'Zaznaczono wszystkie pasujące elementy',
+        },
+        errors: {
+            pleaseSelectDatesForBothFromAndTo: 'Wybierz daty dla Od i Do',
         },
     },
     genericErrorPage: {

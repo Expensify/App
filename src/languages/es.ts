@@ -370,6 +370,7 @@ const translations: TranslationDeepObject<typeof en> = {
         on: 'El',
         before: 'Antes',
         after: 'Después',
+        range: 'Rango',
         reschedule: 'Reprogramar',
         general: 'General',
         workspacesTabTitle: 'Espacios',
@@ -6963,6 +6964,9 @@ ${amount} para ${merchant} - ${date}`,
         exportAll: {
             selectAllMatchingItems: 'Seleccionar todos los elementos coincidentes',
             allMatchingItemsSelected: 'Todos los elementos coincidentes seleccionados',
+        },
+        errors: {
+            pleaseSelectDatesForBothFromAndTo: 'Por favor, selecciona fechas para De y A',
         },
     },
     genericErrorPage: {

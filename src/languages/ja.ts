@@ -610,6 +610,7 @@ const translations: TranslationDeepObject<typeof en> = {
         on: 'オン',
         before: '前',
         after: '後',
+        range: '範囲',
         reschedule: '予定を変更',
         general: '一般',
         workspacesTabTitle: 'ワークスペース',
@@ -7209,6 +7210,9 @@ ${reportName}
         exportAll: {
             selectAllMatchingItems: '一致する項目をすべて選択',
             allMatchingItemsSelected: '一致するすべての項目を選択済み',
+        },
+        errors: {
+            pleaseSelectDatesForBothFromAndTo: '開始日と終了日の両方を選択してください',
         },
     },
     genericErrorPage: {

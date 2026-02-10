@@ -610,6 +610,7 @@ const translations: TranslationDeepObject<typeof en> = {
         on: 'Ein',
         before: 'Vor',
         after: 'Nach',
+        range: 'Bereich',
         reschedule: 'Verschieben',
         general: 'Allgemein',
         workspacesTabTitle: 'Workspaces',
@@ -7286,6 +7287,9 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         exportAll: {
             selectAllMatchingItems: 'Alle passenden Einträge auswählen',
             allMatchingItemsSelected: 'Alle passenden Elemente ausgewählt',
+        },
+        errors: {
+            pleaseSelectDatesForBothFromAndTo: 'Bitte wähle Daten für Von und Bis',
         },
     },
     genericErrorPage: {

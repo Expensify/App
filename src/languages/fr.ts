@@ -611,6 +611,7 @@ const translations: TranslationDeepObject<typeof en> = {
         on: 'Activé',
         before: 'Avant',
         after: 'Après',
+        range: 'Intervalle',
         reschedule: 'Reprogrammer',
         general: 'Général',
         workspacesTabTitle: 'Espaces de travail',
@@ -7300,6 +7301,9 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         exportAll: {
             selectAllMatchingItems: 'Sélectionnez tous les éléments correspondants',
             allMatchingItemsSelected: 'Tous les éléments correspondants sont sélectionnés',
+        },
+        errors: {
+            pleaseSelectDatesForBothFromAndTo: 'Veuillez sélectionner des dates pour De et À',
         },
     },
     genericErrorPage: {
