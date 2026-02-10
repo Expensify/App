@@ -211,13 +211,13 @@ describe('CalendarPicker', () => {
         );
 
         //  When the day 15 is pressed
-        fireEvent.press(screen.getByLabelText('15'));
+        fireEvent.press(screen.getByLabelText('Saturday, February 15, 2003'));
 
         // Then the onSelected should not be called as the label 15 is disabled
         expect(onSelectedMock).not.toHaveBeenCalled();
 
         // When the day 16 is pressed
-        fireEvent.press(screen.getByLabelText('16'));
+        fireEvent.press(screen.getByLabelText('Sunday, February 16, 2003'));
 
         // Then the onSelected should be called as the label 16 is enabled
         expect(onSelectedMock).toHaveBeenCalledWith('2003-02-16');
@@ -238,13 +238,13 @@ describe('CalendarPicker', () => {
         );
 
         //  When the day 25 is pressed
-        fireEvent.press(screen.getByLabelText('25'));
+        fireEvent.press(screen.getByLabelText('Tuesday, February 25, 2003'));
 
         // Then the onSelected should not be called as the label 15 is disabled
         expect(onSelectedMock).not.toHaveBeenCalled();
 
         // When the day 24 is pressed
-        fireEvent.press(screen.getByLabelText('24'));
+        fireEvent.press(screen.getByLabelText('Monday, February 24, 2003'));
 
         // Then the onSelected should be called as the label 24 is enabled
         expect(onSelectedMock).toHaveBeenCalledWith('2003-02-24');
@@ -263,7 +263,7 @@ describe('CalendarPicker', () => {
         );
 
         // then the label 16 should be clickable
-        expect(screen.getByLabelText('16')).toBeEnabled();
+        expect(screen.getByLabelText('Sunday, February 16, 2003')).toBeEnabled();
     });
 
     test('should allow to press max date', () => {
@@ -279,6 +279,6 @@ describe('CalendarPicker', () => {
         );
 
         // then the label 24 should be clickable
-        expect(screen.getByLabelText('24')).toBeEnabled();
+        expect(screen.getByLabelText('Monday, February 24, 2003')).toBeEnabled();
     });
 });

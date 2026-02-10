@@ -71,6 +71,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: false});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
     const [isFullscreenVisible] = useOnyx(ONYXKEYS.FULLSCREEN_VISIBILITY, {canBeMissing: true});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
@@ -239,6 +240,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 isReportArchived: !!itemReportNameValuePairs?.private_isArchived,
                 policyForMovingExpensesID,
                 reportMetadata: itemReportMetadata,
+                reportAttributesDerived: reportAttributes,
             });
 
             const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
@@ -266,6 +268,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     reportID={reportID}
                     fullReport={item}
                     reportAttributes={itemReportAttributes}
+                    reportAttributesDerived={reportAttributes}
                     oneTransactionThreadReport={itemOneTransactionThreadReport}
                     reportNameValuePairs={itemReportNameValuePairs}
                     reportActions={itemReportActions}
@@ -288,6 +291,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     shouldShowRBRorGBRTooltip={shouldShowRBRorGBRTooltip}
                     activePolicyID={activePolicyID}
                     onboardingPurpose={introSelected?.choice}
+                    onboarding={onboarding}
                     isFullscreenVisible={isFullscreenVisible}
                     isReportsSplitNavigatorLast={isReportsSplitNavigatorLast}
                     isScreenFocused={isScreenFocused}
@@ -322,6 +326,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             onLayoutItem,
             activePolicyID,
             introSelected?.choice,
+            onboarding,
             isFullscreenVisible,
             isReportsSplitNavigatorLast,
             isScreenFocused,

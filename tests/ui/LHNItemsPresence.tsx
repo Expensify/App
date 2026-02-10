@@ -222,7 +222,7 @@ describe('SidebarLinksData', () => {
             expect(getDisplayNames()).toHaveLength(1);
 
             // And the draft icon should be shown, indicating there is unsent content.
-            expect(screen.getByTestId('Pencil Icon')).toBeOnTheScreen();
+            expect(screen.getByTestId('Pencil Icon', {includeHiddenElements: true})).toBeOnTheScreen();
         });
 
         it('should display pinned report', async () => {
@@ -250,7 +250,7 @@ describe('SidebarLinksData', () => {
             expect(getOptionRows()).toHaveLength(1);
 
             // And the pin icon should be shown
-            expect(screen.getByTestId('Pin Icon')).toBeOnTheScreen();
+            expect(screen.getByTestId('Pin Icon', {includeHiddenElements: true})).toBeOnTheScreen();
         });
 
         it('should display the report with violations', async () => {
@@ -299,7 +299,7 @@ describe('SidebarLinksData', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then the RBR icon should be shown
-            expect(screen.getByTestId('RBR Icon')).toBeOnTheScreen();
+            expect(screen.getByTestId('RBR Icon', {includeHiddenElements: true})).toBeOnTheScreen();
         });
 
         it('should display the report awaiting user action', async () => {
@@ -321,7 +321,7 @@ describe('SidebarLinksData', () => {
             expect(getOptionRows()).toHaveLength(1);
 
             // And a green dot icon should be shown
-            expect(screen.getByTestId('GBR Icon')).toBeOnTheScreen();
+            expect(screen.getByTestId('GBR Icon', {includeHiddenElements: true})).toBeOnTheScreen();
         });
 
         it('should display the archived report in the default mode', async () => {
@@ -551,7 +551,7 @@ describe('SidebarLinksData', () => {
                 payeeAccountID: 100,
                 total: 122,
                 currency: 'USD',
-                allBetas: [CONST.BETAS.ALL],
+                betas: [CONST.BETAS.ALL],
             });
             const expenseTransaction = buildOptimisticTransaction({
                 transactionParams: {
@@ -730,7 +730,7 @@ describe('SidebarLinksData', () => {
             expect(getDisplayNames()).toHaveLength(1);
 
             // And the GBR icon should be shown, indicating there is require action from current user.
-            expect(screen.getByTestId('GBR Icon')).toBeOnTheScreen();
+            expect(screen.getByTestId('GBR Icon', {includeHiddenElements: true})).toBeOnTheScreen();
         });
 
         it('should display the report with GRB when the report has unread mention', async () => {
@@ -752,7 +752,7 @@ describe('SidebarLinksData', () => {
             expect(getDisplayNames()).toHaveLength(1);
 
             // And the GRB icon should be shown, indicating there is unread mention.
-            expect(screen.getByTestId('GBR Icon')).toBeOnTheScreen();
+            expect(screen.getByTestId('GBR Icon', {includeHiddenElements: true})).toBeOnTheScreen();
         });
     });
 });

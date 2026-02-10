@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useDefaultFundID from '@hooks/useDefaultFundID';
@@ -53,6 +54,10 @@ function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: Confirm
     const hasApprovalError = !!policy?.errorFields?.approvalMode;
     const isAddApprovalEnabled = policy?.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL && !hasApprovalError;
     const shouldDisableSubmitButton = !isAddApprovalEnabled && data?.limitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART;
+    const personalDetails = usePersonalDetails();
+
+    const assigneePersonalDetails = Object.values(personalDetails ?? {}).find((detail) => detail?.login === data?.assigneeEmail);
+    const assigneeTimeZone = assigneePersonalDetails?.timezone?.selected;
 
     const submitButton = useRef<View>(null);
 
@@ -68,6 +73,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: Confirm
         }
 
         if (isSuccessful) {
+            Navigation.closeRHPFlow();
             Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID), {forceReplace: true});
             clearIssueNewCardFlow(policyID);
             return;
@@ -86,19 +92,19 @@ function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: Confirm
     }, [issueNewCard, isSuccessful, policyID]);
 
     const handleIssueCard = useCallback(() => {
-        if (!policyID) {
+        if (!policyID || !assigneeTimeZone) {
             return;
         }
 
         if (AccountUtils.hasValidateCodeExtendedAccess(account)) {
             // Attempt to issue directly without magic code when user has extended access
             // If this fails, the effect above will redirect to the magic code page
-            issueExpensifyCard(defaultFundID, policyID, isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) ? '' : CONST.COUNTRY.US, '', data);
+            issueExpensifyCard(defaultFundID, policyID, isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) ? '' : CONST.COUNTRY.US, '', assigneeTimeZone, data);
         } else {
             // Navigate to magic code page
             Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE.getRoute(policyID, backTo));
         }
-    }, [policyID, data, account, defaultFundID, isBetaEnabled, backTo]);
+    }, [policyID, data, account, defaultFundID, isBetaEnabled, backTo, assigneeTimeZone]);
 
     const errorMessage = getLatestErrorMessage(issueNewCard) || (shouldDisableSubmitButton ? translate('workspace.card.issueNewCard.disabledApprovalForSmartLimitError') : '');
 
@@ -111,6 +117,15 @@ function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: Confirm
     };
 
     const translationForLimitType = getTranslationKeyForLimitType(data?.limitType);
+
+    const isPhysicalCard = data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL;
+    const cardReadyTranslationKey = isPhysicalCard ? 'workspace.card.issueNewCard.willBeReadyToShip' : 'workspace.card.issueNewCard.willBeReadyToUse';
+
+    const isSingleUseEnabled = isBetaEnabled(CONST.BETAS.SINGLE_USE_AND_EXPIRE_BY_CARDS);
+    const expirationDateTitle =
+        data?.validFrom && data?.validThru ? translate('workspace.card.issueNewCard.validFromToWithoutText', {startDate: data?.validFrom, endDate: data?.validThru}) : '';
+
+    const shouldShowExpirationDate = isSingleUseEnabled && !isPhysicalCard;
 
     return (
         <InteractiveStepWrapper
@@ -130,7 +145,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: Confirm
                 addBottomSafeAreaPadding
             >
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.card.issueNewCard.letsDoubleCheck')}</Text>
-                <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.willBeReady')}</Text>
+                <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate(cardReadyTranslationKey)}</Text>
                 <MenuItemWithTopDescription
                     description={translate('workspace.card.issueNewCard.cardholder')}
                     title={getUserNameByEmail(data?.assigneeEmail ?? '', 'displayName')}
@@ -148,7 +163,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: Confirm
                     description={translate('workspace.card.issueNewCard.limit')}
                     title={convertToShortDisplayString(data?.limit, data?.currency)}
                     shouldShowRightIcon
-                    onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.LIMIT)}
+                    onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE)}
                 />
                 <MenuItemWithTopDescription
                     description={translate('workspace.card.issueNewCard.limitType')}
@@ -156,6 +171,14 @@ function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: Confirm
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE)}
                 />
+                {!!expirationDateTitle && shouldShowExpirationDate && (
+                    <MenuItemWithTopDescription
+                        description={translate('workspace.card.issueNewCard.expirationDate')}
+                        title={expirationDateTitle}
+                        shouldShowRightIcon
+                        onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.EXPIRY_OPTIONS)}
+                    />
+                )}
                 <MenuItemWithTopDescription
                     description={translate('workspace.card.issueNewCard.cardName')}
                     title={data?.cardTitle}

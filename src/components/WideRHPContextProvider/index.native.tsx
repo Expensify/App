@@ -1,10 +1,10 @@
-import React, {createContext} from 'react';
+import React, {createContext, useContext} from 'react';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
-import defaultWideRHPContextValue from './default';
-import type {WideRHPContextType} from './types';
+import {defaultWideRHPActionsContextValue, defaultWideRHPStateContextValue} from './default';
+import type {WideRHPActionsContextType, WideRHPStateContextType} from './types';
 
 const secondOverlayWideRHPProgress = new Animated.Value(0);
 const secondOverlayRHPOnWideRHPProgress = new Animated.Value(0);
@@ -20,10 +20,23 @@ const modalStackOverlayWideRHPPositionLeft = new Animated.Value(0);
 
 const expandedRHPProgress = new Animated.Value(0);
 
-const WideRHPContext = createContext<WideRHPContextType>(defaultWideRHPContextValue);
+const WideRHPStateContext = createContext<WideRHPStateContextType>(defaultWideRHPStateContextValue);
+const WideRHPActionsContext = createContext<WideRHPActionsContextType>(defaultWideRHPActionsContextValue);
 
 function WideRHPContextProvider({children}: React.PropsWithChildren) {
-    return <WideRHPContext.Provider value={defaultWideRHPContextValue}>{children}</WideRHPContext.Provider>;
+    return (
+        <WideRHPStateContext.Provider value={defaultWideRHPStateContextValue}>
+            <WideRHPActionsContext.Provider value={defaultWideRHPActionsContextValue}>{children}</WideRHPActionsContext.Provider>
+        </WideRHPStateContext.Provider>
+    );
+}
+
+function useWideRHPState() {
+    return useContext(WideRHPStateContext);
+}
+
+function useWideRHPActions() {
+    return useContext(WideRHPActionsContext);
 }
 
 export default WideRHPContextProvider;
@@ -38,6 +51,9 @@ export {
     secondOverlayRHPOnWideRHPProgress,
     secondOverlayWideRHPProgress,
     thirdOverlayProgress,
-    WideRHPContext,
+    WideRHPStateContext,
+    WideRHPActionsContext,
+    useWideRHPState,
+    useWideRHPActions,
 };
-export type {WideRHPContextType};
+export type {WideRHPStateContextType, WideRHPActionsContextType};

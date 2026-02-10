@@ -10,10 +10,12 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setTransactionReport} from '@libs/actions/Transaction';
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultTimeTrackingRate} from '@libs/PolicyUtils';
+import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import {computeTimeAmount, formatTimeMerchant} from '@libs/TimeTrackingUtils';
 import variables from '@styles/variables';
 import {setMoneyRequestAmount, setMoneyRequestMerchant, setMoneyRequestParticipantsFromReport, setMoneyRequestTimeCount, setMoneyRequestTimeRate} from '@userActions/IOU';
@@ -27,8 +29,12 @@ import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepHoursProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.CREATE | typeof SCREENS.MONEY_REQUEST.STEP_HOURS> &
-    WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.CREATE | typeof SCREENS.MONEY_REQUEST.STEP_HOURS>;
+type IOURequestStepHoursProps = WithWritableReportOrNotFoundProps<
+    typeof SCREENS.MONEY_REQUEST.CREATE | typeof SCREENS.MONEY_REQUEST.STEP_HOURS | typeof SCREENS.MONEY_REQUEST.STEP_HOURS_EDIT
+> &
+    WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.CREATE | typeof SCREENS.MONEY_REQUEST.STEP_HOURS | typeof SCREENS.MONEY_REQUEST.STEP_HOURS_EDIT> & {
+        explicitPolicyID?: string;
+    };
 
 function IOURequestStepHours({
     report,
@@ -37,15 +43,17 @@ function IOURequestStepHours({
         name: routeName,
     },
     transaction,
+    explicitPolicyID,
 }: IOURequestStepHoursProps) {
-    const isEditingConfirmation = routeName === SCREENS.MONEY_REQUEST.STEP_HOURS;
-    const policyID = report?.policyID;
+    const isEditingConfirmation = routeName === SCREENS.MONEY_REQUEST.STEP_HOURS_EDIT;
+    const isEmbeddedInStartPage = routeName === SCREENS.MONEY_REQUEST.CREATE;
+    const policyID = explicitPolicyID ?? report?.policyID;
     const isTransactionDraft = shouldUseTransactionDraft(action);
     const [selectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`, {canBeMissing: true});
     const {accountID} = useCurrentUserPersonalDetails();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
-    const defaultPolicyRate = policy ? getDefaultTimeTrackingRate(policy) : undefined;
+    const defaultPolicyRate = getDefaultTimeTrackingRate(policy);
     const rate = transaction?.comment?.units?.rate ?? defaultPolicyRate;
 
     const {translate} = useLocalize();
@@ -96,18 +104,36 @@ function IOURequestStepHours({
             navigateBack();
             return;
         }
+
         setMoneyRequestTimeRate(transactionID, rate, isTransactionDraft);
-        setMoneyRequestParticipantsFromReport(transactionID, report, accountID).then(() =>
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID)),
-        );
+
+        if (isEmbeddedInStartPage) {
+            if (explicitPolicyID) {
+                const policyExpenseChat = getPolicyExpenseChat(accountID, policyID);
+                if (!policyExpenseChat) {
+                    console.error(`Couldn't find policy expense chat for policyID: ${policyID}`);
+                    return;
+                }
+
+                setTransactionReport(transactionID, {reportID: policyExpenseChat.reportID}, isTransactionDraft);
+                setMoneyRequestParticipantsFromReport(transactionID, policyExpenseChat, accountID);
+
+                return Navigation.setNavigationActionToMicrotaskQueue(() =>
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, policyExpenseChat.reportID)),
+                );
+            }
+            setMoneyRequestParticipantsFromReport(transactionID, report, accountID);
+        }
+
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
     };
 
     return (
         <StepScreenWrapper
-            headerTitle={translate('iou.time')}
+            headerTitle={translate(isEditingConfirmation ? 'iou.timeTracking.hours' : 'iou.createExpense')}
             onBackButtonPress={navigateBack}
             testID="IOURequestStepHours"
-            shouldShowWrapper={isEditingConfirmation}
+            shouldShowWrapper={!isEmbeddedInStartPage}
             includeSafeAreaPaddingBottom
             shouldShowNotFoundPage={shouldShowNotFoundPage}
         >
@@ -146,9 +172,4 @@ function IOURequestStepHours({
     );
 }
 
-// eslint-disable-next-line rulesdir/no-negated-variables
-const IOURequestStepHoursWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepHours);
-// eslint-disable-next-line rulesdir/no-negated-variables
-const IOURequestStepHoursWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepHoursWithWritableReportOrNotFound);
-
-export default IOURequestStepHoursWithFullTransactionOrNotFound;
+export default withFullTransactionOrNotFound(withWritableReportOrNotFound(IOURequestStepHours));

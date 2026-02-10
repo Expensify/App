@@ -16,6 +16,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OriginalMessageIOU, PersonalDetails, Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {TransactionViolationsCollectionDataSet} from '@src/types/onyx/TransactionViolation';
 import {actionR14932 as mockIOUAction} from '../../__mocks__/reportData/actions';
@@ -47,16 +48,11 @@ describe('SidebarUtils', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    beforeEach(() => {
-        // Reset all mocks before each test
-        jest.clearAllMocks();
-    });
-
-    afterAll(async () => {
+    afterEach(async () => {
         await act(async () => {
             await Onyx.clear();
         });
-        await waitForBatchedUpdatesWithAct();
+        jest.clearAllMocks();
     });
 
     describe('getReasonAndReportActionThatHasRedBrickRoad', () => {
@@ -357,6 +353,7 @@ describe('SidebarUtils', () => {
                 lastActionReport: undefined,
                 isReportArchived: undefined,
                 currentUserAccountID: 0,
+                reportAttributesDerived: undefined,
             });
             const optionDataUnpinned = SidebarUtils.getOptionData({
                 report: MOCK_REPORT_UNPINNED,
@@ -373,6 +370,7 @@ describe('SidebarUtils', () => {
                 lastActionReport: undefined,
                 isReportArchived: undefined,
                 currentUserAccountID: 0,
+                reportAttributesDerived: undefined,
             });
 
             expect(optionDataPinned?.isPinned).toBe(true);
@@ -1175,6 +1173,7 @@ describe('SidebarUtils', () => {
                 lastActionReport: undefined,
                 isReportArchived: undefined,
                 currentUserAccountID: 0,
+                reportAttributesDerived: undefined,
             });
 
             // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -1237,6 +1236,7 @@ describe('SidebarUtils', () => {
                 lastActionReport: undefined,
                 isReportArchived: undefined,
                 currentUserAccountID: 0,
+                reportAttributesDerived: undefined,
             });
 
             // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -1302,6 +1302,7 @@ describe('SidebarUtils', () => {
                 lastActionReport: undefined,
                 isReportArchived: undefined,
                 currentUserAccountID: 0,
+                reportAttributesDerived: undefined,
             });
 
             // Then the alternate text should show @Hidden.
@@ -1393,6 +1394,7 @@ describe('SidebarUtils', () => {
                     isReportArchived: true,
                     lastActionReport: undefined,
                     currentUserAccountID: 0,
+                    reportAttributesDerived: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -1543,6 +1545,16 @@ describe('SidebarUtils', () => {
                     await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
                 });
 
+                const mockReportAttributesDerived: Record<string, ReportAttributes> = {
+                    [iouReport.reportID]: {
+                        reportName: iouReport.reportName ?? '',
+                        isEmpty: false,
+                        brickRoadStatus: undefined,
+                        requiresAttention: false,
+                        reportErrors: {},
+                    },
+                };
+
                 const optionData = SidebarUtils.getOptionData({
                     report: policyExpenseChat,
                     reportAttributes: undefined,
@@ -1558,6 +1570,7 @@ describe('SidebarUtils', () => {
                     lastActionReport: undefined,
                     isReportArchived: undefined,
                     currentUserAccountID: 0,
+                    reportAttributesDerived: mockReportAttributesDerived,
                 });
 
                 expect(optionData?.alternateText).toBe(formatReportLastMessageText(iouReport.reportName));

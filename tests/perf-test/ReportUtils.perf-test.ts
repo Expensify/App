@@ -35,7 +35,7 @@ import createRandomPolicyTags from '../utils/collections/policyTags';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
-import {formatPhoneNumber, localeCompare} from '../utils/TestHelper';
+import {formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const getMockedReports = (length = 500) =>
@@ -204,7 +204,7 @@ describe('ReportUtils', () => {
         const reportParticipants = Array.from({length: 1000}, (v, i) => i + 1);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => temporary_getMoneyRequestOptions(report, policy, reportParticipants, [CONST.BETAS.ALL]));
+        await measureFunction(() => temporary_getMoneyRequestOptions(report, policy, reportParticipants));
     });
 
     test('[ReportUtils] getWorkspaceChat on 1k policies', async () => {
@@ -293,6 +293,6 @@ describe('ReportUtils', () => {
         };
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getIOUReportActionDisplayMessage(reportAction));
+        await measureFunction(() => getIOUReportActionDisplayMessage(translateLocal, reportAction));
     });
 });

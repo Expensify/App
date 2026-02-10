@@ -3,20 +3,24 @@ import {isConnectionInProgress} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {hasPaymentMethodError} from '@libs/actions/PaymentMethods';
 import {hasPartiallySetupBankAccount} from '@libs/BankAccountUtils';
-import {checkIfFeedConnectionIsBroken, hasPendingExpensifyCardAction} from '@libs/CardUtils';
+import {hasPendingExpensifyCardAction} from '@libs/CardUtils';
+import {hasDomainErrors} from '@libs/DomainUtils';
 import {getUberConnectionErrorDirectlyFromPolicy, shouldShowCustomUnitsError, shouldShowEmployeeListError, shouldShowPolicyError, shouldShowSyncError} from '@libs/PolicyUtils';
 import {hasSubscriptionGreenDotInfo, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
 import {hasLoginListError, hasLoginListInfo} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
+import useCardFeedErrors from './useCardFeedErrors';
 import useOnyx from './useOnyx';
+import usePoliciesWithCardFeedErrors from './usePoliciesWithCardFeedErrors';
 
 type IndicatorStatus = ValueOf<typeof CONST.INDICATOR_STATUS>;
 
 type NavigationTabBarChecksResult = {
     accountStatus: IndicatorStatus | undefined;
     policyStatus: IndicatorStatus | undefined;
+    domainStatus: IndicatorStatus | undefined;
     infoStatus: IndicatorStatus | undefined;
     policyIDWithErrors: string | undefined;
 };
@@ -38,8 +42,12 @@ function useNavigationTabBarIndicatorChecks(): NavigationTabBarChecksResult {
     const [retryBillingFailed] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED, {canBeMissing: true});
     const [billingStatus] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_STATUS, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [allDomainErrors] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ERRORS, {canBeMissing: true});
 
-    const hasBrokenFeedConnection = checkIfFeedConnectionIsBroken(allCards, CONST.EXPENSIFY_CARD.BANK);
+    const {
+        companyCards: {shouldShowRBR: hasCompanyCardFeedErrors},
+    } = useCardFeedErrors();
+    const {policiesWithCardFeedErrors, isPolicyAdmin} = usePoliciesWithCardFeedErrors();
 
     // If a policy was just deleted from Onyx, then Onyx will pass a null value to the props, and
     // those should be cleaned out before doing any error checking
@@ -54,6 +62,7 @@ function useNavigationTabBarIndicatorChecks(): NavigationTabBarChecksResult {
         ),
         [CONST.INDICATOR_STATUS.HAS_QBO_EXPORT_ERROR]: cleanPolicies.find(shouldShowQBOReimbursableExportDestinationAccountError),
         [CONST.INDICATOR_STATUS.HAS_UBER_CREDENTIALS_ERROR]: cleanPolicies.find(getUberConnectionErrorDirectlyFromPolicy),
+        [CONST.INDICATOR_STATUS.HAS_POLICY_ADMIN_CARD_FEED_ERRORS]: isPolicyAdmin ? policiesWithCardFeedErrors.at(0) : undefined,
     };
 
     // All the error & info-checking methods are put into an array. This is so that using _.some() will return
@@ -75,7 +84,7 @@ function useNavigationTabBarIndicatorChecks(): NavigationTabBarChecksResult {
         // Wallet term errors that are not caused by an IOU (we show the red brick indicator for those in the LHN instead)
         [CONST.INDICATOR_STATUS.HAS_WALLET_TERMS_ERRORS]: Object.keys(walletTerms?.errors ?? {}).length > 0 && !walletTerms?.chatReportID,
         [CONST.INDICATOR_STATUS.HAS_PHONE_NUMBER_ERROR]: !!privatePersonalDetails?.errorFields?.phoneNumber,
-        [CONST.INDICATOR_STATUS.HAS_CARD_CONNECTION_ERROR]: hasBrokenFeedConnection,
+        [CONST.INDICATOR_STATUS.HAS_EMPLOYEE_CARD_FEED_ERRORS]: !isPolicyAdmin ? hasCompanyCardFeedErrors : false,
     };
 
     const infoChecks: Partial<Record<IndicatorStatus, boolean>> = {
@@ -92,8 +101,13 @@ function useNavigationTabBarIndicatorChecks(): NavigationTabBarChecksResult {
         [CONST.INDICATOR_STATUS.HAS_PARTIALLY_SETUP_BANK_ACCOUNT_INFO]: hasPartiallySetupBankAccount(bankAccountList),
     };
 
+    const domainChecks: Partial<Record<IndicatorStatus, boolean>> = {
+        [CONST.INDICATOR_STATUS.HAS_DOMAIN_ERRORS]: Object.values(allDomainErrors ?? {}).some((domainErrors) => hasDomainErrors(domainErrors)),
+    };
+
     const [accountStatus] = Object.entries(accountChecks).find(([, value]) => value) ?? [];
     const [policyStatus] = Object.entries(policyChecks).find(([, value]) => value) ?? [];
+    const [domainStatus] = Object.entries(domainChecks).find(([, value]) => value) ?? [];
     const [infoStatus] = Object.entries(infoChecks).find(([, value]) => value) ?? [];
 
     const policyIDWithErrors = Object.values(policyChecks).find(Boolean)?.id;
@@ -101,6 +115,7 @@ function useNavigationTabBarIndicatorChecks(): NavigationTabBarChecksResult {
     return {
         accountStatus: accountStatus as IndicatorStatus | undefined,
         policyStatus: policyStatus as IndicatorStatus | undefined,
+        domainStatus: domainStatus as IndicatorStatus | undefined,
         infoStatus: infoStatus as IndicatorStatus | undefined,
         policyIDWithErrors,
     };

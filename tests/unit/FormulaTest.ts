@@ -797,7 +797,7 @@ describe('CustomFormula', () => {
             expect(endResult).toBe('2025-01-15');
         });
 
-        test('should skip partial transactions (zero amount)', () => {
+        test('should skip partial transactions (partial merchant)', () => {
             const mockTransactions = [
                 {
                     transactionID: 'trans1',
@@ -808,8 +808,8 @@ describe('CustomFormula', () => {
                 {
                     transactionID: 'trans2',
                     created: '2025-01-08T16:45:00Z', // Older but partial
-                    amount: 0, // Zero amount = partial
-                    merchant: 'Beta Corp.',
+                    amount: 0,
+                    merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                     iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
                 },
                 {
@@ -1022,6 +1022,7 @@ describe('CustomFormula', () => {
             } as Report,
             policy: {
                 name: 'Test Policy',
+                glCodes: true,
                 employeeList: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     'john.doe@company.com': {
@@ -1139,6 +1140,7 @@ describe('CustomFormula', () => {
                     report: {reportID: '123'} as Report,
                     policy: {
                         name: 'Test Policy',
+                        glCodes: true,
                         employeeList: {
                             // eslint-disable-next-line @typescript-eslint/naming-convention
                             'other.user@company.com': {
@@ -1151,6 +1153,28 @@ describe('CustomFormula', () => {
                 };
 
                 expect(compute('{report:submit:from:customfield1}', contextWithDifferentEmployee)).toBe('');
+            });
+
+            test('customfield1/customfield2 - return empty when glCodes disabled', () => {
+                const contextWithGlCodesDisabled: FormulaContext = {
+                    report: {reportID: '123'} as Report,
+                    policy: {
+                        name: 'Test Policy',
+                        glCodes: false,
+                        employeeList: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            'john.doe@company.com': {
+                                email: 'john.doe@company.com',
+                                employeeUserID: 'EMP001',
+                                employeePayrollID: 'PAY123',
+                            },
+                        },
+                    } as unknown as Policy,
+                    submitterPersonalDetails: mockSubmitter,
+                };
+
+                expect(compute('{report:submit:from:customfield1}', contextWithGlCodesDisabled)).toBe('');
+                expect(compute('{report:submit:from:customfield2}', contextWithGlCodesDisabled)).toBe('');
             });
         });
 

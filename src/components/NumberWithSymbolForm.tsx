@@ -458,6 +458,7 @@ function NumberWithSymbolForm({
             isNegative={isNegative}
             toggleNegative={toggleNegative}
             onFocus={props.onFocus}
+            accessibilityLabel={props.accessibilityLabel}
         />
     );
 
@@ -483,6 +484,7 @@ function NumberWithSymbolForm({
                                 style={styles.minWidth18}
                                 isContentCentered
                                 text={currency}
+                                accessibilityLabel={`${translate('common.selectCurrency')}, ${currency}`}
                             />
                         )}
                         {!!errorText && (
@@ -508,6 +510,7 @@ function NumberWithSymbolForm({
                         style={styles.minWidth18}
                         isContentCentered
                         text={currency}
+                        accessibilityLabel={`${translate('common.selectCurrency')}, ${currency}`}
                     />
                 )}
                 {allowFlippingAmount && canUseTouchScreen && (
@@ -519,6 +522,7 @@ function NumberWithSymbolForm({
                         style={styles.minWidth18}
                         isContentCentered
                         text={translate('iou.flip')}
+                        accessibilityLabel={translate('iou.flip')}
                     />
                 )}
             </View>

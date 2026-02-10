@@ -75,13 +75,13 @@ function ProcessMoneyReportHoldMenu({
     const activePolicy = usePolicy(activePolicyID);
     const policy = usePolicy(moneyRequestReport?.policyID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [moneyRequestReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
 
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const onSubmit = (full: boolean) => {
@@ -102,14 +102,25 @@ function ProcessMoneyReportHoldMenu({
                 hasViolations,
                 isASAPSubmitBetaEnabled,
                 moneyRequestReportNextStep,
-                allBetas,
+                betas,
                 full,
             );
         } else if (chatReport && paymentType) {
             if (startAnimation) {
                 startAnimation();
             }
-            payMoneyRequest(paymentType, chatReport, moneyRequestReport, introSelected, moneyRequestReportNextStep, allBetas, undefined, full, activePolicy, policy);
+            payMoneyRequest({
+                paymentType,
+                chatReport,
+                iouReport: moneyRequestReport,
+                introSelected,
+                iouReportCurrentNextStepDeprecated: moneyRequestReportNextStep,
+                currentUserAccountID: currentUserDetails.accountID,
+                full,
+                activePolicy,
+                policy,
+                betas,
+            });
         }
         onClose();
     };

@@ -14,7 +14,7 @@ concurrency:
 jobs:
   jest:
     if: ${{ github.event.head_commit.author.name != 'OSBotify' && github.event.head_commit.author.name != 'imgbot[bot]' || github.event_name == 'workflow_call' }}
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     env:
       CI: true
       NODE_OPTIONS: "--experimental-vm-modules --max-old-space-size=8192"
@@ -83,7 +83,7 @@ jobs:
 
   storybookTests:
     if: ${{ github.event.head_commit.author.name != 'OSBotify' && github.event.head_commit.author.name != 'imgbot[bot]' || github.event_name == 'workflow_call' }}
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     name: Storybook tests
     steps:
       - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4

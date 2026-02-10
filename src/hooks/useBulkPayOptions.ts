@@ -3,6 +3,7 @@ import type {TupleToUnion} from 'type-fest';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem} from '@components/Search/types';
 import {isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
+import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
@@ -98,12 +99,13 @@ function useBulkPayOptions({
         });
     }
 
-    const getPaymentSubitems = (payAsBusiness: boolean) => {
+    const getPaymentSubItems = (payAsBusiness: boolean) => {
         const requiredAccountType = payAsBusiness ? CONST.BANK_ACCOUNT.TYPE.BUSINESS : CONST.BANK_ACCOUNT.TYPE.PERSONAL;
         return formattedPaymentMethods
             .filter((method) => {
                 const accountData = method?.accountData as AccountData;
-                return accountData?.type === requiredAccountType;
+                const isPartiallySetup = isBankAccountPartiallySetup(accountData?.state);
+                return accountData?.type === requiredAccountType && !isPartiallySetup;
             })
             .map((formattedPaymentMethod) => ({
                 text: formattedPaymentMethod?.title ?? '',
@@ -181,7 +183,7 @@ function useBulkPayOptions({
                     },
                 };
                 return [
-                    ...(isCurrencySupported ? getPaymentSubitems(payAsBusiness) : []),
+                    ...(isCurrencySupported ? getPaymentSubItems(payAsBusiness) : []),
                     ...(isCurrencySupported ? [addBankAccountItem] : []),
                     {
                         text: translate('iou.payElsewhere', {formattedAmount: ''}),

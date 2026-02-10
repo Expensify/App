@@ -176,8 +176,8 @@ function IOURequestStepSubrate({
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.SUBMIT]: translate('iou.createExpense'),
-        [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', {name: ''}),
-        [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', {name: ''}),
+        [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', ''),
+        [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', ''),
         [CONST.IOU.TYPE.SPLIT]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.SPLIT_EXPENSE]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.TRACK]: translate('iou.createExpense'),

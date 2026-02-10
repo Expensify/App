@@ -1,5 +1,5 @@
 import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -8,7 +8,6 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import ValidateCodeActionForm from '@components/ValidateCodeActionForm';
-import type {ValidateCodeFormHandle} from '@components/ValidateCodeActionModal/ValidateCodeForm/BaseValidateCodeForm';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -81,7 +80,6 @@ const accountSelector = (account: OnyxEntry<Account>) => ({
 });
 
 function AccountValidatePage() {
-    const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
     const navigation = useNavigation();
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {
@@ -171,10 +169,10 @@ function AccountValidatePage() {
                     descriptionSecondary={
                         <View style={[styles.w100]}>
                             <View style={[styles.mb8, styles.renderHTML, styles.flexRow]}>
-                                <RenderHTML html={translate('mergeAccountsPage.accountValidate.lossOfUnsubmittedData', {login: email})} />
+                                <RenderHTML html={translate('mergeAccountsPage.accountValidate.lossOfUnsubmittedData', email)} />
                             </View>
                             <View style={[styles.renderHTML, styles.flexRow]}>
-                                <RenderHTML html={translate('mergeAccountsPage.accountValidate.enterMagicCode', {login: email})} />
+                                <RenderHTML html={translate('mergeAccountsPage.accountValidate.enterMagicCode', email)} />
                             </View>
                         </View>
                     }
@@ -190,7 +188,6 @@ function AccountValidatePage() {
                     validateError={validateCodeError}
                     hasMagicCodeBeenSent={getValidateCodeForAccountMerge?.validateCodeResent}
                     submitButtonText={translate('mergeAccountsPage.mergeAccount')}
-                    ref={validateCodeFormRef}
                     isLoading={mergeWithValidateCode?.isLoading}
                 />
             </ScrollView>

@@ -18,8 +18,8 @@ import getButtonState from '@libs/getButtonState';
 import mergeRefs from '@libs/mergeRefs';
 import Parser from '@libs/Parser';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
-import TextWithEmojiFragment from '@pages/home/report/comment/TextWithEmojiFragment';
-import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
+import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -164,6 +164,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Component to be displayed on the right */
         rightComponent?: ReactNode;
 
+        /** Component to be displayed on the left */
+        leftComponent?: ReactNode;
+
         /** A description text to show under the title */
         description?: string;
 
@@ -210,6 +213,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** Text to display for the item */
         title?: string;
+
+        /** Accessibility label for the menu item */
+        accessibilityLabel?: string;
 
         /** Component to display as the title */
         titleComponent?: ReactElement;
@@ -400,6 +406,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Whether the screen containing the item is focused */
         isFocused?: boolean;
 
+        /** Additional styles for the root wrapper View */
+        rootWrapperStyle?: StyleProp<ViewStyle>;
+
         /** The accessibility role to use for this menu item */
         role?: Role;
 
@@ -414,6 +423,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** Whether item should be focusable with keyboard */
         tabIndex?: 0 | -1;
+
+        /** Additional styles for the right icon wrapper */
+        rightIconWrapperStyle?: StyleProp<ViewStyle>;
     };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -481,6 +493,7 @@ function MenuItem({
     focused = false,
     disabled = false,
     title,
+    accessibilityLabel,
     titleComponent,
     titleContainerStyle,
     subtitle,
@@ -496,6 +509,7 @@ function MenuItem({
     shouldShowDescriptionOnTop = false,
     shouldShowRightComponent = false,
     rightComponent,
+    leftComponent,
     rightIconReportID,
     avatarSize = CONST.AVATAR_SIZE.DEFAULT,
     isSmallAvatarSubscriptMenu = false,
@@ -546,9 +560,11 @@ function MenuItem({
     ref,
     isFocused,
     sentryLabel,
+    rootWrapperStyle,
     role = CONST.ROLE.MENUITEM,
     shouldBeAccessible = true,
     tabIndex = 0,
+    rightIconWrapperStyle,
 }: MenuItemProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar', 'DotIndicator', 'Checkmark']);
     const theme = useTheme();
@@ -563,6 +579,7 @@ function MenuItem({
     const isCompact = viewMode === CONST.OPTION_MODE.COMPACT;
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedbackDeleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
+    const defaultAccessibilityLabel = (shouldShowDescriptionOnTop ? [description, title] : [title, description]).filter(Boolean).join(', ');
 
     const combinedTitleTextStyle = StyleUtils.combineStyles<TextStyle>(
         [
@@ -700,7 +717,10 @@ function MenuItem({
     const isIDPassed = !!iconReportID || !!iconAccountID || iconAccountID === CONST.DEFAULT_NUMBER_ID;
 
     return (
-        <View onBlur={onBlur}>
+        <View
+            style={rootWrapperStyle}
+            onBlur={onBlur}
+        >
             {!!label && !isLabelHoverable && (
                 <View style={[styles.ph5, labelStyle]}>
                     <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre])}>{label}</Text>
@@ -747,7 +767,7 @@ function MenuItem({
                                 disabled={disabled || isExecuting}
                                 ref={mergeRefs(ref, popoverAnchor)}
                                 role={role}
-                                accessibilityLabel={title ? title.toString() : ''}
+                                accessibilityLabel={accessibilityLabel ?? defaultAccessibilityLabel}
                                 accessible={shouldBeAccessible}
                                 tabIndex={tabIndex}
                                 onFocus={onFocus}
@@ -766,6 +786,7 @@ function MenuItem({
                                                     </View>
                                                 )}
                                                 <View style={[styles.flexRow, styles.pointerEventsAuto, disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled]}>
+                                                    {!!leftComponent && <View style={[styles.mr3]}>{leftComponent}</View>}
                                                     {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
                                                     {isIDPassed && (
                                                         <ReportActionAvatars
@@ -1009,6 +1030,7 @@ function MenuItem({
                                                             disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled,
                                                             hasSubMenuItems && styles.opacitySemiTransparent,
                                                             hasSubMenuItems && styles.pl6,
+                                                            rightIconWrapperStyle,
                                                         ]}
                                                     >
                                                         <Icon

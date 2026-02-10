@@ -289,6 +289,7 @@ function BaseTextInput({
     // This is workaround for https://github.com/Expensify/App/issues/47939: in case when user is using Chrome on Android we set inputMode to 'search' to disable autocomplete bar above the keyboard.
     // If we need some other inputMode (eg. 'decimal'), then the autocomplete bar will show, but we can do nothing about it as it's a known Chrome bug.
     const inputMode = inputProps.inputMode ?? (isMobileChrome() ? 'search' : undefined);
+    const accessibilityLabel = [label, hint].filter(Boolean).join(', ');
     return (
         <>
             <View
@@ -296,11 +297,7 @@ function BaseTextInput({
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(shouldInterceptSwipe && SwipeInterceptPanResponder.panHandlers)}
             >
-                <PressableWithoutFeedback
-                    role={CONST.ROLE.PRESENTATION}
-                    onPress={onPress}
-                    tabIndex={-1}
-                    accessibilityLabel={label}
+                <View
                     // When autoGrowHeight is true we calculate the width for the text input, so it will break lines properly
                     // or if multiline is not supplied we calculate the text input height, using onLayout.
                     onLayout={onLayout}
@@ -316,9 +313,20 @@ function BaseTextInput({
                         !isMultiline && styles.componentHeightLarge,
                         touchableInputWrapperStyle,
                     ]}
-                    sentryLabel={sentryLabel}
                 >
+                    <PressableWithoutFeedback
+                        role={CONST.ROLE.PRESENTATION}
+                        onPress={onPress}
+                        tabIndex={-1}
+                        accessible={false}
+                        accessibilityElementsHidden
+                        importantForAccessibility="no"
+                        aria-hidden
+                        style={[StyleSheet.absoluteFillObject]}
+                        sentryLabel={sentryLabel}
+                    />
                     <View
+                        pointerEvents="box-none"
                         style={[
                             newTextInputContainerStyles,
 
@@ -447,6 +455,8 @@ function BaseTextInput({
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}
+                                accessibilityLabel={inputProps.accessibilityLabel ?? accessibilityLabel}
+                                keyboardType={inputProps.keyboardType}
                             />
                             {!!suffixCharacter && (
                                 <View style={[styles.textInputSuffixWrapper, suffixContainerStyle]}>
@@ -516,7 +526,7 @@ function BaseTextInput({
                             )}
                         </View>
                     </View>
-                </PressableWithoutFeedback>
+                </View>
                 {!!inputHelpText && (
                     <FormHelpMessage
                         isError={!!errorText}

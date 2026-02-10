@@ -2,7 +2,7 @@ import {deepEqual} from 'fast-equals';
 import {useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {getRoute} from '@libs/actions/Transaction';
-import {getValidWaypoints, hasRoute as hasRouteTransactionUtils, isDistanceRequest, isManualDistanceRequest} from '@libs/TransactionUtils';
+import {getValidWaypoints, hasRoute as hasRouteTransactionUtils, isMapDistanceRequest as isMapDistanceRequestTransactionUtils} from '@libs/TransactionUtils';
 import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
@@ -25,7 +25,7 @@ export default function useFetchRoute(
     const validatedWaypoints = getValidWaypoints(waypoints);
     const previousValidatedWaypoints = usePrevious(validatedWaypoints);
     const haveValidatedWaypointsChanged = !deepEqual(previousValidatedWaypoints, validatedWaypoints);
-    const isMapDistanceRequest = isDistanceRequest(transaction) && !isManualDistanceRequest(transaction);
+    const isMapDistanceRequest = isMapDistanceRequestTransactionUtils(transaction);
     const shouldFetchRoute = isMapDistanceRequest && (isRouteAbsentWithoutErrors || haveValidatedWaypointsChanged) && !isLoadingRoute && Object.keys(validatedWaypoints).length > 1;
 
     useEffect(() => {

@@ -172,10 +172,22 @@ Key GitHub Actions workflows:
 
 ## Development Practices
 
+### React Native Best Practices
+Use the `/react-native-best-practices` skill when working on performance-sensitive code, native modules, or release preparation. This ensures code respects established best practices from the start, resulting in more consistent code, fewer review iterations, and better resilience against regressions.
+
+The skill provides guidance on:
+- **Performance**: FPS optimization, virtualized lists (FlashList), memoization, atomic state, animations
+- **Bundle & App Size**: Barrel imports, tree shaking, bundle analysis, R8 shrinking
+- **Startup (TTI)**: Hermes bytecode optimization, native navigation, deferred work
+- **Native Modules**: Turbo Module development, threading model, Swift/Kotlin/C++ patterns
+- **Memory**: JS and native memory leak detection and patterns
+- **Build Compliance**: Android 16KB page alignment (Google Play requirement)
+- **Platform Tooling**: Xcode/Android Studio profiling and debugging setup
+
 ### Code Quality
 - **TypeScript**: Strict mode enabled
 - **ESLint**: Linter
-- **Prettier**: Automatic formatting
+- **Prettier**: Code formatting - run `npm run prettier` after making changes
 - **Patch Management**: patch-package for dependency fixes
 
 ### Testing
@@ -223,6 +235,9 @@ npm run typecheck
 
 # Linting
 npm run lint
+
+# Format code with Prettier
+npm run prettier
 
 # Testing
 npm run test

@@ -10,7 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
-import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {contextMenuRef} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import {emojiPickerRef, resetEmojiPopoverAnchor, showEmojiPicker} from '@userActions/EmojiPickerAction';
 import type {AnchorOrigin} from '@userActions/EmojiPickerAction';

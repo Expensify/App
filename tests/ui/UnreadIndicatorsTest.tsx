@@ -22,7 +22,7 @@ import FontUtils from '@styles/utils/FontUtils';
 import App from '@src/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction, ReportActions} from '@src/types/onyx';
+import type {RecentWaypoint, ReportAction, ReportActions} from '@src/types/onyx';
 import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -157,7 +157,7 @@ async function fastSignInWithTestUser() {
             email: USER_A_EMAIL,
             encryptedAuthToken: TEST_AUTH_TOKEN,
         },
-        [ONYXKEYS.BETAS]: [CONST.BETAS.ALL],
+        [ONYXKEYS.BETAS]: ['all'],
         [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: 'randomID',
         [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
             [USER_A_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_A_EMAIL, USER_A_ACCOUNT_ID, 'A'),
@@ -176,7 +176,7 @@ async function signInAndGetAppWithUnreadChat(): Promise<void> {
     renderAppOnce();
     await waitForBatchedUpdatesWithAct();
 
-    subscribeToUserEvents();
+    subscribeToUserEvents(USER_A_ACCOUNT_ID);
 
     await waitForBatchedUpdates();
 
@@ -495,7 +495,14 @@ describe('Unread Indicators', () => {
 
                 // Leave a comment as the current user and verify the indicator is removed
                 const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
-                addComment(report, REPORT_ID, [], 'Current User Comment 1', CONST.DEFAULT_TIME_ZONE);
+                addComment({
+                    report,
+                    notifyReportID: REPORT_ID,
+                    ancestors: [],
+                    text: 'Current User Comment 1',
+                    timezoneParam: CONST.DEFAULT_TIME_ZONE,
+                    currentUserAccountID: USER_A_ACCOUNT_ID,
+                });
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -559,7 +566,14 @@ describe('Unread Indicators', () => {
                 .then(async () => {
                     const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
                     // Leave a comment as the current user
-                    addComment(report, REPORT_ID, [], 'Current User Comment 1', CONST.DEFAULT_TIME_ZONE);
+                    addComment({
+                        report,
+                        notifyReportID: REPORT_ID,
+                        ancestors: [],
+                        text: 'Current User Comment 1',
+                        timezoneParam: CONST.DEFAULT_TIME_ZONE,
+                        currentUserAccountID: USER_A_ACCOUNT_ID,
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -572,7 +586,7 @@ describe('Unread Indicators', () => {
                     });
                     return waitForBatchedUpdates();
                 })
-                .then(() => {
+                .then(async () => {
                     // Verify the chat preview text matches the last comment from the current user
                     const hintText = TestHelper.translateLocal('accessibilityHints.lastChatMessagePreview');
                     const alternateText = screen.queryAllByLabelText(hintText, {includeHiddenElements: true});
@@ -581,8 +595,9 @@ describe('Unread Indicators', () => {
                     // This message is visible on the sidebar and the report screen, so there are two occurrences.
                     expect(screen.getAllByText('Current User Comment 1').at(0)).toBeOnTheScreen();
 
+                    const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
                     if (lastReportAction) {
-                        deleteReportComment(REPORT_ID, lastReportAction, [], undefined, undefined, '');
+                        deleteReportComment(report, lastReportAction, [], undefined, undefined, '');
                     }
                     return waitForBatchedUpdates();
                 })
@@ -605,7 +620,7 @@ describe('Unread Indicators', () => {
         await navigateToSidebarOption(0);
 
         const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
-        addComment(report, REPORT_ID, [], 'Comment 1', CONST.DEFAULT_TIME_ZONE);
+        addComment({report, notifyReportID: REPORT_ID, ancestors: [], text: 'Comment 1', timezoneParam: CONST.DEFAULT_TIME_ZONE, currentUserAccountID: USER_A_ACCOUNT_ID});
 
         await waitForBatchedUpdates();
 
@@ -616,11 +631,11 @@ describe('Unread Indicators', () => {
 
             await waitForBatchedUpdates();
 
-            addComment(report, REPORT_ID, [], 'Comment 2', CONST.DEFAULT_TIME_ZONE);
+            addComment({report, notifyReportID: REPORT_ID, ancestors: [], text: 'Comment 2', timezoneParam: CONST.DEFAULT_TIME_ZONE, currentUserAccountID: USER_A_ACCOUNT_ID});
 
             await waitForBatchedUpdates();
 
-            deleteReportComment(REPORT_ID, firstNewReportAction, [], undefined, undefined, '');
+            deleteReportComment(report, firstNewReportAction, [], undefined, undefined, '');
 
             await waitForBatchedUpdates();
         }
@@ -698,6 +713,12 @@ describe('Unread Indicators', () => {
             comment: 'description',
         };
 
+        let recentWaypoints: RecentWaypoint[] = [];
+        Onyx.connect({
+            key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+            callback: (val) => (recentWaypoints = val ?? []),
+        });
+
         // When the user track an expense on the self DM
         const participant = {login: USER_A_EMAIL, accountID: USER_A_ACCOUNT_ID};
         trackExpense({
@@ -720,7 +741,8 @@ describe('Unread Indicators', () => {
             introSelected: undefined,
             activePolicyID: undefined,
             quickAction: undefined,
-            allBetas: [CONST.BETAS.ALL],
+            recentWaypoints,
+            betas: [CONST.BETAS.ALL],
         });
         await waitForBatchedUpdates();
 
@@ -772,7 +794,7 @@ describe('Unread Indicators', () => {
         const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
 
         // When USER_A add a comment
-        addComment(report, REPORT_ID, [], 'Current User Comment', CONST.DEFAULT_TIME_ZONE);
+        addComment({report, notifyReportID: REPORT_ID, ancestors: [], text: 'Current User Comment', timezoneParam: CONST.DEFAULT_TIME_ZONE, currentUserAccountID: USER_A_ACCOUNT_ID});
         await waitForBatchedUpdates();
 
         // Then USER_A mark the report as unread
