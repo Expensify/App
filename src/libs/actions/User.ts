@@ -592,39 +592,6 @@ function validateSecondaryLogin(
                 },
             ],
         );
-
-        for (const policy of Object.values(allPolicies ?? {})) {
-            if (!policy) {
-                continue;
-            }
-
-            let optimisticPolicyDataValue;
-
-            if (policy.employeeList) {
-                const currentEmployee = policy.employeeList[currentEmail];
-                optimisticPolicyDataValue = {
-                    employeeList: {
-                        [currentEmail]: null,
-                        [contactMethod]: currentEmployee,
-                    },
-                };
-            }
-
-            if (policy.ownerAccountID === currentUserAccountID) {
-                optimisticPolicyDataValue = {
-                    ...optimisticPolicyDataValue,
-                    owner: contactMethod,
-                };
-            }
-
-            if (optimisticPolicyDataValue) {
-                successData.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
-                    value: optimisticPolicyDataValue,
-                });
-            }
-        }
     }
 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.LOGIN_LIST | typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.VALIDATE_ACTION_CODE>> = [
