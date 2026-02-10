@@ -1525,7 +1525,7 @@ describe('actions/Policy', () => {
             });
 
             const workspaceName = Policy.generateDefaultWorkspaceName(TEST_NON_PUBLIC_DOMAIN_EMAIL);
-            expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace}));
+            expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', displayNameForWorkspace));
         });
 
         it('should generate a workspace name based on the display name when the domain is public and display name is available', () => {
@@ -1538,7 +1538,7 @@ describe('actions/Policy', () => {
             });
 
             const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL);
-            expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace}));
+            expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', displayNameForWorkspace));
         });
 
         it('should generate a workspace name based on the username when the domain is public and display name is not available', () => {
@@ -1553,7 +1553,7 @@ describe('actions/Policy', () => {
             });
 
             const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL_2);
-            expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace}));
+            expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', displayNameForWorkspace));
         });
 
         it('should generate a workspace name with an incremented number when there are existing policies with similar names', async () => {
@@ -1571,7 +1571,7 @@ describe('actions/Policy', () => {
             await Onyx.set(ONYXKEYS.COLLECTION.POLICY, existingPolicies);
 
             const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL);
-            expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', {userName: TEST_DISPLAY_NAME, workspaceNumber: 2}));
+            expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', TEST_DISPLAY_NAME, 2));
         });
 
         it('should return "My Group Workspace" when the domain is SMS', () => {
@@ -1604,7 +1604,7 @@ describe('actions/Policy', () => {
             await Onyx.set(ONYXKEYS.COLLECTION.POLICY, existingPolicies);
 
             const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL);
-            expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', {userName: TEST_DISPLAY_NAME, workspaceNumber: 2}));
+            expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', TEST_DISPLAY_NAME, 2));
         });
     });
 

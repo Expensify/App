@@ -1,10 +1,9 @@
 import reportsSelector from '@selectors/Attributes';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
-// eslint-disable-next-line no-restricted-imports
-import SelectionList from '@components/SelectionListWithSections';
-import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
+import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -13,7 +12,8 @@ import useOnyx from '@hooks/useOnyx';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {createOptionFromReport, filterAndOrderOptions, formatSectionsFromSearchTerm, getAlternateText, getSearchOptions} from '@libs/OptionsListUtils';
-import type {Option, Section} from '@libs/OptionsListUtils';
+import type {Option} from '@libs/OptionsListUtils';
+import type {OptionWithKey, SelectionListSections} from '@libs/OptionsListUtils/types';
 import type {OptionData} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import {searchInServer} from '@userActions/Report';
@@ -59,53 +59,44 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const [selectedReportIDs, setSelectedReportIDs] = useState<string[]>(initialReportIDs);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
+    const cleanSearchTerm = searchTerm.trim().toLowerCase();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
 
-    const selectedOptions = useMemo<OptionData[]>(() => {
-        return selectedReportIDs.map((id) => {
-            const report = getSelectedOptionData(
-                createOptionFromReport({...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id}, personalDetails, currentUserAccountID, reportAttributesDerived),
-            );
-            const isReportArchived = archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
-            const alternateText = getAlternateText(report, {}, isReportArchived, currentUserAccountID, {});
-            return {...report, alternateText};
-        });
-    }, [archivedReportsIdSet, personalDetails, reportAttributesDerived, reports, selectedReportIDs, currentUserAccountID]);
+    const selectedOptions: OptionData[] = selectedReportIDs.map((id) => {
+        const report = getSelectedOptionData(
+            createOptionFromReport({...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id}, personalDetails, currentUserAccountID, reportAttributesDerived),
+        );
+        const isReportArchived = archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
+        const alternateText = getAlternateText(report, {}, isReportArchived, currentUserAccountID, {}, reportAttributesDerived);
+        return {...report, alternateText};
+    });
 
-    const defaultOptions = useMemo(() => {
-        if (!areOptionsInitialized || !isScreenTransitionEnd) {
-            return defaultListOptions;
-        }
-        return getSearchOptions({
-            options,
-            draftComments,
-            nvpDismissedProductTraining,
-            betas: undefined,
-            isUsedInChatFinder: false,
-            countryCode,
-            loginList,
-            currentUserAccountID,
-            currentUserEmail,
-            personalDetails,
-        });
-    }, [areOptionsInitialized, isScreenTransitionEnd, options, draftComments, nvpDismissedProductTraining, countryCode, loginList, currentUserAccountID, currentUserEmail, personalDetails]);
+    const defaultOptions =
+        !areOptionsInitialized || !isScreenTransitionEnd
+            ? defaultListOptions
+            : getSearchOptions({
+                  options,
+                  draftComments,
+                  nvpDismissedProductTraining,
+                  betas: undefined,
+                  isUsedInChatFinder: false,
+                  countryCode,
+                  loginList,
+                  currentUserAccountID,
+                  currentUserEmail,
+                  personalDetails,
+              });
 
-    const chatOptions = useMemo(() => {
-        return filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, {
-            selectedOptions,
-            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-        });
-    }, [defaultOptions, cleanSearchTerm, countryCode, loginList, selectedOptions, currentUserAccountID, currentUserEmail, personalDetails]);
+    const chatOptions = filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, {
+        selectedOptions,
+        excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+    });
 
-    const {sections, headerMessage} = useMemo(() => {
-        const newSections: Section[] = [];
-        if (!areOptionsInitialized) {
-            return {sections: [], headerMessage: undefined};
-        }
+    const sections: SelectionListSections = [];
 
+    if (areOptionsInitialized) {
         const formattedResults = formatSectionsFromSearchTerm(
             cleanSearchTerm,
             selectedOptions,
@@ -118,102 +109,80 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             reportAttributesDerived,
         );
 
-        newSections.push(formattedResults.section);
+        sections.push(formattedResults.section);
 
         const visibleReportsWhenSearchTermNonEmpty = chatOptions.recentReports.map((report) => (selectedReportIDs.includes(report.reportID) ? getSelectedOptionData(report) : report));
         const visibleReportsWhenSearchTermEmpty = chatOptions.recentReports.filter((report) => !selectedReportIDs.includes(report.reportID));
         const reportsFiltered = cleanSearchTerm === '' ? visibleReportsWhenSearchTermEmpty : visibleReportsWhenSearchTermNonEmpty;
 
-        newSections.push({
+        sections.push({
             title: undefined,
             data: reportsFiltered,
-            shouldShow: chatOptions.recentReports.length > 0,
+            sectionIndex: 1,
         });
-
-        const areResultsFound = didScreenTransitionEnd && formattedResults.section.data.length === 0 && reportsFiltered.length === 0;
-        const message = areResultsFound ? translate('common.noResultsFound') : undefined;
-
-        return {
-            sections: newSections,
-            headerMessage: message,
-        };
-    }, [
-        areOptionsInitialized,
-        chatOptions.personalDetails,
-        chatOptions.recentReports,
-        cleanSearchTerm,
-        didScreenTransitionEnd,
-        personalDetails,
-        reportAttributesDerived,
-        selectedOptions,
-        selectedReportIDs,
-        translate,
-        currentUserAccountID,
-    ]);
+    }
+    const noResultsFound = didScreenTransitionEnd && sections.at(0)?.data.length === 0 && sections.at(1)?.data.length === 0;
+    const headerMessage = noResultsFound ? translate('common.noResultsFound') : undefined;
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm.trim());
     }, [debouncedSearchTerm]);
 
-    const handleParticipantSelection = useCallback(
-        (selectedOption: Option) => {
-            const optionReportID = selectedOption.reportID;
-            if (!optionReportID) {
-                return;
-            }
-            const foundOptionIndex = selectedReportIDs.findIndex((reportID: string) => {
-                return reportID && reportID !== '' && selectedOption.reportID === reportID;
-            });
+    const handleParticipantSelection = (selectedOption: OptionWithKey) => {
+        const optionReportID = selectedOption.reportID;
+        if (!optionReportID) {
+            return;
+        }
+        const foundOptionIndex = selectedReportIDs.findIndex((reportID: string) => {
+            return reportID && reportID !== '' && selectedOption.reportID === reportID;
+        });
 
-            if (foundOptionIndex < 0) {
-                setSelectedReportIDs([...selectedReportIDs, optionReportID]);
-            } else {
-                const newSelectedReports = [...selectedReportIDs.slice(0, foundOptionIndex), ...selectedReportIDs.slice(foundOptionIndex + 1)];
-                setSelectedReportIDs(newSelectedReports);
-            }
-        },
-        [selectedReportIDs],
-    );
+        if (foundOptionIndex < 0) {
+            setSelectedReportIDs([...selectedReportIDs, optionReportID]);
+        } else {
+            const newSelectedReports = [...selectedReportIDs.slice(0, foundOptionIndex), ...selectedReportIDs.slice(foundOptionIndex + 1)];
+            setSelectedReportIDs(newSelectedReports);
+        }
+    };
 
-    const applyChanges = useCallback(() => {
+    const applyChanges = () => {
         onFiltersUpdate(selectedReportIDs);
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
-    }, [onFiltersUpdate, selectedReportIDs]);
+    };
 
-    const resetChanges = useCallback(() => {
+    const resetChanges = () => {
         setSelectedReportIDs([]);
-    }, []);
+    };
 
-    const footerContent = useMemo(
-        () => (
-            <SearchFilterPageFooterButtons
-                applyChanges={applyChanges}
-                resetChanges={resetChanges}
-            />
-        ),
-        [resetChanges, applyChanges],
+    const footerContent = (
+        <SearchFilterPageFooterButtons
+            applyChanges={applyChanges}
+            resetChanges={resetChanges}
+        />
     );
 
     const isLoadingNewOptions = !!isSearchingForReports;
     const showLoadingPlaceholder = !didScreenTransitionEnd || !areOptionsInitialized || !initialReportIDs || !personalDetails;
 
+    const textInputOptions = {
+        value: searchTerm,
+        label: translate('selectionList.nameEmailOrPhoneNumber'),
+        onChangeText: setSearchTerm,
+        headerMessage,
+    };
+
     return (
-        <SelectionList
-            canSelectMultiple
+        <SelectionListWithSections
             sections={sections}
-            ListItem={InviteMemberListItem}
-            textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-            headerMessage={headerMessage}
-            textInputValue={searchTerm}
-            footerContent={footerContent}
-            showScrollIndicator
-            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-            onChangeText={(value) => {
-                setSearchTerm(value);
-            }}
             onSelectRow={handleParticipantSelection}
+            ListItem={InviteMemberListItem}
+            footerContent={footerContent}
+            canSelectMultiple
+            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+            textInputOptions={textInputOptions}
             isLoadingNewOptions={isLoadingNewOptions}
             showLoadingPlaceholder={showLoadingPlaceholder}
+            shouldShowTextInput
         />
     );
 }

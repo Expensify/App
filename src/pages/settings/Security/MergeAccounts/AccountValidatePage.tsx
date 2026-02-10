@@ -169,10 +169,10 @@ function AccountValidatePage() {
                     descriptionSecondary={
                         <View style={[styles.w100]}>
                             <View style={[styles.mb8, styles.renderHTML, styles.flexRow]}>
-                                <RenderHTML html={translate('mergeAccountsPage.accountValidate.lossOfUnsubmittedData', {login: email})} />
+                                <RenderHTML html={translate('mergeAccountsPage.accountValidate.lossOfUnsubmittedData', email)} />
                             </View>
                             <View style={[styles.renderHTML, styles.flexRow]}>
-                                <RenderHTML html={translate('mergeAccountsPage.accountValidate.enterMagicCode', {login: email})} />
+                                <RenderHTML html={translate('mergeAccountsPage.accountValidate.enterMagicCode', email)} />
                             </View>
                         </View>
                     }

@@ -158,6 +158,12 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
         /** Collection of form field errors  */
         errorFields?: OnyxCommon.ErrorFields;
+
+        /**
+         * Metadata about when and by whom the card was frozen.
+         * null/undefined if card is not frozen
+         */
+        frozen?: FrozenCardData | null;
     }> &
         OnyxCommon.OnyxValueWithOfflineFeedback<
             /** Type of export card */
@@ -356,6 +362,17 @@ type CardAssignmentData = {
     pendingAction?: OnyxCommon.PendingAction;
 };
 
+/**
+ * Data for a frozen card
+ */
+type FrozenCardData = {
+    /** Account ID of the user who froze the card */
+    byAccountID: number;
+
+    /** UTC datetime when card was frozen (ISO format: YYYY-MM-DD HH:MM:SS) */
+    date: string;
+};
+
 export default Card;
 export type {
     ExpensifyCardDetails,
@@ -369,4 +386,5 @@ export type {
     ProvisioningCardData,
     AssignableCardsList,
     UnassignedCard,
+    FrozenCardData,
 };

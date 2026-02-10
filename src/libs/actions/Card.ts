@@ -216,18 +216,10 @@ function activatePhysicalExpensifyCard(cardLastFourDigits: string, cardID: numbe
         cardID,
     };
 
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.ACTIVATE_PHYSICAL_EXPENSIFY_CARD, parameters, {
+    API.write(WRITE_COMMANDS.ACTIVATE_PHYSICAL_EXPENSIFY_CARD, parameters, {
         optimisticData,
         successData,
         failureData,
-    }).then((response) => {
-        if (!response) {
-            return;
-        }
-        if (response.pin) {
-            Onyx.set(ONYXKEYS.ACTIVATED_CARD_PIN, response.pin);
-        }
     });
 }
 
@@ -236,13 +228,6 @@ function activatePhysicalExpensifyCard(cardLastFourDigits: string, cardID: numbe
  */
 function clearCardListErrors(cardID: number) {
     Onyx.merge(ONYXKEYS.CARD_LIST, {[cardID]: {errors: null, isLoading: false}});
-}
-
-/**
- * Clears the PIN for an activated card
- */
-function clearActivatedCardPin() {
-    Onyx.set(ONYXKEYS.ACTIVATED_CARD_PIN, '');
 }
 
 function clearCardErrorField(cardID: number, fieldName: string) {
@@ -1453,7 +1438,6 @@ export {
     configureExpensifyCardsForPolicy,
     issueExpensifyCard,
     openCardDetailsPage,
-    clearActivatedCardPin,
     clearCardErrorField,
     clearCardNameValuePairsErrorField,
     setPersonalCardReimbursable,

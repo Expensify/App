@@ -804,6 +804,8 @@ function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
 }
 
 function bulkDeleteReports(
+    reports: OnyxCollection<Report>,
+    selfDMReport: OnyxEntry<Report>,
     hash: number,
     selectedTransactions: Record<string, SelectedTransactionInfo>,
     currentUserEmailParam: string,
@@ -830,7 +832,8 @@ function bulkDeleteReports(
 
     if (reportIDList.length > 0) {
         for (const reportID of reportIDList) {
-            deleteAppReport(reportID, currentUserEmailParam, currentUserAccountIDParam, reportTransactions, transactionsViolations, bankAccountList);
+            const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+            deleteAppReport(report, selfDMReport, currentUserEmailParam, currentUserAccountIDParam, reportTransactions, transactionsViolations, bankAccountList);
         }
     }
 }
