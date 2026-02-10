@@ -55,11 +55,10 @@ function PlaybackContextProvider({children}: ChildrenProps) {
                 reportIDtoSet = reportID;
             }
 
-            const routeReportID = getCurrentRouteReportID(url);
-
-            if (reportIDtoSet === routeReportID || routeReportID === NO_REPORT_ID_IN_PARAMS) {
-                setCurrentRouteReportID(reportIDtoSet);
-            }
+            // Always set currentRouteReportID so that shareVideoPlayerElements can match.
+            // When the video is in a thread/child report but the focused route shows a parent report,
+            // the IDs won't match. We still need to set it so video controls work properly.
+            setCurrentRouteReportID(reportIDtoSet);
 
             setCurrentlyPlayingURL(url);
         },
@@ -106,7 +105,12 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             const isSameReportID = routeReportID === currentRouteReportID || routeReportID === NO_REPORT_ID;
             const isOnRouteWithoutReportID = !!currentlyPlayingURL && getCurrentRouteReportID(currentlyPlayingURL) === NO_REPORT_ID_IN_PARAMS;
 
-            if (isSameReportID || isOnRouteWithoutReportID) {
+            // Don't reset if the video URL is still mounted by an active player.
+            // This prevents resetting when the route's reportID differs from the stored one
+            // (e.g., video in a thread/child report while the route shows the parent report).
+            const isURLStillMounted = !!currentlyPlayingURL && mountedVideoPlayersRef.current.includes(currentlyPlayingURL);
+
+            if (isSameReportID || isOnRouteWithoutReportID || isURLStillMounted) {
                 return;
             }
 
