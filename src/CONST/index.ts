@@ -5517,10 +5517,6 @@ const CONST = {
         LINKEDIN: 'Linkedin',
     },
 
-    SOCIAL_SENTRY_LABELS: {
-        ICON: 'SignIn-Socials-Icon',
-    },
-
     /**
      * Acceptable values for the `role` attribute on react native components.
      *
@@ -8177,6 +8173,9 @@ const CONST = {
         },
         SELECTION_LIST_WITH_SECTIONS: {
             BASE_LIST_ITEM: 'SelectionListWithSections-BaseListItem',
+        },
+        SOCIAL: {
+            ICON: 'SignIn-Socials-Icon',
         },
         CONTEXT_MENU: {
             REPLY_IN_THREAD: 'ContextMenu-ReplyInThread',

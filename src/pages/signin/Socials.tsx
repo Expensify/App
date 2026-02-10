@@ -63,7 +63,7 @@ function Socials() {
                     shouldUseAutoHitSlop={false}
                     accessibilityRole={CONST.ROLE.LINK}
                     accessibilityLabel={social.accessibilityLabel}
-                    sentryLabel={CONST.SOCIAL_SENTRY_LABELS.ICON}
+                    sentryLabel={CONST.SENTRY_LABEL.SOCIAL.ICON}
                 >
                     {({hovered, pressed}) => (
                         <Icon
