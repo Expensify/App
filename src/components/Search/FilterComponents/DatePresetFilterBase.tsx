@@ -89,6 +89,16 @@ function DatePresetFilterBase({
     const shouldShowHorizontalRule = !!presets?.length;
 
     const [dateValues, setDateValues] = useState<SearchDateValues>(defaultDateValues);
+    const updateDateValues = useCallback(
+        (updater: SearchDateValues | ((prevDateValues: SearchDateValues) => SearchDateValues)) => {
+            setDateValues((prevDateValues) => {
+                const nextDateValues = typeof updater === 'function' ? updater(prevDateValues) : updater;
+                onDateValuesChange?.(nextDateValues);
+                return nextDateValues;
+            });
+        },
+        [onDateValuesChange],
+    );
 
     useEffect(() => {
         if (isSearchAdvancedFiltersFormLoading) {
@@ -98,12 +108,8 @@ function DatePresetFilterBase({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isSearchAdvancedFiltersFormLoading]);
 
-    useEffect(() => {
-        onDateValuesChange?.(dateValues);
-    }, [dateValues, onDateValuesChange]);
-
     const setDateValue = useCallback((dateModifier: SearchDateModifier, value: string | undefined) => {
-        setDateValues((prevDateValues) => {
+        updateDateValues((prevDateValues) => {
             if (dateModifier === CONST.SEARCH.DATE_MODIFIERS.ON && isSearchDatePreset(value)) {
                 return {
                     [CONST.SEARCH.DATE_MODIFIERS.ON]: value,
@@ -128,7 +134,7 @@ function DatePresetFilterBase({
 
             return {...prevDateValues, [dateModifier]: value};
         });
-    }, []);
+    }, [updateDateValues]);
 
     const dateDisplayValues = useMemo<SearchDateValues>(() => {
         const dateOn = dateValues[CONST.SEARCH.DATE_MODIFIERS.ON];
@@ -170,7 +176,7 @@ function DatePresetFilterBase({
             },
 
             clearDateValues() {
-                setDateValues({
+                updateDateValues({
                     [CONST.SEARCH.DATE_MODIFIERS.ON]: undefined,
                     [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: undefined,
                     [CONST.SEARCH.DATE_MODIFIERS.AFTER]: undefined,
@@ -208,7 +214,7 @@ function DatePresetFilterBase({
                 setDateValue(selectedDateModifier, undefined);
             },
         }),
-        [selectedDateModifier, dateValues, ephemeralDateValue, setDateValue],
+        [selectedDateModifier, dateValues, ephemeralDateValue, setDateValue, updateDateValues],
     );
 
     return !selectedDateModifier ? (
