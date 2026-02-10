@@ -56,6 +56,7 @@ import type {
 import type {ThemeColors} from '@styles/theme/types';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
+import type Locale from '@src/types/onyx/Locale';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -477,6 +478,7 @@ type GetSectionsParams = {
     customCardNames?: Record<number, string>;
     allTransactionViolations?: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     allReportMetadata: OnyxCollection<OnyxTypes.ReportMetadata>;
+    preferredLocale?: Locale;
 };
 
 /**
@@ -2487,7 +2489,7 @@ function getTagSections(data: OnyxTypes.SearchResults['data'], queryJSON: Search
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getMonthSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionMonthGroupListItemType[], number] {
+function getMonthSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined, preferredLocale?: Locale): [TransactionMonthGroupListItemType[], number] {
     const monthSections: Record<string, TransactionMonthGroupListItemType> = {};
     for (const key in data) {
         if (isGroupEntry(key)) {
@@ -2513,9 +2515,9 @@ function getMonthSections(data: OnyxTypes.SearchResults['data'], queryJSON: Sear
                 transactionsQueryJSON = buildSearchQueryJSON(newQuery);
             }
 
-            // Format month display: "January 2026"
+            // Format month display using the user's preferred locale (e.g. "January 2026", "1月 2026", "2026年1月")
             const monthDate = new Date(monthGroup.year, monthGroup.month - 1, 1);
-            const formattedMonth = format(monthDate, 'MMMM yyyy');
+            const formattedMonth = new Intl.DateTimeFormat(preferredLocale ?? 'en', {month: 'long', year: 'numeric'}).format(monthDate);
 
             monthSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.MONTH,
@@ -2708,6 +2710,7 @@ function getSections({
     customCardNames,
     allTransactionViolations,
     allReportMetadata,
+    preferredLocale,
 }: GetSectionsParams) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getReportActionsSections(data);
@@ -2751,7 +2754,7 @@ function getSections({
             case CONST.SEARCH.GROUP_BY.TAG:
                 return getTagSections(data, queryJSON, translate);
             case CONST.SEARCH.GROUP_BY.MONTH:
-                return getMonthSections(data, queryJSON);
+                return getMonthSections(data, queryJSON, preferredLocale);
             case CONST.SEARCH.GROUP_BY.WEEK:
                 return getWeekSections(data, queryJSON);
             case CONST.SEARCH.GROUP_BY.YEAR:

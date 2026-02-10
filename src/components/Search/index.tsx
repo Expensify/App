@@ -292,7 +292,7 @@ function Search({
     const shouldCalculateTotals = useSearchShouldCalculateTotals(searchKey, similarSearchHash, offset === 0);
 
     const previousReportActions = usePrevious(reportActions);
-    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber, preferredLocale} = useLocalize();
     const searchListRef = useRef<SelectionListHandle | null>(null);
 
     const handleDEWModalOpen = useCallback(() => {
@@ -449,6 +449,7 @@ function Search({
             allTransactionViolations: violations,
             customCardNames,
             allReportMetadata,
+            preferredLocale,
         });
         return [filteredData1, filteredData1.length, allLength];
     }, [
@@ -472,6 +473,7 @@ function Search({
         violations,
         customCardNames,
         allReportMetadata,
+        preferredLocale,
     ]);
 
     // For group-by views, each grouped item has a transactionsQueryJSON with a hash pointing to a separate snapshot
