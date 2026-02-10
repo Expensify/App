@@ -23,8 +23,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type IconAsset from '@src/types/utils/IconAsset';
-import withReportAndReportActionOrNotFound from './home/report/withReportAndReportActionOrNotFound';
-import type {WithReportAndReportActionOrNotFoundProps} from './home/report/withReportAndReportActionOrNotFound';
+import withReportAndReportActionOrNotFound from './inbox/report/withReportAndReportActionOrNotFound';
+import type {WithReportAndReportActionOrNotFoundProps} from './inbox/report/withReportAndReportActionOrNotFound';
 
 type FlagCommentPageNavigationProps = PlatformStackScreenProps<FlagCommentNavigatorParamList, typeof SCREENS.FLAG_COMMENT_ROOT>;
 
@@ -63,6 +63,7 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
     const originalReportID = getOriginalReportID(reportID, reportAction);
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {canBeMissing: true});
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
 
     const severities: SeverityItemList = [
         {
@@ -142,7 +143,7 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
             testID="FlagCommentPage"
         >
             {({safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView shouldShow={!shouldShowFlagComment(reportAction, report, isReportArchived)}>
+                <FullPageNotFoundView shouldShow={!shouldShowFlagComment(reportAction, report, conciergeReportID, isReportArchived)}>
                     <HeaderWithBackButton
                         title={translate('reportActionContextMenu.flagAsOffensive')}
                         onBackButtonPress={() => Navigation.goBack(route.params.backTo)}

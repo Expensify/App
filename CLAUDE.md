@@ -7,7 +7,7 @@
 - **Language**: TypeScript
 - **State Management**: React Native Onyx
 - **Navigation**: React Navigation
-- **Platforms**: iOS, Android, Web, Desktop (Electron)
+- **Platforms**: iOS, Android, Web
 
 ## HybridApp Architecture (Critical Context)
 
@@ -22,7 +22,7 @@
 - Mobile builds **must** be initiated from the Mobile-Expensify directory
 
 ### Build Modes
-- **Standalone**: Pure NewDot application (web/desktop)
+- **Standalone**: Pure NewDot application (web)
 - **HybridApp**: Combined OldDot + NewDot (mobile apps)
 - Controlled via `STANDALONE_NEW_DOT` environment variable
 
@@ -172,11 +172,29 @@ Key GitHub Actions workflows:
 
 ## Development Practices
 
+### React Native Best Practices
+Use the `/react-native-best-practices` skill when working on performance-sensitive code, native modules, or release preparation. This ensures code respects established best practices from the start, resulting in more consistent code, fewer review iterations, and better resilience against regressions.
+
+The skill provides guidance on:
+- **Performance**: FPS optimization, virtualized lists (FlashList), memoization, atomic state, animations
+- **Bundle & App Size**: Barrel imports, tree shaking, bundle analysis, R8 shrinking
+- **Startup (TTI)**: Hermes bytecode optimization, native navigation, deferred work
+- **Native Modules**: Turbo Module development, threading model, Swift/Kotlin/C++ patterns
+- **Memory**: JS and native memory leak detection and patterns
+- **Build Compliance**: Android 16KB page alignment (Google Play requirement)
+- **Platform Tooling**: Xcode/Android Studio profiling and debugging setup
+
 ### Code Quality
 - **TypeScript**: Strict mode enabled
 - **ESLint**: Linter
-- **Prettier**: Automatic formatting
+- **Prettier**: Code formatting - run `npm run prettier` after making changes
 - **Patch Management**: patch-package for dependency fixes
+
+### Post-Edit Checklist (IMPORTANT)
+**ALWAYS run these steps after making code changes, before committing:**
+1. **Prettier**: Run `npx prettier --write <changed files>` on every file you modified. This is mandatory - CI will reject unformatted code.
+2. **ESLint**: Run `npx eslint <changed files> --max-warnings=0` to catch lint errors early.
+3. **TypeScript**: Run `npm run typecheck` if you changed types, interfaces, or function signatures.
 
 ### Testing
 - **Unit Tests**: Jest with React Native Testing Library
@@ -224,6 +242,9 @@ npm run typecheck
 # Linting
 npm run lint
 
+# Format code with Prettier
+npm run prettier
+
 # Testing
 npm run test
 ```
@@ -236,12 +257,20 @@ npm run ios
 # Android build
 npm run android
 
-# Desktop build
-npm run desktop
-
 # Web build
 npm run web
 ```
+
+## Development Environment
+
+### Dev Server
+- **Location**: Runs on HOST machine (not in VM)
+- **URL**: `https://dev.new.expensify.com:8082/`
+- **Start command**: `npm run web`
+- **VM is only for**: Backend services (Auth, Bedrock, Integration-Server, Web-Expensify)
+
+### Browser Testing
+Use the `/playwright-app-testing` skill to test and debug the App in a browser. Use this skill after making frontend changes to verify your work, or when the user requests testing.
 
 ## Architecture Decisions
 

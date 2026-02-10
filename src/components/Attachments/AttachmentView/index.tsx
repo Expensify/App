@@ -9,12 +9,10 @@ import Button from '@components/Button';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
-// eslint-disable-next-line no-restricted-imports
-import {ArrowCircleClockwise} from '@components/Icon/Expensicons';
 import PerDiemEReceipt from '@components/PerDiemEReceipt';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import {usePlaybackActionsContext, usePlaybackStateContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useFirstRenderRoute from '@hooks/useFirstRenderRoute';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -133,11 +131,12 @@ function AttachmentView({
     reportID,
     transaction: transactionProp,
 }: AttachmentViewProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Gallery']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowCircleClockwise', 'Gallery']);
     const [transactionFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
     const transaction = transactionProp ?? transactionFromOnyx;
     const {translate} = useLocalize();
-    const {updateCurrentURLAndReportID, currentlyPlayingURL, playVideo} = usePlaybackContext();
+    const {currentlyPlayingURL} = usePlaybackStateContext();
+    const {updateCurrentURLAndReportID, playVideo} = usePlaybackActionsContext();
 
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
     const {onAttachmentError, onTap} = attachmentCarouselPagerContext ?? {};
@@ -158,9 +157,6 @@ function AttachmentView({
         }
         const videoSource = isVideo && typeof source === 'string' ? source : undefined;
         updateCurrentURLAndReportID(videoSource, reportID);
-        if (videoSource && currentlyPlayingURL === videoSource) {
-            playVideo();
-        }
     }, [file, isFocused, isInFocusedModal, isUsedInAttachmentModal, isVideo, reportID, source, updateCurrentURLAndReportID, playVideo, currentlyPlayingURL]);
 
     const [imageError, setImageError] = useState(false);
@@ -294,7 +290,7 @@ function AttachmentView({
                     </View>
                     <Button
                         text={translate('attachmentView.retry')}
-                        icon={ArrowCircleClockwise}
+                        icon={icons.ArrowCircleClockwise}
                         onPress={() => {
                             if (isOffline) {
                                 return;

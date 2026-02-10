@@ -44,7 +44,7 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
     const {login, setLogin} = useLogin();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [closeAccount] = useOnyx(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM, {canBeMissing: true});
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: true});
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -164,7 +164,7 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
             input.current.focus();
         }
         return () => clearTimeout(focusTimeout);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we just want to call this function when component is mounted
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we just want to call this function when component is mounted
     }, []);
 
     useEffect(() => {

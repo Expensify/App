@@ -11,7 +11,7 @@ on:
 jobs:
   lint:
     if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - name: Checkout
         # v4
@@ -19,8 +19,6 @@ jobs:
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
-        with:
-          IS_DESKTOP_BUILD: 'true'
 
       - name: Verify e2e tests compile correctly
         run: npm run e2e-test-runner-build

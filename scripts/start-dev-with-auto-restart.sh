@@ -12,14 +12,7 @@ RESTART_COUNT=0
 echo "🚀 Starting webpack-dev-server with auto-restart (max restarts: $MAX_RESTARTS)"
 
 run_wds () {
-    # Check if platform is Desktop to determine open behavior
-    if [[ "${WEBPACK_DEV_SERVER_ARGS[*]}" == *"--env platform=desktop"* ]]; then
-        # For Desktop, always use --no-open since app is handled by Electron
-        npx tsx --expose-gc ./node_modules/.bin/webpack-cli serve --no-open "${WEBPACK_DEV_SERVER_ARGS[@]}" --config config/webpack/webpack.dev.ts
-    else
-        # For Web, use the provided open flag
-        npx tsx --expose-gc ./node_modules/.bin/webpack-cli serve "$1" "${WEBPACK_DEV_SERVER_ARGS[@]}" --config config/webpack/webpack.dev.ts
-    fi
+    npx tsx --expose-gc ./node_modules/.bin/webpack-cli serve "$1" "${WEBPACK_DEV_SERVER_ARGS[@]}" --config config/webpack/webpack.dev.ts
 }
 
 while [[ $RESTART_COUNT -lt $MAX_RESTARTS ]]; do

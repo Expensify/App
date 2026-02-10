@@ -1,48 +1,43 @@
-import React, {useState} from 'react';
-import ConfirmModal from '@components/ConfirmModal';
+import {useCallback} from 'react';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {useSearchContext} from '@components/Search/SearchContext';
 import {deleteSavedSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import ROUTES from '@src/ROUTES';
+import useConfirmModal from './useConfirmModal';
 import useLocalize from './useLocalize';
 
 export default function useDeleteSavedSearch() {
-    const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
-    const [hashToDelete, setHashToDelete] = useState(0);
     const {translate} = useLocalize();
     const {currentSearchHash} = useSearchContext();
+    const {showConfirmModal} = useConfirmModal();
 
-    const showDeleteModal = (hash: number) => {
-        setIsDeleteModalVisible(true);
-        setHashToDelete(hash);
-    };
+    const handleDeleteSavedSearch = useCallback(
+        (hash: number) => {
+            showConfirmModal({
+                title: translate('search.deleteSavedSearch'),
+                prompt: translate('search.deleteSavedSearchConfirm'),
+                confirmText: translate('common.delete'),
+                cancelText: translate('common.cancel'),
+                danger: true,
+            }).then((result) => {
+                if (result.action !== ModalActions.CONFIRM) {
+                    return;
+                }
+                deleteSavedSearch(hash);
 
-    const handleDelete = () => {
-        deleteSavedSearch(hashToDelete);
-        setIsDeleteModalVisible(false);
-
-        if (hashToDelete === currentSearchHash) {
-            Navigation.navigate(
-                ROUTES.SEARCH_ROOT.getRoute({
-                    query: buildCannedSearchQuery(),
-                }),
-            );
-        }
-    };
-
-    const DeleteConfirmModal = (
-        <ConfirmModal
-            title={translate('search.deleteSavedSearch')}
-            onConfirm={handleDelete}
-            onCancel={() => setIsDeleteModalVisible(false)}
-            isVisible={isDeleteModalVisible}
-            prompt={translate('search.deleteSavedSearchConfirm')}
-            confirmText={translate('common.delete')}
-            cancelText={translate('common.cancel')}
-            danger
-        />
+                if (hash === currentSearchHash) {
+                    Navigation.navigate(
+                        ROUTES.SEARCH_ROOT.getRoute({
+                            query: buildCannedSearchQuery(),
+                        }),
+                    );
+                }
+            });
+        },
+        [showConfirmModal, translate, currentSearchHash],
     );
 
-    return {showDeleteModal, DeleteConfirmModal};
+    return {showDeleteModal: handleDeleteSavedSearch};
 }

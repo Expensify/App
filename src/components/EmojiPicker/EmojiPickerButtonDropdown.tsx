@@ -3,8 +3,6 @@ import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import Text from '@components/Text';
@@ -42,7 +40,7 @@ function EmojiPickerButtonDropdown(
     const StyleUtils = useStyleUtils();
     const emojiPopoverAnchor = useRef(null);
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Emoji']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Emoji']);
 
     useEffect(() => resetEmojiPopoverAnchor, []);
     const onPress = () => {
@@ -74,7 +72,7 @@ function EmojiPickerButtonDropdown(
                 disabled={isDisabled}
                 onPress={onPress}
                 id="emojiDropdownButton"
-                accessibilityLabel="statusEmoji"
+                accessibilityLabel={value ? `${value}, ${translate('statusPage.status')}` : translate('statusPage.status')}
                 role={CONST.ROLE.BUTTON}
                 sentryLabel={CONST.SENTRY_LABEL.EMOJI_PICKER.BUTTON_DROPDOWN}
             >
@@ -96,7 +94,7 @@ function EmojiPickerButtonDropdown(
                         </Text>
                         <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, disabled && styles.cursorDisabled, styles.rotate90]}>
                             <Icon
-                                src={Expensicons.ArrowRight}
+                                src={icons.ArrowRight}
                                 fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
                             />
                         </View>

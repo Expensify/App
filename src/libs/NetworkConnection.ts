@@ -247,7 +247,7 @@ function subscribeToNetInfo(accountID: number | undefined): () => void {
         // Calling NetInfo.configure (re)checks current state. We use it to force a recheck whenever we (re)subscribe
         NetInfo.configure({
             // By default, NetInfo uses `/` for `reachabilityUrl`
-            // When App is served locally (or from Electron) this address is always reachable - even offline
+            // When App is served locally this address is always reachable - even offline
             // Using the API url ensures reachability is tested over internet
             reachabilityUrl: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/Ping?accountID=${accountID ?? 'unknown'}`,
             reachabilityMethod: 'GET',

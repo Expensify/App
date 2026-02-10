@@ -114,6 +114,7 @@ function MigratedUserWelcomeModal() {
             contentOuterContainerStyles={!shouldUseNarrowLayout && [styles.mt8, styles.mh8]}
             modalInnerContainerStyle={{...styles.pt0, ...(shouldUseNarrowLayout ? {} : styles.pb8)}}
             isModalDisabled={isModalDisabled}
+            shouldUseScrollView
         >
             <View
                 style={[styles.gap3, styles.pt1, styles.pl1]}

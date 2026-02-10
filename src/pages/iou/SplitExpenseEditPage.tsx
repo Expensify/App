@@ -9,28 +9,32 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
 import useAllTransactions from '@hooks/useAllTransactions';
+import useCurrencyList from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {removeSplitExpenseField, updateSplitExpenseField} from '@libs/actions/IOU';
+import {initDraftSplitExpenseDataForEdit, removeSplitExpenseField, updateSplitExpenseField} from '@libs/actions/IOU';
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
 import {getDecodedCategoryName, isCategoryDescriptionRequired} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import {getTagLists} from '@libs/PolicyUtils';
-import {computeReportName} from '@libs/ReportNameUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getParsedComment, getReportOrDraftReport, getTransactionDetails} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
-import {getTag, getTagForDisplay} from '@libs/TransactionUtils';
+import {getDistanceInMeters, getTag, getTagForDisplay, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -41,8 +45,10 @@ type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typ
 
 function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const searchContext = useSearchContext();
+    const {isOffline} = useNetwork();
+    const {translate, toLocaleDigit} = useLocalize();
+    const {getCurrencySymbol} = useCurrencyList();
+    const {currentSearchResults} = useSearchContext();
 
     const {reportID, transactionID, splitExpenseTransactionID = '', backTo} = route.params;
 
@@ -52,9 +58,6 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     ]);
 
     const splitExpenseDraftTransactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(splitExpenseDraftTransaction) ?? {}, [splitExpenseDraftTransaction]);
-
-    const searchHash = searchContext?.currentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`, {canBeMissing: true});
     const allTransactions = useAllTransactions();
 
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`];
@@ -71,6 +74,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${currentReport?.policyID}`, {canBeMissing: false});
 
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${currentReport?.policyID}`, {canBeMissing: false});
+    const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const fetchData = useCallback(() => {
         if (!policyCategories) {
@@ -86,7 +90,6 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     // values are not fetched initially.
     useEffect(() => {
         fetchData();
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -104,10 +107,10 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const transactionTag = getTag(splitExpenseDraftTransaction);
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
-    const isSplitAvailable = report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, currentPolicy);
+    const isSplitAvailable = report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, login ?? '', currentUserAccountID, currentPolicy);
 
     const isCategoryRequired = !!currentPolicy?.requiresCategory;
-    const reportName = computeReportName(currentReport);
+    const reportName = getReportName(currentReport);
     const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, splitExpenseDraftTransactionDetails?.category, currentPolicy?.areRulesEnabled);
 
     const shouldShowTags = !!currentPolicy?.areTagsEnabled && !!(transactionTag || hasEnabledTags(policyTagLists));
@@ -123,6 +126,79 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     );
 
     const previousTagsVisibility = usePrevious(tagVisibility.map((v) => v.shouldShow)) ?? [];
+
+    const isDistance = isDistanceRequest(splitExpenseDraftTransaction);
+    const isManualDistance = isManualDistanceRequest(splitExpenseDraftTransaction);
+    const isOdometerDistance = isOdometerDistanceRequest(splitExpenseDraftTransaction);
+    const {unit, rate} = DistanceRequestUtils.getRate({transaction: splitExpenseDraftTransaction, policy: currentPolicy});
+    const distance = getDistanceInMeters(splitExpenseDraftTransaction, unit);
+    const currency = splitExpenseDraftTransactionDetails.currency ?? CONST.CURRENCY.USD;
+    const rateToDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
+    const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(true, distance, unit, rate, translate);
+
+    const distanceRequestFields = isDistance ? (
+        <>
+            <MenuItemWithTopDescription
+                description={translate('common.distance')}
+                title={distanceToDisplay}
+                interactive
+                shouldShowRightIcon
+                titleStyle={styles.flex1}
+                style={[styles.moneyRequestMenuItem]}
+                onPress={() => {
+                    if (isOdometerDistance) {
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.SPLIT_EXPENSE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID),
+                        );
+                        return;
+                    }
+
+                    if (isManualDistance) {
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_DISTANCE_MANUAL.getRoute(
+                                CONST.IOU.ACTION.EDIT,
+                                CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                reportID,
+                                Navigation.getActiveRoute(),
+                            ),
+                        );
+                        return;
+                    }
+
+                    initDraftSplitExpenseDataForEdit(originalTransactionDraft, splitExpenseTransactionID, reportID, CONST.IOU.OPTIMISTIC_DISTANCE_SPLIT_TRANSACTION_ID);
+                    Navigation.navigate(
+                        ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(
+                            CONST.IOU.ACTION.EDIT,
+                            CONST.IOU.TYPE.SPLIT_EXPENSE,
+                            CONST.IOU.OPTIMISTIC_DISTANCE_SPLIT_TRANSACTION_ID,
+                            reportID,
+                            Navigation.getActiveRoute(),
+                        ),
+                    );
+                }}
+            />
+            <MenuItemWithTopDescription
+                description={translate('common.rate')}
+                title={rateToDisplay}
+                interactive
+                shouldShowRightIcon
+                titleStyle={styles.flex1}
+                style={[styles.moneyRequestMenuItem]}
+                onPress={() => {
+                    Navigation.navigate(
+                        ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(
+                            CONST.IOU.ACTION.EDIT,
+                            CONST.IOU.TYPE.SPLIT_EXPENSE,
+                            CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                            reportID,
+                            Navigation.getActiveRoute(),
+                        ),
+                    );
+                }}
+            />
+        </>
+    ) : null;
 
     return (
         <ScreenWrapper testID="SplitExpenseEditPage">
@@ -158,6 +234,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                             numberOfLinesTitle={2}
                             rightLabel={isDescriptionRequired ? translate('common.required') : ''}
                         />
+                        {distanceRequestFields}
                         {shouldShowCategory && (
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
@@ -271,7 +348,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                             style={[styles.w100]}
                             text={translate('common.save')}
                             onPress={() => {
-                                updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID);
+                                updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID, transaction, currentPolicy);
                                 Navigation.goBack(backTo);
                             }}
                             pressOnEnter

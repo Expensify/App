@@ -155,10 +155,11 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                     {!autoSync && (
                         <View style={[styles.renderHTML, styles.ph5, styles.mt2]}>
                             <RenderHTML
-                                html={translate('workspace.accounting.enableContinuousReconciliation', {
+                                html={translate(
+                                    'workspace.accounting.enableContinuousReconciliation',
                                     accountingAdvancedSettingsLink,
-                                    connectionName: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName],
-                                })}
+                                    CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName],
+                                )}
                             />
                         </View>
                     )}

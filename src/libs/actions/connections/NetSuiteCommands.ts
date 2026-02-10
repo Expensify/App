@@ -238,7 +238,7 @@ function updateNetSuiteSyncOptionsOnyxData<TSettingName extends keyof Connection
 }
 
 function updateNetSuiteSubsidiary(policyID: string, newSubsidiary: SubsidiaryParam, oldSubsidiary: SubsidiaryParam) {
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -321,12 +321,15 @@ function updateNetSuiteSubsidiary(policyID: string, newSubsidiary: SubsidiaryPar
 }
 
 function updateNetSuiteImportMapping<TMappingName extends keyof Connections['netsuite']['options']['config']['syncOptions']['mapping']>(
-    policyID: string,
+    policyID: string | undefined,
     mappingName: TMappingName,
     mappingValue: ValueOf<typeof CONST.INTEGRATION_ENTITY_MAP_TYPES>,
     oldMappingValue?: ValueOf<typeof CONST.INTEGRATION_ENTITY_MAP_TYPES> | null,
 ) {
-    const onyxData: OnyxData = {
+    if (!policyID) {
+        return;
+    }
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -440,7 +443,7 @@ function updateNetSuiteImportMapping<TMappingName extends keyof Connections['net
 }
 
 function updateNetSuiteCustomersJobsMapping(
-    policyID: string,
+    policyID: string | undefined,
     mappingValue: {
         customersMapping: NetSuiteMappingValues;
         jobsMapping: NetSuiteMappingValues;
@@ -450,7 +453,10 @@ function updateNetSuiteCustomersJobsMapping(
         jobsMapping?: NetSuiteMappingValues;
     },
 ) {
-    const onyxData: OnyxData = {
+    if (!policyID) {
+        return;
+    }
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,

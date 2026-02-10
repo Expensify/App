@@ -41,7 +41,7 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
         setSearchValue(currentPronounsText ? translate(`pronouns.${currentPronounsText}`) : '');
 
         // Only need to update search value when the first time the data is loaded
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingApp]);
 
     const filteredPronounsList = useMemo((): PronounEntry[] => {

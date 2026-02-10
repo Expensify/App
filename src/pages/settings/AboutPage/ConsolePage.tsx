@@ -99,7 +99,6 @@ function ConsolePage() {
             .reverse();
     }, [capturedLogs, shouldStoreLogs]);
 
-    // eslint-disable-next-line react-compiler/react-compiler
     const logsList = useMemo(() => getLogs(), [getLogs]);
 
     const filteredLogsList = useMemo(() => logsList.filter((log) => log.message.includes(activeFilterIndex)), [activeFilterIndex, logsList]);
@@ -218,9 +217,7 @@ function ConsolePage() {
                 isVisible={isLimitModalVisible}
                 onConfirm={() => setIsLimitModalVisible(false)}
                 onCancel={() => setIsLimitModalVisible(false)}
-                prompt={translate('initialSettingsPage.debugConsole.logSizeTooLarge', {
-                    size: CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE / 1024 / 1024,
-                })}
+                prompt={translate('initialSettingsPage.debugConsole.logSizeTooLarge', CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE / 1024 / 1024)}
                 shouldShowCancelButton={false}
                 confirmText={translate('common.ok')}
             />

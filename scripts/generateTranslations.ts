@@ -17,22 +17,16 @@ import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
 import en from '@src/languages/en';
 import type {TranslationPaths} from '@src/languages/types';
 import CLI from './utils/CLI';
+import COLORS from './utils/COLORS';
 import Git from './utils/Git';
 import Prettier from './utils/Prettier';
 import PromisePool from './utils/PromisePool';
 import ChatGPTTranslator from './utils/Translator/ChatGPTTranslator';
 import DummyTranslator from './utils/Translator/DummyTranslator';
 import type Translator from './utils/Translator/Translator';
+import type {StringWithContext} from './utils/Translator/types';
 import TSCompilerUtils, {TransformerAction} from './utils/TSCompilerUtils';
 import type {TransformerResult} from './utils/TSCompilerUtils';
-
-/**
- * This represents a string to translate. In the context of translation, two strings are considered equal only if their contexts are also equal.
- */
-type StringWithContext = {
-    text: string;
-    context?: string;
-};
 
 const GENERATED_FILE_PREFIX = dedent(`
     /**
@@ -48,7 +42,12 @@ const GENERATED_FILE_PREFIX = dedent(`
      */
 `);
 
-const tsPrinter = ts.createPrinter();
+const tsPrinter = ts.createPrinter({removeComments: true});
+
+/**
+ * If the estimated cost of translation exceeds this threshold (in USD), prompt the user for confirmation before proceeding.
+ */
+const COST_CONFIRMATION_THRESHOLD = 1;
 
 /**
  * This class encapsulates most of the non-CLI logic to generate translations.
@@ -118,6 +117,23 @@ class TranslationGenerator {
     private readonly isIncremental: boolean;
 
     /**
+     * CLI instance for user prompts.
+     */
+    /* eslint-disable @typescript-eslint/naming-convention */
+    private readonly cli: CLI<{
+        flags: {
+            'dry-run': {description: string};
+            verbose: {description: string};
+        };
+        namedArgs: {
+            locales: {description: string; default: TranslationTargetLocale[]; parse: (val: string) => TranslationTargetLocale[]};
+            'compare-ref': {description: string; default: string; parse: (val: string) => string};
+            paths: {description: string; parse: (val: string) => Set<TranslationPaths>; supersedes: string[]; required: false};
+        };
+    }>;
+    /* eslint-enable @typescript-eslint/naming-convention */
+
+    /**
      * If a complex template expression comes from an existing translation file rather than ChatGPT, then the hashes of its spans will be serialized from the translated version of those spans.
      * This map provides us a way to look up the English hash for each translated span hash, so that when we're transforming the English file and we encounter a translated expression hash,
      * we can look up English hash and use it to look up the translation for that hash (since the translation map is keyed by English string hashes).
@@ -130,31 +146,101 @@ class TranslationGenerator {
      */
     private readonly dedentStringKeys = new Set<number>();
 
-    constructor(config: {
-        targetLanguages: TranslationTargetLocale[];
-        languagesDir: string;
-        sourceFile: string;
-        translator: Translator;
-        compareRef: string;
-        paths?: Set<TranslationPaths>;
-        verbose: boolean;
-    }) {
-        this.targetLanguages = config.targetLanguages;
-        this.languagesDir = config.languagesDir;
-        const sourceCode = fs.readFileSync(config.sourceFile, 'utf8');
-        this.sourceFile = ts.createSourceFile(config.sourceFile, sourceCode, ts.ScriptTarget.Latest, true);
-        this.translator = config.translator;
-        this.compareRef = config.compareRef;
+    constructor() {
+        this.languagesDir = process.env.LANGUAGES_DIR ?? path.join(__dirname, '../src/languages');
+        const enSourceFile = path.join(this.languagesDir, 'en.ts');
+
+        /* eslint-disable @typescript-eslint/naming-convention */
+        this.cli = new CLI({
+            flags: {
+                'dry-run': {
+                    description: 'If true, just do local mocked translations rather than making real requests to an AI translator.',
+                },
+                verbose: {
+                    description: 'Should we print verbose logs?',
+                },
+            },
+            namedArgs: {
+                locales: {
+                    description: 'Locales to generate translations for.',
+                    default: Object.values(TRANSLATION_TARGET_LOCALES).filter((locale) => locale !== LOCALES.ES),
+                    parse: (val: string): TranslationTargetLocale[] => {
+                        const rawLocales = val.split(',');
+                        const validatedLocales: TranslationTargetLocale[] = [];
+                        for (const locale of rawLocales) {
+                            if (!isTranslationTargetLocale(locale)) {
+                                throw new Error(`Invalid locale ${String(locale)}`);
+                            }
+                            validatedLocales.push(locale);
+                        }
+                        return validatedLocales;
+                    },
+                },
+                'compare-ref': {
+                    description:
+                        'For incremental translations, this ref is the previous version of the codebase to compare to. Only strings that changed or had their context changed since this ref will be retranslated.',
+                    default: '',
+                    parse: (val: string): string => {
+                        if (!val.trim()) {
+                            return val;
+                        }
+                        if (!Git.isValidRef(val)) {
+                            throw new Error(`Invalid git reference: "${val}". Please provide a valid branch, tag, or commit hash.`);
+                        }
+                        return val;
+                    },
+                },
+                paths: {
+                    description: 'Comma-separated list of specific translation paths to retranslate (e.g., "common.save,errors.generic").',
+                    parse: (val: string): Set<TranslationPaths> => {
+                        const rawPaths = val.split(',').map((translationPath) => translationPath.trim());
+                        const validatedPaths = new Set<TranslationPaths>();
+                        const invalidPaths: string[] = [];
+                        for (const rawPath of rawPaths) {
+                            if (get(en, rawPath)) {
+                                validatedPaths.add(rawPath as TranslationPaths);
+                            } else {
+                                invalidPaths.push(rawPath);
+                            }
+                        }
+                        if (invalidPaths.length > 0) {
+                            throw new Error(`found the following invalid paths: ${JSON.stringify(invalidPaths)}`);
+                        }
+                        return validatedPaths;
+                    },
+                    supersedes: ['compare-ref'],
+                    required: false,
+                },
+            },
+        } as const);
+        /* eslint-enable @typescript-eslint/naming-convention */
+
+        this.targetLanguages = this.cli.namedArgs.locales;
+        this.compareRef = this.cli.namedArgs['compare-ref'];
         this.pathsToAdd = new Set<TranslationPaths>();
-        this.pathsToModify = config.paths ?? new Set<TranslationPaths>();
+        this.pathsToModify = this.cli.namedArgs.paths ?? new Set<TranslationPaths>();
         this.pathsToRemove = new Set<TranslationPaths>();
-        this.verbose = config.verbose;
+        this.verbose = this.cli.flags.verbose;
         this.isIncremental = this.pathsToModify.size > 0 || !!this.compareRef;
+
+        const sourceCode = fs.readFileSync(enSourceFile, 'utf8');
+        this.sourceFile = ts.createSourceFile(enSourceFile, sourceCode, ts.ScriptTarget.Latest, true);
+
+        if (this.cli.flags['dry-run']) {
+            console.log('🍸 Dry run enabled');
+            this.translator = new DummyTranslator();
+        } else {
+            if (!process.env.OPENAI_API_KEY) {
+                dotenv.config({path: path.resolve(__dirname, '../.env')});
+                if (!process.env.OPENAI_API_KEY) {
+                    throw new Error('❌ OPENAI_API_KEY not found in environment.');
+                }
+            }
+            this.translator = new ChatGPTTranslator(process.env.OPENAI_API_KEY);
+        }
     }
 
     public async generateTranslations(): Promise<void> {
-        const promisePool = new PromisePool();
-
         // map of translations for each locale
         const translations = new Map<TranslationTargetLocale, Map<number, string>>();
 
@@ -170,22 +256,85 @@ class TranslationGenerator {
             console.log(`   pathsToRemove: ${Array.from(this.pathsToRemove).join(', ')}`);
         }
 
+        // Extract strings to translate once (locale-independent)
+        const stringsToTranslate = new Map<number, StringWithContext>();
+        this.extractStringsToTranslate(this.sourceFile, stringsToTranslate);
+
+        // Estimate cost and prompt user if needed (respects --yes/--no flags)
+        await this.promptForCostApproval(stringsToTranslate);
+
+        // Translate locales sequentially (each locale fully translates before the next begins)
         for (const targetLanguage of this.targetLanguages) {
-            // Map of translations
-            const translationsForLocale = translations.get(targetLanguage) ?? new Map<number, string>();
+            await this.generateTranslationsForLocale(targetLanguage, stringsToTranslate, translations.get(targetLanguage) ?? new Map<number, string>());
+        }
 
-            // Extract strings to translate
-            const stringsToTranslate = new Map<number, StringWithContext>();
-            this.extractStringsToTranslate(this.sourceFile, stringsToTranslate);
+        // Print error summary if there were any failures
+        this.printErrorSummary();
+    }
 
-            // Translate all the strings in parallel (up to 8 at a time)
-            const translationPromises = [];
-            for (const [key, {text, context}] of stringsToTranslate) {
-                if (translationsForLocale.has(key)) {
-                    // This means that the translation for this key was already parsed from an existing translation file, so we don't need to translate it with ChatGPT
-                    continue;
+    /**
+     * Print a summary of all translations that failed after exhausting retries.
+     */
+    private printErrorSummary(): void {
+        const failures = this.translator.getFailedTranslations();
+        if (failures.length === 0) {
+            return;
+        }
+
+        console.log('\n');
+        console.log('═'.repeat(80));
+        console.log('❌ TRANSLATION ERRORS SUMMARY');
+        console.log('═'.repeat(80));
+        console.log(`\nThe following ${failures.length} translation(s) failed after exhausting all retries:`);
+        console.log('(The original text was used as a fallback for these translations)\n');
+
+        // Group failures by locale for cleaner output
+        const byLocale = new Map<string, typeof failures>();
+        for (const failure of failures) {
+            const existing = byLocale.get(failure.targetLang) ?? [];
+            existing.push(failure);
+            byLocale.set(failure.targetLang, existing);
+        }
+
+        for (const [locale, localeFailures] of byLocale) {
+            console.log(`\n📍 ${locale} (${localeFailures.length} failure${localeFailures.length > 1 ? 's' : ''}):`);
+            console.log('─'.repeat(60));
+            for (const failure of localeFailures) {
+                const truncatedText = failure.text.length > 60 ? `${failure.text.slice(0, 60)}...` : failure.text;
+                console.log(`  • "${truncatedText}"`);
+                if (failure.id) {
+                    console.log(`    Path: ${failure.id}`);
                 }
+                const firstErrorLine = failure.error.split('\n').at(0) ?? failure.error;
+                console.log(`    Error: ${firstErrorLine}`);
+            }
+        }
 
+        console.log(`\n${'═'.repeat(80)}`);
+        console.log(`Total failures: ${failures.length}`);
+        console.log(`${'═'.repeat(80)}\n`);
+    }
+
+    /**
+     * Generates translations for a single locale.
+     * Translations within a locale are processed in parallel (up to 8 at a time).
+     */
+    private async generateTranslationsForLocale(
+        targetLanguage: TranslationTargetLocale,
+        stringsToTranslate: Map<number, StringWithContext>,
+        translationsForLocale: Map<number, string>,
+    ): Promise<void> {
+        // Translate strings in parallel (up to 8 at a time)
+        const translationPool = new PromisePool<void>(8);
+        const translationPromises: Array<Promise<void>> = [];
+
+        for (const [key, {text, context, id}] of stringsToTranslate) {
+            if (translationsForLocale.has(key)) {
+                // This means that the translation for this key was already parsed from an existing translation file, so we don't need to translate it with ChatGPT
+                continue;
+            }
+
+            const translationPromise = translationPool.add(async () => {
                 // Special handling for dedent strings - preserve leading newline
                 let textToTranslate = text;
                 let hadLeadingNewline = false;
@@ -194,95 +343,139 @@ class TranslationGenerator {
                     textToTranslate = dedent(text);
                 }
 
-                const translationPromise = promisePool.add(async () => {
-                    let result = await this.translator.translate(targetLanguage, textToTranslate, context);
+                let result = await this.translator.translate(targetLanguage, textToTranslate, context, id);
 
-                    // Special handling for dedent strings - add back leading newline if it was removed
-                    if (hadLeadingNewline) {
-                        result = `\n${result}`;
-                    }
-
-                    translationsForLocale.set(key, result);
-                });
-                translationPromises.push(translationPromise);
-            }
-            await Promise.allSettled(translationPromises);
-
-            // Replace translated strings in the AST
-            let transformedSourceFile: ts.SourceFile;
-
-            if (this.isIncremental) {
-                // Make sure the target file exists
-                const targetPath = path.join(this.languagesDir, `${targetLanguage}.ts`);
-                if (!fs.existsSync(targetPath)) {
-                    throw new Error(`Target file ${targetPath} does not exist for incremental translation`);
+                // Special handling for dedent strings - add back leading newline if it was removed
+                if (hadLeadingNewline) {
+                    result = `\n${result}`;
                 }
 
-                // Transform en.ts with path filtering for pathsToModify and pathsToAdd.
-                // The result is a "patch" of the main translations node, including only the paths that are added or modified,
-                // where the values are translated to the target language.
-                const enResult = ts.transform(this.sourceFile, [this.createTranslationTransformer(translationsForLocale)]);
-                const transformedEnSourceFile = enResult.transformed.at(0);
-                if (!transformedEnSourceFile) {
-                    throw new Error('Failed to create translated patch from en.ts');
-                }
+                translationsForLocale.set(key, result);
+            });
+            translationPromises.push(translationPromise);
+        }
 
-                // Extract translated code strings from the transformed en.ts
-                const translatedCodeMap = new Map<string, string>();
-                this.extractTranslatedNodes(transformedEnSourceFile, translatedCodeMap);
-                enResult.dispose();
+        await Promise.all(translationPromises);
 
-                // Transform the target file using the translated node map
-                const existingContent = fs.readFileSync(targetPath, 'utf8');
-                const existingSourceFile = ts.createSourceFile(targetPath, existingContent, ts.ScriptTarget.Latest, true);
-                const targetTransformer = this.createIncrementalTargetTransformer(translatedCodeMap);
-                const targetResult = ts.transform(existingSourceFile, [targetTransformer]);
-                const transformedTargetResult = targetResult.transformed.at(0);
-                if (!transformedTargetResult) {
-                    throw new Error('Failed to transform target file');
-                }
-                transformedSourceFile = transformedTargetResult;
-                targetResult.dispose();
-            } else {
-                // Full transformation for non-incremental mode - transform en.ts
-                const transformer = this.createTranslationTransformer(translationsForLocale);
-                const result = ts.transform(this.sourceFile, [transformer]);
-                transformedSourceFile = result.transformed.at(0) ?? this.sourceFile;
-                result.dispose();
+        // Replace translated strings in the AST
+        let transformedSourceFile: ts.SourceFile;
+
+        if (this.isIncremental) {
+            // Make sure the target file exists
+            const targetPath = path.join(this.languagesDir, `${targetLanguage}.ts`);
+            if (!fs.existsSync(targetPath)) {
+                throw new Error(`Target file ${targetPath} does not exist for incremental translation`);
             }
 
-            // Import en.ts (addImport will check if it already exists)
-            transformedSourceFile = TSCompilerUtils.addImport(transformedSourceFile, 'en', './en', true);
-
-            // Generate translated TypeScript code
-            const translatedCode = decodeUnicode(tsPrinter.printFile(transformedSourceFile));
-
-            // Write to file
-            const outputPath = path.join(this.languagesDir, `${targetLanguage}.ts`);
-            fs.writeFileSync(outputPath, translatedCode, 'utf8');
-
-            // Enforce that the type of translated files matches en.ts
-            let finalFileContent = fs.readFileSync(outputPath, 'utf8');
-            finalFileContent = finalFileContent.replace('const translations = {', 'const translations: TranslationDeepObject<typeof en> = {');
-            finalFileContent = finalFileContent.replace('export default translations satisfies TranslationDeepObject<typeof translations>;', 'export default translations;');
-
-            // Add a fun ascii art touch with a helpful message
-            if (!finalFileContent.startsWith(GENERATED_FILE_PREFIX)) {
-                finalFileContent = `${GENERATED_FILE_PREFIX}${finalFileContent}`;
+            // Transform en.ts with path filtering for pathsToModify and pathsToAdd.
+            // The result is a "patch" of the main translations node, including only the paths that are added or modified,
+            // where the values are translated to the target language.
+            const enResult = ts.transform(this.sourceFile, [this.createTranslationTransformer(translationsForLocale)]);
+            const transformedEnSourceFile = enResult.transformed.at(0);
+            if (!transformedEnSourceFile) {
+                throw new Error('Failed to create translated patch from en.ts');
             }
 
-            fs.writeFileSync(outputPath, finalFileContent, 'utf8');
+            // Extract translated code strings from the transformed en.ts
+            const translatedCodeMap = new Map<string, string>();
+            this.extractTranslatedNodes(transformedEnSourceFile, translatedCodeMap);
+            enResult.dispose();
 
-            // Format the file with prettier
-            await Prettier.format(outputPath);
+            // Transform the target file using the translated node map
+            const existingContent = fs.readFileSync(targetPath, 'utf8');
+            const existingSourceFile = ts.createSourceFile(targetPath, existingContent, ts.ScriptTarget.Latest, true);
+            const targetTransformer = this.createIncrementalTargetTransformer(translatedCodeMap);
+            const targetResult = ts.transform(existingSourceFile, [targetTransformer]);
+            const transformedTargetResult = targetResult.transformed.at(0);
+            if (!transformedTargetResult) {
+                throw new Error('Failed to transform target file');
+            }
+            transformedSourceFile = transformedTargetResult;
+            targetResult.dispose();
+        } else {
+            // Full transformation for non-incremental mode - transform en.ts
+            const transformer = this.createTranslationTransformer(translationsForLocale);
+            const result = ts.transform(this.sourceFile, [transformer]);
+            transformedSourceFile = result.transformed.at(0) ?? this.sourceFile;
+            result.dispose();
+        }
 
-            // Apply dedent formatting after Prettier so we have accurate source positions
-            this.formatDedentCallsInFile(outputPath);
+        // Import en.ts (addImport will check if it already exists)
+        transformedSourceFile = TSCompilerUtils.addImport(transformedSourceFile, 'en', './en', true);
 
-            // Format again with Prettier to ensure consistent formatting after dedent transformation
-            await Prettier.format(outputPath);
+        // Generate translated TypeScript code
+        const translatedCode = decodeUnicode(tsPrinter.printFile(transformedSourceFile));
 
-            console.log(`✅ Translated file created: ${outputPath}`);
+        // Write to file
+        const outputPath = path.join(this.languagesDir, `${targetLanguage}.ts`);
+        fs.writeFileSync(outputPath, translatedCode, 'utf8');
+
+        // Enforce that the type of translated files matches en.ts
+        let finalFileContent = fs.readFileSync(outputPath, 'utf8');
+        finalFileContent = finalFileContent.replace('const translations = {', 'const translations: TranslationDeepObject<typeof en> = {');
+        finalFileContent = finalFileContent.replace('export default translations satisfies TranslationDeepObject<typeof translations>;', 'export default translations;');
+
+        fs.writeFileSync(outputPath, finalFileContent, 'utf8');
+
+        // Format the file with prettier
+        await Prettier.format(outputPath);
+
+        // Apply dedent formatting after Prettier so we have accurate source positions
+        this.formatDedentCallsInFile(outputPath);
+
+        // Format again with Prettier to ensure consistent formatting after dedent transformation
+        await Prettier.format(outputPath);
+
+        // Add a fun ascii art touch with a helpful message
+        // This must be done AFTER formatDedentCallsInFile since that function uses the printer which removes comments
+        finalFileContent = fs.readFileSync(outputPath, 'utf8');
+        if (!finalFileContent.startsWith(GENERATED_FILE_PREFIX)) {
+            finalFileContent = `${GENERATED_FILE_PREFIX}${finalFileContent}`;
+        }
+
+        fs.writeFileSync(outputPath, finalFileContent, 'utf8');
+
+        console.log(`✅ Translated file created: ${outputPath}`);
+    }
+
+    /**
+     * Estimates the cost of translating the given strings and prompts the user for confirmation if the cost exceeds the threshold.
+     * If the user declines, the process exits.
+     * Skips prompting in dry-run mode since no real API calls are made.
+     */
+    private async promptForCostApproval(stringsToTranslate: Map<number, StringWithContext>): Promise<void> {
+        const numStrings = stringsToTranslate.size;
+        const numLocales = this.targetLanguages.length;
+
+        if (numStrings === 0 || numLocales === 0) {
+            return;
+        }
+
+        const estimatedCost = await this.translator.estimateCost(Array.from(stringsToTranslate.values()), this.targetLanguages);
+        if (estimatedCost > COST_CONFIRMATION_THRESHOLD) {
+            console.warn(
+                `${COLORS.YELLOW}${dedent(`
+                    ⚠️  Warning: This translation will cost approximately $${estimatedCost.toFixed(2)} USD.
+                       Strings to translate: ${stringsToTranslate.size.toLocaleString()}
+                       Target locales: ${numLocales}
+                `)}${COLORS.RESET}`,
+            );
+
+            if (!this.isIncremental) {
+                const scriptPath = path.relative(process.cwd(), path.resolve(__dirname, 'generateTranslations.ts'));
+                console.log(
+                    `Note: You are currently running a full retranslation of the entire \`en.ts\` file. To incrementally translate only what you changed on your branch, run: ${COLORS.BLUE}\`npx ts-node ${scriptPath} --compare-ref main\`${COLORS.RESET}\n`,
+                );
+            }
+
+            const userConfirmed = await this.cli.promptUserConfirmation(`Do you want to proceed? ${COLORS.BOLD}Estimated cost: $${estimatedCost.toFixed(2)} USD.${COLORS.RESET} (y/n) `);
+
+            if (!userConfirmed) {
+                console.log('\n❌ Translation cancelled by user.');
+                process.exit(0);
+            }
+
+            console.log('\n✅ Proceeding with translation...\n');
         }
     }
 
@@ -539,13 +732,13 @@ class TranslationGenerator {
 
             // String literals and no-substitution templates can be translated directly
             if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
-                stringsToTranslate.set(translationKey, {text: node.text, context});
+                stringsToTranslate.set(translationKey, {text: node.text, context, id: currentPath});
             }
 
             // Template expressions must be encoded directly before they can be translated
             else if (ts.isTemplateExpression(node)) {
                 if (this.isSimpleTemplateExpression(node)) {
-                    stringsToTranslate.set(translationKey, {text: this.templateExpressionToString(node), context});
+                    stringsToTranslate.set(translationKey, {text: this.templateExpressionToString(node), context, id: currentPath});
                 } else {
                     if (this.verbose) {
                         console.debug('😵‍💫 Encountered complex template, recursively translating its spans first:', node.getText());
@@ -553,7 +746,7 @@ class TranslationGenerator {
                     for (const span of node.templateSpans) {
                         this.extractStringsToTranslate(span, stringsToTranslate, currentPath);
                     }
-                    stringsToTranslate.set(translationKey, {text: this.templateExpressionToString(node), context});
+                    stringsToTranslate.set(translationKey, {text: this.templateExpressionToString(node), context, id: currentPath});
                 }
             }
         }
@@ -1050,7 +1243,7 @@ class TranslationGenerator {
                 return {action: TransformerAction.Remove};
             }
 
-            // Check if this is a property assignment that should be modified (exact match only)
+            // Check if this is a property assignment that should be modified
             if (ts.isPropertyAssignment(node) && currentPath && translatedCodeMap.has(currentPath)) {
                 const translatedCodeString = translatedCodeMap.get(currentPath);
                 if (!translatedCodeString) {
@@ -1060,6 +1253,9 @@ class TranslationGenerator {
 
                 // Parse the code string back to an AST expression
                 const translatedExpression = TSCompilerUtils.parseCodeStringToAST(translatedCodeString);
+
+                // Note: There is a minor bug here where leading comments (such as @context) are not preserved between the old property assignment node and the new one.
+                // This doesn't affect functionality at all, as translation target files don't need context annotations for anything, and it's not trivial to fix, so I'm leaving it as is for now.
                 return {
                     action: TransformerAction.Replace,
                     newNode: () => ts.factory.createPropertyAssignment(node.name, translatedExpression),
@@ -1125,111 +1321,8 @@ class TranslationGenerator {
     }
 }
 
-/**
- * The main function mostly contains CLI and file I/O logic, while TS parsing and translation logic is encapsulated in TranslationGenerator.
- */
 async function main(): Promise<void> {
-    const languagesDir = process.env.LANGUAGES_DIR ?? path.join(__dirname, '../src/languages');
-    const enSourceFile = path.join(languagesDir, 'en.ts');
-
-    /* eslint-disable @typescript-eslint/naming-convention */
-    const cli = new CLI({
-        flags: {
-            'dry-run': {
-                description: 'If true, just do local mocked translations rather than making real requests to an AI translator.',
-            },
-            verbose: {
-                description: 'Should we print verbose logs?',
-            },
-        },
-        namedArgs: {
-            // By default, generate translations for all supported languages. Can be overridden with the --locales flag
-            locales: {
-                description: 'Locales to generate translations for.',
-                default: Object.values(TRANSLATION_TARGET_LOCALES).filter((locale) => locale !== LOCALES.ES),
-                parse: (val: string): TranslationTargetLocale[] => {
-                    const rawLocales = val.split(',');
-                    const validatedLocales: TranslationTargetLocale[] = [];
-                    for (const locale of rawLocales) {
-                        if (!isTranslationTargetLocale(locale)) {
-                            throw new Error(`Invalid locale ${String(locale)}`);
-                        }
-                        validatedLocales.push(locale);
-                    }
-                    return validatedLocales;
-                },
-            },
-            'compare-ref': {
-                description:
-                    'For incremental translations, this ref is the previous version of the codebase to compare to. Only strings that changed or had their context changed since this ref will be retranslated.',
-                default: '',
-                parse: (val: string): string => {
-                    if (!val.trim()) {
-                        return val; // Empty string is valid (means no comparison)
-                    }
-
-                    // Validate that the ref exists using our Git utility
-                    if (!Git.isValidRef(val)) {
-                        throw new Error(`Invalid git reference: "${val}". Please provide a valid branch, tag, or commit hash.`);
-                    }
-
-                    return val;
-                },
-            },
-            paths: {
-                description: 'Comma-separated list of specific translation paths to retranslate (e.g., "common.save,errors.generic").',
-                parse: (val: string): Set<TranslationPaths> => {
-                    const rawPaths = val.split(',').map((translationPath) => translationPath.trim());
-                    const validatedPaths = new Set<TranslationPaths>();
-                    const invalidPaths: string[] = [];
-
-                    for (const rawPath of rawPaths) {
-                        if (get(en, rawPath)) {
-                            validatedPaths.add(rawPath as TranslationPaths);
-                        } else {
-                            invalidPaths.push(rawPath);
-                        }
-                    }
-
-                    if (invalidPaths.length > 0) {
-                        throw new Error(`found the following invalid paths: ${JSON.stringify(invalidPaths)}`);
-                    }
-
-                    return validatedPaths;
-                },
-                supersedes: ['compare-ref'],
-                required: false,
-            },
-        },
-    } as const);
-    /* eslint-enable @typescript-eslint/naming-convention */
-
-    let translator: Translator;
-    if (cli.flags['dry-run']) {
-        console.log('🍸 Dry run enabled');
-        translator = new DummyTranslator();
-    } else {
-        // Ensure OPEN_AI_KEY is set in environment
-        if (!process.env.OPENAI_API_KEY) {
-            // If not, try to load it from .env
-            dotenv.config({path: path.resolve(__dirname, '../.env')});
-            if (!process.env.OPENAI_API_KEY) {
-                throw new Error('❌ OPENAI_API_KEY not found in environment.');
-            }
-        }
-        translator = new ChatGPTTranslator(process.env.OPENAI_API_KEY);
-    }
-
-    const generator = new TranslationGenerator({
-        targetLanguages: cli.namedArgs.locales,
-        languagesDir,
-        sourceFile: enSourceFile,
-        translator,
-        compareRef: cli.namedArgs['compare-ref'],
-        paths: cli.namedArgs.paths,
-        verbose: cli.flags.verbose,
-    });
-
+    const generator = new TranslationGenerator();
     await generator.generateTranslations();
 }
 

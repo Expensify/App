@@ -79,18 +79,17 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         if (!url) {
             return;
         }
-        // eslint-disable-next-line react-compiler/react-compiler
         customWindow = openBankConnection(url);
     }, [url]);
 
     useEffect(() => {
-        if (!policyID || !isBlockedToAddNewFeeds) {
+        if (!policyID || !isBlockedToAddNewFeeds || feed) {
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)), {
             forceReplace: true,
         });
-    }, [isBlockedToAddNewFeeds, policyID]);
+    }, [isBlockedToAddNewFeeds, policyID, feed]);
 
     const handleBackButtonPress = () => {
         customWindow?.close();
@@ -117,7 +116,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     );
 
     useEffect(() => {
-        if ((!url && !isPlaid) || isOffline || isNewFeedHasError || isAllFeedsResultLoading || isBlockedToAddNewFeeds) {
+        if ((!url && !isPlaid) || isOffline || isNewFeedHasError || isAllFeedsResultLoading || (isBlockedToAddNewFeeds && !feed)) {
             return;
         }
 
@@ -202,7 +201,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
                 />
             );
         }
-        if (!isPlaid && !isAllFeedsResultLoading && !isBlockedToAddNewFeeds) {
+        if (!isPlaid && !isAllFeedsResultLoading && (!isBlockedToAddNewFeeds || !!feed)) {
             return (
                 <BlockingView
                     icon={illustrations.PendingBank}

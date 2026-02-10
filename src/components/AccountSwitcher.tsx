@@ -3,6 +3,7 @@ import {Str} from 'expensify-common';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -13,8 +14,9 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {clearDelegatorErrors, connect, disconnect} from '@libs/actions/Delegate';
 import {close} from '@libs/actions/Modal';
 import {getLatestError} from '@libs/ErrorUtils';
+import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import TextWithEmojiFragment from '@pages/home/report/comment/TextWithEmojiFragment';
+import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,10 +40,11 @@ type AccountSwitcherProps = {
 };
 
 function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['CaretUpDown']);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {localeCompare, translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
@@ -151,23 +154,27 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
             ];
         }
 
-        const delegatorMenuItems: PopoverMenuItem[] = delegators
-            .filter(({email}) => email !== currentUserPersonalDetails.login)
-            .map(({email, role}) => {
-                const errorFields = account?.delegatedAccess?.errorFields ?? {};
-                const error = getLatestError(errorFields?.connect?.[email]);
-                const personalDetails = getPersonalDetailByEmail(email);
-                return createBaseMenuItem(personalDetails, error, {
-                    badgeText: translate('delegate.role', {role}),
-                    onSelected: () => {
-                        if (isOffline) {
-                            close(() => setShouldShowOfflineModal(true));
-                            return;
-                        }
-                        connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID});
-                    },
-                });
-            });
+        const delegatorMenuItems: PopoverMenuItem[] = sortAlphabetically(
+            delegators
+                .filter(({email}) => email !== currentUserPersonalDetails.login)
+                .map(({email, role}) => {
+                    const errorFields = account?.delegatedAccess?.errorFields ?? {};
+                    const error = getLatestError(errorFields?.connect?.[email]);
+                    const personalDetails = getPersonalDetailByEmail(email);
+                    return createBaseMenuItem(personalDetails, error, {
+                        badgeText: translate('delegate.role', {role}),
+                        onSelected: () => {
+                            if (isOffline) {
+                                close(() => setShouldShowOfflineModal(true));
+                                return;
+                            }
+                            connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID});
+                        },
+                    });
+                }),
+            'text',
+            localeCompare,
+        );
 
         return [currentUserMenuItem, ...delegatorMenuItems];
     };
@@ -183,12 +190,13 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
             <TooltipToRender {...tooltipProps}>
                 <PressableWithFeedback
                     accessible
-                    accessibilityLabel={translate('common.profile')}
+                    accessibilityLabel={`${translate('common.profile')}, ${displayName}, ${Str.removeSMSDomain(currentUserPersonalDetails?.login ?? '')}`}
                     onPress={onPressSwitcher}
                     ref={buttonRef}
                     interactive={canSwitchAccounts}
                     pressDimmingValue={canSwitchAccounts ? undefined : 1}
                     wrapperStyle={[styles.flexGrow1, styles.flex1, styles.mnw0, styles.justifyContentCenter]}
+                    sentryLabel={CONST.SENTRY_LABEL.ACCOUNT_SWITCHER.SHOW_ACCOUNTS}
                 >
                     <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
                         <Avatar
@@ -219,7 +227,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                                     <View style={styles.justifyContentCenter}>
                                         <Icon
                                             fill={theme.icon}
-                                            src={Expensicons.CaretUpDown}
+                                            src={icons.CaretUpDown}
                                             height={variables.iconSizeSmall}
                                             width={variables.iconSizeSmall}
                                         />

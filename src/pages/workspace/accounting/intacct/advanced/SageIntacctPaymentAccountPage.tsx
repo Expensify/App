@@ -1,6 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -56,7 +56,7 @@ function SageIntacctPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="SageIntacctPaymentAccountPage"
-            sections={vendorSelectorOptions.length ? [{data: vendorSelectorOptions}] : []}
+            data={vendorSelectorOptions ?? []}
             listItem={RadioListItem}
             onSelectRow={updateDefaultVendor}
             initiallyFocusedOptionKey={vendorSelectorOptions.find((mode) => mode.isSelected)?.keyForList}

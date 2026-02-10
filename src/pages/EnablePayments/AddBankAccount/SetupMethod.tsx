@@ -3,18 +3,12 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getPlaidDesktopMessage from '@libs/getPlaidDesktopMessage';
 import {openPersonalBankAccountSetupWithPlaid} from '@userActions/BankAccounts';
-import {openExternalLinkWithToken} from '@userActions/Link';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-
-const plaidDesktopMessage = getPlaidDesktopMessage();
 
 function SetupMethod() {
     const styles = useThemeStyles();
@@ -33,11 +27,6 @@ function SetupMethod() {
                 <View style={[styles.mv3]}>
                     <Text>{translate('walletPage.addBankAccountBody')}</Text>
                 </View>
-                {!!plaidDesktopMessage && (
-                    <View style={[styles.mv3, styles.flexRow, styles.justifyContentBetween]}>
-                        <TextLink onPress={() => openExternalLinkWithToken(ROUTES.SETTINGS_ENABLE_PAYMENTS)}>{translate(plaidDesktopMessage)}</TextLink>
-                    </View>
-                )}
                 <Button
                     icon={icons.Bank}
                     text={translate('bankAccount.addBankAccount')}

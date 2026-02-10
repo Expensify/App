@@ -13,8 +13,7 @@ import {getIOUActionForReportID, isSplitBillAction as isSplitBillActionReportAct
 import {isIOUReport} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import Navigation from '@navigation/Navigation';
-import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import Timing from '@userActions/Timing';
+import {contextMenuRef} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -41,7 +40,8 @@ function MoneyRequestReportPreview({
 }: MoneyRequestReportPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const personalDetailsList = usePersonalDetails();
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
     const invoiceReceiverPolicy =
@@ -96,7 +96,7 @@ function MoneyRequestReportPreview({
         }
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        return transactions.some((transaction) => (transaction?.modifiedAmount || transaction?.amount) < 0);
+        return transactions.some((transaction) => (Number(transaction?.modifiedAmount) || transaction?.amount) < 0);
     }, [transactions, action.childType, iouReport]);
 
     const openReportFromPreview = useCallback(() => {
@@ -105,13 +105,18 @@ function MoneyRequestReportPreview({
         }
 
         Performance.markStart(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
-        Timing.start(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
         startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${iouReportID}`, {
             name: 'MoneyRequestReportPreview',
             op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
         });
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
-    }, [iouReportID]);
+        // Small screens navigate to full report view since super wide RHP
+        // is not available on narrow layouts and would break the navigation logic.
+        if (isSmallScreenWidth) {
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
+        } else {
+            Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo: Navigation.getActiveRoute()}));
+        }
+    }, [iouReportID, isSmallScreenWidth]);
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
         <TransactionPreview

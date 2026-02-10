@@ -175,7 +175,7 @@ function updateSubscriptionAddNewUsersAutomatically(addNewUsersAutomatically: bo
 }
 
 function updateSubscriptionSize(newSubscriptionSize: number, currentSubscriptionSize: number) {
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -232,7 +232,9 @@ function clearUpdateSubscriptionSizeError() {
 }
 
 function clearOutstandingBalance() {
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<
+        typeof ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_PENDING | typeof ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL | typeof ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED
+    > = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,

@@ -15,7 +15,6 @@ module.exports = {
     importOrder: [
         '@assets/(.*)$',
         '@components/(.*)$',
-        '@desktop/(.*)$',
         '@github/(.*)$',
         '@hooks/(.*)$',
         '@libs/(.*)$',

@@ -83,10 +83,7 @@ function getOwnershipChecksDisplayText(
             break;
         case CONST.POLICY.OWNERSHIP_ERRORS.OWNER_OWES_AMOUNT:
             title = translate('workspace.changeOwner.ownerOwesAmountTitle');
-            text = translate('workspace.changeOwner.ownerOwesAmountText', {
-                email: ownerOwesAmount?.ownerEmail,
-                amount: convertToDisplayString(ownerOwesAmount?.amount, ownerOwesAmount?.currency),
-            });
+            text = translate('workspace.changeOwner.ownerOwesAmountText', ownerOwesAmount?.ownerEmail, convertToDisplayString(ownerOwesAmount?.amount, ownerOwesAmount?.currency));
             buttonText = translate('workspace.changeOwner.ownerOwesAmountButtonText');
             break;
         case CONST.POLICY.OWNERSHIP_ERRORS.SUBSCRIPTION:

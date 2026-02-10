@@ -1,12 +1,12 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import type {PersonalDetailsForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
 
-function getSubstepValues(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>, personalDetailsDraft: OnyxEntry<PersonalDetailsForm>): PersonalDetailsForm {
-    const address = PersonalDetailsUtils.getCurrentAddress(privatePersonalDetails);
+function getSubPageValues(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>, personalDetailsDraft: OnyxEntry<PersonalDetailsForm>): PersonalDetailsForm {
+    const address = getCurrentAddress(privatePersonalDetails);
     const {street} = address ?? {};
     const [street1, street2] = street ? street.split('\n') : [undefined, undefined];
     return {
@@ -23,12 +23,12 @@ function getSubstepValues(privatePersonalDetails: OnyxEntry<PrivatePersonalDetai
     };
 }
 
-function getInitialSubstep(values: PersonalDetailsForm) {
+function getInitialSubPage(values: PersonalDetailsForm) {
     if (values[INPUT_IDS.LEGAL_FIRST_NAME] === '' || values[INPUT_IDS.LEGAL_LAST_NAME] === '') {
-        return CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING.LEGAL_NAME;
+        return CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.LEGAL_NAME;
     }
     if (values[INPUT_IDS.DATE_OF_BIRTH] === '') {
-        return CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING.DATE_OF_BIRTH;
+        return CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.DATE_OF_BIRTH;
     }
     if (
         values[INPUT_IDS.ADDRESS_LINE_1] === '' ||
@@ -37,12 +37,12 @@ function getInitialSubstep(values: PersonalDetailsForm) {
         values[INPUT_IDS.ZIP_POST_CODE] === '' ||
         values[INPUT_IDS.COUNTRY] === ''
     ) {
-        return CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING.ADDRESS;
+        return CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.ADDRESS;
     }
     if (values[INPUT_IDS.PHONE_NUMBER] === '') {
-        return CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING.PHONE_NUMBER;
+        return CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.PHONE_NUMBER;
     }
-    return CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING.CONFIRM;
+    return CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.CONFIRM;
 }
 
-export {getSubstepValues, getInitialSubstep};
+export {getSubPageValues, getInitialSubPage};

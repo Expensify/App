@@ -7,7 +7,6 @@ import AvatarSkeleton from '@components/AvatarSkeleton';
 import Button from '@components/Button';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import MenuItemGroup from '@components/MenuItemGroup';
@@ -16,7 +15,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
+import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -61,6 +60,7 @@ function ProfilePage() {
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const avatarStyle = [styles.avatarXLarge, styles.alignSelfStart];
     const {asset: Profile} = useMemoizedLazyAsset(() => loadIllustration('Profile' as IllustrationName));
+    const icons = useMemoizedLazyExpensifyIcons(['QrCode']);
 
     const contactMethodBrickRoadIndicator = getLoginListBrickRoadIndicator(loginList, currentUserPersonalDetails?.email);
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
@@ -160,11 +160,11 @@ function ProfilePage() {
             <HeaderWithBackButton
                 title={translate('common.profile')}
                 onBackButtonPress={() => {
-                    if (Navigation.getShouldPopToSidebar()) {
-                        Navigation.popToSidebar();
+                    if (route.params?.backTo) {
+                        Navigation.goBack(route.params?.backTo);
                         return;
                     }
-                    Navigation.goBack(route.params?.backTo);
+                    Navigation.goBack();
                 }}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
@@ -222,7 +222,7 @@ function ProfilePage() {
                                 accessibilityLabel={translate('common.shareCode')}
                                 text={translate('common.share')}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_SHARE_CODE)}
-                                icon={Expensicons.QrCode}
+                                icon={icons.QrCode}
                                 style={[styles.alignSelfStart, styles.mt6]}
                             />
                         </Section>

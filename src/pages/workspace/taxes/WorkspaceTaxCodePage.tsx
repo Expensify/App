@@ -70,9 +70,9 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
                 return {};
             }
 
-            return validateTaxCode(policy, values);
+            return validateTaxCode(policy, values, translate);
         },
-        [currentTaxCode, policy],
+        [currentTaxCode, policy, translate],
     );
 
     return (

@@ -1,24 +1,30 @@
-import type {WideRHPContextType} from './types';
+import type {WideRHPActionsContextType, WideRHPStateContextType} from './types';
 
-const defaultWideRHPContextValue: WideRHPContextType = {
+const defaultWideRHPStateContextValue: WideRHPStateContextType = {
     wideRHPRouteKeys: [],
+    superWideRHPRouteKeys: [],
     shouldRenderSecondaryOverlayForWideRHP: false,
     shouldRenderSecondaryOverlayForRHPOnWideRHP: false,
     shouldRenderSecondaryOverlayForRHPOnSuperWideRHP: false,
+    shouldRenderTertiaryOverlay: false,
+    isWideRHPFocused: false,
+    isSuperWideRHPFocused: false,
+};
+
+const defaultWideRHPActionsContextValue: WideRHPActionsContextType = {
     showWideRHPVersion: () => {},
+    showSuperWideRHPVersion: () => {},
     removeWideRHPRouteKey: () => {},
+    removeSuperWideRHPRouteKey: () => {},
     markReportIDAsExpense: () => {},
     markReportIDAsMultiTransactionExpense: () => {},
     unmarkReportIDAsMultiTransactionExpense: () => {},
     isReportIDMarkedAsExpense: () => false,
     isReportIDMarkedAsMultiTransactionExpense: () => false,
-    isWideRHPFocused: false,
-    shouldRenderTertiaryOverlay: false,
-    superWideRHPRouteKeys: [],
-    showSuperWideRHPVersion: () => {},
-    removeSuperWideRHPRouteKey: () => {},
     syncRHPKeys: () => {},
     clearWideRHPKeys: () => {},
+    setIsWideRHPClosing: () => {},
+    setIsSuperWideRHPClosing: () => {},
 };
 
-export default defaultWideRHPContextValue;
+export {defaultWideRHPStateContextValue, defaultWideRHPActionsContextValue};

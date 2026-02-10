@@ -1,4 +1,4 @@
-import type {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {setIsOpenAppFailureModalOpen} from '@libs/actions/isOpenAppFailureModalOpen';
 import {
@@ -20,7 +20,7 @@ import RequestThrottle from '@libs/RequestThrottle';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
-import type {ConflictData} from '@src/types/onyx/Request';
+import type {AnyRequest, ConflictData} from '@src/types/onyx/Request';
 import {isOffline, onReconnection} from './NetworkStore';
 
 let shouldFailAllRequests: boolean;
@@ -80,7 +80,7 @@ function flushOnyxUpdatesQueue() {
     return flushQueue();
 }
 
-let queueFlushedDataToStore: OnyxUpdate[] = [];
+let queueFlushedDataToStore: Array<OnyxUpdate<OnyxKey>> = [];
 
 // Use connectWithoutView since this is for network queue and don't affect to any UI
 Onyx.connectWithoutView({
@@ -93,7 +93,7 @@ Onyx.connectWithoutView({
     },
 });
 
-function saveQueueFlushedData(...onyxUpdates: OnyxUpdate[]) {
+function saveQueueFlushedData(...onyxUpdates: Array<OnyxUpdate<OnyxKey>>) {
     // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     const newValue = [...queueFlushedDataToStore, ...onyxUpdates];
     // eslint-disable-next-line rulesdir/prefer-actions-set-data
@@ -170,7 +170,7 @@ function process(): Promise<void> {
             // Duplicate records don't need to be retried as they just mean the record already exists on the server
             if (error.name === CONST.ERROR.REQUEST_CANCELLED || error.message === CONST.ERROR.DUPLICATE_RECORD || shouldFailAllRequests) {
                 if (shouldFailAllRequests) {
-                    const onyxUpdates = [...(requestToProcess.failureData ?? []), ...(requestToProcess.finallyData ?? [])] as OnyxUpdate[];
+                    const onyxUpdates = [...((requestToProcess.failureData ?? []) as never), ...((requestToProcess.finallyData ?? []) as never)] as Array<OnyxUpdate<OnyxKey>>;
                     Onyx.update(onyxUpdates);
                 }
                 Log.info("[SequentialQueue] Removing persisted request because it failed and doesn't need to be retried.", false, {error, request: requestToProcess});
@@ -322,11 +322,11 @@ onReconnection(flush);
 // Flush the queue when the persisted requests are initialized
 onPersistedRequestsInitialization(flush);
 
-function handleConflictActions(conflictAction: ConflictData, newRequest: OnyxRequest) {
+function handleConflictActions<TKey extends OnyxKey>(conflictAction: ConflictData, newRequest: OnyxRequest<TKey>) {
     if (conflictAction.type === 'push') {
         savePersistedRequest(newRequest);
     } else if (conflictAction.type === 'replace') {
-        updatePersistedRequest(conflictAction.index, conflictAction.request ?? newRequest);
+        updatePersistedRequest(conflictAction.index, conflictAction.request ?? (newRequest as AnyRequest));
     } else if (conflictAction.type === 'delete') {
         deletePersistedRequestsByIndices(conflictAction.indices);
         if (conflictAction.pushNewRequest) {
@@ -340,12 +340,10 @@ function handleConflictActions(conflictAction: ConflictData, newRequest: OnyxReq
     }
 }
 
-function push(newRequest: OnyxRequest) {
-    const {checkAndFixConflictingRequest} = newRequest;
-
-    if (checkAndFixConflictingRequest) {
+function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>) {
+    if (newRequest.checkAndFixConflictingRequest) {
         const requests = getAllPersistedRequests();
-        const {conflictAction} = checkAndFixConflictingRequest(requests);
+        const {conflictAction} = newRequest.checkAndFixConflictingRequest(requests as Array<OnyxRequest<TKey>>);
         Log.info(`[SequentialQueue] Conflict action for command ${newRequest.command} - ${conflictAction.type}:`);
 
         // don't try to serialize a function.

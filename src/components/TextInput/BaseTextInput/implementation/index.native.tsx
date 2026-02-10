@@ -79,6 +79,7 @@ function BaseTextInput({
     iconContainerStyle,
     shouldUseDefaultLineHeightForPrefix = true,
     ref,
+    sentryLabel,
     ...props
 }: BaseTextInputProps) {
     const InputComponent = InputComponentMap.get(type) ?? RNTextInput;
@@ -280,6 +281,7 @@ function BaseTextInput({
 
     // Height fix is needed only for Text single line inputs
     const shouldApplyHeight = !shouldUseFullInputHeight && !isMultiline && !isMarkdownEnabled;
+    const accessibilityLabel = [label, hint].filter(Boolean).join(', ');
 
     return (
         <>
@@ -288,10 +290,12 @@ function BaseTextInput({
                     role={CONST.ROLE.PRESENTATION}
                     onPress={onPress}
                     tabIndex={-1}
+                    accessible={false}
+                    sentryLabel={sentryLabel}
                     // When autoGrowHeight is true we calculate the width for the text input, so it will break lines properly
                     // or if multiline is not supplied we calculate the text input height, using onLayout.
                     onLayout={onLayout}
-                    accessibilityLabel={label}
+                    accessibilityLabel={accessibilityLabel}
                     style={[
                         autoGrowHeight &&
                             !isAutoGrowHeightMarkdown &&
@@ -367,6 +371,7 @@ function BaseTextInput({
                                 }}
                                 // eslint-disable-next-line
                                 {...inputProps}
+                                accessibilityLabel={inputProps.accessibilityLabel ?? accessibilityLabel}
                                 autoCorrect={inputProps.secureTextEntry ? false : autoCorrect}
                                 placeholder={placeholderValue}
                                 placeholderTextColor={placeholderTextColor ?? theme.placeholderText}
@@ -428,15 +433,10 @@ function BaseTextInput({
                                     style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff)]}
                                 />
                             )}
-                            {inputProps.isLoading !== undefined && !shouldShowClearButton && (
+                            {!!inputProps.isLoading && !shouldShowClearButton && (
                                 <ActivityIndicator
                                     color={theme.iconSuccessFill}
-                                    style={[
-                                        StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff),
-                                        styles.ml1,
-                                        loadingSpinnerStyle,
-                                        StyleUtils.getOpacityStyle(inputProps.isLoading ? 1 : 0),
-                                    ]}
+                                    style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), styles.ml1, loadingSpinnerStyle]}
                                 />
                             )}
                             {!!inputProps.secureTextEntry && (

@@ -12,19 +12,20 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
+import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsByID from '@hooks/useTransactionsByID';
+import {mergeDuplicates, resolveDuplicates} from '@libs/actions/IOU/Duplicate';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import * as IOU from '@src/libs/actions/IOU';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import {generateReportID} from '@src/libs/ReportUtils';
@@ -57,34 +58,40 @@ function Confirmation() {
     const [allDuplicates] = useTransactionsByID(allDuplicateIDs);
     const reviewDuplicatesReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reviewDuplicates?.reportID}`];
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(reviewDuplicatesReport?.policyID)}`, {canBeMissing: true});
-    const compareResult = TransactionUtils.compareDuplicateTransactionFields(transaction, allDuplicates, reviewDuplicatesReport, undefined, policyCategories);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
+    const compareResult = TransactionUtils.compareDuplicateTransactionFields(transaction, allDuplicates, reviewDuplicatesReport, undefined, policy, policyCategories);
     const {goBack} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'confirmation', route.params.threadReportID, route.params.backTo);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newTransaction?.reportID}`, {canBeMissing: true});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newTransaction?.reportID}`, {canBeMissing: true});
     const reportAction = Object.values(reportActions ?? {}).find(
         (action) => ReportActionsUtils.isMoneyRequestAction(action) && ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID === reviewDuplicates?.transactionID,
     );
+    const {superWideRHPRouteKeys} = useWideRHPState();
+    const isSuperWideRHPDisplayed = superWideRHPRouteKeys.length > 0;
 
     const [duplicates] = useTransactionsByID(reviewDuplicates?.duplicates);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const transactionsMergeParams = useMemo(
         () => TransactionUtils.buildMergeDuplicatesParams(reviewDuplicates, duplicates ?? [], newTransaction),
         [duplicates, reviewDuplicates, newTransaction],
     );
     const isReportOwner = iouReport?.ownerAccountID === currentUserPersonalDetails?.accountID;
 
-    const mergeDuplicates = useCallback(() => {
+    const handleMergeDuplicates = useCallback(() => {
         const transactionThreadReportID = reportAction?.childReportID ?? generateReportID();
         if (!reportAction?.childReportID) {
             transactionsMergeParams.transactionThreadReportID = transactionThreadReportID;
         }
-        IOU.mergeDuplicates(transactionsMergeParams);
+        mergeDuplicates(transactionsMergeParams);
+        if (isSuperWideRHPDisplayed) {
+            Navigation.dismissToSuperWideRHP();
+            return;
+        }
         Navigation.dismissModal();
-    }, [reportAction?.childReportID, transactionsMergeParams]);
+    }, [reportAction?.childReportID, transactionsMergeParams, isSuperWideRHPDisplayed]);
 
-    const resolveDuplicates = useCallback(() => {
-        IOU.resolveDuplicates(transactionsMergeParams);
-        Navigation.dismissModal();
+    const handleResolveDuplicates = useCallback(() => {
+        resolveDuplicates(transactionsMergeParams);
+        Navigation.dismissToSuperWideRHP();
     }, [transactionsMergeParams]);
 
     const contextValue = useMemo(
@@ -156,10 +163,10 @@ function Confirmation() {
                             success
                             onPress={() => {
                                 if (!isReportOwner) {
-                                    resolveDuplicates();
+                                    handleResolveDuplicates();
                                     return;
                                 }
-                                mergeDuplicates();
+                                handleMergeDuplicates();
                             }}
                             large
                         />

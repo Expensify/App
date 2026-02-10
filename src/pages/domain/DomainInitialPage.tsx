@@ -1,6 +1,6 @@
 import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -10,6 +10,7 @@ import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -18,13 +19,13 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import {confirmReadyToOpenApp} from '@libs/actions/App';
 import {openDomainInitialPage} from '@libs/actions/Domain';
+import {hasDomainAdminsErrors, hasDomainMembersErrors} from '@libs/DomainUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type DOMAIN_TO_RHP from '@navigation/linkingConfig/RELATIONS/DOMAIN_TO_RHP';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -46,7 +47,7 @@ type DomainMenuItem = {
 type DomainInitialPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.INITIAL>;
 
 function DomainInitialPage({route}: DomainInitialPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['UserLock']);
+    const icons = useMemoizedLazyExpensifyIcons(['UserLock', 'UserShield', 'User']);
     const styles = useThemeStyles();
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
@@ -57,21 +58,32 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
 
     const domainAccountID = route.params?.domainAccountID;
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true});
-    const domainName = domain ? Str.extractEmailDomain(domain.email) : undefined;
+    const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : undefined;
     const [isAdmin] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domainAccountID}`, {canBeMissing: false});
+    const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {canBeMissing: false});
 
-    const domainMenuItems: DomainMenuItem[] = useMemo(() => {
-        const menuItems: DomainMenuItem[] = [
-            {
-                translationKey: 'domain.saml',
-                icon: icons.UserLock,
-                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.DOMAIN_SAML.getRoute(domainAccountID)))),
-                screenName: SCREENS.DOMAIN.SAML,
-            },
-        ];
-
-        return menuItems;
-    }, [domainAccountID, singleExecution, waitForNavigate, icons.UserLock]);
+    const domainMenuItems: DomainMenuItem[] = [
+        {
+            translationKey: 'domain.domainMembers',
+            icon: icons.User,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.DOMAIN_MEMBERS.getRoute(domainAccountID)))),
+            screenName: SCREENS.DOMAIN.MEMBERS,
+            brickRoadIndicator: hasDomainMembersErrors(domainErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+        },
+        {
+            translationKey: 'domain.domainAdmins',
+            icon: icons.UserShield,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.DOMAIN_ADMINS.getRoute(domainAccountID)))),
+            screenName: SCREENS.DOMAIN.ADMINS,
+            brickRoadIndicator: hasDomainAdminsErrors(domainErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+        },
+        {
+            translationKey: 'domain.saml',
+            icon: icons.UserLock,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.DOMAIN_SAML.getRoute(domainAccountID)))),
+            screenName: SCREENS.DOMAIN.SAML,
+        },
+    ];
 
     const fetchDomainData = useCallback(() => {
         if (!domainName) {
@@ -86,9 +98,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
 
     useNetwork({onReconnect: fetchDomainData});
 
-    useEffect(() => {
-        confirmReadyToOpenApp();
-    }, []);
+    useConfirmReadyToOpenApp();
 
     return (
         <ScreenWrapper
@@ -98,7 +108,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                 !shouldDisplayLHB && (
                     <NavigationTabBar
                         selectedTab={NAVIGATION_TABS.WORKSPACES}
-                        shouldShowFloatingCameraButton={false}
+                        shouldShowFloatingButtons={false}
                     />
                 )
             }

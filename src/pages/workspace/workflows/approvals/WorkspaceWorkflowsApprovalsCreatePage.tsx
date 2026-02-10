@@ -20,7 +20,6 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 import {createApprovalWorkflow as createApprovalWorkflowAction, validateApprovalWorkflow} from '@userActions/Workflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ApprovalWorkflowEditor from './ApprovalWorkflowEditor';
@@ -73,7 +72,7 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
                 >
                     <HeaderWithBackButton
                         title={translate('workflowsCreateApprovalsPage.title')}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID, 0))}
+                        onBackButtonPress={() => Navigation.dismissModal()}
                     />
                     {!!approvalWorkflow && (
                         <>

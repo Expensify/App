@@ -1,4 +1,4 @@
-import {adminAccountIDsSelector, technicalContactSettingsSelector} from '@selectors/Domain';
+import {adminAccountIDsSelector, adminPendingActionSelector, technicalContactSettingsSelector} from '@selectors/Domain';
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -36,6 +36,10 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
         canBeMissing: true,
         selector: adminAccountIDsSelector,
     });
+    const [adminPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
+        canBeMissing: true,
+        selector: adminPendingActionSelector,
+    });
     // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         canBeMissing: true,
@@ -69,12 +73,20 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
             continue;
         }
 
+        // Don't show admins being deleted
+        const adminPendingAction = adminPendingActions?.[accountID]?.pendingAction;
+        if (adminPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
+        }
+
         const details = personalDetails?.[accountID];
-        if (details?.login === technicalContactSettings?.technicalContactEmail) {
+        let isSelected = false;
+        if (!!details?.login && !!technicalContactSettings?.technicalContactEmail && details.login === technicalContactSettings.technicalContactEmail) {
             technicalContactEmailKey = String(accountID);
+            isSelected = true;
         }
         data.push({
-            isSelected: details?.login === technicalContactSettings?.technicalContactEmail,
+            isSelected,
             keyForList: String(accountID),
             accountID,
             login: details?.login ?? '',
@@ -112,7 +124,7 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
                             return;
                         }
                         if (option.login !== technicalContactSettings?.technicalContactEmail) {
-                            setPrimaryContact(domainAccountID, option.accountID, option.login, technicalContactSettings?.technicalContactEmail);
+                            setPrimaryContact(domainAccountID, option.login, technicalContactSettings?.technicalContactEmail);
                         }
                         Navigation.goBack(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainAccountID));
                     }}

@@ -19,7 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
 import {rand64} from '@libs/NumberUtils';
-import ReportActionItem from '@pages/home/report/ReportActionItem';
+import ReportActionItem from '@pages/inbox/report/ReportActionItem';
 import Debug from '@userActions/Debug';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';

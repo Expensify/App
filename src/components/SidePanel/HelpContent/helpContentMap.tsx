@@ -122,7 +122,7 @@ const helpContentMap: HelpContent = {
                     />
 
                     <Text style={[styles.textNormal]}>
-                        <Text style={styles.textBold}>Tip:</Text> Navigation is consistent across web, mobile, and desktop versions of Expensify.
+                        <Text style={styles.textBold}>Tip:</Text> Navigation is consistent across web and mobile versions of Expensify.
                     </Text>
                 </View>
             ),
@@ -132,7 +132,7 @@ const helpContentMap: HelpContent = {
                 <View>
                     <Text style={[styles.textHeadlineH1, styles.mv4]}>Distance Expense</Text>
                     <Text style={[styles.textNormal]}>
-                        Easily track mileage costs using Expensify’s built-in map feature. Create and submit distance-based expenses right from the web, desktop, or mobile app.
+                        Easily track mileage costs using Expensify’s built-in map feature. Create and submit distance-based expenses right from the web or mobile app.
                     </Text>
                     <BulletList
                         styles={styles}
