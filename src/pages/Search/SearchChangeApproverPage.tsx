@@ -47,6 +47,7 @@ function SearchChangeApproverPage() {
     const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP, {canBeMissing: true});
     const {isOffline} = useNetwork();
     const [isSaving, setIsSaving] = useState(false);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
 
     const getOnyxReports = (allReports: OnyxCollection<Report>) => {
         const reports = new Map<string, Report>();
@@ -55,7 +56,7 @@ function SearchChangeApproverPage() {
             if (!report?.reportID) {
                 continue;
             }
-            reports.set(selectedReport.reportID, report);
+            reports.set(report.reportID, report);
         }
         return reports;
     };
@@ -81,15 +82,15 @@ function SearchChangeApproverPage() {
 
         isLoadingOnyxReports.current = true;
         for (const selectedReport of selectedReports) {
-            if (onyxReports?.has(selectedReport.reportID)) {
+            if (!selectedReport.reportID || onyxReports?.has(selectedReport.reportID)) {
                 continue;
             }
 
             // Load the report into Onyx, because data from SearchContext contains only a subset of report properties.
             // Alternatively, remove this and make sure the backend returns all required properties and SearchContext keeps all of them.
-            openReport(selectedReport.reportID);
+            openReport(selectedReport.reportID, introSelected);
         }
-    }, [hasLoadedApp, onyxReports, selectedReports]);
+    }, [hasLoadedApp, introSelected, onyxReports, selectedReports]);
 
     const getSelectedPolicies = () => {
         const policies = new Map<string, Policy>();
@@ -130,7 +131,7 @@ function SearchChangeApproverPage() {
         setIsSaving(true);
         for (const selectedReport of selectedReports) {
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
-            const report = onyxReports?.get(selectedReport.reportID);
+            const report = selectedReport.reportID ? onyxReports?.get(selectedReport.reportID) : undefined;
             if (!policy || !report) {
                 continue;
             }
@@ -158,7 +159,7 @@ function SearchChangeApproverPage() {
 
         const hasPermission = selectedReports.every((selectedReport) => {
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
-            const report = onyxReports?.get(selectedReport.reportID);
+            const report = selectedReport.reportID ? onyxReports?.get(selectedReport.reportID) : undefined;
 
             if (!policy || !report) {
                 return false;
@@ -170,7 +171,7 @@ function SearchChangeApproverPage() {
         const shouldShowBypassApproversOption =
             hasPermission &&
             selectedReports.some((selectedReport) => {
-                const report = onyxReports?.get(selectedReport.reportID);
+                const report = selectedReport.reportID ? onyxReports?.get(selectedReport.reportID) : undefined;
 
                 if (!report) {
                     return false;
@@ -208,20 +209,18 @@ function SearchChangeApproverPage() {
         onConfirm: changeApprover,
     };
 
-    const listHeader = (
-        <>
-            <Text style={[styles.ph5, styles.mb5]}>{translate(selectedReports.length === 1 ? 'iou.changeApprover.subtitle' : 'iou.changeApprover.bulkSubtitle')}</Text>
-            {selectedPolicies.length === 1 && (
-                <View style={[styles.ph5, styles.mb5, styles.renderHTML, styles.flexRow]}>
-                    <RenderHTML
-                        html={translate('iou.changeApprover.description', {
-                            workflowSettingLink: `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(selectedPolicies.at(0)?.id)}`,
-                        })}
-                    />
-                </View>
-            )}
-        </>
-    );
+    const listHeader =
+        selectedPolicies.length === 1 ? (
+            <View style={[styles.ph5, styles.mb5, styles.renderHTML, styles.flexRow]}>
+                <RenderHTML
+                    html={translate('iou.changeApprover.header', {
+                        workflowSettingLink: `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(selectedPolicies.at(0)?.id)}`,
+                    })}
+                />
+            </View>
+        ) : (
+            <Text style={[styles.ph5, styles.mb5]}>{translate('iou.changeApprover.bulkSubtitle')}</Text>
+        );
 
     if ((!isOffline && onyxReports?.size !== selectedReports.length) || isSaving) {
         return <FullScreenLoadingIndicator shouldUseGoBackButton />;

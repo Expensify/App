@@ -1122,6 +1122,7 @@ function SearchPage({route}: SearchPageProps) {
         expensifyIcons.ThumbsDown,
         expensifyIcons.ThumbsUp,
         expensifyIcons.Trashcan,
+        expensifyIcons.Workflows,
         dismissedHoldUseExplanation,
         dismissedRejectUseExplanation,
         areAllTransactionsFromSubmitter,

@@ -13,7 +13,6 @@ const mockSelectedTransaction: SelectedTransactionInfo = {
     canUnhold: false,
     canChangeReport: true,
     isSelected: true,
-    canDelete: true,
     canReject: false,
     policyID: '06F34677820A4D07',
     reportID: '515146912679679',
@@ -21,13 +20,13 @@ const mockSelectedTransaction: SelectedTransactionInfo = {
     groupAmount: 1284,
     groupCurrency: 'USD',
     currency: 'USD',
+    isFromOneTransactionReport: true,
     ownerAccountID: 1,
 } as const;
 
 const mockTransaction = {
     accountID: 1,
     amount: 0,
-    canDelete: true,
     category: '',
     groupAmount: 1284,
     groupCurrency: 'USD',
