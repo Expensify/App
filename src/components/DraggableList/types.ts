@@ -41,10 +41,10 @@ type DraggableListProps<T> = {
     /** Whether keyboard navigation is active for this list. Defaults to false. */
     isKeyboardActive?: boolean;
 
-    /** Called when arrow down is pressed at the last enabled item. Receives a function to set focus in this list. */
+    /** Called when arrow down is pressed at the last enabled item */
     onArrowDownOverflow?: () => void;
 
-    /** Called when arrow up is pressed at the first enabled item. Receives a function to set focus in this list. */
+    /** Called when arrow up is pressed at the first enabled item */
     onArrowUpOverflow?: () => void;
 
     /** Index to focus when the list becomes keyboard-active. -1 means no initial focus. */
