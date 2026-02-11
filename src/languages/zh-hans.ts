@@ -1998,8 +1998,8 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthEnabled: '已启用双重身份验证',
         whatIsTwoFactorAuth: '双重身份验证（2FA）有助于保护您的账户安全。登录时，您需要输入由首选身份验证应用生成的验证码。',
         disableTwoFactorAuth: '禁用双重身份验证',
-        explainProcessToRemove: '若要禁用双重身份验证 (2FA)，请在验证器应用中输入有效验证码。',
-        explainProcessToRemoveWithRecovery: '若要停用双重身份验证（2FA），请输入有效的恢复代码。',
+        explainProcessToRemove: '要禁用双重身份验证（2FA），请输入来自您身份验证应用的有效验证码。',
+        explainProcessToRemoveWithRecovery: '要禁用双重身份验证（2FA），请输入有效的恢复代码。',
         disabled: '已关闭双重身份验证',
         noAuthenticatorApp: '你今后登录 Expensify 时将不再需要验证器应用程序。',
         stepCodes: '恢复代码',
@@ -7353,9 +7353,9 @@ ${reportName}
         },
     },
     cardTransactions: {
-        notActivated: '未启用',
-        outOfPocket: '个人垫付支出',
-        companySpend: '公司支出',
+        notActivated: '未激活',
+        outOfPocket: '可报销',
+        companySpend: '不可报销',
     },
     distance: {
         addStop: '添加站点',
@@ -8172,6 +8172,8 @@ ${reportName}
             disableSamlRequired: '禁用 SAML 要求',
             oktaWarningPrompt: '确定要这样做吗？这也会禁用 Okta SCIM。',
             requireWithEmptyMetadataError: '请在下方添加身份提供商元数据以启用',
+            pleaseDisableTwoFactorAuth: (twoFactorAuthSettingsUrl: string) =>
+                `<muted-text>请先停用<a href="${twoFactorAuthSettingsUrl}">强制启用双重验证</a>，然后再启用 SAML 登录。</muted-text>`,
         },
         samlConfigurationDetails: {
             title: 'SAML 配置详情',
@@ -8220,7 +8222,6 @@ ${reportName}
             primaryContact: '主要联系人',
             addPrimaryContact: '添加主要联系人',
             setPrimaryContactError: '无法设置主要联系人。请稍后重试。',
-            settings: '设置',
             consolidatedDomainBilling: '合并域名账单',
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>启用后，主要联系人将为所有由 <strong>${domainName}</strong> 成员拥有的工作区付款，并接收所有账单收据。</muted-text-label></comment>`,
@@ -8255,7 +8256,12 @@ ${reportName}
                 removeMember: '无法移除此用户。请重试。',
                 addMember: '无法添加此成员。请重试。',
             },
+            forceTwoFactorAuth: '强制启用双重身份验证',
+            forceTwoFactorAuthSAMLEnabledDescription: (samlPageUrl: string) => `<muted-text>请禁用<a href="${samlPageUrl}">SAML</a>以强制启用双重身份验证。</muted-text>`,
+            forceTwoFactorAuthDescription: `<muted-text>要求此域的所有成员使用双重身份验证。域成员在登录时将被提示为其账户设置双重身份验证。</muted-text>`,
+            forceTwoFactorAuthError: '无法更改强制启用双重身份验证设置。请稍后再试。',
         },
+        common: {settings: '设置'},
     },
 };
 export default translations;

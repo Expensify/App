@@ -4557,6 +4557,18 @@ function getTableMinWidth(columns: SearchColumnType[]) {
     return minWidth;
 }
 
+function filterValidHasValues(hasValues: string[] | undefined, type: SearchDataTypes | undefined, translate: LocalizedTranslate): string[] | undefined {
+    if (!hasValues || !type) {
+        return undefined;
+    }
+
+    const validHasOptions = getHasOptions(translate, type);
+    const validHasValues = new Set(validHasOptions.map((option) => option.value));
+    const filteredHasValues = hasValues.filter((hasValue) => validHasValues.has(hasValue as ValueOf<typeof CONST.SEARCH.HAS_VALUES>));
+
+    return filteredHasValues.length > 0 ? filteredHasValues : undefined;
+}
+
 function navigateToSearchRHP(route: {route: string; getRoute: (backTo?: string) => Route}, fallbackRoute?: Route) {
     if (isSearchTopmostFullScreenRoute()) {
         Navigation.navigate(route.getRoute(Navigation.getActiveRoute()));
@@ -4744,6 +4756,7 @@ export {
     getTableMinWidth,
     getCustomColumns,
     getCustomColumnDefault,
+    filterValidHasValues,
     navigateToSearchRHP,
     getActiveSearchItemIndex,
     updateQueryStringOnSearchTypeChange,

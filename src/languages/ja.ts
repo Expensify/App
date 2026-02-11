@@ -2026,7 +2026,7 @@ const translations: TranslationDeepObject<typeof en> = {
         whatIsTwoFactorAuth: '2要素認証（2FA）は、アカウントを安全に保つのに役立ちます。ログインする際、お好みの認証アプリで生成されたコードを入力する必要があります。',
         disableTwoFactorAuth: '2 要素認証を無効にする',
         explainProcessToRemove: '2要素認証（2FA）を無効にするには、認証アプリから有効なコードを入力してください。',
-        explainProcessToRemoveWithRecovery: '2 要素認証（2FA）を無効にするには、有効なリカバリーコードを入力してください。',
+        explainProcessToRemoveWithRecovery: '2要素認証（2FA）を無効にするには、有効な復旧コードを入力してください。',
         disabled: '二要素認証は現在無効になっています',
         noAuthenticatorApp: '今後、Expensify にログインする際に認証アプリは不要になります。',
         stepCodes: 'リカバリーコード',
@@ -7465,8 +7465,8 @@ ${reportName}
     },
     cardTransactions: {
         notActivated: '未有効化',
-        outOfPocket: '立替経費支出',
-        companySpend: '会社の支出',
+        outOfPocket: '返金可能',
+        companySpend: '返金不可',
     },
     distance: {
         addStop: '経由地を追加',
@@ -8298,6 +8298,8 @@ ${reportName}
             disableSamlRequired: '必須なSAMLを無効にする',
             oktaWarningPrompt: 'よろしいですか？これにより Okta SCIM も無効になります。',
             requireWithEmptyMetadataError: '有効にするには、以下にアイデンティティプロバイダーのメタデータを追加してください',
+            pleaseDisableTwoFactorAuth: (twoFactorAuthSettingsUrl: string) =>
+                `<muted-text>SAML ログインを有効にするには、<a href="${twoFactorAuthSettingsUrl}">二要素認証の強制</a>を無効にしてください。</muted-text>`,
         },
         samlConfigurationDetails: {
             title: 'SAML 設定の詳細',
@@ -8346,7 +8348,6 @@ ${reportName}
             primaryContact: '主要連絡先',
             addPrimaryContact: '主な連絡先を追加',
             setPrimaryContactError: '主要連絡先を設定できませんでした。後でもう一度お試しください。',
-            settings: '設定',
             consolidatedDomainBilling: 'ドメイン一括請求',
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>有効にすると、主な連絡先は <strong>${domainName}</strong> メンバーが所有するすべてのワークスペースの支払いを行い、すべての請求書の受領書を受け取ります。</muted-text-label></comment>`,
@@ -8381,7 +8382,13 @@ ${reportName}
                 removeMember: 'このユーザーを削除できません。もう一度お試しください。',
                 addMember: 'このメンバーを追加できませんでした。もう一度お試しください。',
             },
+            forceTwoFactorAuth: '2要素認証を必須にする',
+            forceTwoFactorAuthSAMLEnabledDescription: (samlPageUrl: string) =>
+                `<muted-text>2 要素認証を必須にするには、<a href="${samlPageUrl}">SAML</a> を無効にしてください。</muted-text>`,
+            forceTwoFactorAuthDescription: `<muted-text>このドメインのすべてのメンバーに二要素認証を必須にします。ドメインメンバーは、サインイン時に自分のアカウントで二要素認証を設定するよう求められます。</muted-text>`,
+            forceTwoFactorAuthError: '2要素認証の強制設定を変更できませんでした。後でもう一度お試しください。',
         },
+        common: {settings: '設定'},
     },
 };
 export default translations;

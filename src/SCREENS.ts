@@ -943,6 +943,8 @@ const SCREENS = {
         MEMBER_DETAILS: 'Member_Details',
         RESET_DOMAIN: 'Domain_Reset',
         ADD_MEMBER: 'Domain_Add_Member',
+        MEMBERS_SETTINGS: 'Members_Settings',
+        MEMBERS_SETTINGS_TWO_FACTOR_AUTH: 'Members_Settings_Two_Factor_Auth',
     },
     MULTIFACTOR_AUTHENTICATION: {
         MAGIC_CODE: 'Multifactor_Authentication_Magic_Code',

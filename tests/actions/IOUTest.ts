@@ -1069,7 +1069,7 @@ describe('actions/IOU', () => {
 
             const createdTransaction = Object.values(transactions ?? {}).at(0);
             expect(createdTransaction?.taxCode).toBe(testTaxCode);
-            expect(createdTransaction?.taxAmount).toBe(testTaxAmount);
+            expect(createdTransaction?.taxAmount).toBe(-testTaxAmount);
         });
 
         it('should set billable and reimbursable flags correctly', async () => {
