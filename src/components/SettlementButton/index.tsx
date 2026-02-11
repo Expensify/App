@@ -631,7 +631,6 @@ function SettlementButton({
                 policy={lastPaymentPolicy}
                 anchorAlignment={kycWallAnchorAlignment}
                 shouldShowPersonalBankAccountOption={shouldShowPersonalBankAccountOption}
-
             >
                 {(triggerKYCFlow, buttonRef) => (
                     <ButtonWithDropdownMenu<string>
