@@ -410,7 +410,7 @@ function UserProfile({ userId }) {
 
 ---
 
-### [PERFORMANCE-12] Prevent memory leaks in components and plugins
+### [PERF-12] Prevent memory leaks in components and plugins
 
 - **Search patterns**: `setInterval`, `setTimeout`, `addEventListener`, `subscribe`, `useEffect` with missing cleanup
 
@@ -518,6 +518,238 @@ const results = items.map((item) => {
   const config = getConfig();
   return item.value * config.multiplier;
 });
+```
+
+---
+
+### [PERF-14] Use `useSyncExternalStore` for external store subscriptions
+
+- **Search patterns**: `addEventListener`, `subscribe`, `useEffect`, `useState`
+
+- **Condition**: Flag ONLY when ALL of these are true:
+
+  - A `useEffect` subscribes to an external source (DOM events, third-party store, browser API)
+  - Inside the listener, at least one `setState` call directly mirrors an external value
+    (e.g., `setWidth(window.innerWidth)`, `setOnline(navigator.onLine)`)
+  - The pattern for that state variable follows: subscribe in setup, unsubscribe in cleanup,
+    `setState(externalValue)` in the listener
+  - Evaluate each state variable independently — if one state variable is a raw mirror of an
+    external value, flag it even if the same effect also manages other state for different purposes
+
+  **DO NOT flag if:**
+
+  - The specific state variable being flagged undergoes transformation, debouncing, or derives
+    from computation rather than directly mirroring the external value. Other state variables
+    in the same effect that DO directly mirror external values should still be flagged.
+  - The external API doesn't fit the `subscribe` / `getSnapshot` contract
+  - The code already uses `useSyncExternalStore`
+  - The subscription is managed by a library (e.g., Onyx's `useOnyx`)
+
+- **Reasoning**: [`useSyncExternalStore`](https://react.dev/learn/you-might-not-need-an-effect#subscribing-to-an-external-store) is React's purpose-built hook for reading external store values. It handles concurrent rendering edge cases (tearing), avoids the extra render pass of `useEffect` + `setState`, and makes the subscription contract explicit. Manual subscriptions via `useEffect` are more error-prone and miss these guarantees.
+
+Good:
+
+```tsx
+function subscribe(callback) {
+  window.addEventListener('online', callback);
+  window.addEventListener('offline', callback);
+  return () => {
+    window.removeEventListener('online', callback);
+    window.removeEventListener('offline', callback);
+  };
+}
+
+function useOnlineStatus() {
+  // ✅ Good: Subscribing to an external store with a built-in Hook
+  return useSyncExternalStore(
+    subscribe, // React won't resubscribe for as long as you pass the same function
+    () => navigator.onLine, // How to get the value on the client
+    () => true // How to get the value on the server
+  );
+}
+
+function ChatIndicator() {
+  const isOnline = useOnlineStatus();
+  // ...
+}
+```
+
+Bad:
+
+```tsx
+function useOnlineStatus() {
+  // Not ideal: Manual store subscription in an Effect
+  const [isOnline, setIsOnline] = useState(true);
+  useEffect(() => {
+    function updateState() {
+      setIsOnline(navigator.onLine);
+    }
+
+    updateState();
+
+    window.addEventListener('online', updateState);
+    window.addEventListener('offline', updateState);
+    return () => {
+      window.removeEventListener('online', updateState);
+      window.removeEventListener('offline', updateState);
+    };
+  }, []);
+  return isOnline;
+}
+
+function ChatIndicator() {
+  const isOnline = useOnlineStatus();
+  // ...
+}
+```
+
+---
+
+### [PERF-15] Clean up async Effects to prevent race conditions
+
+- **Search patterns**: `useEffect`, `fetch(`, `async`, `await`, `.then(`, `setState`, `eslint-disable`
+
+- **Condition**: Flag when EITHER of these is true:
+
+  **Case 1 — Missing cleanup:**
+  - A `useEffect` performs async work (fetch, promise chain, async/await)
+  - The async callback performs side effects (setState, navigation, data mutations, deletions)
+  - There is no cleanup mechanism to discard stale responses (no `ignore` flag, no `AbortController`, no cancellation token)
+
+  **Case 2 — Suppressed dependency lint:**
+  - A `useEffect` performs async work and triggers side effects (setState, navigation, mutations)
+  - The dependency array has an `eslint-disable` comment suppressing `react-hooks/exhaustive-deps`
+  - This hides a dependency that could change and cause a race condition
+
+  **DO NOT flag if:**
+
+  - The Effect includes an `ignore`/`cancelled` boolean checked before `setState`
+  - The Effect uses `AbortController` to cancel the request on cleanup
+  - The async operation is truly fire-and-forget (no setState, no navigation, no mutations —
+    just logging or analytics that are safe to complete after unmount)
+  - The dependency array is empty `[]` with no suppressed lint, AND the async callback only
+    performs idempotent/safe operations (no navigation, no destructive mutations that could
+    fire after unmount)
+  - Data fetching is handled by a library/framework (e.g., Onyx, React Query)
+
+- **Reasoning**: When an Effect's dependencies change, the previous async operation [may still be in flight](https://react.dev/learn/you-might-not-need-an-effect#fetching-data). Without cleanup, a slow earlier response can overwrite the result of a faster later response, showing stale data. This is especially dangerous for search inputs and navigation where dependencies change rapidly.
+
+Good (ignore flag):
+
+```tsx
+useEffect(() => {
+    let ignore = false;
+
+    fetchResults(query).then((json) => {
+        if (!ignore) {
+            setResults(json);
+        }
+    });
+
+    return () => {
+        ignore = true;
+    };
+}, [query]);
+```
+
+Good (AbortController):
+
+```tsx
+useEffect(() => {
+    const controller = new AbortController();
+
+    fetch(`/api/search?q=${query}`, {signal: controller.signal})
+        .then((res) => res.json())
+        .then((data) => setResults(data))
+        .catch((e) => {
+            if (e.name !== 'AbortError') {
+                setError(e);
+            }
+        });
+
+    return () => controller.abort();
+}, [query]);
+```
+
+Bad:
+
+```tsx
+useEffect(() => {
+    fetchResults(query).then((json) => {
+        setResults(json);
+    });
+}, [query]);
+```
+
+---
+
+### [PERF-16] Guard initialization logic against double-execution
+
+- **Search patterns**: `useEffect` with empty dependency array `[]` containing initialization logic (API calls, storage access, authentication checks, SDK setup, global configuration, event handler registration)
+
+- **Condition**: Flag ONLY when ALL of these are true:
+
+  - A `useEffect` with empty dependency array `[]` runs non-idempotent initialization logic
+  - The logic would cause problems if executed twice (e.g., double API calls, invalidated tokens, duplicate SDK init, duplicate analytics sessions, duplicate deep link registrations)
+  - There is no guard mechanism (module-level flag or module-level execution)
+  - This applies at any level — app-wide init, feature screens, or individual components
+
+  **DO NOT flag if:**
+
+  - A module-level or ref-based guard variable prevents double execution. A proper execution
+    guard follows this pattern: `if (didInit) return; didInit = true;` — it checks a flag AND
+    sets it. Conditional checks on data/props (e.g., `if (!transaction) return`,
+    `if (action !== 'CREATE') return`) are NOT execution guards — they validate preconditions
+    but don't prevent the logic from running again if the same preconditions hold in a second
+    invocation (which happens in React Strict Mode).
+  - The logic is idempotent (safe to run twice with no side effects)
+  - NOTE: Navigation calls (e.g., `navigate()`), data deletion (e.g., `removeDraftTransactions()`),
+    and similar mutations are NOT idempotent — running them twice produces different/undesirable results.
+  - The logic is at module level, outside any component
+  - The Effect has non-empty dependencies (not one-time init)
+
+- **Reasoning**: React Strict Mode [intentionally double-invokes Effects](https://react.dev/learn/you-might-not-need-an-effect#initializing-the-application) in development to surface missing cleanup. Non-idempotent initialization — whether app-wide (auth tokens, global config) or per-feature (SDK setup, analytics session creation, deep link handler registration) — can break when executed twice. Guarding with a module-level flag or moving initialization outside the component ensures it runs exactly once regardless of rendering mode.
+
+Good (module-level guard):
+
+```tsx
+let didInit = false;
+
+function App() {
+    useEffect(() => {
+        if (didInit) {
+            return;
+        }
+        didInit = true;
+
+        loadDataFromLocalStorage();
+        checkAuthToken();
+    }, []);
+}
+```
+
+Good (module-level execution):
+
+```tsx
+if (typeof window !== 'undefined') {
+    checkAuthToken();
+    loadDataFromLocalStorage();
+}
+
+function App() {
+    // ...
+}
+```
+
+Bad:
+
+```tsx
+function App() {
+    useEffect(() => {
+        loadDataFromLocalStorage();
+        checkAuthToken();
+    }, []);
+}
 ```
 
 ---
@@ -770,7 +1002,7 @@ useEffect(() => {
 
 ---
 
-### [CONSISTENCY-5] Ensure proper error handling
+### [CONSISTENCY-6] Ensure proper error handling
 
 - **Search patterns**: `try`, `catch`, `async`, `await`, `Promise`, `.then(`, `.catch(`
 
@@ -1185,6 +1417,261 @@ function SaveButton({ getSiblingFormData }: { getSiblingFormData: () => FormData
 // Parent wires siblings together
 <Form ref={formRef} />
 <SaveButton getSiblingFormData={() => formRef.current?.getData()} />
+```
+
+---
+
+### [CLEAN-REACT-PATTERNS-4] Avoid side-effect spaghetti
+
+- **Search patterns**: Multiple `useEffect` in single component, large component bodies mixing data access/navigation/UI state/lifecycle, hooks or utilities handling several unrelated responsibilities
+
+- **Condition**: Flag when a component, hook, or utility aggregates multiple unrelated responsibilities in a single unit, making it difficult to modify one concern without touching others.
+
+  **Signs of violation:**
+  - Component has several `useEffect` hooks handling unrelated concerns (e.g., telemetry, deep linking, audio, session management all in one component)
+  - A single `useEffect` or hook handles multiple distinct responsibilities
+  - Unrelated state variables are interdependent or updated together
+  - Logic mixes data fetching, navigation, UI state, and lifecycle behavior in one place
+  - Removing one piece of functionality requires careful untangling from others
+
+  **What counts as "unrelated":**
+  - Group by responsibility (what the code does), NOT by timing (when it runs)
+  - Data fetching and analytics are NOT related — they serve different purposes even if both run on mount
+  - Session management and audio configuration are NOT related — different domains entirely
+
+  **DO NOT flag if:**
+  - Component is a thin orchestration layer that ONLY composes child components (no business logic, no effects beyond rendering)
+  - Effects are extracted into focused custom hooks with single responsibilities (e.g., `useDebugShortcut`, `usePriorityMode`) — inline `useEffect` calls are a code smell and should be named hooks
+
+- **Reasoning**: When multiple unrelated responsibilities are grouped into a single component, hook, or utility, if any one concern changes, then unrelated logic must be touched as well, increasing coupling, regression risk, and cognitive load. This is the single responsibility principle for React: extract small units that do very little, very well. A component with several unrelated effects is a code smell - even a single effect can benefit from extraction to something with a good name, proper description, and isolated tests.
+
+  **Bucketing questions for refactoring:**
+  1. Does this logic need the React render loop? YES → Extract to a focused custom hook. NO → Extract out of React entirely (e.g., Onyx migration, global initialization).
+  2. Does this logic need to be in this component? YES → Keep it, but use a focused hook. NO → Extract to a separate component that owns this concern.
+
+  **Hook granularity guidance:**
+  - Group effects that serve the same purpose into one hook (e.g., all telemetry setup in `useTelemetry`)
+  - Group effects that can be reused together across components
+  - Don't create 15 separate single-effect hooks if 5 well-named grouped hooks make more sense
+
+Good (separated concerns):
+
+- Each piece of logic is extracted to a focused hook or component
+- Parent component only orchestrates what to render
+- State subscriptions in smaller components don't cause re-renders in parent
+- Component-scoped hooks can be co-located in the same directory for maintainability
+
+```tsx
+function DebugMenu() {
+    useDebugShortcut();
+
+    return (
+        // Debug menu UI
+    );
+}
+
+function ParentComponent({ reportID }: { reportID: string }) {
+    return (
+        <View>
+            {/* Each child owns its own concerns */}
+            <ReportView reportID={reportID} />
+            <DebugMenu />
+        </View>
+    );
+}
+```
+
+```tsx
+// Focused hook that does one thing well
+function useDebugShortcut() {
+    useEffect(() => {
+        const debugShortcutConfig = CONST.KEYBOARD_SHORTCUTS.DEBUG;
+        const unsubscribeDebugShortcut = KeyboardShortcut.subscribe(
+            debugShortcutConfig.shortcutKey,
+            () => toggleTestToolsModal(),
+            debugShortcutConfig.descriptionKey,
+            debugShortcutConfig.modifiers,
+            true,
+        );
+
+        return () => {
+            unsubscribeDebugShortcut();
+        };
+    }, []);
+}
+```
+
+Bad (side-effect spaghetti):
+
+- Component mixes session management, deep linking, telemetry, navigation, splash screen, audio, and other startup logic
+- Several unrelated `useOnyx` calls and `useEffect` hooks in a single component
+- Changing one concern risks breaking others
+
+```tsx
+function Expensify() {
+    // Session & auth
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    
+    // Navigation & routing
+    const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE);
+    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
+    const [isNavigationReady, setIsNavigationReady] = useState(false);
+    
+    // App state
+    const [updateAvailable] = useOnyx(ONYXKEYS.UPDATE_AVAILABLE);
+    const [updateRequired] = useOnyx(ONYXKEYS.UPDATE_REQUIRED);
+    const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED);
+    
+    // Splash screen
+    const {splashScreenState, setSplashScreenState} = useContext(SplashScreenStateContext);
+    
+    // ... 10+ more useOnyx calls for unrelated concerns ...
+
+    // Telemetry effect
+    useEffect(() => {
+        bootsplashSpan.current = startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT, {...});
+        // ...
+    }, []);
+
+    // Public room checking effect
+    useEffect(() => {
+        if (isCheckingPublicRoom) return;
+        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX);
+        // ...
+    }, [isCheckingPublicRoom]);
+
+    // Splash screen effect
+    useEffect(() => {
+        if (!shouldHideSplash) return;
+        startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.SPLASH_HIDER, {...});
+    }, [shouldHideSplash]);
+
+    // Deep linking effect
+    useEffect(() => {
+        Linking.getInitialURL().then((url) => {
+            if (url) {
+                openReportFromDeepLink(url, ...);
+            }
+        });
+        // ...
+    }, []);
+
+    // Audio mode effect
+    useEffect(() => {
+        Audio.setAudioModeAsync({playsInSilentModeIOS: true});
+    }, []);
+
+    // ... 10+ more useEffects mixing concerns ...
+}
+```
+
+In this example:
+- The component handles telemetry, deep linking, audio, session, navigation, splash screen, and more
+- Each concern is interleaved with others, making it hard to modify one without risking regression in another
+- Effects could be extracted to focused hooks: `useTelemetrySpans`, `useDeepLinking`, `useAudioMode`, etc.
+- Entry points don't get special treatment — extracting effects into named hooks improves clarity and makes it possible to understand what each effect does and how to safely modify it
+
+---
+
+### [CLEAN-REACT-PATTERNS-5] Keep state and subscriptions narrow
+
+- **Search patterns**: Contexts/hooks/stores exposing large bundled objects, providers with many unrelated `useOnyx` calls, state structures mixing unrelated concerns
+
+- **Condition**: Flag when a state structure (context, hook, store, or subscription) bundles unrelated concerns together, causing consumers to re-render when data they don't use changes.
+
+  **Signs of violation:**
+  - State provider (context, hook, or store) that bundles unrelated data (e.g., navigation state + list data + cache utilities in one structure)
+  - State object where properties serve different purposes and change independently
+  - Multiple unrelated subscriptions (`useOnyx`, `useContext`, store selectors) aggregated into a single exposed value
+  - Consumers of a state source that only use a subset of the provided values
+
+  **DO NOT flag if:**
+  - State values are cohesive — they change together and serve the same purpose (e.g., `keyboardHeight` + `isKeyboardShown` both relate to keyboard state)
+  - The state structure is intentionally designed as an aggregation point and consumers use most/all values
+  - Individual `useOnyx` calls without selectors — this is covered by [PERF-11]
+
+- **Reasoning**: When unrelated pieces of data are grouped into a single state structure, if an unused part changes, then all consumers re-render unnecessarily. This silently expands render scope, increases coupling, and makes performance regressions hard to detect. Structuring state around cohesive concerns ensures render scope stays predictable and changes remain local.
+
+**Distinction from PERF-11**: PERF-11 addresses individual `useOnyx` selector usage. This rule addresses state structure — how multiple values are grouped and exposed to consumers via contexts, hooks, or stores.
+
+**Distinction from CLEAN-REACT-PATTERNS-2**: PATTERNS-2 addresses data flow direction — parent shouldn't fetch data just to pass to children. This rule addresses how state is structured and grouped within any state provider.
+
+Good (cohesive state — all values serve one purpose):
+
+- All state relates to one concern (keyboard)
+- Values change together — no wasted re-renders
+- Derived state computed inline, not stored separately
+
+```tsx
+type KeyboardStateContextValue = {
+    isKeyboardShown: boolean;
+    isKeyboardActive: boolean;
+    keyboardHeight: number;
+};
+
+function KeyboardStateProvider({children}: ChildrenProps) {
+    const [keyboardHeight, setKeyboardHeight] = useState(0);
+    const [isKeyboardActive, setIsKeyboardActive] = useState(false);
+
+    useEffect(() => {
+        const showListener = KeyboardEvents.addListener('keyboardDidShow', (e) => {
+            setKeyboardHeight(e.height);
+            setIsKeyboardActive(true);
+        });
+        const hideListener = KeyboardEvents.addListener('keyboardDidHide', () => {
+            setKeyboardHeight(0);
+            setIsKeyboardActive(false);
+        });
+        return () => {
+            showListener.remove();
+            hideListener.remove();
+        };
+    }, []);
+
+    const contextValue = useMemo(() => ({
+        keyboardHeight,
+        isKeyboardShown: keyboardHeight !== 0,  // Derived, not separate state
+        isKeyboardActive,
+    }), [keyboardHeight, isKeyboardActive]);
+
+    return <KeyboardStateContext.Provider value={contextValue}>{children}</KeyboardStateContext.Provider>;
+}
+```
+
+Bad (grab-bag state — bundles unrelated concerns):
+
+- State provider subscribes to many unrelated Onyx collections
+- Exposed value mixes navigation state, list data, membership data, and cache utilities
+- Any consumer re-renders when ANY subscribed value changes
+
+```tsx
+function SidebarOrderedReportsContextProvider({children}) {
+    // ❌ Many unrelated Onyx subscriptions bundled together
+    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
+    const [chatReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [reportsDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+
+    // ❌ Context value mixes unrelated concerns
+    const contextValue = {
+        orderedReports,         // List data
+        orderedReportIDs,       // List data
+        currentReportID,        // Navigation state
+        policyMemberAccountIDs, // Policy membership
+        clearLHNCache,          // Cache management utility
+    };
+
+    return <Context.Provider value={contextValue}>{children}</Context.Provider>;
+}
+
+// A component needing only currentReportID re-renders when orderedReports changes
+// A component needing only policyMemberAccountIDs re-renders when navigation changes
 ```
 
 ---

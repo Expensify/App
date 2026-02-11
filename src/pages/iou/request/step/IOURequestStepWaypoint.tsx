@@ -1,4 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
+import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {TextInput} from 'react-native';
 import {View} from 'react-native';
@@ -70,7 +71,15 @@ function IOURequestStepWaypoint({
     const {isOffline} = useNetwork();
     const textInput = useRef<TextInput | null>(null);
     const parsedWaypointIndex = parseInt(pageIndex, 10);
-    const allWaypoints = transaction?.comment?.waypoints ?? {};
+
+    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
+
+    const isEditing = action === CONST.IOU.ACTION.EDIT;
+    const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
+    const currentTransaction = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
+    const shouldPassSplitDraft = isEditingSplit && !lodashIsEmpty(splitDraftTransaction);
+
+    const allWaypoints = currentTransaction?.comment?.waypoints ?? {};
     const currentWaypoint = allWaypoints[`waypoint${pageIndex}`] ?? {};
     const waypointCount = Object.keys(allWaypoints).length;
     const filledWaypointCount = Object.values(allWaypoints).filter((waypoint) => !isEmptyObject(waypoint)).length;
@@ -120,14 +129,21 @@ function IOURequestStepWaypoint({
     };
 
     const save = (waypoint: FormOnyxValues<'waypointForm'>) => {
-        saveWaypoint({transactionID, index: pageIndex, waypoint, isDraft: shouldUseTransactionDraft(action), recentWaypointsList: allRecentWaypoints});
+        saveWaypoint({
+            transactionID,
+            index: pageIndex,
+            waypoint,
+            isDraft: shouldUseTransactionDraft(action),
+            recentWaypointsList: allRecentWaypoints,
+            isSplitDraftTransaction: shouldPassSplitDraft,
+        });
     };
 
     const submit = (values: FormOnyxValues<'waypointForm'>) => {
         const waypointValue = values[`waypoint${pageIndex}`] ?? '';
         // Allows letting you set a waypoint to an empty value
         if (waypointValue === '') {
-            removeWaypoint(transaction, pageIndex, shouldUseTransactionDraft(action));
+            removeWaypoint(currentTransaction, pageIndex, shouldUseTransactionDraft(action), shouldPassSplitDraft ? splitDraftTransaction : undefined);
         }
 
         // While the user is offline, the auto-complete address search will not work
@@ -156,7 +172,14 @@ function IOURequestStepWaypoint({
             keyForList: `${values.name ?? 'waypoint'}_${Date.now()}`,
         };
 
-        saveWaypoint({transactionID, index: pageIndex, waypoint, isDraft: shouldUseTransactionDraft(action), recentWaypointsList: allRecentWaypoints});
+        saveWaypoint({
+            transactionID,
+            index: pageIndex,
+            waypoint,
+            isDraft: shouldUseTransactionDraft(action),
+            recentWaypointsList: allRecentWaypoints,
+            isSplitDraftTransaction: shouldPassSplitDraft,
+        });
         goBack();
     };
 
@@ -209,7 +232,7 @@ function IOURequestStepWaypoint({
                                 text={translate('common.remove')}
                                 style={[styles.mb3]}
                                 onPress={() => {
-                                    removeWaypoint(transaction, pageIndex, shouldUseTransactionDraft(action));
+                                    removeWaypoint(transaction, pageIndex, shouldUseTransactionDraft(action), shouldPassSplitDraft ? splitDraftTransaction : undefined);
                                     goBack();
                                 }}
                                 large
