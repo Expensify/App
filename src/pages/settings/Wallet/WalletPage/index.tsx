@@ -242,6 +242,9 @@ function WalletPage() {
                 .sort((a, b) => {
                     const aCreated = a.accountData?.created ?? '';
                     const bCreated = b.accountData?.created ?? '';
+                    if (!aCreated && !bCreated) {
+                        return 0;
+                    }
                     if (!aCreated) {
                         return 1;
                     }
