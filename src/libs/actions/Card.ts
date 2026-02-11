@@ -1,11 +1,12 @@
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {
     ActivatePhysicalExpensifyCardParams,
     CardDeactivateParams,
     DeletePersonalCardParams,
+    FreezeCardParams,
     OpenCardDetailsPageParams,
     ReportVirtualExpensifyCardFraudParams,
     RequestReplacementExpensifyCardParams,
@@ -50,6 +51,16 @@ type IssueNewCardFlowData = {
     /** Whether the changing assignee is disabled. E.g., The assignee is auto selected from workspace members page */
     isChangeAssigneeDisabled?: boolean;
 };
+
+type CardOnyxUpdate = OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST | typeof ONYXKEYS.CARD_LIST>;
+
+let cardList: OnyxEntry<Record<string, Card>>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.CARD_LIST,
+    callback: (value) => {
+        cardList = value;
+    },
+});
 
 function reportVirtualExpensifyCardFraud(card: Card, validateCode: string) {
     const cardID = card?.cardID ?? CONST.DEFAULT_NUMBER_ID;
@@ -761,6 +772,118 @@ function clearIssueNewCardError(policyID: string | undefined) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {errors: null});
 }
 
+function buildCardListUpdates(workspaceAccountID: number, cardID: number, cardUpdateData: Partial<Card>): CardOnyxUpdate[] {
+    const workspaceKey = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`;
+
+    return [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: workspaceKey,
+            value: {[cardID]: cardUpdateData},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {[cardID]: cardUpdateData},
+        },
+    ];
+}
+
+function freezeCard(workspaceAccountID: number, cardID: number) {
+    const previousCard = cardList?.[String(cardID)];
+    const previousFrozen = previousCard?.nameValuePairs?.frozen ?? null;
+
+    const frozenData: Partial<Card> = {
+        state: CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED,
+        nameValuePairs: {
+            frozen: {
+                byAccountID: previousCard?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                date: DateUtils.getDBTime(),
+            },
+            pendingFields: {frozen: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+        },
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+        isLoading: true,
+        errors: null,
+    };
+
+    const optimisticData = buildCardListUpdates(workspaceAccountID, cardID, frozenData);
+    const successData = buildCardListUpdates(workspaceAccountID, cardID, {
+        nameValuePairs: {
+            pendingFields: {frozen: null},
+        },
+        pendingAction: null,
+        isLoading: false,
+        errors: null,
+    });
+    const failureData = buildCardListUpdates(workspaceAccountID, cardID, {
+        state: previousCard?.state ?? CONST.EXPENSIFY_CARD.STATE.OPEN,
+        nameValuePairs: {
+            frozen: previousFrozen,
+            pendingFields: {frozen: null},
+        },
+        pendingAction: null,
+        isLoading: false,
+        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+    });
+
+    const parameters: FreezeCardParams = {
+        cardID,
+    };
+
+    API.write(WRITE_COMMANDS.FREEZE_CARD, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
+function unfreezeCard(workspaceAccountID: number, cardID: number) {
+    const previousCard = cardList?.[String(cardID)];
+    const previousFrozen = previousCard?.nameValuePairs?.frozen ?? null;
+
+    const unfrozenData: Partial<Card> = {
+        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+        nameValuePairs: {
+            frozen: null,
+            pendingFields: {frozen: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+        },
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+        isLoading: true,
+        errors: null,
+    };
+
+    const optimisticData = buildCardListUpdates(workspaceAccountID, cardID, unfrozenData);
+    const successData = buildCardListUpdates(workspaceAccountID, cardID, {
+        nameValuePairs: {
+            pendingFields: {frozen: null},
+        },
+        pendingAction: null,
+        isLoading: false,
+        errors: null,
+    });
+    const failureData = buildCardListUpdates(workspaceAccountID, cardID, {
+        state: previousCard?.state ?? CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED,
+        nameValuePairs: {
+            frozen: previousFrozen,
+            pendingFields: {frozen: null},
+        },
+        pendingAction: null,
+        isLoading: false,
+        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+    });
+
+    const parameters: FreezeCardParams = {
+        cardID,
+    };
+
+    API.write(WRITE_COMMANDS.UNFREEZE_CARD, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
 function updateExpensifyCardLimit(
     workspaceAccountID: number,
     cardID: number,
@@ -1432,6 +1555,8 @@ export {
     setIssueNewCardStepAndData,
     clearIssueNewCardFlow,
     updateExpensifyCardLimit,
+    freezeCard,
+    unfreezeCard,
     updateExpensifyCardTitle,
     updateSettlementAccount,
     startIssueNewCardFlow,
