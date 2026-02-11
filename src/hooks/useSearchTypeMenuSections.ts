@@ -94,7 +94,7 @@ const useSearchTypeMenuSections = () => {
     }, [pendingReportCreation, openCreateReportConfirmation]);
 
     const isSuggestedSearchDataReady = useMemo(() => {
-        return Object.values(allPolicies ?? {}).some((policy) => policy?.id !== undefined && policy?.employeeList !== undefined && policy?.exporter !== undefined);
+        return Object.values(allPolicies ?? {}).some((policy) => policy?.employeeList !== undefined && policy?.exporter !== undefined);
     }, [allPolicies]);
 
     const typeMenuSections = useMemo(

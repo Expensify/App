@@ -498,17 +498,22 @@ function IOURequestStepDistanceMap({
     ]);
 
     const renderItem = useCallback(
-        ({item, drag, isActive, getIndex}: RenderItemParams<string>) => (
-            <DistanceRequestRenderItem
-                waypoints={waypoints}
-                item={getWaypointKey(item)}
-                onSecondaryInteraction={drag}
-                isActive={isActive}
-                getIndex={getIndex}
-                onPress={navigateToWaypointEditPage}
-                disabled={isLoadingRoute}
-            />
-        ),
+        ({item, drag, isActive, getIndex}: RenderItemParams<string>) => {
+            const index = getIndex?.();
+            const sentryLabel = index === 0 ? CONST.SENTRY_LABEL.IOU_REQUEST_STEP.WAYPOINT_START_MENU_ITEM : CONST.SENTRY_LABEL.IOU_REQUEST_STEP.WAYPOINT_STOP_MENU_ITEM;
+            return (
+                <DistanceRequestRenderItem
+                    waypoints={waypoints}
+                    item={getWaypointKey(item)}
+                    onSecondaryInteraction={drag}
+                    isActive={isActive}
+                    getIndex={getIndex}
+                    onPress={navigateToWaypointEditPage}
+                    disabled={isLoadingRoute}
+                    sentryLabel={sentryLabel}
+                />
+            );
+        },
         [isLoadingRoute, navigateToWaypointEditPage, waypoints, getWaypointKey],
     );
 
@@ -556,6 +561,7 @@ function IOURequestStepDistanceMap({
                         onPress={submitWaypoints}
                         text={buttonText}
                         isLoading={!isOffline && (isLoadingRoute || shouldFetchRoute || isLoading)}
+                        sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.DISTANCE_MAP_NEXT_BUTTON}
                     />
                 </View>
             </>

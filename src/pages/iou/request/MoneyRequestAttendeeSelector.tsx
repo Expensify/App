@@ -197,6 +197,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                     pressOnEnter
                     large
                     isDisabled={shouldShowErrorMessage}
+                    sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.ATTENDEES_SAVE_BUTTON}
                 />
             </>
         );

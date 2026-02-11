@@ -1564,6 +1564,8 @@ const translations: TranslationDeepObject<typeof en> = {
             });
             return `${formatList(fragments)} przez <a href="${policyRulesRoute}">zasady przestrzeni roboczej</a>`;
         },
+        duplicateNonDefaultWorkspacePerDiemError:
+            'Nie możesz duplikować wydatków z tytułu diet między przestrzeniami roboczymi, ponieważ stawki mogą się różnić między poszczególnymi przestrzeniami.',
     },
     transactionMerge: {
         listPage: {
@@ -7506,8 +7508,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
     },
     cardTransactions: {
         notActivated: 'Nieaktywne',
-        outOfPocket: 'Wydatki z własnej kieszeni',
-        companySpend: 'Wydatki firmowe',
+        outOfPocket: 'Zwrotne',
+        companySpend: 'Niezgodne z refundacją',
     },
     distance: {
         addStop: 'Dodaj przystanek',
@@ -8344,6 +8346,8 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             disableSamlRequired: 'Wyłącz wymaganie SAML',
             oktaWarningPrompt: 'Na pewno? Spowoduje to również wyłączenie Okta SCIM.',
             requireWithEmptyMetadataError: 'Dodaj poniżej metadane dostawcy tożsamości, aby włączyć',
+            pleaseDisableTwoFactorAuth: (twoFactorAuthSettingsUrl: string) =>
+                `<muted-text>Aby włączyć logowanie SAML, wyłącz najpierw <a href="${twoFactorAuthSettingsUrl}">wymuszanie uwierzytelniania dwuskładnikowego</a>.</muted-text>`,
         },
         samlConfigurationDetails: {
             title: 'Szczegóły konfiguracji SAML',
@@ -8392,7 +8396,6 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             primaryContact: 'Główny kontakt',
             addPrimaryContact: 'Dodaj główny kontakt',
             setPrimaryContactError: 'Nie można ustawić głównego kontaktu. Spróbuj ponownie później.',
-            settings: 'Ustawienia',
             consolidatedDomainBilling: 'Zbiorcze rozliczanie domeny',
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>Po włączeniu główny kontakt będzie opłacać wszystkie przestrzenie robocze należące do członków <strong>${domainName}</strong> i otrzymywać wszystkie potwierdzenia rozliczeń.</muted-text-label></comment>`,
@@ -8427,7 +8430,13 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
                 removeMember: 'Nie można usunąć tego użytkownika. Spróbuj ponownie.',
                 addMember: 'Nie można dodać tego członka. Spróbuj ponownie.',
             },
+            forceTwoFactorAuth: 'Wymuś uwierzytelnianie dwuskładnikowe',
+            forceTwoFactorAuthSAMLEnabledDescription: (samlPageUrl: string) =>
+                `<muted-text>Wyłącz proszę <a href="${samlPageUrl}">SAML</a>, aby wymusić uwierzytelnianie dwuskładnikowe.</muted-text>`,
+            forceTwoFactorAuthDescription: `<muted-text>Wymagaj uwierzytelniania dwuskładnikowego od wszystkich członków tej domeny. Członkowie domeny zostaną poproszeni o skonfigurowanie uwierzytelniania dwuskładnikowego na swoim koncie po zalogowaniu.</muted-text>`,
+            forceTwoFactorAuthError: 'Nie udało się zmienić wymuszania uwierzytelniania dwuskładnikowego. Spróbuj ponownie później.',
         },
+        common: {settings: 'Ustawienia'},
     },
 };
 export default translations;

@@ -7,11 +7,12 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import getBackgroundColor from './getBackground';
 import getOpacity from './getOpacity';
 import TabSelectorItem from './TabSelectorItem';
 
-type TabSelectorBaseItem = {
+type TabSelectorBaseItem = WithSentryLabel & {
     /** Stable key for the tab. */
     key: string;
 
@@ -168,6 +169,7 @@ function TabSelectorBase({
                         backgroundColor={backgroundColor}
                         isActive={isActive}
                         testID={tab.testID}
+                        sentryLabel={tab.sentryLabel}
                         shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
                         shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
                         renderProductTrainingTooltip={renderProductTrainingTooltip}

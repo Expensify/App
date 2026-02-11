@@ -325,6 +325,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 title={translate('iou.addSplit')}
                 icon={icons.Plus}
                 style={[styles.ph4]}
+                sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.ADD_SPLIT_BUTTON}
             />
             {isInitialSplit && (
                 <MenuItem
@@ -332,6 +333,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                     title={translate('iou.makeSplitsEven')}
                     icon={icons.ArrowsLeftRight}
                     style={[styles.ph4]}
+                    sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.MAKE_SPLITS_EVEN_BUTTON}
                 />
             )}
         </View>
@@ -363,6 +365,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 onPress={onSaveSplitExpense}
                 pressOnEnter
                 enterKeyEventListenerPriority={1}
+                sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.SAVE_BUTTON}
             />
         </View>
     );

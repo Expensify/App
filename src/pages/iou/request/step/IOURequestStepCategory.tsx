@@ -219,6 +219,7 @@ function IOURequestStepCategory({
                                 }}
                                 text={translate('workspace.categories.editCategories')}
                                 pressOnEnter
+                                sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.EDIT_CATEGORIES_BUTTON}
                             />
                         </FixedFooter>
                     )}

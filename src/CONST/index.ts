@@ -1081,7 +1081,7 @@ const CONST = {
     MERGE_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Merge-Accounts',
     CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Business-Bank-Account',
     DOMAIN_VERIFICATION_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Claim-and-Verify-a-Domain',
-    SAML_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/domains/Managing-Single-Sign-On-(SSO)-in-Expensify',
+    SAML_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/domains/Set-Up-SAML-SSO',
     REGISTER_FOR_WEBINAR_URL: 'https://events.zoom.us/eo/Aif1I8qCi1GZ7KnLnd1vwGPmeukSRoPjFpyFAZ2udQWn0-B86e1Z~AggLXsr32QYFjq8BlYLZ5I06Dg',
     TEST_RECEIPT_URL: `${CLOUDFRONT_URL}/images/fake-receipt__tacotodds.png`,
     // Use Environment.getEnvironmentURL to get the complete URL with port number
@@ -1551,6 +1551,8 @@ const CONST = {
         OWNER_EMAIL_FAKE: '__FAKE__',
         OWNER_ACCOUNT_ID_FAKE: 0,
         DEFAULT_REPORT_NAME: 'Chat Report',
+        // Not translated because default report names are not translated on the backend (matches Expensify Classic behavior)
+        DEFAULT_EXPENSE_REPORT_NAME: 'New Report',
         PERMISSIONS: {
             READ: 'read',
             WRITE: 'write',
@@ -2757,14 +2759,6 @@ const CONST = {
             CONFIRM: 'confirm',
         },
     },
-
-    SUBSCRIPTION_SIZE: {
-        PAGE_NAME: {
-            SIZE: 'size',
-            CONFIRM: 'confirm',
-        },
-    },
-
     MISSING_PERSONAL_DETAILS_INDEXES: {
         MAPPING: {
             LEGAL_NAME: 0,
@@ -8250,6 +8244,24 @@ const CONST = {
             RESET_SPLIT_SHARES: 'RequestConfirmationList-ResetSplitShares',
             RECEIPT_THUMBNAIL: 'RequestConfirmationList-ReceiptThumbnail',
             PDF_RECEIPT_THUMBNAIL: 'RequestConfirmationList-PDFReceiptThumbnail',
+            AMOUNT_FIELD: 'RequestConfirmationList-AmountField',
+            DESCRIPTION_FIELD: 'RequestConfirmationList-DescriptionField',
+            DISTANCE_FIELD: 'RequestConfirmationList-DistanceField',
+            RATE_FIELD: 'RequestConfirmationList-RateField',
+            MERCHANT_FIELD: 'RequestConfirmationList-MerchantField',
+            HOURS_FIELD: 'RequestConfirmationList-HoursField',
+            TIME_RATE_FIELD: 'RequestConfirmationList-TimeRateField',
+            CATEGORY_FIELD: 'RequestConfirmationList-CategoryField',
+            DATE_FIELD: 'RequestConfirmationList-DateField',
+            TAG_FIELD: 'RequestConfirmationList-TagField',
+            TAX_RATE_FIELD: 'RequestConfirmationList-TaxRateField',
+            TAX_AMOUNT_FIELD: 'RequestConfirmationList-TaxAmountField',
+            ATTENDEES_FIELD: 'RequestConfirmationList-AttendeesField',
+            REPORT_FIELD: 'RequestConfirmationList-ReportField',
+            DESTINATION_FIELD: 'RequestConfirmationList-DestinationField',
+            TIME_FIELD: 'RequestConfirmationList-TimeField',
+            SUBRATE_FIELD: 'RequestConfirmationList-SubrateField',
+            SEND_FROM_FIELD: 'RequestConfirmationList-SendFromField',
         },
         TRANSACTION_PREVIEW: {
             CARD: 'TransactionPreview-Card',
@@ -8310,6 +8322,64 @@ const CONST = {
         SHARE_DETAIL: {
             DISMISS_KEYBOARD_BUTTON: 'ShareDetail-DismissKeyboardButton',
         },
+        MONEY_REQUEST: {
+            AMOUNT_NEXT_BUTTON: 'MoneyRequest-AmountNextButton',
+            AMOUNT_PAY_BUTTON: 'MoneyRequest-AmountPayButton',
+            PARTICIPANTS_NEXT_BUTTON: 'MoneyRequest-ParticipantsNextButton',
+            PARTICIPANTS_NEW_WORKSPACE_BUTTON: 'MoneyRequest-ParticipantsNewWorkspaceButton',
+            PARTICIPANTS_IMPORT_CONTACTS_ITEM: 'MoneyRequest-ParticipantsImportContacts',
+            ATTENDEES_SAVE_BUTTON: 'MoneyRequest-AttendeesSaveButton',
+            CONFIRMATION_SUBMIT_BUTTON: 'MoneyRequest-ConfirmationSubmitButton',
+            CONFIRMATION_REMOVE_EXPENSE_BUTTON: 'MoneyRequest-ConfirmationRemoveExpenseButton',
+            CONFIRMATION_PAY_BUTTON: 'MoneyRequest-ConfirmationPayButton',
+        },
+        SPLIT_EXPENSE: {
+            ADD_SPLIT_BUTTON: 'SplitExpense-AddSplitButton',
+            MAKE_SPLITS_EVEN_BUTTON: 'SplitExpense-MakeSplitsEvenButton',
+            SAVE_BUTTON: 'SplitExpense-SaveButton',
+            REMOVE_SPLIT_BUTTON: 'SplitExpense-RemoveSplitButton',
+            EDIT_SAVE_BUTTON: 'SplitExpense-EditSaveButton',
+        },
+        IOU_REQUEST_STEP: {
+            DISTANCE_NEXT_BUTTON: 'IOURequestStep-DistanceNextButton',
+            DISTANCE_MAP_NEXT_BUTTON: 'IOURequestStep-DistanceMapNextButton',
+            DISTANCE_MANUAL_NEXT_BUTTON: 'IOURequestStep-DistanceManualNextButton',
+            DISTANCE_ODOMETER_NEXT_BUTTON: 'IOURequestStep-DistanceOdometerNextButton',
+            ODOMETER_CHOOSE_FILE_BUTTON: 'IOURequestStep-OdometerChooseFileButton',
+            GPS_START_STOP_BUTTON: 'IOURequestStep-GPSStartStopButton',
+            GPS_DISCARD_BUTTON: 'IOURequestStep-GPSDiscardButton',
+            GPS_NEXT_BUTTON: 'IOURequestStep-GPSNextButton',
+            GPS_OPEN_MOBILE_BUTTON: 'IOURequestStep-GPSOpenMobileButton',
+            WAYPOINT_REMOVE_BUTTON: 'IOURequestStep-WaypointRemoveButton',
+            WAYPOINT_START_MENU_ITEM: 'IOURequestStep-WaypointStartMenuItem',
+            WAYPOINT_STOP_MENU_ITEM: 'IOURequestStep-WaypointStopMenuItem',
+            EDIT_CATEGORIES_BUTTON: 'IOURequestStep-CategoryEditButton',
+            EDIT_TAGS_BUTTON: 'IOURequestStep-TagEditButton',
+            EDIT_PER_DIEM_RATES_BUTTON: 'IOURequestStep-EditPerDiemRatesButton',
+            HOURS_NEXT_BUTTON: 'IOURequestStep-HoursNextButton',
+            SCAN_SUBMIT_BUTTON: 'IOURequestStep-ScanSubmitButton',
+            RECEIPT_DELETE_BUTTON: 'IOURequestStep-ReceiptDeleteButton',
+            RECEIPT_PREVIEW_ITEM: 'IOURequestStep-ReceiptPreviewItem',
+            RECEIPT_PREVIEW_SUBMIT_BUTTON: 'IOURequestStep-ReceiptPreviewSubmitButton',
+        },
+        TAB_SELECTOR: {
+            MANUAL_TAB: 'TabSelector-ManualTab',
+            SCAN_TAB: 'TabSelector-ScanTab',
+            DISTANCE_TAB: 'TabSelector-DistanceTab',
+            PER_DIEM_TAB: 'TabSelector-PerDiemTab',
+            TIME_TAB: 'TabSelector-TimeTab',
+            DISTANCE_MAP_TAB: 'TabSelector-DistanceMapTab',
+            DISTANCE_MANUAL_TAB: 'TabSelector-DistanceManualTab',
+            DISTANCE_GPS_TAB: 'TabSelector-DistanceGPSTab',
+            DISTANCE_ODOMETER_TAB: 'TabSelector-DistanceOdometerTab',
+            CHAT_TAB: 'TabSelector-ChatTab',
+            ROOM_TAB: 'TabSelector-RoomTab',
+            SHARE_TAB: 'TabSelector-ShareTab',
+            SUBMIT_TAB: 'TabSelector-SubmitTab',
+            SPLIT_AMOUNT_TAB: 'TabSelector-SplitAmountTab',
+            SPLIT_PERCENTAGE_TAB: 'TabSelector-SplitPercentageTab',
+            SPLIT_DATE_TAB: 'TabSelector-SplitDateTab',
+        },
         REQUEST_STEP: {
             SCAN: {
                 MULTI_SCAN: 'Scan-MultiScan',
@@ -8341,8 +8411,20 @@ const CONST = {
         PRODUCT_TRAINING: {
             TOOLTIP: 'ProductTraining-Tooltip',
         },
+        FORM: {
+            SUBMIT_BUTTON: 'Form-SubmitButton',
+        },
         ONBOARDING: {
             INTERESTED_FEATURES_ITEM: 'Onboarding-InterestedFeaturesItem',
+        },
+        TWO_FACTOR_AUTH: {
+            RESEND_CODE: 'TwoFactorAuth-ResendCode',
+            SWITCH_BETWEEN_METHODS: 'TwoFactorAuth-SwitchBetweenMethods',
+            COPY: 'TwoFactorAuth-Copy',
+        },
+        VALIDATE_CODE: {
+            RESEND_CODE: 'ValidateCode-ResendCode',
+            RECOVERY_CODE: 'ValidateCode-RecoveryCode',
         },
     },
 
@@ -8351,6 +8433,18 @@ const CONST = {
         EXPENSIFY_ADMIN_ACCESS_PREFIX: 'expensify_adminPermissions_',
         /** Onyx prefix for domain security groups */
         DOMAIN_SECURITY_GROUP_PREFIX: 'domain_securityGroup_',
+
+        MEMBERS: {
+            SECONDARY_ACTIONS: {
+                SETTINGS: 'settings',
+            },
+        },
+    },
+
+    AUTO_COMPLETE_VARIANTS: {
+        SMS_OTP: 'sms-otp',
+        ONE_TIME_CODE: 'one-time-code',
+        OFF: 'off',
     },
 
     HOME: {

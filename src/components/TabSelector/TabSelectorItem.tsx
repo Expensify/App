@@ -10,12 +10,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import TabIcon from './TabIcon';
 import TabLabel from './TabLabel';
 
 const AnimatedPressableWithFeedback = Animated.createAnimatedComponent(PressableWithFeedback);
 
-type TabSelectorItemProps = {
+type TabSelectorItemProps = WithSentryLabel & {
     /** Function to call when onPress */
     onPress?: () => void;
 
@@ -69,6 +70,7 @@ function TabSelectorItem({
     isActive = false,
     shouldShowLabelWhenInactive = true,
     testID,
+    sentryLabel,
     shouldShowProductTrainingTooltip = false,
     renderProductTrainingTooltip,
     parentX = 0,
@@ -127,6 +129,7 @@ function TabSelectorItem({
             role={CONST.ROLE.TAB}
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             testID={testID}
+            sentryLabel={sentryLabel}
             ref={childRef}
         >
             <TabIcon

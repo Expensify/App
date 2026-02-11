@@ -697,6 +697,7 @@ function IOURequestStepDistanceOdometer({
                         onPress={handleNext}
                         text={buttonText}
                         testID="next-save-button"
+                        sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.DISTANCE_ODOMETER_NEXT_BUTTON}
                     />
                 </View>
             </View>

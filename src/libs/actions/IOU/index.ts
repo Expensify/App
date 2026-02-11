@@ -519,6 +519,7 @@ type PerDiemExpenseInformation = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    customUnitPolicyID?: string;
 };
 
 type PerDiemExpenseInformationParams = {
@@ -3548,7 +3549,8 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
           }
         : {};
 
-    const predictedNextStatus = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN;
+    const predictedNextStatus =
+        iouReport.statusNum ?? (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN);
     const hasViolations = hasViolationsReportUtils(iouReport.reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam);
     // buildOptimisticNextStep is used in parallel
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -3884,7 +3886,8 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
           }
         : {};
 
-    const predictedNextStatus = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN;
+    const predictedNextStatus =
+        iouReport.statusNum ?? (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN);
     // buildOptimisticNextStep is used in parallel
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const optimisticNextStepDeprecated = buildNextStepNew({
@@ -4213,7 +4216,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             category,
             tag,
             taxCode,
-            taxAmount,
+            taxAmount: taxAmount ? -taxAmount : undefined,
             billable,
             pendingFields: isDistanceRequest && !isManualDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
             reimbursable,
@@ -6751,6 +6754,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         quickAction,
         policyRecentlyUsedCurrencies,
         betas,
+        customUnitPolicyID,
     } = submitPerDiemExpenseInformation;
     const {payeeAccountID} = participantParams;
     const {currency, comment = '', category, tag, created, customUnit, attendees, isFromGlobalCreate} = transactionParams;
@@ -6833,6 +6837,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         billable,
         reimbursable,
         attendees: attendees ? JSON.stringify(attendees) : undefined,
+        customUnitPolicyID,
     };
 
     playSound(SOUNDS.DONE);
@@ -13339,6 +13344,7 @@ export type {
     ReplaceReceipt,
     RequestMoneyParticipantParams,
     PerDiemExpenseTransactionParams,
+    PerDiemExpenseInformation,
     UpdateMoneyRequestData,
     UpdateMoneyRequestDataKeys,
     BasePolicyParams,

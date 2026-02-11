@@ -6,7 +6,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
-import useSubPage from '@hooks/useSubPage';
+import useSubStep from '@hooks/useSubStep';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -16,18 +17,14 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {updateSubscriptionSize} from '@userActions/Subscription';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/SubscriptionSizeForm';
 import Confirmation from './substeps/Confirmation';
 import Size from './substeps/Size';
 
-type SubscriptionSizePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.SUBSCRIPTION.SIZE>;
+const bodyContent: Array<React.ComponentType<SubStepProps>> = [Size, Confirmation];
 
-const pages = [
-    {pageName: CONST.SUBSCRIPTION_SIZE.PAGE_NAME.SIZE, component: Size},
-    {pageName: CONST.SUBSCRIPTION_SIZE.PAGE_NAME.CONFIRM, component: Confirmation},
-];
+type SubscriptionSizePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.SUBSCRIPTION.SIZE>;
 
 function SubscriptionSizePage({route}: SubscriptionSizePageProps) {
     const privateSubscription = usePrivateSubscription();
@@ -38,19 +35,14 @@ function SubscriptionSizePage({route}: SubscriptionSizePageProps) {
 
     const onFinished = () => {
         updateSubscriptionSize(subscriptionSizeFormDraft ? Number(subscriptionSizeFormDraft[INPUT_IDS.SUBSCRIPTION_SIZE]) : 0, privateSubscription?.userCount ?? 0);
-        Navigation.goBack(ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS);
+        Navigation.goBack();
     };
 
-    const {CurrentPage, pageIndex, prevPage, nextPage, moveTo, isRedirecting} = useSubPage({
-        pages,
-        onFinished,
-        startFrom,
-        buildRoute: (pageName) => ROUTES.SETTINGS_SUBSCRIPTION_SIZE.getRoute(route.params?.canChangeSize, pageName),
-    });
+    const {componentToRender: SubStep, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent, startFrom, onFinished});
 
     const onBackButtonPress = () => {
-        if (pageIndex !== 0 && startFrom === 0) {
-            prevPage();
+        if (screenIndex !== 0 && startFrom === 0) {
+            prevScreen();
             return;
         }
 
@@ -68,7 +60,7 @@ function SubscriptionSizePage({route}: SubscriptionSizePageProps) {
         return <NotFoundPage />;
     }
 
-    if (isRedirecting || !privateSubscription) {
+    if (!privateSubscription) {
         return <FullScreenLoadingIndicator />;
     }
 
@@ -85,9 +77,9 @@ function SubscriptionSizePage({route}: SubscriptionSizePageProps) {
                     title={translate('subscription.subscriptionSize.title')}
                     onBackButtonPress={onBackButtonPress}
                 />
-                <CurrentPage
+                <SubStep
                     isEditing={canChangeSubscriptionSize}
-                    onNext={nextPage}
+                    onNext={nextScreen}
                     onMove={moveTo}
                 />
             </DelegateNoAccessWrapper>

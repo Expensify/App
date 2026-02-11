@@ -60,7 +60,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
@@ -78,7 +77,6 @@ import type {
     SearchTransactionAction,
     SearchWithdrawalIDGroup,
 } from '@src/types/onyx/SearchResults';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import arraysEqual from '@src/utils/arraysEqual';
 import {hasSynchronizationErrorMessage} from './actions/connections';
@@ -4557,89 +4555,24 @@ function getTableMinWidth(columns: SearchColumnType[]) {
     return minWidth;
 }
 
+function filterValidHasValues(hasValues: string[] | undefined, type: SearchDataTypes | undefined, translate: LocalizedTranslate): string[] | undefined {
+    if (!hasValues || !type) {
+        return undefined;
+    }
+
+    const validHasOptions = getHasOptions(translate, type);
+    const validHasValues = new Set(validHasOptions.map((option) => option.value));
+    const filteredHasValues = hasValues.filter((hasValue) => validHasValues.has(hasValue as ValueOf<typeof CONST.SEARCH.HAS_VALUES>));
+
+    return filteredHasValues.length > 0 ? filteredHasValues : undefined;
+}
+
 function navigateToSearchRHP(route: {route: string; getRoute: (backTo?: string) => Route}, fallbackRoute?: Route) {
     if (isSearchTopmostFullScreenRoute()) {
         Navigation.navigate(route.getRoute(Navigation.getActiveRoute()));
     } else {
         Navigation.navigate(fallbackRoute ?? route.getRoute());
     }
-}
-
-/**
- * Returns the index of the active item in flattenedMenuItems by comparing similarSearchHash.
- *
- * Also returns a value indicating whether the item in the Explore section is active
- */
-function getActiveSearchItemIndex(
-    flattenedMenuItems: SearchTypeMenuItem[],
-    similarSearchHash: number | undefined,
-    isSavedSearchActive: boolean,
-    queryType: string | undefined,
-): [number, boolean] {
-    // If we have a suggested search, then none of the menu items are active
-    if (isSavedSearchActive) {
-        return [-1, false];
-    }
-
-    let activeItemIndex = flattenedMenuItems.findIndex((item) => item.similarSearchHash === similarSearchHash);
-    if (activeItemIndex === -1) {
-        activeItemIndex = flattenedMenuItems.findIndex((item) => {
-            if (queryType === CONST.SEARCH.DATA_TYPES.EXPENSE) {
-                return item.key === CONST.SEARCH.SEARCH_KEYS.EXPENSES;
-            }
-            if (queryType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-                return item.key === CONST.SEARCH.SEARCH_KEYS.REPORTS;
-            }
-            if (queryType === CONST.SEARCH.DATA_TYPES.CHAT) {
-                return item.key === CONST.SEARCH.SEARCH_KEYS.CHATS;
-            }
-            return false;
-        });
-    }
-    const activeItemKey = activeItemIndex !== -1 ? flattenedMenuItems.at(activeItemIndex)?.key : undefined;
-    const isExploreSectionActive =
-        !!activeItemKey && ([CONST.SEARCH.SEARCH_KEYS.EXPENSES, CONST.SEARCH.SEARCH_KEYS.REPORTS, CONST.SEARCH.SEARCH_KEYS.CHATS] as string[]).includes(activeItemKey);
-    return [activeItemIndex, isExploreSectionActive];
-}
-
-/**
- * Rebuild the query string based on searchAdvancedFiltersForm and the new value of the search type.
- * The filter values that are valid for the new search type will be preserved.
- */
-function updateQueryStringOnSearchTypeChange(type: SearchDataTypes, searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>, queryJSON: SearchQueryJSON | undefined): string {
-    const updatedFilterFormValues: Partial<SearchAdvancedFiltersForm> = {
-        ...searchAdvancedFiltersForm,
-        type,
-    };
-
-    // If the type has changed, reset the columns
-    if (type !== searchAdvancedFiltersForm.type) {
-        // Filter Status options for current type
-        const currentStatus = typeof updatedFilterFormValues.status === 'string' ? updatedFilterFormValues.status.split(',') : (updatedFilterFormValues.status ?? []);
-        const validStatusSet = new Set(getStatusOptions(() => '', type).map((option) => option.value)) as Set<string>;
-        updatedFilterFormValues.status = currentStatus.filter((value) => validStatusSet.has(value));
-        updatedFilterFormValues.status = isEmptyObject(updatedFilterFormValues.status) ? CONST.SEARCH.STATUS.EXPENSE.ALL : updatedFilterFormValues.status;
-
-        // Filter Has options for current type
-        const currentHas = updatedFilterFormValues.has;
-        const validHasSet = new Set(getHasOptions(() => '', type).map((option) => option.value)) as Set<string>;
-        updatedFilterFormValues.has = currentHas?.filter((value) => validHasSet.has(value));
-        updatedFilterFormValues.has = isEmptyObject(updatedFilterFormValues.has) ? undefined : updatedFilterFormValues.has;
-
-        updatedFilterFormValues.columns = [];
-    }
-
-    // Preserve the current sortBy and sortOrder from queryJSON when updating filters
-    const updatedQueryString = buildQueryStringFromFilterFormValues(updatedFilterFormValues, {
-        sortBy: queryJSON?.sortBy,
-        sortOrder: queryJSON?.sortOrder,
-    });
-
-    // We need to normalize the updatedQueryString using buildSearchQueryString.
-    const updatedQueryJSON = buildSearchQueryJSON(updatedQueryString);
-    const queryString = buildSearchQueryString(updatedQueryJSON);
-
-    return queryString;
 }
 
 function shouldShowDeleteOption(
@@ -4744,9 +4677,8 @@ export {
     getTableMinWidth,
     getCustomColumns,
     getCustomColumnDefault,
+    filterValidHasValues,
     navigateToSearchRHP,
-    getActiveSearchItemIndex,
-    updateQueryStringOnSearchTypeChange,
     shouldShowDeleteOption,
     getToFieldValueForTransaction,
     isTodoSearch,

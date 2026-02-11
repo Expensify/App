@@ -59,6 +59,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const session = useSession();
     const {isBetaEnabled} = usePermissions();
+    const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
     const archivedReportsIdSet = useArchivedReportsIdSet();
 
     const ineligibleInvitees = getIneligibleInvitees(policy?.employeeList);
@@ -137,6 +138,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         navigateAfterOnboardingWithMicrotaskQueue(
             isSmallScreenWidth,
             isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+            conciergeReportID,
             archivedReportsIdSet,
             onboardingPolicyID,
             onboardingAdminsChatReportID,

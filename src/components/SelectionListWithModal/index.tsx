@@ -14,6 +14,7 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import CONST from '@src/CONST';
+import {isEmptyValueObject} from '@src/types/utils/EmptyObject';
 
 type SelectionListWithModalProps<TItem extends ListItem> = SelectionListProps<TItem> & {
     turnOnSelectionModeOnLongPress?: boolean;
@@ -42,9 +43,9 @@ function SelectionListWithModal<TItem extends ListItem>({
     const isFocused = useIsFocused();
     const icons = useMemoizedLazyExpensifyIcons(['CheckSquare'] as const);
 
-    // Filter out the pending delete item when online to prevent making multiple updates to debouncedData which causes the deleted item is shown again
+    // Filter out the pending delete item without errors when online to prevent making multiple updates to debouncedData which causes the deleted item is shown again
     const filteredData = useMemo(() => {
-        return data.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
+        return data.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline || !isEmptyValueObject(item?.errors));
     }, [data, isOffline]);
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();

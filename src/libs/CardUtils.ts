@@ -326,7 +326,7 @@ function getDefaultExpensifyCardLimitType(policy?: OnyxEntry<Policy>): ValueOf<t
     return areApprovalsConfigured ? CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART : CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY;
 }
 
-function getTranslationKeyForLimitType(limitType: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES> | undefined): TranslationPaths | '' {
+function getTranslationKeyForLimitType(limitType: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES> | undefined): TranslationPaths {
     switch (limitType) {
         case CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART:
             return 'workspace.card.issueNewCard.smartLimit';
@@ -337,7 +337,7 @@ function getTranslationKeyForLimitType(limitType: ValueOf<typeof CONST.EXPENSIFY
         case CONST.EXPENSIFY_CARD.LIMIT_TYPES.SINGLE_USE:
             return 'workspace.card.issueNewCard.singleUse';
         default:
-            return '';
+            return 'workspace.card.issueNewCard.smartLimit';
     }
 }
 

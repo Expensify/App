@@ -1568,6 +1568,8 @@ const translations: TranslationDeepObject<typeof en> = {
             });
             return `${formatList(fragments)} über <a href="${policyRulesRoute}">Workspace-Regeln</a>`;
         },
+        duplicateNonDefaultWorkspacePerDiemError:
+            'Sie können Per-Diem-Ausgaben nicht über mehrere Workspaces hinweg duplizieren, da sich die Sätze zwischen den Workspaces unterscheiden können.',
     },
     transactionMerge: {
         listPage: {
@@ -2834,7 +2836,8 @@ ${
                         5. Füge eine eigene Einladung hinzu, wenn du möchtest!
 
                         [Zu den Workspace-Mitgliedern](${workspaceMembersLink}).
-        `),
+
+                    `),
             },
             setupCategoriesAndTags: {
                 title: ({workspaceCategoriesLink, workspaceTagsLink}) => `Richte [Kategorien](${workspaceCategoriesLink}) und [Tags](${workspaceTagsLink}) ein`,
@@ -7551,8 +7554,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
     },
     cardTransactions: {
         notActivated: 'Nicht aktiviert',
-        outOfPocket: 'Auslagen-Spend',
-        companySpend: 'Unternehmensausgaben',
+        outOfPocket: 'Erstattungsfähig',
+        companySpend: 'Nicht erstattungsfähig',
     },
     distance: {
         addStop: 'Stopp hinzufügen',
@@ -8393,6 +8396,8 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             disableSamlRequired: 'Deaktivierung von SAML erforderlich',
             oktaWarningPrompt: 'Bist du sicher? Dadurch wird auch Okta SCIM deaktiviert.',
             requireWithEmptyMetadataError: 'Bitte fügen Sie unten die Metadaten des Identitätsanbieters hinzu, um dies zu aktivieren',
+            pleaseDisableTwoFactorAuth: (twoFactorAuthSettingsUrl: string) =>
+                `<muted-text>Bitte deaktiviere <a href="${twoFactorAuthSettingsUrl}">Zwei-Faktor-Authentifizierung erzwingen</a>, um die SAML-Anmeldung zu aktivieren.</muted-text>`,
         },
         samlConfigurationDetails: {
             title: 'SAML-Konfigurationsdetails',
@@ -8442,7 +8447,6 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             primaryContact: 'Hauptansprechperson',
             addPrimaryContact: 'Hauptkontakt hinzufügen',
             setPrimaryContactError: 'Primären Kontakt konnte nicht festgelegt werden. Bitte versuche es später erneut.',
-            settings: 'Einstellungen',
             consolidatedDomainBilling: 'Konsolidierte Domain-Abrechnung',
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>Wenn diese Option aktiviert ist, bezahlt die primäre Kontaktperson alle Workspaces, die Mitgliedern von <strong>${domainName}</strong> gehören, und erhält alle Abrechnungsbelege.</muted-text-label></comment>`,
@@ -8477,7 +8481,13 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
                 removeMember: 'Dieser Benutzer kann nicht entfernt werden. Bitte versuche es erneut.',
                 addMember: 'Dieses Mitglied kann nicht hinzugefügt werden. Bitte versuche es erneut.',
             },
+            forceTwoFactorAuth: 'Zwei-Faktor-Authentifizierung erzwingen',
+            forceTwoFactorAuthSAMLEnabledDescription: (samlPageUrl: string) =>
+                `<muted-text>Bitte deaktiviere <a href="${samlPageUrl}">SAML</a>, um die Zwei-Faktor-Authentifizierung zu erzwingen.</muted-text>`,
+            forceTwoFactorAuthDescription: `<muted-text>Zwei-Faktor-Authentifizierung für alle Mitglieder dieser Domain verlangen. Domänenmitglieder werden beim Anmelden aufgefordert, die Zwei-Faktor-Authentifizierung für ihr Konto einzurichten.</muted-text>`,
+            forceTwoFactorAuthError: 'Die Erzwingung der Zwei-Faktor-Authentifizierung konnte nicht geändert werden. Bitte versuche es später erneut.',
         },
+        common: {settings: 'Einstellungen'},
     },
 };
 export default translations;
