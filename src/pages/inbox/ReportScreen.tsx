@@ -43,7 +43,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {hideEmojiPicker} from '@libs/actions/EmojiPickerAction';
-import DateUtils from '@libs/DateUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
@@ -312,14 +311,25 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${linkedAction?.childReportID}`, {canBeMissing: true});
 
-    // Concierge side panel session state — shared between ReportActionsView and ReportFooter/ReportActionCompose
+    // Concierge side-panel session state — shared with ReportActionsView (filtering) and ReportFooter (status indicators).
     const isConciergeSidePanel = isInSidePanel && isConciergeChatReport(report, conciergeReportID);
-    const sessionStartTimestamp = useRef(DateUtils.getDBTime());
+
+    // Capture action IDs present when this side-panel session started.
+    // We compare IDs (not timestamps) because the server can update an offline message's
+    // `created` field on sync. Initialized once per mount; resets when the panel closes.
+    const sessionStartActionIDs = useRef<Set<string> | null>(null);
+    if (isConciergeSidePanel && sessionStartActionIDs.current === null) {
+        sessionStartActionIDs.current = new Set(reportActions.map((action) => action.reportActionID));
+    }
+
+    // True when at least one non-CREATED action exists that wasn't present at session start
+    // and was authored by the current user.
     const hasUserSentMessage = useMemo(() => {
-        if (!isConciergeSidePanel) {
+        const startIDs = sessionStartActionIDs.current;
+        if (!isConciergeSidePanel || !startIDs) {
             return false;
         }
-        return reportActions.some((action) => !isCreatedAction(action) && action.created >= sessionStartTimestamp.current && action.actorAccountID === currentUserAccountID);
+        return reportActions.some((action) => !isCreatedAction(action) && !startIDs.has(action.reportActionID) && action.actorAccountID === currentUserAccountID);
     }, [isConciergeSidePanel, reportActions, currentUserAccountID]);
 
     const [isBannerVisible, setIsBannerVisible] = useState(true);

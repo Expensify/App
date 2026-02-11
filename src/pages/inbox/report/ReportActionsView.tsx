@@ -5,6 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import ConciergeSidePanelWelcome from '@components/ConciergeSidePanelWelcome';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -91,10 +92,19 @@ function ReportActionsView({
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserAccountID = currentUserPersonalDetails.accountID;
     const isReportArchived = useReportIsArchived(report?.reportID);
     const canPerformWriteAction = useMemo(() => canUserPerformWriteAction(report, isReportArchived), [report, isReportArchived]);
 
-    const sessionStartTimestamp = useRef(DateUtils.getDBTime());
+    // Capture action IDs present when this side-panel session started.
+    // Uses allReportActions (the prop) because the derived `reportActions` is declared later.
+    // Initialized once per mount; resets naturally when the panel closes (component unmounts).
+    const sessionStartActionIDs = useRef<Set<string> | null>(null);
+    if (isConciergeSidePanel && sessionStartActionIDs.current === null && allReportActions) {
+        sessionStartActionIDs.current = new Set(allReportActions.map((action) => action.reportActionID));
+    }
+
     const [showFullHistory, setShowFullHistory] = useState(false);
 
     const getTransactionThreadReportActions = useCallback(
@@ -240,13 +250,42 @@ function ReportActionsView({
     );
 
     const hasPreviousMessages = useMemo(() => {
-        if (!isConciergeSidePanel) {
+        const startIDs = sessionStartActionIDs.current;
+        if (!isConciergeSidePanel || !startIDs) {
             return false;
         }
-        return visibleReportActions.some((action) => !isCreatedAction(action) && action.created < sessionStartTimestamp.current);
+        return visibleReportActions.some((action) => !isCreatedAction(action) && startIDs.has(action.reportActionID));
     }, [isConciergeSidePanel, visibleReportActions]);
 
-    const showConciergeSidePanelWelcome = !!isConciergeSidePanel && !hasUserSentMessage && !showFullHistory;
+    const showConciergeSidePanelWelcome = isConciergeSidePanel && !hasUserSentMessage && !showFullHistory;
+
+    // Find the earliest `created` timestamp among messages the user sent in this session.
+    // Used as a cutoff so automated Concierge replies that arrived between panel-open
+    // and the user's first message are also hidden.
+    const firstUserMessageCreated = useMemo(() => {
+        if (!isConciergeSidePanel || !hasUserSentMessage) {
+            return undefined;
+        }
+        const startIDs = sessionStartActionIDs.current;
+        return reportActions.reduce<string | undefined>((earliest, action) => {
+            if (isCreatedAction(action) || startIDs?.has(action.reportActionID) || action.actorAccountID !== currentUserAccountID) {
+                return earliest;
+            }
+            return !earliest || action.created < earliest ? action.created : earliest;
+        }, undefined);
+    }, [isConciergeSidePanel, hasUserSentMessage, reportActions, currentUserAccountID]);
+
+    // Whether an action belongs to the current session (not in the session-start set
+    // and created on or after the user's first message).
+    const isCurrentSessionAction = useCallback(
+        (action: OnyxTypes.ReportAction): boolean => {
+            if (!firstUserMessageCreated) {
+                return false;
+            }
+            return !sessionStartActionIDs.current?.has(action.reportActionID) && action.created >= firstUserMessageCreated;
+        },
+        [firstUserMessageCreated],
+    );
 
     const conciergeSidePanelFilteredVisibleActions = useMemo(() => {
         if (!isConciergeSidePanel || showFullHistory) {
@@ -255,8 +294,8 @@ function ReportActionsView({
         if (!hasUserSentMessage) {
             return [];
         }
-        return visibleReportActions.filter((action) => action.created >= sessionStartTimestamp.current);
-    }, [isConciergeSidePanel, showFullHistory, hasUserSentMessage, visibleReportActions]);
+        return visibleReportActions.filter(isCurrentSessionAction);
+    }, [isConciergeSidePanel, showFullHistory, hasUserSentMessage, visibleReportActions, isCurrentSessionAction]);
 
     const conciergeSidePanelFilteredReportActions = useMemo(() => {
         if (!isConciergeSidePanel || showFullHistory) {
@@ -265,8 +304,8 @@ function ReportActionsView({
         if (!hasUserSentMessage) {
             return [];
         }
-        return reportActions.filter((action) => action.created >= sessionStartTimestamp.current);
-    }, [isConciergeSidePanel, showFullHistory, hasUserSentMessage, reportActions]);
+        return reportActions.filter(isCurrentSessionAction);
+    }, [isConciergeSidePanel, showFullHistory, hasUserSentMessage, reportActions, isCurrentSessionAction]);
 
     const newestReportAction = useMemo(() => reportActions?.at(0), [reportActions]);
     const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);

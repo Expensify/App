@@ -394,14 +394,14 @@ describe('ReportActionsView', () => {
         it('should hide welcome and show filtered actions when user sends a message', () => {
             setupConciergeMocks();
 
-            const sessionTimestamp = DateUtils.getDBTime();
-            // Create an action that appears to be from the current session (future timestamp)
+            // The new message's ID is NOT in the initial actions (simulating a message
+            // sent after the panel opened — its ID wasn't captured at session start).
             const actionsWithNewMessage: OnyxTypes.ReportAction[] = [
                 ...oldReportActions,
                 {
                     reportActionID: 'new-msg-1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    created: sessionTimestamp,
+                    created: DateUtils.getDBTime(),
                     actorAccountID: CURRENT_USER_ACCOUNT_ID,
                     message: [{type: 'COMMENT', html: 'New message', text: 'New message'}],
                     originalMessage: {},
