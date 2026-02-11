@@ -380,7 +380,6 @@ function ReportFieldsListValuesPage({
                             subtitle={translate('workspace.reportFields.emptyReportFieldsValues.subtitle')}
                             headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
                             headerMedia={illustrations.FolderWithPapers}
-                            headerStyles={undefined}
                             headerContentStyles={styles.emptyStateFolderWithPaperIconSize}
                         />
                     </ScrollView>

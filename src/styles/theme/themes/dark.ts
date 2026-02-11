@@ -105,7 +105,6 @@ const darkTheme = {
     videoPlayerBG: `${colors.productDark100}cc`,
     transparentWhite: `${colors.white}51`,
     travelBG: colors.blue600,
-    todoBG: colors.blue800,
     trialTimer: colors.green500,
 
     // Adding a color here will animate the status bar to the right color when the screen is opened.
