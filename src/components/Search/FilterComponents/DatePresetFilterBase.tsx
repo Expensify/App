@@ -155,7 +155,8 @@ function DatePresetFilterBase({
         const dateOn = dateValues[CONST.SEARCH.DATE_MODIFIERS.ON];
         const dateAfter = dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER];
         const dateBefore = dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE];
-        const isRangeMode = !!dateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE];
+        // Treat as Range mode if explicitly set OR if both after and before dates exist
+        const isRangeMode = !!dateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE] || (!!dateAfter && !!dateBefore);
 
         return {
             // dateOn could be a preset e.g. Last month which should not be displayed as the On field
@@ -163,7 +164,7 @@ function DatePresetFilterBase({
             // Show After/Before on their items only when NOT in Range mode
             [CONST.SEARCH.DATE_MODIFIERS.AFTER]: isRangeMode ? undefined : dateAfter,
             [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: isRangeMode ? undefined : dateBefore,
-            // Show Range only when explicitly in Range mode AND both dates are set
+            // Show Range when both dates exist
             [CONST.SEARCH.DATE_MODIFIERS.RANGE]: isRangeMode && dateAfter && dateBefore ? 'range' : undefined,
         };
     }, [dateValues]);

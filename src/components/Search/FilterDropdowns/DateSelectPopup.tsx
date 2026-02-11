@@ -66,18 +66,6 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
         }
     }, [selectedDateModifier, setPopoverWidth]);
 
-    // Auto-detect Range mode when both after and before values exist on initial open only
-    useEffect(() => {
-        const hasAfter = !!value[CONST.SEARCH.DATE_MODIFIERS.AFTER];
-        const hasBefore = !!value[CONST.SEARCH.DATE_MODIFIERS.BEFORE];
-        const hasOn = !!value[CONST.SEARCH.DATE_MODIFIERS.ON];
-
-        if (hasAfter && hasBefore && !hasOn) {
-            setSelectedDateModifier(CONST.SEARCH.DATE_MODIFIERS.RANGE);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
     const clearSelection = useCallback(() => {
         setSelectedDateModifier(null);
         setShouldShowRangeError(false);

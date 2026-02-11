@@ -77,16 +77,6 @@ function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
         return getDatePresets(dateKey, hasFeed);
     }, [dateKey, searchAdvancedFiltersForm?.feed]);
 
-    // Auto-detect Range mode when both after and before values exist on initial load only
-    useEffect(() => {
-        if (isSearchAdvancedFiltersFormLoading || !dateAfterValue || !dateBeforeValue || dateOnValue) {
-            return;
-        }
-
-        setSelectedDateModifier(CONST.SEARCH.DATE_MODIFIERS.RANGE);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isSearchAdvancedFiltersFormLoading]);
-
     const computedTitle = useMemo(() => {
         if (selectedDateModifier) {
             return translate(`common.${selectedDateModifier.toLowerCase() as SearchDateModifierLower}`);
@@ -143,7 +133,14 @@ function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
 
     const goBack = () => {
         if (selectedDateModifier) {
+            if (searchDatePresetFilterBaseRef.current && selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
+                searchDatePresetFilterBaseRef.current.clearDateValueOfSelectedDateModifier();
+                // Get the cleared date values to update tracked state
+                const clearedDateValues = searchDatePresetFilterBaseRef.current.getDateValues();
+                setTrackedDateValues(clearedDateValues);
+            }
             setSelectedDateModifier(null);
+            setShouldShowRangeError(false);
             return;
         }
 
