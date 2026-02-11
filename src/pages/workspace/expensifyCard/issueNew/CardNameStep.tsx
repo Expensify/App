@@ -8,11 +8,12 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDefaultCardName} from '@libs/CardUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {getUserNameByEmail} from '@libs/PersonalDetailsUtils';
-import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isValidInputLength} from '@libs/ValidationUtils';
 import {setIssueNewCardStepAndData} from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,18 +36,22 @@ function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) 
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
+    const {isBetaEnabled} = usePermissions();
 
     const isEditing = issueNewCard?.isEditing;
     const data = issueNewCard?.data;
+    const isVirtualCard = data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL;
 
     const userName = getUserNameByEmail(data?.assigneeEmail ?? '', 'firstName');
-    const defaultCardTitle = data?.cardType !== CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL ? getDefaultCardName(userName) : '';
+    const defaultCardTitle = !isVirtualCard ? getDefaultCardName(userName) : '';
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM> => {
-        const errors = getFieldRequiredErrors(values, [INPUT_IDS.CARD_TITLE]);
-        const length = values.cardTitle.length;
-        if (length > CONST.STANDARD_LENGTH_LIMIT) {
-            addErrorMessage(errors, INPUT_IDS.CARD_TITLE, translate('common.error.characterLimitExceedCounter', length, CONST.STANDARD_LENGTH_LIMIT));
+        const errors = getFieldRequiredErrors(values, [INPUT_IDS.CARD_TITLE], translate);
+        if (values.cardTitle) {
+            const {isValid, byteLength} = isValidInputLength(values.cardTitle, CONST.STANDARD_LENGTH_LIMIT);
+            if (!isValid) {
+                addErrorMessage(errors, INPUT_IDS.CARD_TITLE, translate('common.error.characterLimitExceedCounter', byteLength, CONST.STANDARD_LENGTH_LIMIT));
+            }
         }
         return errors;
     };
@@ -73,9 +78,12 @@ function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) 
                 setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false, policyID});
                 return;
             }
-            setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.LIMIT, policyID});
+            setIssueNewCardStepAndData({
+                step: isBetaEnabled(CONST.BETAS.SINGLE_USE_AND_EXPIRE_BY_CARDS) && isVirtualCard ? CONST.EXPENSIFY_CARD.STEP.EXPIRY_OPTIONS : CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE,
+                policyID,
+            });
         });
-    }, [isEditing, policyID]);
+    }, [isEditing, isBetaEnabled, isVirtualCard, policyID]);
 
     return (
         <InteractiveStepWrapper

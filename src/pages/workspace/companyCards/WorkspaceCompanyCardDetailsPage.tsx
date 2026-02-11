@@ -37,11 +37,12 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 import {clearCompanyCardErrorField, unassignWorkspaceCompanyCard, updateWorkspaceCompanyCard} from '@userActions/CompanyCards';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeed, CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {getExportMenuItem} from './utils';
 
@@ -81,7 +82,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const isCardBeingUnassigned = globalCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const card = feedScopedCard ?? (isCardBeingUnassigned ? globalCard : undefined);
 
-    const cardBank = card?.bank ?? '';
+    const cardBank = card?.bank;
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const displayName = getDisplayNameOrDefault(cardholder);
     const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, policy, card);
@@ -103,6 +104,14 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const updateCard = () => {
         updateWorkspaceCompanyCard(domainOrWorkspaceAccountID, cardID, bank, card?.lastScrapeResult);
     };
+
+    const breakConnection = () => {
+        updateWorkspaceCompanyCard(domainOrWorkspaceAccountID, cardID, bank, card?.lastScrapeResult, true);
+    };
+
+    // Show "Break connection" option only for Mock Bank cards in non-production environments
+    const isMockBank = bank?.includes(CONST.COMPANY_CARDS.BANK_CONNECTIONS.MOCK_BANK);
+    const shouldShowBreakConnection = isMockBank && CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.PRODUCTION;
 
     const lastScrape = useMemo(() => {
         if (!card?.lastScrape) {
@@ -139,7 +148,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                         ) : (
                             <ImageSVG
                                 contentFit="contain"
-                                src={getCardFeedIcon(cardBank as CompanyCardFeed, illustrations, companyCardFeedIcons)}
+                                src={getCardFeedIcon(cardBank, illustrations, companyCardFeedIcons)}
                                 pointerEvents="none"
                                 height={variables.cardPreviewHeight}
                                 width={variables.cardPreviewWidth}
@@ -255,6 +264,14 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             onPress={updateCard}
                         />
                     </OfflineWithFeedback>
+                    {shouldShowBreakConnection && (
+                        <MenuItem
+                            icon={Expensicons.Trashcan}
+                            disabled={isOffline || card?.isLoadingLastUpdated}
+                            title="Break connection (Testing)"
+                            onPress={breakConnection}
+                        />
+                    )}
                     <MenuItem
                         icon={expensifyIcons.RemoveMembers}
                         title={translate('workspace.moreFeatures.companyCards.unassignCard')}

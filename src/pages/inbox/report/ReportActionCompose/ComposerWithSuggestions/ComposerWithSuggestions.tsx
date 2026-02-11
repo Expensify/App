@@ -1,6 +1,6 @@
 import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
-import type {ForwardedRef, RefObject} from 'react';
+import type {Ref, RefObject} from 'react';
 import React, {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {BlurEvent, LayoutChangeEvent, MeasureInWindowOnSuccessCallback, TextInput, TextInputContentSizeChangeEvent, TextInputKeyPressEvent, TextInputScrollEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, NativeModules, StyleSheet, View} from 'react-native';
@@ -18,7 +18,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSidePanel from '@hooks/useSidePanel';
+import useSidePanelState from '@hooks/useSidePanelState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -82,7 +82,7 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
         onValueChange: (value: string) => void;
 
         /** Callback when the composer got cleared on the UI thread */
-        onCleared?: (text: string) => void;
+        onClear?: (text: string) => void;
 
         /** Whether the composer is full size */
         isComposerFullSize: boolean;
@@ -106,7 +106,7 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
         setIsCommentEmpty: (isCommentEmpty: boolean) => void;
 
         /** Function to handle sending a message */
-        handleSendMessage: () => void;
+        onEnterKeyPress: () => void;
 
         /** Whether the compose input should show */
         shouldShowComposeInput: OnyxEntry<boolean>;
@@ -142,11 +142,12 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
         didHideComposerInput?: boolean;
 
         /** Reference to the outer element */
-        ref?: ForwardedRef<ComposerRef>;
+        ref?: Ref<ComposerRef | null>;
     };
 
 type SwitchToCurrentReportProps = {
     preexistingReportID: string;
+    reportToCopyDraftTo: string;
     callback: () => void;
 };
 
@@ -156,11 +157,17 @@ type ComposerRef = {
     replaceSelectionWithText: OnEmojiSelected;
     getCurrentText: () => string;
     isFocused: () => boolean;
+
     /**
      * Calling clear will immediately clear the input on the UI thread (its a worklet).
      * Once the composer ahs cleared onCleared will be called with the value that was cleared.
      */
-    clear: () => void;
+    clearWorklet: () => void;
+
+    /**
+     * Reset the height of the composer.
+     */
+    resetHeight: () => void;
 };
 
 const {RNTextInputReset} = NativeModules;
@@ -214,13 +221,13 @@ function ComposerWithSuggestions({
     onPasteFile,
     disabled,
     setIsCommentEmpty,
-    handleSendMessage,
+    onEnterKeyPress,
     shouldShowComposeInput,
     measureParentContainer = () => {},
     isScrollLikelyLayoutTriggered,
     raiseIsScrollLikelyLayoutTriggered,
-    onCleared = () => {},
-    onLayout: onLayoutProps,
+    onClear: onClearProp = () => {},
+    onLayout,
 
     // Refs
     suggestionsRef,
@@ -240,7 +247,7 @@ function ComposerWithSuggestions({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {preferredLocale} = useLocalize();
-    const {isSidePanelHiddenOrLargeScreen} = useSidePanel();
+    const {isSidePanelHiddenOrLargeScreen} = useSidePanelState();
     const isFocused = useIsFocused();
     const navigation = useNavigation();
     const emojisPresentBefore = useRef<Emoji[]>([]);
@@ -281,7 +288,8 @@ function ComposerWithSuggestions({
 
     const [selection, setSelection] = useState<TextSelection>(() => ({start: value.length, end: value.length, positionX: 0, positionY: 0}));
 
-    const [composerHeight, setComposerHeight] = useState(0);
+    const [composerHeightAfterClear, setDefaultComposerHeight] = useState<number | null>(null);
+    const emptyComposerHeightRef = useRef<number | null>(null);
 
     const textInputRef = useRef<TextInput | null>(null);
 
@@ -289,6 +297,14 @@ function ComposerWithSuggestions({
 
     // The ref to check whether the comment saving is in progress
     const isCommentPendingSaved = useRef(false);
+
+    // Tracks transition state to prevent SilentCommentUpdater from overwriting the just-saved draft during report ID changes
+    const isTransitioningToPreExistingReport = useRef(false);
+
+    // Callback to clear the transitioning flag - passed to SilentCommentUpdater to avoid prop mutation
+    const handleTransitionToPreExistingReportComplete = useCallback(() => {
+        isTransitioningToPreExistingReport.current = false;
+    }, []);
 
     const animatedRef = useAnimatedRef();
     /**
@@ -322,12 +338,16 @@ function ComposerWithSuggestions({
     );
 
     useEffect(() => {
-        const switchToCurrentReport = DeviceEventEmitter.addListener(`switchToPreExistingReport_${reportID}`, ({preexistingReportID, callback}: SwitchToCurrentReportProps) => {
+        const switchToCurrentReport = DeviceEventEmitter.addListener(`switchToPreExistingReport_${reportID}`, ({reportToCopyDraftTo, callback}: SwitchToCurrentReportProps) => {
             if (!commentRef.current) {
                 callback();
                 return;
             }
-            saveReportDraftComment(preexistingReportID, commentRef.current, callback);
+
+            // Mark that we're transitioning to a preexisting report
+            // This prevents SilentCommentUpdater from overwriting the draft
+            isTransitioningToPreExistingReport.current = true;
+            saveReportDraftComment(reportToCopyDraftTo, commentRef.current, callback);
         });
 
         return () => {
@@ -498,7 +518,7 @@ function ComposerWithSuggestions({
             // Submit the form when Enter is pressed
             if (webEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !webEvent.shiftKey) {
                 webEvent.preventDefault();
-                handleSendMessage();
+                onEnterKeyPress();
             }
 
             // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty and Chronos is not in the participants
@@ -541,11 +561,26 @@ function ComposerWithSuggestions({
                 }
             }
         },
-        [shouldUseNarrowLayout, isKeyboardShown, suggestionsRef, selection.start, includeChronos, handleSendMessage, lastReportAction, reportID, updateComment, selection.end],
+        [shouldUseNarrowLayout, isKeyboardShown, suggestionsRef, selection.start, includeChronos, onEnterKeyPress, lastReportAction, reportID, updateComment, selection.end],
     );
+
+    /**
+     * Once we cleared the input and the composer finished rendering, we need to reset the manual height value.
+     * After that, the composer will adjust it's height based on it's parent flex layout.
+     */
+    const clearComposerHeight = useCallback(() => {
+        if (composerHeightAfterClear == null) {
+            return;
+        }
+        setDefaultComposerHeight(null);
+    }, [composerHeightAfterClear]);
 
     const onChangeText = useCallback(
         (commentValue: string) => {
+            // When we clear the input, we set the composer height to a specific value.
+            // Upon text change, we can reset the height to allow flex layout to adjust the height.
+            clearComposerHeight();
+
             updateComment(commentValue, true);
 
             if (isIOSNative && syncSelectionWithOnChangeTextRef.current) {
@@ -561,7 +596,7 @@ function ComposerWithSuggestions({
                 });
             }
         },
-        [updateComment],
+        [clearComposerHeight, updateComment],
     );
 
     const onSelectionChange = useCallback(
@@ -663,11 +698,18 @@ function ComposerWithSuggestions({
         textInputRef.current.blur();
     }, []);
 
-    const clear = useCallback(() => {
+    const clearWorklet = useCallback(() => {
         'worklet';
 
         forceClearInput(animatedRef);
     }, [animatedRef]);
+
+    const resetHeight = useCallback(() => {
+        if (!emptyComposerHeightRef.current) {
+            return;
+        }
+        setDefaultComposerHeight(emptyComposerHeightRef.current);
+    }, []);
 
     const getCurrentText = useCallback(() => {
         return commentRef.current;
@@ -742,36 +784,25 @@ function ComposerWithSuggestions({
             focus,
             replaceSelectionWithText,
             isFocused: () => !!textInputRef.current?.isFocused(),
-            clear,
             getCurrentText,
+            clearWorklet,
+            resetHeight,
         }),
-        [blur, clear, focus, replaceSelectionWithText, getCurrentText],
+        [blur, focus, replaceSelectionWithText, clearWorklet, resetHeight, getCurrentText],
     );
 
     useEffect(() => {
         onValueChange(value);
     }, [onValueChange, value]);
 
-    const onLayout = useCallback(
-        (e: LayoutChangeEvent) => {
-            onLayoutProps?.(e);
-            const composerLayoutHeight = e.nativeEvent.layout.height;
-            if (composerHeight === composerLayoutHeight) {
-                return;
-            }
-            setComposerHeight(composerLayoutHeight);
-        },
-        [composerHeight, onLayoutProps],
-    );
-
     const onClear = useCallback(
         (text: string) => {
             mobileInputScrollPosition.current = 0;
             // Note: use the value when the clear happened, not the current value which might have changed already
-            onCleared(text);
+            onClearProp(text);
             updateComment('', true);
         },
-        [onCleared, updateComment],
+        [onClearProp, updateComment],
     );
 
     useEffect(() => {
@@ -815,15 +846,25 @@ function ComposerWithSuggestions({
     const isTouchEndedRef = useRef(false);
     const containerComposeStyles = StyleSheet.flatten(StyleUtils.getContainerComposeStyles());
 
-    const updateIsFullComposerAvailable = useCallback(
+    const handleContentSizeChange = useCallback(
         (e: TextInputContentSizeChangeEvent) => {
             const paddingTopAndBottom = (containerComposeStyles.paddingVertical as number) * 2;
             const inputHeight = e.nativeEvent.contentSize.height;
             const totalHeight = inputHeight + paddingTopAndBottom;
+
+            // When we clear the input, we set the composer height to a specific value.
+            // Upon any content size change, we can reset the height to allow flex layout to adjust the height.
+            clearComposerHeight();
+
+            // Store the default collapsed composer height, so we can later reset the height when we clear the input.
+            if (emptyComposerHeightRef.current === null && inputHeight > 0 && !valueRef.current.includes('\n')) {
+                emptyComposerHeightRef.current = inputHeight;
+            }
+
             const isFullComposerAvailable = totalHeight >= CONST.COMPOSER.FULL_COMPOSER_MIN_HEIGHT;
             setIsFullComposerAvailable?.(isFullComposerAvailable);
         },
-        [setIsFullComposerAvailable, containerComposeStyles],
+        [containerComposeStyles.paddingVertical, clearComposerHeight, setIsFullComposerAvailable],
     );
 
     const handleFocus = useCallback(() => {
@@ -865,7 +906,11 @@ function ComposerWithSuggestions({
                     onChangeText={onChangeText}
                     onKeyPress={handleKeyPress}
                     textAlignVertical="top"
-                    style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose]}
+                    style={[
+                        styles.textInputCompose,
+                        isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose,
+                        composerHeightAfterClear != null && {height: composerHeightAfterClear},
+                    ]}
                     maxLines={maxComposerLines}
                     onFocus={handleFocus}
                     onBlur={onBlur}
@@ -879,7 +924,7 @@ function ComposerWithSuggestions({
                     selection={selection}
                     onSelectionChange={onSelectionChange}
                     isComposerFullSize={isComposerFullSize}
-                    onContentSizeChange={updateIsFullComposerAvailable}
+                    onContentSizeChange={handleContentSizeChange}
                     value={value}
                     testID="composer"
                     shouldCalculateCaretPosition
@@ -912,6 +957,8 @@ function ComposerWithSuggestions({
                     updateComment={updateComment}
                     commentRef={commentRef}
                     isCommentPendingSaved={isCommentPendingSaved}
+                    isTransitioningToPreExistingReport={isTransitioningToPreExistingReport}
+                    onTransitionToPreExistingReportComplete={handleTransitionToPreExistingReportComplete}
                 />
             )}
 

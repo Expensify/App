@@ -23,7 +23,13 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import Navigation from '@navigation/Navigation';
-import {assignWorkspaceCompanyCard, clearAssignCardStepAndData, setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
+import {
+    assignWorkspaceCompanyCard,
+    clearAssignCardErrors as clearAssignCardErrorsAction,
+    clearAssignCardStepAndData,
+    setAddNewCompanyCardStepAndData,
+    setAssignCardStepAndData,
+} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -101,12 +107,12 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
         // Check both encryptedCardNumber and cardName since isCardAlreadyAssigned matches on either
         // This handles cases where workspace card entries only have cardName (masked display name) stored
         const cardIdentifier = cardToAssign?.encryptedCardNumber ?? cardToAssign?.cardName;
-        if (cardIdentifier && isCardAlreadyAssigned(cardIdentifier, workspaceCardFeeds)) {
+        if (cardIdentifier && isCardAlreadyAssigned(cardIdentifier, workspaceCardFeeds, domainOrWorkspaceAccountID)) {
             setCardError(getMicroSecondOnyxErrorWithTranslationKey('workspace.companyCards.cardAlreadyAssignedError'));
             return;
         }
 
-        assignWorkspaceCompanyCard(policy, domainOrWorkspaceAccountID, translate, feed, {...cardToAssign, cardholder, bankName});
+        assignWorkspaceCompanyCard(policy, domainOrWorkspaceAccountID, translate, {...cardToAssign, cardholder, bankName});
     };
 
     const editStep = (step: string) => {
@@ -134,6 +140,11 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
     const handleBackButtonPress = () => {
         setAssignCardStepAndData({isEditing: true});
         Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute({policyID, feed, cardID}), {compareParams: false});
+    };
+
+    const clearAssignCardErrors = () => {
+        clearAssignCardErrorsAction();
+        setCardError(undefined);
     };
 
     return (
@@ -187,7 +198,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                     <OfflineWithFeedback
                         shouldDisplayErrorAbove
                         errors={assignCard?.errors ?? cardError}
-                        onClose={() => setCardError(undefined)}
+                        onClose={clearAssignCardErrors}
                         errorRowStyles={styles.mv2}
                     >
                         <Button

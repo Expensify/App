@@ -14,11 +14,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {revokeMultifactorAuthenticationCredentials} from '@libs/actions/MultifactorAuthentication';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {hasBiometricsRegisteredSelector} from '@src/selectors/Account';
 import type {Account} from '@src/types/onyx';
-
-function getHasDevices(data: OnyxEntry<Account>) {
-    return data?.multifactorAuthenticationPublicKeyIDs && data.multifactorAuthenticationPublicKeyIDs.length > 0;
-}
 
 function getIsLoading(data: OnyxEntry<Account>) {
     return !!data?.isLoading;
@@ -29,7 +26,7 @@ function MultifactorAuthenticationRevokePage() {
     const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | undefined>();
 
-    const [hasDevices] = useOnyx(ONYXKEYS.ACCOUNT, {selector: getHasDevices, canBeMissing: true});
+    const [hasDevices] = useOnyx(ONYXKEYS.ACCOUNT, {selector: hasBiometricsRegisteredSelector, canBeMissing: true});
     const [isLoading] = useOnyx(ONYXKEYS.ACCOUNT, {selector: getIsLoading, canBeMissing: true});
 
     const onGoBackPress = () => {
@@ -75,6 +72,7 @@ function MultifactorAuthenticationRevokePage() {
                 <View style={[styles.flexRow, styles.m5, styles.mt0]}>
                     {hasDevices ? (
                         <Button
+                            large
                             danger
                             style={styles.flex1}
                             onPress={showConfirmModal}
@@ -82,6 +80,7 @@ function MultifactorAuthenticationRevokePage() {
                         />
                     ) : (
                         <Button
+                            large
                             success
                             style={styles.flex1}
                             onPress={onGoBackPress}

@@ -9,7 +9,9 @@ In Expensify, categories represent your **chart of accounts, GL accounts, expens
 
 Admins can manually create categories for a workspace, or they can be imported automatically when connected to an accounting platform like QuickBooks, Xero, NetSuite, or Intacct. Once imported, categories can be enabled or disabled as needed. Over time, Expensify also learns how you apply categories to specific merchants and suggests them automatically.
 
-![The Categories tab]({{site.url}}/assets/images/ExpensifyHelp_R3_Categories_1.png){:width="100%"}
+The Categories table displays the category **Name**, **GL Code** (if assigned), and whether it's **Enabled** for workspace members to use.
+
+![The Categories tab]({{site.url}}/assets/images/NewExpensify_ManageCategories_1.png){:width="100%"}
 
 ---
 
@@ -105,7 +107,7 @@ To edit these fields:
 3. To edit a GL code, click the **GL Code** field, update it, and click **Save**.
 4. To edit a payroll code, do the same in the **Payroll Code** field.
 
-![In the Workspace > Categories setting, the right-hand panel is open and the GL and Payroll code setting is highlighted.]({{site.url}}/assets/images/workspace_gl_payroll_codes.png){:width="100%"}
+![In the Workspace > Categories setting, the right-hand panel is open and the GL and Payroll code setting is highlighted.]({{site.url}}/assets/images/NewExpensify_ManageCategories_2.png){:width="100%"}
 
 ---
 
@@ -136,5 +138,5 @@ It will be removed from the workspace’s category list. However, it will remain
 
 ## How Can My Employees See the GL Codes?
 
-GL codes are not visible to employees by default. If visibility is required, consider including the GL code in the category name itself.
+GL codes are visible to Workspace Admins in the Categories table but are not visible to workspace members. If you need members to see GL codes, consider including the GL code in the category name itself.
 

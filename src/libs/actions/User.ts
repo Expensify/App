@@ -49,7 +49,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ExpenseRuleForm, MerchantRuleForm} from '@src/types/form';
-import type {AppReview, BlockedFromConcierge, CustomStatusDraft, LoginList, Policy} from '@src/types/onyx';
+import type {AppReview, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, LoginList, Policy} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {OnyxServerUpdate, OnyxUpdatesFromServer} from '@src/types/onyx/OnyxUpdatesFromServer';
@@ -62,7 +62,6 @@ import applyOnyxUpdatesReliably from './applyOnyxUpdatesReliably';
 import {openOldDotLink} from './Link';
 import {showReportActionNotification} from './Report';
 import {resendValidateCode as sessionResendValidateCode} from './Session';
-import Timing from './Timing';
 
 let currentUserAccountID = -1;
 let currentEmail = '';
@@ -686,7 +685,7 @@ function isBlockedFromConcierge(blockedFromConciergeNVP: OnyxEntry<BlockedFromCo
     return isBefore(new Date(), new Date(blockedFromConciergeNVP.expiresAt));
 }
 
-function triggerNotifications(onyxUpdates: OnyxServerUpdate[]) {
+function triggerNotifications(onyxUpdates: OnyxServerUpdate[], currentUserAccountIDParam: number) {
     for (const update of onyxUpdates) {
         if (!update.shouldNotify && !update.shouldShowPushNotification) {
             continue;
@@ -697,7 +696,7 @@ function triggerNotifications(onyxUpdates: OnyxServerUpdate[]) {
 
         for (const action of reportActions) {
             if (action) {
-                showReportActionNotification(reportID, action);
+                showReportActionNotification(reportID, action, currentUserAccountIDParam);
             }
         }
     }
@@ -822,8 +821,6 @@ function subscribeToPusherPong() {
         const latency = Date.now() - Number(pongEvent.pingTimestamp);
         Log.info(`[Pusher PINGPONG] The event took ${latency} ms`);
 
-        Timing.end(CONST.TIMING.PUSHER_PING_PONG);
-
         // When any PONG event comes in, reset this flag so that checkForLatePongReplies will resume looking for missed PONGs
         pongHasBeenMissed = false;
     });
@@ -859,7 +856,6 @@ function pingPusher() {
     const parameters: PusherPingParams = {pingID, pingTimestamp};
     API.writeWithNoDuplicatesConflictAction(WRITE_COMMANDS.PUSHER_PING, parameters);
     Log.info(`[Pusher PINGPONG] Sending a PING to the server: ${pingID} timestamp: ${pingTimestamp}`);
-    Timing.start(CONST.TIMING.PUSHER_PING_PONG);
 }
 
 function checkForLatePongReplies() {
@@ -927,15 +923,15 @@ function initializePusherPingPong() {
  * Handles the newest events from Pusher where a single mega multipleEvents contains
  * an array of singular events all in one event
  */
-function subscribeToUserEvents() {
+function subscribeToUserEvents(currentUserAccountIDParam: number) {
     // If we don't have the user's accountID yet (because the app isn't fully setup yet) we can't subscribe so return early
-    if (currentUserAccountID === -1) {
+    if (!currentUserAccountIDParam) {
         return;
     }
 
     // Handles the mega multipleEvents from Pusher which contains an array of single events.
     // Each single event is passed to PusherUtils in order to trigger the callbacks for that event
-    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, currentUserAccountID.toString(), (pushJSON) => {
+    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, currentUserAccountIDParam.toString(), (pushJSON) => {
         const pushEventData = pushJSON as OnyxUpdatesFromServer;
         // If this is not the main client, we shouldn't process any data received from pusher.
         if (!ActiveClientManager.isClientTheLeader()) {
@@ -971,7 +967,7 @@ function subscribeToUserEvents() {
         return SequentialQueue.getCurrentRequest().then(() => {
             // If we don't have the currentUserAccountID (user is logged out) or this is not the
             // main client we don't want to update Onyx with data from Pusher
-            if (currentUserAccountID === -1) {
+            if (currentUserAccountIDParam === -1) {
                 return;
             }
             if (!ActiveClientManager.isClientTheLeader()) {
@@ -980,7 +976,7 @@ function subscribeToUserEvents() {
             }
 
             const onyxUpdatePromise = Onyx.update(pushJSON).then(() => {
-                triggerNotifications(pushJSON);
+                triggerNotifications(pushJSON, currentUserAccountIDParam);
             });
 
             // Return a promise when Onyx is done updating so that the OnyxUpdatesManager can properly apply all
@@ -1670,8 +1666,166 @@ function updateIsVerifiedValidateActionCode(isVerifiedValidateActionCode: boolea
     });
 }
 
+function deleteExpenseRules(expenseRules: ExpenseRule[], selectedRuleKeys: string[], getKeyForRule: (rule: ExpenseRule) => string) {
+    if (selectedRuleKeys.length === 0) {
+        return;
+    }
+
+    // selectedRuleKeys are in format "${hash}-${index}" to distinguish duplicates
+    const isRuleSelected = (rule: ExpenseRule, index: number) => {
+        const keyForList = `${getKeyForRule(rule)}-${index}`;
+        return selectedRuleKeys.includes(keyForList);
+    };
+
+    const optimisticRules = expenseRules.map((rule, index) => {
+        if (isRuleSelected(rule, index)) {
+            return {...rule, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+        }
+        return rule;
+    });
+
+    const successRules = expenseRules.filter((rule, index) => !isRuleSelected(rule, index));
+    const rulesForAPI = successRules.map(({pendingAction, errors, ...rule}) => rule);
+
+    const failureRules = expenseRules.map((rule, index) => {
+        if (isRuleSelected(rule, index)) {
+            return {...rule, pendingAction: null, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')};
+        }
+        return rule;
+    });
+
+    const parameters: SetNameValuePairParams = {
+        name: ONYXKEYS.NVP_EXPENSE_RULES,
+        value: JSON.stringify(rulesForAPI),
+    };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_EXPENSE_RULES,
+            value: optimisticRules,
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_EXPENSE_RULES,
+            value: successRules,
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_EXPENSE_RULES,
+            value: failureRules,
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
+function saveExpenseRule(expenseRules: ExpenseRule[], newRule: ExpenseRule, existingRuleKey: string | undefined, getKeyForRule: (rule: ExpenseRule) => string) {
+    const isEditing = !!existingRuleKey;
+    const pendingAction = isEditing ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+
+    const ruleWithPendingAction: ExpenseRule = {
+        ...newRule,
+        pendingAction,
+    };
+
+    const ruleForSuccess: ExpenseRule = {
+        ...newRule,
+        pendingAction: null,
+        errors: undefined,
+    };
+
+    let optimisticRules: ExpenseRule[];
+    let successRules: ExpenseRule[];
+    let failureRules: ExpenseRule[];
+
+    if (isEditing) {
+        let isUpdated = false;
+        optimisticRules = expenseRules.map((rule) => {
+            if (!isUpdated && getKeyForRule(rule) === existingRuleKey) {
+                isUpdated = true;
+                return ruleWithPendingAction;
+            }
+            return rule;
+        });
+
+        isUpdated = false;
+        successRules = expenseRules.map((rule) => {
+            if (!isUpdated && getKeyForRule(rule) === existingRuleKey) {
+                isUpdated = true;
+                return ruleForSuccess;
+            }
+            return rule;
+        });
+
+        failureRules = expenseRules.map((rule) => {
+            if (getKeyForRule(rule) === existingRuleKey) {
+                return {...rule, pendingAction: null, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')};
+            }
+            return rule;
+        });
+    } else {
+        optimisticRules = [...expenseRules, ruleWithPendingAction];
+        successRules = [...expenseRules, ruleForSuccess];
+        failureRules = expenseRules;
+    }
+
+    const rulesForAPI = successRules
+        .filter((rule) => rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+        .map(({pendingAction: _pendingAction, errors: _errors, ...rule}) => rule);
+
+    const parameters: SetNameValuePairParams = {
+        name: ONYXKEYS.NVP_EXPENSE_RULES,
+        value: JSON.stringify(rulesForAPI),
+    };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_EXPENSE_RULES,
+            value: optimisticRules,
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_EXPENSE_RULES,
+            value: successRules,
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_EXPENSE_RULES,
+            value: failureRules,
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
 function setDraftRule(ruleData: Partial<ExpenseRuleForm>) {
     Onyx.set(ONYXKEYS.FORMS.EXPENSE_RULE_FORM, ruleData);
+}
+
+function openTroubleshootSettingsPage() {
+    API.read(READ_COMMANDS.OPEN_TROUBLESHOOT_SETTINGS_PAGE, null);
 }
 
 function updateDraftRule(ruleData: Partial<ExpenseRuleForm>) {
@@ -1740,7 +1894,10 @@ export {
     setDraftRule,
     updateDraftRule,
     clearDraftRule,
+    saveExpenseRule,
+    deleteExpenseRules,
     setDraftMerchantRule,
     updateDraftMerchantRule,
     clearDraftMerchantRule,
+    openTroubleshootSettingsPage,
 };

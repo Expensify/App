@@ -85,7 +85,7 @@ function buildMessageFragmentForValue(
             setFragments.push(fragment);
         }
     } else if (!newValue || newValue === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) {
-        const fragment = translate('iou.removedTheRequest', {valueName: displayValueName, oldValueToDisplay});
+        const fragment = translate('iou.removedTheRequest', displayValueName, oldValueToDisplay);
         removalFragments.push(fragment);
     } else {
         const fragment = translate('iou.updatedTheRequest', {valueName: displayValueName, newValueToDisplay, oldValueToDisplay});
@@ -173,10 +173,7 @@ function getForExpenseMovedFromSelfDM(translate: LocalizedTranslate, destination
     if (isEmpty(policyName) && !reportName) {
         return translate('iou.changedTheExpense');
     }
-    return translate('iou.movedFromPersonalSpace', {
-        reportName,
-        workspaceName: !isEmpty(policyName) ? policyName : undefined,
-    });
+    return translate('iou.movedFromPersonalSpace', {reportName, workspaceName: !isEmpty(policyName) ? policyName : undefined});
 }
 
 function getMovedReportID(reportAction: OnyxEntry<ReportAction>, type: ValueOf<typeof CONST.REPORT.MOVE_TYPE>): string | undefined {
@@ -196,7 +193,7 @@ function getMovedFromOrToReportMessage(translate: LocalizedTranslate, movedFromR
     if (movedFromReport) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         const originReportName = getReportName(movedFromReport);
-        return translate('iou.movedFromReport', {reportName: originReportName ?? ''});
+        return translate('iou.movedFromReport', originReportName ?? '');
     }
 }
 

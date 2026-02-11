@@ -53,6 +53,7 @@ const SCREENS = {
         ADVANCED_FILTERS_RHP: 'Search_Advanced_Filters_RHP',
         ADVANCED_FILTERS_TYPE_RHP: 'Search_Advanced_Filters_Type_RHP',
         ADVANCED_FILTERS_GROUP_BY_RHP: 'Search_Advanced_Filters_GroupBy_RHP',
+        ADVANCED_FILTERS_VIEW_RHP: 'Search_Advanced_Filters_View_RHP',
         ADVANCED_FILTERS_STATUS_RHP: 'Search_Advanced_Filters_Status_RHP',
         ADVANCED_FILTERS_DATE_RHP: 'Search_Advanced_Filters_Date_RHP',
         ADVANCED_FILTERS_SUBMITTED_RHP: 'Search_Advanced_Filters_Submitted_RHP',
@@ -93,8 +94,9 @@ const SCREENS = {
         SAVED_SEARCH_RENAME_RHP: 'Search_Saved_Search_Rename_RHP',
         ADVANCED_FILTERS_IN_RHP: 'Search_Advanced_Filters_In_RHP',
         TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP',
+        TRANSACTION_HOLD_REASON_SEARCH: 'Search_Transaction_Hold_Reason_Search',
         SEARCH_REJECT_REASON_RHP: 'Search_Reject_Reason_RHP',
-        TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP: 'Search_Transactions_Change_Report_RHP',
+        TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP: 'Search_Transactions_Change_Report_Search',
     },
     SETTINGS: {
         ROOT: 'Settings_Root',
@@ -116,6 +118,7 @@ const SCREENS = {
         TROUBLESHOOT: 'Settings_Troubleshoot',
         CONSOLE: 'Settings_Console',
         SHARE_LOG: 'Share_Log',
+        DYNAMIC_VERIFY_ACCOUNT: 'Dynamic_Verify_Account',
 
         PROFILE: {
             ROOT: 'Settings_Profile',
@@ -183,6 +186,11 @@ const SCREENS = {
             CARD_MISSING_DETAILS_CONFIRM_MAGIC_CODE: 'Settings_Wallet_Card_MissingDetails_ConfirmMagicCode',
             TRANSFER_BALANCE: 'Settings_Wallet_Transfer_Balance',
             CHOOSE_TRANSFER_ACCOUNT: 'Settings_Wallet_Choose_Transfer_Account',
+            IMPORT_TRANSACTIONS: 'Settings_Wallet_Import_Transactions',
+            IMPORT_TRANSACTIONS_CARD_NAME: 'Settings_Wallet_Import_Transactions_Card_Name',
+            IMPORT_TRANSACTIONS_CURRENCY: 'Settings_Wallet_Import_Transactions_Currency',
+            IMPORT_TRANSACTIONS_SPREADSHEET: 'Settings_Wallet_Import_Transactions_Spreadsheet',
+            TRANSACTIONS_IMPORTED: 'Settings_Wallet_Transactions_Imported',
             ENABLE_PAYMENTS: 'Settings_Wallet_EnablePayments',
             CARD_ACTIVATE: 'Settings_Wallet_Card_Activate',
             REPORT_VIRTUAL_CARD_FRAUD: 'Settings_Wallet_ReportVirtualCardFraud',
@@ -358,6 +366,7 @@ const SCREENS = {
         STEP_DISTANCE_MANUAL: 'Money_Request_Step_Distance_Manual',
         STEP_DISTANCE_GPS: 'Money_Request_Step_Distance_GPS',
         STEP_DISTANCE_ODOMETER: 'Money_Request_Step_Distance_Odometer',
+        ODOMETER_IMAGE: 'Money_Request_Odometer_Image',
         RECEIPT_PREVIEW: 'Money_Request_Receipt_preview',
         STEP_TIME_RATE: 'Money_Request_Step_Time_Rate',
         STEP_HOURS: 'Money_Request_Step_Hours',
@@ -405,6 +414,7 @@ const SCREENS = {
         EXPENSIFY_CARD_NAME: 'Expensify_Card_Name',
         EXPENSIFY_CARD_LIMIT: 'Expensify_Card_Limit',
         EXPENSIFY_CARD_LIMIT_TYPE: 'Expensify_Card_Limit_Type',
+        EXPENSIFY_CARD_EXPIRY_OPTIONS: 'Expensify_Card_Expiry_Options',
     },
     DOMAIN_CARD: {
         DOMAIN_CARD_DETAIL: 'Domain_Card_Detail',
@@ -460,6 +470,10 @@ const SCREENS = {
     },
 
     SET_DEFAULT_WORKSPACE: 'SetDefaultWorkspace',
+
+    SEARCH_ROUTER: {
+        ROOT: 'Search_Router_Root',
+    },
 
     REPORT_DETAILS: {
         ROOT: 'Report_Details_Root',
@@ -734,6 +748,8 @@ const SCREENS = {
         OWNER_CHANGE_ERROR: 'Workspace_Owner_Change_Error',
         DISTANCE_RATES: 'Distance_Rates',
         TRAVEL: 'Travel',
+        TRAVEL_SETTINGS_ACCOUNT: 'Workspace_Travel_Settings_Account',
+        TRAVEL_SETTINGS_FREQUENCY: 'Workspace_Travel_Settings_Frequency',
         CREATE_DISTANCE_RATE: 'Create_Distance_Rate',
         CREATE_DISTANCE_RATE_UPGRADE: 'Create_Distance_Rate_Upgrade',
         DISTANCE_RATES_SETTINGS: 'Distance_Rates_Settings',
@@ -927,6 +943,8 @@ const SCREENS = {
         MEMBER_DETAILS: 'Member_Details',
         RESET_DOMAIN: 'Domain_Reset',
         ADD_MEMBER: 'Domain_Add_Member',
+        MEMBERS_SETTINGS: 'Members_Settings',
+        MEMBERS_SETTINGS_TWO_FACTOR_AUTH: 'Members_Settings_Two_Factor_Auth',
     },
     MULTIFACTOR_AUTHENTICATION: {
         MAGIC_CODE: 'Multifactor_Authentication_Magic_Code',
