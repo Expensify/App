@@ -23,7 +23,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption} from '@libs/OptionsListUtils';
-import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {getPersonalDetailsForAccountID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import UpgradeConfirmation from '@pages/workspace/upgrade/UpgradeConfirmation';
 import UpgradeIntro from '@pages/workspace/upgrade/UpgradeIntro';
 import {setCustomUnitRateID, setMoneyRequestParticipants} from '@userActions/IOU';
@@ -33,7 +33,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Transaction} from '@src/types/onyx';
+import type {PersonalDetails, Transaction} from '@src/types/onyx';
 
 type IOURequestStepUpgradeProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_UPGRADE>;
 
@@ -50,6 +50,7 @@ function IOURequestStepUpgrade({
     const personalDetails = usePersonalDetails();
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
+    const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
 
     const [isUpgraded, setIsUpgraded] = useState(false);
@@ -97,29 +98,32 @@ function IOURequestStepUpgrade({
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
 
+    const ownerPersonalDetails = useMemo(
+        () => getPersonalDetailsForAccountID(selectedReport?.ownerAccountID, personalDetails) as PersonalDetails,
+        [personalDetails, selectedReport?.ownerAccountID],
+    );
+
     const feature = Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
         .filter((value) => value.id !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id)
         .find((f) => f.alias === upgradePath);
 
-    const navigateWithMicrotask = useCallback(
-        (route: Route) => {
-            if (isWeb) {
-                Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(route));
-            } else {
-                Navigation.navigate(route);
-            }
-        },
-        [isWeb],
-    );
+    const navigateWithMicrotask = (route: Route) => {
+        if (isWeb) {
+            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(route));
+        } else {
+            Navigation.navigate(route);
+        }
+    };
 
     const afterUpgradeAcknowledged = useCallback(() => {
         const expenseReportID = policyDataRef.current?.expenseChatReportID ?? reportID;
         const policyID = policyDataRef.current?.policyID;
 
+        // Bulk move expenses
         if (upgradePath === CONST.UPGRADE_PATHS.REPORTS && policyID && selectedTransactionsKeys.length > 0) {
             const newPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 
-            const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, newPolicy, betas);
+            const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, newPolicy, betas);
 
             const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
 
@@ -195,7 +199,7 @@ function IOURequestStepUpgrade({
         allPolicyCategories,
         session?.accountID,
         session?.email,
-        currentUserPersonalDetails,
+        ownerPersonalDetails,
         allTransactions,
         betas,
     ]);
