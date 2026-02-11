@@ -885,7 +885,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: '你的空间',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `欢迎来到 ${roomName}！`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `使用 + 按钮来${additionalText}一笔费用。`,
-        askConcierge: '尽管问我任何问题！',
+        askConcierge: '这是您与 Concierge（您的个人 AI 代理）的聊天。我几乎什么都能做，来试试吧！',
         conciergeSupport: '您的专属AI助手',
         create: '创建',
         iouTypes: {
@@ -973,6 +973,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: '激活你的 Expensify 卡',
                 subtitle: '验证您的银行卡并开始消费。',
                 cta: '启用',
+            },
+            reviewCardFraud: {
+                title: '审核您 Expensify Card 上的潜在欺诈交易',
+                titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `查看 ${merchant} 可能存在的 ${amount} 欺诈交易`,
+                subtitle: 'Expensify 卡',
+                cta: '审核',
             },
             ctaFix: '修复',
             fixCompanyCardConnection: {title: ({feedName}: {feedName: string}) => (feedName ? `修复 ${feedName} 公司卡连接` : '修复公司卡连接'), subtitle: '工作区 > 公司卡片'},
@@ -5047,17 +5053,9 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     subtitle: '我们正在审核你启用 Expensify Travel 的请求。别担心，准备好后我们会通知你。',
                     ctaText: '请求已发送',
                 },
-                bookOrManageYourTrip: {
-                    title: '预订或管理您的行程',
-                    subtitle: '使用 Expensify Travel 获取最优出行优惠，并在一个地方管理您所有的商务费用。',
-                    ctaText: '预订或管理',
-                },
+                bookOrManageYourTrip: {title: '差旅预订', subtitle: '恭喜！您现在可以在此工作区预订和管理差旅了。', ctaText: '管理差旅'},
+                settings: {autoAddTripName: {title: '将行程名称添加到报销单', subtitle: '为在 Expensify 中预订的行程，自动将行程名称添加到报销事由描述中。'}},
                 travelInvoicing: {
-                    travelBookingSection: {
-                        title: '差旅预订',
-                        subtitle: '恭喜！您已经可以在此工作区预订和管理差旅了。',
-                        manageTravelLabel: '管理差旅',
-                    },
                     centralInvoicingSection: {
                         title: '集中开票',
                         subtitle: '将所有差旅支出集中到每月发票中，而不是在购买时即时支付。',
@@ -6233,8 +6231,8 @@ ${reportName}
                 preventSelfApprovalsSubtitle: '防止工作区成员审批自己的报销报告。',
                 autoApproveCompliantReportsTitle: '自动批准合规报表',
                 autoApproveCompliantReportsSubtitle: '配置符合条件可自动审批的报销单。',
-                autoApproveReportsUnderTitle: '自动批准低于此金额的报表',
-                autoApproveReportsUnderDescription: '低于此金额且完全合规的报销报告将自动获批。',
+                autoApproveReportsUnderTitle: '自动批准所有费用低于此金额的报表',
+                autoApproveReportsUnderDescription: '所有费用均低于此金额且完全合规的报销报告将自动获批。',
                 randomReportAuditTitle: '随机报销报告审核',
                 randomReportAuditDescription: '即使符合自动审批条件，也要求部分报销单必须人工审批。',
                 autoPayApprovedReportsTitle: '自动支付已批准报销单',
@@ -7083,6 +7081,7 @@ ${reportName}
             selectAllMatchingItems: '选择所有匹配的项目',
             allMatchingItemsSelected: '已选中所有匹配项',
         },
+        spendOverTime: '随时间支出',
     },
     genericErrorPage: {
         title: '哎呀，出错了！',
@@ -7354,9 +7353,9 @@ ${reportName}
         },
     },
     cardTransactions: {
-        notActivated: '未激活',
-        outOfPocket: '可报销',
-        companySpend: '不可报销',
+        notActivated: '未启用',
+        outOfPocket: '个人垫付支出',
+        companySpend: '公司支出',
     },
     distance: {
         addStop: '添加站点',

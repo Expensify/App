@@ -182,7 +182,19 @@ import {
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
-import type {Beta, Card, Download as DownloadOnyx, OnyxInputOrEntry, Policy, PolicyTagLists, ReportAction, ReportActionReactions, Report as ReportType, Transaction} from '@src/types/onyx';
+import type {
+    Beta,
+    Card,
+    Download as DownloadOnyx,
+    IntroSelected,
+    OnyxInputOrEntry,
+    Policy,
+    PolicyTagLists,
+    ReportAction,
+    ReportActionReactions,
+    Report as ReportType,
+    Transaction,
+} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import KeyboardUtils from '@src/utils/keyboard';
@@ -266,6 +278,7 @@ type ContextMenuActionPayload = {
     policyTags: OnyxEntry<PolicyTagLists>;
     translate: LocalizedTranslate;
     harvestReport?: OnyxEntry<ReportType>;
+    introSelected?: OnyxEntry<IntroSelected>;
     isDelegateAccessRestricted?: boolean;
     showDelegateNoAccessModal?: () => void;
     currentUserPersonalDetails: ReturnType<typeof useCurrentUserPersonalDetails>;
@@ -460,22 +473,21 @@ const ContextMenuActions: ContextMenuAction[] = [
 
             return hasReasoning(reportAction);
         },
-        onPress: (closePopover, {reportAction, reportID, translate, currentUserPersonalDetails}) => {
-            if (!reportID) {
+        onPress: (closePopover, {reportAction, childReport, originalReport, translate, currentUserPersonalDetails}) => {
+            if (!originalReport?.reportID) {
                 return;
             }
 
-            const originalReportID = getOriginalReportID(reportID, reportAction);
             if (closePopover) {
                 hideContextMenu(false, () => {
                     KeyboardUtils.dismiss().then(() => {
-                        explain(reportAction, originalReportID, translate, currentUserPersonalDetails.accountID, currentUserPersonalDetails.timezone);
+                        explain(childReport, originalReport, reportAction, translate, currentUserPersonalDetails.accountID, currentUserPersonalDetails?.timezone);
                     });
                 });
                 return;
             }
 
-            explain(reportAction, originalReportID, translate, currentUserPersonalDetails.accountID, currentUserPersonalDetails.timezone);
+            explain(childReport, originalReport, reportAction, translate, currentUserPersonalDetails.accountID, currentUserPersonalDetails?.timezone);
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.EXPLAIN,
@@ -501,11 +513,11 @@ const ContextMenuActions: ContextMenuAction[] = [
         icon: 'Pencil',
         shouldShow: ({type, reportAction, isArchivedRoom, isChronosReport, moneyRequestAction}) =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && (canEditReportAction(reportAction) || canEditReportAction(moneyRequestAction)) && !isArchivedRoom && !isChronosReport,
-        onPress: (closePopover, {reportID, reportAction, draftMessage, moneyRequestAction}) => {
+        onPress: (closePopover, {reportID, reportAction, draftMessage, moneyRequestAction, introSelected}) => {
             if (isMoneyRequestAction(reportAction) || isMoneyRequestAction(moneyRequestAction)) {
                 const editExpense = () => {
                     const childReportID = reportAction?.childReportID;
-                    openReport(childReportID);
+                    openReport(childReportID, introSelected);
                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
                 };
                 if (closePopover) {

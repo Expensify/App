@@ -392,10 +392,10 @@ Onyx.connect({
     },
 });
 
-let introSelected: OnyxEntry<IntroSelected> = {};
+let deprecatedIntroSelected: OnyxEntry<IntroSelected> = {};
 Onyx.connect({
     key: ONYXKEYS.NVP_INTRO_SELECTED,
-    callback: (val) => (introSelected = val),
+    callback: (val) => (deprecatedIntroSelected = val),
 });
 
 let environment: EnvironmentType;
@@ -1062,6 +1062,7 @@ function clearAvatarErrors(reportID: string) {
 // eslint-disable-next-line @typescript-eslint/max-params
 function openReport(
     reportID: string | undefined,
+    introSelected: OnyxEntry<IntroSelected>,
     reportActionID?: string,
     participantLoginList: string[] = [],
     newReportObject?: OptimisticChatReport,
@@ -1590,6 +1591,7 @@ function createTransactionThreadReport(
     const shouldAddPendingFields = transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || iouReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
     openReport(
         optimisticTransactionThreadReportID,
+        deprecatedIntroSelected,
         undefined,
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         deprecatedCurrentUserLogin ? [deprecatedCurrentUserLogin] : [],
@@ -1644,7 +1646,7 @@ function navigateToAndOpenReport(
             });
         }
         // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-        openReport(newChat?.reportID, '', userLogins, newChat, undefined, undefined, undefined, avatarFile);
+        openReport(newChat?.reportID, deprecatedIntroSelected, '', userLogins, newChat, undefined, undefined, undefined, avatarFile);
     }
     const report = isEmptyObject(chat) ? newChat : chat;
 
@@ -1680,7 +1682,7 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[], 
             participantList: [...participantAccountIDs, currentUserAccountID],
         });
         // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-        openReport(newChat?.reportID, '', [], newChat, '0', false, participantAccountIDs);
+        openReport(newChat?.reportID, deprecatedIntroSelected, '', [], newChat, '0', false, participantAccountIDs);
     }
     const report = chat ?? newChat;
 
@@ -1726,7 +1728,7 @@ function createChildReport(childReport: OnyxEntry<Report>, parentReportAction: R
     const childReportID = childReport?.reportID ?? parentReportAction.childReportID;
     if (!childReportID) {
         const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(Object.keys(newChat.participants ?? {}).map(Number));
-        openReport(newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID, undefined, undefined, undefined, true);
+        openReport(newChat.reportID, deprecatedIntroSelected, '', participantLogins, newChat, parentReportAction.reportActionID, undefined, undefined, undefined, true);
     } else {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`, newChat);
     }
@@ -1739,20 +1741,19 @@ function createChildReport(childReport: OnyxEntry<Report>, parentReportAction: R
  * Adds a "Please explain this to me." comment from the user
  */
 function explain(
+    childReport: OnyxEntry<Report>,
+    originalReport: OnyxEntry<Report>,
     reportAction: OnyxEntry<ReportAction>,
-    originalReportID: string | undefined,
     translate: LocalizedTranslate,
     currentUserAccountID: number,
     timezone: Timezone = CONST.DEFAULT_TIME_ZONE,
 ) {
-    if (!originalReportID || !reportAction) {
+    if (!originalReport?.reportID || !reportAction) {
         return;
     }
 
     // Check if explanation thread report already exists
-    const existingChildReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`];
-    const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
-    const report = existingChildReport ?? createChildReport(existingChildReport, reportAction, originalReport);
+    const report = childReport ?? createChildReport(childReport, reportAction, originalReport);
 
     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, Navigation.getActiveRoute()));
     // Schedule adding the explanation comment on the next animation frame
@@ -2565,7 +2566,7 @@ function toggleSubscribeToChildReport(
     prevNotificationPreference?: NotificationPreference,
 ) {
     if (childReportID) {
-        openReport(childReportID);
+        openReport(childReportID, deprecatedIntroSelected);
         const parentReportActionID = parentReportAction.reportActionID;
         if (!prevNotificationPreference || isHiddenForCurrentUser(prevNotificationPreference)) {
             updateNotificationPreference(
@@ -2600,7 +2601,7 @@ function toggleSubscribeToChildReport(
         });
 
         const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDs);
-        openReport(newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID);
+        openReport(newChat.reportID, deprecatedIntroSelected, '', participantLogins, newChat, parentReportAction.reportActionID);
         const notificationPreference = isHiddenForCurrentUser(prevNotificationPreference) ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         updateNotificationPreference(newChat.reportID, prevNotificationPreference, notificationPreference, currentUserAccountID, parentReport?.reportID, parentReportAction.reportActionID);
     }
@@ -4565,7 +4566,7 @@ async function completeOnboarding({
     shouldWaitForRHPVariantInitialization = false,
 }: CompleteOnboardingProps) {
     const onboardingData = prepareOnboardingOnyxData({
-        introSelected,
+        introSelected: deprecatedIntroSelected,
         engagementChoice,
         onboardingMessage,
         adminsChatReportID,

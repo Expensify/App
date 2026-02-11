@@ -910,7 +910,7 @@ const translations = {
         yourSpace: 'Your space',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Use the + button to ${additionalText} an expense.`,
-        askConcierge: ' Ask me anything!',
+        askConcierge: 'This is your chat with Concierge, your personal AI agent. I can do almost anything, try me!',
         conciergeSupport: 'Your personal AI agent',
         create: 'create',
         iouTypes: {
@@ -1010,6 +1010,12 @@ const translations = {
                 title: 'Activate your Expensify Card',
                 subtitle: 'Validate your card and start spending.',
                 cta: 'Activate',
+            },
+            reviewCardFraud: {
+                title: 'Review potential fraud on your Expensify Card',
+                titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Review ${amount} in potential fraud at ${merchant}`,
+                subtitle: 'Expensify Card',
+                cta: 'Review',
             },
         },
         announcements: 'Announcements',
@@ -5125,16 +5131,17 @@ const translations = {
                     ctaText: 'Request sent',
                 },
                 bookOrManageYourTrip: {
-                    title: 'Book or manage your trip',
-                    subtitle: 'Use Expensify Travel to get the best travel offers and manage all your business expenses in a single place.',
-                    ctaText: 'Book or manage',
+                    title: 'Travel booking',
+                    subtitle: "Congrats! You're all set to book and manage travel on this workspace.",
+                    ctaText: 'Manage travel',
+                },
+                settings: {
+                    autoAddTripName: {
+                        title: 'Add trip names to expenses',
+                        subtitle: 'Automatically add trip names to expense descriptions for travel booked in Expensify.',
+                    },
                 },
                 travelInvoicing: {
-                    travelBookingSection: {
-                        title: 'Travel booking',
-                        subtitle: "Congrats! You're all set to book and manage travel on this workspace.",
-                        manageTravelLabel: 'Manage travel',
-                    },
                     centralInvoicingSection: {
                         title: 'Central invoicing',
                         subtitle: 'Centralize all travel spend in a monthly invoice instead of paying at time of purchase.',
@@ -6322,8 +6329,8 @@ const translations = {
                 preventSelfApprovalsSubtitle: 'Prevent workspace members from approving their own expense reports.',
                 autoApproveCompliantReportsTitle: 'Auto-approve compliant reports',
                 autoApproveCompliantReportsSubtitle: 'Configure which expense reports are eligible for auto-approval.',
-                autoApproveReportsUnderTitle: 'Auto-approve reports under',
-                autoApproveReportsUnderDescription: 'Fully compliant expense reports under this amount will be automatically approved.',
+                autoApproveReportsUnderTitle: 'Auto-approve reports with all expenses under',
+                autoApproveReportsUnderDescription: 'Fully compliant expense reports where all expenses are under this amount will be automatically approved.',
                 randomReportAuditTitle: 'Random report audit',
                 randomReportAuditDescription: 'Require that some reports be manually approved, even if eligible for auto-approval.',
                 autoPayApprovedReportsTitle: 'Auto-pay approved reports',
@@ -7082,6 +7089,7 @@ const translations = {
         savedSearchesMenuItemTitle: 'Saved',
         topCategories: 'Top categories',
         topMerchants: 'Top merchants',
+        spendOverTime: 'Spend over time',
         groupedExpenses: 'grouped expenses',
         bulkActions: {
             approve: 'Approve',
@@ -7485,8 +7493,8 @@ const translations = {
     },
     cardTransactions: {
         notActivated: 'Not activated',
-        outOfPocket: 'Reimbursable',
-        companySpend: 'Non-reimbursable',
+        outOfPocket: 'Out-of-pocket spend',
+        companySpend: 'Company spend',
     },
     distance: {
         addStop: 'Add stop',
