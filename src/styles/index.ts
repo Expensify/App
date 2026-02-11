@@ -2135,9 +2135,14 @@ const staticStyles = (theme: ThemeColors) =>
                 ...(Platform.OS === 'android' && {
                     height: undefined,
                     lineHeight: undefined,
-                    alignSelf: 'stretch',
                     flexGrow: 1,
                     flexShrink: 1,
+                }),
+
+                // On iOS, negative margin adjusts frame position for correct VoiceOver focus order. See #77499.
+                ...(Platform.OS === 'ios' && {
+                    marginTop: -5,
+                    paddingTop: 5,
                 }),
             },
             0,
@@ -5784,6 +5789,14 @@ const staticStyles = (theme: ThemeColors) =>
         barChartChartContainer: {
             minHeight: 250,
         },
+        lineChartContainer: {
+            borderRadius: variables.componentBorderRadiusLarge,
+            paddingTop: variables.qrShareHorizontalPadding,
+            paddingHorizontal: variables.qrShareHorizontalPadding,
+        },
+        lineChartChartContainer: {
+            minHeight: 250,
+        },
         discoverSectionImage: {
             width: '100%',
             height: undefined,
@@ -6311,12 +6324,6 @@ const plainStyles = (theme: ThemeColors) =>
                 marginTop: shouldUseNarrowLayout ? 20 : 32,
             }) satisfies ViewStyle,
 
-        widgetContainerIconWrapper: {
-            flexGrow: 0,
-            flexShrink: 0,
-            marginRight: 11,
-        },
-
         getWidgetItemIconContainerStyle: (backgroundColor: string) =>
             ({
                 alignItems: 'center',
@@ -6337,10 +6344,10 @@ const plainStyles = (theme: ThemeColors) =>
         homePageLeftColumn: (shouldUseNarrowLayout: boolean) =>
             shouldUseNarrowLayout
                 ? ({width: '100%', flexDirection: 'column', gap: 20} satisfies ViewStyle)
-                : ({flex: 2, flexBasis: '66.666%', maxWidth: variables.homePageLeftColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle),
+                : ({flex: 7, flexBasis: '58.333%', maxWidth: variables.homePageLeftColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle),
 
         homePageRightColumn: (shouldUseNarrowLayout: boolean) =>
-            shouldUseNarrowLayout ? ({width: '100%'} satisfies ViewStyle) : ({flex: 1, flexBasis: '33.333%', maxWidth: variables.homePageRightColumnMaxWidth} satisfies ViewStyle),
+            shouldUseNarrowLayout ? ({width: '100%'} satisfies ViewStyle) : ({flex: 5, flexBasis: '41.667%', maxWidth: variables.homePageRightColumnMaxWidth} satisfies ViewStyle),
     }) satisfies Styles;
 
 const styles = (theme: ThemeColors) =>

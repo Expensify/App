@@ -37,6 +37,7 @@ import {deleteReportActionDraft, editReportComment, saveReportActionDraft} from 
 import {isMobileChrome} from '@libs/Browser';
 import {canSkipTriggerHotkeys, insertText} from '@libs/ComposerUtils';
 import DomUtils from '@libs/DomUtils';
+import draftMessageVideoAttributeCache from '@libs/DraftMessageVideoAttributeCache';
 import {extractEmojis, getZWNJCursorOffset, insertZWNJBetweenDigitAndEmoji, replaceAndExtractEmojis} from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import type {Selection} from '@libs/focusComposerWithDelay/types';
@@ -90,9 +91,6 @@ type ReportActionItemMessageEditProps = {
 };
 
 const shouldUseForcedSelectionRange = shouldUseEmojiPickerSelection();
-
-// video source -> video attributes
-const draftMessageVideoAttributeCache = new Map<string, string>();
 
 const DEFAULT_MODAL_VALUE = {
     willAlertModalBecomeVisible: false,
@@ -151,8 +149,9 @@ function ReportActionItemMessageEdit({
     // The ref to check whether the comment saving is in progress
     const isCommentPendingSaved = useRef(false);
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {canBeMissing: true});
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {canBeMissing: true});
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
-    const originalParentReportID = getOriginalReportID(originalReportID, action);
+    const originalParentReportID = getOriginalReportID(originalReportID, action, reportActions);
     const isOriginalParentReportArchived = useReportIsArchived(originalParentReportID);
     const ancestors = useAncestors(originalReport);
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close']);
@@ -533,7 +532,7 @@ function ReportActionItemMessageEdit({
                             onKeyPress={triggerSaveOrCancel}
                             value={draft}
                             maxLines={shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES} // This is the same that slack has
-                            style={[styles.textInputCompose, styles.flex1, styles.bgTransparent]}
+                            style={[styles.textInputCompose, styles.flex1, styles.bgTransparent, styles.textAlignLeft]}
                             onFocus={() => {
                                 setIsFocused(true);
                                 if (textInputRef.current) {

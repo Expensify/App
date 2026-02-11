@@ -1,4 +1,17 @@
 {
+    "hooks": {
+        "PostToolUse": [
+            {
+                "matcher": "Edit|Write",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "FILE=$(jq -r '.tool_input.file_path') && [ -f \"$FILE\" ] && ./node_modules/.bin/prettier --write --ignore-unknown \"$FILE\""
+                    }
+                ]
+            }
+        ]
+    },
     "extraKnownMarketplaces": {
         "callstack-agent-skills": {
             "source": {
