@@ -4,14 +4,43 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
 
-/** Card feed */
+/** Company card feed name */
 type CompanyCardFeed = ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>;
+/** Company card feed name with a number */
+type CompanyCardFeedWithNumber = CompanyCardFeed | `${CompanyCardFeed}${number}`;
 
-/** Company card feed with domain ID */
-type CompanyCardFeedWithDomainID = `${CompanyCardFeed}${typeof CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${string}`;
+/** Company card feed name with domain ID */
+type CompanyCardFeedWithDomainID = `${CompanyCardFeedWithNumber}${typeof CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${string}`;
 
-/** Custom card feed with a number */
-type CompanyCardFeedWithNumber = CompanyCardFeed | `${CompanyCardFeed}${number}` | CompanyCardFeedWithDomainID;
+/**
+ * Either a company card feed name or the Expensify card bank name.
+ */
+type CardFeed = CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK;
+
+/**
+ * Either a company card feed name or the Expensify card bank name with a number.
+ */
+type CardFeedWithNumber = CardFeed | `${CardFeed}${number}`;
+
+/**
+ * Card feed name with domain ID
+ */
+type CardFeedWithDomainID = `${CardFeedWithNumber}${typeof CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${string}`;
+
+/**
+ * Bank name
+ */
+type BankName = ValueOf<typeof CONST.COMPANY_CARDS.BANKS>;
+
+/**
+ *
+ */
+type CardType = ValueOf<typeof CONST.COMPANY_CARDS.CARD_TYPE>;
+
+/**
+ * Card type name
+ */
+type CardTypeName = ValueOf<typeof CONST.COMPANY_CARDS.CARD_TYPE_NAMES>;
 
 /** Statement period end */
 type StatementPeriodEnd = Exclude<ValueOf<typeof CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE>, typeof CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH>;
@@ -131,10 +160,7 @@ type DirectCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
 type CardFeedData = CustomCardFeedData | DirectCardFeedData;
 
 /** Both custom and direct company feeds */
-type CompanyFeeds = Partial<Record<CompanyCardFeed, CardFeedData>>;
-
-/** Custom feed names */
-type CompanyCardNicknames = Partial<Record<CompanyCardFeed, string>>;
+type CompanyFeeds = Partial<Record<CompanyCardFeedWithNumber, CardFeedData>>;
 
 /** Domain settings model */
 type DomainSettings = {
@@ -152,6 +178,9 @@ type DomainSettings = {
         /** Email to primary contact from the domain */
         technicalContactEmail?: string;
     };
+
+    /** Whether we are loading the data via the API */
+    isLoading?: boolean;
 };
 
 /** Card feeds status */
@@ -171,20 +200,20 @@ type CardFeedsStatusByDomainID = Record<number, CardFeedsStatus>;
 /**
  * Collection of card feeds status by domain ID
  */
-type WorkspaceCardFeedsStatus = Record<CompanyCardFeed, CardFeedsStatus>;
+type WorkspaceCardFeedsStatus = Record<CardFeedWithNumber, CardFeedsStatus>;
 
 /** Card feeds model, including domain settings */
 type CardFeeds = {
     /** Feed settings */
     settings: {
         /** User-friendly feed nicknames */
-        companyCardNicknames?: CompanyCardNicknames;
+        companyCardNicknames?: Partial<Record<CardFeedWithNumber, string>>;
 
         /** Company cards feeds */
-        companyCards?: Partial<Record<CompanyCardFeed, CustomCardFeedData>>;
+        companyCards?: Partial<Record<CardFeedWithNumber, CustomCardFeedData>>;
 
         /** Account details */
-        oAuthAccountDetails?: Partial<Record<CompanyCardFeed, DirectCardFeedData>>;
+        oAuthAccountDetails?: Partial<Record<CardFeedWithNumber, DirectCardFeedData>>;
 
         /** Collection of card feeds status by domain ID */
         cardFeedsStatus?: WorkspaceCardFeedsStatus;
@@ -234,7 +263,7 @@ type AddNewCardFeedData = {
     publicToken?: string;
 
     /** Feed from Plaid connection */
-    plaidConnectedFeed?: string;
+    plaidConnectedFeed?: CardFeedWithNumber;
 
     /** Feed name from Plaid connection */
     plaidConnectedFeedName?: string;
@@ -268,21 +297,29 @@ type CombinedCardFeed = CustomCardFeedData &
         customFeedName?: string;
 
         /** Feed name */
-        feed: CompanyCardFeedWithNumber;
+        feed: CardFeedWithNumber;
 
         /** Card feed status */
         status?: CardFeedsStatus;
     };
 
 /** Card feeds combined by domain ID into one object */
-type CombinedCardFeeds = Record<CompanyCardFeedWithDomainID, CombinedCardFeed>;
+type CombinedCardFeeds = Record<CardFeedWithDomainID, CombinedCardFeed>;
 
 export default CardFeeds;
 export type {
     AddNewCardFeedStep,
     AddNewCompanyCardFeed,
     AddNewCardFeedData,
+    CardFeed,
+    CardFeedWithNumber,
+    CardFeedWithDomainID,
+    BankName,
+    CardType,
+    CardTypeName,
     CompanyCardFeed,
+    CompanyCardFeedWithNumber,
+    CompanyCardFeedWithDomainID,
     CardFeedDetails,
     DirectCardFeedData,
     CardFeedProvider,
@@ -291,10 +328,7 @@ export type {
     CardFeedsStatusByDomainID,
     WorkspaceCardFeedsStatus,
     CompanyFeeds,
-    CompanyCardFeedWithDomainID,
     CustomCardFeedData,
-    CompanyCardNicknames,
-    CompanyCardFeedWithNumber,
     FundID,
     StatementPeriodEnd,
     StatementPeriodEndDay,

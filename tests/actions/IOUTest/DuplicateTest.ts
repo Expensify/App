@@ -422,8 +422,8 @@ describe('actions/Duplicate', () => {
             const participantAccountIDs = Object.keys(transactionThreadReport1.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
             jest.advanceTimersByTime(10);
-            openReport(transactionThreadReport1.reportID, '', userLogins, transactionThreadReport1, iouAction1?.reportActionID);
-            openReport(transactionThreadReport2.reportID, '', userLogins, transactionThreadReport1, iouAction2?.reportActionID);
+            openReport(transactionThreadReport1.reportID, undefined, '', userLogins, transactionThreadReport1, iouAction1?.reportActionID);
+            openReport(transactionThreadReport2.reportID, undefined, '', userLogins, transactionThreadReport1, iouAction2?.reportActionID);
             await waitForBatchedUpdates();
 
             let transactionThreadReportActions1: OnyxEntry<ReportActions>;

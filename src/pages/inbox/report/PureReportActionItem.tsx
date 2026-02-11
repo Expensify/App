@@ -551,6 +551,7 @@ function PureReportActionItem({
     const personalDetail = useCurrentUserPersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const reportID = report?.reportID ?? action?.reportID;
+    const childReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${action.childReportID}`];
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -1309,7 +1310,8 @@ function PureReportActionItem({
                 <ReportActionItemMessageWithExplain
                     message={modifiedExpenseMessage}
                     action={action}
-                    reportID={reportID}
+                    childReport={childReport}
+                    originalReport={originalReport}
                 />
             );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) || isMarkAsClosedAction(action)) {
@@ -1322,7 +1324,8 @@ function PureReportActionItem({
                     <ReportActionItemMessageWithExplain
                         message={translate('iou.automaticallySubmitted')}
                         action={action}
-                        reportID={reportID}
+                        childReport={childReport}
+                        originalReport={originalReport}
                     />
                 );
             } else if (hasPendingDEWSubmit(reportMetadata, isDEWPolicy) && isPendingAdd) {
@@ -2065,7 +2068,7 @@ function PureReportActionItem({
                 preventDefaultContextMenu={draftMessage === undefined && !hasErrors}
                 withoutFocusOnSecondaryInteraction
                 accessibilityLabel={translate('accessibilityHints.chatMessage')}
-                accessible
+                accessibilityRole={CONST.ROLE.BUTTON}
                 sentryLabel={CONST.SENTRY_LABEL.REPORT.PURE_REPORT_ACTION_ITEM}
             >
                 <Hoverable

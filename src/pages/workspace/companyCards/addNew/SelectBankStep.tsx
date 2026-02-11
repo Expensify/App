@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -36,7 +36,8 @@ function SelectBankStep() {
 
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
-    const [bankSelected, setBankSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | null>();
+    const [localBankSelected, setLocalBankSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | null>();
+    const bankSelected = localBankSelected ?? addNewCard?.data.selectedBank;
     const [hasError, setHasError] = useState(false);
     const isOtherBankSelected = bankSelected === CONST.COMPANY_CARDS.BANKS.OTHER;
 
@@ -55,10 +56,6 @@ function SelectBankStep() {
             });
         }
     }, [bankSelected, isOtherBankSelected]);
-
-    useEffect(() => {
-        setBankSelected(addNewCard?.data.selectedBank);
-    }, [addNewCard?.data.selectedBank]);
 
     const handleBackButtonPress = () => {
         if (route?.params?.backTo) {
@@ -118,10 +115,10 @@ function SelectBankStep() {
                 data={data}
                 ListItem={RadioListItem}
                 onSelectRow={({value}) => {
-                    setBankSelected(value);
+                    setLocalBankSelected(value);
                     setHasError(false);
                 }}
-                initiallyFocusedItemKey={addNewCard?.data.selectedBank ?? undefined}
+                initiallyFocusedItemKey={bankSelected ?? undefined}
                 confirmButtonOptions={confirmButtonOptions}
                 shouldSingleExecuteRowSelect
                 shouldUpdateFocusedIndex

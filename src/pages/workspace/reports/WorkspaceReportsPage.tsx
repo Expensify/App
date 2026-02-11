@@ -6,7 +6,6 @@ import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {Plus} from '@components/Icon/Expensicons';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -17,7 +16,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -74,6 +73,7 @@ function WorkspaceReportFieldsPage({
     const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState(false);
 
     const illustrations = useMemoizedLazyIllustrations(['ReportReceipt']);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
 
     const onDisabledOrganizeSwitchPress = () => {
         if (!hasAccountingConnections) {
@@ -186,7 +186,7 @@ function WorkspaceReportFieldsPage({
                     title={translate('common.reports')}
                     shouldUseHeadlineHeader
                     shouldShowBackButton={shouldUseNarrowLayout}
-                    onBackButtonPress={Navigation.popToSidebar}
+                    onBackButtonPress={Navigation.goBack}
                 />
                 {isLoading && (
                     <ActivityIndicator
@@ -282,7 +282,7 @@ function WorkspaceReportFieldsPage({
                                                 <MenuItem
                                                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CREATE_REPORT_FIELD.getRoute(policyID))}
                                                     title={translate('workspace.reportFields.addField')}
-                                                    icon={Plus}
+                                                    icon={icons.Plus}
                                                     style={[styles.sectionMenuItemTopDescription]}
                                                 />
                                             )}

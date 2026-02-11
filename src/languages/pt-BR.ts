@@ -895,7 +895,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'Seu espaço',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Bem-vindo(a) a ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `Use o botão + para ${additionalText} uma despesa.`,
-        askConcierge: 'Pergunte-me qualquer coisa!',
+        askConcierge: 'Este é o seu chat com o Concierge, seu agente pessoal de IA. Posso fazer quase tudo, experimente!',
         conciergeSupport: 'Seu agente de IA pessoal',
         create: 'criar',
         iouTypes: {
@@ -986,6 +986,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: 'Ative seu Cartão Expensify',
                 subtitle: 'Valide seu cartão e comece a gastar.',
                 cta: 'Ativar',
+            },
+            reviewCardFraud: {
+                title: 'Analisar possível fraude no seu Cartão Expensify',
+                titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Analisar ${amount} em possível fraude em ${merchant}`,
+                subtitle: 'Cartão Expensify',
+                cta: 'Revisar',
             },
             ctaFix: 'Corrigir',
             fixCompanyCardConnection: {
@@ -5138,16 +5144,17 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                     ctaText: 'Solicitação enviada',
                 },
                 bookOrManageYourTrip: {
-                    title: 'Reserve ou gerencie sua viagem',
-                    subtitle: 'Use o Expensify Travel para obter as melhores ofertas de viagem e gerenciar todas as suas despesas de negócios em um só lugar.',
-                    ctaText: 'Reservar ou gerenciar',
+                    title: 'Reserva de viagem',
+                    subtitle: 'Parabéns! Você já está pronto para reservar e gerenciar viagens neste workspace.',
+                    ctaText: 'Gerenciar viagens',
+                },
+                settings: {
+                    autoAddTripName: {
+                        title: 'Adicionar nomes de viagem às despesas',
+                        subtitle: 'Adicione automaticamente os nomes das viagens às descrições das despesas para viagens reservadas no Expensify.',
+                    },
                 },
                 travelInvoicing: {
-                    travelBookingSection: {
-                        title: 'Reserva de viagem',
-                        subtitle: 'Parabéns! Agora você está pronto para reservar e gerenciar viagens neste workspace.',
-                        manageTravelLabel: 'Gerenciar viagens',
-                    },
                     centralInvoicingSection: {
                         title: 'Faturamento centralizado',
                         subtitle: 'Centralize todos os gastos de viagem em uma fatura mensal em vez de pagar no momento da compra.',
@@ -6349,8 +6356,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 preventSelfApprovalsSubtitle: 'Impedir que membros do workspace aprovem seus próprios relatórios de despesas.',
                 autoApproveCompliantReportsTitle: 'Aprovar automaticamente relatórios em conformidade',
                 autoApproveCompliantReportsSubtitle: 'Configure quais relatórios de despesas são elegíveis para aprovação automática.',
-                autoApproveReportsUnderTitle: 'Aprovar automaticamente relatórios abaixo de',
-                autoApproveReportsUnderDescription: 'Relatórios de despesas totalmente conformes abaixo deste valor serão aprovados automaticamente.',
+                autoApproveReportsUnderTitle: 'Aprovar automaticamente relatórios com todas as despesas abaixo de',
+                autoApproveReportsUnderDescription: 'Relatórios de despesas totalmente conformes em que todas as despesas estejam abaixo deste valor serão aprovados automaticamente.',
                 randomReportAuditTitle: 'Auditoria aleatória de relatórios',
                 randomReportAuditDescription: 'Exigir que alguns relatórios sejam aprovados manualmente, mesmo que sejam elegíveis para aprovação automática.',
                 autoPayApprovedReportsTitle: 'Pagar automaticamente relatórios aprovados',
@@ -7218,6 +7225,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             selectAllMatchingItems: 'Selecione todos os itens correspondentes',
             allMatchingItemsSelected: 'Todos os itens correspondentes selecionados',
         },
+        spendOverTime: 'Gastos ao longo do tempo',
     },
     genericErrorPage: {
         title: 'Opa, algo deu errado!',
@@ -7498,8 +7506,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
     },
     cardTransactions: {
         notActivated: 'Não ativado',
-        outOfPocket: 'Reembolsável',
-        companySpend: 'Não reembolsável',
+        outOfPocket: 'Gasto presencial',
+        companySpend: 'Gastos da empresa',
     },
     distance: {
         addStop: 'Adicionar parada',

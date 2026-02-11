@@ -176,6 +176,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
 
     const {reportActions} = usePaginatedReportActions(report.reportID);
+    const [reportActionsForOriginalReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canBeMissing: true});
 
     const {removeTransaction} = useSearchContext();
 
@@ -440,7 +441,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         }
 
         if (isTrackExpenseReport && !isDeletedParentAction) {
-            const actionReportID = getOriginalReportID(report.reportID, parentReportAction);
+            const actionReportID = getOriginalReportID(report.reportID, parentReportAction, reportActionsForOriginalReportID);
             const whisperAction = getTrackExpenseActionableWhisper(iouTransactionID, moneyRequestReport?.reportID);
             const actionableWhisperReportActionID = whisperAction?.reportActionID;
             items.push({
@@ -622,6 +623,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         allTransactionDrafts,
         activePolicy,
         parentReport,
+        reportActionsForOriginalReportID,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {

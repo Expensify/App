@@ -209,7 +209,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     );
 
     const handleBackButtonPress = () => {
-        Navigation.popToSidebar();
+        Navigation.goBack();
         return true;
     };
 

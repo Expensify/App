@@ -46,7 +46,6 @@ import './libs/Notification/PushNotification/subscribeToPushNotifications';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 import './libs/registerPaginationConfig';
 import setCrashlyticsUserId from './libs/setCrashlyticsUserId';
-import StartupTimer from './libs/StartupTimer';
 import {endSpan, getSpan, startSpan} from './libs/telemetry/activeSpans';
 import {cleanupMemoryTrackingTelemetry, initializeMemoryTrackingTelemetry} from './libs/telemetry/TelemetrySynchronizer';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
@@ -127,6 +126,7 @@ function Expensify() {
     const {isOffline} = useNetwork();
     const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS, {canBeMissing: true});
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
 
     useDebugShortcut();
@@ -302,10 +302,6 @@ function Expensify() {
             }
         }, 30 * 1000);
 
-        // This timer is set in the native layer when launching the app and we stop it here so we can measure how long
-        // it took for the main app itself to load.
-        StartupTimer.stop();
-
         // Run any Onyx schema migrations and then continue loading the main app
         migrateOnyx().then(() => {
             // In case of a crash that led to disconnection, we want to remove all the push notifications.
@@ -348,7 +344,19 @@ function Expensify() {
                 if (conciergeReportID === undefined) {
                     Log.info('[Deep link] conciergeReportID is undefined when processing initial URL', false, {url});
                 }
-                openReportFromDeepLink(url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isAuthenticated, conciergeReportID);
+                if (introSelected === undefined) {
+                    Log.info('[Deep link] introSelected is undefined when processing initial URL', false, {url});
+                }
+                openReportFromDeepLink(
+                    url,
+                    currentOnboardingPurposeSelected,
+                    currentOnboardingCompanySize,
+                    onboardingInitialPath,
+                    allReports,
+                    isAuthenticated,
+                    introSelected,
+                    conciergeReportID,
+                );
             } else {
                 Report.doneCheckingPublicRoom();
             }
@@ -361,15 +369,27 @@ function Expensify() {
             if (conciergeReportID === undefined) {
                 Log.info('[Deep link] conciergeReportID is undefined when processing URL change', false, {url: state.url});
             }
+            if (introSelected === undefined) {
+                Log.info('[Deep link] introSelected is undefined when processing URL change', false, {url: state.url});
+            }
             const isCurrentlyAuthenticated = hasAuthToken();
-            openReportFromDeepLink(state.url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isCurrentlyAuthenticated, conciergeReportID);
+            openReportFromDeepLink(
+                state.url,
+                currentOnboardingPurposeSelected,
+                currentOnboardingCompanySize,
+                onboardingInitialPath,
+                allReports,
+                isCurrentlyAuthenticated,
+                introSelected,
+                conciergeReportID,
+            );
         });
 
         return () => {
             linkingChangeListener.current?.remove();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want this effect to re-run when conciergeReportID changes
-    }, [sessionMetadata?.status, conciergeReportID]);
+    }, [sessionMetadata?.status, conciergeReportID, introSelected]);
 
     useLayoutEffect(() => {
         if (!isNavigationReady || !lastRoute) {
