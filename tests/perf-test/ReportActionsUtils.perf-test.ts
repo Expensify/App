@@ -1,7 +1,15 @@
 import {getLastClosedReportAction} from '@selectors/ReportAction';
+import type {KeyValueMapping} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
-import {getLastVisibleAction, getLastVisibleMessage, getMostRecentIOURequestActionID, getSortedReportActionsForDisplay} from '@libs/ReportActionsUtils';
+import {
+    getLastVisibleAction,
+    getLastVisibleMessage,
+    getMostRecentIOURequestActionID,
+    getSortedReportActions,
+    getSortedReportActionsForDisplay,
+    shouldReportActionBeVisibleAsLastAction,
+} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
@@ -27,7 +35,11 @@ const getMockedReportActionsMap = (reportsLength = 10, actionsPerReportLength = 
     return Object.assign({}, ...reportKeysMap) as Partial<ReportAction>;
 };
 
-const mockedReportActionsMap: Partial<ReportAction> = getMockedReportActionsMap(2, 10000);
+const mockedReportActionsMap = getMockedReportActionsMap(2, 10000) as unknown as Record<string, ReportActions>;
+
+const lhnReportActionEntries: ReportActions[] = Object.values(mockedReportActionsMap);
+const lhnReportActionArrays: ReportAction[][] = lhnReportActionEntries.map((actions) => Object.values(actions));
+const lhnSortedReportActions: ReportAction[] = lhnReportActionArrays.flat();
 
 const reportActions = createCollection<ReportAction>(
     (item) => `${item.reportActionID}`,
@@ -45,7 +57,7 @@ describe('ReportActionsUtils', () => {
 
         Onyx.multiSet({
             ...mockedReportActionsMap,
-        });
+        } as unknown as KeyValueMapping);
     });
 
     afterAll(() => {
@@ -129,6 +141,26 @@ describe('ReportActionsUtils', () => {
 
         await waitForBatchedUpdates();
         await measureFunction(() => getLastVisibleMessage(reportId, true, actionsToMerge));
+    });
+
+    test('[ReportActionsUtils] getSortedReportActions across all reports', async () => {
+        await waitForBatchedUpdates();
+
+        await measureFunction(() => {
+            for (const actionsArray of lhnReportActionArrays) {
+                getSortedReportActions(actionsArray);
+            }
+        });
+    });
+
+    test('[ReportActionsUtils] shouldReportActionBeVisibleAsLastAction across all actions', async () => {
+        await waitForBatchedUpdates();
+        const canUserPerformWrite = true;
+        await measureFunction(() => {
+            for (const action of lhnSortedReportActions) {
+                shouldReportActionBeVisibleAsLastAction(action, canUserPerformWrite);
+            }
+        });
     });
 
     test('[ReportActionsUtils] getSortedReportActionsForDisplay on 10k ReportActions', async () => {
