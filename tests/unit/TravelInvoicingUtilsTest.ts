@@ -12,8 +12,8 @@ import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
 
 describe('TravelInvoicingUtils', () => {
     describe('PROGRAM_TRAVEL_US constant', () => {
-        it('Should be defined as TRAVEL_US', () => {
-            expect(CONST.TRAVEL.PROGRAM_TRAVEL_US).toBe('TRAVEL_US');
+        it('Should be defined as PROGRAM_TRAVEL_US', () => {
+            expect(CONST.TRAVEL.PROGRAM_TRAVEL_US).toBe('PROGRAM_TRAVEL_US');
         });
     });
 
@@ -112,9 +112,9 @@ describe('TravelInvoicingUtils', () => {
     });
 
     describe('getTravelSettlementFrequency', () => {
-        it('Should return daily when cardSettings is undefined', () => {
+        it('Should return monthly (default) when cardSettings is undefined', () => {
             const result = getTravelSettlementFrequency(undefined);
-            expect(result).toBe(CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY);
+            expect(result).toBe(CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY);
         });
 
         it('Should return daily when monthlySettlementDate is not set', () => {

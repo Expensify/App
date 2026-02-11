@@ -3,7 +3,7 @@ import type {GestureResponderEvent, InputModeOptions, StyleProp, TextStyle, View
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {ListItem, ValidListItem} from './ListItem/types';
-import type {SelectionListWithSectionsHandle} from './SelectionListWithSections/types';
+import type {SelectionListWithSectionsHandle, SelectionListWithSectionsProps} from './SelectionListWithSections/types';
 
 /**
  * Base props shared between SelectionList and SelectionListWithSections.
@@ -24,6 +24,9 @@ type BaseSelectionListProps<TItem extends ListItem> = {
 
     /** Custom content to display in the footer */
     footerContent?: React.ReactNode;
+
+    /** Custom content to display in the footer of list component */
+    listFooterContent?: React.JSX.Element | null | undefined;
 
     /** Whether to show the loading placeholder */
     showLoadingPlaceholder?: boolean;
@@ -96,6 +99,9 @@ type BaseSelectionListProps<TItem extends ListItem> = {
 
     /** Called when the list is scrolled and the user begins dragging */
     onScrollBeginDrag?: () => void;
+
+    /** Configuration for the confirm button */
+    confirmButtonOptions?: ConfirmButtonOptions<TItem>;
 };
 
 /**
@@ -117,9 +123,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> &
         /** Callback to fire when the item is long pressed */
         onLongPressRow?: (item: TItem) => void;
 
-        /** Configuration for the confirm button */
-        confirmButtonOptions?: ConfirmButtonOptions<TItem>;
-
         /** Custom header content to render instead of the default select all header */
         customListHeader?: React.ReactNode;
 
@@ -128,9 +131,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> &
 
         /** Custom component to render while data is loading */
         customLoadingPlaceholder?: React.JSX.Element;
-
-        /** Custom content to display in the footer of list component */
-        listFooterContent?: React.JSX.Element | null | undefined;
 
         /** Number of lines to show for alternate text */
         alternateNumberOfSupportedLines?: number;
@@ -196,6 +196,9 @@ type SelectionListStyle = {
 
     /** Styles for the title container of the list item */
     listItemTitleContainerStyles?: StyleProp<ViewStyle>;
+
+    /** Styles for the error row of the list item */
+    listItemErrorRowStyles?: StyleProp<ViewStyle>;
 
     /** Styles for the section titles */
     sectionTitleStyles?: StyleProp<TextStyle>;
@@ -315,4 +318,5 @@ export type {
     ButtonOrCheckBoxRoles,
     SelectionListStyle,
     SelectionListWithSectionsHandle,
+    SelectionListWithSectionsProps,
 };

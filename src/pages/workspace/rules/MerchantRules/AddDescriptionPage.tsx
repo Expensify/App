@@ -35,6 +35,7 @@ function AddDescriptionPage({route}: AddDescriptionPageProps) {
             characterLimit={CONST.DESCRIPTION_LIMIT}
             onSave={onSave}
             onBack={goBack}
+            isMarkdownEnabled
         />
     );
 }

@@ -49,6 +49,10 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
             bankAccountID: methodID ?? CONST.DEFAULT_NUMBER_ID,
             reimburserEmail: newReimburserEmail,
+            accountNumber: accountData?.accountNumber,
+            addressName: accountData?.addressName,
+            bankName: accountData?.additionalData?.bankName,
+            state: accountData?.state,
             lastPaymentMethod: lastPaymentMethod?.[policyID],
             shouldUpdateLastPaymentMethod: accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN,
         });

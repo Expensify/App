@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import Icon from './Icon';
@@ -15,15 +16,16 @@ import SkeletonViewContentLoader from './SkeletonViewContentLoader';
 type ReportHeaderSkeletonViewProps = {
     shouldAnimate?: boolean;
     onBackButtonPress?: () => void;
+    reasonAttributes?: SkeletonSpanReasonAttributes;
 };
 
-function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () => {}}: ReportHeaderSkeletonViewProps) {
+function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () => {}, reasonAttributes}: ReportHeaderSkeletonViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['BackArrow']);
-    useSkeletonSpan('ReportHeaderSkeletonView');
+    useSkeletonSpan('ReportHeaderSkeletonView', reasonAttributes);
     const height = styles.headerBarHeight.height;
     const radius = 20;
     const circleY = height / 2;
@@ -39,6 +41,7 @@ function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () 
                         style={[styles.touchableButtonImage]}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('common.back')}
+                        sentryLabel={CONST.SENTRY_LABEL.REPORT_HEADER_SKELETON.GO_BACK}
                     >
                         <Icon
                             fill={theme.icon}
