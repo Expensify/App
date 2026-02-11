@@ -9,7 +9,7 @@ import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import IOURequestStepAmountWithFullTransactionOrNotFound from '@pages/iou/request/step/IOURequestStepAmount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {Route} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type Transaction from '@src/types/onyx/Transaction';
 import createRandomPolicy from '../../utils/collections/policies';
 import {createRandomReport} from '../../utils/collections/reports';
