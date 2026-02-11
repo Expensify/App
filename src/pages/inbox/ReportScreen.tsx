@@ -87,6 +87,7 @@ import {
     isTaskReport,
     isValidReportIDFromPath,
 } from '@libs/ReportUtils';
+import DateUtils from '@libs/DateUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 import {isNumeric} from '@libs/ValidationUtils';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
@@ -310,6 +311,16 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     // wrapping in useMemo because this is array operation and can cause performance issues
     const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${linkedAction?.childReportID}`, {canBeMissing: true});
+
+    // Concierge side panel session state — shared between ReportActionsView and ReportFooter/ReportActionCompose
+    const isConciergeSidePanel = isInSidePanel && isConciergeChatReport(report, conciergeReportID);
+    const sessionStartTimestamp = useRef(DateUtils.getDBTime());
+    const hasUserSentMessage = useMemo(() => {
+        if (!isConciergeSidePanel) {
+            return false;
+        }
+        return reportActions.some((action) => !isCreatedAction(action) && action.created >= sessionStartTimestamp.current && action.actorAccountID === currentUserAccountID);
+    }, [isConciergeSidePanel, reportActions, currentUserAccountID]);
 
     const [isBannerVisible, setIsBannerVisible] = useState(true);
     const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
@@ -1093,7 +1104,8 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                                 parentReportAction={parentReportAction}
                                                 transactionThreadReportID={transactionThreadReportID}
                                                 isReportTransactionThread={isTransactionThreadView}
-                                                isInSidePanel={isInSidePanel}
+                                                isConciergeSidePanel={isConciergeSidePanel}
+                                                hasUserSentMessage={hasUserSentMessage}
                                             />
                                         ) : null}
                                         {!!report && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
@@ -1123,6 +1135,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                                 // If the report is from the 'Send Money' flow, we add the comment to the `iou` report because for these we don't combine reportActions even if there is a single transaction (they always have a single transaction)
                                                 transactionThreadReportID={isSentMoneyReport ? undefined : transactionThreadReportID}
                                                 isInSidePanel={isInSidePanel}
+                                                shouldHideConciergeIndicators={isConciergeSidePanel && !hasUserSentMessage}
                                             />
                                         ) : null}
                                     </View>

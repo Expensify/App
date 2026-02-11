@@ -116,7 +116,8 @@ const renderReportActionsView = (
         transactionThreadReportID?: string | null;
         hasNewerActions: boolean;
         hasOlderActions: boolean;
-        isInSidePanel?: boolean;
+        isConciergeSidePanel?: boolean;
+        hasUserSentMessage?: boolean;
     }> = {},
 ) => {
     const defaultProps = {
@@ -358,7 +359,8 @@ describe('ReportActionsView', () => {
             renderReportActionsView({
                 report: {...mockReport, reportID: CONCIERGE_REPORT_ID},
                 reportActions: oldReportActions,
-                isInSidePanel: true,
+                isConciergeSidePanel: true,
+                hasUserSentMessage: false,
             });
 
             expect(mockConciergeSidePanelWelcome).toHaveBeenCalled();
@@ -371,7 +373,7 @@ describe('ReportActionsView', () => {
             renderReportActionsView({
                 report: {...mockReport, reportID: CONCIERGE_REPORT_ID},
                 reportActions: oldReportActions,
-                isInSidePanel: false,
+                isConciergeSidePanel: false,
             });
 
             expect(mockConciergeSidePanelWelcome).not.toHaveBeenCalled();
@@ -383,7 +385,7 @@ describe('ReportActionsView', () => {
             renderReportActionsView({
                 report: {...mockReport, reportID: 'non-concierge-999'},
                 reportActions: oldReportActions,
-                isInSidePanel: true,
+                isConciergeSidePanel: false,
             });
 
             expect(mockConciergeSidePanelWelcome).not.toHaveBeenCalled();
@@ -413,7 +415,8 @@ describe('ReportActionsView', () => {
             renderReportActionsView({
                 report: {...mockReport, reportID: CONCIERGE_REPORT_ID},
                 reportActions: actionsWithNewMessage,
-                isInSidePanel: true,
+                isConciergeSidePanel: true,
+                hasUserSentMessage: true,
             });
 
             // Welcome should not be shown since user has sent a message

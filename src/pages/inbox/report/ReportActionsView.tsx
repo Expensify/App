@@ -5,7 +5,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import ConciergeSidePanelWelcome from '@components/ConciergeSidePanelWelcome';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -33,7 +32,7 @@ import {
     isMoneyRequestAction,
     shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
-import {buildOptimisticCreatedReportAction, buildOptimisticIOUReportAction, canUserPerformWriteAction, isConciergeChatReport, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
+import {buildOptimisticCreatedReportAction, buildOptimisticIOUReportAction, canUserPerformWriteAction, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -69,8 +68,11 @@ type ReportActionsViewProps = {
     /** If the report is a transaction thread report */
     isReportTransactionThread?: boolean;
 
-    /** Whether the report screen is being displayed in the side panel */
-    isInSidePanel?: boolean;
+    /** Whether this is the concierge chat report displayed in the side panel */
+    isConciergeSidePanel?: boolean;
+
+    /** Whether the current user has sent a message in this side panel session */
+    hasUserSentMessage?: boolean;
 };
 
 let listOldID = Math.round(Math.random() * 100);
@@ -84,16 +86,14 @@ function ReportActionsView({
     hasNewerActions,
     hasOlderActions,
     isReportTransactionThread,
-    isInSidePanel = false,
+    isConciergeSidePanel = false,
+    hasUserSentMessage = false,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const isReportArchived = useReportIsArchived(report?.reportID);
     const canPerformWriteAction = useMemo(() => canUserPerformWriteAction(report, isReportArchived), [report, isReportArchived]);
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
 
-    const isConciergeSidePanel = isInSidePanel && isConciergeChatReport(report, conciergeReportID);
     const sessionStartTimestamp = useRef(DateUtils.getDBTime());
     const [showFullHistory, setShowFullHistory] = useState(false);
 
@@ -238,13 +238,6 @@ function ReportActionsView({
             ),
         [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs],
     );
-
-    const hasUserSentMessage = useMemo(() => {
-        if (!isConciergeSidePanel) {
-            return false;
-        }
-        return visibleReportActions.some((action) => !isCreatedAction(action) && action.created >= sessionStartTimestamp.current && action.actorAccountID === currentUserAccountID);
-    }, [isConciergeSidePanel, visibleReportActions, currentUserAccountID]);
 
     const hasPreviousMessages = useMemo(() => {
         if (!isConciergeSidePanel) {

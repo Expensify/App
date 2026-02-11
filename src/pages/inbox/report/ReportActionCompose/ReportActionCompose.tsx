@@ -117,6 +117,9 @@ type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 
 
     /** Whether the report screen is being displayed in the side panel */
     isInSidePanel?: boolean;
+
+    /** Whether to hide concierge status indicators (agent zero / typing) in the side panel */
+    shouldHideConciergeIndicators?: boolean;
 };
 
 // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
@@ -141,6 +144,7 @@ function ReportActionCompose({
     reportTransactions,
     transactionThreadReportID,
     isInSidePanel = false,
+    shouldHideConciergeIndicators = false,
 }: ReportActionComposeProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -650,11 +654,13 @@ function ReportActionCompose({
                         ]}
                     >
                         {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
-                        <AgentZeroProcessingRequestIndicator
-                            reportID={reportID}
-                            label={agentZeroDisplayLabel}
-                        />
-                        <ReportTypingIndicator reportID={reportID} />
+                        {!shouldHideConciergeIndicators && (
+                            <AgentZeroProcessingRequestIndicator
+                                reportID={reportID}
+                                label={agentZeroDisplayLabel}
+                            />
+                        )}
+                        {!shouldHideConciergeIndicators && <ReportTypingIndicator reportID={reportID} />}
                         {!!exceededMaxLength && (
                             <ExceededCommentLength
                                 maxCommentLength={exceededMaxLength}
