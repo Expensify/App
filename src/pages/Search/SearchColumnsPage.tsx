@@ -263,9 +263,11 @@ function SearchColumnsPage() {
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
         >
-            <HeaderWithBackButton title={translate('search.columns')}>
-                {!isDefaultState && <TextLink onPress={resetColumns}>{translate('search.resetColumns')}</TextLink>}
-            </HeaderWithBackButton>
+            <View onFocus={deactivateListKeyboard}>
+                <HeaderWithBackButton title={translate('search.columns')}>
+                    {!isDefaultState && <TextLink onPress={resetColumns}>{translate('search.resetColumns')}</TextLink>}
+                </HeaderWithBackButton>
+            </View>
             <View style={styles.flex1}>
                 <ScrollView
                     style={styles.flex1}
