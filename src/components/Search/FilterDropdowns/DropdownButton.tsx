@@ -172,7 +172,6 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medi
                 // such as date years
                 shouldCloseWhenBrowserNavigationChanged={false}
                 innerContainerStyle={containerStyles}
-                shouldDisplayBelowModals
                 popoverDimensions={{
                     width: actualPopoverWidth,
                     height: CONST.POPOVER_DROPDOWN_MIN_HEIGHT,
