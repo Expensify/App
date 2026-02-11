@@ -3,12 +3,8 @@ import type {OnyxCollection} from 'react-native-onyx';
 import type {ReportsToDisplayInLHN} from '@hooks/useSidebarOrderedReports';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, Report, ReportActions, ReportAttributesDerivedValue, ReportMetadata, ReportNameValuePairs} from '@src/types/onyx';
-import type Policy from '@src/types/onyx/Policy';
+import type {Report, ReportAttributesDerivedValue, ReportNameValuePairs} from '@src/types/onyx';
 import createCollection from './createCollection';
-import createPersonalDetails from './personalDetails';
-import createRandomPolicy from './policies';
-import createRandomReportAction from './reportActions';
 import {createRandomReport} from './reports';
 
 /**
@@ -134,74 +130,4 @@ function createSidebarTestData(): {
     };
 }
 
-const LHN_ACTIONS_PER_REPORT = 50;
-
-function createSidebarReportActions(reportID: string, count: number): ReportActions {
-    const actions: ReportActions = {};
-    for (let i = 0; i < count; i++) {
-        actions[`${reportID}_${i}`] = createRandomReportAction(i);
-    }
-    return actions;
-}
-
-function createSidebarReportsWithActions(count: number): {
-    reports: OnyxCollection<Report>;
-    reportActions: OnyxCollection<ReportActions>;
-    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
-    policies: OnyxCollection<Policy>;
-    personalDetails: OnyxCollection<PersonalDetails>;
-    reportMetadata: OnyxCollection<ReportMetadata>;
-} {
-    const reports: OnyxCollection<Report> = {};
-    const reportActions: OnyxCollection<ReportActions> = {};
-    const reportNameValuePairs: OnyxCollection<ReportNameValuePairs> = {};
-    const policies: OnyxCollection<Policy> = {};
-    const personalDetails: OnyxCollection<PersonalDetails> = {};
-    const reportMetadata: OnyxCollection<ReportMetadata> = {};
-
-    const basePolicy = createRandomPolicy(1);
-    policies[`${ONYXKEYS.COLLECTION.POLICY}${basePolicy.id}`] = basePolicy;
-
-    for (let i = 1; i <= count; i++) {
-        const reportID = String(i);
-        const report = createRandomReport(i, undefined);
-
-        const isArchived = i % 10 === 0;
-        const reportTypeMod = i % 4;
-        let reportType: Report['type'] = CONST.REPORT.TYPE.CHAT;
-        if (reportTypeMod === 0) {
-            reportType = CONST.REPORT.TYPE.IOU;
-        } else if (reportTypeMod === 1) {
-            reportType = CONST.REPORT.TYPE.EXPENSE;
-        }
-
-        reports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = {
-            ...report,
-            type: reportType,
-        };
-        reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] = createSidebarReportActions(reportID, LHN_ACTIONS_PER_REPORT);
-        reportNameValuePairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`] = {
-            private_isArchived: isArchived ? 'true' : 'false',
-        };
-
-        const lastActorAccountID = report.lastActorAccountID ?? i;
-        personalDetails[String(lastActorAccountID)] = createPersonalDetails(lastActorAccountID);
-
-        if (i % 5 === 0) {
-            reportMetadata[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`] = {
-                lastVisitTime: new Date().toISOString(),
-            };
-        }
-    }
-
-    return {
-        reports,
-        reportActions,
-        reportNameValuePairs,
-        policies,
-        personalDetails,
-        reportMetadata,
-    };
-}
-
-export {createSidebarReport, createSidebarReportsCollection, createSidebarTestData, createSidebarReportsWithActions};
+export {createSidebarReport, createSidebarReportsCollection, createSidebarTestData};
