@@ -1,4 +1,5 @@
 import type {WithImplicitCoercion} from 'buffer';
+import {Buffer} from 'buffer';
 
 /**
  * Base64URL-encoded representation of a value used in WebAuthn-like flows.

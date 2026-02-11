@@ -55,7 +55,7 @@ const useSearchTypeMenuSections = () => {
 
     const {defaultCardFeed, cardFeedsByPolicy} = useCardFeedsForDisplay();
 
-    const icons = useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']);
+    const icons = useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']);
     const {isOffline} = useNetwork();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: true});
     const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: currentUserLoginAndAccountIDSelector, canBeMissing: false});
@@ -94,9 +94,7 @@ const useSearchTypeMenuSections = () => {
     }, [pendingReportCreation, openCreateReportConfirmation]);
 
     const isSuggestedSearchDataReady = useMemo(() => {
-        const policiesList = Object.values(allPolicies ?? {}).filter((policy): policy is NonNullable<typeof policy> => policy !== null && policy !== undefined);
-
-        return policiesList.some((policy) => policy.employeeList !== undefined && policy.exporter !== undefined);
+        return Object.values(allPolicies ?? {}).some((policy) => policy?.id !== undefined && policy?.employeeList !== undefined && policy?.exporter !== undefined);
     }, [allPolicies]);
 
     const typeMenuSections = useMemo(

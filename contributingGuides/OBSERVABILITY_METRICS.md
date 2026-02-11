@@ -163,4 +163,16 @@ This document lists all implemented telemetry metrics in the Expensify App.
 ### Create Expense Flow
 
 **Goal**: Monitor end-to-end flow for critical expense creation features (manual entry, scan, distance).
-**Status**: Metrics TBD
+**Status**: The dashboard to observe this feature can be found [here](https://expensify.sentry.io/dashboard/259520/?environment=production&statsPeriod=7d).
+**What's Measured**:
+
+We measure time from initiating an action to render of next screen for these actions:
+- Open create an expense flow
+- Switch tabs (manual / scan)
+- "Next step" actions
+    - Change amount
+    - Change category
+    - Change date
+    - Change merchant
+    - Confirmation screen
+- Submit expense (redirect to report)

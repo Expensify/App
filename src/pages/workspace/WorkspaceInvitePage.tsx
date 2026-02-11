@@ -1,12 +1,10 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import type {SectionListData} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-// eslint-disable-next-line no-restricted-imports
-import SelectionList from '@components/SelectionListWithSections';
-import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
-import type {Section} from '@components/SelectionListWithSections/types';
+import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
+import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
 import useLocalize from '@hooks/useLocalize';
@@ -38,8 +36,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
-
-type Sections = SectionListData<OptionData, Section<OptionData>>;
 
 type WorkspaceInvitePageProps = WithPolicyAndFullscreenLoadingProps &
     WithNavigationTransitionEndProps &
@@ -123,8 +119,8 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         initialSelected: initiallySelectedOptions,
     });
 
-    const sections: Sections[] = useMemo(() => {
-        const sectionsArr: Sections[] = [];
+    const sections: Array<Section<OptionData>> = useMemo(() => {
+        const sectionsArr = [];
 
         if (!areOptionsInitialized) {
             return [];
@@ -135,6 +131,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             sectionsArr.push({
                 title: undefined,
                 data: selectedOptionsForDisplay,
+                sectionIndex: 0,
             });
         }
 
@@ -143,6 +140,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             sectionsArr.push({
                 title: translate('common.contacts'),
                 data: availableOptions.personalDetails,
+                sectionIndex: 1,
             });
         }
 
@@ -151,6 +149,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             sectionsArr.push({
                 title: undefined,
                 data: [availableOptions.userToInvite],
+                sectionIndex: 2,
             });
         }
 
@@ -239,6 +238,16 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         searchInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
+    const textInputOptions = useMemo(
+        () => ({
+            label: translate('selectionList.nameEmailOrPhoneNumber'),
+            value: searchTerm,
+            onChangeText: setSearchTerm,
+            headerMessage,
+        }),
+        [searchTerm, setSearchTerm, headerMessage, translate],
+    );
+
     return (
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
@@ -260,25 +269,23 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                         Navigation.goBack(route.params.backTo);
                     }}
                 />
-                <SelectionList
+                <SelectionListWithSections
                     canSelectMultiple
                     sections={sections}
                     ListItem={InviteMemberListItem}
-                    textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-                    textInputValue={searchTerm}
-                    onChangeText={(value) => {
-                        setSearchTerm(value);
-                    }}
-                    headerMessage={headerMessage}
                     onSelectRow={handleToggleSelection}
-                    onConfirm={inviteUser}
-                    showScrollIndicator
+                    shouldShowTextInput
+                    textInputOptions={textInputOptions}
+                    confirmButtonOptions={{
+                        onConfirm: inviteUser,
+                    }}
                     showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     footerContent={footerContent}
                     isLoadingNewOptions={!!isSearchingForReports}
                     addBottomSafeAreaPadding
                     onEndReached={onListEndReached}
+                    disableMaintainingScrollPosition
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

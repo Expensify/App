@@ -2,7 +2,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {MoneyRequestStepScanParticipantsFlowParams} from '@libs/actions/IOU/MoneyRequest';
 import {createTransaction, handleMoneyRequestStepDistanceNavigation, handleMoneyRequestStepScanParticipants} from '@libs/actions/IOU/MoneyRequest';
-import {startSplitBill} from '@libs/actions/IOU/Split';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import Navigation from '@libs/Navigation/Navigation';
@@ -13,9 +12,10 @@ import ROUTES from '@src/ROUTES';
 import type {QuickAction} from '@src/types/onyx';
 import type {SplitShares} from '@src/types/onyx/Transaction';
 import * as IOU from '../../../src/libs/actions/IOU';
+import * as Split from '../../../src/libs/actions/IOU/Split';
 import * as ReportUtils from '../../../src/libs/ReportUtils';
 import createRandomPolicy from '../../utils/collections/policies';
-import {createRandomReport} from '../../utils/collections/reports';
+import {createRandomReport, createSelfDM} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -26,15 +26,16 @@ jest.mock('@libs/actions/IOU', () => {
         ...actualNav,
         requestMoney: jest.fn(),
         trackExpense: jest.fn(),
-        startSplitBill: jest.fn(),
         createDistanceRequest: jest.fn(),
-        resetSplitShares: jest.fn(),
     };
 });
 
 jest.mock('@libs/actions/IOU/Split', () => {
+    const actualSplit = jest.requireActual<typeof Split>('@libs/actions/IOU/Split');
     return {
+        ...actualSplit,
         startSplitBill: jest.fn(),
+        resetSplitShares: jest.fn(),
     };
 });
 
@@ -76,6 +77,8 @@ describe('MoneyRequest', () => {
             targetAccountID: 789,
         };
 
+        const selfDMReport = createSelfDM(Number(SELF_DM_REPORT_ID), TEST_USER_ACCOUNT_ID);
+
         const baseParams = {
             transactions: [fakeTransaction],
             iouType: CONST.IOU.TYPE.REQUEST,
@@ -88,6 +91,7 @@ describe('MoneyRequest', () => {
             files: [fakeReceiptFile],
             participant: {accountID: 222, login: 'test@test.com'},
             quickAction: fakeQuickAction,
+            selfDMReport,
             isSelfTourViewed: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
@@ -264,6 +268,8 @@ describe('MoneyRequest', () => {
         const backTo = ROUTES.REPORT_WITH_ID.getRoute('123');
         const managerMcTestAccountID = 444;
 
+        const selfDMReport = createSelfDM(Number(SELF_DM_REPORT_ID), TEST_USER_ACCOUNT_ID);
+
         const baseParams: MoneyRequestStepScanParticipantsFlowParams = {
             iouType: CONST.IOU.TYPE.CREATE,
             policy: fakePolicy,
@@ -294,6 +300,7 @@ describe('MoneyRequest', () => {
             quickAction: fakeQuickAction,
             files: [fakeReceiptFile],
             shouldGenerateTransactionThreadReport: false,
+            selfDMReport,
             isSelfTourViewed: false,
             betas: [],
         };
@@ -372,7 +379,7 @@ describe('MoneyRequest', () => {
 
             await waitForBatchedUpdates();
 
-            expect(startSplitBill).toHaveBeenCalledWith(
+            expect(Split.startSplitBill).toHaveBeenCalledWith(
                 expect.objectContaining({
                     participants: [
                         expect.objectContaining({
@@ -647,7 +654,7 @@ describe('MoneyRequest', () => {
             );
         });
 
-        it('should set participants and navigate to confirmation page when from global create menu', async () => {
+        it('should track expense when coming from global create menu and auto reporting is disabled', async () => {
             const defaultExpensePolicy = {
                 ...fakePolicy,
                 autoReporting: false,
@@ -668,15 +675,15 @@ describe('MoneyRequest', () => {
                 participants: [
                     {
                         accountID: 0,
-                        isPolicyExpenseChat: true,
-                        reportID: fakeReport.reportID,
+                        isPolicyExpenseChat: false,
+                        reportID: selfDMReport.reportID,
                         selected: true,
                     },
                 ],
             });
 
             expect(Navigation.navigate).toHaveBeenCalledWith(
-                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, baseParams.initialTransaction.transactionID, '1'),
+                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.TRACK, baseParams.initialTransaction.transactionID, selfDMReport.reportID),
             );
         });
 
@@ -702,6 +709,8 @@ describe('MoneyRequest', () => {
         const firstSplitParticipantID = '100';
         const secondSplitParticipantID = '101';
 
+        const selfDMReport = createSelfDM(Number(SELF_DM_REPORT_ID), TEST_USER_ACCOUNT_ID);
+
         const baseParams = {
             iouType: CONST.IOU.TYPE.CREATE,
             report: fakeReport,
@@ -726,6 +735,7 @@ describe('MoneyRequest', () => {
             setDistanceRequestData: jest.fn(),
             translate: jest.fn().mockReturnValue('Pending...'),
             quickAction: fakeQuickAction,
+            selfDMReport,
             betas: [CONST.BETAS.ALL],
         };
         const splitShares: SplitShares = {
@@ -777,7 +787,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.TRACK,
             });
 
-            expect(IOU.resetSplitShares).toHaveBeenCalledWith(splitTransaction);
+            expect(Split.resetSplitShares).toHaveBeenCalledWith(splitTransaction);
         });
 
         it('call trackExpense for TRACK iouType when from manual distance step and skipping confirmation', async () => {
@@ -788,7 +798,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.TRACK,
             });
 
-            expect(IOU.resetSplitShares).not.toHaveBeenCalled();
+            expect(Split.resetSplitShares).not.toHaveBeenCalled();
 
             const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
@@ -845,7 +855,7 @@ describe('MoneyRequest', () => {
 
             await waitForBatchedUpdates();
 
-            expect(IOU.resetSplitShares).not.toHaveBeenCalled();
+            expect(Split.resetSplitShares).not.toHaveBeenCalled();
 
             const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${baseParams.transactionID}`);
             const updatedDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${baseParams.transactionID}`);

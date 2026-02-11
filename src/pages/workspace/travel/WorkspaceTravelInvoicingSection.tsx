@@ -1,18 +1,14 @@
 import React from 'react';
 import {View} from 'react-native';
 import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
-import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
-import {openExternalLink} from '@libs/actions/Link';
-import {clearTravelInvoicingSettlementAccountErrors, setTravelInvoicingSettlementAccount} from '@libs/actions/TravelInvoicing';
+import {clearTravelInvoicingSettlementAccountErrors, clearTravelInvoicingSettlementFrequencyErrors, setTravelInvoicingSettlementAccount} from '@libs/actions/TravelInvoicing';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import {getEligibleBankAccountsForCard} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -47,8 +43,6 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const {isExecuting, singleExecution} = useSingleExecution();
-    const icons = useMemoizedLazyExpensifyIcons(['LuggageWithLines', 'NewWindow']);
 
     // For Travel Invoicing, we use a travel-specific card settings key
     // The format is: private_expensifyCardSettings_{workspaceAccountID}_{feedType}
@@ -76,7 +70,13 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     // Settlement account display - show empty if no account is selected
     const settlementAccountNumber = hasSettlementAccount && settlementAccount?.last4 ? `${CONST.MASKED_PAN_PREFIX}${getLastFourDigits(settlementAccount?.last4 ?? '')}` : '';
     // Get any errors from the settlement account update
-    const hasSettlementAccountError = Object.keys(cardSettings?.errors ?? {}).length > 0;
+    // Get errors for specific fields
+    const settlementAccountErrorKey = 'paymentBankAccountID';
+    const settlementFrequencyErrorKey = 'monthlySettlementDate';
+    const hasSettlementAccountError = !!cardSettings?.errorFields?.[settlementAccountErrorKey];
+    const hasSettlementFrequencyError = !!cardSettings?.errorFields?.[settlementFrequencyErrorKey];
+    const settlementAccountErrors = hasSettlementAccountError ? cardSettings?.errorFields?.[settlementAccountErrorKey] : null;
+    const settlementFrequencyErrors = hasSettlementFrequencyError ? cardSettings?.errorFields?.[settlementFrequencyErrorKey] : null;
 
     // Bank account eligibility for toggle handler
     const isSetupUnfinished = hasInProgressUSDVBBA(reimbursementAccount?.achData);
@@ -164,8 +164,8 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                         // brickRoadIndicator={hasDelayedSubmissionError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     />
                     <OfflineWithFeedback
-                        errors={cardSettings?.errors}
-                        pendingAction={cardSettings?.pendingAction}
+                        errors={settlementAccountErrors}
+                        pendingAction={cardSettings?.pendingFields?.paymentBankAccountID}
                         onClose={() => clearTravelInvoicingSettlementAccountErrors(workspaceAccountID, cardSettings?.previousPaymentBankAccountID ?? null)}
                         errorRowStyles={styles.mh2half}
                         errorRowTextStyles={styles.mr3}
@@ -181,16 +181,24 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                             brickRoadIndicator={hasSettlementAccountError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         />
                     </OfflineWithFeedback>
-                    <MenuItemWithTopDescription
-                        description={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.settlementFrequencyLabel')}
-                        title={localizedFrequency}
-                        onPress={() => {}}
-                        wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                        titleStyle={styles.textNormalThemeText}
-                        descriptionTextStyle={styles.textLabelSupportingNormal}
-                        shouldShowRightIcon
-                        // brickRoadIndicator={hasDelayedSubmissionError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    />
+                    <OfflineWithFeedback
+                        errors={settlementFrequencyErrors}
+                        pendingAction={cardSettings?.pendingFields?.monthlySettlementDate}
+                        onClose={() => clearTravelInvoicingSettlementFrequencyErrors(workspaceAccountID, cardSettings?.previousMonthlySettlementDate)}
+                        errorRowStyles={styles.mh2half}
+                        errorRowTextStyles={styles.mr3}
+                    >
+                        <MenuItemWithTopDescription
+                            description={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.settlementFrequencyLabel')}
+                            title={localizedFrequency}
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_FREQUENCY.getRoute(policyID))}
+                            wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                            titleStyle={styles.textNormalThemeText}
+                            descriptionTextStyle={styles.textLabelSupportingNormal}
+                            shouldShowRightIcon
+                            brickRoadIndicator={hasSettlementFrequencyError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        />
+                    </OfflineWithFeedback>
                 </>
             ),
         },
@@ -217,28 +225,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
         </Section>
     );
 
-    return (
-        <>
-            <Section
-                title={translate('workspace.moreFeatures.travel.travelInvoicing.travelBookingSection.title')}
-                subtitle={translate('workspace.moreFeatures.travel.travelInvoicing.travelBookingSection.subtitle')}
-                subtitleStyles={styles.mb6}
-                isCentralPane
-                subtitleMuted
-            >
-                <MenuItem
-                    title={translate('workspace.moreFeatures.travel.travelInvoicing.travelBookingSection.manageTravelLabel')}
-                    onPress={singleExecution(() => openExternalLink(CONST.FOOTER.TRAVEL_URL))}
-                    disabled={isExecuting}
-                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                    iconRight={icons.NewWindow}
-                    icon={icons.LuggageWithLines}
-                    shouldShowRightIcon
-                />
-            </Section>
-            {optionItems.map(renderOptionItem)}
-        </>
-    );
+    return <>{optionItems.map(renderOptionItem)}</>;
 }
 
 export default WorkspaceTravelInvoicingSection;

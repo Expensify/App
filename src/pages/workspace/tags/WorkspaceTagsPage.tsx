@@ -762,7 +762,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                 return;
                             }
 
-                            Navigation.popToSidebar();
+                            Navigation.goBack();
                         }}
                     >
                         {!shouldUseNarrowLayout && getHeaderButtons()}
