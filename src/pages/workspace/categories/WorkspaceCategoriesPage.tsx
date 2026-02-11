@@ -20,7 +20,6 @@ import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
-import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurnSelectionModeOffWhenHasNoActiveOption';
@@ -704,7 +703,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 {!hasVisibleCategories && !isLoading && inputValue.length === 0 && (
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                         <EmptyStateComponent
-                            SkeletonComponent={TableListItemSkeleton}
                             headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
                             headerMedia={LottieAnimations.GenericEmptyState}
                             title={translate('workspace.categories.emptyCategories.title')}

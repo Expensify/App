@@ -3,12 +3,9 @@ import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
-import type SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
-import type TableRowSkeleton from '@components/Skeletons/TableRowSkeleton';
 import type CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-type ValidSkeletons = typeof SearchRowSkeleton | typeof TableRowSkeleton;
 type MediaTypes = ValueOf<typeof CONST.EMPTY_STATE_MEDIA>;
 type HeaderMedia = string | IconAsset | DotLottieAnimation;
 type EmptyStateButton = {
@@ -26,7 +23,6 @@ type EmptyStateButton = {
 };
 
 type SharedProps<TMediaType> = {
-    SkeletonComponent?: ValidSkeletons;
     title: string;
     titleStyles?: StyleProp<TextStyle>;
     subtitle?: string;

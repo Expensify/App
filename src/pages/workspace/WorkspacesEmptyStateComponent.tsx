@@ -1,6 +1,5 @@
 import React from 'react';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
-import WorkspaceRowSkeleton from '@components/Skeletons/WorkspaceRowSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -22,7 +21,6 @@ function WorkspacesEmptyStateComponent() {
         <GenericEmptyStateComponent
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...illustration}
-            SkeletonComponent={WorkspaceRowSkeleton}
             title={translate('workspace.emptyWorkspace.title')}
             subtitle={translate('workspace.emptyWorkspace.subtitle')}
             titleStyles={styles.pt2}

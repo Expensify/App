@@ -5268,15 +5268,6 @@ const staticStyles = (theme: ThemeColors) =>
             textDecorationLine: 'line-through',
         },
 
-        skeletonBackground: {
-            flex: 1,
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-        },
-
         emptyStateForeground: {
             margin: 32,
             justifyContent: 'center',
@@ -5288,17 +5279,6 @@ const staticStyles = (theme: ThemeColors) =>
             maxWidth: 400,
             width: '100%',
         },
-
-        emptyFolderBG: {
-            backgroundColor: theme.emptyFolderBG,
-        },
-
-        emptyFolderDarkBG: {
-            backgroundColor: '#782c04',
-            height: 220,
-        },
-
-        emptyStateVideo: {},
 
         emptyStateFolderWithPaperIconSize: {
             width: 160,

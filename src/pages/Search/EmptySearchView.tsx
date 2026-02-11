@@ -17,7 +17,6 @@ import PressableWithSecondaryInteraction from '@components/PressableWithSecondar
 import ScrollView from '@components/ScrollView';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
-import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -526,7 +525,6 @@ function EmptySearchViewContent({
                 contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
             >
                 <GenericEmptyStateComponent
-                    SkeletonComponent={SearchRowSkeleton}
                     headerMediaType={content.headerMediaType}
                     headerMedia={content.headerMedia}
                     headerStyles={[styles.emptyStateCardIllustrationContainer, styles.overflowHidden, content.headerStyles]}

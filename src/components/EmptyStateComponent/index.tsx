@@ -55,7 +55,7 @@ function EmptyStateComponent({
                 return (
                     <VideoPlayer
                         url={headerMedia}
-                        videoPlayerStyle={[headerContentStyles, styles.emptyStateVideo, {aspectRatio: videoAspectRatio}]}
+                        videoPlayerStyle={[headerContentStyles, {aspectRatio: videoAspectRatio}]}
                         onSourceLoaded={setAspectRatio}
                         controlsStatus={CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW}
                         shouldUseControlsBottomMargin={false}
@@ -83,7 +83,7 @@ function EmptyStateComponent({
             default:
                 return null;
         }
-    }, [headerMedia, headerMediaType, headerContentStyles, videoAspectRatio, styles.emptyStateVideo, lottieWebViewStyles]);
+    }, [headerMedia, headerMediaType, headerContentStyles, videoAspectRatio, lottieWebViewStyles]);
 
     return (
         <View style={[{minHeight: minModalHeight}, styles.flexGrow1, styles.flexShrink0, containerStyles]}>

@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
 import ScrollView from '@components/ScrollView';
-import CardRowSkeleton from '@components/Skeletons/CardRowSkeleton';
 import Text from '@components/Text';
 import useEmptyViewHeaderHeight from '@hooks/useEmptyViewHeaderHeight';
 import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
@@ -41,7 +40,6 @@ function EmptyCardView({isBankAccountVerified, policyID, buttons}: EmptyCardView
         >
             <View style={[{minHeight: windowHeight - headerHeight}, styles.pt5]}>
                 <EmptyStateComponent
-                    SkeletonComponent={CardRowSkeleton}
                     headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
                     headerMedia={isBankAccountVerified ? lazyIllustrations.EmptyCardState : lazyIllustrations.CompanyCardsPendingState}
                     headerStyles={

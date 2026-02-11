@@ -16,7 +16,6 @@ import SearchBar from '@components/SearchBar';
 import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
-import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -483,7 +482,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                 {!hasVisibleSubRates && !isLoading && (
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                         <EmptyStateComponent
-                            SkeletonComponent={TableListItemSkeleton}
                             headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
                             headerMedia={LottieAnimations.GenericEmptyState}
                             title={translate('workspace.perDiem.emptyList.title')}
