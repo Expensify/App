@@ -5,7 +5,7 @@ const BLOCK_BOUNDARY_AFTER = '(?:$|<br\\s*\\/?>|<(?:div|p|blockquote|comment|h[1
 const EMOJI_ON_SEPARATE_LINE_PATTERN = new RegExp(`(${BLOCK_BOUNDARY_BEFORE})(\\s*)(<emoji\\b)([^>]*>[^<]*</emoji>)(\\s*)(?=${BLOCK_BOUNDARY_AFTER})`, 'gi');
 
 /**
- * Hydrates raw <emoji> tags in HTML by adding ismedium and oneline attributes.
+ * Hydrates raw <emoji> tags in HTML by adding ismedium and oneline attributes (iOS-only).
  * - Adds ismedium to every <emoji> opening tag for consistent rendering.
  * - Adds oneline to emoji tags that appear on their own line (between block boundaries).
  *
