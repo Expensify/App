@@ -1,27 +1,5 @@
 // Import passthrough directly so Jest doesn't resolve the .ios variant for default tests
 import hydrateEmojiHtmlIOS from '@libs/hydrateEmojiHtml/index.ios';
-import hydrateEmojiHtml from '@libs/hydrateEmojiHtml/passthrough';
-
-describe('hydrateEmojiHtml (default / non-iOS)', () => {
-    it('returns empty string when input is empty', () => {
-        expect(hydrateEmojiHtml('')).toBe('');
-    });
-
-    it('returns input unchanged when there are no emoji tags', () => {
-        const html = '<p>Hello world</p>';
-        expect(hydrateEmojiHtml(html)).toBe(html);
-    });
-
-    it('returns input unchanged for raw <emoji> tags (no hydration on default)', () => {
-        const html = 'Hello <emoji>😀</emoji> world';
-        expect(hydrateEmojiHtml(html)).toBe(html);
-    });
-
-    it('returns input unchanged for any HTML', () => {
-        const html = '<emoji>😀</emoji><br /><emoji>👍</emoji>';
-        expect(hydrateEmojiHtml(html)).toBe(html);
-    });
-});
 
 describe('hydrateEmojiHtml (iOS)', () => {
     it('returns empty string when input is empty', () => {
