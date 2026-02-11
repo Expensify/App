@@ -20,7 +20,7 @@ import type {SearchDateModifier, SearchDateModifierLower} from '@libs/SearchUIUt
 import CONST from '@src/CONST';
 
 /** Width of the popover when Range is selected (enough for two side-by-side calendars) */
-const RANGE_POPOVER_WIDTH = 660;
+const RANGE_POPOVER_WIDTH = 672;
 
 type DateSelectPopupProps = {
     /** The label to show when in an overlay on mobile */
@@ -151,7 +151,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
 
     const maxPopupHeight = Math.round(windowHeight * 0.85);
 
-    const buttonStyle = isSmallScreenWidth || !selectedDateModifier ? styles.flex1 : {minWidth: 120};
+    const buttonStyle = isSmallScreenWidth || !selectedDateModifier ? styles.flex1 : {minWidth: 145};
     const buttonRowSpacing = selectedDateModifier ? styles.mt4 : styles.mt2;
     let topPaddingStyle;
     if (selectedDateModifier) {
@@ -183,10 +183,9 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
                             <Icon
                                 src={backArrowIcon.BackArrow}
                                 fill={theme.icon}
-                                small
                             />
                         </PressableWithoutFeedback>
-                        <Text style={[styles.textLabelSupporting]}>{translate(`common.${selectedDateModifier.toLowerCase() as SearchDateModifierLower}`)}</Text>
+                        <Text style={[styles.textLabelSupporting, {lineHeight: 18}]}>{translate(`common.${selectedDateModifier.toLowerCase() as SearchDateModifierLower}`)}</Text>
                     </View>
                 )}
                 <DatePresetFilterBase
@@ -205,9 +204,9 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
                     </Text>
                 )}
             </ScrollView>
-            <View style={[styles.flexRow, styles.ph5, buttonRowSpacing, styles.alignItemsCenter, (isSmallScreenWidth || !selectedDateModifier) && styles.gap2]}>
+            <View style={[styles.flexRow, styles.ph5, buttonRowSpacing, styles.alignItemsCenter, styles.gap2]}>
                 {shouldShowInlineRangeText && (
-                    <Text style={[styles.textLabelSupporting, styles.flex1, styles.mr3]}>
+                    <Text style={[styles.textLabelSupporting, styles.flex1, styles.mr2]}>
                         {`${translate('common.range')}: `}
                         <Text style={[styles.textLabelSupporting, styles.textStrong]}>{rangeText}</Text>
                     </Text>
@@ -215,7 +214,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
                 {!shouldShowInlineRangeText && !isSmallScreenWidth && !!selectedDateModifier && <View style={styles.flex1} />}
                 <Button
                     medium
-                    style={[!isSmallScreenWidth && selectedDateModifier && styles.mr2, buttonStyle]}
+                    style={[!isSmallScreenWidth && selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE && styles.mr2, buttonStyle]}
                     text={translate('common.reset')}
                     onPress={resetChanges}
                 />
