@@ -1,6 +1,7 @@
 import {useSortable} from '@dnd-kit/sortable';
 import {CSS} from '@dnd-kit/utilities';
 import React, {useEffect, useRef} from 'react';
+import CONST from '@src/CONST';
 import type {SortableItemProps} from './types';
 
 function SortableItem({id, children, disabled = false, isFocused = false, isItemDisabled = false, isKeyboardManaged = false}: SortableItemProps) {
@@ -32,8 +33,8 @@ function SortableItem({id, children, disabled = false, isFocused = false, isItem
             {...attributes}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...(disabled ? {} : listeners)}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...(isKeyboardManaged && {role: 'option', 'aria-selected': isFocused})}
+            role={isKeyboardManaged ? CONST.ROLE.OPTION : undefined}
+            aria-selected={isKeyboardManaged ? isFocused : undefined}
             tabIndex={isKeyboardManaged && !isItemDisabled ? 0 : -1}
         >
             {children}
