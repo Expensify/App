@@ -13,11 +13,14 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
 import Navigation from '@navigation/Navigation';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
-import {requestResetBankAccount, resetReimbursementAccount} from '@userActions/ReimbursementAccount';
+import {navigateToBankAccountRoute, prepareNewBankAccountSetup, requestResetBankAccount, resetReimbursementAccount} from '@userActions/ReimbursementAccount';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReimbursementAccount} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -65,12 +68,22 @@ function ConnectedVerifiedBankAccount({
     const shouldShowResetModal = reimbursementAccount?.shouldShowResetModal ?? false;
     const {asset: ThumbsUpStars} = useMemoizedLazyAsset(() => loadIllustration('ThumbsUpStars' as IllustrationName));
     const policyID = reimbursementAccount?.achData?.policyID;
-    const navigateToLinkExistingBankAccounts = () => {
-        if (!policyID) {
+    const currency = reimbursementAccount?.achData?.currency;
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const hasOtherEligibleAccountsToConnect = getEligibleExistingBusinessBankAccounts(bankAccountList, currency, true, reimbursementAccount?.achData?.bankAccountID).length > 0;
+
+    const handleChangeBankAccount = () => {
+        if (!policyID || !currency) {
             return;
         }
 
-        Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policyID));
+        if (hasOtherEligibleAccountsToConnect) {
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policyID));
+            return;
+        }
+
+        prepareNewBankAccountSetup(currency);
+        navigateToBankAccountRoute({});
     };
 
     return (
@@ -111,7 +124,7 @@ function ConnectedVerifiedBankAccount({
                         <MenuItem
                             title={translate('workspace.bankAccount.changeBankAccount')}
                             icon={Bank}
-                            onPress={navigateToLinkExistingBankAccounts}
+                            onPress={handleChangeBankAccount}
                             shouldShowRightIcon
                             outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
                             disabled={!!pendingAction || !isEmptyObject(errors)}
