@@ -85,7 +85,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('domain.saml')}
-                    onBackButtonPress={Navigation.popToSidebar}
+                    onBackButtonPress={Navigation.goBack}
                     icon={illustrations.LockClosed}
                     shouldShowBackButton={shouldUseNarrowLayout}
                 />

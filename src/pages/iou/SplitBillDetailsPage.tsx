@@ -15,8 +15,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setDraftSplitTransaction} from '@libs/actions/IOU';
-import {completeSplitBill} from '@libs/actions/IOU/Split';
+import {completeSplitBill, setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -66,7 +65,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
-
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     // In case this is workspace split expense, we manually add the workspace as the second participant of the split expense
     // because we don't save any accountID in the report action's originalMessage other than the payee's accountID
     let participants: Array<Participant | OptionData>;
@@ -113,9 +112,10 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
             isASAPSubmitBetaEnabled,
             quickAction,
             transactionViolations,
+            betas,
             session?.email,
         );
-    }, [reportID, reportAction, draftTransaction, session?.accountID, session?.email, isASAPSubmitBetaEnabled, quickAction, transactionViolations]);
+    }, [reportID, reportAction, draftTransaction, session?.accountID, session?.email, isASAPSubmitBetaEnabled, quickAction, transactionViolations, betas]);
 
     return (
         <ScreenWrapper testID="SplitBillDetailsPage">

@@ -7,9 +7,11 @@ import CONST from '@src/CONST';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import IntlStore from '@src/languages/IntlStore';
 import {
+    doesCardFeedExist,
+    filterAllInactiveCards,
+    filterCardsByNonExpensify,
     filterInactiveCards,
-    filterOutPersonalCards,
-    flatAllCardsList,
+    flattenWorkspaceCardsList,
     formatCardExpiration,
     getAllCardsForWorkspace,
     getAssignedCardSortKey,
@@ -17,12 +19,15 @@ import {
     getBankName,
     getCardDescription,
     getCardFeedIcon,
+    getCardFeedWithDomainID,
     getCardsByCardholderName,
     getCompanyCardDescription,
     getCompanyCardFeed,
-    getCompanyCardFeedWithDomainID,
     getCompanyFeeds,
+    getCustomFeedNameFromFeeds,
     getCustomOrFormattedFeedName,
+    getDefaultExpensifyCardLimitType,
+    getFeedNameForDisplay,
     getFeedType,
     getFilteredCardList,
     getMonthFromExpirationDateString,
@@ -33,16 +38,19 @@ import {
     getYearFromExpirationDateString,
     hasIssuedExpensifyCard,
     hasOnlyOneCardToAssign,
+    isCSVFeedOrExpensifyCard,
     isCustomFeed as isCustomFeedCardUtils,
     isExpensifyCard,
     isExpensifyCardFullySetUp,
+    isMatchingCard,
     lastFourNumbersFromCardName,
     maskCardNumber,
     sortCardsByCardholderName,
+    splitCardFeedWithDomainID,
     splitMaskedCardNumber,
 } from '@src/libs/CardUtils';
 import type {Card, CardFeeds, CardList, CompanyCardFeed, CompanyCardFeedWithDomainID, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
-import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
+import type {CardFeedWithDomainID, CardFeedWithNumber, CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -319,10 +327,10 @@ const cardFeedsCollection: OnyxCollection<CardFeeds> = {
 
 /* eslint-disable @typescript-eslint/naming-convention */
 const allCardsList = {
-    'cards_11111111_oauth.capitalone.com': directFeedCardsMultipleList,
-    cards_11111111_vcf1: customFeedCardsList,
-    'cards_22222222_oauth.chase.com': directFeedCardsSingleList,
-    'cards_11111111_Expensify Card': {
+    [`cards_11111111_${CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE}`]: directFeedCardsMultipleList,
+    [`cards_11111111_${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}1`]: customFeedCardsList,
+    [`cards_22222222_${CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE}`]: directFeedCardsSingleList,
+    [`cards_11111111_${CONST.EXPENSIFY_CARD.BANK}`]: {
         '21570657': {
             accountID: 18439984,
             bank: CONST.EXPENSIFY_CARD.BANK,
@@ -336,7 +344,7 @@ const allCardsList = {
             state: 2,
         },
     },
-    'cards_10101_Expensify Card': {
+    [`cards_10101_${CONST.EXPENSIFY_CARD.BANK}`]: {
         '21570657': {
             accountID: 18439984,
             bank: CONST.EXPENSIFY_CARD.BANK,
@@ -524,6 +532,28 @@ describe('CardUtils', () => {
         });
     });
 
+    describe('isCSVFeedOrExpensifyCard', () => {
+        it('Should return true for CSV feed keys', () => {
+            expect(isCSVFeedOrExpensifyCard('csv#123456')).toBe(true);
+        });
+
+        it('Should return true for ccupload feed keys', () => {
+            expect(isCSVFeedOrExpensifyCard(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)).toBe(true);
+        });
+
+        it('Should return true for Expensify Card feed key', () => {
+            expect(isCSVFeedOrExpensifyCard('Expensify Card')).toBe(true);
+        });
+
+        it('Should return false for a direct bank feed', () => {
+            expect(isCSVFeedOrExpensifyCard('plaid.ins_19')).toBe(false);
+        });
+
+        it('Should return false for a custom feed', () => {
+            expect(isCSVFeedOrExpensifyCard(`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}#12345`)).toBe(false);
+        });
+    });
+
     describe('getSelectedFeed', () => {
         it('Should return last selected custom feed', () => {
             const lastSelectedCustomFeed: CompanyCardFeedWithDomainID = `${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}#12345`;
@@ -579,6 +609,107 @@ describe('CardUtils', () => {
             const companyCardNickname = cardFeedsCollection.FAKE_ID_7?.settings?.companyCardNicknames?.[unknownFeed];
             const feedName = getCustomOrFormattedFeedName(translateLocal, unknownFeed, companyCardNickname);
             expect(feedName).toBe(unknownFeed);
+        });
+    });
+
+    describe('doesCardFeedExist', () => {
+        it('Should return true if feed exists in cardFeeds', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
+            const exists = doesCardFeedExist(feed, cardFeedsCollection);
+            expect(exists).toBe(true);
+        });
+
+        it('Should return false if feed has pendingAction delete', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX;
+            const exists = doesCardFeedExist(feed, cardFeedsCollection);
+            expect(exists).toBe(false);
+        });
+
+        it('Should return false if feed is undefined', () => {
+            const feed = undefined;
+            const exists = doesCardFeedExist(feed, cardFeedsCollection);
+            expect(exists).toBe(false);
+        });
+
+        it('Should return false if cardFeeds is undefined', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
+            const exists = doesCardFeedExist(feed, undefined);
+            expect(exists).toBe(false);
+        });
+    });
+
+    describe('getCustomFeedNameFromFeeds', () => {
+        it('Should return custom feed name if it exists', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
+            const customName = getCustomFeedNameFromFeeds(cardFeedsCollection, feed);
+            expect(customName).toBe(customFeedName);
+        });
+
+        it('Should return undefined if no custom feed name exists', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE;
+            const customName = getCustomFeedNameFromFeeds(cardFeedsCollection, feed);
+            expect(customName).toBe(undefined);
+        });
+
+        it('Should return undefined if feed is undefined', () => {
+            const feed = undefined;
+            const customName = getCustomFeedNameFromFeeds(cardFeedsCollection, feed);
+            expect(customName).toBe(undefined);
+        });
+
+        it('Should return undefined if cardFeeds is undefined', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
+            const customName = getCustomFeedNameFromFeeds(undefined, feed);
+            expect(customName).toBe(undefined);
+        });
+    });
+
+    describe('getFeedNameForDisplay', () => {
+        beforeAll(() => {
+            IntlStore.load(CONST.LOCALES.EN);
+            return waitForBatchedUpdates();
+        });
+
+        it('Should return "Deleted Feed" if feed does not exist', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX;
+            const feedName = getFeedNameForDisplay(translateLocal, feed, {FAKE_ID_2: cardFeedsCollection.FAKE_ID_2});
+            expect(feedName).toBe('Deleted feed');
+        });
+
+        it('Should return empty string when cardFeeds is undefined (loading state)', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE;
+            const feedName = getFeedNameForDisplay(translateLocal, feed, undefined);
+            expect(feedName).toBe('');
+        });
+
+        it('Should return custom name if provided via parameter', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
+            const feedName = getFeedNameForDisplay(translateLocal, feed, {FAKE_ID_1: cardFeedsCollection.FAKE_ID_1}, customFeedName);
+            expect(feedName).toBe(customFeedName);
+        });
+
+        it('Should return custom name from cardFeeds if no parameter provided', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
+            const feedName = getFeedNameForDisplay(translateLocal, feed, cardFeedsCollection);
+            expect(feedName).toBe(customFeedName);
+        });
+
+        it('Should return formatted feed name if no custom name exists', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE;
+            const feedName = getFeedNameForDisplay(translateLocal, feed, {FAKE_ID_1: cardFeedsCollection.FAKE_ID_1});
+            expect(feedName).toBe('Chase cards');
+        });
+
+        it('Should return empty string if feed is undefined', () => {
+            const feed = undefined;
+            const feedName = getFeedNameForDisplay(translateLocal, feed, {FAKE_ID_1: cardFeedsCollection.FAKE_ID_1});
+            expect(feedName).toBe('');
+        });
+
+        it('Should return formatted name without "cards" suffix when shouldAddCardsSuffix is false', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE;
+            const feedName = getFeedNameForDisplay(translateLocal, feed, {FAKE_ID_1: cardFeedsCollection.FAKE_ID_1}, undefined, false);
+            expect(feedName).toBe('Chase');
         });
     });
 
@@ -641,12 +772,12 @@ describe('CardUtils', () => {
         });
 
         it('Should return CSV import card display name without 4-character formatting', () => {
-            const maskedCardNumber = maskCardNumber('Checking', CONST.COMPANY_CARDS.BANK_NAME.UPLOAD);
+            const maskedCardNumber = maskCardNumber('Checking', CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD);
             expect(maskedCardNumber).toBe('Checking');
         });
 
         it('Should return CSV import card display name as-is for longer names', () => {
-            const maskedCardNumber = maskCardNumber('JustChecking', CONST.COMPANY_CARDS.BANK_NAME.UPLOAD);
+            const maskedCardNumber = maskCardNumber('JustChecking', CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD);
             expect(maskedCardNumber).toBe('JustChecking');
         });
     });
@@ -659,13 +790,13 @@ describe('CardUtils', () => {
         });
 
         it('Should return a valid name if an OldDot feed variation was provided', () => {
-            const feed = 'oauth.americanexpressfdx.com 2003' as CompanyCardFeed;
+            const feed = `${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT} 2003` as CompanyCardFeed;
             const feedName = getBankName(feed);
             expect(feedName).toBe('American Express');
         });
 
         it('Should return a valid name if a CSV imported feed variation was provided', () => {
-            const feed = 'cards_2267989_ccupload666' as CompanyCardFeed;
+            const feed = `cards_10101_${CONST.COMPANY_CARD.FEED_BANK_NAME.CSV}666` as CompanyCardFeed;
             const feedName = getBankName(feed);
             expect(feedName).toBe('CSV');
         });
@@ -891,10 +1022,10 @@ describe('CardUtils', () => {
         });
     });
 
-    describe('flatAllCardsList', () => {
+    describe('flattenCompanyCards', () => {
         it('should return the flattened list of non-Expensify cards related to the provided workspaceAccountID', () => {
             const workspaceAccountID = 11111111;
-            const flattenedCardsList = flatAllCardsList(allCardsList, workspaceAccountID);
+            const flattenedCardsList = flattenWorkspaceCardsList(allCardsList, workspaceAccountID);
             const {cardList, ...customCards} = customFeedCardsList;
             expect(flattenedCardsList).toStrictEqual({
                 ...directFeedCardsMultipleList,
@@ -904,7 +1035,7 @@ describe('CardUtils', () => {
 
         it('should return undefined if not defined cards list was provided', () => {
             const workspaceAccountID = 11111111;
-            const flattenedCardsList = flatAllCardsList(undefined, workspaceAccountID);
+            const flattenedCardsList = flattenWorkspaceCardsList(undefined, workspaceAccountID);
             expect(flattenedCardsList).toBeUndefined();
         });
     });
@@ -945,7 +1076,7 @@ describe('CardUtils', () => {
                 },
                 '21570655': {
                     accountID: 18439984,
-                    bank: 'oauth.capitalone.com',
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE,
                     cardID: 21570655,
                     cardName: 'CREDIT CARD...5678',
                     domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
@@ -959,7 +1090,7 @@ describe('CardUtils', () => {
                 },
                 '21570656': {
                     accountID: 18439984,
-                    bank: 'oauth.capitalone.com',
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE,
                     cardID: 21570656,
                     cardName: 'CREDIT CARD...4444',
                     domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
@@ -973,7 +1104,7 @@ describe('CardUtils', () => {
                 },
                 '21570657': {
                     accountID: 18439984,
-                    bank: 'Expensify Card',
+                    bank: CONST.EXPENSIFY_CARD.BANK,
                     cardID: 21570657,
                     cardName: 'CREDIT CARD...5644',
                     domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
@@ -1011,6 +1142,56 @@ describe('CardUtils', () => {
         it('should return false when both policy and cardSettings are undefined', () => {
             const result = isExpensifyCardFullySetUp(undefined, undefined);
             expect(result).toBe(false);
+        });
+    });
+
+    describe('getDefaultExpensifyCardLimitType', () => {
+        it('returns SMART when policy has approvals configured (approvalMode is ADVANCED)', () => {
+            const policy = {
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            } as Policy;
+
+            expect(getDefaultExpensifyCardLimitType(policy)).toBe(CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
+        });
+
+        it('returns SMART when policy has approvals configured (approvalMode is BASIC)', () => {
+            const policy = {
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            } as Policy;
+
+            expect(getDefaultExpensifyCardLimitType(policy)).toBe(CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
+        });
+
+        it('returns MONTHLY when policy has optional approvals (approvalMode is OPTIONAL)', () => {
+            const policy = {
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            } as Policy;
+
+            expect(getDefaultExpensifyCardLimitType(policy)).toBe(CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY);
+        });
+
+        it('returns MONTHLY when policy type is PERSONAL (approvals are always optional)', () => {
+            const policy = {
+                type: CONST.POLICY.TYPE.PERSONAL,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            } as Policy;
+
+            expect(getDefaultExpensifyCardLimitType(policy)).toBe(CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY);
+        });
+
+        it('returns SMART when policy is undefined (defaults to ADVANCED approval mode)', () => {
+            expect(getDefaultExpensifyCardLimitType(undefined)).toBe(CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
+        });
+
+        it('returns SMART when corporate policy has no approvalMode (defaults to ADVANCED)', () => {
+            const policy = {
+                type: CONST.POLICY.TYPE.CORPORATE,
+            } as Policy;
+
+            expect(getDefaultExpensifyCardLimitType(policy)).toBe(CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
         });
     });
 
@@ -1061,7 +1242,7 @@ describe('CardUtils', () => {
                 cardID: 1,
                 accountID: 1,
                 cardName: 'Card 1',
-                bank: 'expensify',
+                bank: CONST.EXPENSIFY_CARD.BANK,
                 domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
                 fraud: 'none',
                 lastFourPAN: '',
@@ -1072,7 +1253,7 @@ describe('CardUtils', () => {
             '2': {
                 cardID: 2,
                 accountID: 2,
-                bank: 'expensify',
+                bank: CONST.EXPENSIFY_CARD.BANK,
                 cardName: 'Card 2',
                 domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
                 fraud: 'none',
@@ -1084,7 +1265,7 @@ describe('CardUtils', () => {
             '3': {
                 cardID: 3,
                 accountID: 3,
-                bank: 'expensify',
+                bank: CONST.EXPENSIFY_CARD.BANK,
                 cardName: 'Card 3',
                 domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
                 fraud: 'none',
@@ -1142,7 +1323,7 @@ describe('CardUtils', () => {
                     cardID: 1,
                     accountID: 1,
                     cardName: 'Card 1',
-                    bank: 'expensify',
+                    bank: CONST.EXPENSIFY_CARD.BANK,
                     domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
                     fraud: 'none',
                     lastFourPAN: '',
@@ -1153,7 +1334,7 @@ describe('CardUtils', () => {
                 '2': {
                     cardID: 2,
                     cardName: 'Card 2',
-                    bank: 'expensify',
+                    bank: CONST.EXPENSIFY_CARD.BANK,
                     domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
                     fraud: 'none',
                     lastFourPAN: '',
@@ -1205,7 +1386,7 @@ describe('CardUtils', () => {
                 state: 2,
             };
             const description = getCardDescription(card, translateLocal);
-            expect(description).toBe('Expensify Card');
+            expect(description).toBe(CONST.EXPENSIFY_CARD.BANK);
         });
     });
 
@@ -1314,24 +1495,73 @@ describe('CardUtils', () => {
         });
     });
 
-    describe('getCompanyCardFeedWithDomainID', () => {
+    describe('getCardFeedWithDomainID', () => {
         it('should combine feed name domain ID', () => {
             const feedName = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
             const domainID = 11111111;
-            const combinedKey = getCompanyCardFeedWithDomainID(feedName, domainID);
+            const combinedKey = getCardFeedWithDomainID(feedName, domainID);
             expect(combinedKey).toBe(`${feedName}${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${domainID}`);
+        });
+    });
+
+    describe('splitCardFeedWithDomainID', () => {
+        it('should split the feed name and domain ID', () => {
+            const feedName = 'vcf#11111111';
+
+            const splitFeedName = splitCardFeedWithDomainID(feedName);
+            if (!splitFeedName) {
+                throw new Error('Failed to split feed name');
+            }
+
+            expect(splitFeedName.feedName).toBe('vcf');
+            expect(splitFeedName.domainID).toBe(11111111);
+        });
+
+        it('should return undefined for a feed name without separator', () => {
+            const result = splitCardFeedWithDomainID('vcf');
+            expect(result).toBeUndefined();
+        });
+
+        it('should return undefined for undefined input', () => {
+            const result = splitCardFeedWithDomainID(undefined);
+            expect(result).toBeUndefined();
+        });
+
+        it('should return undefined when domainID is not a number', () => {
+            const result = splitCardFeedWithDomainID('vcf#abc' as CardFeedWithDomainID);
+            expect(result).toBeUndefined();
+        });
+
+        it('should return undefined when there are multiple separators', () => {
+            const result = splitCardFeedWithDomainID('vcf#123#456' as CardFeedWithDomainID);
+            expect(result).toBeUndefined();
+        });
+
+        it('should handle direct feed with domain ID', () => {
+            const result = splitCardFeedWithDomainID(`${CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE}#22222222` as CardFeedWithDomainID);
+            expect(result).toEqual({feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE, domainID: 22222222});
+        });
+
+        it('should handle custom feed with number and domain ID', () => {
+            const result = splitCardFeedWithDomainID('vcf1#99999' as CardFeedWithDomainID);
+            expect(result).toEqual({feedName: 'vcf1', domainID: 99999});
+        });
+
+        it('should handle plaid feed with domain ID', () => {
+            const result = splitCardFeedWithDomainID('plaid.ins_129663#12345' as CardFeedWithDomainID);
+            expect(result).toEqual({feedName: 'plaid.ins_129663', domainID: 12345});
         });
     });
 
     describe('getPlaidInstitutionId', () => {
         it('should return institution ID from plaid feed name without domain ID', () => {
-            const feedName = 'plaid.ins_123456';
+            const feedName = 'plaid.ins_123456' as CardFeedWithNumber;
             const institutionId = getPlaidInstitutionId(feedName);
             expect(institutionId).toBe('ins_123456');
         });
 
         it('should return institution ID from plaid feed name with domain ID', () => {
-            const feedName = 'plaid.ins_129663#12345';
+            const feedName = 'plaid.ins_129663#12345' as CardFeedWithDomainID;
             const institutionId = getPlaidInstitutionId(feedName);
             expect(institutionId).toBe('ins_129663');
         });
@@ -1345,13 +1575,13 @@ describe('CardUtils', () => {
 
     describe('getPlaidInstitutionIconUrl', () => {
         it('should return correct icon URL for plaid feed without domain ID', () => {
-            const feedName = 'plaid.ins_123456';
+            const feedName = 'plaid.ins_123456' as CardFeedWithNumber;
             const iconUrl = getPlaidInstitutionIconUrl(feedName);
             expect(iconUrl).toBe(`${CONST.COMPANY_CARD_PLAID}ins_123456.png`);
         });
 
         it('should return correct icon URL for plaid feed with domain ID', () => {
-            const feedName = 'plaid.ins_129663#12345';
+            const feedName = 'plaid.ins_129663#12345' as CardFeedWithDomainID;
             const iconUrl = getPlaidInstitutionIconUrl(feedName);
             expect(iconUrl).toBe(`${CONST.COMPANY_CARD_PLAID}ins_129663.png`);
         });
@@ -1386,6 +1616,202 @@ describe('CardUtils', () => {
             const result = splitMaskedCardNumber('XXXX5678');
             expect(result.firstDigits).toBe('');
             expect(result.lastDigits).toBe('5678');
+        });
+    });
+
+    describe('filterCardsByNonExpensify', () => {
+        it('should filter out cards with Expensify bank key in their key', () => {
+            const cards: CardList = {
+                [`${CONST.EXPENSIFY_CARD.BANK}_card1`]: {
+                    cardID: 1,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    cardName: 'Expensify Card',
+                    domainName: 'test.exfy',
+                    fraud: 'none',
+                    lastFourPAN: '1234',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: 3,
+                },
+                visa_card2: {
+                    cardID: 2,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                    cardName: 'Visa Card',
+                    domainName: 'test.exfy',
+                    fraud: 'none',
+                    lastFourPAN: '5678',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: 3,
+                },
+                chase_card3: {
+                    cardID: 3,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+                    cardName: 'Chase Card',
+                    domainName: 'test.exfy',
+                    fraud: 'none',
+                    lastFourPAN: '9012',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: 3,
+                },
+            } as unknown as CardList;
+
+            const result = filterCardsByNonExpensify(cards);
+            const keys = Object.keys(result);
+            expect(keys).toHaveLength(2);
+            expect(keys).toContain('visa_card2');
+            expect(keys).toContain('chase_card3');
+            expect(keys).not.toContain(`${CONST.EXPENSIFY_CARD.BANK}_card1`);
+        });
+
+        it('should return empty object when all cards are Expensify cards', () => {
+            const cards: CardList = {
+                [`${CONST.EXPENSIFY_CARD.BANK}_1`]: {
+                    cardID: 1,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    cardName: 'Expensify Card 1',
+                    domainName: 'test.exfy',
+                    fraud: 'none',
+                    lastFourPAN: '1111',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: 3,
+                },
+            } as unknown as CardList;
+
+            const result = filterCardsByNonExpensify(cards);
+            expect(Object.keys(result)).toHaveLength(0);
+        });
+
+        it('should return empty object when undefined is passed', () => {
+            const result = filterCardsByNonExpensify(undefined);
+            expect(result).toEqual({});
+        });
+
+        it('should return all cards when none are Expensify cards', () => {
+            const cards: CardList = {
+                visa_1: {
+                    cardID: 1,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                    cardName: 'Visa',
+                    domainName: 'test.exfy',
+                    fraud: 'none',
+                    lastFourPAN: '1111',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: 3,
+                },
+                chase_2: {
+                    cardID: 2,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+                    cardName: 'Chase',
+                    domainName: 'test.exfy',
+                    fraud: 'none',
+                    lastFourPAN: '2222',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: 3,
+                },
+            } as unknown as CardList;
+
+            const result = filterCardsByNonExpensify(cards);
+            expect(Object.keys(result)).toHaveLength(2);
+        });
+    });
+
+    describe('filterAllInactiveCards', () => {
+        it('should filter out closed, deactivated and suspended cards', () => {
+            const cards: CardList = {
+                '1': {cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN, bank: 'vcf', cardName: 'a', domainName: '', fraud: 'none', lastFourPAN: '', lastScrape: '', lastUpdated: ''},
+                '2': {cardID: 2, state: CONST.EXPENSIFY_CARD.STATE.CLOSED, bank: 'vcf', cardName: 'b', domainName: '', fraud: 'none', lastFourPAN: '', lastScrape: '', lastUpdated: ''},
+                '3': {
+                    cardID: 3,
+                    state: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED,
+                    bank: 'vcf',
+                    cardName: 'c',
+                    domainName: '',
+                    fraud: 'none',
+                    lastFourPAN: '',
+                    lastScrape: '',
+                    lastUpdated: '',
+                },
+                '4': {
+                    cardID: 4,
+                    state: CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED,
+                    bank: 'vcf',
+                    cardName: 'd',
+                    domainName: '',
+                    fraud: 'none',
+                    lastFourPAN: '',
+                    lastScrape: '',
+                    lastUpdated: '',
+                },
+                '5': {
+                    cardID: 5,
+                    state: CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED,
+                    bank: 'vcf',
+                    cardName: 'e',
+                    domainName: '',
+                    fraud: 'none',
+                    lastFourPAN: '',
+                    lastScrape: '',
+                    lastUpdated: '',
+                },
+            } as unknown as CardList;
+
+            const result = filterAllInactiveCards(cards);
+            const ids = Object.values(result).map((c) => c.cardID);
+            expect(ids).toContain(1);
+            expect(ids).toContain(5);
+            expect(ids).not.toContain(2);
+            expect(ids).not.toContain(3);
+            expect(ids).not.toContain(4);
+        });
+
+        it('should return empty object when undefined is passed', () => {
+            const result = filterAllInactiveCards(undefined);
+            expect(result).toEqual({});
+        });
+
+        it('should return all cards when none are inactive', () => {
+            const cards: CardList = {
+                '1': {cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN, bank: 'vcf', cardName: 'a', domainName: '', fraud: 'none', lastFourPAN: '', lastScrape: '', lastUpdated: ''},
+                '2': {
+                    cardID: 2,
+                    state: CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED,
+                    bank: 'vcf',
+                    cardName: 'b',
+                    domainName: '',
+                    fraud: 'none',
+                    lastFourPAN: '',
+                    lastScrape: '',
+                    lastUpdated: '',
+                },
+            } as unknown as CardList;
+
+            const result = filterAllInactiveCards(cards);
+            expect(Object.keys(result)).toHaveLength(2);
+        });
+
+        it('should return empty object when all cards are inactive', () => {
+            const cards: CardList = {
+                '1': {cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.CLOSED, bank: 'vcf', cardName: 'a', domainName: '', fraud: 'none', lastFourPAN: '', lastScrape: '', lastUpdated: ''},
+                '2': {
+                    cardID: 2,
+                    state: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED,
+                    bank: 'vcf',
+                    cardName: 'b',
+                    domainName: '',
+                    fraud: 'none',
+                    lastFourPAN: '',
+                    lastScrape: '',
+                    lastUpdated: '',
+                },
+            } as unknown as CardList;
+
+            const result = filterAllInactiveCards(cards);
+            expect(Object.keys(result)).toHaveLength(0);
         });
     });
 
@@ -1453,137 +1879,82 @@ describe('CardUtils', () => {
         });
     });
 
-    describe('filterOutPersonalCards', () => {
-        it('should return only cards with a valid fundID', () => {
-            const cardList: CardList = {
-                '1': {
-                    cardID: 1,
-                    accountID: 12345,
-                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
-                    cardName: 'Company Card 1',
-                    domainName: '',
-                    fraud: 'none',
-                    lastFourPAN: '1111',
-                    lastScrape: '',
-                    lastUpdated: '',
-                    state: 3,
-                    fundID: '100',
-                },
-                '2': {
-                    cardID: 2,
-                    accountID: 12345,
-                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
-                    cardName: 'Personal Card',
-                    domainName: '',
-                    fraud: 'none',
-                    lastFourPAN: '2222',
-                    lastScrape: '',
-                    lastUpdated: '',
-                    state: 3,
-                    // No fundID - personal card
-                },
-                '3': {
-                    cardID: 3,
-                    accountID: 12345,
-                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
-                    cardName: 'Company Card 2',
-                    domainName: '',
-                    fraud: 'none',
-                    lastFourPAN: '3333',
-                    lastScrape: '',
-                    lastUpdated: '',
-                    state: 3,
-                    fundID: '200',
-                },
-            };
+    describe('isMatchingCard', () => {
+        it('should match by encryptedCardNumber for exact match', () => {
+            const card: Card = {
+                encryptedCardNumber: 'encrypted123',
+                cardName: 'Test Card - 1234',
+            } as Card;
 
-            const result = filterOutPersonalCards(cardList);
-            const cardIDs = Object.keys(result);
-
-            expect(cardIDs).toHaveLength(2);
-            expect(cardIDs).toContain('1');
-            expect(cardIDs).toContain('3');
-            expect(cardIDs).not.toContain('2');
+            expect(isMatchingCard(card, 'encrypted123', 'Different Name')).toBe(true);
         });
 
-        it('should filter out cards with fundID of "0"', () => {
-            const cardList: CardList = {
-                '1': {
-                    cardID: 1,
-                    accountID: 12345,
-                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
-                    cardName: 'Card with fundID 0',
-                    domainName: '',
-                    fraud: 'none',
-                    lastFourPAN: '1111',
-                    lastScrape: '',
-                    lastUpdated: '',
-                    state: 3,
-                    fundID: '0',
-                },
-                '2': {
-                    cardID: 2,
-                    accountID: 12345,
-                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
-                    cardName: 'Card with valid fundID',
-                    domainName: '',
-                    fraud: 'none',
-                    lastFourPAN: '2222',
-                    lastScrape: '',
-                    lastUpdated: '',
-                    state: 3,
-                    fundID: '123',
-                },
-            };
+        it('should match by normalized card name when encryptedCardNumber does not match', () => {
+            const card: Card = {
+                encryptedCardNumber: 'encrypted123',
+                cardName: 'Business Platinum Card® - JOHN SMITH - 1234',
+            } as Card;
 
-            const result = filterOutPersonalCards(cardList);
-            const cardIDs = Object.keys(result);
-
-            expect(cardIDs).toHaveLength(1);
-            expect(cardIDs).toContain('2');
-            expect(cardIDs).not.toContain('1');
+            // Name without ® should still match
+            expect(isMatchingCard(card, 'wrongEncrypted', 'Business Platinum Card - JOHN SMITH - 1234')).toBe(true);
         });
 
-        it('should return empty object for undefined card list', () => {
-            const result = filterOutPersonalCards(undefined);
-            expect(result).toEqual({});
+        it('should handle special characters (®, ™, ©) in card names', () => {
+            const card: Card = {
+                cardName: 'Business Platinum Card® - JOHN SMITH™ - 1234©',
+            } as Card;
+
+            // All special characters should be normalized
+            expect(isMatchingCard(card, '', 'Business Platinum Card - JOHN SMITH - 1234')).toBe(true);
         });
 
-        it('should return empty object when no cards have fundID', () => {
-            const cardList: CardList = {
-                '1': {
-                    cardID: 1,
-                    accountID: 12345,
-                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
-                    cardName: 'Personal Card 1',
-                    domainName: '',
-                    fraud: 'none',
-                    lastFourPAN: '1111',
-                    lastScrape: '',
-                    lastUpdated: '',
-                    state: 3,
-                },
-                '2': {
-                    cardID: 2,
-                    accountID: 12345,
-                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
-                    cardName: 'Personal Card 2',
-                    domainName: '',
-                    fraud: 'none',
-                    lastFourPAN: '2222',
-                    lastScrape: '',
-                    lastUpdated: '',
-                    state: 3,
-                },
-            };
+        it('should not match cards with different names after normalization', () => {
+            const card: Card = {
+                cardName: 'Business Platinum Card® - JOHN SMITH - 1234',
+            } as Card;
 
-            const result = filterOutPersonalCards(cardList);
-            expect(Object.keys(result)).toHaveLength(0);
+            expect(isMatchingCard(card, '', 'Business Gold Card - JANE DOE - 5678')).toBe(false);
         });
 
-        it('should handle empty card list', () => {
-            const result = filterOutPersonalCards({});
-            expect(result).toEqual({});
+        it('should return false when card.cardName is undefined', () => {
+            const card: Card = {
+                encryptedCardNumber: 'encrypted123',
+            } as Card;
+
+            expect(isMatchingCard(card, 'wrongEncrypted', 'Some Card Name')).toBe(false);
+        });
+
+        it('should return false when cardName parameter is empty', () => {
+            const card: Card = {
+                cardName: 'Test Card - 1234',
+            } as Card;
+
+            expect(isMatchingCard(card, '', '')).toBe(false);
+        });
+
+        it('should handle cards with only numbers and dashes', () => {
+            const card: Card = {
+                cardName: 'Card - 1234',
+            } as Card;
+
+            expect(isMatchingCard(card, '', 'Card - 1234')).toBe(true);
+        });
+
+        it('should trim whitespace when comparing', () => {
+            const card: Card = {
+                cardName: '  Business Card - 1234  ',
+            } as Card;
+
+            expect(isMatchingCard(card, '', 'Business Card - 1234')).toBe(true);
+        });
+
+        it('should not match cards with same last 4 digits but different names', () => {
+            const card: Card = {
+                cardName: 'Business Platinum Card® - JOHN SMITH - 1234',
+            } as Card;
+
+            // Different card name but same last 4 digits - should NOT match
+            expect(isMatchingCard(card, '', 'Business Gold Card - JANE DOE - 1234')).toBe(false);
         });
     });
 });
