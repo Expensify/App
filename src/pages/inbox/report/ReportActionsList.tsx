@@ -188,6 +188,7 @@ function ReportActionsList({
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: false});
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
     const [actionIdToHighlight, setActionIdToHighlight] = useState('');
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`, {canBeMissing: true});
@@ -625,24 +626,20 @@ function ReportActionsList({
             if (!Navigation.getReportRHPActiveRoute()) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, backTo));
             }
-            openReport(report.reportID);
+            openReport(report.reportID, introSelected);
             reportScrollManager.scrollToBottom();
             return;
         }
         reportScrollManager.scrollToBottom();
         readActionSkipped.current = false;
         readNewestAction(report.reportID);
-    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID, backTo]);
+    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID, backTo, introSelected]);
 
     /**
      * Calculates the ideal number of report actions to render in the first render, based on the screen height and on
      * the height of the smallest report action possible.
      */
     const initialNumToRender = useMemo((): number | undefined => {
-        if (shouldScrollToEndAfterLayout && (!hasCreatedActionAdded || isOffline)) {
-            return sortedVisibleReportActions.length;
-        }
-
         const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom + variables.fontSizeNormalHeight;
         const availableHeight = windowHeight - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
         const numToRender = Math.ceil(availableHeight / minimumReportActionHeight);
@@ -650,16 +647,7 @@ function ReportActionsList({
             return getInitialNumToRender(numToRender);
         }
         return numToRender || undefined;
-    }, [
-        styles.chatItem.paddingBottom,
-        styles.chatItem.paddingTop,
-        windowHeight,
-        linkedReportActionID,
-        sortedVisibleReportActions.length,
-        shouldScrollToEndAfterLayout,
-        hasCreatedActionAdded,
-        isOffline,
-    ]);
+    }, [styles.chatItem.paddingBottom, styles.chatItem.paddingTop, windowHeight, linkedReportActionID]);
 
     /**
      * Thread's divider line should hide when the first chat in the thread is marked as unread.

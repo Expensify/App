@@ -11,19 +11,20 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, shouldSkipSuggestedSearchNavigation as shouldSkipSuggestedSearchNavigationForQuery} from '@libs/SearchQueryUtils';
 import type {SavedSearchMenuItem} from '@libs/SearchUIUtils';
-import {createBaseSavedSearchMenuItem, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
+import {createBaseSavedSearchMenuItem, getActiveSearchItemIndex, getOverflowMenu as getOverflowMenuUtil, updateQueryStringOnSearchTypeChange} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import useDeleteSavedSearch from './useDeleteSavedSearch';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import useSearchTypeMenuSections from './useSearchTypeMenuSections';
 import useSingleExecution from './useSingleExecution';
+import useStickySearchFilters from './useStickySearchFilters';
 import useSuggestedSearchDefaultNavigation from './useSuggestedSearchDefaultNavigation';
 import useTheme from './useTheme';
 import useThemeStyles from './useThemeStyles';
@@ -51,6 +52,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Basket',
         'Bookmark',
+        'CalendarSolid',
         'Checkmark',
         'Pencil',
         'Receipt',
@@ -174,14 +176,12 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         translate,
     ]);
 
-    const activeItemIndex = useMemo(() => {
-        // If we have a suggested search, then none of the menu items are active
-        if (isSavedSearchActive) {
-            return -1;
-        }
+    const [activeItemIndex, isExploreSectionActive] = useMemo(
+        () => getActiveSearchItemIndex(flattenedMenuItems, similarSearchHash, isSavedSearchActive, queryJSON?.type),
+        [similarSearchHash, isSavedSearchActive, flattenedMenuItems, queryJSON?.type],
+    );
 
-        return flattenedMenuItems.findIndex((item) => item.similarSearchHash === similarSearchHash);
-    }, [similarSearchHash, isSavedSearchActive, flattenedMenuItems]);
+    const allSearchAdvancedFilters = useStickySearchFilters(isExploreSectionActive && !shouldShowSuggestedSearchSkeleton);
 
     const popoverMenuItems = useMemo(() => {
         return typeMenuSections
@@ -216,7 +216,12 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                             shouldCallAfterModalHide: true,
                             onSelected: singleExecution(() => {
                                 setSearchContext(false);
-                                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.searchQuery}));
+                                let queryString = item.searchQuery;
+
+                                if (section.translationPath === 'common.explore' && !isEmptyObject(allSearchAdvancedFilters)) {
+                                    queryString = updateQueryStringOnSearchTypeChange(item.type, allSearchAdvancedFilters, queryJSON);
+                                }
+                                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
                             }),
                         });
                     }
@@ -225,7 +230,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                 return sectionItems;
             })
             .flat();
-    }, [typeMenuSections, translate, styles.textSupporting, savedSearchesMenuItems, activeItemIndex, theme.border, expensifyIcons, singleExecution]);
+    }, [typeMenuSections, translate, styles.textSupporting, savedSearchesMenuItems, activeItemIndex, expensifyIcons, theme.border, singleExecution, allSearchAdvancedFilters, queryJSON]);
 
     const openMenu = useCallback(() => {
         setIsPopoverVisible(true);

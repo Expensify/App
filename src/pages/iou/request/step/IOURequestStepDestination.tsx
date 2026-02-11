@@ -11,7 +11,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import type {ListItem, SelectionListHandle} from '@components/SelectionListWithSections/types';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -73,7 +72,6 @@ function IOURequestStepDestination({
     const {top} = useSafeAreaInsets();
     const customUnit = getPerDiemCustomUnit(policy);
     const selectedDestination = transaction?.comment?.customUnit?.customUnitRateID;
-    const defaultExpensePolicy = useDefaultExpensePolicy();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses']);
     const {translate} = useLocalize();
@@ -100,18 +98,15 @@ function IOURequestStepDestination({
         if (isEmptyObject(customUnit)) {
             return;
         }
-        let targetReport: OnyxEntry<Report> = explicitPolicyID && transaction?.isFromGlobalCreate ? policyExpenseReport : report;
+        const targetReport: OnyxEntry<Report> = explicitPolicyID && transaction?.isFromGlobalCreate ? policyExpenseReport : report;
         if (selectedDestination !== destination.keyForList) {
             if (openedFromStartPage) {
-                if (iouType === CONST.IOU.TYPE.CREATE && transaction?.isFromGlobalCreate) {
-                    targetReport = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
-                }
                 setTransactionReport(transactionID, {reportID: targetReport?.reportID}, true);
                 setMoneyRequestParticipantsFromReport(transactionID, targetReport, accountID);
                 setCustomUnitID(transactionID, customUnit.customUnitID);
                 setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '', undefined);
             }
-            setCustomUnitRateID(transactionID, destination.keyForList ?? '', transaction, policy);
+            setCustomUnitRateID(transactionID, destination.keyForList ?? '');
             setMoneyRequestCurrency(transactionID, destination.currency);
             clearSubrates(transactionID);
         }

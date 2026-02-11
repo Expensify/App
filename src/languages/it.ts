@@ -896,7 +896,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'Il tuo spazio',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Benvenuto in ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `Usa il pulsante + per ${additionalText} una spesa.`,
-        askConcierge: 'Chiedimi qualsiasi cosa!',
+        askConcierge: 'Questa è la tua chat con Concierge, il tuo agente IA personale. Posso fare quasi tutto, mettimi alla prova!',
         conciergeSupport: 'Il tuo agente IA personale',
         create: 'crea',
         iouTypes: {
@@ -987,6 +987,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: 'Attiva la tua Expensify Card',
                 subtitle: 'Convalida la tua carta e inizia a spendere.',
                 cta: 'Attiva',
+            },
+            reviewCardFraud: {
+                title: 'Verifica un potenziale uso fraudolento della tua Expensify Card',
+                titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Verifica ${amount} di potenziale frode presso ${merchant}`,
+                subtitle: 'Carta Expensify',
+                cta: 'Rivedi',
             },
             ctaFix: 'Correggi',
             fixCompanyCardConnection: {
@@ -5153,16 +5159,17 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     ctaText: 'Richiesta inviata',
                 },
                 bookOrManageYourTrip: {
-                    title: 'Prenota o gestisci il tuo viaggio',
-                    subtitle: 'Usa Expensify Travel per ottenere le migliori offerte di viaggio e gestire tutte le spese di lavoro in un unico posto.',
-                    ctaText: 'Prenota o gestisci',
+                    title: 'Prenotazione di viaggio',
+                    subtitle: 'Complimenti! Ora sei pronto per prenotare e gestire i viaggi in questo spazio di lavoro.',
+                    ctaText: 'Gestisci viaggi',
+                },
+                settings: {
+                    autoAddTripName: {
+                        title: 'Aggiungi nomi di viaggi alle spese',
+                        subtitle: 'Aggiungi automaticamente i nomi dei viaggi alle descrizioni delle spese per i viaggi prenotati in Expensify.',
+                    },
                 },
                 travelInvoicing: {
-                    travelBookingSection: {
-                        title: 'Prenotazione viaggi',
-                        subtitle: 'Complimenti! Ora sei prontə per prenotare e gestire i viaggi in questo spazio di lavoro.',
-                        manageTravelLabel: 'Gestisci viaggi',
-                    },
                     centralInvoicingSection: {
                         title: 'Fatturazione centralizzata',
                         subtitle: 'Centralizza tutte le spese di viaggio in una fattura mensile invece di pagare al momento dell’acquisto.',
@@ -6366,8 +6373,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 preventSelfApprovalsSubtitle: 'Impedisci ai membri dello spazio di lavoro di approvare i propri report spese.',
                 autoApproveCompliantReportsTitle: 'Approva automaticamente i report conformi',
                 autoApproveCompliantReportsSubtitle: 'Configura quali note spese sono idonee per l’approvazione automatica.',
-                autoApproveReportsUnderTitle: 'Approva automaticamente i report inferiori a',
-                autoApproveReportsUnderDescription: 'Le note spese completamente conformi inferiori a questo importo verranno approvate automaticamente.',
+                autoApproveReportsUnderTitle: 'Approva automaticamente i report con tutte le spese inferiori a',
+                autoApproveReportsUnderDescription: 'Le note spese completamente conformi in cui tutte le spese sono inferiori a questo importo verranno approvate automaticamente.',
                 randomReportAuditTitle: 'Revisione casuale dei report',
                 randomReportAuditDescription: 'Richiedi che alcuni report siano approvati manualmente, anche se idonei per l’approvazione automatica.',
                 autoPayApprovedReportsTitle: 'Pagare automaticamente i resoconti approvati',
@@ -7247,6 +7254,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             selectAllMatchingItems: 'Seleziona tutti gli elementi corrispondenti',
             allMatchingItemsSelected: 'Tutti gli elementi corrispondenti sono stati selezionati',
         },
+        spendOverTime: 'Spesa nel tempo',
     },
     genericErrorPage: {
         title: 'Oops, qualcosa è andato storto!',
@@ -7527,8 +7535,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
     },
     cardTransactions: {
         notActivated: 'Non attivato',
-        outOfPocket: 'Rimborsabile',
-        companySpend: 'Non rimborsabile',
+        outOfPocket: 'Spesa personale',
+        companySpend: 'Spese aziendali',
     },
     distance: {
         addStop: 'Aggiungi fermata',

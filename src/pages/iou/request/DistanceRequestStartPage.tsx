@@ -64,6 +64,7 @@ function DistanceRequestStartPage({
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const showGPSTab = isBetaEnabled(CONST.BETAS.GPS_MILEAGE);
+    const showOdometerTab = isBetaEnabled(CONST.BETAS.ODOMETER_EXPENSES);
 
     const hasOnlyPersonalPolicies = useMemo(() => hasOnlyPersonalPoliciesUtil(allPolicies), [allPolicies]);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -227,7 +228,7 @@ function DistanceRequestStartPage({
                                 )}
                             </TopTab.Screen>
                         )}
-                        {false && (
+                        {showOdometerTab && (
                             <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_ODOMETER}>
                                 {() => (
                                     <TabScreenWithFocusTrapWrapper>
