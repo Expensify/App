@@ -11,6 +11,7 @@ import {alertUser} from './actions/UpdateRequired';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API/types';
 import {getCommandURL} from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
+import Log from './Log';
 import prepareRequestPayload from './prepareRequestPayload';
 
 let shouldFailAllRequests = false;
@@ -181,6 +182,7 @@ function xhr<TKey extends OnyxKey>(
 }
 
 function cancelPendingRequests(command: AbortCommand = ABORT_COMMANDS.All) {
+    Log.info(`[TERMINATE] Cancelling pending request for command: ${command}`);
     const controller = abortControllerMap.get(command);
 
     controller?.abort();
