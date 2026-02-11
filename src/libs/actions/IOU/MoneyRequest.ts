@@ -26,7 +26,6 @@ import {
     getMoneyRequestParticipantsFromReport,
     getRecentWaypoints,
     requestMoney,
-    resetSplitShares,
     setCustomUnitRateID,
     setMoneyRequestMerchant,
     setMoneyRequestParticipants,
@@ -35,7 +34,7 @@ import {
     setMultipleMoneyRequestParticipantsFromReport,
     trackExpense,
 } from './index';
-import {startSplitBill} from './Split';
+import {resetSplitShares, startSplitBill} from './Split';
 
 type CreateTransactionParams = {
     transactions: Transaction[];

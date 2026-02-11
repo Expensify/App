@@ -40,33 +40,35 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
     };
 
     return (
-        <Section
-            title={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.title')}
-            subtitle={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.subtitle')}
-            titleStyles={[styles.accountSettingsSectionTitle]}
-            subtitleMuted
-            isCentralPane
-        >
-            <MenuItem
-                title={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.ctaText')}
-                icon={icons.LuggageWithLines}
-                onPress={handleManageTravel}
-                shouldShowRightIcon
-                iconRight={icons.NewWindow}
-                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3]}
-            />
-            <ToggleSettingOptionRow
-                title={translate('workspace.moreFeatures.travel.settings.autoAddTripName.title')}
-                subtitle={translate('workspace.moreFeatures.travel.settings.autoAddTripName.subtitle')}
-                shouldPlaceSubtitleBelowSwitch
-                switchAccessibilityLabel={translate('workspace.moreFeatures.travel.settings.autoAddTripName.title')}
-                isActive={autoAddTripName}
-                onToggle={toggleAutoAddTripName}
-                pendingAction={policy?.pendingFields?.travelSettings}
-                wrapperStyle={styles.mt3}
-            />
+        <>
+            <Section
+                title={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.title')}
+                subtitle={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.subtitle')}
+                titleStyles={[styles.accountSettingsSectionTitle]}
+                subtitleMuted
+                isCentralPane
+            >
+                <MenuItem
+                    title={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.ctaText')}
+                    icon={icons.LuggageWithLines}
+                    onPress={handleManageTravel}
+                    shouldShowRightIcon
+                    iconRight={icons.NewWindow}
+                    wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3]}
+                />
+                <ToggleSettingOptionRow
+                    title={translate('workspace.moreFeatures.travel.settings.autoAddTripName.title')}
+                    subtitle={translate('workspace.moreFeatures.travel.settings.autoAddTripName.subtitle')}
+                    shouldPlaceSubtitleBelowSwitch
+                    switchAccessibilityLabel={translate('workspace.moreFeatures.travel.settings.autoAddTripName.title')}
+                    isActive={autoAddTripName}
+                    onToggle={toggleAutoAddTripName}
+                    pendingAction={policy?.pendingFields?.travelSettings}
+                    wrapperStyle={styles.mt3}
+                />
+            </Section>
             {isTravelInvoicingEnabled && <WorkspaceTravelInvoicingSection policyID={policyID} />}
-        </Section>
+        </>
     );
 }
 

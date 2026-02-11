@@ -26,7 +26,6 @@ import {
     createDistanceRequest,
     getMoneyRequestParticipantsFromReport,
     setCustomUnitRateID,
-    setDraftSplitTransaction,
     setMoneyRequestDistance,
     setMoneyRequestMerchant,
     setMoneyRequestOdometerReading,
@@ -35,6 +34,7 @@ import {
     trackExpense,
     updateMoneyRequestDistance,
 } from '@libs/actions/IOU';
+import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';

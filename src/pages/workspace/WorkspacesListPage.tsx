@@ -309,7 +309,7 @@ function WorkspacesListPage() {
             }
 
             clearWorkspaceOwnerChangeFlow(policyID);
-            requestWorkspaceOwnerChange(policyID, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
+            requestWorkspaceOwnerChange(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`], currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
             Navigation.navigate(
                 ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(
                     policyID,
@@ -319,7 +319,7 @@ function WorkspacesListPage() {
                 ),
             );
         },
-        [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login],
+        [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, policies],
     );
 
     useEffect(() => {

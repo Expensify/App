@@ -17,7 +17,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {initDraftSplitExpenseDataForEdit, removeSplitExpenseField, updateSplitExpenseField} from '@libs/actions/IOU';
+import {initDraftSplitExpenseDataForEdit, removeSplitExpenseField, updateSplitExpenseField} from '@libs/actions/IOU/Split';
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
 import {getDecodedCategoryName, isCategoryDescriptionRequired} from '@libs/CategoryUtils';

@@ -622,9 +622,10 @@ describe('actions/Report', () => {
                 Report.deleteReportComment(report, {...reportActions[400]}, ancestors.current, undefined, undefined, USER_1_LOGIN);
                 return waitForBatchedUpdates();
             })
-            .then(() => {
-                expect(ReportUtils.isUnread(report, undefined, undefined)).toBe(false);
-                expect(report?.lastMessageText).toBe('Current User Comment 2');
+            .then(() => getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}` as const))
+            .then((updatedReport) => {
+                expect(ReportUtils.isUnread(updatedReport, undefined, undefined)).toBe(false);
+                expect(updatedReport?.lastMessageText).toBe('Current User Comment 2');
             });
         waitForBatchedUpdates(); // flushing onyx.set as it will be batched
         return setPromise;

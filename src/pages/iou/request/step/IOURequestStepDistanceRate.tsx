@@ -11,14 +11,8 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {
-    getIOURequestPolicyID,
-    setDraftSplitTransaction,
-    setMoneyRequestDistanceRate,
-    setMoneyRequestTaxAmount,
-    setMoneyRequestTaxRate,
-    updateMoneyRequestDistanceRate,
-} from '@libs/actions/IOU';
+import {getIOURequestPolicyID, setMoneyRequestDistanceRate, setMoneyRequestTaxAmount, setMoneyRequestTaxRate, updateMoneyRequestDistanceRate} from '@libs/actions/IOU';
+import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';

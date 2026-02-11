@@ -7092,6 +7092,7 @@ const translations = {
         savedSearchesMenuItemTitle: 'Saved',
         topCategories: 'Top categories',
         topMerchants: 'Top merchants',
+        spendOverTime: 'Spend over time',
         groupedExpenses: 'grouped expenses',
         bulkActions: {
             approve: 'Approve',
