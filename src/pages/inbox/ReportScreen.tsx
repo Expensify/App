@@ -374,32 +374,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const {closeSidePanel} = useSidePanelActions();
 
     useEffect(() => {
-        if (
-            !isFocused ||
-            !reportIDFromRoute ||
-            report?.reportID ||
-            reportMetadata?.isLoadingInitialReportActions ||
-            reportMetadata?.isOptimisticReport ||
-            isLoadingApp ||
-            userLeavingStatus ||
-            !reportWasDeleted
-        ) {
-            return;
-        }
-
-        Navigation.goBack();
-    }, [
-        isFocused,
-        reportIDFromRoute,
-        report?.reportID,
-        reportMetadata?.isLoadingInitialReportActions,
-        reportMetadata?.isOptimisticReport,
-        isLoadingApp,
-        userLeavingStatus,
-        reportWasDeleted,
-    ]);
-
-    useEffect(() => {
         if (!prevIsFocused || isFocused) {
             return;
         }

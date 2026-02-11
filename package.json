@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.3.16-9",
+  "version": "9.3.17-0",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -147,7 +147,7 @@
     "fast-equals": "^5.2.2",
     "focus-trap-react": "^11.0.3",
     "group-ib-fp": "file:modules/group-ib-fp",
-    "heic-to": "^1.1.13",
+    "heic-to": "^1.1.14",
     "howler": "^2.2.4",
     "htmlparser2": "10.0.0",
     "idb-keyval": "^6.2.1",

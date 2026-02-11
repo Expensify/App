@@ -246,6 +246,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
         isUberConnected,
         calculateAndSetThreeDotsMenuPosition,
         policy?.receiptPartners?.uber,
+        policy?.isLoadingReceiptPartners,
         isOffline,
         startIntegrationFlow,
     ]);
