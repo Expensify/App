@@ -134,12 +134,12 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 headerMessage: '',
             };
         }
-        const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, {
+        const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
         return newOptions;
-    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, countryCode, loginList, currentUserAccountID, currentUserEmail]);
+    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, countryCode, loginList, currentUserAccountID, currentUserEmail, personalDetails]);
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -164,7 +164,9 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             undefined,
             reportAttributesDerived,
         );
-        newSections.push(formatResults.section);
+        // Just a temporary fix to satisfy the type checker
+        // Will be fixed when migrating to use new SelectionListWithSections
+        newSections.push({...formatResults.section, title: undefined, shouldShow: true});
 
         newSections.push({
             title: translate('common.recents'),

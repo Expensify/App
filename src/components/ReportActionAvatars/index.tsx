@@ -5,7 +5,8 @@ import type {ValueOf} from 'type-fest';
 import useOnyx from '@hooks/useOnyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CompanyCardFeed, InvitedEmailsToAccountIDs, Policy, Report, ReportAction} from '@src/types/onyx';
+import type {InvitedEmailsToAccountIDs, Policy, Report, ReportAction} from '@src/types/onyx';
+import type {CardFeed} from '@src/types/onyx/CardFeeds';
 import type {HorizontalStacking} from './ReportActionAvatar';
 import ReportActionAvatar from './ReportActionAvatar';
 import useReportActionAvatars from './useReportActionAvatars';
@@ -56,7 +57,7 @@ type ReportActionAvatarsProps = {
     subscriptAvatarBorderColor?: ColorValue;
 
     /** Subscript card feed to display instead of the second avatar */
-    subscriptCardFeed?: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK;
+    subscriptCardFeed?: CardFeed;
 
     /** Whether we want to be redirected to profile on avatars click */
     useProfileNavigationWrapper?: boolean;

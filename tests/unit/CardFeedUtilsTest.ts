@@ -100,7 +100,7 @@ describe('Card Feed Utils', () => {
         return waitForBatchedUpdates();
     });
     it('returns display name of workspace & domain cards', () => {
-        const cardFeedNamesWithType = getCardFeedNamesWithType({workspaceCardFeeds: fakeWorkspace, translate: translateLocal});
+        const cardFeedNamesWithType = getCardFeedNamesWithType({workspaceCardFeeds: fakeWorkspace, policies: undefined, translate: translateLocal});
         expect(Object.keys(cardFeedNamesWithType).length).toBe(2);
         expect(Object.values(cardFeedNamesWithType).every((cardFeedName) => cardFeedName.name === 'All Expensify')).toBe(true);
     });
@@ -113,7 +113,7 @@ describe('Card Feed Utils', () => {
     });
 
     it('returns empty object when workspaceCardFeeds is empty', () => {
-        const names = getCardFeedNamesWithType({workspaceCardFeeds: {key: {}}, translate: translateLocal});
+        const names = getCardFeedNamesWithType({workspaceCardFeeds: {key: {}}, policies: undefined, translate: translateLocal});
         expect(names).toEqual({});
     });
 
@@ -124,7 +124,7 @@ describe('Card Feed Utils', () => {
     });
 
     it('returns card feeds for display with custom names', () => {
-        const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeedsMock, cardListMock);
+        const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeedsMock, cardListMock, translateLocal);
         expect(cardFeedsForDisplay).toEqual({
             '5555_Expensify Card': {id: '5555_Expensify Card', fundID: '5555', feed: 'Expensify Card', name: 'Expensify Card'},
             '1234_oauth.americanexpressfdx.com 1001': {id: '1234_oauth.americanexpressfdx.com 1001', fundID: '1234', feed: 'oauth.americanexpressfdx.com 1001', name: 'American Express'},
@@ -135,7 +135,7 @@ describe('Card Feed Utils', () => {
     });
 
     it('returns card feeds for display without Expensify Card', () => {
-        const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeedsMock, {});
+        const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeedsMock, {}, translateLocal);
         expect(cardFeedsForDisplay).toEqual({
             '1234_oauth.americanexpressfdx.com 1001': {id: '1234_oauth.americanexpressfdx.com 1001', fundID: '1234', feed: 'oauth.americanexpressfdx.com 1001', name: 'American Express'},
             '1234_vcf': {id: '1234_vcf', fundID: '1234', feed: 'vcf', name: 'Custom feed name'},
@@ -145,7 +145,7 @@ describe('Card Feed Utils', () => {
     });
 
     it('returns card feeds grouped per policy', () => {
-        const cardFeedsForDisplayPerPolicy = getCardFeedsForDisplayPerPolicy(cardFeedsMock);
+        const cardFeedsForDisplayPerPolicy = getCardFeedsForDisplayPerPolicy(cardFeedsMock, translateLocal);
         expect(cardFeedsForDisplayPerPolicy).toEqual({
             '': [{id: '1234_oauth.americanexpressfdx.com 1001', fundID: '1234', feed: 'oauth.americanexpressfdx.com 1001', name: 'American Express'}],
             AA1BB2CC3: [
