@@ -83,6 +83,14 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
         setShouldShowRangeError(false);
     }, []);
 
+    const handleBackPress = useCallback(() => {
+        if (searchDatePresetFilterBaseRef.current && selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
+            searchDatePresetFilterBaseRef.current.clearDateValueOfSelectedDateModifier();
+            setTrackedDateValues(value);
+        }
+        clearSelection();
+    }, [clearSelection, selectedDateModifier, value]);
+
     const applyChanges = useCallback(() => {
         if (!searchDatePresetFilterBaseRef.current) {
             return;
@@ -153,7 +161,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
         }
     }
 
-    const shouldShowInlineRangeText = !!rangeText && !isSmallScreenWidth && selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE;
+    const shouldShowInlineRangeText = !isSmallScreenWidth && selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE;
 
     const maxPopupHeight = Math.round(windowHeight * 0.875);
 
@@ -171,7 +179,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
                             shouldDisplayHelpButton={false}
                             style={[styles.h10, styles.pb3]}
                             subtitle={translate(`common.${selectedDateModifier.toLowerCase() as SearchDateModifierLower}`)}
-                            onBackButtonPress={clearSelection}
+                            onBackButtonPress={handleBackPress}
                         />
                     )}
                     <DatePresetFilterBase
@@ -213,7 +221,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
                             shouldDisplayHelpButton={false}
                             style={[styles.h10, styles.pb3]}
                             subtitle={translate(`common.${selectedDateModifier.toLowerCase() as SearchDateModifierLower}`)}
-                            onBackButtonPress={clearSelection}
+                            onBackButtonPress={handleBackPress}
                         />
                     )}
                     <DatePresetFilterBase
@@ -229,8 +237,12 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
                 <View style={[styles.flexRow, styles.ph5, styles.alignItemsCenter, styles.pt1]}>
                     {shouldShowInlineRangeText && (
                         <Text style={[styles.textLabelSupporting, styles.flex1]}>
-                            {`${translate('common.range')}: `}
-                            <Text style={[styles.textLabelSupporting, styles.textStrong]}>{rangeText}</Text>
+                            {rangeText ? (
+                                <>
+                                    {`${translate('common.range')}: `}
+                                    <Text style={[styles.textLabelSupporting, styles.textStrong]}>{rangeText}</Text>
+                                </>
+                            ) : null}
                         </Text>
                     )}
                     <View style={[styles.flexRow, styles.gap2, shouldShowInlineRangeText ? [styles.flex1, styles.justifyContentEnd] : styles.flex1]}>
@@ -268,7 +280,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
                 {!!selectedDateModifier && (
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.ph5, styles.pb2, styles.gap2]}>
                         <PressableWithoutFeedback
-                            onPress={clearSelection}
+                            onPress={handleBackPress}
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('common.back')}
                             sentryLabel="DateSelectPopup-Back"
