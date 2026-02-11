@@ -1,11 +1,13 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import Icon from '@components/Icon';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,6 +36,7 @@ function SplitListItem<TItem extends ListItem>({
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Folder', 'Tag'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
 
     const splitItem = item as unknown as SplitListItemType;
@@ -83,6 +86,16 @@ function SplitListItem<TItem extends ListItem>({
 
     const isPercentageMode = splitItem.mode === CONST.TAB.SPLIT.PERCENTAGE;
 
+    // Build accessibility label for the grouped text content (date, merchant, category, tags)
+    const textContentAccessibilityLabel = [
+        splitItem.headerText,
+        splitItem.merchant,
+        splitItem.category ? getDecodedCategoryName(splitItem.category) : undefined,
+        splitItem.tags?.at(0) ? getCommaSeparatedTagNameWithSanitizedColons(splitItem.tags.at(0) ?? '') : undefined,
+    ]
+        .filter(Boolean)
+        .join(', ');
+
     return (
         <BaseListItem
             item={item}
@@ -100,10 +113,21 @@ function SplitListItem<TItem extends ListItem>({
             keyForList={item.keyForList}
             onFocus={onFocus}
             pendingAction={item.pendingAction}
+            accessible={!splitItem.isEditable}
         >
             <View style={[styles.flexRow, styles.containerWithSpaceBetween, styles.p3]}>
-                <View style={[styles.flex1]}>
-                    <View style={[styles.containerWithSpaceBetween, !isBottomVisible && styles.justifyContentCenter]}>
+                <View
+                    style={[styles.flex1]}
+                    accessible={splitItem.isEditable}
+                    accessibilityLabel={textContentAccessibilityLabel}
+                    aria-label={splitItem.isEditable ? textContentAccessibilityLabel : undefined}
+                    tabIndex={splitItem.isEditable ? 0 : undefined}
+                    role={splitItem.isEditable ? CONST.ROLE.SUMMARY : undefined}
+                >
+                    <View
+                        style={[styles.containerWithSpaceBetween, !isBottomVisible && styles.justifyContentCenter]}
+                        aria-hidden={splitItem.isEditable ? true : undefined}
+                    >
                         <View style={[styles.minHeight5, styles.justifyContentCenter]}>
                             <Text
                                 numberOfLines={1}
@@ -131,7 +155,10 @@ function SplitListItem<TItem extends ListItem>({
                         </View>
                     </View>
                     {isBottomVisible && (
-                        <View style={[styles.splitItemBottomContent]}>
+                        <View
+                            style={[styles.splitItemBottomContent]}
+                            aria-hidden={splitItem.isEditable ? true : undefined}
+                        >
                             {!!splitItem.category && (
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.pr1, styles.flexShrink1, !!splitItem.tags?.at(0) && styles.mw50]}>
                                     <Icon
@@ -184,12 +211,18 @@ function SplitListItem<TItem extends ListItem>({
                     </View>
                     <View style={[styles.popoverMenuIcon]}>
                         {!splitItem.isEditable ? null : (
-                            <View style={styles.pointerEventsAuto}>
+                            <PressableWithFeedback
+                                onPress={() => onSelectRow(item)}
+                                accessibilityLabel={translate('common.edit')}
+                                role="button"
+                                style={styles.pointerEventsAuto}
+                                sentryLabel="SplitListItem-EditButton"
+                            >
                                 <Icon
                                     src={icons.ArrowRight}
                                     fill={theme.icon}
                                 />
-                            </View>
+                            </PressableWithFeedback>
                         )}
                     </View>
                 </View>

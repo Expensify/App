@@ -392,10 +392,10 @@ Onyx.connect({
     },
 });
 
-let introSelected: OnyxEntry<IntroSelected> = {};
+let deprecatedIntroSelected: OnyxEntry<IntroSelected> = {};
 Onyx.connect({
     key: ONYXKEYS.NVP_INTRO_SELECTED,
-    callback: (val) => (introSelected = val),
+    callback: (val) => (deprecatedIntroSelected = val),
 });
 
 let environment: EnvironmentType;
@@ -1062,6 +1062,7 @@ function clearAvatarErrors(reportID: string) {
 // eslint-disable-next-line @typescript-eslint/max-params
 function openReport(
     reportID: string | undefined,
+    introSelected: OnyxEntry<IntroSelected>,
     reportActionID?: string,
     participantLoginList: string[] = [],
     newReportObject?: OptimisticChatReport,
@@ -1590,6 +1591,7 @@ function createTransactionThreadReport(
     const shouldAddPendingFields = transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || iouReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
     openReport(
         optimisticTransactionThreadReportID,
+        deprecatedIntroSelected,
         undefined,
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         deprecatedCurrentUserLogin ? [deprecatedCurrentUserLogin] : [],
@@ -1644,7 +1646,7 @@ function navigateToAndOpenReport(
             });
         }
         // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-        openReport(newChat?.reportID, '', userLogins, newChat, undefined, undefined, undefined, avatarFile);
+        openReport(newChat?.reportID, deprecatedIntroSelected, '', userLogins, newChat, undefined, undefined, undefined, avatarFile);
     }
     const report = isEmptyObject(chat) ? newChat : chat;
 
@@ -1680,7 +1682,7 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[], 
             participantList: [...participantAccountIDs, currentUserAccountID],
         });
         // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-        openReport(newChat?.reportID, '', [], newChat, '0', false, participantAccountIDs);
+        openReport(newChat?.reportID, deprecatedIntroSelected, '', [], newChat, '0', false, participantAccountIDs);
     }
     const report = chat ?? newChat;
 
@@ -1726,7 +1728,7 @@ function createChildReport(childReport: OnyxEntry<Report>, parentReportAction: R
     const childReportID = childReport?.reportID ?? parentReportAction.childReportID;
     if (!childReportID) {
         const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(Object.keys(newChat.participants ?? {}).map(Number));
-        openReport(newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID, undefined, undefined, undefined, true);
+        openReport(newChat.reportID, deprecatedIntroSelected, '', participantLogins, newChat, parentReportAction.reportActionID, undefined, undefined, undefined, true);
     } else {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`, newChat);
     }
@@ -1739,20 +1741,19 @@ function createChildReport(childReport: OnyxEntry<Report>, parentReportAction: R
  * Adds a "Please explain this to me." comment from the user
  */
 function explain(
+    childReport: OnyxEntry<Report>,
+    originalReport: OnyxEntry<Report>,
     reportAction: OnyxEntry<ReportAction>,
-    originalReportID: string | undefined,
     translate: LocalizedTranslate,
     currentUserAccountID: number,
     timezone: Timezone = CONST.DEFAULT_TIME_ZONE,
 ) {
-    if (!originalReportID || !reportAction) {
+    if (!originalReport?.reportID || !reportAction) {
         return;
     }
 
     // Check if explanation thread report already exists
-    const existingChildReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`];
-    const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
-    const report = existingChildReport ?? createChildReport(existingChildReport, reportAction, originalReport);
+    const report = childReport ?? createChildReport(childReport, reportAction, originalReport);
 
     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, Navigation.getActiveRoute()));
     // Schedule adding the explanation comment on the next animation frame
@@ -2126,7 +2127,7 @@ function deleteReportComment(
     currentEmail: string,
 ) {
     const reportID = report?.reportID;
-    const originalReportID = getOriginalReportID(reportID, reportAction);
+    const originalReportID = getOriginalReportID(reportID, reportAction, undefined);
     const reportActionID = reportAction.reportActionID;
 
     if (!reportActionID || !originalReportID || !reportID) {
@@ -2454,13 +2455,13 @@ function editReportComment(
 
 /** Deletes the draft for a comment report action. */
 function deleteReportActionDraft(reportID: string | undefined, reportAction: ReportAction) {
-    const originalReportID = getOriginalReportID(reportID, reportAction);
+    const originalReportID = getOriginalReportID(reportID, reportAction, undefined);
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {[reportAction.reportActionID]: null});
 }
 
 /** Saves the draft for a comment report action. This will put the comment into "edit mode" */
 function saveReportActionDraft(reportID: string | undefined, reportAction: ReportAction, draftMessage: string) {
-    const originalReportID = getOriginalReportID(reportID, reportAction);
+    const originalReportID = getOriginalReportID(reportID, reportAction, undefined);
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {[reportAction.reportActionID]: {message: draftMessage}});
 }
 
@@ -2565,7 +2566,7 @@ function toggleSubscribeToChildReport(
     prevNotificationPreference?: NotificationPreference,
 ) {
     if (childReportID) {
-        openReport(childReportID);
+        openReport(childReportID, deprecatedIntroSelected);
         const parentReportActionID = parentReportAction.reportActionID;
         if (!prevNotificationPreference || isHiddenForCurrentUser(prevNotificationPreference)) {
             updateNotificationPreference(
@@ -2600,7 +2601,7 @@ function toggleSubscribeToChildReport(
         });
 
         const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDs);
-        openReport(newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID);
+        openReport(newChat.reportID, deprecatedIntroSelected, '', participantLogins, newChat, parentReportAction.reportActionID);
         const notificationPreference = isHiddenForCurrentUser(prevNotificationPreference) ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         updateNotificationPreference(newChat.reportID, prevNotificationPreference, notificationPreference, currentUserAccountID, parentReport?.reportID, parentReportAction.reportActionID);
     }
@@ -3796,7 +3797,7 @@ function toggleEmojiReaction(
     currentUserAccountID: number,
     ignoreSkinToneOnCompare = false,
 ) {
-    const originalReportID = getOriginalReportID(reportID, reportAction);
+    const originalReportID = getOriginalReportID(reportID, reportAction, undefined);
 
     if (!originalReportID) {
         return;
@@ -4565,7 +4566,7 @@ async function completeOnboarding({
     shouldWaitForRHPVariantInitialization = false,
 }: CompleteOnboardingProps) {
     const onboardingData = prepareOnboardingOnyxData({
-        introSelected,
+        introSelected: deprecatedIntroSelected,
         engagementChoice,
         onboardingMessage,
         adminsChatReportID,
@@ -5123,7 +5124,8 @@ function clearDeleteTransactionNavigateBackUrl() {
 
 /** Deletes a report and un-reports all transactions on the report along with its reportActions, any linked reports and any linked IOU report actions. */
 function deleteAppReport(
-    reportID: string | undefined,
+    report: OnyxEntry<Report>,
+    selfDMReport: OnyxEntry<Report>,
     currentUserEmailParam: string,
     currentUserAccountIDParam: number,
     reportTransactions: Record<string, Transaction>,
@@ -5131,10 +5133,11 @@ function deleteAppReport(
     bankAccountList: OnyxEntry<BankAccountList>,
     hash?: number,
 ) {
-    if (!reportID) {
-        Log.warn('[Report] deleteReport called with no reportID');
+    if (!report?.reportID) {
+        Log.warn('[Report] deleteAppReport called with no reportID');
         return;
     }
+    const reportID = report.reportID;
 
     // Update search results to mark report as deleted when called from search
     if (hash) {
@@ -5161,25 +5164,22 @@ function deleteAppReport(
         OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>
     > = [];
 
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-
-    let selfDMReportID = findSelfDMReportID();
-    let selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
+    let selfDMReportID = selfDMReport?.reportID;
     let createdAction: ReportAction;
     let selfDMParameters: SelfDMParameters = {};
 
-    if (!selfDMReport) {
+    if (!selfDMReportID) {
         const currentTime = DateUtils.getDBTime();
-        selfDMReport = buildOptimisticSelfDMReport(currentTime);
-        selfDMReportID = selfDMReport.reportID;
+        const optimisticSelfDMReport = buildOptimisticSelfDMReport(currentTime);
+        selfDMReportID = optimisticSelfDMReport.reportID;
         createdAction = buildOptimisticCreatedReportAction(currentUserEmailParam ?? '', currentTime);
-        selfDMParameters = {reportID: selfDMReport.reportID, createdReportActionID: createdAction.reportActionID};
+        selfDMParameters = {reportID: optimisticSelfDMReport.reportID, createdReportActionID: createdAction.reportActionID};
         optimisticData.push(
             {
                 onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`,
                 value: {
-                    ...selfDMReport,
+                    ...optimisticSelfDMReport,
                     pendingFields: {
                         createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     },
@@ -5192,14 +5192,14 @@ function deleteAppReport(
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${selfDMReport.reportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${selfDMReportID}`,
                 value: {
                     isOptimisticReport: true,
                 },
             },
             {
                 onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
                 value: {
                     [createdAction.reportActionID]: createdAction,
                 },
@@ -5209,7 +5209,7 @@ function deleteAppReport(
         successData.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`,
                 value: {
                     pendingFields: {
                         createChat: null,
@@ -5218,14 +5218,14 @@ function deleteAppReport(
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${selfDMReport.reportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${selfDMReportID}`,
                 value: {
                     isOptimisticReport: false,
                 },
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
                 value: {
                     [createdAction.reportActionID]: {
                         pendingAction: null,
@@ -5434,7 +5434,6 @@ function deleteAppReport(
         value: null,
     });
 
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     failureData.push({
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,

@@ -80,7 +80,6 @@ export type {default as ResolveActionableReportMentionWhisperParams} from './Res
 export type {default as RevealExpensifyCardDetailsParams} from './RevealExpensifyCardDetailsParams';
 export type {default as SearchForReportsParams} from './SearchForReportsParams';
 export type {default as SearchForRoomsToMentionParams} from './SearchForRoomsToMentionParams';
-export type {default as SendPerformanceTimingParams} from './SendPerformanceTimingParams';
 export type {default as GraphiteParams} from './GraphiteParams';
 export type {default as SetContactMethodAsDefaultParams} from './SetContactMethodAsDefaultParams';
 export type {default as SignInUserWithLinkParams} from './SignInUserWithLinkParams';
@@ -225,6 +224,7 @@ export type {default as EnablePolicyConnectionsParams} from './EnablePolicyConne
 export type {default as TogglePolicyReceiptPartnersParams} from './TogglePolicyReceiptPartnersParams';
 export type {default as EnablePolicyDistanceRatesParams} from './EnablePolicyDistanceRatesParams';
 export type {default as EnablePolicyTravelParams} from './EnablePolicyTravelParams';
+export type {default as SetPolicyTravelSettingsParams} from './SetPolicyTravelSettingsParams';
 export type {default as EnablePolicyTagsParams} from './EnablePolicyTagsParams';
 export type {default as SetPolicyTagsEnabled} from './SetPolicyTagsEnabled';
 export type {default as EnablePolicyWorkflowsParams} from './EnablePolicyWorkflowsParams';

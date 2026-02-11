@@ -1,8 +1,9 @@
 import {findFocusedRoute, StackActions, useNavigationState} from '@react-navigation/native';
+import type {NavigationState} from '@react-navigation/native';
 import reportsSelector from '@selectors/Attributes';
 import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FloatingCameraButton from '@components/FloatingCameraButton';
 import FloatingGPSButton from '@components/FloatingGPSButton';
@@ -16,6 +17,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRootNavigationState from '@hooks/useRootNavigationState';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -36,7 +38,7 @@ import {startSpan} from '@libs/telemetry/activeSpans';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import navigationRef from '@navigation/navigationRef';
-import type {DomainSplitNavigatorParamList, RootNavigatorParamList, SearchFullscreenNavigatorParamList, State, WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import type {DomainSplitNavigatorParamList, ReportsSplitNavigatorParamList, SearchFullscreenNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import NavigationTabBarAvatar from '@pages/inbox/sidebar/NavigationTabBarAvatar';
 import NavigationTabBarFloatingActionButton from '@pages/inbox/sidebar/NavigationTabBarFloatingActionButton';
 import variables from '@styles/variables';
@@ -45,7 +47,8 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Domain, Policy} from '@src/types/onyx';
+import type {Screen} from '@src/SCREENS';
+import type {Domain, Policy, Report} from '@src/types/onyx';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 
 type NavigationTabBarProps = {
@@ -53,6 +56,17 @@ type NavigationTabBarProps = {
     isTopLevelBar?: boolean;
     shouldShowFloatingButtons?: boolean;
 };
+
+function doesLastReportExistSelector(report: OnyxEntry<Report>) {
+    return !!report?.reportID;
+}
+
+function getLastRoute(rootState: NavigationState, navigator: ValueOf<typeof NAVIGATORS>, screen: Screen) {
+    const lastNavigator = rootState.routes.findLast((route) => route.name === navigator);
+    const lastNavigatorState = lastNavigator && lastNavigator.key ? getPreservedNavigatorState(lastNavigator?.key) : undefined;
+    const lastRoute = lastNavigatorState?.routes.findLast((route) => route.name === screen);
+    return lastRoute;
+}
 
 function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatingButtons = true}: NavigationTabBarProps) {
     const theme = useTheme();
@@ -129,6 +143,15 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
         [navigationState],
     );
 
+    const lastReportRoute = useRootNavigationState((rootState) => {
+        if (!rootState) {
+            return undefined;
+        }
+        return getLastRoute(rootState, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT);
+    });
+    const lastReportRouteReportID = (lastReportRoute?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT])?.reportID;
+    const [doesLastReportExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${lastReportRouteReportID}`, {canBeMissing: true, selector: doesLastReportExistSelector}, [lastReportRouteReportID]);
+
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportsSelector, canBeMissing: true});
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -169,14 +192,22 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
             op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
         });
 
-        if (!shouldUseNarrowLayout && isRoutePreloaded(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR)) {
-            // We use dispatch here because the correct screens and params are preloaded and set up in usePreloadFullScreenNavigators.
-            navigationRef.dispatch(StackActions.push(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR));
-            return;
+        if (!shouldUseNarrowLayout) {
+            if (doesLastReportExist && lastReportRoute) {
+                const {reportID, reportActionID, referrer, backTo} = lastReportRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, reportActionID, referrer, backTo));
+                return;
+            }
+
+            if (isRoutePreloaded(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR)) {
+                // We use dispatch here because the correct screens and params are preloaded and set up in usePreloadFullScreenNavigators.
+                navigationRef.dispatch(StackActions.push(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR));
+                return;
+            }
         }
 
         Navigation.navigate(ROUTES.INBOX);
-    }, [selectedTab, shouldUseNarrowLayout]);
+    }, [selectedTab, shouldUseNarrowLayout, doesLastReportExist, lastReportRoute]);
 
     const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY, {canBeMissing: true});
 
@@ -197,10 +228,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                 parentSpan,
             });
 
-            const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
-            const lastSearchNavigator = rootState.routes.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
-            const lastSearchNavigatorState = lastSearchNavigator && lastSearchNavigator.key ? getPreservedNavigatorState(lastSearchNavigator?.key) : undefined;
-            const lastSearchRoute = lastSearchNavigatorState?.routes.findLast((route) => route.name === SCREENS.SEARCH.ROOT);
+            const lastSearchRoute = getLastRoute(navigationRef.getRootState(), NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, SCREENS.SEARCH.ROOT);
 
             if (lastSearchRoute) {
                 const {q, ...rest} = lastSearchRoute.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];

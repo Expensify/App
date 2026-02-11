@@ -209,9 +209,11 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     );
 
     const handleBackButtonPress = () => {
-        Navigation.popToSidebar();
+        Navigation.goBack();
         return true;
     };
+
+    const policyCollection = policy?.id ? {[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy} : undefined;
 
     useAndroidBackButtonHandler(handleBackButtonPress);
 
@@ -239,7 +241,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                         onFeedSelect={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.getRoute(policyID))}
                         CardFeedIcon={cardFeedIcon}
                         feedName={translate('workspace.common.expensifyCard')}
-                        supportingText={getDescriptionForPolicyDomainCard(cardSettings?.domainName ?? '')}
+                        supportingText={getDescriptionForPolicyDomainCard(cardSettings?.domainName ?? '', policyCollection)}
                     />
                     {isBankAccountVerified && getHeaderButtons()}
                 </View>

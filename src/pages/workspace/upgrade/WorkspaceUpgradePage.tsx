@@ -196,6 +196,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         policy?.connections?.xero?.config,
         policy?.connections?.xero?.data,
         policyID,
+        policyData,
         qboConfig?.syncClasses,
         qboConfig?.syncCustomers,
         qboConfig?.syncLocations,

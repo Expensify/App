@@ -62,7 +62,7 @@ function getGPSCoordinates(gpsDraftDetails: GpsDraftDetails | undefined): string
 }
 
 function calculateGPSDistance(distanceInMeters: number, unit: Unit): number {
-    return DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit);
+    return roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit));
 }
 
 function getGPSConvertedDistance(gpsDraftDetails: GpsDraftDetails | undefined, unit: Unit): number {

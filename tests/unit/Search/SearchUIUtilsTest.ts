@@ -4390,7 +4390,7 @@ describe('SearchUIUtils', () => {
         };
 
         it('should return the default menu items', () => {
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const menuItems = SearchUIUtils.createTypeMenuSections(icons.current, undefined, undefined, {}, undefined, {}, {}, false, undefined, false, {}, reportCounts)
                 .map((section) => section.menuItems)
                 .flat();
@@ -4469,7 +4469,7 @@ describe('SearchUIUtils', () => {
 
             const mockSavedSearches = {};
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections(
                 icons.current,
                 adminEmail,
@@ -4533,7 +4533,7 @@ describe('SearchUIUtils', () => {
 
             const mockSavedSearches = {};
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections(
                 icons.current,
                 adminEmail,
@@ -4576,7 +4576,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, {}, mockSavedSearches, false, undefined, false, {}, reportCounts);
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -4586,7 +4586,7 @@ describe('SearchUIUtils', () => {
         it('should not show saved section when there are no saved searches', () => {
             const mockSavedSearches = {};
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, {}, mockSavedSearches, false, undefined, false, {}, reportCounts);
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -4603,7 +4603,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections(
                 icons.current,
                 adminEmail,
@@ -4633,7 +4633,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections(
                 icons.current,
                 adminEmail,
@@ -4667,7 +4667,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false, undefined, false, {}, reportCounts);
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
@@ -4688,7 +4688,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections(
                 icons.current,
                 adminEmail,
@@ -4732,7 +4732,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false, undefined, false, {}, reportCounts);
 
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
@@ -4758,7 +4758,7 @@ describe('SearchUIUtils', () => {
             };
 
             const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {};
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections(
                 icons.current,
                 adminEmail,
@@ -4781,7 +4781,7 @@ describe('SearchUIUtils', () => {
         });
 
         it('should generate correct routes', () => {
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const menuItems = SearchUIUtils.createTypeMenuSections(icons.current, undefined, undefined, {}, undefined, {}, {}, false, undefined, false, {}, reportCounts)
                 .map((section) => section.menuItems)
                 .flat();
@@ -4844,7 +4844,7 @@ describe('SearchUIUtils', () => {
                 ],
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections(
                 icons.current,
                 adminEmail,
@@ -5236,6 +5236,168 @@ describe('SearchUIUtils', () => {
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
             expect(response.topCategories).toBe(false);
+        });
+
+        test('Should show Spend Over Time for Admin role in paid policy', () => {
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+            expect(response.spendOverTime).toBe(true);
+        });
+
+        test('Should show Spend Over Time for Auditor role in paid policy', () => {
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.AUDITOR,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility('auditor@policy.com', {}, policies, undefined);
+            expect(response.spendOverTime).toBe(true);
+        });
+
+        test('Should show Spend Over Time for Approver role in paid policy', () => {
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    approver: approverEmail,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(approverEmail, {}, policies, undefined);
+            expect(response.spendOverTime).toBe(true);
+        });
+
+        test('Should hide Spend Over Time for User role in paid policy', () => {
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.USER,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility('user@policy.com', {}, policies, undefined);
+            expect(response.spendOverTime).toBe(false);
+        });
+
+        test('Should hide Spend Over Time for free policies even with Admin role', () => {
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.PERSONAL,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+            expect(response.spendOverTime).toBe(false);
+        });
+
+        test('Should show Spend Over Time if at least one policy has Admin/Auditor/Approver role', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                policyOne: {
+                    id: 'policyOne',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.USER,
+                } as OnyxTypes.Policy,
+                policyTwo: {
+                    id: 'policyTwo',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+            expect(response.spendOverTime).toBe(true);
+        });
+
+        test('Should hide Spend Over Time if all policies have User role', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                policyOne: {
+                    id: 'policyOne',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.USER,
+                } as OnyxTypes.Policy,
+                policyTwo: {
+                    id: 'policyTwo',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.USER,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility('user@policy.com', {}, policies, undefined);
+            expect(response.spendOverTime).toBe(false);
+        });
+
+        test('Should return Spend Over Time search with correct properties', () => {
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined, undefined);
+            const spendOverTimeSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME];
+
+            expect(spendOverTimeSearch).toBeDefined();
+            expect(spendOverTimeSearch.key).toBe(CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME);
+            expect(spendOverTimeSearch.translationPath).toBe('search.spendOverTime');
+            expect(spendOverTimeSearch.type).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
+            expect(spendOverTimeSearch.icon).toBe('CalendarSolid');
+        });
+
+        test('Should return Spend Over Time search query with correct parameters', () => {
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined, undefined);
+            const spendOverTimeSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME];
+            const searchQueryJSON = spendOverTimeSearch.searchQueryJSON;
+
+            expect(searchQueryJSON).toBeDefined();
+            expect(searchQueryJSON?.type).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
+            expect(searchQueryJSON?.groupBy).toBe(CONST.SEARCH.GROUP_BY.MONTH);
+
+            // Check that date filter with year-to-date preset exists in flatFilters
+            const dateFilter = searchQueryJSON?.flatFilters?.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
+            expect(dateFilter).toBeDefined();
+            expect(dateFilter?.filters?.some((f) => f.value === CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE)).toBe(true);
+
+            expect(searchQueryJSON?.view).toBe(CONST.SEARCH.VIEW.LINE);
+            expect(searchQueryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH);
+            expect(searchQueryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.ASC);
+        });
+
+        test('Should return Spend Over Time search with valid hash', () => {
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined, undefined);
+            const spendOverTimeSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME];
+
+            expect(spendOverTimeSearch.hash).toBeGreaterThan(0);
+            expect(spendOverTimeSearch.similarSearchHash).toBeGreaterThan(0);
+        });
+
+        test('Should return Spend Over Time search query string with correct format', () => {
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined, undefined);
+            const spendOverTimeSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME];
+            const searchQuery = spendOverTimeSearch.searchQuery;
+
+            expect(searchQuery).toContain(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE}`);
+            expect(searchQuery).toContain(`groupBy:${CONST.SEARCH.GROUP_BY.MONTH}`);
+            expect(searchQuery).toContain(`date:${CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE}`);
+            expect(searchQuery).toContain(`view:${CONST.SEARCH.VIEW.LINE}`);
+            expect(searchQuery).toContain(`sortBy:${CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH}`);
+            expect(searchQuery).toContain(`sortOrder:${CONST.SEARCH.SORT_ORDER.ASC}`);
         });
     });
 
@@ -5862,7 +6024,7 @@ describe('SearchUIUtils', () => {
 
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID});
 
-            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, false)).toBe(true);
+            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults)).toBe(true);
         });
 
         it('should show delete option for unreported expense which can be deleted', async () => {
@@ -6118,7 +6280,7 @@ describe('SearchUIUtils', () => {
 
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID});
 
-            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, false)).toBe(true);
+            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults)).toBe(true);
         });
     });
     describe('getToFieldValueForTransaction', () => {

@@ -21,8 +21,9 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useTransactionViolations from '@hooks/useTransactionViolations';
-import {deleteTrackExpense, initSplitExpense, markRejectViolationAsResolved} from '@libs/actions/IOU';
+import {deleteTrackExpense, markRejectViolationAsResolved} from '@libs/actions/IOU';
 import {duplicateExpenseTransaction as duplicateTransactionAction} from '@libs/actions/IOU/Duplicate';
+import {initSplitExpense} from '@libs/actions/IOU/Split';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {setNameValuePair} from '@libs/actions/User';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -335,6 +336,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                             reportID,
                             transaction,
                             removeSettledAndApprovedTransactions(Object.values(duplicateTransactions ?? {}).filter((t) => t?.transactionID !== transaction?.transactionID)),
+                            policy,
                             policyCategories,
                             transactionReport,
                         ),
@@ -430,7 +432,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             icon: expensifyIcons.ArrowSplit,
             value: CONST.REPORT.SECONDARY_ACTIONS.SPLIT,
             onSelected: () => {
-                initSplitExpense(allTransactions, allReports, transaction);
+                initSplitExpense(allTransactions, allReports, transaction, policy);
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MERGE]: {

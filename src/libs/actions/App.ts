@@ -255,10 +255,16 @@ function saveCurrentPathBeforeBackground() {
 
 let appState: AppStateStatus;
 AppState.addEventListener('change', (nextAppState) => {
+    // On app startup appState can be undefined
+    // or 'background' (app launched via push notification), causing the `appState === 'active'` check to fail
+    // and leaving spans running for a long time.
+    if (nextAppState.match(/inactive|background/)) {
+        Log.info('Cancelling telemetry spans as app is going inactive/background', false, {previousState: appState, nextState: nextAppState});
+        cancelAllSpans();
+    }
     if (nextAppState.match(/inactive|background/) && appState === 'active') {
         Log.info('Flushing logs as app is going inactive', true, {}, true);
         saveCurrentPathBeforeBackground();
-        cancelAllSpans();
     }
     appState = nextAppState;
 });
