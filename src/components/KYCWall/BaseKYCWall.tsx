@@ -177,6 +177,11 @@ function KYCWall({
                     return;
                 }
 
+                // If user has a locked account we exit early
+                if (policy !== undefined && policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.LOCKED) {
+                    return;
+                }
+
                 // If user has a setup in progress for we redirect to the flow where setup can be finished
                 // Setup is in progress in 2 cases:
                 // - account already present on policy is partially setup
