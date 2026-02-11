@@ -43,6 +43,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {hideEmojiPicker} from '@libs/actions/EmojiPickerAction';
+import DateUtils from '@libs/DateUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
@@ -87,7 +88,6 @@ import {
     isTaskReport,
     isValidReportIDFromPath,
 } from '@libs/ReportUtils';
-import DateUtils from '@libs/DateUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 import {isNumeric} from '@libs/ValidationUtils';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
@@ -1135,7 +1135,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                                 // If the report is from the 'Send Money' flow, we add the comment to the `iou` report because for these we don't combine reportActions even if there is a single transaction (they always have a single transaction)
                                                 transactionThreadReportID={isSentMoneyReport ? undefined : transactionThreadReportID}
                                                 isInSidePanel={isInSidePanel}
-                                                shouldHideConciergeIndicators={isConciergeSidePanel && !hasUserSentMessage}
+                                                shouldHideStatusIndicators={isConciergeSidePanel && !hasUserSentMessage}
                                             />
                                         ) : null}
                                     </View>

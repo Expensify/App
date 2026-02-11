@@ -79,7 +79,7 @@ type ReportFooterProps = {
     isInSidePanel?: boolean;
 
     /** Whether to hide concierge status indicators (agent zero / typing) in the side panel */
-    shouldHideConciergeIndicators?: boolean;
+    shouldHideStatusIndicators?: boolean;
 };
 
 function ReportFooter({
@@ -94,7 +94,7 @@ function ReportFooter({
     reportTransactions,
     transactionThreadReportID,
     isInSidePanel,
-    shouldHideConciergeIndicators,
+    shouldHideStatusIndicators,
 }: ReportFooterProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -266,7 +266,7 @@ function ReportFooter({
                             reportTransactions={reportTransactions}
                             transactionThreadReportID={transactionThreadReportID}
                             isInSidePanel={isInSidePanel}
-                            shouldHideConciergeIndicators={shouldHideConciergeIndicators}
+                            shouldHideStatusIndicators={shouldHideStatusIndicators}
                         />
                     </SwipeableView>
                 </View>
@@ -290,5 +290,5 @@ export default memo(
         prevProps.policy?.role === nextProps.policy?.role &&
         // reportTransactions comes from useOnyx - reference is stable
         prevProps.reportTransactions === nextProps.reportTransactions &&
-        prevProps.shouldHideConciergeIndicators === nextProps.shouldHideConciergeIndicators,
+        prevProps.shouldHideStatusIndicators === nextProps.shouldHideStatusIndicators,
 );
