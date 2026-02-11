@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -17,7 +17,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
-import {updateAddPersonalBankAccountDraft} from '@userActions/BankAccounts';
+import {clearPersonalBankAccount, updateAddPersonalBankAccountDraft} from '@userActions/BankAccounts';
 import {openExternalLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,6 +39,10 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bank', 'Connect', 'Lightbulb', 'Lock'] as const);
 
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED, {canBeMissing: true});
+
+    useEffect(() => {
+        clearPersonalBankAccount();
+    }, []);
 
     const handleConnectManually = () => {
         updateAddPersonalBankAccountDraft({

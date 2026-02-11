@@ -71,7 +71,7 @@ function ScrollOffsetContextProvider({children}: ScrollOffsetContextProviderProp
 
         // If the priority mode changes, we need to clear the scroll offsets for the home and search screens because it affects the size of the elements and scroll positions wouldn't be correct.
         for (const key of Object.keys(scrollOffsetsRef.current)) {
-            if (key.includes(SCREENS.HOME) || key.includes(SCREENS.SEARCH.ROOT)) {
+            if (key.includes(SCREENS.INBOX) || key.includes(SCREENS.SEARCH.ROOT)) {
                 delete scrollOffsetsRef.current[key];
             }
         }
@@ -100,9 +100,8 @@ function ScrollOffsetContextProvider({children}: ScrollOffsetContextProviderProp
 
     const cleanStaleScrollOffsets: ScrollOffsetContextValue['cleanStaleScrollOffsets'] = useCallback(
         (state) => {
-            const sidebarRoutes = state.routes.filter((route) => isSidebarScreenName(route.name) || route.name === SCREENS.WORKSPACES_LIST);
-            const workspaceListRoutes = state.routes.filter((route) => route.name === SCREENS.WORKSPACES_LIST);
-            const existingScreenKeys = new Set([...sidebarRoutes, ...workspaceListRoutes].map(getKey));
+            const sidebarRoutes = state.routes.filter((route) => isSidebarScreenName(route.name));
+            const existingScreenKeys = new Set(sidebarRoutes.map(getKey));
 
             const focusedRoute = findFocusedRoute(state);
             const routeName = focusedRoute?.name;

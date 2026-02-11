@@ -58,11 +58,13 @@ function DistanceRequestStartPage({
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(route?.params.transactionID)}`, {canBeMissing: true});
+    const [draftTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const showGPSTab = isBetaEnabled(CONST.BETAS.GPS_MILEAGE);
+    const showOdometerTab = isBetaEnabled(CONST.BETAS.ODOMETER_EXPENSES);
 
     const hasOnlyPersonalPolicies = useMemo(() => hasOnlyPersonalPoliciesUtil(allPolicies), [allPolicies]);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -71,8 +73,8 @@ function DistanceRequestStartPage({
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.trackDistance'),
         [CONST.IOU.TYPE.SUBMIT]: translate('iou.trackDistance'),
-        [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', {name: getPayeeName(report)}),
-        [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', {name: getPayeeName(report)}),
+        [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', getPayeeName(report)),
+        [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', getPayeeName(report)),
         [CONST.IOU.TYPE.SPLIT]: translate('iou.splitExpense'),
         [CONST.IOU.TYPE.SPLIT_EXPENSE]: translate('iou.splitExpense'),
         [CONST.IOU.TYPE.TRACK]: translate('iou.trackDistance'),
@@ -112,6 +114,7 @@ function DistanceRequestStartPage({
                 policy,
                 personalPolicy,
                 isFromGlobalCreate,
+                isFromFloatingActionButton: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate ?? isFromGlobalCreate,
                 currentIouRequestType: transaction?.iouRequestType,
                 newIouRequestType: newIOUType,
                 report,
@@ -120,10 +123,13 @@ function DistanceRequestStartPage({
                 lastSelectedDistanceRates,
                 currentUserPersonalDetails,
                 hasOnlyPersonalPolicies,
+                draftTransactions,
             });
         },
         [
             transaction?.iouRequestType,
+            transaction?.isFromGlobalCreate,
+            transaction?.isFromFloatingActionButton,
             reportID,
             policy,
             personalPolicy,
@@ -134,6 +140,7 @@ function DistanceRequestStartPage({
             lastSelectedDistanceRates,
             currentUserPersonalDetails,
             hasOnlyPersonalPolicies,
+            draftTransactions,
         ],
     );
 
@@ -221,7 +228,7 @@ function DistanceRequestStartPage({
                                 )}
                             </TopTab.Screen>
                         )}
-                        {false && (
+                        {showOdometerTab && (
                             <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_ODOMETER}>
                                 {() => (
                                     <TabScreenWithFocusTrapWrapper>

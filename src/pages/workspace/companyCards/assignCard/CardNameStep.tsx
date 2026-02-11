@@ -13,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isValidInputLength} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
@@ -37,7 +37,7 @@ function CardNameStep({route}: CardNameStepProps) {
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM>) => {
         setAssignCardStepAndData({
             cardToAssign: {
-                cardName: values.name,
+                customCardName: values.name,
             },
             isEditing: false,
         });
@@ -45,13 +45,13 @@ function CardNameStep({route}: CardNameStepProps) {
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM> => {
-        const errors = getFieldRequiredErrors(values, [INPUT_IDS.NAME]);
-        const length = values.name.length;
-
-        if (length > CONST.STANDARD_LENGTH_LIMIT) {
-            addErrorMessage(errors, INPUT_IDS.NAME, translate('common.error.characterLimitExceedCounter', length, CONST.STANDARD_LENGTH_LIMIT));
+        const errors = getFieldRequiredErrors(values, [INPUT_IDS.NAME], translate);
+        if (values.name) {
+            const {isValid, byteLength} = isValidInputLength(values.name, CONST.STANDARD_LENGTH_LIMIT);
+            if (!isValid) {
+                addErrorMessage(errors, INPUT_IDS.NAME, translate('common.error.characterLimitExceedCounter', byteLength, CONST.STANDARD_LENGTH_LIMIT));
+            }
         }
-
         return errors;
     };
 
@@ -74,7 +74,7 @@ function CardNameStep({route}: CardNameStepProps) {
                 />
                 <Text style={[styles.mh5, styles.mt3, styles.mb5]}>{translate('workspace.moreFeatures.companyCards.giveItNameInstruction')}</Text>
                 <FormProvider
-                    key={cardToAssign?.cardName}
+                    key={cardToAssign?.customCardName}
                     formID={ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM}
                     submitButtonText={translate('common.save')}
                     onSubmit={submit}
@@ -90,7 +90,7 @@ function CardNameStep({route}: CardNameStepProps) {
                         label={translate('workspace.moreFeatures.companyCards.cardName')}
                         aria-label={translate('workspace.moreFeatures.companyCards.cardName')}
                         role={CONST.ROLE.PRESENTATION}
-                        defaultValue={cardToAssign?.cardName}
+                        defaultValue={cardToAssign?.customCardName}
                         ref={inputCallbackRef}
                     />
                 </FormProvider>

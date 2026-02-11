@@ -13,4 +13,6 @@ function ValidateCodeForm({ref, ...props}: ValidateCodeFormProps) {
     );
 }
 
+ValidateCodeForm.displayName = 'SignInValidateCodeForm';
+
 export default ValidateCodeForm;

@@ -8,7 +8,9 @@ In Expensify, **tags** represent attributes like classes, projects, cost centers
 
 Admins can manually create one level of tags or multiple levels of tags for a workspace, or they can be imported automatically if your workspace is connected to an accounting system like QuickBooks Online, Intacct, Xero, or NetSuite. Once added, tags can be enabled or disabled. Expensify also learns your tag preferences for merchants and applies them automatically.
 
-![The Tags tab]({{site.url}}/assets/images/ExpensifyHelp_R4_Tags_2.png){:width="100%"}
+The Tags table displays the tag **Name**, **GL Code** (if assigned), and whether it's **Required** for expenses.
+
+![The Tags tab]({{site.url}}/assets/images/NewExpensify_ManageTags_3.png){:width="100%"}
 
 ---
 
@@ -20,8 +22,6 @@ Before you can manage tags, you need to enable the **Tags** feature for your wor
 2. Click your **workspace name**.
 3. Click **More Features** in the left menu.
 4. In the **Organize** section, toggle on **Tags**.
-
-![The toggle to enable Tags]({{site.url}}/assets/images/ExpensifyHelp_R4_Tags_1.png){:width="100%"}
 
 ---
 
@@ -39,7 +39,7 @@ Before you can manage tags, you need to enable the **Tags** feature for your wor
 2. Click **More > Import spreadsheet** (or if you haven't added any tags yet, just click **Import** from the main Tags settings page).
 3. Click **Single level of tags**.
 4. Click **Choose File** and select the file to import.
-5. Toggle the "File contains column headers" on or off accordingly, then select which spreadsheet column should be mapped to which tag field. We require columns Name and Enabled, and you can optionally include a column for Tag GL Code.
+5. Toggle the "File contains column headers" on or off accordingly, then select which spreadsheet column should be mapped to which tag field. We require columns Name and Enabled, and you can optionally include a column for Tag GL Code. GL codes will be visible to Workspace Admins in the Tags table.
 6. Click **Import** to finish importing the tags.
 
 
@@ -110,13 +110,13 @@ To manage tags in bulk:
 
 # Add or Edit a GL Code
 
-If you're on the **Control** plan, you can assign a GL code to each tag for exporting purposes. These GL codes are not visible to workspace members.
+If you're on the **Control** plan, you can assign a GL code to each tag for exporting purposes. GL codes are visible to Workspace Admins in the Tags table but are not visible to workspace members.
 
 To add or edit a GL code:
 
 1. Go to **Workspaces > [Workspace Name] > Tags**.
 2. Click a tag to open its detail panel.
-3. Click the **GL Code** field, enter or update the code, then click **Save**.
+3. Click the **GL Code** field, enter or update the code, then click **Save**. The GL code will appear in the Tags table alongside the tag name.
 
 ---
 
@@ -132,21 +132,26 @@ Expensify will learn how you use tags and apply them automatically for recurring
 
 # FAQ
 
-## Can I Edit Tags on a Submitted Expense Report?
+## Can I edit Tags on a submitted expense report?
 
 Yes. You can edit tags until the expense is approved or reimbursed.
 
 Approvers can also edit tags, even post-approval, by taking control of the report.
 
-## Can I See an Audit Trail of Tag Changes?
+## Can I see an audit trail of Tag changes?
 
 Yes. When a tag is manually changed, the update is logged in the associated expense chat.
 
-## What Happens if a Tag Is Disabled in My Accounting System?
+## What happens if a Tag is disabled in my accounting system?
 
 It will be removed from the workspace’s tag list. However, it will still appear on any expenses or reports where it was already applied.
 
 ## Why can’t I see a multi-level tags option on my workspace?
 
 If you are connected to an accounting integration, you will not see this feature. You will need to add those tags in your accounting system first, then sync the connection.
+
+## How can my Employees see the GL Codes?
+
+GL codes are visible to Workspace Admins in the Tags table but are not visible to workspace members. If you need members to see GL codes, consider including the GL code in the tag
+name itself.
 

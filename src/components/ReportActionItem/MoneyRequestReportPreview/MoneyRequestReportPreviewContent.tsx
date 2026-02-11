@@ -81,7 +81,6 @@ import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import {approveMoneyRequest, canIOUBePaid as canIOUBePaidIOUActions, payInvoice, payMoneyRequest, submitReport} from '@userActions/IOU';
 import {openOldDotLink} from '@userActions/Link';
-import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -174,6 +173,7 @@ function MoneyRequestReportPreviewContent({
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
 
@@ -267,9 +267,20 @@ function MoneyRequestReportPreviewContent({
                         methodID,
                         paymentMethod,
                         activePolicy,
+                        betas,
                     });
                 } else {
-                    payMoneyRequest(type, chatReport, iouReport, introSelected, iouReportNextStep, undefined, true, activePolicy, policy);
+                    payMoneyRequest({
+                        paymentType: type,
+                        chatReport,
+                        iouReport,
+                        introSelected,
+                        iouReportCurrentNextStepDeprecated: iouReportNextStep,
+                        currentUserAccountID,
+                        activePolicy,
+                        policy,
+                        betas,
+                    });
                 }
             }
         },
@@ -286,6 +297,7 @@ function MoneyRequestReportPreviewContent({
             existingB2BInvoiceReport,
             activePolicy,
             policy,
+            betas,
         ],
     );
 
@@ -301,7 +313,7 @@ function MoneyRequestReportPreviewContent({
             setIsHoldMenuVisible(true);
         } else {
             startApprovedAnimation();
-            approveMoneyRequest(iouReport, activePolicy, currentUserAccountID, currentUserEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, true);
+            approveMoneyRequest(iouReport, activePolicy, currentUserAccountID, currentUserEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, betas, true);
         }
     };
 
@@ -326,7 +338,7 @@ function MoneyRequestReportPreviewContent({
         }
 
         if (isApproved) {
-            return translate('iou.managerApproved', {manager: payerOrApproverName});
+            return translate('iou.managerApproved', payerOrApproverName);
         }
         let paymentVerb: TranslationPaths = 'iou.payerOwes';
         if (iouSettled || iouReport?.isWaitingOnBankAccount) {
@@ -335,7 +347,7 @@ function MoneyRequestReportPreviewContent({
             paymentVerb = 'iou.payerSpent';
             payerOrApproverName = getDisplayNameForParticipant({accountID: chatReport?.ownerAccountID, shouldUseShortForm: true, formatPhoneNumber});
         }
-        return translate(paymentVerb, {payer: payerOrApproverName});
+        return translate(paymentVerb, payerOrApproverName);
     }, [
         isScanning,
         numberOfPendingRequests,
@@ -383,6 +395,8 @@ function MoneyRequestReportPreviewContent({
             }),
         [action?.childStateNum, action?.childStatusNum, iouReport?.stateNum, iouReport?.statusNum, translate],
     );
+
+    const shouldShowReportStatus = !!reportStatus && !!expenseCount;
 
     const reportStatusColorStyle = useMemo(
         () => getReportStatusColorStyle(theme, iouReport?.stateNum ?? action?.childStateNum, iouReport?.statusNum ?? action?.childStatusNum),
@@ -513,7 +527,6 @@ function MoneyRequestReportPreviewContent({
             return;
         }
         Performance.markStart(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
-        Timing.start(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
         startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${iouReportID}`, {
             name: 'MoneyRequestReportPreviewContent',
             op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
@@ -544,6 +557,7 @@ function MoneyRequestReportPreviewContent({
             isSubmittingAnimationRunning,
             isDEWSubmitPending,
             violationsData: transactionViolations,
+            reportMetadata: iouReportMetadata,
         });
     }, [
         bankAccountList,
@@ -560,11 +574,12 @@ function MoneyRequestReportPreviewContent({
         isSubmittingAnimationRunning,
         transactionViolations,
         isDEWSubmitPending,
+        iouReportMetadata,
     ]);
 
     const addExpenseDropdownOptions = useMemo(
-        () => getAddExpenseDropdownOptions(expensifyIcons, iouReport?.reportID, policy, chatReportID, iouReport?.parentReportID, lastDistanceExpenseType),
-        [chatReportID, iouReport?.parentReportID, iouReport?.reportID, policy, lastDistanceExpenseType, expensifyIcons],
+        () => getAddExpenseDropdownOptions(translate, expensifyIcons, iouReport?.reportID, policy, chatReportID, iouReport?.parentReportID, lastDistanceExpenseType),
+        [translate, expensifyIcons, iouReport?.reportID, iouReport?.parentReportID, policy, chatReportID, lastDistanceExpenseType],
     );
 
     const isReportDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -643,7 +658,7 @@ function MoneyRequestReportPreviewContent({
         ) : null,
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW]: (
             <Button
-                text={shouldShowAccessPlaceHolder ? translate('common.viewReport') : translate('common.view')}
+                text={translate('common.view')}
                 onPress={() => {
                     openReportFromPreview();
                 }}
@@ -744,9 +759,10 @@ function MoneyRequestReportPreviewContent({
                                                 {showStatusAndSkeleton && shouldShowSkeleton ? (
                                                     <MoneyReportHeaderStatusBarSkeleton />
                                                 ) : (
-                                                    (!shouldShowEmptyPlaceholder || shouldShowAccessPlaceHolder) && (
+                                                    (!shouldShowEmptyPlaceholder || shouldShowAccessPlaceHolder) &&
+                                                    (shouldShowReportStatus || !shouldShowAccessPlaceHolder) && (
                                                         <View style={[styles.flexRow, styles.justifyContentStart, styles.alignItemsCenter]}>
-                                                            {!!reportStatus && !!expenseCount && (
+                                                            {shouldShowReportStatus && (
                                                                 <View
                                                                     style={[
                                                                         styles.reportStatusContainer,
@@ -769,7 +785,7 @@ function MoneyRequestReportPreviewContent({
                                                     <PressableWithFeedback
                                                         accessibilityRole="button"
                                                         accessible
-                                                        accessibilityLabel="button"
+                                                        accessibilityLabel={translate('common.previous')}
                                                         style={[styles.reportPreviewArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
                                                         onPress={() => handleChange(currentIndex - 1)}
                                                         disabled={optimisticIndex !== undefined ? optimisticIndex === 0 : currentIndex === 0 && currentVisibleItems.at(0) === 0}
@@ -786,7 +802,7 @@ function MoneyRequestReportPreviewContent({
                                                     <PressableWithFeedback
                                                         accessibilityRole="button"
                                                         accessible
-                                                        accessibilityLabel="button"
+                                                        accessibilityLabel={translate('common.next')}
                                                         style={[styles.reportPreviewArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
                                                         onPress={() => handleChange(currentIndex + 1)}
                                                         disabled={
@@ -882,6 +898,7 @@ function MoneyRequestReportPreviewContent({
                         chatReport={chatReport}
                         moneyRequestReport={iouReport}
                         transactionCount={numberOfRequests}
+                        hasNonHeldExpenses={!hasOnlyHeldExpenses}
                         startAnimation={() => {
                             if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
                                 startApprovedAnimation();

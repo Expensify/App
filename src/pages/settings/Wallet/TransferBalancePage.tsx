@@ -54,10 +54,10 @@ function TransferBalancePage() {
         // {
         //     key: CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT,
         //     title: translate('transferAmountPage.instant'),
-        //     description: translate('transferAmountPage.instantSummary', {
-        //         rate: numberFormat(CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.RATE),
-        //         minAmount: convertToDisplayString(CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.MINIMUM_FEE),
-        //     }),
+        //     description: translate('transferAmountPage.instantSummary',
+        //         numberFormat(CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.RATE),
+        //         convertToDisplayString(CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.MINIMUM_FEE)
+        //     ),
         //     icon: Expensicons.Bolt,
         //     type: CONST.PAYMENT_METHODS.DEBIT_CARD,
         // },

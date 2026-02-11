@@ -1,6 +1,9 @@
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo} from 'react';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchContext} from '@components/Search/SearchContext';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
 import {rejectMoneyRequestsOnSearch} from '@libs/actions/Search';
@@ -23,7 +26,10 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
     const {reportID} = route.params ?? {};
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const {translate} = useLocalize();
 
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     // When coming from the report view, selectedTransactions is empty, build it from selectedTransactionIDs
     const selectedTransactionsForReject = useMemo(() => {
         if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS && reportID) {
@@ -35,9 +41,15 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
         return context.selectedTransactions;
     }, [route.name, reportID, context.selectedTransactionIDs, context.selectedTransactions]);
 
+    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const onSubmit = useCallback(
         ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
-            const urlToNavigateBack = rejectMoneyRequestsOnSearch(context.currentSearchHash, selectedTransactionsForReject, comment, allPolicies, allReports);
+            if (isDelegateAccessRestricted) {
+                showDelegateNoAccessModal();
+                return;
+            }
+
+            const urlToNavigateBack = rejectMoneyRequestsOnSearch(context.currentSearchHash, selectedTransactionsForReject, comment, allPolicies, allReports, currentUserAccountID, betas);
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS) {
                 context.clearSelectedTransactions(true);
             } else {
@@ -48,13 +60,16 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
                 Navigation.isNavigationReady().then(() => Navigation.goBack(urlToNavigateBack as Route));
             }
         },
-        [context, allPolicies, allReports, route.name, selectedTransactionsForReject],
+        [context, allPolicies, allReports, route.name, selectedTransactionsForReject, isDelegateAccessRestricted, currentUserAccountID, showDelegateNoAccessModal, betas],
     );
 
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
-        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM> = getFieldRequiredErrors(values, [INPUT_IDS.COMMENT]);
-        return errors;
-    }, []);
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM> = getFieldRequiredErrors(values, [INPUT_IDS.COMMENT], translate);
+            return errors;
+        },
+        [translate],
+    );
 
     useEffect(() => {
         clearErrors(ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM);

@@ -11,7 +11,7 @@ on:
 jobs:
   lint:
     if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - name: Checkout
         # v4

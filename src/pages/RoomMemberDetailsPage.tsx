@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
@@ -18,7 +18,7 @@ import {removeFromRoom} from '@libs/actions/Report';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {isUserPolicyAdmin} from '@libs/PolicyUtils';
+import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {isPolicyExpenseChat} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
@@ -27,8 +27,8 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails} from '@src/types/onyx';
 import NotFoundPage from './ErrorPage/NotFoundPage';
-import withReportOrNotFound from './home/report/withReportOrNotFound';
-import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
+import withReportOrNotFound from './inbox/report/withReportOrNotFound';
+import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
 
 type RoomMemberDetailsPagePageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.DETAILS>;
 
@@ -52,16 +52,16 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
     const displayName = formatPhoneNumber(getDisplayNameOrDefault(details));
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
     const isSelectedMemberOwner = accountID === report.ownerAccountID;
-    const shouldDisableRemoveUser = (isPolicyExpenseChat(report) && isUserPolicyAdmin(policy, details.login)) || isSelectedMemberCurrentUser || isSelectedMemberOwner;
-    const removeUser = useCallback(() => {
+    const shouldDisableRemoveUser = (isPolicyExpenseChat(report) && isPolicyAdmin(policy, details.login)) || isSelectedMemberCurrentUser || isSelectedMemberOwner;
+    const removeUser = () => {
         setIsRemoveMemberConfirmModalVisible(false);
-        removeFromRoom(report?.reportID, [accountID]);
+        removeFromRoom(report, [accountID]);
         Navigation.goBack(backTo);
-    }, [backTo, report?.reportID, accountID]);
+    };
 
-    const navigateToProfile = useCallback(() => {
+    const navigateToProfile = () => {
         Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));
-    }, [accountID]);
+    };
 
     if (!member) {
         return <NotFoundPage />;
@@ -107,7 +107,7 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
                             isVisible={isRemoveMemberConfirmModalVisible}
                             onConfirm={removeUser}
                             onCancel={() => setIsRemoveMemberConfirmModalVisible(false)}
-                            prompt={translate('workspace.people.removeMemberPrompt', {memberName: displayName})}
+                            prompt={translate('workspace.people.removeMemberPrompt', displayName)}
                             confirmText={translate('common.remove')}
                             cancelText={translate('common.cancel')}
                         />

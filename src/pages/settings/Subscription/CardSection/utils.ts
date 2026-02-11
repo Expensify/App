@@ -4,7 +4,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
-import {getAmountOwed, getOverdueGracePeriodDate, getSubscriptionStatus, PAYMENT_STATUS} from '@libs/SubscriptionUtils';
+import {getAmountOwed, getSubscriptionStatus, PAYMENT_STATUS} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import type {StripeCustomerID} from '@src/types/onyx';
 import type BillingStatus from '@src/types/onyx/BillingStatus';
@@ -35,6 +35,7 @@ type GetBillingStatusProps = {
     billingStatus: OnyxEntry<BillingStatus>;
     creditCardEyesIcon?: IconAsset;
     fundList: OnyxEntry<FundList>;
+    ownerBillingGraceEndPeriod: OnyxEntry<number>;
 };
 
 function getBillingStatus({
@@ -48,14 +49,23 @@ function getBillingStatus({
     billingStatus,
     creditCardEyesIcon,
     fundList,
+    ownerBillingGraceEndPeriod,
 }: GetBillingStatusProps): BillingStatusResult | undefined {
     const cardEnding = (accountData?.cardNumber ?? '')?.slice(-4);
 
     const amountOwed = getAmountOwed();
 
-    const subscriptionStatus = getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus);
+    const subscriptionStatus = getSubscriptionStatus(
+        stripeCustomerId,
+        retryBillingSuccessful,
+        billingDisputePending,
+        retryBillingFailed,
+        fundList,
+        billingStatus,
+        ownerBillingGraceEndPeriod,
+    );
 
-    const endDate = getOverdueGracePeriodDate();
+    const endDate = ownerBillingGraceEndPeriod;
 
     const endDateFormatted = endDate ? DateUtils.formatWithUTCTimeZone(fromUnixTime(endDate).toUTCString(), CONST.DATE.MONTH_DAY_YEAR_FORMAT) : null;
 

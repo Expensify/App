@@ -1,5 +1,5 @@
-import type {Section} from '@libs/OptionsListUtils';
-import type {SelectedTagOption} from '@libs/TagsOptionsListUtils';
+import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
+import type {SelectedTagOption, TagOption} from '@libs/TagsOptionsListUtils';
 import {getTagListSections, getTagVisibility, sortTags} from '@libs/TagsOptionsListUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -56,10 +56,10 @@ describe('TagsOptionsListUtils', () => {
                 accountID: undefined,
             },
         };
-        const smallResultList: Section[] = [
+        const smallResultList: Array<Section<TagOption>> = [
             {
                 title: '',
-                shouldShow: false,
+                sectionIndex: 2,
                 // data sorted alphabetically by name
                 data: [
                     {
@@ -101,10 +101,10 @@ describe('TagsOptionsListUtils', () => {
                 ],
             },
         ];
-        const smallSearchResultList: Section[] = [
+        const smallSearchResultList: Array<Section<TagOption>> = [
             {
                 title: '',
-                shouldShow: true,
+                sectionIndex: 1,
                 data: [
                     {
                         text: 'Accounting',
@@ -118,10 +118,10 @@ describe('TagsOptionsListUtils', () => {
                 ],
             },
         ];
-        const employeeSearchResultList: Section[] = [
+        const employeeSearchResultList: Array<Section<TagOption>> = [
             {
                 title: '',
-                shouldShow: true,
+                sectionIndex: 1,
                 data: [
                     {
                         text: 'Employee Meals Office',
@@ -135,10 +135,10 @@ describe('TagsOptionsListUtils', () => {
                 ],
             },
         ];
-        const smallWrongSearchResultList: Section[] = [
+        const smallWrongSearchResultList: Array<Section<TagOption>> = [
             {
                 title: '',
-                shouldShow: true,
+                sectionIndex: 1,
                 data: [],
             },
         ];
@@ -220,10 +220,10 @@ describe('TagsOptionsListUtils', () => {
                 accountID: undefined,
             },
         };
-        const largeResultList: Section[] = [
+        const largeResultList: Array<Section<TagOption>> = [
             {
                 title: '',
-                shouldShow: true,
+                sectionIndex: 3,
                 data: [
                     {
                         text: 'Medical',
@@ -238,7 +238,7 @@ describe('TagsOptionsListUtils', () => {
             },
             {
                 title: 'Recent',
-                shouldShow: true,
+                sectionIndex: 4,
                 data: [
                     {
                         text: 'HR',
@@ -253,7 +253,7 @@ describe('TagsOptionsListUtils', () => {
             },
             {
                 title: 'All',
-                shouldShow: true,
+                sectionIndex: 5,
                 // data sorted alphabetically by name
                 data: [
                     {
@@ -358,10 +358,10 @@ describe('TagsOptionsListUtils', () => {
                 ],
             },
         ];
-        const largeSearchResultList: Section[] = [
+        const largeSearchResultList: Array<Section<TagOption>> = [
             {
                 title: '',
-                shouldShow: true,
+                sectionIndex: 1,
                 data: [
                     {
                         text: 'Accounting',
@@ -393,10 +393,10 @@ describe('TagsOptionsListUtils', () => {
                 ],
             },
         ];
-        const largeWrongSearchResultList: Section[] = [
+        const largeWrongSearchResultList: Array<Section<TagOption>> = [
             {
                 title: '',
-                shouldShow: true,
+                sectionIndex: 1,
                 data: [],
             },
         ];

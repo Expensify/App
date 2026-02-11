@@ -1,5 +1,5 @@
 import {createPersonalDetailsSelector} from '@selectors/PersonalDetails';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import useEnvironment from '@hooks/useEnvironment';
@@ -15,6 +15,7 @@ import {
     getParticipantsAccountIDsForDisplay,
     getPolicyName,
     isChatRoom as isChatRoomReportUtils,
+    isConciergeChatReport,
     isInvoiceRoom as isInvoiceRoomReportUtils,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
     isSelfDM as isSelfDMReportUtils,
@@ -57,7 +58,11 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID || undefined}`, {canBeMissing: true});
+    const invoiceReceiverPolicyID = report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? report?.invoiceReceiver?.policyID : undefined;
+    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`, {canBeMissing: true});
     const isReportArchived = useReportIsArchived(report?.reportID);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+    const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
     const isChatRoom = isChatRoomReportUtils(report);
     const isSelfDM = isSelfDMReportUtils(report);
     const isInvoiceRoom = isInvoiceRoomReportUtils(report);
@@ -90,37 +95,22 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
         moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK) ||
         moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT);
 
-    const reportDetailsLink = useMemo(() => {
-        if (!report?.reportID) {
-            return '';
-        }
+    const reportDetailsLink = report?.reportID ? `${environmentURL}/${ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, Navigation.getReportRHPActiveRoute())}` : '';
 
-        return `${environmentURL}/${ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, Navigation.getReportRHPActiveRoute())}`;
-    }, [environmentURL, report?.reportID]);
-
-    const welcomeHeroText = useMemo(() => {
-        if (isInvoiceRoom) {
-            return translate('reportActionsView.sayHello');
-        }
-
-        if (isChatRoom) {
-            return translate('reportActionsView.welcomeToRoom', {roomName: reportName});
-        }
-
-        if (isSelfDM) {
-            return translate('reportActionsView.yourSpace');
-        }
-
-        if (isSystemChat) {
-            return reportName;
-        }
-
-        if (isPolicyExpenseChat) {
-            return translate('reportActionsView.welcomeToRoom', {roomName: policyName});
-        }
-
-        return translate('reportActionsView.sayHello');
-    }, [isChatRoom, isInvoiceRoom, isPolicyExpenseChat, isSelfDM, isSystemChat, translate, policyName, reportName]);
+    let welcomeHeroText = translate('reportActionsView.sayHello');
+    if (isConciergeChat) {
+        welcomeHeroText = translate('reportActionsView.askMeAnything');
+    } else if (isInvoiceRoom) {
+        welcomeHeroText = translate('reportActionsView.sayHello');
+    } else if (isChatRoom) {
+        welcomeHeroText = translate('reportActionsView.welcomeToRoom', {roomName: reportName});
+    } else if (isSelfDM) {
+        welcomeHeroText = translate('reportActionsView.yourSpace');
+    } else if (isSystemChat) {
+        welcomeHeroText = reportName;
+    } else if (isPolicyExpenseChat) {
+        welcomeHeroText = translate('reportActionsView.welcomeToRoom', {roomName: policyName});
+    }
 
     // If we are the only participant (e.g. solo group chat) then keep the current user personal details so the welcome message does not show up empty.
     const shouldExcludeCurrentUser = participantAccountIDs.length > 0;
@@ -131,6 +121,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const welcomeMessage = SidebarUtils.getWelcomeMessage(
         report,
         policy,
+        invoiceReceiverPolicy,
         participantPersonalDetailListExcludeCurrentUser,
         translate,
         localeCompare,

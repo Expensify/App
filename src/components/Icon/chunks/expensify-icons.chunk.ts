@@ -20,6 +20,7 @@ import NotificationsAvatar from '@assets/images/avatars/notifications-avatar.svg
 import ActiveRoomAvatar from '@assets/images/avatars/room.svg';
 import BackArrow from '@assets/images/back-left.svg';
 import Bank from '@assets/images/bank.svg';
+import Basket from '@assets/images/basket.svg';
 import Bed from '@assets/images/bed.svg';
 import Bell from '@assets/images/bell.svg';
 import Bill from '@assets/images/bill.svg';
@@ -160,6 +161,8 @@ import Fingerprint from '@assets/images/multifactorAuthentication/fingerprint.sv
 import Mute from '@assets/images/mute.svg';
 import NewWindow from '@assets/images/new-window.svg';
 import NewWorkspace from '@assets/images/new-workspace.svg';
+import OdometerEnd from '@assets/images/odometer-end.svg';
+import OdometerStart from '@assets/images/odometer-start.svg';
 import OfflineCloud from '@assets/images/offline-cloud.svg';
 import Offline from '@assets/images/offline.svg';
 import Paperclip from '@assets/images/paperclip.svg';
@@ -226,6 +229,7 @@ import UserEye from '@assets/images/user-eye.svg';
 import UserLock from '@assets/images/user-lock.svg';
 import UserMinus from '@assets/images/user-minus.svg';
 import UserPlus from '@assets/images/user-plus.svg';
+import UserShield from '@assets/images/user-shield.svg';
 import User from '@assets/images/user.svg';
 import Users from '@assets/images/users.svg';
 import VideoSlash from '@assets/images/video-slash.svg';
@@ -255,6 +259,7 @@ const Expensicons = {
     AttachmentNotFound,
     BackArrow,
     Bank,
+    Basket,
     CircularArrowBackwards,
     Bill,
     BillComSquare,
@@ -369,6 +374,8 @@ const Expensicons = {
     NotificationsAvatar,
     Offline,
     OfflineCloud,
+    OdometerStart,
+    OdometerEnd,
     Paperclip,
     Pause,
     Pencil,
@@ -475,6 +482,7 @@ const Expensicons = {
     ArrowCircleClockwise,
     LuggageWithLines,
     TreasureChestGreenWithSparkle,
+    UserShield,
 };
 
 // Create the ExpensifyIcons object from the imported Expensicons

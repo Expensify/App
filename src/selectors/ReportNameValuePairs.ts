@@ -26,4 +26,22 @@ const archivedReportsIdSetSelector = (all: OnyxCollection<ReportNameValuePairs>)
     return ids;
 };
 
-export {createReportNameValuePairsSelector, archivedReportsIdSetSelector};
+type PrivateIsArchivedMap = Record<string, string | undefined>;
+
+/**
+ * Selector that creates a map of report IDs to their private_isArchived values
+ */
+const privateIsArchivedMapSelector = (all: OnyxCollection<ReportNameValuePairs>): PrivateIsArchivedMap => {
+    const map: PrivateIsArchivedMap = {};
+    if (!all) {
+        return map;
+    }
+
+    for (const [key, value] of Object.entries(all)) {
+        map[key] = value?.private_isArchived;
+    }
+    return map;
+};
+
+export {createReportNameValuePairsSelector, archivedReportsIdSetSelector, privateIsArchivedMapSelector};
+export type {PrivateIsArchivedMap};

@@ -1,8 +1,9 @@
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useRef} from 'react';
 import type {BlurEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import useCurrencyList from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
-import {convertToFrontendAmountAsString, getCurrencyDecimals, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
+import {convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
 import NumberWithSymbolForm from './NumberWithSymbolForm';
 import type {NumberWithSymbolFormRef} from './NumberWithSymbolForm';
@@ -167,7 +168,8 @@ function MoneyRequestAmountInput({
     disabled,
     ...props
 }: MoneyRequestAmountInputProps) {
-    const {preferredLocale} = useLocalize();
+    const {preferredLocale, translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyList();
     const textInput = useRef<BaseTextInputRef | null>(null);
     const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
     const decimals = getCurrencyDecimals(currency);
@@ -258,6 +260,7 @@ function MoneyRequestAmountInput({
             toggleNegative={toggleNegative}
             clearNegative={clearNegative}
             onFocus={props.onFocus}
+            accessibilityLabel={`${translate('iou.amount')} (${currency})`}
         />
     );
 }

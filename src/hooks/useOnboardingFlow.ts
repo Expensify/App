@@ -38,7 +38,6 @@ function useOnboardingFlowRouter() {
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
     const isLoggingInAsNewSessionUser = isLoggingInAsNewUser(currentUrl, sessionEmail);
     const startedOnboardingFlowRef = useRef(false);
-    const started2FAFlowRef = useRef(false);
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
         selector: tryNewDotOnyxSelector,
         canBeMissing: true,
@@ -76,16 +75,6 @@ function useOnboardingFlowRouter() {
 
             if (currentUrl.endsWith('/r')) {
                 // Don't trigger onboarding if we are in the middle of a redirect to a report
-                return;
-            }
-
-            if (shouldShowRequire2FAPage) {
-                if (started2FAFlowRef.current) {
-                    startedOnboardingFlowRef.current = false;
-                    return;
-                }
-                started2FAFlowRef.current = true;
-                Navigation.navigate(ROUTES.REQUIRE_TWO_FACTOR_AUTH);
                 return;
             }
 
@@ -173,7 +162,6 @@ function useOnboardingFlowRouter() {
         currentOnboardingPurposeSelected,
         onboardingInitialPath,
         isOnboardingLoading,
-        shouldShowRequire2FAPage,
     ]);
 
     return {

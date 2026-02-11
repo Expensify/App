@@ -12,10 +12,12 @@ import CONST from '@src/CONST';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions, Transaction} from '@src/types/onyx';
+import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const basicProps = {
     iouReport: buildOptimisticIOUReport(123, 234, 1000, '1', 'USD'),
+    policy: undefined,
     transaction: buildOptimisticTransaction({
         transactionParams: {
             amount: 100,
@@ -129,7 +131,7 @@ describe('TransactionPreviewUtils', () => {
             const cardTransaction = getTransactionPreviewTextAndTranslationPaths(functionArgsWithCardTransaction);
             const cashTransaction = getTransactionPreviewTextAndTranslationPaths({...basicProps});
 
-            expect(cardTransaction.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'iou.card'}]));
+            expect(cardTransaction.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'common.card'}]));
             expect(cashTransaction.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'iou.cash'}]));
         });
 
@@ -223,6 +225,173 @@ describe('TransactionPreviewUtils', () => {
             const functionArgs = {...basicProps, isBillSplit: true, transaction: {...basicProps.transaction, modifiedAmount: 50}};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.displayAmountText.text).toEqual('$0.50');
+        });
+
+        describe('with policy parameter', () => {
+            it('should show DEW error message when policy has dynamic external workflow and submit fails with error message', () => {
+                const dewErrorMessage = 'Failed to submit to QuickBooks';
+                const functionArgs = {
+                    ...basicProps,
+                    policy: {
+                        ...createRandomPolicy(1),
+                        approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+                    },
+                    reportActions: {
+                        action1: {
+                            reportActionID: 'action1',
+                            actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                            created: '2024-01-02',
+                            message: [{type: 'TEXT', text: dewErrorMessage}],
+                            originalMessage: {message: dewErrorMessage},
+                            pendingAction: null,
+                        },
+                    },
+                    shouldShowRBR: true,
+                    originalTransaction: undefined,
+                };
+                const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+                expect(result.RBRMessage.text).toEqual(dewErrorMessage);
+            });
+
+            it('should show generic DEW error when policy has dynamic external workflow and submit fails without error message', () => {
+                const functionArgs = {
+                    ...basicProps,
+                    policy: {
+                        ...createRandomPolicy(1),
+                        approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+                    },
+                    reportActions: {
+                        action1: {
+                            reportActionID: 'action1',
+                            actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                            created: '2024-01-02',
+                            message: [],
+                            originalMessage: {},
+                            pendingAction: null,
+                        },
+                    },
+                    shouldShowRBR: true,
+                    originalTransaction: undefined,
+                };
+                const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+                expect(result.RBRMessage.translationPath).toEqual('iou.error.other');
+            });
+
+            it('should show customUnitOutOfPolicy error for distance request with invalid rate', () => {
+                const functionArgs = {
+                    ...basicProps,
+                    policy: {
+                        ...createRandomPolicy(1),
+                        customUnits: {
+                            unit1: {
+                                customUnitID: 'unit1',
+                                name: 'Distance',
+                                attributes: {unit: 'mi' as const},
+                                rates: {},
+                            },
+                        },
+                    },
+                    transaction: {
+                        ...basicProps.transaction,
+                        reportID: '',
+                        routes: {
+                            route0: {
+                                distance: 1000,
+                                geometry: {coordinates: null},
+                            },
+                        },
+                        comment: {
+                            type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                            customUnit: {
+                                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                                customUnitRateID: 'invalid_rate',
+                            },
+                        },
+                    },
+                    shouldShowRBR: true,
+                    originalTransaction: undefined,
+                };
+                const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+                expect(result.RBRMessage.translationPath).toEqual('violations.customUnitOutOfPolicy');
+            });
+
+            it('should show violation message for notice violations with policy', () => {
+                const violationMsg = 'This expense violates policy rules';
+                const functionArgs = {
+                    ...basicProps,
+                    policy: {
+                        ...createRandomPolicy(1),
+                        type: CONST.POLICY.TYPE.CORPORATE,
+                    },
+                    iouReport: {
+                        ...basicProps.iouReport,
+                        type: CONST.REPORT.TYPE.EXPENSE,
+                        policyID: '1',
+                    },
+                    violations: [
+                        {
+                            name: CONST.VIOLATIONS.CUSTOM_RULES,
+                            type: CONST.VIOLATION_TYPES.NOTICE,
+                            showInReview: true,
+                            data: {
+                                message: violationMsg,
+                            },
+                        },
+                    ],
+                    violationMessage: violationMsg,
+                    shouldShowRBR: true,
+                    originalTransaction: undefined,
+                };
+                const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+                expect(result.RBRMessage.text).toEqual(violationMsg);
+            });
+
+            it('should show modified amount violation text for distance request with policy', () => {
+                const violationMsg = 'Distance rate was adjusted';
+                const functionArgs = {
+                    ...basicProps,
+                    policy: {
+                        ...createRandomPolicy(1),
+                        customUnits: {
+                            unit1: {
+                                customUnitID: 'unit1',
+                                name: 'Distance',
+                                attributes: {unit: 'mi' as const},
+                                rates: {
+                                    rate1: {
+                                        customUnitRateID: 'rate1',
+                                        name: 'Mileage',
+                                        rate: 50,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    transaction: {
+                        ...basicProps.transaction,
+                        comment: {
+                            customUnit: {
+                                customUnitRateID: 'rate1',
+                            },
+                        },
+                    },
+                    violations: [
+                        {
+                            name: CONST.VIOLATIONS.MODIFIED_AMOUNT,
+                            type: CONST.VIOLATION_TYPES.NOTICE,
+                            showInReview: true,
+                            data: {
+                                message: violationMsg,
+                            },
+                        },
+                    ],
+                    violationMessage: violationMsg,
+                    shouldShowRBR: true,
+                    originalTransaction: undefined,
+                };
+                const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+                expect(result.RBRMessage.text).toEqual(violationMsg);
+            });
         });
     });
 
@@ -377,12 +546,104 @@ describe('TransactionPreviewUtils', () => {
             const result = createTransactionPreviewConditionals(functionArgs);
             expect(result.shouldShowSplitShare).toBeFalsy();
         });
+
+        describe('with policy parameter', () => {
+            it('should show RBR when policy has DEW and submit fails', () => {
+                const functionArgs = {
+                    ...basicProps,
+                    policy: {
+                        ...createRandomPolicy(1),
+                        approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+                    },
+                    reportActions: {
+                        action1: {
+                            reportActionID: 'action1',
+                            actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                            created: '2024-01-02',
+                            message: [{type: 'TEXT', text: 'Failed to submit'}],
+                            originalMessage: {message: 'Failed to submit'},
+                            pendingAction: null,
+                        },
+                    },
+                };
+                const result = createTransactionPreviewConditionals(functionArgs);
+                expect(result.shouldShowRBR).toBeTruthy();
+            });
+
+            it('should show RBR for distance request with invalid rate in policy', () => {
+                const functionArgs = {
+                    ...basicProps,
+                    policy: {
+                        ...createRandomPolicy(1),
+                        customUnits: {
+                            unit1: {
+                                customUnitID: 'unit1',
+                                name: 'Distance',
+                                attributes: {unit: 'mi' as const},
+                                rates: {},
+                            },
+                        },
+                    },
+                    transaction: {
+                        ...basicProps.transaction,
+                        reportID: '',
+                        routes: {
+                            route0: {
+                                distance: 1000,
+                                geometry: {coordinates: null},
+                            },
+                        },
+                        comment: {
+                            type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                            customUnit: {
+                                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                                customUnitRateID: 'invalid_rate',
+                            },
+                        },
+                    },
+                };
+                const result = createTransactionPreviewConditionals(functionArgs);
+                expect(result.shouldShowRBR).toBeTruthy();
+            });
+
+            it('should show RBR for violations with paid group policy', () => {
+                const functionArgs = {
+                    ...basicProps,
+                    policy: {
+                        ...createRandomPolicy(1),
+                        type: CONST.POLICY.TYPE.CORPORATE,
+                    },
+                    iouReport: {
+                        ...basicProps.iouReport,
+                        type: CONST.REPORT.TYPE.EXPENSE,
+                        policyID: '1',
+                    },
+                    violations: [
+                        {
+                            name: CONST.VIOLATIONS.CUSTOM_RULES,
+                            type: CONST.VIOLATION_TYPES.VIOLATION,
+                            showInReview: true,
+                        },
+                    ],
+                };
+                const result = createTransactionPreviewConditionals(functionArgs);
+                expect(result.shouldShowRBR).toBeTruthy();
+            });
+        });
     });
 
     describe('getViolationTranslatePath', () => {
         const message = 'Message';
         const reviewRequired = {translationPath: 'violations.reviewRequired'};
         const longMessage = 'x'.repeat(CONST.REPORT_VIOLATIONS.RBR_MESSAGE_MAX_CHARACTERS_FOR_PREVIEW + 1);
+
+        const receiptRequiredViolation = {name: CONST.VIOLATIONS.RECEIPT_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true, data: {formattedLimit: '$25.00'}};
+        const itemizedReceiptRequiredViolation = {
+            name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+            showInReview: true,
+            data: {formattedLimit: '$75.00'},
+        };
 
         const mockViolations = (count: number) =>
             [
@@ -413,6 +674,20 @@ describe('TransactionPreviewUtils', () => {
 
         test('returns translationPath when there are no violations but message is too long', () => {
             expect(getViolationTranslatePath(mockViolations(0), false, longMessage, false, false)).toEqual(reviewRequired);
+        });
+
+        test('returns text when both receiptRequired and itemizedReceiptRequired exist (filters to 1 violation)', () => {
+            const bothReceiptViolations = [itemizedReceiptRequiredViolation, receiptRequiredViolation];
+            // Should return text because receiptRequired is filtered out, leaving only 1 violation
+            expect(getViolationTranslatePath(bothReceiptViolations, false, message, false, false)).toEqual({text: message});
+        });
+
+        test('returns text when only itemizedReceiptRequired exists', () => {
+            expect(getViolationTranslatePath([itemizedReceiptRequiredViolation], false, message, false, false)).toEqual({text: message});
+        });
+
+        test('returns text when only receiptRequired exists', () => {
+            expect(getViolationTranslatePath([receiptRequiredViolation], false, message, false, false)).toEqual({text: message});
         });
     });
 
