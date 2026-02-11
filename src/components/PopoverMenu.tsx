@@ -401,6 +401,7 @@ function BasePopoverMenu({
                     shouldCheckActionAllowedOnPress={false}
                     iconRight={item.rightIcon}
                     shouldShowRightIcon={!!item.rightIcon}
+                    brickRoadIndicator={item.brickRoadIndicator}
                     onFocus={() => {
                         if (!shouldUpdateFocusedIndex) {
                             return;

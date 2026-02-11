@@ -15,7 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {resetSplitExpensesByDateRange} from '@libs/actions/IOU';
+import {resetSplitExpensesByDateRange} from '@libs/actions/IOU/Split';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -53,7 +53,7 @@ function SplitExpenseCreateDateRagePage({route}: SplitExpenseCreateDateRagePageP
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const updateDate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.SPLIT_EXPENSE_EDIT_DATES>) => {
-        resetSplitExpensesByDateRange(transaction, currentReport, value[INPUT_IDS.START_DATE], value[INPUT_IDS.END_DATE]);
+        resetSplitExpensesByDateRange(transaction, currentReport, value[INPUT_IDS.START_DATE], value[INPUT_IDS.END_DATE], currentPolicy);
         Navigation.goBack(backTo);
     };
 

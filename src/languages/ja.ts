@@ -36,35 +36,13 @@ import type {
     ExportIntegrationSelectedParams,
     ImportPolicyCustomUnitRatesParams,
     IntacctMappingTitleParams,
-    IntegrationExportParams,
-    IntegrationSyncFailedParams,
     InvalidPropertyParams,
     InvalidValueParams,
-    IssueVirtualCardParams,
-    LastSyncAccountingParams,
-    LastSyncDateParams,
-    LearnMoreRouteParams,
-    LeftWorkspaceParams,
-    LocalTimeParams,
-    LogSizeParams,
-    ManagerApprovedAmountParams,
-    ManagerApprovedParams,
-    MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
-    MergeAccountIntoParams,
-    MergeFailureDescriptionGenericParams,
-    MergeFailureUncreatedAccountDescriptionParams,
-    MergeSuccessDescriptionParams,
     MissingPropertyParams,
-    MovedActionParams,
     MovedFromPersonalSpaceParams,
-    MovedFromReportParams,
-    MovedTransactionParams,
     MultifactorAuthenticationTranslationParams,
-    NeedCategoryForExportToIntegrationParams,
-    NewWorkspaceNameParams,
     NextStepParams,
-    NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     OptionalParam,
     PaidElsewhereParams,
@@ -844,7 +822,7 @@ const translations: TranslationDeepObject<typeof en> = {
         writeSomething: '何か書いてください…',
         blockedFromConcierge: '通信は禁止されています',
         fileUploadFailed: 'アップロードに失敗しました。ファイルはサポートされていません。',
-        localTime: ({user, time}: LocalTimeParams) => `${user} の${time}です`,
+        localTime: (user: string, time: string) => `${user} の${time}です`,
         edited: '（編集済み）',
         emoji: '絵文字',
         collapse: '折りたたむ',
@@ -914,7 +892,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'あなたのスペース',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `${roomName} へようこそ！`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `+ ボタンを使って経費を${additionalText}します。`,
-        askConcierge: '何でも聞いてください！',
+        askConcierge: 'こちらはあなた専属のAIエージェント、Conciergeとのチャットです。ほぼ何でもできますので、お試しください！',
         conciergeSupport: 'あなた専用のAIエージェント',
         create: '作成',
         iouTypes: {
@@ -1005,6 +983,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: 'Expensify Card を有効化する',
                 subtitle: 'カードを認証して支出を始めましょう。',
                 cta: '有効化',
+            },
+            reviewCardFraud: {
+                title: 'Expensify Card の不正利用の可能性を確認する',
+                titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `${merchant} での不正の可能性がある ${amount} を確認`,
+                subtitle: 'Expensify カード',
+                cta: '確認',
             },
             ctaFix: '修正',
             fixCompanyCardConnection: {
@@ -1205,11 +1189,11 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteReceipt: '領収書を削除',
         findExpense: '経費を検索',
         deletedTransaction: (amount: string, merchant: string) => `経費を削除しました（${merchant} に ${amount}）`,
-        movedFromReport: ({reportName}: MovedFromReportParams) => `経費${reportName ? `${reportName} から` : ''}を移動しました`,
-        movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `この経費を移動しました${reportName ? `<a href="${reportUrl}">${reportName}</a>へ` : ''}`,
-        movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `この経費を移動しました${reportName ? `<a href="${reportUrl}">${reportName}</a> から` : ''}`,
-        unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `この経費をあなたの<a href="${reportUrl}">個人スペース</a>に移動しました`,
-        movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
+        movedFromReport: (reportName: string) => `経費${reportName ? `${reportName} から` : ''}を移動しました`,
+        movedTransactionTo: (reportUrl: string, reportName?: string) => `この経費を移動しました${reportName ? `<a href="${reportUrl}">${reportName}</a>へ` : ''}`,
+        movedTransactionFrom: (reportUrl: string, reportName?: string) => `この経費を移動しました${reportName ? `<a href="${reportUrl}">${reportName}</a> から` : ''}`,
+        unreportedTransaction: (reportUrl: string) => `この経費をあなたの<a href="${reportUrl}">個人スペース</a>に移動しました`,
+        movedAction: (shouldHideMovedReportUrl: boolean, movedReportUrl: string, newParentReportUrl: string, toPolicyName: string) => {
             if (shouldHideMovedReportUrl) {
                 return `このレポートを<a href="${newParentReportUrl}">${toPolicyName}</a>ワークスペースに移動しました`;
             }
@@ -1319,8 +1303,8 @@ const translations: TranslationDeepObject<typeof en> = {
         payerPaid: (payer: string) => `${payer} が支払いました：`,
         payerSpentAmount: (amount: number | string, payer?: string) => `${payer} が ${amount} を支出しました`,
         payerSpent: (payer: string) => `${payer} の支出額：`,
-        managerApproved: ({manager}: ManagerApprovedParams) => `${manager} が承認しました:`,
-        managerApprovedAmount: ({manager, amount}: ManagerApprovedAmountParams) => `${manager} が ${amount} を承認しました`,
+        managerApproved: (manager: string) => `${manager} が承認しました:`,
+        managerApprovedAmount: (manager: string, amount: number | string) => `${manager} が ${amount} を承認しました`,
         payerSettled: (amount: number | string) => `${amount} を支払いました`,
         payerSettledWithMissingBankAccount: (amount: number | string) => `${amount}を支払いました。支払いを受け取るには銀行口座を追加してください。`,
         automaticallyApproved: `<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">ワークスペースルール</a>により承認済み`,
@@ -1575,6 +1559,7 @@ const translations: TranslationDeepObject<typeof en> = {
             });
             return `${formatList(fragments)}（<a href="${policyRulesRoute}">ワークスペースルール</a>経由）`;
         },
+        duplicateNonDefaultWorkspacePerDiemError: 'ワークスペースごとに日当レートが異なる場合があるため、日当経費をワークスペース間で複製することはできません。',
     },
     transactionMerge: {
         listPage: {
@@ -1932,7 +1917,7 @@ const translations: TranslationDeepObject<typeof en> = {
             enterCommand: 'コマンドを入力',
             execute: '実行',
             noLogsAvailable: 'ログはありません',
-            logSizeTooLarge: ({size}: LogSizeParams) => `ログサイズが上限の ${size} MB を超えています。"ログを保存" を使用してログファイルをダウンロードしてください。`,
+            logSizeTooLarge: (size: number) => `ログサイズが上限の ${size} MB を超えています。"ログを保存" を使用してログファイルをダウンロードしてください。`,
             logs: 'ログ',
             viewConsole: 'コンソールを表示',
         },
@@ -1962,13 +1947,13 @@ const translations: TranslationDeepObject<typeof en> = {
     mergeAccountsPage: {
         mergeAccount: 'アカウントを統合',
         accountDetails: {
-            accountToMergeInto: ({login}: MergeAccountIntoParams) => `<strong>${login}</strong> に統合したいアカウントを入力してください。`,
+            accountToMergeInto: (login: string) => `<strong>${login}</strong> に統合したいアカウントを入力してください。`,
             notReversibleConsent: 'これが取り消せないことを理解しています',
         },
         accountValidate: {
             confirmMerge: '本当にアカウントを統合してもよろしいですか？',
-            lossOfUnsubmittedData: ({login}: MergeAccountIntoParams) => `アカウントの統合は元に戻せず、<strong>${login}</strong> の未提出経費はすべて失われます。`,
-            enterMagicCode: ({login}: MergeAccountIntoParams) => `続行するには、<strong>${login}</strong> に送信されたマジックコードを入力してください。`,
+            lossOfUnsubmittedData: (login: string) => `アカウントの統合は元に戻せず、<strong>${login}</strong> の未提出経費はすべて失われます。`,
+            enterMagicCode: (login: string) => `続行するには、<strong>${login}</strong> に送信されたマジックコードを入力してください。`,
             errors: {
                 incorrectMagicCode: '魔法コードが間違っているか無効です。もう一度お試しいただくか、新しいコードをリクエストしてください。',
                 fallback: '問題が発生しました。後でもう一度お試しください。',
@@ -1976,7 +1961,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         mergeSuccess: {
             accountsMerged: 'アカウントを統合しました！',
-            description: ({from, to}: MergeSuccessDescriptionParams) =>
+            description: (from: string, to: string) =>
                 `<muted-text><centered-text><strong>${from}</strong> のすべてのデータを <strong>${to}</strong> に正常に統合しました。今後、このアカウントにはどちらのログイン情報でもアクセスできます。</centered-text></muted-text>`,
         },
         mergePendingSAML: {
@@ -1986,22 +1971,22 @@ const translations: TranslationDeepObject<typeof en> = {
                 '<muted-text><centered-text>ご不明な点がありましたら、お気軽に<concierge-link>Concierge までお問い合わせください</concierge-link>！</centered-text></muted-text>',
             goToExpensifyClassic: 'Expensify Classic に移動',
         },
-        mergeFailureSAMLDomainControlDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+        mergeFailureSAMLDomainControlDescription: (email: string) =>
             `<muted-text><centered-text><strong>${email.split('@').at(1) ?? ''}</strong> によって管理されているため、<strong>${email}</strong> はマージできません。サポートが必要な場合は、<concierge-link>Concierge までお問い合わせください</concierge-link>。</centered-text></muted-text>`,
-        mergeFailureSAMLAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+        mergeFailureSAMLAccountDescription: (email: string) =>
             `<muted-text><centered-text>ドメイン管理者によって primary ログインとして設定されているため、<strong>${email}</strong> を他のアカウントに統合することはできません。代わりに、他のアカウントをこのアカウントに統合してください。</centered-text></muted-text>`,
         mergeFailure2FA: {
-            description: ({email}: MergeFailureDescriptionGenericParams) =>
+            description: (email: string) =>
                 `<muted-text><centered-text><strong>${email}</strong> で二要素認証（2FA）が有効になっているため、アカウントを統合できません。<strong>${email}</strong> の二要素認証（2FA）を無効にしてから、もう一度お試しください。</centered-text></muted-text>`,
             learnMore: 'アカウントの統合について詳しく見る',
         },
-        mergeFailureAccountLockedDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+        mergeFailureAccountLockedDescription: (email: string) =>
             `<muted-text><centered-text><strong>${email}</strong> はロックされているため、マージできません。サポートが必要な場合は、<concierge-link>Concierge までお問い合わせください</concierge-link>。</centered-text></muted-text>`,
-        mergeFailureUncreatedAccountDescription: ({email, contactMethodLink}: MergeFailureUncreatedAccountDescriptionParams) =>
+        mergeFailureUncreatedAccountDescription: (email: string, contactMethodLink: string) =>
             `<muted-text><centered-text><strong>${email}</strong> はExpensifyアカウントを持っていないため、アカウントを統合できません。代わりに、<a href="${contactMethodLink}">連絡先方法として追加</a>してください。</centered-text></muted-text>`,
-        mergeFailureSmartScannerAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+        mergeFailureSmartScannerAccountDescription: (email: string) =>
             `<muted-text><centered-text><strong>${email}</strong> を他のアカウントに統合することはできません。代わりに、他のアカウントをこのアカウントに統合してください。</centered-text></muted-text>`,
-        mergeFailureInvoicedAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+        mergeFailureInvoicedAccountDescription: (email: string) =>
             `<muted-text><centered-text>このアカウントは請求書発行済みの課金関係を所有しているため、アカウントを<strong>${email}</strong>に統合することはできません。</centered-text></muted-text>`,
         mergeFailureTooManyAttempts: {
             heading: '後でもう一度お試しください',
@@ -2042,7 +2027,7 @@ const translations: TranslationDeepObject<typeof en> = {
         whatIsTwoFactorAuth: '2要素認証（2FA）は、アカウントを安全に保つのに役立ちます。ログインする際、お好みの認証アプリで生成されたコードを入力する必要があります。',
         disableTwoFactorAuth: '2 要素認証を無効にする',
         explainProcessToRemove: '2要素認証（2FA）を無効にするには、認証アプリから有効なコードを入力してください。',
-        explainProcessToRemoveWithRecovery: '2 要素認証（2FA）を無効にするには、有効なリカバリーコードを入力してください。',
+        explainProcessToRemoveWithRecovery: '2要素認証（2FA）を無効にするには、有効な復旧コードを入力してください。',
         disabled: '二要素認証は現在無効になっています',
         noAuthenticatorApp: '今後、Expensify にログインする際に認証アプリは不要になります。',
         stepCodes: 'リカバリーコード',
@@ -2211,6 +2196,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} はこのビジネス銀行口座へのアクセス権を失います。処理中の支払いは引き続き完了します。`,
         reachOutForHelp: 'そのレポートは Expensify Card と一緒に使用されています。共有を解除する必要がある場合は、<concierge-link>Concierge に連絡してください</concierge-link>。',
         unshareErrorModalTitle: '銀行口座の共有を解除できません',
+        chaseAccountNumberDifferent: '口座番号が異なるのはなぜですか？',
     },
     cardPage: {
         expensifyCard: 'Expensify カード',
@@ -2737,8 +2723,7 @@ ${date} の ${merchant} への ${amount}`,
                         5. 右上で独自のカテゴリを追加します。
 
                         [ワークスペースのカテゴリ設定に移動](${workspaceCategoriesLink})。
-
-                        ![カテゴリを設定](${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)`),
+                    `),
             },
             combinedTrackSubmitExpenseTask: {
                 title: '経費を送信',
@@ -2829,8 +2814,7 @@ ${
                         5. 必要に応じて、招待メッセージを追加します。
 
                         [ワークスペースのメンバー画面へ移動](${workspaceMembersLink})。
-
-                        ![チームを招待](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`),
+                    `),
             },
             setupCategoriesAndTags: {
                 title: ({workspaceCategoriesLink, workspaceTagsLink}) => `[カテゴリ](${workspaceCategoriesLink})と[タグ](${workspaceTagsLink})を設定する`,
@@ -2855,7 +2839,7 @@ ${
 
                         [その他の機能に移動](${workspaceMoreFeaturesLink})。
 
-                        ![タグを設定](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`),
+                    `),
             },
             inviteAccountantTask: {
                 title: ({workspaceMembersLink}) => `[会計士](${workspaceMembersLink})を招待する`,
@@ -3010,7 +2994,7 @@ ${
     unlinkLoginForm: {
         toValidateLogin: ({primaryLogin, secondaryLogin}: ToValidateLoginParams) =>
             `${secondaryLogin} を確認するには、${primaryLogin} のアカウント設定からマジックコードを再送してください。`,
-        noLongerHaveAccess: ({primaryLogin}: NoLongerHaveAccessParams) => `${primaryLogin} にアクセスできなくなった場合は、アカウントの連携を解除してください。`,
+        noLongerHaveAccess: (primaryLogin: string) => `${primaryLogin} にアクセスできなくなった場合は、アカウントの連携を解除してください。`,
         unlink: 'リンク解除',
         linkSent: 'リンクを送信しました！',
         successfullyUnlinkedLogin: 'セカンダリログインを正常に連携解除しました！',
@@ -3955,7 +3939,7 @@ ${
             existingConnections: '既存の接続',
             existingConnectionsDescription: ({connectionName}: ConnectionNameParams) =>
                 `以前に ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} に接続したことがあるため、既存の接続を再利用するか、新しい接続を作成できます。`,
-            lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - 最終同期日時 ${formattedDate}`,
+            lastSyncDate: (connectionName: string, formattedDate: string) => `${connectionName} - 最終同期日時 ${formattedDate}`,
             authenticationError: (connectionName: string) => `認証エラーが原因で${connectionName}に接続できません。`,
             learnMore: '詳細はこちら',
             memberAlternateText: 'レポートを提出して承認します。',
@@ -5037,10 +5021,10 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             addShippingDetails: '配送先の詳細を追加',
             issuedCard: (assignee: string) => `${assignee} に Expensify カードを発行しました！カードは 2～3 営業日以内に到着します。`,
             issuedCardNoShippingDetails: (assignee: string) => `${assignee}にExpensify Cardを発行しました！配送先の詳細が確認され次第、カードを発送します。`,
-            issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `${assignee} にバーチャル Expensify Card を発行しました！${link} はすぐに使用できます。`,
+            issuedCardVirtual: (assignee: string, link: string) => `${assignee} にバーチャル Expensify Card を発行しました！${link} はすぐに使用できます。`,
             addedShippingDetails: (assignee: string) => `${assignee} が配送先の詳細を追加しました。Expensify Card は 2～3 営業日で届きます。`,
             replacedCard: (assignee: string) => `${assignee} は Expensify Card を再発行しました。新しいカードは 2〜3 営業日で到着します。`,
-            replacedVirtualCard: ({assignee, link}: IssueVirtualCardParams) => `${assignee}さんがバーチャル Expensify Card を再発行しました！${link}はすぐにご利用いただけます。`,
+            replacedVirtualCard: (assignee: string, link: string) => `${assignee}さんがバーチャル Expensify Card を再発行しました！${link}はすぐにご利用いただけます。`,
             card: 'カード',
             replacementCard: '再発行カード',
             verifyingHeader: '確認中',
@@ -5068,8 +5052,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             deleteFailureMessage: 'カテゴリの削除中にエラーが発生しました。もう一度お試しください',
             categoryName: 'カテゴリ名',
             requiresCategory: 'メンバーはすべての経費を分類する必要があります',
-            needCategoryForExportToIntegration: ({connectionName}: NeedCategoryForExportToIntegrationParams) =>
-                `${connectionName} にエクスポートするには、すべての経費にカテゴリを指定する必要があります。`,
+            needCategoryForExportToIntegration: (connectionName: string) => `${connectionName} にエクスポートするには、すべての経費にカテゴリを指定する必要があります。`,
             subtitle: 'お金がどこで使われているかを、より分かりやすく把握しましょう。デフォルトのカテゴリを使うか、自分用のカテゴリを追加できます。',
             emptyCategories: {
                 title: 'カテゴリがまだ作成されていません',
@@ -5140,17 +5123,9 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     subtitle: '現在、Expensify Travel の有効化リクエストを確認中です。準備が整い次第、お知らせしますのでご安心ください。',
                     ctaText: 'リクエストを送信しました',
                 },
-                bookOrManageYourTrip: {
-                    title: '出張を予約または管理',
-                    subtitle: 'Expensify Travel を使って、最高の旅行プランを入手し、すべてのビジネス経費を一括管理しましょう。',
-                    ctaText: '予約または管理',
-                },
+                bookOrManageYourTrip: {title: '出張予約', subtitle: 'おめでとうございます！このワークスペースで旅行の予約と管理を行う準備が整いました。', ctaText: '出張を管理'},
+                settings: {autoAddTripName: {title: '経費に出張名を追加', subtitle: 'Expensifyで予約した出張について、経費の説明に出張名を自動的に追加します。'}},
                 travelInvoicing: {
-                    travelBookingSection: {
-                        title: '出張予約',
-                        subtitle: 'おめでとうございます！このワークスペースで旅行の予約と管理を行う準備ができました。',
-                        manageTravelLabel: '出張を管理',
-                    },
                     centralInvoicingSection: {
                         title: '集中請求',
                         subtitle: '購入時に支払うのではなく、すべての出張費を月次請求書に集約しましょう。',
@@ -5209,10 +5184,9 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 allCards: 'すべてのカード',
                 assignedCards: '割り当て済み',
                 unassignedCards: '未割り当て',
-                integrationExport: ({integration, type}: IntegrationExportParams) =>
-                    integration && type ? `${integration} ${type.toLowerCase()} エクスポート` : `${integration} エクスポート`,
-                integrationExportTitleXero: ({integration}: IntegrationExportParams) => `取引のエクスポート先となる${integration}の口座を選択してください。`,
-                integrationExportTitle: ({integration, exportPageLink}: IntegrationExportParams) =>
+                integrationExport: (integration: string, type?: string) => (integration && type ? `${integration} ${type.toLowerCase()} エクスポート` : `${integration} エクスポート`),
+                integrationExportTitleXero: (integration: string) => `取引のエクスポート先となる${integration}の口座を選択してください。`,
+                integrationExportTitle: (integration: string, exportPageLink: string) =>
                     `取引をエクスポートする${integration}アカウントを選択してください。利用可能なアカウントを変更するには、別の<a href="${exportPageLink}">エクスポートオプション</a>を選択してください。`,
                 lastUpdated: '最終更新日時',
                 transactionStartDate: '取引開始日',
@@ -5546,7 +5520,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             getTheExpensifyCardAndMore: 'Expensifyカードなどを入手する',
             confirmWorkspace: 'ワークスペースを確認',
             myGroupWorkspace: ({workspaceNumber}: {workspaceNumber?: number}) => `マイ・グループワークスペース${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
-            workspaceName: ({userName, workspaceNumber}: NewWorkspaceNameParams) => `${userName} のワークスペース${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
+            workspaceName: (userName: string, workspaceNumber?: number) => `${userName} のワークスペース${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
         },
         people: {
             genericFailureMessage: 'ワークスペースからメンバーを削除する際にエラーが発生しました。もう一度お試しください',
@@ -5692,7 +5666,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 `Expensify Classic で設定されている接続にエラーがあります。[この問題を解決するには Expensify Classic に移動してください。](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: '設定を管理するには、Expensify Classic に移動してください。',
             setup: '接続',
-            lastSync: ({relativeDate}: LastSyncAccountingParams) => `最終同期：${relativeDate}`,
+            lastSync: (relativeDate: string) => `最終同期：${relativeDate}`,
             notSync: '未同期',
             import: 'インポート',
             export: 'エクスポート',
@@ -6228,7 +6202,7 @@ ${reportName}
                 title: 'Controlプランにアップグレード',
                 note: '以下を含む、最も強力な機能をアンロックしましょう：',
                 benefits: {
-                    startsAtFull: ({learnMoreMethodsRoute, formattedPrice, hasTeam2025Pricing}: LearnMoreRouteParams) =>
+                    startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
                         `<muted-text>Control プランは <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からご利用いただけます。プランと料金の詳細は <a href="${learnMoreMethodsRoute}">こちら</a> をご覧ください。</muted-text>`,
                     benefit1: '高度な会計連携（NetSuite、Sage Intacct など）',
                     benefit2: 'スマート経費ルール',
@@ -6348,8 +6322,8 @@ ${reportName}
                 preventSelfApprovalsSubtitle: 'ワークスペースメンバーが自分自身の経費レポートを承認できないようにする。',
                 autoApproveCompliantReportsTitle: 'コンプライアンス準拠レポートを自動承認',
                 autoApproveCompliantReportsSubtitle: '自動承認の対象とする経費レポートを設定します。',
-                autoApproveReportsUnderTitle: '自動承認するレポートの上限額',
-                autoApproveReportsUnderDescription: 'この金額以下で完全準拠している経費精算書は、自動的に承認されます。',
+                autoApproveReportsUnderTitle: 'すべての経費がこの金額以下のレポートを自動承認',
+                autoApproveReportsUnderDescription: 'すべての経費がこの金額以下で完全準拠している経費精算書は、自動的に承認されます。',
                 randomReportAuditTitle: 'ランダムレポート監査',
                 randomReportAuditDescription: '一部のレポートについては、自動承認の対象であっても手動承認を必須にする',
                 autoPayApprovedReportsTitle: '自動支払い対象の承認済みレポート',
@@ -7213,6 +7187,7 @@ ${reportName}
             selectAllMatchingItems: '一致する項目をすべて選択',
             allMatchingItemsSelected: '一致する項目をすべて選択済み',
         },
+        spendOverTime: '時間経過による支出',
     },
     genericErrorPage: {
         title: 'おっと、問題が発生しました！',
@@ -7306,11 +7281,11 @@ ${reportName}
                     nonReimbursableLink: '会社カード経費',
                     pending: (label: string) => `このレポートの${label}へのエクスポートを開始しました…`,
                 },
-                integrationsMessage: ({errorMessage, label, linkText, linkURL}: IntegrationSyncFailedParams) =>
+                integrationsMessage: (errorMessage: string, label: string, linkText?: string, linkURL?: string) =>
                     `このレポートを${label}にエクスポートできませんでした（"${errorMessage}${linkText ? `<a href="${linkURL}">${linkText}</a>` : ''}"）`,
                 managerAttachReceipt: `レシートを追加しました`,
                 managerDetachReceipt: `領収書を削除しました`,
-                markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `他の場所で${currency}${amount}を支払いました`,
+                markedReimbursed: (amount: string, currency: string) => `他の場所で${currency}${amount}を支払いました`,
                 markedReimbursedFromIntegration: ({amount, currency}: MarkReimbursedFromIntegrationParams) => `連携経由で${currency}${amount}を支払いました`,
                 outdatedBankAccount: `支払元の銀行口座に問題があるため、支払いを処理できませんでした`,
                 reimbursementACHBounce: `銀行口座の問題により支払いを処理できませんでした`,
@@ -7323,7 +7298,7 @@ ${reportName}
                 unshare: ({to}: UnshareParams) => `メンバー ${to} を削除しました`,
                 stripePaid: ({amount, currency}: StripePaidParams) => `支払い済み ${currency}${amount}`,
                 takeControl: `管理権限を取得しました`,
-                integrationSyncFailed: ({label, errorMessage, workspaceAccountingLink}: IntegrationSyncFailedParams) =>
+                integrationSyncFailed: (label: string, errorMessage: string, workspaceAccountingLink?: string) =>
                     `${label}${errorMessage ? ` ("${errorMessage}")` : ''}との同期中に問題が発生しました。<a href="${workspaceAccountingLink}">ワークスペース設定</a>で問題を解決してください。`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `${feedName} との接続が切断されています。カードの取引明細の取込を再開するには、<a href='${workspaceCompanyCardRoute}'>銀行にログイン</a>してください。`,
@@ -7347,14 +7322,14 @@ ${reportName}
                         ? `${email} のカスタムフィールド2に「${newValue}」を追加しました`
                         : `${email} のカスタムフィールド2を「${newValue}」に変更しました（以前は「${previousValue}」）`;
                 },
-                leftWorkspace: ({nameOrEmail}: LeftWorkspaceParams) => `${nameOrEmail} がワークスペースを退出しました`,
+                leftWorkspace: (nameOrEmail: string) => `${nameOrEmail} がワークスペースを退出しました`,
                 removeMember: (email: string, role: string) => `${role} ${email} を削除しました`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} との連携を削除しました`,
                 addedConnection: ({connectionName}: ConnectionNameParams) => `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} に接続済み`,
                 leftTheChat: 'チャットを退出しました',
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
                     `Reimbursement または Expensify Card の清算に問題が発生したため、ビジネス銀行口座 ${maskedBankAccountNumber} は自動的にロックされました。問題を解決するには、<a href="${linkURL}">ワークスペース設定</a>で修正してください。`,
-                leftTheChatWithName: ({nameOrEmail}: LeftWorkspaceParams) => `${nameOrEmail ? `${nameOrEmail}: ` : ''}がチャットから退出しました`,
+                leftTheChatWithName: (nameOrEmail: string) => `${nameOrEmail ? `${nameOrEmail}: ` : ''}がチャットから退出しました`,
             },
             error: {
                 invalidCredentials: '認証情報が無効です。接続の設定を確認してください。',
@@ -8324,6 +8299,8 @@ ${reportName}
             disableSamlRequired: '必須なSAMLを無効にする',
             oktaWarningPrompt: 'よろしいですか？これにより Okta SCIM も無効になります。',
             requireWithEmptyMetadataError: '有効にするには、以下にアイデンティティプロバイダーのメタデータを追加してください',
+            pleaseDisableTwoFactorAuth: (twoFactorAuthSettingsUrl: string) =>
+                `<muted-text>SAML ログインを有効にするには、<a href="${twoFactorAuthSettingsUrl}">二要素認証の強制</a>を無効にしてください。</muted-text>`,
         },
         samlConfigurationDetails: {
             title: 'SAML 設定の詳細',
@@ -8372,7 +8349,6 @@ ${reportName}
             primaryContact: '主要連絡先',
             addPrimaryContact: '主な連絡先を追加',
             setPrimaryContactError: '主要連絡先を設定できませんでした。後でもう一度お試しください。',
-            settings: '設定',
             consolidatedDomainBilling: 'ドメイン一括請求',
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>有効にすると、主な連絡先は <strong>${domainName}</strong> メンバーが所有するすべてのワークスペースの支払いを行い、すべての請求書の受領書を受け取ります。</muted-text-label></comment>`,
@@ -8407,7 +8383,13 @@ ${reportName}
                 removeMember: 'このユーザーを削除できません。もう一度お試しください。',
                 addMember: 'このメンバーを追加できませんでした。もう一度お試しください。',
             },
+            forceTwoFactorAuth: '2要素認証を必須にする',
+            forceTwoFactorAuthSAMLEnabledDescription: (samlPageUrl: string) =>
+                `<muted-text>2 要素認証を必須にするには、<a href="${samlPageUrl}">SAML</a> を無効にしてください。</muted-text>`,
+            forceTwoFactorAuthDescription: `<muted-text>このドメインのすべてのメンバーに二要素認証を必須にします。ドメインメンバーは、サインイン時に自分のアカウントで二要素認証を設定するよう求められます。</muted-text>`,
+            forceTwoFactorAuthError: '2要素認証の強制設定を変更できませんでした。後でもう一度お試しください。',
         },
+        common: {settings: '設定'},
     },
 };
 export default translations;

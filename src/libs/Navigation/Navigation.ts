@@ -1,6 +1,6 @@
 import {findFocusedRoute, getActionFromState} from '@react-navigation/core';
 import type {EventArg, NavigationAction, NavigationContainerEventMap, NavigationState, PartialState} from '@react-navigation/native';
-import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
+import {CommonActions, StackActions} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 // eslint-disable-next-line you-dont-need-lodash-underscore/omit
 import omit from 'lodash/omit';
@@ -26,6 +26,7 @@ import type {Account, SidePanel} from '@src/types/onyx';
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import getSearchTopmostReportParams from './getSearchTopmostReportParams';
 import originalCloseRHPFlow from './helpers/closeRHPFlow';
+import getPathFromState from './helpers/getPathFromState';
 import getStateFromPath from './helpers/getStateFromPath';
 import getTopmostReportParams from './helpers/getTopmostReportParams';
 import {isFullScreenName, isOnboardingFlowName, isSplitNavigatorName} from './helpers/isNavigatorName';
@@ -213,7 +214,7 @@ function getActiveRoute(): string {
         return '';
     }
 
-    const routeFromState = getPathFromState(navigationRef.getRootState(), linkingConfig.config);
+    const routeFromState = getPathFromState(navigationRef.getRootState());
 
     if (routeFromState) {
         return routeFromState;
@@ -455,6 +456,11 @@ function goBack(backToRoute?: Route, options?: GoBackOptions) {
 
     if (backToRoute) {
         goUp(backToRoute, options);
+        return;
+    }
+
+    if (shouldPopToSidebar) {
+        popToSidebar();
         return;
     }
 
@@ -751,19 +757,6 @@ const dismissModalWithReport = ({reportID, reportActionID, referrer, backTo}: Re
     });
 };
 
-/**
- * Returns to the first screen in the stack, dismissing all the others, only if the global variable shouldPopToSidebar is set to true.
- */
-function popToTop() {
-    if (!shouldPopToSidebar) {
-        goBack();
-        return;
-    }
-
-    shouldPopToSidebar = false;
-    navigationRef.current?.dispatch(StackActions.popToTop());
-}
-
 function popRootToTop() {
     const rootState = navigationRef.getRootState();
     navigationRef.current?.dispatch({...StackActions.popToTop(), target: rootState.key});
@@ -932,7 +925,6 @@ export default {
     goBackToHome,
     closeRHPFlow,
     setNavigationActionToMicrotaskQueue,
-    popToTop,
     popRootToTop,
     pop,
     removeScreenFromNavigationState,

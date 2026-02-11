@@ -12,18 +12,21 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import {sortWorkspacesBySelected} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 
 type WorkspaceListItem = ListItem & {
-    value: string;
+    policyID: string;
 };
 
 type BaseRequestStepWorkspaceProps = WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.CREATE> & {
@@ -54,7 +57,7 @@ function BaseRequestStepWorkspace({transaction, getPolicies, onSelectWorkspace}:
         )
         .map((policy) => ({
             text: policy.name,
-            value: policy.id,
+            policyID: policy.id,
             keyForList: policy.id,
             icons: [
                 {
@@ -75,7 +78,14 @@ function BaseRequestStepWorkspace({transaction, getPolicies, onSelectWorkspace}:
     const sortWorkspaces = (data: WorkspaceListItem[]) => data.sort((a, b) => localeCompare(a.text ?? '', b?.text ?? ''));
     const [inputValue, setInputValue, filteredWorkspaceOptions] = useSearchResults(workspaceOptions, filterWorkspace, sortWorkspaces);
 
-    const selectWorkspace = (item: WorkspaceListItem) => onSelectWorkspace(allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.value}`]);
+    const selectWorkspace = (item: WorkspaceListItem) => {
+        const policyID = item.policyID;
+        if (shouldRestrictUserBillableActions(policyID)) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
+            return;
+        }
+        onSelectWorkspace(allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]);
+    };
 
     return (
         <>

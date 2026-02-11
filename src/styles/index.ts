@@ -2135,7 +2135,6 @@ const staticStyles = (theme: ThemeColors) =>
                 ...(Platform.OS === 'android' && {
                     height: undefined,
                     lineHeight: undefined,
-                    alignSelf: 'stretch',
                     flexGrow: 1,
                     flexShrink: 1,
                 }),
@@ -6324,12 +6323,6 @@ const plainStyles = (theme: ThemeColors) =>
                 marginHorizontal: shouldUseNarrowLayout ? 20 : 32,
                 marginTop: shouldUseNarrowLayout ? 20 : 32,
             }) satisfies ViewStyle,
-
-        widgetContainerIconWrapper: {
-            flexGrow: 0,
-            flexShrink: 0,
-            marginRight: 11,
-        },
 
         getWidgetItemIconContainerStyle: (backgroundColor: string) =>
             ({

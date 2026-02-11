@@ -1,5 +1,5 @@
 import type {NavigationState} from '@react-navigation/native';
-import {DarkTheme, DefaultTheme, findFocusedRoute, getPathFromState, NavigationContainer} from '@react-navigation/native';
+import {DarkTheme, DefaultTheme, findFocusedRoute, NavigationContainer} from '@react-navigation/native';
 import {hasCompletedGuidedSetupFlowSelector, wasInvitedToNewDotSelector} from '@selectors/Onboarding';
 import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import {useOnboardingValues} from '@components/OnyxListItemProvider';
@@ -29,7 +29,8 @@ import ROUTES from '@src/ROUTES';
 import AppNavigator from './AppNavigator';
 import {cleanPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import getAdaptedStateFromPath from './helpers/getAdaptedStateFromPath';
-import {isWorkspacesTabScreenName} from './helpers/isNavigatorName';
+import getPathFromState from './helpers/getPathFromState';
+import {isSplitNavigatorName, isWorkspacesTabScreenName} from './helpers/isNavigatorName';
 import {saveSettingsTabPathToSessionStorage, saveWorkspacesTabPathToSessionStorage} from './helpers/lastVisitedTabPathUtils';
 import {linkingConfig} from './linkingConfig';
 import Navigation, {navigationRef} from './Navigation';
@@ -56,7 +57,7 @@ function parseAndLogRoute(state: NavigationState) {
         return;
     }
 
-    const currentPath = getPathFromState(state, linkingConfig.config);
+    const currentPath = getPathFromState(state);
 
     const focusedRoute = findFocusedRoute(state);
 
@@ -121,7 +122,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
                 Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute());
             });
 
-            return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
+            return getAdaptedStateFromPath(lastVisitedPath);
         }
 
         if (!account || account.isFromPublicDomain) {
@@ -148,7 +149,6 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
                     onboardingInitialPath,
                     onboardingValues,
                 }),
-                linkingConfig.config,
             );
         }
 
@@ -160,7 +160,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
             if (!isSpecificDeepLink) {
                 Log.info('Restoring last visited path on app startup', false, {lastVisitedPath, initialUrl, path});
-                return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
+                return getAdaptedStateFromPath(lastVisitedPath);
             }
         }
 
@@ -212,6 +212,13 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         // Now when this value is true, Navigation.goBack with the option {shouldPopToTop: true} will remove all visited central screens in the given tab from the navigation stack and go back to the LHN.
         // More context here: https://github.com/Expensify/App/pull/59300
         if (!shouldUseNarrowLayout) {
+            return;
+        }
+
+        const lastRoute = navigationRef?.getRootState()?.routes?.at(-1);
+
+        // Sidebar is a separate screen only in SplitNavigators, so shouldPopToSidebar should only be set when the last route is a SplitNavigator.
+        if (!isSplitNavigatorName(lastRoute?.name)) {
             return;
         }
 

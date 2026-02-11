@@ -21,7 +21,6 @@ import type {Screen} from './SCREENS';
 import type {CompanyCardFeedWithDomainID} from './types/onyx';
 import type {ConnectionName, SageIntacctMappingName} from './types/onyx/Policy';
 import type {CustomFieldType} from './types/onyx/PolicyEmployee';
-import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
 
 type WorkspaceCompanyCardsAssignCardParams = {
     policyID: string;
@@ -168,8 +167,25 @@ const ROUTES = {
         getRoute: ({reportID}: {reportID: string}) => `search/r/${reportID}/reject` as const,
     },
     TRANSACTION_HOLD_REASON_RHP: 'search/hold',
+    TRANSACTION_HOLD_REASON_SEARCH: {
+        route: 'search/hold/search/:backTo?',
+        getRoute: (backTo?: string) => {
+            if (!backTo) {
+                return 'search/hold/search' as const;
+            }
+            return `search/hold/search/${encodeURIComponent(backTo)}` as const;
+        },
+    },
     SEARCH_REJECT_REASON_RHP: 'search/reject',
-    MOVE_TRANSACTIONS_SEARCH_RHP: 'search/move-transactions',
+    MOVE_TRANSACTIONS_SEARCH_RHP: {
+        route: 'search/move-transactions/search/:backTo?',
+        getRoute: (backTo?: string) => {
+            if (!backTo) {
+                return 'search/move-transactions/search' as const;
+            }
+            return `search/move-transactions/search/${encodeURIComponent(backTo)}` as const;
+        },
+    },
 
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
     CONCIERGE: 'concierge',
@@ -3877,6 +3893,14 @@ const ROUTES = {
         route: 'domain/:domainAccountID/members/invite',
         getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members/invite` as const,
     },
+    DOMAIN_MEMBERS_SETTINGS: {
+        route: 'domain/:domainAccountID/members/settings',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members/settings` as const,
+    },
+    DOMAIN_MEMBERS_SETTINGS_TWO_FACTOR_AUTH: {
+        route: 'domain/:domainAccountID/members/settings/two-factor-auth',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members/settings/two-factor-auth` as const,
+    },
 
     MULTIFACTOR_AUTHENTICATION_MAGIC_CODE: `multifactor-authentication/magic-code`,
     MULTIFACTOR_AUTHENTICATION_BIOMETRICS_TEST: 'multifactor-authentication/scenario/biometrics-test',
@@ -3949,16 +3973,5 @@ type Route = {
 }[keyof typeof ROUTES];
 
 type DynamicRouteSuffix = (typeof DYNAMIC_ROUTES)[keyof typeof DYNAMIC_ROUTES]['path'];
-
-type RoutesValidationError = 'Error: One or more routes defined within `ROUTES` have not correctly used `as const` in their `getRoute` function return value.';
-
-/**
- * Represents all routes in the app as a union of literal strings.
- *
- * If TS throws on this line, it implies that one or more routes defined within `ROUTES` have not correctly used
- * `as const` in their `getRoute` function return value.
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-type RouteIsPlainString = AssertTypesNotEqual<string, Route, RoutesValidationError>;
 
 export type {Route, DynamicRouteSuffix};
