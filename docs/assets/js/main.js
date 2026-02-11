@@ -75,47 +75,6 @@ function injectFooterCopyright() {
     footer.innerHTML = `&copy;2008-${new Date().getFullYear()} Expensify, Inc.`;
 }
 
-function closeSidebar() {
-    document.getElementById('sidebar-layer').style.display = 'none';
-
-    // Make the body scrollable again
-    const body = document.body;
-    const scrollY = body.style.top;
-
-    // Reset the position and top styles of the body element
-    body.style.position = '';
-    body.style.top = '';
-
-    // Scroll to the original scroll position
-    window.scrollTo(0, parseInt(scrollY || '0', 10) * -1);
-}
-
-function closeSidebarOnClickOutside(event) {
-    const sidebarLayer = document.getElementById('sidebar-layer');
-
-    if (event.target !== sidebarLayer) {
-        return;
-    }
-    closeSidebar();
-}
-
-function openSidebar() {
-    document.getElementById('sidebar-layer').style.display = 'block';
-    document.getElementById('search-input').focus();
-
-    // Make body unscrollable
-    const yAxis = document.documentElement.style.getPropertyValue('y-axis');
-    const body = document.body;
-    body.style.position = 'fixed';
-    body.style.top = `-${yAxis}`;
-
-    // Close the sidebar when clicking sidebar layer (outside the sidebar search)
-    const sidebarLayer = document.getElementById('sidebar-layer');
-    if (sidebarLayer) {
-        sidebarLayer.addEventListener('click', closeSidebarOnClickOutside);
-    }
-}
-
 const SEARCH_API_URL = 'https://www.expensify.com/api/SearchHelpsite';
 
 function getTitleFromURL(url) {
@@ -132,13 +91,8 @@ function cloneTemplate(templateId) {
     return document.getElementById(templateId).content.cloneNode(true);
 }
 
-/**
- * Search the help site using the SearchHelpsite API.
- *
- * @param {string} query
- */
-function searchHelpsite(query) {
-    const resultsContainer = document.getElementById('search-results');
+function searchPageQuery(query) {
+    const resultsContainer = document.getElementById('search-page-results');
     if (!query.trim()) {
         resultsContainer.innerHTML = '';
         return;
@@ -147,28 +101,24 @@ function searchHelpsite(query) {
     resultsContainer.innerHTML = '';
     resultsContainer.appendChild(cloneTemplate('search-loading-template'));
 
-    const isClassic = window.location.pathname.startsWith('/expensify-classic/');
     const formData = new FormData();
     formData.append('command', 'SearchHelpsite');
     formData.append('query', query.trim());
-    if (isClassic) {
-        formData.append('platform', 'expensify-classic');
+
+    const platform = new URLSearchParams(window.location.search).get('platform');
+    if (platform) {
+        formData.append('platform', platform);
     }
 
-    fetch(SEARCH_API_URL, {
-        method: 'POST',
-        body: formData,
-    })
+    fetch(SEARCH_API_URL, {method: 'POST', body: formData})
         .then((response) => response.json())
         .then((data) => {
             const results = (data.searchResults || []).filter((result) => !result.url.includes('/Unlisted/'));
             resultsContainer.innerHTML = '';
-
             if (results.length === 0) {
                 resultsContainer.appendChild(cloneTemplate('search-no-results-template'));
                 return;
             }
-
             results.forEach((result) => {
                 const item = cloneTemplate('search-result-item-template');
                 const link = item.querySelector('.search-result-item');
@@ -189,15 +139,44 @@ function searchHelpsite(query) {
         });
 }
 
-function initSearch() {
-    const searchForm = document.getElementById('search-form');
+function clearSearchPage() {
+    const input = document.getElementById('search-page-input');
+    input.value = '';
+    input.focus();
+}
 
-    if (searchForm) {
-        searchForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            searchHelpsite(document.getElementById('search-input').value);
-        });
+function initSearchPage() {
+    const searchForm = document.getElementById('search-page-form');
+    if (!searchForm) {
+        return;
     }
+
+    const input = document.getElementById('search-page-input');
+    const params = new URLSearchParams(window.location.search);
+    const query = params.get('q') || '';
+    const platform = params.get('platform') || '';
+
+    const title = document.getElementById('search-page-title');
+    if (query) {
+        input.value = query;
+        title.textContent = 'Search results';
+        searchPageQuery(query);
+    }
+
+    input.focus();
+
+    searchForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const query = input.value.trim();
+        if (query) {
+            const url = '/search?q=' + encodeURIComponent(query) + (platform ? '&platform=' + encodeURIComponent(platform) : '');
+            history.replaceState(null, '', url);
+            title.textContent = 'Search results';
+            searchPageQuery(query);
+        }
+    });
+
+    document.getElementById('search-page-clear').addEventListener('click', clearSearchPage);
 }
 
 const FIXED_HEADER_HEIGHT = 80;
@@ -273,17 +252,6 @@ handleBreakpointChange();
 window.addEventListener('DOMContentLoaded', () => {
     injectFooterCopyright();
 
-    // Handle open & close the sidebar
-    const buttonOpenSidebar = document.getElementById('toggle-search-open');
-    if (buttonOpenSidebar) {
-        buttonOpenSidebar.addEventListener('click', openSidebar);
-    }
-
-    const buttonCloseSidebar = document.getElementById('toggle-search-close');
-    if (buttonCloseSidebar) {
-        buttonCloseSidebar.addEventListener('click', closeSidebar);
-    }
-
     if (window.tocbot) {
         window.tocbot.init({
             ...tocbotOptions,
@@ -291,7 +259,7 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    initSearch();
+    initSearchPage();
 
     document.getElementById('header-button').addEventListener('click', toggleHeaderMenu);
 
@@ -327,9 +295,6 @@ window.addEventListener('DOMContentLoaded', () => {
         const scrollingElement = e.target.scrollingElement;
         const scrollPercentageInArticleContent = clamp(scrollingElement.scrollTop - articleContent.offsetTop, 0, articleContent.scrollHeight) / articleContent.scrollHeight;
         lhnContent.scrollTop = scrollPercentageInArticleContent * lhnContent.scrollHeight;
-
-        // Count property of y-axis to keep scroll position & reference it later for making the body fixed when sidebar opened
-        document.documentElement.style.setProperty('y-axis', `${window.scrollY}px`);
     });
 });
 

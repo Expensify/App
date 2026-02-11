@@ -24,7 +24,7 @@ import {
 } from './OptionsListUtils';
 import Parser from './Parser';
 import Performance from './Performance';
-import {getCleanedTagName, getPolicy} from './PolicyUtils';
+import {getCleanedTagName} from './PolicyUtils';
 import {
     getActionableCardFraudAlertResolutionMessage,
     getAddedApprovalRuleMessage,
@@ -660,8 +660,8 @@ function getOptionData({
     personalDetails,
     policy,
     parentReportAction,
-    lastMessageTextFromReport: lastMessageTextFromReportProp,
     invoiceReceiverPolicy,
+    lastMessageTextFromReport: lastMessageTextFromReportProp,
     card,
     lastAction,
     translate,
@@ -671,25 +671,27 @@ function getOptionData({
     movedFromReport,
     movedToReport,
     currentUserAccountID,
+    reportAttributesDerived,
 }: {
     report: OnyxEntry<Report>;
     oneTransactionThreadReport: OnyxEntry<Report>;
     reportNameValuePairs: OnyxEntry<ReportNameValuePairs>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
-    policy: OnyxEntry<Policy> | undefined;
+    policy: OnyxEntry<Policy>;
     parentReportAction: OnyxEntry<ReportAction> | undefined;
+    invoiceReceiverPolicy: OnyxEntry<Policy>;
     lastMessageTextFromReport?: string;
-    invoiceReceiverPolicy?: OnyxEntry<Policy>;
     reportAttributes: OnyxEntry<ReportAttributes>;
     card: Card | undefined;
     lastAction: ReportAction | undefined;
     translate: LocalizedTranslate;
     localeCompare: LocaleContextProps['localeCompare'];
     isReportArchived: boolean | undefined;
-    lastActionReport: OnyxEntry<Report> | undefined;
+    lastActionReport: OnyxEntry<Report>;
     movedFromReport?: OnyxEntry<Report>;
     movedToReport?: OnyxEntry<Report>;
     currentUserAccountID: number;
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -820,7 +822,16 @@ function getOptionData({
     const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, currentUserAccountID);
     let lastMessageTextFromReport = lastMessageTextFromReportProp;
     if (!lastMessageTextFromReport) {
-        lastMessageTextFromReport = getLastMessageTextForReport({translate, report, lastActorDetails, movedFromReport, movedToReport, policy, isReportArchived, currentUserAccountID});
+        lastMessageTextFromReport = getLastMessageTextForReport({
+            translate,
+            report,
+            lastActorDetails,
+            movedFromReport,
+            movedToReport,
+            policy,
+            isReportArchived,
+            reportAttributesDerived,
+        });
     }
 
     // We need to remove sms domain in case the last message text has a phone number mention with sms domain.
@@ -841,7 +852,7 @@ function getOptionData({
             const actionMessage = getReportActionMessageText(lastAction);
             result.alternateText = actionMessage ? `${lastActorDisplayName}: ${actionMessage}` : '';
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM) {
-            result.alternateText = translate('report.actions.type.leftTheChatWithName', {nameOrEmail: lastActorDisplayName});
+            result.alternateText = translate('report.actions.type.leftTheChatWithName', lastActorDisplayName);
         } else if (isInviteOrRemovedAction(lastAction)) {
             let actorDetails;
             if (lastAction.actorAccountID) {
@@ -1067,7 +1078,7 @@ function getOptionData({
 
             if (!result.alternateText) {
                 result.alternateText = formatReportLastMessageText(
-                    getWelcomeMessage(report, policy, participantPersonalDetailListExcludeCurrentUser, translate, localeCompare, isReportArchived).messageText ??
+                    getWelcomeMessage(report, policy, invoiceReceiverPolicy, participantPersonalDetailListExcludeCurrentUser, translate, localeCompare, isReportArchived).messageText ??
                         translate('report.noActivityYet'),
                 );
             }
@@ -1077,7 +1088,7 @@ function getOptionData({
         if (!lastMessageText) {
             lastMessageText = formatReportLastMessageText(
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                getWelcomeMessage(report, policy, participantPersonalDetailListExcludeCurrentUser, translate, localeCompare, isReportArchived).messageText ||
+                getWelcomeMessage(report, policy, invoiceReceiverPolicy, participantPersonalDetailListExcludeCurrentUser, translate, localeCompare, isReportArchived).messageText ||
                     translate('report.noActivityYet'),
             );
         }
@@ -1134,6 +1145,7 @@ function getOptionData({
 function getWelcomeMessage(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
+    invoiceReceiverPolicy: OnyxEntry<Policy>,
     participantPersonalDetailList: PersonalDetails[],
     translate: LocalizedTranslate,
     localeCompare: LocaleContextProps['localeCompare'],
@@ -1148,7 +1160,7 @@ function getWelcomeMessage(
     }
 
     if (isChatRoom(report)) {
-        return getRoomWelcomeMessage(translate, report, isReportArchived, reportDetailsLink);
+        return getRoomWelcomeMessage(translate, report, invoiceReceiverPolicy, isReportArchived, reportDetailsLink);
     }
 
     if (isPolicyExpenseChat(report)) {
@@ -1192,7 +1204,7 @@ function getWelcomeMessage(
         messageHtml += translate('reportActionsView.usePlusButton', {additionalText});
     }
     if (isConciergeChatReport(report)) {
-        messageHtml += translate('reportActionsView.askConcierge');
+        messageHtml = translate('reportActionsView.askConcierge');
     }
 
     welcomeMessage.messageHtml = messageHtml;
@@ -1203,7 +1215,13 @@ function getWelcomeMessage(
 /**
  * Get welcome message based on room type
  */
-function getRoomWelcomeMessage(translate: LocalizedTranslate, report: OnyxEntry<Report>, isReportArchived = false, reportDetailsLink = ''): WelcomeMessage {
+function getRoomWelcomeMessage(
+    translate: LocalizedTranslate,
+    report: OnyxEntry<Report>,
+    invoiceReceiverPolicy: OnyxEntry<Policy>,
+    isReportArchived = false,
+    reportDetailsLink = '',
+): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {};
     const workspaceName = getPolicyName({report});
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -1227,9 +1245,7 @@ function getRoomWelcomeMessage(translate: LocalizedTranslate, report: OnyxEntry<
         const payer =
             report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL
                 ? getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID, formatPhoneNumber: formatPhoneNumberPhoneUtils})
-                : // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-                  // eslint-disable-next-line @typescript-eslint/no-deprecated
-                  getPolicy(report?.invoiceReceiver?.policyID)?.name;
+                : invoiceReceiverPolicy?.name;
         const receiver = getPolicyName({report});
         welcomeMessage.messageHtml = translate('reportActionsView.beginningOfChatHistoryInvoiceRoom', payer ?? '', receiver);
     } else {

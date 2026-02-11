@@ -176,6 +176,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
 
     const {reportActions} = usePaginatedReportActions(report.reportID);
+    const [reportActionsForOriginalReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canBeMissing: true});
 
     const {removeTransaction} = useSearchContext();
 
@@ -351,10 +352,11 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const shouldShowLeaveButton = canLeaveChat(report, policy, !!reportNameValuePairs?.private_isArchived);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserPersonalDetails?.email) && !policy?.isJoinRequestPending;
+
     const reportForHeader = useMemo(() => getReportForHeader(report), [report]);
-    const reportName = isGroupChat
-        ? getReportNameFromReportNameUtils(reportForHeader, reportAttributes)
-        : Parser.htmlToText(getReportNameFromReportNameUtils(reportForHeader, reportAttributes));
+    const shouldParseFullTitle = parentReportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && !isGroupChat;
+    const rawReportName = getReportNameFromReportNameUtils(reportForHeader, reportAttributes);
+    const reportName = shouldParseFullTitle ? Parser.htmlToText(rawReportName) : rawReportName;
     const additionalRoomDetails =
         (isPolicyExpenseChat && !!report?.isOwnPolicyExpenseChat) || isExpenseReportUtil(report) || isPolicyExpenseChat || isInvoiceRoom
             ? chatRoomSubtitle
@@ -439,7 +441,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         }
 
         if (isTrackExpenseReport && !isDeletedParentAction) {
-            const actionReportID = getOriginalReportID(report.reportID, parentReportAction);
+            const actionReportID = getOriginalReportID(report.reportID, parentReportAction, reportActionsForOriginalReportID);
             const whisperAction = getTrackExpenseActionableWhisper(iouTransactionID, moneyRequestReport?.reportID);
             const actionableWhisperReportActionID = whisperAction?.reportActionID;
             items.push({
@@ -621,6 +623,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         allTransactionDrafts,
         activePolicy,
         parentReport,
+        reportActionsForOriginalReportID,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
