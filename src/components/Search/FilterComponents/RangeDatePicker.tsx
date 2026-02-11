@@ -50,7 +50,7 @@ function RangeDatePicker({fromValue, toValue, onFromSelected, onToSelected, shou
         <>
             <View style={[!shouldStack && styles.flexRow, styles.mh5, styles.mt3]}>
                 <View style={[!shouldStack && styles.flex1, !shouldStack && styles.mr2]}>
-                    <View style={[styles.borderedContentCard, styles.p3]}>
+                    <View style={[styles.borderedContentCard, !isSmallScreenWidth ? styles.p4 : styles.p3]}>
                         <Text style={[styles.textLabelSupporting, styles.mb2, styles.ph3, styles.pt1]}>{translate('common.from')}</Text>
                         <CalendarPicker
                             value={fromValue}
@@ -64,7 +64,7 @@ function RangeDatePicker({fromValue, toValue, onFromSelected, onToSelected, shou
                 </View>
 
                 <View style={[!shouldStack && styles.flex1, !shouldStack && styles.ml2, shouldStack && styles.mt4]}>
-                    <View style={[styles.borderedContentCard, styles.p3]}>
+                    <View style={[styles.borderedContentCard, !isSmallScreenWidth ? styles.p4 : styles.p3]}>
                         <Text style={[styles.textLabelSupporting, styles.mb2, styles.ph3, styles.pt1]}>{translate('common.to')}</Text>
                         <CalendarPicker
                             value={toValue}
