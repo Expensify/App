@@ -156,7 +156,8 @@ function DraggableList<T>({
             style={styles.flex1}
             contentContainerStyle={styles.flex1}
         >
-            <div>
+            {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+            <div {...(isKeyboardActive && {role: 'listbox'})}>
                 <DndContext
                     onDragEnd={onDragEnd}
                     sensors={sensors}
