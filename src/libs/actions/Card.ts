@@ -897,7 +897,16 @@ function updateExpensifyCardTitle(workspaceAccountID: number, cardID: number, ne
     API.write(WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_TITLE, parameters, {optimisticData, successData, failureData});
 }
 
-function updateExpensifyCardLimitType(workspaceAccountID: number, cardID: number, newLimitType: CardLimitType, oldLimitType?: CardLimitType) {
+function updateExpensifyCardLimitType(
+    workspaceAccountID: number,
+    cardID: number,
+    newLimitType: CardLimitType,
+    timeZone: SelectedTimezone | undefined,
+    oldCardNameValuePairs?: Card['nameValuePairs'],
+    validFrom?: string,
+    validThru?: string,
+    shouldClearValidityDates?: boolean,
+) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -906,7 +915,13 @@ function updateExpensifyCardLimitType(workspaceAccountID: number, cardID: number
                 [cardID]: {
                     nameValuePairs: {
                         limitType: newLimitType,
-                        pendingFields: {limitType: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                        pendingFields: {
+                            limitType: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            validFrom: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            validThru: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        },
+                        validFrom: shouldClearValidityDates ? null : validFrom,
+                        validThru: shouldClearValidityDates ? null : validThru,
                     },
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     pendingFields: {availableSpend: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
@@ -925,7 +940,7 @@ function updateExpensifyCardLimitType(workspaceAccountID: number, cardID: number
                 [cardID]: {
                     isLoading: false,
                     nameValuePairs: {
-                        pendingFields: {limitType: null},
+                        pendingFields: {limitType: null, validFrom: null, validThru: null},
                     },
                     pendingAction: null,
                     pendingFields: {availableSpend: null},
@@ -941,8 +956,10 @@ function updateExpensifyCardLimitType(workspaceAccountID: number, cardID: number
             value: {
                 [cardID]: {
                     nameValuePairs: {
-                        limitType: oldLimitType,
-                        pendingFields: {limitType: null},
+                        limitType: oldCardNameValuePairs?.limitType,
+                        validFrom: oldCardNameValuePairs?.validFrom,
+                        validThru: oldCardNameValuePairs?.validThru,
+                        pendingFields: {limitType: null, validFrom: null, validThru: null},
                     },
                     pendingFields: {availableSpend: null},
                     pendingAction: null,
@@ -956,6 +973,9 @@ function updateExpensifyCardLimitType(workspaceAccountID: number, cardID: number
     const parameters: UpdateExpensifyCardLimitTypeParams = {
         cardID,
         limitType: newLimitType,
+        validFrom: validFrom ? DateUtils.normalizeDateToStartOfDay(validFrom, timeZone) : undefined,
+        validThru: validThru ? DateUtils.normalizeDateToEndOfDay(validThru, timeZone) : undefined,
+        clearValidityDates: shouldClearValidityDates,
     };
 
     API.write(WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_LIMIT_TYPE, parameters, {optimisticData, successData, failureData});
@@ -1159,7 +1179,14 @@ function configureExpensifyCardsForPolicy(policyID: string, workspaceAccountID: 
     });
 }
 
-function issueExpensifyCard(domainAccountID: number, policyID: string | undefined, feedCountry: string, validateCode: string, timeZone: SelectedTimezone, data?: IssueNewCardData) {
+function issueExpensifyCard(
+    domainAccountID: number,
+    policyID: string | undefined,
+    feedCountry: string,
+    validateCode: string,
+    timeZone: SelectedTimezone | undefined,
+    data?: IssueNewCardData,
+) {
     if (!data) {
         return;
     }

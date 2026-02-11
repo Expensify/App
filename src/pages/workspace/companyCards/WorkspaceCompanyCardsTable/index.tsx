@@ -17,7 +17,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {resetFailedWorkspaceCompanyCardUnassignment} from '@libs/actions/CompanyCards';
-import {getDefaultCardName, getPlaidInstitutionId} from '@libs/CardUtils';
+import {getDefaultCardName, getPlaidInstitutionId, isMatchingCard} from '@libs/CardUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import WorkspaceCompanyCardPageEmptyState from '@pages/workspace/companyCards/WorkspaceCompanyCardPageEmptyState';
 import WorkspaceCompanyCardsFeedAddedEmptyPage from '@pages/workspace/companyCards/WorkspaceCompanyCardsFeedAddedEmptyPage';
@@ -151,7 +151,7 @@ function WorkspaceCompanyCardsTable({
     const cardsData: WorkspaceCompanyCardTableItemData[] = isLoadingCards
         ? []
         : (Object.entries(cardNamesToEncryptedCardNumberMapping ?? {}).map(([cardName, encryptedCardNumber]) => {
-              const assignedCard = Object.values(assignedCards ?? {}).find((card: Card) => card.encryptedCardNumber === encryptedCardNumber || card.cardName === cardName);
+              const assignedCard = Object.values(assignedCards ?? {}).find((card: Card) => isMatchingCard(card, encryptedCardNumber, cardName));
               const cardholder = assignedCard?.accountID ? personalDetails?.[assignedCard.accountID] : undefined;
 
               return {

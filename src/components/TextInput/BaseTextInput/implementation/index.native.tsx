@@ -295,6 +295,7 @@ function BaseTextInput({
                     // When autoGrowHeight is true we calculate the width for the text input, so it will break lines properly
                     // or if multiline is not supplied we calculate the text input height, using onLayout.
                     onLayout={onLayout}
+                    accessibilityLabel={accessibilityLabel}
                     style={[
                         autoGrowHeight &&
                             !isAutoGrowHeightMarkdown &&

@@ -280,14 +280,8 @@ const ROUTES = {
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/subscription', backTo),
     },
     SETTINGS_SUBSCRIPTION_SIZE: {
-        route: 'settings/subscription/subscription-size/:subPage?',
-        getRoute: (canChangeSize?: 0 | 1, subPage?: string) => {
-            const baseRoute = 'settings/subscription/subscription-size';
-            const subPageParam = subPage ? `/${subPage}` : '';
-            const canChangeSizeParam = canChangeSize !== undefined ? `?canChangeSize=${canChangeSize as number}` : '';
-
-            return `${baseRoute}${subPageParam}${canChangeSizeParam}` as const;
-        },
+        route: 'settings/subscription/subscription-size',
+        getRoute: (canChangeSize: 0 | 1) => `settings/subscription/subscription-size?canChangeSize=${canChangeSize as number}` as const,
     },
     SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS: 'settings/subscription/details',
     SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD: 'settings/subscription/add-payment-card',
@@ -3898,6 +3892,14 @@ const ROUTES = {
     DOMAIN_ADD_MEMBER: {
         route: 'domain/:domainAccountID/members/invite',
         getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members/invite` as const,
+    },
+    DOMAIN_MEMBERS_SETTINGS: {
+        route: 'domain/:domainAccountID/members/settings',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members/settings` as const,
+    },
+    DOMAIN_MEMBERS_SETTINGS_TWO_FACTOR_AUTH: {
+        route: 'domain/:domainAccountID/members/settings/two-factor-auth',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members/settings/two-factor-auth` as const,
     },
 
     MULTIFACTOR_AUTHENTICATION_MAGIC_CODE: `multifactor-authentication/magic-code`,

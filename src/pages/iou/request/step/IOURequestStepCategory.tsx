@@ -20,7 +20,8 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getIOURequestPolicyID, setDraftSplitTransaction, setMoneyRequestCategory, updateMoneyRequestCategory} from '@libs/actions/IOU';
+import {getIOURequestPolicyID, setMoneyRequestCategory, updateMoneyRequestCategory} from '@libs/actions/IOU';
+import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {enablePolicyCategories, getPolicyCategories} from '@libs/actions/Policy/Category';
 import {isCategoryMissing} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -218,6 +219,7 @@ function IOURequestStepCategory({
                                 }}
                                 text={translate('workspace.categories.editCategories')}
                                 pressOnEnter
+                                sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.EDIT_CATEGORIES_BUTTON}
                             />
                         </FixedFooter>
                     )}
