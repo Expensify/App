@@ -2068,7 +2068,7 @@ function PureReportActionItem({
                 preventDefaultContextMenu={draftMessage === undefined && !hasErrors}
                 withoutFocusOnSecondaryInteraction
                 accessibilityLabel={translate('accessibilityHints.chatMessage')}
-                accessibilityRole={CONST.ROLE.BUTTON}
+                accessible
                 sentryLabel={CONST.SENTRY_LABEL.REPORT.PURE_REPORT_ACTION_ITEM}
             >
                 <Hoverable
