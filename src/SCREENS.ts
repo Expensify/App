@@ -94,8 +94,9 @@ const SCREENS = {
         SAVED_SEARCH_RENAME_RHP: 'Search_Saved_Search_Rename_RHP',
         ADVANCED_FILTERS_IN_RHP: 'Search_Advanced_Filters_In_RHP',
         TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP',
+        TRANSACTION_HOLD_REASON_SEARCH: 'Search_Transaction_Hold_Reason_Search',
         SEARCH_REJECT_REASON_RHP: 'Search_Reject_Reason_RHP',
-        TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP: 'Search_Transactions_Change_Report_RHP',
+        TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP: 'Search_Transactions_Change_Report_Search',
     },
     SETTINGS: {
         ROOT: 'Settings_Root',
@@ -117,6 +118,7 @@ const SCREENS = {
         TROUBLESHOOT: 'Settings_Troubleshoot',
         CONSOLE: 'Settings_Console',
         SHARE_LOG: 'Share_Log',
+        DYNAMIC_VERIFY_ACCOUNT: 'Dynamic_Verify_Account',
 
         PROFILE: {
             ROOT: 'Settings_Profile',
@@ -364,6 +366,7 @@ const SCREENS = {
         STEP_DISTANCE_MANUAL: 'Money_Request_Step_Distance_Manual',
         STEP_DISTANCE_GPS: 'Money_Request_Step_Distance_GPS',
         STEP_DISTANCE_ODOMETER: 'Money_Request_Step_Distance_Odometer',
+        ODOMETER_IMAGE: 'Money_Request_Odometer_Image',
         RECEIPT_PREVIEW: 'Money_Request_Receipt_preview',
         STEP_TIME_RATE: 'Money_Request_Step_Time_Rate',
         STEP_HOURS: 'Money_Request_Step_Hours',
@@ -411,6 +414,7 @@ const SCREENS = {
         EXPENSIFY_CARD_NAME: 'Expensify_Card_Name',
         EXPENSIFY_CARD_LIMIT: 'Expensify_Card_Limit',
         EXPENSIFY_CARD_LIMIT_TYPE: 'Expensify_Card_Limit_Type',
+        EXPENSIFY_CARD_EXPIRY_OPTIONS: 'Expensify_Card_Expiry_Options',
     },
     DOMAIN_CARD: {
         DOMAIN_CARD_DETAIL: 'Domain_Card_Detail',
@@ -466,6 +470,10 @@ const SCREENS = {
     },
 
     SET_DEFAULT_WORKSPACE: 'SetDefaultWorkspace',
+
+    SEARCH_ROUTER: {
+        ROOT: 'Search_Router_Root',
+    },
 
     REPORT_DETAILS: {
         ROOT: 'Report_Details_Root',
@@ -741,6 +749,7 @@ const SCREENS = {
         DISTANCE_RATES: 'Distance_Rates',
         TRAVEL: 'Travel',
         TRAVEL_SETTINGS_ACCOUNT: 'Workspace_Travel_Settings_Account',
+        TRAVEL_SETTINGS_FREQUENCY: 'Workspace_Travel_Settings_Frequency',
         CREATE_DISTANCE_RATE: 'Create_Distance_Rate',
         CREATE_DISTANCE_RATE_UPGRADE: 'Create_Distance_Rate_Upgrade',
         DISTANCE_RATES_SETTINGS: 'Distance_Rates_Settings',

@@ -112,7 +112,6 @@ import {
     canIOUBePaid as canIOUBePaidAction,
     dismissRejectUseExplanation,
     getNavigationUrlOnMoneyRequestDelete,
-    initSplitExpense,
     markRejectViolationAsResolved,
     payInvoice,
     payMoneyRequest,
@@ -122,6 +121,7 @@ import {
     submitReport,
     unapproveExpenseReport,
 } from '@userActions/IOU';
+import {initSplitExpense} from '@userActions/IOU/Split';
 import {markAsCash as markAsCashAction} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -155,6 +155,7 @@ import MoneyReportHeaderStatusBarSkeleton from './MoneyReportHeaderStatusBarSkel
 import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import MoneyRequestReportNavigation from './MoneyRequestReportView/MoneyRequestReportNavigation';
+import {usePersonalDetails} from './OnyxListItemProvider';
 import type {PopoverMenuItem} from './PopoverMenu';
 import {PressableWithFeedback} from './Pressable';
 import type {ActionHandledType} from './ProcessMoneyReportHoldMenu';
@@ -220,6 +221,9 @@ function MoneyReportHeader({
     const activePolicy = usePolicy(activePolicyID);
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
+    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID, {canBeMissing: true});
+    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {canBeMissing: true});
+    const personalDetails = usePersonalDetails();
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Buildings',
         'Plus',
@@ -410,7 +414,7 @@ function MoneyReportHeader({
     > | null>(null);
 
     const {selectedTransactionIDs, removeTransaction, clearSelectedTransactions, currentSearchQueryJSON, currentSearchKey, currentSearchHash, currentSearchResults} = useSearchContext();
-    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.similarSearchHash, true);
+    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
 
     const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
 
@@ -542,7 +546,7 @@ function MoneyReportHeader({
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
     const shouldShowLoadingBar = useLoadingBarVisibility();
     const kycWallRef = useContext(KYCWallContext);
-
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const isReportInRHP = route.name !== SCREENS.REPORT;
     const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
     const isReportInSearch = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT || route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT;
@@ -581,6 +585,7 @@ function MoneyReportHeader({
                     methodID,
                     paymentMethod,
                     activePolicy,
+                    betas,
                 });
             } else {
                 startAnimation();
@@ -593,6 +598,7 @@ function MoneyReportHeader({
                     currentUserAccountID: accountID,
                     activePolicy,
                     policy,
+                    betas,
                 });
                 if (currentSearchQueryJSON && !isOffline) {
                     search({
@@ -626,6 +632,7 @@ function MoneyReportHeader({
             currentSearchKey,
             shouldCalculateTotals,
             currentSearchResults?.search?.isLoading,
+            betas,
         ],
     );
 
@@ -654,7 +661,7 @@ function MoneyReportHeader({
             setIsHoldMenuVisible(true);
         } else {
             startApprovedAnimation();
-            approveMoneyRequest(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, true);
+            approveMoneyRequest(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, betas, true);
         }
     };
 
@@ -695,6 +702,8 @@ function MoneyReportHeader({
                     targetPolicy: defaultExpensePolicy ?? undefined,
                     targetPolicyCategories: activePolicyCategories,
                     targetReport: activePolicyExpenseChat,
+                    betas,
+                    personalDetails,
                 });
             }
         },
@@ -709,6 +718,8 @@ function MoneyReportHeader({
             policyRecentlyUsedCurrencies,
             policy?.id,
             isSelfTourViewed,
+            betas,
+            personalDetails,
         ],
     );
 
@@ -886,8 +897,8 @@ function MoneyReportHeader({
     });
 
     const addExpenseDropdownOptions = useMemo(
-        () => getAddExpenseDropdownOptions(expensifyIcons, moneyRequestReport?.reportID, policy, undefined, undefined, lastDistanceExpenseType),
-        [moneyRequestReport?.reportID, policy, lastDistanceExpenseType, expensifyIcons],
+        () => getAddExpenseDropdownOptions(translate, expensifyIcons, moneyRequestReport?.reportID, policy, undefined, undefined, lastDistanceExpenseType),
+        [moneyRequestReport?.reportID, policy, lastDistanceExpenseType, expensifyIcons, translate],
     );
 
     const exportSubmenuOptions: Record<string, DropdownOption<string>> = useMemo(() => {
@@ -1366,7 +1377,7 @@ function MoneyReportHeader({
                     return;
                 }
 
-                initSplitExpense(allTransactions, allReports, currentTransaction);
+                initSplitExpense(allTransactions, allReports, currentTransaction, policy);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.MERGE]: {
@@ -1486,8 +1497,8 @@ function MoneyReportHeader({
                 }
 
                 const result = await showConfirmModal({
-                    title: translate('iou.deleteReport'),
-                    prompt: translate('iou.deleteReportConfirmation'),
+                    title: translate('iou.deleteReport', {count: 1}),
+                    prompt: translate('iou.deleteReportConfirmation', {count: 1}),
                     confirmText: translate('common.delete'),
                     cancelText: translate('common.cancel'),
                     danger: true,
@@ -1501,7 +1512,7 @@ function MoneyReportHeader({
                     Navigation.goBack(backToRoute);
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {
-                        deleteAppReport(moneyRequestReport?.reportID, email ?? '', accountID, reportTransactions, allTransactionViolations, bankAccountList);
+                        deleteAppReport(moneyRequestReport, selfDMReport, email ?? '', accountID, reportTransactions, allTransactionViolations, bankAccountList, currentSearchHash);
                     });
                 });
             },
@@ -1533,10 +1544,10 @@ function MoneyReportHeader({
                     if (result.action !== ModalActions.CONFIRM) {
                         return;
                     }
-                    reopenReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
+                    reopenReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, chatReport);
                     return;
                 }
-                reopenReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
+                reopenReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, chatReport);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REJECT]: {
@@ -1734,6 +1745,7 @@ function MoneyReportHeader({
             confirmApproval,
             iouReport: moneyRequestReport,
             iouReportNextStep: nextStep,
+            betas,
         });
 
     const showNextStepBar = shouldShowNextStep && !!optimisticNextStep?.message?.length;
@@ -1949,6 +1961,7 @@ function MoneyReportHeader({
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('common.close')}
                         wrapperStyle={[styles.pAbsolute, styles.r0]}
+                        sentryLabel={CONST.SENTRY_LABEL.MORE_MENU.CLOSE_PDF_MODAL}
                     >
                         <Icon
                             src={expensifyIcons.Close}

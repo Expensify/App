@@ -142,6 +142,7 @@ function ReportActionItemParentAction({
         },
         [ancestors],
     );
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
 
     return (
         <View style={[styles.pRelative]}>
@@ -152,7 +153,7 @@ function ReportActionItemParentAction({
                     report?.errorFields?.createChatThread ?? (report?.errorFields?.createChat ? getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage') : null)
                 }
                 errorRowStyles={[styles.ml10, styles.mr2]}
-                onClose={() => navigateToConciergeChatAndDeleteReport(report?.reportID, undefined, true)}
+                onClose={() => navigateToConciergeChatAndDeleteReport(report?.reportID, conciergeReportID, undefined, true)}
             >
                 {ancestors.map((ancestor) => {
                     const {report: ancestorReport, reportAction: ancestorReportAction} = ancestor;
@@ -160,7 +161,7 @@ function ReportActionItemParentAction({
                     const shouldDisplayThreadDivider = !isTripPreview(ancestorReportAction);
                     const isAncestorReportArchived = isArchivedReport(ancestorsReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestorReport.reportID}`]);
 
-                    const originalReportID = getOriginalReportID(ancestorReport.reportID, ancestorReportAction);
+                    const originalReportID = getOriginalReportID(ancestorReport.reportID, ancestorReportAction, undefined);
                     const reportDraftMessages = originalReportID ? allDraftMessages?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`] : undefined;
                     const matchingDraftMessage = reportDraftMessages?.[ancestorReportAction.reportActionID];
                     const matchingDraftMessageString = matchingDraftMessage?.message;
@@ -173,7 +174,7 @@ function ReportActionItemParentAction({
                             pendingAction={ancestorReport?.pendingFields?.addWorkspaceRoom ?? ancestorReport?.pendingFields?.createChat}
                             errors={ancestorReport?.errorFields?.addWorkspaceRoom ?? ancestorReport?.errorFields?.createChat}
                             errorRowStyles={[styles.ml10, styles.mr2]}
-                            onClose={() => navigateToConciergeChatAndDeleteReport(ancestorReport.reportID)}
+                            onClose={() => navigateToConciergeChatAndDeleteReport(ancestorReport.reportID, conciergeReportID)}
                         >
                             {shouldDisplayThreadDivider && (
                                 <ThreadDivider

@@ -151,8 +151,9 @@ function ReportActionItemMessageEdit({
     // The ref to check whether the comment saving is in progress
     const isCommentPendingSaved = useRef(false);
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {canBeMissing: true});
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {canBeMissing: true});
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
-    const originalParentReportID = getOriginalReportID(originalReportID, action);
+    const originalParentReportID = getOriginalReportID(originalReportID, action, reportActions);
     const isOriginalParentReportArchived = useReportIsArchived(originalParentReportID);
     const ancestors = useAncestors(originalReport);
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close']);

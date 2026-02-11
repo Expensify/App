@@ -191,8 +191,8 @@ function MoneyRequestReportTransactionList({
     const shouldShowGroupedTransactions = isExpenseReport(report) && !isIOUReport(report);
 
     const addExpenseDropdownOptions = useMemo(
-        () => getAddExpenseDropdownOptions(expensifyIcons, report?.reportID, policy, undefined, undefined, lastDistanceExpenseType),
-        [report?.reportID, policy, lastDistanceExpenseType, expensifyIcons.Location],
+        () => getAddExpenseDropdownOptions(translate, expensifyIcons, report?.reportID, policy, undefined, undefined, lastDistanceExpenseType),
+        [translate, expensifyIcons, report?.reportID, policy, lastDistanceExpenseType],
     );
 
     const hasPendingAction = useMemo(() => {
@@ -302,8 +302,7 @@ function MoneyRequestReportTransactionList({
             return groupTransactionsByTag(sortedTransactions, report, localeCompare);
         }
         return groupTransactionsByCategory(sortedTransactions, report, localeCompare);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sortedTransactions, currentGroupBy, report?.reportID, localeCompare, shouldShowGroupedTransactions]);
+    }, [sortedTransactions, currentGroupBy, report?.reportID, report?.currency, localeCompare, shouldShowGroupedTransactions]);
 
     const visualOrderTransactionIDs = useMemo(() => {
         if (!shouldShowGroupedTransactions || groupedTransactions.length === 0) {

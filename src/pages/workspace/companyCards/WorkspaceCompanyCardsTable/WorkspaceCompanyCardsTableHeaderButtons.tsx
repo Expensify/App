@@ -24,7 +24,7 @@ import {setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userAc
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {CompanyCardFeed, CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 
 const FEED_SELECTOR_SKELETON_WIDTH = 289;
 
@@ -58,8 +58,8 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
     const [cardFeeds] = useCardFeeds(policyID);
     const policy = usePolicy(policyID);
 
-    const formattedFeedName = feedName ? getCustomOrFormattedFeedName(translate, feedName as CompanyCardFeed, cardFeeds?.[feedName]?.customFeedName) : undefined;
-    const isCommercialFeed = isCustomFeed(feedName as CompanyCardFeed);
+    const formattedFeedName = feedName ? getCustomOrFormattedFeedName(translate, feedName, cardFeeds?.[feedName]?.customFeedName) : undefined;
+    const isCommercialFeed = isCustomFeed(feedName);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const currentFeedData = feedName ? companyFeeds?.[feedName] : undefined;
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${currentFeedData?.domainID}`, {canBeMissing: true});
