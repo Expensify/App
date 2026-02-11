@@ -116,6 +116,7 @@ import {
     isWhisperActionTargetedToOthers,
     shouldReportActionBeVisible,
 } from './ReportActionsUtils';
+import {computeReportName} from './ReportNameUtils';
 import {isExportAction} from './ReportPrimaryActionUtils';
 import {
     canDeleteMoneyRequestReport,
@@ -128,7 +129,6 @@ import {
     getReportName,
     getReportOrDraftReport,
     getReportStatusTranslation,
-    getSearchReportName,
     hasAnyViolations,
     hasHeldExpenses,
     hasInvoiceReports,
@@ -409,6 +409,8 @@ type TransactionKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
 type ReportActionKey = `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`;
 
 type PolicyKey = `${typeof ONYXKEYS.COLLECTION.POLICY}${string}`;
+
+type ReportNameValuePairsKey = `${typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${string}`;
 
 type ViolationKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${string}`;
 
@@ -983,6 +985,16 @@ function isPolicyEntry(key: string): key is PolicyKey {
     return key.startsWith(ONYXKEYS.COLLECTION.POLICY);
 }
 
+/**
+ * @private
+ */
+function isReportNameValuePairsEntry(key: string): key is ReportNameValuePairsKey {
+    return key.startsWith(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+}
+
+/**
+ * @private
+ */
 function isViolationEntry(key: string): key is ViolationKey {
     return key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 }
@@ -1676,6 +1688,76 @@ function getReportNameValuePairsFromKey(data: OnyxTypes.SearchResults['data'], r
 }
 
 /**
+ * @private
+ * Extracts all reports from the search data.
+ */
+function getReportsFromData(data: OnyxTypes.SearchResults['data']): OnyxCollection<OnyxTypes.Report> {
+    const reports: Record<string, OnyxTypes.Report> = {};
+    for (const key of Object.keys(data)) {
+        if (isReportEntry(key)) {
+            reports[key] = data[key];
+        }
+    }
+    return reports;
+}
+
+/**
+ * @private
+ * Extracts all policies from the search data.
+ */
+function getPoliciesFromData(data: OnyxTypes.SearchResults['data']): OnyxCollection<OnyxTypes.Policy> {
+    const policies: Record<string, OnyxTypes.Policy> = {};
+    for (const key of Object.keys(data)) {
+        if (isPolicyEntry(key)) {
+            policies[key] = data[key];
+        }
+    }
+    return policies;
+}
+
+/**
+ * @private
+ * Extracts all transactions from the search data.
+ */
+function getTransactionsFromData(data: OnyxTypes.SearchResults['data']): OnyxCollection<OnyxTypes.Transaction> {
+    const transactions: Record<string, OnyxTypes.Transaction> = {};
+    for (const key of Object.keys(data)) {
+        if (isTransactionEntry(key)) {
+            transactions[key] = data[key];
+        }
+    }
+    return transactions;
+}
+
+/**
+ * @private
+ * Extracts all report name value pairs from the search data.
+ */
+function getReportNameValuePairsFromData(data: OnyxTypes.SearchResults['data']): OnyxCollection<OnyxTypes.ReportNameValuePairs> {
+    const reportNameValuePairs: Record<string, OnyxTypes.ReportNameValuePairs> = {};
+    for (const key of Object.keys(data)) {
+        if (isReportNameValuePairsEntry(key)) {
+            reportNameValuePairs[key] = data[key];
+        }
+    }
+    return reportNameValuePairs;
+}
+
+/**
+ * @private
+ * Extracts all report actions from the search data.
+ */
+function getReportActionsFromData(data: OnyxTypes.SearchResults['data']): OnyxCollection<OnyxTypes.ReportActions> {
+    const reportActions: Record<string, OnyxTypes.ReportActions> = {};
+    for (const key of Object.keys(data)) {
+        if (isReportActionEntry(key)) {
+            reportActions[key] = data[key];
+        }
+    }
+    return reportActions;
+}
+
+/**
  * Returns the action that can be taken on a given transaction or report
  *
  * Do not use directly, use only via `getSections()` facade.
@@ -1918,17 +2000,11 @@ function createAndOpenSearchTransactionThread(
 function getReportActionsSections(data: OnyxTypes.SearchResults['data']): [ReportActionListItemType[], number] {
     const reportActionItems: ReportActionListItemType[] = [];
 
-    const transactions = Object.keys(data)
-        .filter(isTransactionEntry)
-        .map((key) => data[key]);
-
-    const reports = Object.keys(data)
-        .filter(isReportEntry)
-        .map((key) => data[key]);
-
-    const policies = Object.keys(data)
-        .filter(isPolicyEntry)
-        .map((key) => data[key]);
+    const transactionsFromData = getTransactionsFromData(data);
+    const reportsFromData = getReportsFromData(data);
+    const policiesFromData = getPoliciesFromData(data);
+    const reportNameValuePairsFromData = getReportNameValuePairsFromData(data);
+    const reportActionsFromData = getReportActionsFromData(data);
 
     let n = 0;
 
@@ -1939,12 +2015,11 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): [Repor
             for (const reportAction of reportActions) {
                 const from = reportAction.accountID ? (data.personalDetailsList?.[reportAction.accountID] ?? emptyPersonalDetails) : emptyPersonalDetails;
                 const report = data[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.reportID}`] ?? {};
-                const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] ?? {};
                 const originalMessage = isMoneyRequestAction(reportAction) ? getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(reportAction) : undefined;
                 const isSendingMoney = isMoneyRequestAction(reportAction) && originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && originalMessage?.IOUDetails;
-                const isReportArchived = isArchivedReport(data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
-                const invoiceReceiverPolicy: OnyxTypes.Policy | undefined =
-                    report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? data[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver.policyID}`] : undefined;
+                const reportNameValuePairs = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
+                const isReportArchived = isArchivedReport(reportNameValuePairs);
+
                 if (
                     !shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction(report, isReportArchived)) ||
                     isDeletedAction(reportAction) ||
@@ -1960,8 +2035,17 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): [Repor
                 reportActionItems.push({
                     ...reportAction,
                     from,
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    reportName: getSearchReportName({report, policy, personalDetails: data.personalDetailsList, transactions, invoiceReceiverPolicy, reports, policies, isReportArchived}),
+                    reportName: computeReportName(
+                        report,
+                        reportsFromData,
+                        policiesFromData,
+                        transactionsFromData,
+                        reportNameValuePairsFromData,
+                        data.personalDetailsList,
+                        reportActionsFromData,
+                        undefined,
+                        reportNameValuePairs?.private_isArchived,
+                    ),
                     formattedFrom: from?.displayName ?? from?.login ?? '',
                     date: reportAction.created,
                     keyForList: reportAction.reportActionID,
