@@ -892,7 +892,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'あなたのスペース',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `${roomName} へようこそ！`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `+ ボタンを使って経費を${additionalText}します。`,
-        askConcierge: '何でも聞いてください！',
+        askConcierge: 'こちらはあなた専属のAIエージェント、Conciergeとのチャットです。ほぼ何でもできますので、お試しください！',
         conciergeSupport: 'あなた専用のAIエージェント',
         create: '作成',
         iouTypes: {
@@ -983,6 +983,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: 'Expensify Card を有効化する',
                 subtitle: 'カードを認証して支出を始めましょう。',
                 cta: '有効化',
+            },
+            reviewCardFraud: {
+                title: 'Expensify Card の不正利用の可能性を確認する',
+                titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `${merchant} での不正の可能性がある ${amount} を確認`,
+                subtitle: 'Expensify カード',
+                cta: '確認',
             },
             ctaFix: '修正',
             fixCompanyCardConnection: {
@@ -1553,6 +1559,7 @@ const translations: TranslationDeepObject<typeof en> = {
             });
             return `${formatList(fragments)}（<a href="${policyRulesRoute}">ワークスペースルール</a>経由）`;
         },
+        duplicateNonDefaultWorkspacePerDiemError: 'ワークスペースごとに日当レートが異なる場合があるため、日当経費をワークスペース間で複製することはできません。',
     },
     transactionMerge: {
         listPage: {
@@ -2020,7 +2027,7 @@ const translations: TranslationDeepObject<typeof en> = {
         whatIsTwoFactorAuth: '2要素認証（2FA）は、アカウントを安全に保つのに役立ちます。ログインする際、お好みの認証アプリで生成されたコードを入力する必要があります。',
         disableTwoFactorAuth: '2 要素認証を無効にする',
         explainProcessToRemove: '2要素認証（2FA）を無効にするには、認証アプリから有効なコードを入力してください。',
-        explainProcessToRemoveWithRecovery: '2 要素認証（2FA）を無効にするには、有効なリカバリーコードを入力してください。',
+        explainProcessToRemoveWithRecovery: '2要素認証（2FA）を無効にするには、有効な復旧コードを入力してください。',
         disabled: '二要素認証は現在無効になっています',
         noAuthenticatorApp: '今後、Expensify にログインする際に認証アプリは不要になります。',
         stepCodes: 'リカバリーコード',
@@ -5116,17 +5123,9 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     subtitle: '現在、Expensify Travel の有効化リクエストを確認中です。準備が整い次第、お知らせしますのでご安心ください。',
                     ctaText: 'リクエストを送信しました',
                 },
-                bookOrManageYourTrip: {
-                    title: '出張を予約または管理',
-                    subtitle: 'Expensify Travel を使って、最高の旅行プランを入手し、すべてのビジネス経費を一括管理しましょう。',
-                    ctaText: '予約または管理',
-                },
+                bookOrManageYourTrip: {title: '出張予約', subtitle: 'おめでとうございます！このワークスペースで旅行の予約と管理を行う準備が整いました。', ctaText: '出張を管理'},
+                settings: {autoAddTripName: {title: '経費に出張名を追加', subtitle: 'Expensifyで予約した出張について、経費の説明に出張名を自動的に追加します。'}},
                 travelInvoicing: {
-                    travelBookingSection: {
-                        title: '出張予約',
-                        subtitle: 'おめでとうございます！このワークスペースで旅行の予約と管理を行う準備ができました。',
-                        manageTravelLabel: '出張を管理',
-                    },
                     centralInvoicingSection: {
                         title: '集中請求',
                         subtitle: '購入時に支払うのではなく、すべての出張費を月次請求書に集約しましょう。',
@@ -6323,8 +6322,8 @@ ${reportName}
                 preventSelfApprovalsSubtitle: 'ワークスペースメンバーが自分自身の経費レポートを承認できないようにする。',
                 autoApproveCompliantReportsTitle: 'コンプライアンス準拠レポートを自動承認',
                 autoApproveCompliantReportsSubtitle: '自動承認の対象とする経費レポートを設定します。',
-                autoApproveReportsUnderTitle: '自動承認するレポートの上限額',
-                autoApproveReportsUnderDescription: 'この金額以下で完全準拠している経費精算書は、自動的に承認されます。',
+                autoApproveReportsUnderTitle: 'すべての経費がこの金額以下のレポートを自動承認',
+                autoApproveReportsUnderDescription: 'すべての経費がこの金額以下で完全準拠している経費精算書は、自動的に承認されます。',
                 randomReportAuditTitle: 'ランダムレポート監査',
                 randomReportAuditDescription: '一部のレポートについては、自動承認の対象であっても手動承認を必須にする',
                 autoPayApprovedReportsTitle: '自動支払い対象の承認済みレポート',
@@ -7188,6 +7187,7 @@ ${reportName}
             selectAllMatchingItems: '一致する項目をすべて選択',
             allMatchingItemsSelected: '一致する項目をすべて選択済み',
         },
+        spendOverTime: '時間経過による支出',
     },
     genericErrorPage: {
         title: 'おっと、問題が発生しました！',
@@ -8299,6 +8299,8 @@ ${reportName}
             disableSamlRequired: '必須なSAMLを無効にする',
             oktaWarningPrompt: 'よろしいですか？これにより Okta SCIM も無効になります。',
             requireWithEmptyMetadataError: '有効にするには、以下にアイデンティティプロバイダーのメタデータを追加してください',
+            pleaseDisableTwoFactorAuth: (twoFactorAuthSettingsUrl: string) =>
+                `<muted-text>SAML ログインを有効にするには、<a href="${twoFactorAuthSettingsUrl}">二要素認証の強制</a>を無効にしてください。</muted-text>`,
         },
         samlConfigurationDetails: {
             title: 'SAML 設定の詳細',
@@ -8347,7 +8349,6 @@ ${reportName}
             primaryContact: '主要連絡先',
             addPrimaryContact: '主な連絡先を追加',
             setPrimaryContactError: '主要連絡先を設定できませんでした。後でもう一度お試しください。',
-            settings: '設定',
             consolidatedDomainBilling: 'ドメイン一括請求',
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>有効にすると、主な連絡先は <strong>${domainName}</strong> メンバーが所有するすべてのワークスペースの支払いを行い、すべての請求書の受領書を受け取ります。</muted-text-label></comment>`,
@@ -8382,7 +8383,13 @@ ${reportName}
                 removeMember: 'このユーザーを削除できません。もう一度お試しください。',
                 addMember: 'このメンバーを追加できませんでした。もう一度お試しください。',
             },
+            forceTwoFactorAuth: '2要素認証を必須にする',
+            forceTwoFactorAuthSAMLEnabledDescription: (samlPageUrl: string) =>
+                `<muted-text>2 要素認証を必須にするには、<a href="${samlPageUrl}">SAML</a> を無効にしてください。</muted-text>`,
+            forceTwoFactorAuthDescription: `<muted-text>このドメインのすべてのメンバーに二要素認証を必須にします。ドメインメンバーは、サインイン時に自分のアカウントで二要素認証を設定するよう求められます。</muted-text>`,
+            forceTwoFactorAuthError: '2要素認証の強制設定を変更できませんでした。後でもう一度お試しください。',
         },
+        common: {settings: '設定'},
     },
 };
 export default translations;

@@ -896,7 +896,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'Twoja przestrzeń',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Witaj w ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `Użyj przycisku +, aby ${additionalText} wydatek.`,
-        askConcierge: 'Zapytaj mnie o cokolwiek!',
+        askConcierge: 'To Twój czat z Concierge, Twoim osobistym agentem AI. Mogę zrobić prawie wszystko, wypróbuj mnie!',
         conciergeSupport: 'Twój osobisty agent AI',
         create: 'utwórz',
         iouTypes: {
@@ -988,6 +988,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: 'Aktywuj swoją kartę Expensify',
                 subtitle: 'Zatwierdź swoją kartę i zacznij wydawać.',
                 cta: 'Aktywuj',
+            },
+            reviewCardFraud: {
+                title: 'Sprawdź potencjalne oszustwo na swojej karcie Expensify',
+                titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Przejrzyj ${amount} potencjalnie oszukańczych transakcji u ${merchant}`,
+                subtitle: 'Karta Expensify',
+                cta: 'Przejrzyj',
             },
             ctaFix: 'Napraw',
             fixCompanyCardConnection: {
@@ -1557,6 +1563,8 @@ const translations: TranslationDeepObject<typeof en> = {
             });
             return `${formatList(fragments)} przez <a href="${policyRulesRoute}">zasady przestrzeni roboczej</a>`;
         },
+        duplicateNonDefaultWorkspacePerDiemError:
+            'Nie możesz duplikować wydatków z tytułu diet między przestrzeniami roboczymi, ponieważ stawki mogą się różnić między poszczególnymi przestrzeniami.',
     },
     transactionMerge: {
         listPage: {
@@ -5135,16 +5143,14 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     ctaText: 'Żądanie wysłane',
                 },
                 bookOrManageYourTrip: {
-                    title: 'Zarezerwuj lub zarządzaj swoją podróżą',
-                    subtitle: 'Korzystaj z Expensify Travel, aby uzyskać najlepsze oferty podróży i zarządzać wszystkimi wydatkami służbowymi w jednym miejscu.',
-                    ctaText: 'Zarezerwuj lub zarządzaj',
+                    title: 'Rezerwacja podróży',
+                    subtitle: 'Gratulacje! Możesz już rezerwować i zarządzać podróżami w tym obszarze roboczym.',
+                    ctaText: 'Zarządzaj podróżami',
+                },
+                settings: {
+                    autoAddTripName: {title: 'Dodaj nazwy podróży do wydatków', subtitle: 'Automatycznie dodawaj nazwy podróży do opisów wydatków za podróże zarezerwowane w Expensify.'},
                 },
                 travelInvoicing: {
-                    travelBookingSection: {
-                        title: 'Rezerwacja podróży',
-                        subtitle: 'Gratulacje! Wszystko gotowe, aby rezerwować i zarządzać podróżami w tym obszarze roboczym.',
-                        manageTravelLabel: 'Zarządzaj podróżami',
-                    },
                     centralInvoicingSection: {
                         title: 'Centralne fakturowanie',
                         subtitle: 'Skonsoliduj wszystkie wydatki na podróże w jednym miesięcznym rachunku zamiast płacić w momencie zakupu.',
@@ -6347,8 +6353,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 preventSelfApprovalsSubtitle: 'Uniemożliwij członkom przestrzeni roboczej zatwierdzanie własnych raportów wydatków.',
                 autoApproveCompliantReportsTitle: 'Automatycznie zatwierdzaj zgodne raporty',
                 autoApproveCompliantReportsSubtitle: 'Skonfiguruj, które raporty wydatków kwalifikują się do automatycznego zatwierdzania.',
-                autoApproveReportsUnderTitle: 'Automatycznie zatwierdzaj raporty poniżej',
-                autoApproveReportsUnderDescription: 'W pełni zgodne raporty wydatków poniżej tej kwoty zostaną zatwierdzone automatycznie.',
+                autoApproveReportsUnderTitle: 'Automatycznie zatwierdzaj raporty, gdy wszystkie wydatki są poniżej',
+                autoApproveReportsUnderDescription: 'W pełni zgodne raporty wydatków, w których wszystkie wydatki są poniżej tej kwoty, zostaną zatwierdzone automatycznie.',
                 randomReportAuditTitle: 'Losowa kontrola raportów',
                 randomReportAuditDescription: 'Wymagaj ręcznego zatwierdzania niektórych raportów, nawet jeśli kwalifikują się do automatycznego zatwierdzenia.',
                 autoPayApprovedReportsTitle: 'Automatycznie opłacaj zatwierdzone raporty',
@@ -7218,6 +7224,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             selectAllMatchingItems: 'Zaznacz wszystkie pasujące elementy',
             allMatchingItemsSelected: 'Zaznaczono wszystkie pasujące elementy',
         },
+        spendOverTime: 'Wydatki w czasie',
     },
     genericErrorPage: {
         title: 'Ups, coś poszło nie tak!',
@@ -8335,6 +8342,8 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             disableSamlRequired: 'Wyłącz wymaganie SAML',
             oktaWarningPrompt: 'Na pewno? Spowoduje to również wyłączenie Okta SCIM.',
             requireWithEmptyMetadataError: 'Dodaj poniżej metadane dostawcy tożsamości, aby włączyć',
+            pleaseDisableTwoFactorAuth: (twoFactorAuthSettingsUrl: string) =>
+                `<muted-text>Aby włączyć logowanie SAML, wyłącz najpierw <a href="${twoFactorAuthSettingsUrl}">wymuszanie uwierzytelniania dwuskładnikowego</a>.</muted-text>`,
         },
         samlConfigurationDetails: {
             title: 'Szczegóły konfiguracji SAML',
@@ -8383,7 +8392,6 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             primaryContact: 'Główny kontakt',
             addPrimaryContact: 'Dodaj główny kontakt',
             setPrimaryContactError: 'Nie można ustawić głównego kontaktu. Spróbuj ponownie później.',
-            settings: 'Ustawienia',
             consolidatedDomainBilling: 'Zbiorcze rozliczanie domeny',
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>Po włączeniu główny kontakt będzie opłacać wszystkie przestrzenie robocze należące do członków <strong>${domainName}</strong> i otrzymywać wszystkie potwierdzenia rozliczeń.</muted-text-label></comment>`,
@@ -8418,7 +8426,13 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
                 removeMember: 'Nie można usunąć tego użytkownika. Spróbuj ponownie.',
                 addMember: 'Nie można dodać tego członka. Spróbuj ponownie.',
             },
+            forceTwoFactorAuth: 'Wymuś uwierzytelnianie dwuskładnikowe',
+            forceTwoFactorAuthSAMLEnabledDescription: (samlPageUrl: string) =>
+                `<muted-text>Wyłącz proszę <a href="${samlPageUrl}">SAML</a>, aby wymusić uwierzytelnianie dwuskładnikowe.</muted-text>`,
+            forceTwoFactorAuthDescription: `<muted-text>Wymagaj uwierzytelniania dwuskładnikowego od wszystkich członków tej domeny. Członkowie domeny zostaną poproszeni o skonfigurowanie uwierzytelniania dwuskładnikowego na swoim koncie po zalogowaniu.</muted-text>`,
+            forceTwoFactorAuthError: 'Nie udało się zmienić wymuszania uwierzytelniania dwuskładnikowego. Spróbuj ponownie później.',
         },
+        common: {settings: 'Ustawienia'},
     },
 };
 export default translations;

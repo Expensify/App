@@ -139,6 +139,7 @@ function IOURequestStepOdometerImage({
                                 onPicked: (data) => validateFiles(data),
                             });
                         }}
+                        sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.ODOMETER_CHOOSE_FILE_BUTTON}
                     />
                 )}
             </AttachmentPicker>

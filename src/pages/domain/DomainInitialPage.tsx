@@ -10,6 +10,7 @@ import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -18,7 +19,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import {confirmReadyToOpenApp} from '@libs/actions/App';
 import {openDomainInitialPage} from '@libs/actions/Domain';
 import {hasDomainAdminsErrors, hasDomainMembersErrors} from '@libs/DomainUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -98,9 +98,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
 
     useNetwork({onReconnect: fetchDomainData});
 
-    useEffect(() => {
-        confirmReadyToOpenApp();
-    }, []);
+    useConfirmReadyToOpenApp();
 
     return (
         <ScreenWrapper

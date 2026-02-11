@@ -194,7 +194,7 @@ function WorkspacePageWithSections({
             return true;
         }
 
-        Navigation.popToSidebar();
+        Navigation.goBack();
         return true;
     };
 
@@ -210,7 +210,7 @@ function WorkspacePageWithSections({
             shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen && !shouldShow}
         >
             <FullPageNotFoundView
-                onBackButtonPress={goBackFromWorkspaceSettingPages}
+                onBackButtonPress={handleOnBackButtonPress}
                 onLinkPress={() => Navigation.goBackToHome()}
                 shouldShow={shouldShow}
                 subtitleKey={shouldShowPolicy ? 'workspace.common.notAuthorized' : undefined}

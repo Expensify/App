@@ -885,7 +885,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: '你的空间',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `欢迎来到 ${roomName}！`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `使用 + 按钮来${additionalText}一笔费用。`,
-        askConcierge: '尽管问我任何问题！',
+        askConcierge: '这是您与 Concierge（您的个人 AI 代理）的聊天。我几乎什么都能做，来试试吧！',
         conciergeSupport: '您的专属AI助手',
         create: '创建',
         iouTypes: {
@@ -973,6 +973,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: '激活你的 Expensify 卡',
                 subtitle: '验证您的银行卡并开始消费。',
                 cta: '启用',
+            },
+            reviewCardFraud: {
+                title: '审核您 Expensify Card 上的潜在欺诈交易',
+                titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `查看 ${merchant} 可能存在的 ${amount} 欺诈交易`,
+                subtitle: 'Expensify 卡',
+                cta: '审核',
             },
             ctaFix: '修复',
             fixCompanyCardConnection: {title: ({feedName}: {feedName: string}) => (feedName ? `修复 ${feedName} 公司卡连接` : '修复公司卡连接'), subtitle: '工作区 > 公司卡片'},
@@ -1529,6 +1535,7 @@ const translations: TranslationDeepObject<typeof en> = {
             });
             return `${formatList(fragments)} 通过 <a href="${policyRulesRoute}">工作区规则</a>`;
         },
+        duplicateNonDefaultWorkspacePerDiemError: '您无法在不同工作区之间复制每日津贴报销，因为各工作区的补贴标准可能不同。',
     },
     transactionMerge: {
         listPage: {
@@ -1992,8 +1999,8 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthEnabled: '已启用双重身份验证',
         whatIsTwoFactorAuth: '双重身份验证（2FA）有助于保护您的账户安全。登录时，您需要输入由首选身份验证应用生成的验证码。',
         disableTwoFactorAuth: '禁用双重身份验证',
-        explainProcessToRemove: '若要禁用双重身份验证 (2FA)，请在验证器应用中输入有效验证码。',
-        explainProcessToRemoveWithRecovery: '若要停用双重身份验证（2FA），请输入有效的恢复代码。',
+        explainProcessToRemove: '要禁用双重身份验证（2FA），请输入来自您身份验证应用的有效验证码。',
+        explainProcessToRemoveWithRecovery: '要禁用双重身份验证（2FA），请输入有效的恢复代码。',
         disabled: '已关闭双重身份验证',
         noAuthenticatorApp: '你今后登录 Expensify 时将不再需要验证器应用程序。',
         stepCodes: '恢复代码',
@@ -5047,17 +5054,9 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     subtitle: '我们正在审核你启用 Expensify Travel 的请求。别担心，准备好后我们会通知你。',
                     ctaText: '请求已发送',
                 },
-                bookOrManageYourTrip: {
-                    title: '预订或管理您的行程',
-                    subtitle: '使用 Expensify Travel 获取最优出行优惠，并在一个地方管理您所有的商务费用。',
-                    ctaText: '预订或管理',
-                },
+                bookOrManageYourTrip: {title: '差旅预订', subtitle: '恭喜！您现在可以在此工作区预订和管理差旅了。', ctaText: '管理差旅'},
+                settings: {autoAddTripName: {title: '将行程名称添加到报销单', subtitle: '为在 Expensify 中预订的行程，自动将行程名称添加到报销事由描述中。'}},
                 travelInvoicing: {
-                    travelBookingSection: {
-                        title: '差旅预订',
-                        subtitle: '恭喜！您已经可以在此工作区预订和管理差旅了。',
-                        manageTravelLabel: '管理差旅',
-                    },
                     centralInvoicingSection: {
                         title: '集中开票',
                         subtitle: '将所有差旅支出集中到每月发票中，而不是在购买时即时支付。',
@@ -6233,8 +6232,8 @@ ${reportName}
                 preventSelfApprovalsSubtitle: '防止工作区成员审批自己的报销报告。',
                 autoApproveCompliantReportsTitle: '自动批准合规报表',
                 autoApproveCompliantReportsSubtitle: '配置符合条件可自动审批的报销单。',
-                autoApproveReportsUnderTitle: '自动批准低于此金额的报表',
-                autoApproveReportsUnderDescription: '低于此金额且完全合规的报销报告将自动获批。',
+                autoApproveReportsUnderTitle: '自动批准所有费用低于此金额的报表',
+                autoApproveReportsUnderDescription: '所有费用均低于此金额且完全合规的报销报告将自动获批。',
                 randomReportAuditTitle: '随机报销报告审核',
                 randomReportAuditDescription: '即使符合自动审批条件，也要求部分报销单必须人工审批。',
                 autoPayApprovedReportsTitle: '自动支付已批准报销单',
@@ -7083,6 +7082,7 @@ ${reportName}
             selectAllMatchingItems: '选择所有匹配的项目',
             allMatchingItemsSelected: '已选中所有匹配项',
         },
+        spendOverTime: '随时间支出',
     },
     genericErrorPage: {
         title: '哎呀，出错了！',
@@ -8173,6 +8173,8 @@ ${reportName}
             disableSamlRequired: '禁用 SAML 要求',
             oktaWarningPrompt: '确定要这样做吗？这也会禁用 Okta SCIM。',
             requireWithEmptyMetadataError: '请在下方添加身份提供商元数据以启用',
+            pleaseDisableTwoFactorAuth: (twoFactorAuthSettingsUrl: string) =>
+                `<muted-text>请先停用<a href="${twoFactorAuthSettingsUrl}">强制启用双重验证</a>，然后再启用 SAML 登录。</muted-text>`,
         },
         samlConfigurationDetails: {
             title: 'SAML 配置详情',
@@ -8221,7 +8223,6 @@ ${reportName}
             primaryContact: '主要联系人',
             addPrimaryContact: '添加主要联系人',
             setPrimaryContactError: '无法设置主要联系人。请稍后重试。',
-            settings: '设置',
             consolidatedDomainBilling: '合并域名账单',
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>启用后，主要联系人将为所有由 <strong>${domainName}</strong> 成员拥有的工作区付款，并接收所有账单收据。</muted-text-label></comment>`,
@@ -8256,7 +8257,12 @@ ${reportName}
                 removeMember: '无法移除此用户。请重试。',
                 addMember: '无法添加此成员。请重试。',
             },
+            forceTwoFactorAuth: '强制启用双重身份验证',
+            forceTwoFactorAuthSAMLEnabledDescription: (samlPageUrl: string) => `<muted-text>请禁用<a href="${samlPageUrl}">SAML</a>以强制启用双重身份验证。</muted-text>`,
+            forceTwoFactorAuthDescription: `<muted-text>要求此域的所有成员使用双重身份验证。域成员在登录时将被提示为其账户设置双重身份验证。</muted-text>`,
+            forceTwoFactorAuthError: '无法更改强制启用双重身份验证设置。请稍后再试。',
         },
+        common: {settings: '设置'},
     },
 };
 export default translations;

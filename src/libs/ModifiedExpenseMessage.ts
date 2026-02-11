@@ -28,6 +28,7 @@ import {getPolicyName, getReportName, getRootParentReport, isPolicyExpenseChat, 
 import {getFormattedAttendees, getTagArrayFromName} from './TransactionUtils';
 
 let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
+// eslint-disable-next-line @typescript-eslint/no-deprecated -- Onyx.connectWithoutView is being removed in https://github.com/Expensify/App/issues/66336
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.POLICY_TAGS,
     waitForCollectionCallback: true,
@@ -43,7 +44,8 @@ Onyx.connectWithoutView({
 let environmentURL: string;
 getEnvironmentURL().then((url: string) => (environmentURL = url));
 
-let currentUserLogin = '';
+let storedCurrentUserLogin = '';
+// eslint-disable-next-line @typescript-eslint/no-deprecated -- Onyx.connectWithoutView is being removed in https://github.com/Expensify/App/issues/66336
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
@@ -51,7 +53,7 @@ Onyx.connectWithoutView({
         if (!value) {
             return;
         }
-        currentUserLogin = value?.email ?? '';
+        storedCurrentUserLogin = value?.email ?? '';
     },
 });
 
@@ -164,7 +166,7 @@ function getForExpenseMovedFromSelfDM(translate: LocalizedTranslate, destination
     // In NewDot, the "Move report" flow only supports moving expenses from self-DM to:
     // - A policy expense chat
     // - A 1:1 DM
-    const currentUserAccountID = getPersonalDetailByEmail(currentUserLogin)?.accountID;
+    const currentUserAccountID = getPersonalDetailByEmail(storedCurrentUserLogin)?.accountID;
     const reportName = isPolicyExpenseChat(rootParentReport)
         ? getPolicyExpenseChatName({report: rootParentReport})
         : buildReportNameFromParticipantNames({report: rootParentReport, currentUserAccountID});
@@ -327,7 +329,7 @@ function getForReportAction({
         } else if (reportActionOriginalMessage?.source === CONST.CATEGORY_SOURCE.MCC) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             const policy = getPolicy(policyID);
-            const isAdmin = isPolicyAdmin(policy, currentUserLogin);
+            const isAdmin = isPolicyAdmin(policy, storedCurrentUserLogin);
 
             // For admins, create a hyperlink to the workspace rules page
             if (isAdmin && policy?.id) {
@@ -511,6 +513,7 @@ function getForReportActionTemp({
     movedFromReport,
     movedToReport,
     policyTags,
+    currentUserLogin,
 }: {
     translate: LocalizedTranslate;
     reportAction: OnyxEntry<ReportAction>;
@@ -518,6 +521,7 @@ function getForReportActionTemp({
     movedFromReport?: OnyxEntry<Report>;
     movedToReport?: OnyxEntry<Report>;
     policyTags: OnyxEntry<PolicyTagLists>;
+    currentUserLogin: string;
 }): string {
     if (!isModifiedExpenseAction(reportAction)) {
         return '';
@@ -690,30 +694,17 @@ function getForReportActionTemp({
 
     const hasModifiedBillable = isReportActionOriginalMessageAnObject && 'oldBillable' in reportActionOriginalMessage && 'billable' in reportActionOriginalMessage;
     if (hasModifiedBillable) {
-        buildMessageFragmentForValue(
-            translate,
-            reportActionOriginalMessage?.billable ?? '',
-            reportActionOriginalMessage?.oldBillable ?? '',
-            translate('iou.expense'),
-            true,
-            setFragments,
-            removalFragments,
-            changeFragments,
-        );
+        const oldBillable = reportActionOriginalMessage?.oldBillable === 'billable' ? translate('common.billable').toLowerCase() : translate('common.nonBillable').toLowerCase();
+        const newBillable = reportActionOriginalMessage?.billable === 'billable' ? translate('common.billable').toLowerCase() : translate('common.nonBillable').toLowerCase();
+        buildMessageFragmentForValue(translate, newBillable, oldBillable, translate('iou.expense'), true, setFragments, removalFragments, changeFragments);
     }
 
     const hasModifiedReimbursable = isReportActionOriginalMessageAnObject && 'oldReimbursable' in reportActionOriginalMessage && 'reimbursable' in reportActionOriginalMessage;
     if (hasModifiedReimbursable) {
-        buildMessageFragmentForValue(
-            translate,
-            reportActionOriginalMessage?.reimbursable ?? '',
-            reportActionOriginalMessage?.oldReimbursable ?? '',
-            translate('iou.expense'),
-            true,
-            setFragments,
-            removalFragments,
-            changeFragments,
-        );
+        const oldReimbursable =
+            reportActionOriginalMessage?.oldReimbursable === 'reimbursable' ? translate('iou.reimbursable').toLowerCase() : translate('iou.nonReimbursable').toLowerCase();
+        const newReimbursable = reportActionOriginalMessage?.reimbursable === 'reimbursable' ? translate('iou.reimbursable').toLowerCase() : translate('iou.nonReimbursable').toLowerCase();
+        buildMessageFragmentForValue(translate, newReimbursable, oldReimbursable, translate('iou.expense'), true, setFragments, removalFragments, changeFragments);
     }
 
     const hasModifiedAttendees = isReportActionOriginalMessageAnObject && 'oldAttendees' in reportActionOriginalMessage && 'newAttendees' in reportActionOriginalMessage;
@@ -738,6 +729,13 @@ function getForReportActionTemp({
         getMessageLine(translate, `\n${translate('iou.removed')}`, removalFragments);
 
     if (message === '') {
+        // If we don't have enough structured information to build a detailed message but we
+        // know the change was AI-generated, fall back to an AI-attributed generic summary so
+        // users can still understand that Concierge updated the expense automatically.
+        if (reportActionOriginalMessage?.aiGenerated) {
+            return `${translate('iou.changedTheExpense')} ${translate('iou.basedOnAI')}`;
+        }
+
         return translate('iou.changedTheExpense');
     }
     return `${message.substring(1, message.length)}`;

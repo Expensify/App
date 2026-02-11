@@ -900,7 +900,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'Votre espace',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Bienvenue dans ${roomName} !`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `Utilisez le bouton + pour ${additionalText} une dépense.`,
-        askConcierge: 'Posez-moi vos questions !',
+        askConcierge: 'Ceci est votre chat avec Concierge, votre agent IA personnel. Je peux faire presque tout, essayez-moi !',
         conciergeSupport: 'Votre agent IA personnel',
         create: 'créer',
         iouTypes: {
@@ -992,6 +992,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: 'Activez votre carte Expensify',
                 subtitle: 'Validez votre carte et commencez à dépenser.',
                 cta: 'Activer',
+            },
+            reviewCardFraud: {
+                title: 'Examiner un risque potentiel de fraude sur votre carte Expensify',
+                titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Examiner ${amount} de fraude potentielle chez ${merchant}`,
+                subtitle: 'Carte Expensify',
+                cta: 'Examiner',
             },
             ctaFix: 'Corriger',
             fixCompanyCardConnection: {
@@ -1568,6 +1574,8 @@ const translations: TranslationDeepObject<typeof en> = {
             });
             return `${formatList(fragments)} via les <a href="${policyRulesRoute}">règles de l’espace de travail</a>`;
         },
+        duplicateNonDefaultWorkspacePerDiemError:
+            'Vous ne pouvez pas dupliquer les indemnités journalières entre plusieurs espaces de travail, car les taux peuvent différer d’un espace de travail à l’autre.',
     },
     transactionMerge: {
         listPage: {
@@ -5180,16 +5188,17 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     ctaText: 'Demande envoyée',
                 },
                 bookOrManageYourTrip: {
-                    title: 'Réserver ou gérer votre voyage',
-                    subtitle: 'Utilisez Expensify Travel pour obtenir les meilleures offres de voyage et gérer toutes vos dépenses professionnelles en un seul endroit.',
-                    ctaText: 'Réserver ou gérer',
+                    title: 'Réservation de voyage',
+                    subtitle: 'Félicitations ! Vous êtes prêt à réserver et gérer des voyages dans cet espace de travail.',
+                    ctaText: 'Gérer les déplacements',
+                },
+                settings: {
+                    autoAddTripName: {
+                        title: 'Ajouter des noms de voyage aux dépenses',
+                        subtitle: 'Ajouter automatiquement les noms de voyage aux descriptions des dépenses pour les voyages réservés dans Expensify.',
+                    },
                 },
                 travelInvoicing: {
-                    travelBookingSection: {
-                        title: 'Réservation de voyage',
-                        subtitle: 'Félicitations ! Vous êtes prêt à réserver et gérer des voyages sur cet espace de travail.',
-                        manageTravelLabel: 'Gérer les déplacements',
-                    },
                     centralInvoicingSection: {
                         title: 'Facturation centralisée',
                         subtitle: 'Centralisez toutes les dépenses de voyage dans une facture mensuelle au lieu de payer au moment de l’achat.',
@@ -6402,8 +6411,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 preventSelfApprovalsSubtitle: 'Empêcher les membres de l’espace de travail d’approuver leurs propres notes de frais.',
                 autoApproveCompliantReportsTitle: 'Approuver automatiquement les notes de frais conformes',
                 autoApproveCompliantReportsSubtitle: 'Configurer quelles notes de frais sont éligibles à l’auto-approbation.',
-                autoApproveReportsUnderTitle: 'Approuver automatiquement les notes de frais inférieures à',
-                autoApproveReportsUnderDescription: 'Les notes de frais entièrement conformes en dessous de ce montant seront automatiquement approuvées.',
+                autoApproveReportsUnderTitle: 'Approuver automatiquement les notes de frais dont toutes les dépenses sont inférieures à',
+                autoApproveReportsUnderDescription: 'Les notes de frais entièrement conformes dont toutes les dépenses sont en dessous de ce montant seront automatiquement approuvées.',
                 randomReportAuditTitle: 'Audit aléatoire de notes de frais',
                 randomReportAuditDescription: 'Exiger que certaines notes de frais soient approuvées manuellement, même si elles sont éligibles à l’auto-approbation.',
                 autoPayApprovedReportsTitle: 'Payer automatiquement les notes de frais approuvées',
@@ -7281,6 +7290,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             selectAllMatchingItems: 'Sélectionnez tous les éléments correspondants',
             allMatchingItemsSelected: 'Tous les éléments correspondants sont sélectionnés',
         },
+        spendOverTime: 'Dépenses dans le temps',
     },
     genericErrorPage: {
         title: 'Oups, quelque chose s’est mal passé !',
@@ -8402,6 +8412,8 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             disableSamlRequired: 'Désactiver SAML obligatoire',
             oktaWarningPrompt: 'Voulez-vous continuer ? Cela désactivera également Okta SCIM.',
             requireWithEmptyMetadataError: "Veuillez ajouter ci-dessous les métadonnées du fournisseur d'identité pour activer",
+            pleaseDisableTwoFactorAuth: (twoFactorAuthSettingsUrl: string) =>
+                `<muted-text>Désactivez <a href="${twoFactorAuthSettingsUrl}">forcer l’authentification à deux facteurs</a> pour activer la connexion SAML.</muted-text>`,
         },
         samlConfigurationDetails: {
             title: 'Détails de configuration SAML',
@@ -8451,7 +8463,6 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             primaryContact: 'Contact principal',
             addPrimaryContact: 'Ajouter un contact principal',
             setPrimaryContactError: 'Impossible de définir le contact principal. Veuillez réessayer plus tard.',
-            settings: 'Paramètres',
             consolidatedDomainBilling: 'Facturation de domaine consolidée',
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>Lorsque cette option est activée, le contact principal paiera pour tous les espaces de travail appartenant aux membres de <strong>${domainName}</strong> et recevra tous les reçus de facturation.</muted-text-label></comment>`,
@@ -8486,7 +8497,13 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
                 removeMember: 'Impossible de supprimer cet utilisateur. Veuillez réessayer.',
                 addMember: 'Impossible d’ajouter ce membre. Veuillez réessayer.',
             },
+            forceTwoFactorAuth: 'Imposer l’authentification à deux facteurs',
+            forceTwoFactorAuthSAMLEnabledDescription: (samlPageUrl: string) =>
+                `<muted-text>Veuillez désactiver <a href="${samlPageUrl}">SAML</a> pour imposer l’authentification à deux facteurs.</muted-text>`,
+            forceTwoFactorAuthDescription: `<muted-text>Exiger l’authentification à deux facteurs pour tous les membres de ce domaine. Les membres du domaine seront invités à configurer l’authentification à deux facteurs sur leur compte lorsqu’ils se connectent.</muted-text>`,
+            forceTwoFactorAuthError: 'L’activation forcée de l’authentification à deux facteurs n’a pas pu être modifiée. Veuillez réessayer plus tard.',
         },
+        common: {settings: 'Paramètres'},
     },
 };
 export default translations;

@@ -895,7 +895,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'Jouw ruimte',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welkom bij ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `Gebruik de +-knop om een uitgave te ${additionalText}.`,
-        askConcierge: 'Vraag me alles!',
+        askConcierge: 'Dit is je chat met Concierge, je persoonlijke AI-agent. Ik kan bijna alles, probeer het maar!',
         conciergeSupport: 'Jouw persoonlijke AI-agent',
         create: 'maken',
         iouTypes: {
@@ -987,6 +987,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: 'Activeer je Expensify Card',
                 subtitle: 'Valideer je kaart en begin met uitgeven.',
                 cta: 'Activeren',
+            },
+            reviewCardFraud: {
+                title: 'Controleer mogelijke fraude op je Expensify Card',
+                titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Controleer ${amount} aan mogelijke fraude bij ${merchant}`,
+                subtitle: 'Expensify Card',
+                cta: 'Beoordelen',
             },
             ctaFix: 'Repareren',
             fixCompanyCardConnection: {
@@ -1558,6 +1564,7 @@ const translations: TranslationDeepObject<typeof en> = {
             });
             return `${formatList(fragments)} via <a href="${policyRulesRoute}">werkruimte­regels</a>`;
         },
+        duplicateNonDefaultWorkspacePerDiemError: 'Je kunt dagvergoedingen niet dupliceren tussen werkruimtes, omdat de tarieven per werkruimte kunnen verschillen.',
     },
     transactionMerge: {
         listPage: {
@@ -2026,8 +2033,8 @@ const translations: TranslationDeepObject<typeof en> = {
         whatIsTwoFactorAuth:
             'Tweestapsverificatie (2FA) helpt je account veilig te houden. Bij het inloggen moet je een code invoeren die is gegenereerd door je voorkeursauthenticator-app.',
         disableTwoFactorAuth: 'Tweefactorauthenticatie uitschakelen',
-        explainProcessToRemove: 'Voer een geldige code uit je authenticatie-app in om tweeledige verificatie (2FA) uit te schakelen.',
-        explainProcessToRemoveWithRecovery: 'Voer een geldige herstelcode in om twee-factor-authenticatie (2FA) uit te schakelen.',
+        explainProcessToRemove: 'Voer een geldige code uit je authenticatie-app in om twee-factor-authenticatie (2FA) uit te schakelen.',
+        explainProcessToRemoveWithRecovery: 'Voer een geldige herstelcode in om tweeledige verificatie (2FA) uit te schakelen.',
         disabled: 'Tweeledige verificatie is nu uitgeschakeld',
         noAuthenticatorApp: 'Je hebt geen authenticator-app meer nodig om in te loggen bij Expensify.',
         stepCodes: 'Herstelcodes',
@@ -5147,16 +5154,14 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                     ctaText: 'Verzoek verzonden',
                 },
                 bookOrManageYourTrip: {
-                    title: 'Boek of beheer je reis',
-                    subtitle: 'Gebruik Expensify Travel om de beste reisaanbiedingen te krijgen en al je zakelijke uitgaven op één plek te beheren.',
-                    ctaText: 'Boeken of beheren',
+                    title: 'Boeking van reizen',
+                    subtitle: 'Gefeliciteerd! Je bent helemaal klaar om reizen in deze workspace te boeken en te beheren.',
+                    ctaText: 'Reizen beheren',
+                },
+                settings: {
+                    autoAddTripName: {title: 'Reisnamen aan uitgaven toevoegen', subtitle: 'Voeg automatisch reisnamen toe aan onkostomemo’s voor reizen die in Expensify zijn geboekt.'},
                 },
                 travelInvoicing: {
-                    travelBookingSection: {
-                        title: 'Reisboeking',
-                        subtitle: 'Gefeliciteerd! Je bent helemaal klaar om reizen in deze workspace te boeken en te beheren.',
-                        manageTravelLabel: 'Reizen beheren',
-                    },
                     centralInvoicingSection: {
                         title: 'Gecentraliseerde facturatie',
                         subtitle: 'Centraliseer alle reiskosten op één maandelijkse factuur in plaats van bij aankoop te betalen.',
@@ -6358,8 +6363,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 preventSelfApprovalsSubtitle: 'Voorkom dat werkruimteleden hun eigen onkostendeclaraties goedkeuren.',
                 autoApproveCompliantReportsTitle: 'Rapporten die voldoen automatisch goedkeuren',
                 autoApproveCompliantReportsSubtitle: 'Configureren welke onkostendeclaraties in aanmerking komen voor automatische goedkeuring.',
-                autoApproveReportsUnderTitle: 'Rapporten automatisch goedkeuren onder',
-                autoApproveReportsUnderDescription: 'Volledig conforme onkostendeclaraties onder dit bedrag worden automatisch goedgekeurd.',
+                autoApproveReportsUnderTitle: 'Rapporten automatisch goedkeuren als alle onkosten onder',
+                autoApproveReportsUnderDescription: 'Volledig conforme onkostendeclaraties waarvan alle onkosten onder dit bedrag liggen, worden automatisch goedgekeurd.',
                 randomReportAuditTitle: 'Willekeurige rapportcontrole',
                 randomReportAuditDescription: 'Vereisen dat sommige rapporten handmatig worden goedgekeurd, zelfs als ze in aanmerking komen voor automatische goedkeuring.',
                 autoPayApprovedReportsTitle: 'Automatisch betalen van goedgekeurde rapporten',
@@ -7236,6 +7241,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             selectAllMatchingItems: 'Selecteer alle overeenkomende items',
             allMatchingItemsSelected: 'Alle overeenkomende items geselecteerd',
         },
+        spendOverTime: 'Uitgaven in de tijd',
     },
     genericErrorPage: {
         title: 'Oeps, er is iets misgegaan!',
@@ -8356,6 +8362,8 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             disableSamlRequired: 'Uitschakelen SAML vereist',
             oktaWarningPrompt: 'Weet je het zeker? Dit schakelt ook Okta SCIM uit.',
             requireWithEmptyMetadataError: 'Voeg hieronder de Identity Provider-metadata toe om in te schakelen',
+            pleaseDisableTwoFactorAuth: (twoFactorAuthSettingsUrl: string) =>
+                `<muted-text>Schakel <a href="${twoFactorAuthSettingsUrl}">het verplicht instellen van twee-factor-authenticatie</a> uit om SAML-aanmelding in te schakelen.</muted-text>`,
         },
         samlConfigurationDetails: {
             title: 'SAML-configuratiedetails',
@@ -8404,7 +8412,6 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             primaryContact: 'Primair contactpersoon',
             addPrimaryContact: 'Primair contactpersoon toevoegen',
             setPrimaryContactError: 'Kan hoofdcontact niet instellen. Probeer het later opnieuw.',
-            settings: 'Instellingen',
             consolidatedDomainBilling: 'Geconsolideerde domeinfacturering',
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>Indien ingeschakeld betaalt de primaire contactpersoon voor alle werkruimtes die eigendom zijn van leden van <strong>${domainName}</strong> en ontvangt diegene alle factuurbewijzen.</muted-text-label></comment>`,
@@ -8439,7 +8446,13 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
                 removeMember: 'Kan deze gebruiker niet verwijderen. Probeer het opnieuw.',
                 addMember: 'Kan dit lid niet toevoegen. Probeer het opnieuw.',
             },
+            forceTwoFactorAuth: 'Tweeledige verificatie afdwingen',
+            forceTwoFactorAuthSAMLEnabledDescription: (samlPageUrl: string) =>
+                `<muted-text>Schakel <a href="${samlPageUrl}">SAML</a> uit om het gebruik van twee-factor-authenticatie af te dwingen.</muted-text>`,
+            forceTwoFactorAuthDescription: `<muted-text>Tweeledige verificatie vereisen voor alle leden van dit domein. Domeinleden worden gevraagd om tweefactorauthenticatie voor hun account in te stellen wanneer ze zich aanmelden.</muted-text>`,
+            forceTwoFactorAuthError: 'Verplichte twee-factor-authenticatie kon niet worden gewijzigd. Probeer het later opnieuw.',
         },
+        common: {settings: 'Instellingen'},
     },
 };
 export default translations;

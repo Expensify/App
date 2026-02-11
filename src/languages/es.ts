@@ -683,7 +683,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'Tu espacio',
         welcomeToRoom: ({roomName}) => `¡Bienvenido a ${roomName}!`,
         usePlusButton: ({additionalText}) => ` Usa el botón + para ${additionalText} un gasto`,
-        askConcierge: ' ¡Pregúntame lo que quieras!',
+        askConcierge: 'Este es tu chat con Concierge, tu agente personal de IA. Puedo hacer casi cualquier cosa, ¡pruébame!',
         conciergeSupport: 'Tu agente personal de IA',
         create: 'crear',
         iouTypes: {
@@ -780,6 +780,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: 'Activa tu Tarjeta Expensify',
                 subtitle: 'Valida tu tarjeta y empieza a gastar.',
                 cta: 'Activa',
+            },
+            reviewCardFraud: {
+                title: 'Revisa un posible fraude en tu tarjeta Expensify',
+                titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Revisa ${amount} en posible fraude en ${merchant}`,
+                subtitle: 'Tarjeta Expensify',
+                cta: 'Revisar',
             },
         },
         announcements: 'Anuncios',
@@ -1346,6 +1352,7 @@ const translations: TranslationDeepObject<typeof en> = {
 
             return `${formatList(fragments)} a través de <a href="${policyRulesRoute}">reglas del espacio de trabajo</a>`;
         },
+        duplicateNonDefaultWorkspacePerDiemError: 'No puedes duplicar gastos de viáticos entre espacios de trabajo porque las tarifas pueden variar entre ellos.',
     },
     transactionMerge: {
         listPage: {
@@ -4906,16 +4913,17 @@ ${amount} para ${merchant} - ${date}`,
                     ctaText: 'Solicitud enviada',
                 },
                 bookOrManageYourTrip: {
-                    title: 'Reserva o gestiona tu viaje',
-                    subtitle: 'Usa Expensify Travel para obtener las mejores ofertas de viaje y gestionar todos tus gastos de empresa en un solo lugar.',
-                    ctaText: 'Reservar o gestionar',
+                    title: 'Reserva de viajes',
+                    subtitle: '¡Felicidades! Ya puedes reservar y gestionar viajes en este espacio de trabajo.',
+                    ctaText: 'Gestionar viajes',
+                },
+                settings: {
+                    autoAddTripName: {
+                        title: 'Añadir nombres de viajes a los gastos',
+                        subtitle: 'Añade automáticamente los nombres de viajes a las descripciones de los gastos reservados en Expensify.',
+                    },
                 },
                 travelInvoicing: {
-                    travelBookingSection: {
-                        title: 'Reserva de viajes',
-                        subtitle: '¡Felicidades! Todo está listo para reservar y gestionar viajes en este espacio de trabajo.',
-                        manageTravelLabel: 'Gestionar viajes',
-                    },
                     centralInvoicingSection: {
                         title: 'Facturación centralizada',
                         subtitle: 'Centraliza todos los gastos de viaje en una factura mensual en lugar de pagar en el momento de la compra.',
@@ -6130,8 +6138,8 @@ ${amount} para ${merchant} - ${date}`,
                 preventSelfApprovalsSubtitle: 'Evita que los miembros del espacio de trabajo aprueben sus propios informes de gastos.',
                 autoApproveCompliantReportsTitle: 'Aprobación automática de informes conformes',
                 autoApproveCompliantReportsSubtitle: 'Configura qué informes de gastos pueden aprobarse de forma automática.',
-                autoApproveReportsUnderTitle: 'Aprobar automáticamente informes por debajo de',
-                autoApproveReportsUnderDescription: 'Los informes de gastos totalmente conformes por debajo de esta cantidad se aprobarán automáticamente.',
+                autoApproveReportsUnderTitle: 'Aprobar automáticamente informes con todos los gastos por debajo de',
+                autoApproveReportsUnderDescription: 'Los informes de gastos totalmente conformes en los que todos los gastos estén por debajo de esta cantidad se aprobarán automáticamente.',
                 randomReportAuditTitle: 'Auditoría aleatoria de informes',
                 randomReportAuditDescription: 'Requiere que algunos informes sean aprobados manualmente, incluso si son elegibles para la aprobación automática.',
                 autoPayApprovedReportsTitle: 'Pago automático de informes aprobados',
@@ -6867,6 +6875,7 @@ ${amount} para ${merchant} - ${date}`,
         savedSearchesMenuItemTitle: 'Guardadas',
         topCategories: 'Categorías principales',
         topMerchants: 'Principales comerciantes',
+        spendOverTime: 'Evolución de gastos',
         searchName: 'Nombre de la búsqueda',
         deleteSavedSearch: 'Eliminar búsqueda guardada',
         deleteSavedSearchConfirm: '¿Estás seguro de que quieres eliminar esta búsqueda?',
@@ -8506,6 +8515,8 @@ ${amount} para ${merchant} - ${date}`,
             disableSamlRequired: 'Deshabilitar requisito de SAML',
             oktaWarningPrompt: '¿Estás seguro? Esto también deshabilitará Okta SCIM.',
             requireWithEmptyMetadataError: 'Por favor, añade los metadatos del Proveedor de Identidad a continuación para habilitar',
+            pleaseDisableTwoFactorAuth: (twoFactorAuthSettingsUrl: string) =>
+                `<muted-text>Por favor, deshabilita <a href="${twoFactorAuthSettingsUrl}">forzar la autenticación de dos factores</a> para habilitar el inicio de sesión con SAML.</muted-text>`,
         },
         samlConfigurationDetails: {
             title: 'Detalles de configuración de SAML',
@@ -8554,7 +8565,6 @@ ${amount} para ${merchant} - ${date}`,
             primaryContact: 'Contacto principal',
             addPrimaryContact: 'Añadir contacto principal',
             setPrimaryContactError: 'No se pudo establecer el contacto principal. Por favor, inténtalo de nuevo más tarde.',
-            settings: 'Configuración',
             consolidatedDomainBilling: 'Facturación consolidada del dominio',
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>Cuando está habilitada, el contacto principal pagará todos los espacios de trabajo de los miembros de <strong>${domainName}</strong> y recibirá todos los recibos de facturación.</muted-text-label></comment>`,
@@ -8589,6 +8599,14 @@ ${amount} para ${merchant} - ${date}`,
                 removeMember: 'No se pudo eliminar a este usuario. Por favor, inténtalo de nuevo.',
                 addMember: 'No se pudo añadir este miembro. Por favor, inténtalo de nuevo.',
             },
+            forceTwoFactorAuth: 'Forzar la autenticación de dos factores',
+            forceTwoFactorAuthSAMLEnabledDescription: (samlPageUrl: string) =>
+                `<muted-text>Por favor, deshabilita <a href="${samlPageUrl}">SAML</a> para forzar la autenticación de dos factores.</muted-text>`,
+            forceTwoFactorAuthDescription: `<muted-text>Requiere la autenticación de dos factores para todos los miembros de este dominio. Se les pedirá a los miembros del dominio que configuren la autenticación de dos factores en su cuenta cuando inicien sesión.</muted-text>`,
+            forceTwoFactorAuthError: 'No se pudo cambiar la autenticación de dos factores forzada. Por favor, inténtalo de nuevo más tarde.',
+        },
+        common: {
+            settings: 'Configuración',
         },
     },
     gps: {
