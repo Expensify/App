@@ -23,6 +23,7 @@ import variables from '@styles/variables';
 import {setMoneyRequestOdometerImage} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
 
@@ -30,7 +31,7 @@ type IOURequestStepOdometerImageProps = WithFullTransactionOrNotFoundProps<typeo
 
 function IOURequestStepOdometerImage({
     route: {
-        params: {transactionID, readingType, action, iouType},
+        params: {action, iouType, transactionID, reportID, imageType},
     },
 }: IOURequestStepOdometerImageProps) {
     const {translate} = useLocalize();
@@ -47,14 +48,16 @@ function IOURequestStepOdometerImage({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
-    const title = readingType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? translate('distance.odometer.startTitle') : translate('distance.odometer.endTitle');
-    const message = readingType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? translate('distance.odometer.startMessageWeb') : translate('distance.odometer.endMessageWeb');
-    const icon = readingType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? lazyIcons.OdometerStart : lazyIcons.OdometerEnd;
+    const title = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? translate('distance.odometer.startTitle') : translate('distance.odometer.endTitle');
+    const message = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? translate('distance.odometer.startMessageWeb') : translate('distance.odometer.endMessageWeb');
+    const icon = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? lazyIcons.OdometerStart : lazyIcons.OdometerEnd;
     const messageHTML = `<centered-text><muted-text-label>${message}</muted-text-label></centered-text>`;
 
+    const odometerRoute = ROUTES.DISTANCE_REQUEST_CREATE_TAB_ODOMETER.getRoute(action, iouType, transactionID, reportID);
+
     const navigateBack = useCallback(() => {
-        Navigation.goBack();
-    }, []);
+        Navigation.goBack(odometerRoute);
+    }, [odometerRoute]);
 
     const revokeDropBlobUrls = useCallback(() => {
         for (const url of dropBlobUrlsRef.current) {
@@ -67,11 +70,11 @@ function IOURequestStepOdometerImage({
 
     const handleImageSelected = useCallback(
         (file: FileObject) => {
-            setMoneyRequestOdometerImage(transactionID, readingType, file as File, isTransactionDraft);
+            setMoneyRequestOdometerImage(transactionID, imageType, file as File, isTransactionDraft);
             shouldRevokeOnUnmountRef.current = false;
             navigateBack();
         },
-        [transactionID, readingType, isTransactionDraft, navigateBack],
+        [transactionID, imageType, isTransactionDraft, navigateBack],
     );
 
     const {validateFiles, ErrorModal} = useFilesValidation((files: FileObject[]) => {
@@ -123,7 +126,7 @@ function IOURequestStepOdometerImage({
                 height={variables.iconSection}
                 additionalStyles={[styles.mb5]}
             />
-            <Text style={[styles.textFileUpload, styles.mb2]}>{translate('receipt.upload')}</Text>
+            <Text style={[styles.textFileUpload, styles.mb2]}>{title}</Text>
             <View style={styles.renderHTML}>
                 <RenderHTML html={messageHTML} />
             </View>
@@ -139,6 +142,7 @@ function IOURequestStepOdometerImage({
                                 onPicked: (data) => validateFiles(data),
                             });
                         }}
+                        sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.ODOMETER_CHOOSE_FILE_BUTTON}
                     />
                 )}
             </AttachmentPicker>

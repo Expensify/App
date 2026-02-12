@@ -92,7 +92,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: Confirm
     }, [issueNewCard, isSuccessful, policyID]);
 
     const handleIssueCard = useCallback(() => {
-        if (!policyID || !assigneeTimeZone) {
+        if (!policyID) {
             return;
         }
 
