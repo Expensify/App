@@ -19,9 +19,13 @@ let currentOnboardingPurposeSelected: OnyxEntry<OnboardingPurpose> | undefined;
 let currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize> | undefined;
 let onboardingInitialPath: OnyxEntry<string> | undefined;
 
-let linkingEventSubscription: NativeEventSubscription | null = null;
+let hasAllReportsLoaded = false;
+let hasCurrentOnboardingPurposeSelectedLoaded = false;
+let hasCurrentOnboardingCompanySizeLoaded = false;
+let hasOnboardingInitialPathLoaded = false;
+let hasCurrentConciergeReportIDLoaded = false;
 
-let hasSessionLoaded = false;
+let linkingEventSubscription: NativeEventSubscription | null = null;
 
 const onyxConnections: Connection[] = [];
 
@@ -29,23 +33,6 @@ onyxConnections.push(
     Onyx.connectWithoutView({
         key: ONYXKEYS.SESSION,
         callback: () => {
-            if (hasSessionLoaded) {
-                return;
-            }
-
-            hasSessionLoaded = true;
-
-            initializeDeepLinkHandler();
-        },
-    }),
-);
-
-onyxConnections.push(
-    Onyx.connectWithoutView({
-        key: ONYXKEYS.CONCIERGE_REPORT_ID,
-        callback: (value) => {
-            currentConciergeReportID = value ?? undefined;
-
             initializeDeepLinkHandler();
         },
     }),
@@ -56,7 +43,13 @@ function processPendingDeepLinkIfReady() {
         return;
     }
 
-    if (allReports === undefined || currentOnboardingPurposeSelected === undefined || currentOnboardingCompanySize === undefined || onboardingInitialPath === undefined) {
+    if (
+        hasAllReportsLoaded === false ||
+        hasCurrentOnboardingPurposeSelectedLoaded === false ||
+        hasCurrentOnboardingCompanySizeLoaded === false ||
+        hasOnboardingInitialPathLoaded === false ||
+        hasCurrentConciergeReportIDLoaded === false
+    ) {
         return;
     }
 
@@ -74,11 +67,11 @@ function processPendingDeepLinkIfReady() {
         currentConciergeReportID,
     );
 
-    currentConciergeReportID = undefined;
-    allReports = undefined;
-    currentOnboardingPurposeSelected = undefined;
-    currentOnboardingCompanySize = undefined;
-    onboardingInitialPath = undefined;
+    hasAllReportsLoaded = false;
+    hasCurrentOnboardingPurposeSelectedLoaded = false;
+    hasCurrentOnboardingCompanySizeLoaded = false;
+    hasOnboardingInitialPathLoaded = false;
+    hasCurrentConciergeReportIDLoaded = false;
 }
 
 function setUpOnyxSubscriptions() {
@@ -88,6 +81,7 @@ function setUpOnyxSubscriptions() {
             waitForCollectionCallback: true,
             callback: (value) => {
                 allReports = value ?? undefined;
+                hasAllReportsLoaded = true;
                 processPendingDeepLinkIfReady();
             },
         }),
@@ -98,7 +92,7 @@ function setUpOnyxSubscriptions() {
             key: ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
             callback: (value) => {
                 currentOnboardingPurposeSelected = value ?? undefined;
-
+                hasCurrentOnboardingPurposeSelectedLoaded = true;
                 processPendingDeepLinkIfReady();
             },
         }),
@@ -109,7 +103,7 @@ function setUpOnyxSubscriptions() {
             key: ONYXKEYS.ONBOARDING_COMPANY_SIZE,
             callback: (value) => {
                 currentOnboardingCompanySize = value ?? undefined;
-
+                hasCurrentOnboardingCompanySizeLoaded = true;
                 processPendingDeepLinkIfReady();
             },
         }),
@@ -120,7 +114,18 @@ function setUpOnyxSubscriptions() {
             key: ONYXKEYS.ONBOARDING_LAST_VISITED_PATH,
             callback: (value) => {
                 onboardingInitialPath = value ?? undefined;
+                hasOnboardingInitialPathLoaded = true;
+                processPendingDeepLinkIfReady();
+            },
+        }),
+    );
 
+    onyxConnections.push(
+        Onyx.connectWithoutView({
+            key: ONYXKEYS.CONCIERGE_REPORT_ID,
+            callback: (value) => {
+                currentConciergeReportID = value ?? undefined;
+                hasCurrentConciergeReportIDLoaded = true;
                 processPendingDeepLinkIfReady();
             },
         }),
@@ -134,14 +139,21 @@ function handleDeepLink(url: string | null, fromUrlChangeEvent: boolean) {
 
     pendingDeepLinkUrl = url;
 
-    if (fromUrlChangeEvent && !!allReports && currentOnboardingPurposeSelected !== undefined && currentOnboardingCompanySize !== undefined && onboardingInitialPath !== undefined) {
+    if (
+        fromUrlChangeEvent &&
+        hasAllReportsLoaded &&
+        hasCurrentOnboardingPurposeSelectedLoaded &&
+        hasCurrentOnboardingCompanySizeLoaded &&
+        hasOnboardingInitialPathLoaded &&
+        hasCurrentConciergeReportIDLoaded
+    ) {
         const isCurrentlyAuthenticated = hasAuthToken();
         openReportFromDeepLink(url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isCurrentlyAuthenticated, currentConciergeReportID);
-        currentConciergeReportID = undefined;
-        allReports = undefined;
-        currentOnboardingPurposeSelected = undefined;
-        currentOnboardingCompanySize = undefined;
-        onboardingInitialPath = undefined;
+        hasAllReportsLoaded = false;
+        hasCurrentOnboardingPurposeSelectedLoaded = false;
+        hasCurrentOnboardingCompanySizeLoaded = false;
+        hasOnboardingInitialPathLoaded = false;
+        hasCurrentConciergeReportIDLoaded = false;
         return;
     }
 
