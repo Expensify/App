@@ -1,13 +1,12 @@
 import React from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useSubStep from '@hooks/useSubStep';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import useSubPage from '@hooks/useSubPage';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {formatE164PhoneNumber} from '@libs/LoginUtils';
 import Navigation from '@navigation/Navigation';
@@ -21,7 +20,17 @@ import PhoneNumber from './InternationalDepositAccount/PersonalInfo/substeps/Pho
 import getSkippedStepsPersonalInfo from './InternationalDepositAccount/PersonalInfo/utils/getSkippedStepsPersonalInfo';
 import UpdatePersonalInfoConfirmation from './UpdatePersonalInfoConfirmation';
 
-const bodyContent: Array<React.ComponentType<SubStepProps>> = [LegalName, Address, PhoneNumber, UpdatePersonalInfoConfirmation];
+const PAGE_NAME = CONST.UPDATE_PERSONAL_BANK_ACCOUNT.PAGE_NAME;
+
+// getSkippedStepsPersonalInfo returns 1-based indices for a flow with an extra leading step
+const STEP_INDEX_TO_PAGE_NAME: string[] = [PAGE_NAME.LEGAL_NAME, PAGE_NAME.ADDRESS, PAGE_NAME.PHONE_NUMBER];
+
+const formPages = [
+    {pageName: PAGE_NAME.LEGAL_NAME, component: LegalName},
+    {pageName: PAGE_NAME.ADDRESS, component: Address},
+    {pageName: PAGE_NAME.PHONE_NUMBER, component: PhoneNumber},
+    {pageName: PAGE_NAME.CONFIRM, component: UpdatePersonalInfoConfirmation},
+];
 
 function UpdatePersonalBankAccountPage() {
     const {translate} = useLocalize();
@@ -49,35 +58,31 @@ function UpdatePersonalBankAccountPage() {
         updatePersonalBankAccountInfo(accountData);
     };
 
-    // getSkippedStepsPersonalInfo returns indices 1, 2, 3 (for a flow with an extra leading step)
-    // Our flow is 0-indexed: 0=LegalName, 1=Address, 2=PhoneNumber, 3=Confirmation
-    // Adjust by subtracting 1 from each returned index
-    const skipSteps = getSkippedStepsPersonalInfo(privatePersonalDetails).map((step) => step - 1);
+    const skipPages = getSkippedStepsPersonalInfo(privatePersonalDetails)
+        .map((step) => STEP_INDEX_TO_PAGE_NAME.at(step - 1))
+        .filter((name): name is string => !!name);
 
-    const {
-        componentToRender: SubStep,
-        isEditing,
-        nextScreen,
-        prevScreen,
-        moveTo,
-        screenIndex,
-        goToTheLastStep,
-    } = useSubStep({
-        bodyContent,
-        skipSteps,
+    const {CurrentPage, isEditing, currentPageName, prevPage, nextPage, moveTo, isRedirecting} = useSubPage({
+        pages: formPages,
         onFinished: submitPersonalInfo,
+        skipPages,
+        buildRoute: (pageName, action) => ROUTES.SETTINGS_UPDATE_PERSONAL_BANK_ACCOUNT.getRoute(pageName, action),
     });
+
+    if (isRedirecting) {
+        return <FullScreenLoadingIndicator />;
+    }
 
     const handleBackButtonPress = () => {
         if (isEditing) {
-            goToTheLastStep();
+            Navigation.goBack(ROUTES.SETTINGS_UPDATE_PERSONAL_BANK_ACCOUNT.getRoute(PAGE_NAME.CONFIRM));
             return;
         }
-        if (screenIndex === 0) {
+        if (currentPageName === PAGE_NAME.LEGAL_NAME) {
             Navigation.goBack();
             return;
         }
-        prevScreen();
+        prevPage();
     };
 
     if (shouldShowSuccess) {
@@ -107,17 +112,21 @@ function UpdatePersonalBankAccountPage() {
     }
 
     return (
-        <InteractiveStepWrapper
-            wrapperID={UpdatePersonalBankAccountPage.displayName}
-            headerTitle={translate('addPersonalBankAccount.updatePersonalInfo')}
-            handleBackButtonPress={handleBackButtonPress}
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
+            testID={UpdatePersonalBankAccountPage.displayName}
         >
-            <SubStep
+            <HeaderWithBackButton
+                title={translate('addPersonalBankAccount.updatePersonalInfo')}
+                onBackButtonPress={handleBackButtonPress}
+            />
+            <CurrentPage
                 isEditing={isEditing}
-                onNext={nextScreen}
+                onNext={nextPage}
                 onMove={moveTo}
             />
-        </InteractiveStepWrapper>
+        </ScreenWrapper>
     );
 }
 

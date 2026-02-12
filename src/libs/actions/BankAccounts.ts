@@ -189,7 +189,9 @@ function updatePersonalBankAccountInfo(accountData: Partial<PersonalBankAccountF
         };
     }
 
-    const onyxData: OnyxData<typeof ONYXKEYS.PERSONAL_BANK_ACCOUNT | typeof ONYXKEYS.PRIVATE_PERSONAL_DETAILS | typeof ONYXKEYS.BANK_ACCOUNT_LIST> = {
+    const onyxData: OnyxData<
+        typeof ONYXKEYS.PERSONAL_BANK_ACCOUNT | typeof ONYXKEYS.PRIVATE_PERSONAL_DETAILS | typeof ONYXKEYS.BANK_ACCOUNT_LIST | typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT
+    > = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -236,6 +238,11 @@ function updatePersonalBankAccountInfo(accountData: Partial<PersonalBankAccountF
                 key: ONYXKEYS.BANK_ACCOUNT_LIST,
                 value: bankAccountListUpdates,
             },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT,
+                value: null,
+            },
         ],
         failureData: [
             {
@@ -250,7 +257,6 @@ function updatePersonalBankAccountInfo(accountData: Partial<PersonalBankAccountF
     };
 
     API.write(WRITE_COMMANDS.UPDATE_PERSONAL_BANK_ACCOUNT_INFO, parameters, onyxData);
-    Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, null);
 }
 
 /**

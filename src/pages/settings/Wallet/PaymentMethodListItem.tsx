@@ -114,6 +114,8 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     const isInSetupState = isAccountInSetupState(item);
     const showThreeDotsMenu = item.shouldShowThreeDotsMenu !== false && !!threeDotsMenuItems && !isInSetupState;
 
+    const isNeedingAction = isAccountNeedingAction(item);
+
     // Check if this is a Chase personal bank account connected via Plaid
     const isChaseAccountConnectedViaPlaid =
         item.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT &&
@@ -121,14 +123,12 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
         !!(item.accountData?.additionalData?.plaidAccountID ?? item.accountData?.plaidAccountID);
 
     const handleRowPress = (e: GestureResponderEvent | KeyboardEvent | undefined) => {
-        if (isAccountNeedingAction(item) || !showThreeDotsMenu || (item.cardID && item.onThreeDotsMenuPress)) {
+        if (isNeedingAction || !showThreeDotsMenu || (item.cardID && item.onThreeDotsMenuPress)) {
             item.onPress?.(e);
         } else if (threeDotsMenuRef.current) {
             threeDotsMenuRef.current.onThreeDotsPress();
         }
     };
-
-    const isNeedingAction = isAccountNeedingAction(item);
 
     let badgeText;
     if (isNeedingAction) {
