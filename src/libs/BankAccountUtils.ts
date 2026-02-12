@@ -22,24 +22,18 @@ function hasPartiallySetupBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankA
 
 /**
  * Check if a US personal bank account in OPEN state is missing required personal information
- * (owner name, address, or phone number) from the bank account's additionalData.
- *
- * This is used to show "Action required" badge for existing accounts that need updates
- * to enable global reimbursement payments.
+ * from the bank account's additionalData. Used to show "Action required" badge for accounts
+ * that need updates to enable global reimbursement payments.
  */
 function isPersonalBankAccountMissingInfo(accountData: AccountData | undefined): boolean {
-    // Only applies to personal bank accounts
     if (accountData?.type !== CONST.BANK_ACCOUNT.TYPE.PERSONAL) {
         return false;
     }
 
-    // Only applies to fully setup accounts (OPEN state)
-    // Partially setup accounts already show "Action required" via isAccountInSetupState
     if (accountData?.state !== CONST.BANK_ACCOUNT.STATE.OPEN) {
         return false;
     }
 
-    // Only applies to US accounts
     if (accountData?.additionalData?.country !== CONST.COUNTRY.US) {
         return false;
     }

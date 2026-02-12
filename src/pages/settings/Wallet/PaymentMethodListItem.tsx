@@ -1,4 +1,4 @@
-import React, {useMemo, useRef} from 'react';
+import React, {useRef} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -99,9 +99,6 @@ function isAccountInSetupState(account: PaymentMethodItem) {
     return !!(account.accountData && 'state' in account.accountData && isBankAccountPartiallySetup(account.accountData.state));
 }
 
-/**
- * Returns true if the account needs action - either partially setup or missing personal info
- */
 function isAccountNeedingAction(account: PaymentMethodItem) {
     return isAccountInSetupState(account) || !!account.isMissingPersonalInfo;
 }
@@ -132,12 +129,13 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     };
 
     const isNeedingAction = isAccountNeedingAction(item);
-    const badgeText = useMemo(() => {
-        if (isNeedingAction) {
-            return translate('common.actionRequired');
-        }
-        return shouldShowDefaultBadge ? translate('paymentMethodList.defaultPaymentMethod') : undefined;
-    }, [isNeedingAction, shouldShowDefaultBadge, translate]);
+
+    let badgeText;
+    if (isNeedingAction) {
+        badgeText = translate('common.actionRequired');
+    } else if (shouldShowDefaultBadge) {
+        badgeText = translate('paymentMethodList.defaultPaymentMethod');
+    }
 
     return (
         <OfflineWithFeedback

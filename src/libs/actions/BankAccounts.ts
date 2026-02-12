@@ -23,6 +23,7 @@ import type AskForCorpaySignerInformationParams from '@libs/API/parameters/AskFo
 import type {SaveCorpayOnboardingCompanyDetails} from '@libs/API/parameters/SaveCorpayOnboardingCompanyDetailsParams';
 import type SaveCorpayOnboardingDirectorInformationParams from '@libs/API/parameters/SaveCorpayOnboardingDirectorInformationParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {MemberForList} from '@libs/OptionsListUtils';
@@ -147,10 +148,6 @@ function clearPersonalBankAccountErrors() {
     Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {errors: null});
 }
 
-/**
- * Updates personal information (name, address, phone) for a personal bank account.
- * This is used when a US personal bank account in OPEN state is missing required info.
- */
 function updatePersonalBankAccountInfo(accountData: Partial<PersonalBankAccountForm>) {
     const formattedStreet = getFormattedStreet(accountData?.addressStreet, accountData?.addressStreet2);
 
@@ -165,7 +162,34 @@ function updatePersonalBankAccountInfo(accountData: Partial<PersonalBankAccountF
         addressCountry: accountData?.country,
     };
 
-    const onyxData: OnyxData<typeof ONYXKEYS.PERSONAL_BANK_ACCOUNT | typeof ONYXKEYS.PRIVATE_PERSONAL_DETAILS> = {
+    const bankAccountListUpdates: Record<
+        string,
+        {
+            accountData: {
+                additionalData: {firstName?: string; lastName?: string; addressStreet?: string; addressCity?: string; addressState?: string; addressZipCode?: string; companyPhone?: string};
+            };
+        }
+    > = {};
+    for (const [key, bankAccount] of Object.entries(bankAccountList ?? {})) {
+        if (!isPersonalBankAccountMissingInfo(bankAccount?.accountData)) {
+            continue;
+        }
+        bankAccountListUpdates[key] = {
+            accountData: {
+                additionalData: {
+                    firstName: parameters.legalFirstName,
+                    lastName: parameters.legalLastName,
+                    addressStreet: parameters.addressStreet,
+                    addressCity: parameters.addressCity,
+                    addressState: parameters.addressState,
+                    addressZipCode: parameters.addressZip,
+                    companyPhone: parameters.phoneNumber,
+                },
+            },
+        };
+    }
+
+    const onyxData: OnyxData<typeof ONYXKEYS.PERSONAL_BANK_ACCOUNT | typeof ONYXKEYS.PRIVATE_PERSONAL_DETAILS | typeof ONYXKEYS.BANK_ACCOUNT_LIST> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -206,6 +230,11 @@ function updatePersonalBankAccountInfo(accountData: Partial<PersonalBankAccountF
                           ]
                         : undefined,
                 },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                value: bankAccountListUpdates,
             },
         ],
         failureData: [
