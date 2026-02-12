@@ -8312,6 +8312,9 @@ const CONST = {
         ONBOARDING: {
             INTERESTED_FEATURES_ITEM: 'Onboarding-InterestedFeaturesItem',
         },
+        MESSAGES_ROW: {
+            DISMISS: 'MessagesRow-Dismiss',
+        },
     },
 
     DOMAIN: {

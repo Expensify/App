@@ -222,7 +222,6 @@ function MoneyRequestReceiptView({
     const reportCreationError = useMemo(() => (getCreationReportErrors(report) ? getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage') : {}), [report]);
     const hasReceiptUploadError = useMemo(() => Object.values(errorsWithoutReportCreation).some((error) => isReceiptError(error)), [errorsWithoutReportCreation]);
 
-
     const fallbackReceiptError = useMemo(() => {
         if (hasReceiptUploadError || isEmptyObject(reportCreationError) || !hasReceipt || !transaction?.receipt) {
             return {};
@@ -242,7 +241,6 @@ function MoneyRequestReceiptView({
             if (isTrackExpense) {
                 action = CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE;
                 const trackRetryParams: CreateTrackExpenseParams = {
-
                     report: undefined,
                     isDraftPolicy: false,
                     participantParams: {
@@ -296,7 +294,7 @@ function MoneyRequestReceiptView({
                         payeeEmail,
                         payeeAccountID,
                         participant: {
-                            accountID: managerID ?? 0,
+                            accountID: managerID ?? CONST.DEFAULT_NUMBER_ID,
                             login: managerID ? personalDetails?.[managerID]?.login : undefined,
                             ...(isPolicyChat ? {isPolicyExpenseChat: true, reportID: chatReport?.reportID} : {}),
                         },

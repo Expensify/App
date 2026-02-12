@@ -65,6 +65,7 @@ function MessagesRow({messages = {}, type, onDismiss, containerStyles, dismissEr
                         onPress={onDismiss}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={dismissText}
+                        sentryLabel={CONST.SENTRY_LABEL.MESSAGES_ROW.DISMISS}
                     >
                         <Icon
                             fill={theme.icon}
