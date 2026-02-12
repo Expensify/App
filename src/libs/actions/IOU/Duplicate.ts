@@ -601,8 +601,6 @@ function duplicateExpenseTransaction({
                 modifiedCreated: '',
                 reportID: '1',
                 transactionID: '1',
-                originalTransactionID: undefined,
-                source: undefined,
             },
             transactionParams: {
                 ...(params.transactionParams ?? {}),
