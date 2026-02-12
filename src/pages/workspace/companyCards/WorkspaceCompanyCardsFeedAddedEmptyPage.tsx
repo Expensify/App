@@ -40,7 +40,7 @@ function WorkspaceCompanyCardsFeedAddedEmptyPage({policyID, shouldShowGBDisclaim
                 headerMedia={companyCardsIllustration}
                 containerStyles={styles.mt5}
                 headerStyles={[styles.emptyStateCardIllustrationContainer, styles.justifyContentStart, {backgroundColor: colors.blue700}]}
-                headerContentStyles={styles.emptyStateCardIllustration}
+                headerContentStyles={styles.emptyStateCompanyCardsPromoIllustration}
                 title={translate('workspace.moreFeatures.companyCards.emptyAddedFeedTitle')}
                 subtitle={translate('workspace.moreFeatures.companyCards.emptyAddedFeedDescription')}
             />

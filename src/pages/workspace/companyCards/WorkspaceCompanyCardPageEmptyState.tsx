@@ -95,7 +95,7 @@ function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer}: 
                 onCtaPress={handleCtaPress}
                 illustrationBackgroundColor={colors.blue700}
                 illustration={companyCardsIllustration}
-                illustrationStyle={styles.emptyStateCardIllustration}
+                illustrationStyle={styles.emptyStateCompanyCardsPromoIllustration}
                 illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentStart]}
                 titleStyles={styles.textHeadlineH1}
                 isButtonDisabled={workspaceAccountID === CONST.DEFAULT_NUMBER_ID}

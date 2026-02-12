@@ -5207,6 +5207,13 @@ const staticStyles = (theme: ThemeColors) =>
             height: 190,
         },
 
+        /** Wide locale-specific company cards promo (680×220 viewBox) - fills container width */
+        emptyStateCompanyCardsPromoIllustration: {
+            width: '100%',
+            aspectRatio: 680 / 220,
+            maxHeight: 220,
+        },
+
         errorStateCardIllustration: {
             width: 254,
             height: 165,
