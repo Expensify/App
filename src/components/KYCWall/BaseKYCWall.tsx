@@ -205,7 +205,6 @@ function KYCWall({
             introSelected,
             formatPhoneNumber,
             reportTransactions,
-            isCustomReportNamesBetaEnabled,
             lastPaymentMethod,
         ],
     );
