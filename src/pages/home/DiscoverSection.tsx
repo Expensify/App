@@ -13,6 +13,7 @@ import useParentReportAction from '@hooks/useParentReportAction';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {completeTestDriveTask} from '@libs/actions/Task';
+import {setSelfTourViewed} from '@libs/actions/Welcome';
 import {getTestDriveURL} from '@libs/TourUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,29 +35,30 @@ function DiscoverSection() {
         hasOutstandingChildTask,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
     const parentReportAction = useParentReportAction(viewTourTaskReport);
-    const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector, canBeMissing: true});
+    const [hasSeenTour = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector, canBeMissing: true});
 
     const handlePress = () => {
         Linking.openURL(getTestDriveURL(shouldUseNarrowLayout, introSelected, isCurrentUserPolicyAdmin));
 
-        if (hasSeenTour || !viewTourTaskReport || viewTourTaskReport.stateNum === CONST.REPORT.STATE_NUM.APPROVED) {
+        if (hasSeenTour) {
             return;
         }
 
-        completeTestDriveTask(
-            viewTourTaskReport,
-            viewTourTaskParentReport,
-            isViewTourTaskParentReportArchived,
-            currentUserPersonalDetails.accountID,
-            hasOutstandingChildTask,
-            parentReportAction,
-            false,
-        );
-    };
+        if (viewTourTaskReport && viewTourTaskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED) {
+            completeTestDriveTask(
+                viewTourTaskReport,
+                viewTourTaskParentReport,
+                isViewTourTaskParentReportArchived,
+                currentUserPersonalDetails.accountID,
+                hasOutstandingChildTask,
+                parentReportAction,
+                false,
+            );
+            return;
+        }
 
-    if (hasSeenTour) {
-        return null;
-    }
+        setSelfTourViewed(false);
+    };
 
     return (
         <WidgetContainer title={translate('homePage.discoverSection.title')}>
@@ -65,6 +67,7 @@ function DiscoverSection() {
                 accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('homePage.discoverSection.title')}
                 style={[shouldUseNarrowLayout ? styles.mh5 : styles.mh8, styles.mb5]}
+                sentryLabel={CONST.SENTRY_LABEL.DISCOVER_SECTION.TEST_DRIVE}
             >
                 <View style={[styles.br2, styles.overflowHidden]}>
                     <Image
@@ -80,8 +83,11 @@ function DiscoverSection() {
                 description={translate('homePage.discoverSection.menuItemDescription')}
                 onPress={handlePress}
                 style={shouldUseNarrowLayout ? styles.mb2 : styles.mb5}
-                wrapperStyle={shouldUseNarrowLayout ? styles.pl5 : styles.pl8}
+                wrapperStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                 numberOfLinesTitle={MAX_NUMBER_OF_LINES_TITLE}
+                hasSubMenuItems
+                viewMode={CONST.OPTION_MODE.COMPACT}
+                rightIconWrapperStyle={styles.pl2}
             />
         </WidgetContainer>
     );

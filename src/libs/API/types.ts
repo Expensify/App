@@ -11,6 +11,7 @@ import type UpdateBeneficialOwnersForBankAccountParams from './parameters/Update
 type ApiRequestType = ValueOf<typeof CONST.API_REQUEST_TYPE>;
 
 const WRITE_COMMANDS = {
+    IMPORT_CSV_TRANSACTIONS: 'ImportCSVTransactions',
     CLEAN_POLICY_TAGS: 'ClearPolicyTags',
     IMPORT_MULTI_LEVEL_TAGS: 'ImportMultiLevelTags',
     SET_WORKSPACE_AUTO_HARVESTING: 'SetWorkspaceAutoHarvesting',
@@ -44,6 +45,7 @@ const WRITE_COMMANDS = {
     BANK_ACCOUNT_HANDLE_PLAID_ERROR: 'BankAccount_HandlePlaidError',
     REPORT_VIRTUAL_EXPENSIFY_CARD_FRAUD: 'ReportVirtualExpensifyCardFraud',
     REQUEST_REPLACEMENT_EXPENSIFY_CARD: 'RequestReplacementExpensifyCard',
+    ACTIVATE_PHYSICAL_EXPENSIFY_CARD: 'ActivatePhysicalExpensifyCard',
     RESOLVE_FRAUD_ALERT: 'ResolveFraudAlert',
     UPDATE_EXPENSIFY_CARD_LIMIT: 'UpdateExpensifyCardLimit',
     UPDATE_EXPENSIFY_CARD_TITLE: 'UpdateExpensifyCardTitle',
@@ -246,6 +248,7 @@ const WRITE_COMMANDS = {
     INVITE_WORKSPACE_EMPLOYEES_TO_UBER: 'InviteWorkspaceEmployeesToUber',
     ENABLE_POLICY_DISTANCE_RATES: 'EnablePolicyDistanceRates',
     ENABLE_POLICY_TRAVEL: 'EnablePolicyTravel',
+    SET_POLICY_TRAVEL_SETTINGS: 'SetPolicyTravelSettings',
     ENABLE_POLICY_TAGS: 'EnablePolicyTags',
     ENABLE_POLICY_TAXES: 'EnablePolicyTaxes',
     ENABLE_POLICY_WORKFLOWS: 'EnablePolicyWorkflows',
@@ -468,6 +471,8 @@ const WRITE_COMMANDS = {
     DELETE_SAVED_SEARCH: 'DeleteSavedSearch',
     UPDATE_CARD_SETTLEMENT_FREQUENCY: 'UpdateCardSettlementFrequency',
     UPDATE_CARD_SETTLEMENT_ACCOUNT: 'UpdateCardSettlementAccount',
+    SET_TRAVEL_INVOICING_SETTLEMENT_ACCOUNT: 'SetTravelInvoicingSettlementAccount',
+    UPDATE_TRAVEL_INVOICE_SETTLEMENT_FREQUENCY: 'UpdateTravelInvoiceSettlementFrequency',
     UPDATE_XERO_IMPORT_TRACKING_CATEGORIES: 'UpdateXeroImportTrackingCategories',
     UPDATE_XERO_IMPORT_TAX_RATES: 'UpdateXeroImportTaxRates',
     UPDATE_XERO_TENANT_ID: 'UpdateXeroTenantID',
@@ -546,11 +551,14 @@ const WRITE_COMMANDS = {
     ADD_DOMAIN_ADMIN: 'AddDomainAdmin',
     REMOVE_DOMAIN_ADMIN: 'RemoveDomainAdmin',
     DELETE_DOMAIN: 'DeleteDomain',
+    DELETE_DOMAIN_MEMBER: 'DeleteDomainMember',
+    TOGGLE_TWO_FACTOR_AUTH_REQUIRED_FOR_DOMAIN: 'ToggleTwoFactorAuthRequiredForDomain',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
 
 type WriteCommandParameters = {
+    [WRITE_COMMANDS.IMPORT_CSV_TRANSACTIONS]: Parameters.ImportCSVTransactionsParams;
     [WRITE_COMMANDS.CLEAN_POLICY_TAGS]: Parameters.CleanPolicyTagsParams;
     [WRITE_COMMANDS.IMPORT_MULTI_LEVEL_TAGS]: Parameters.ImportMultiLevelTagsParams;
     [WRITE_COMMANDS.DISMISS_REFERRAL_BANNER]: Parameters.DismissReferralBannerParams;
@@ -569,6 +577,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.BANK_ACCOUNT_HANDLE_PLAID_ERROR]: Parameters.BankAccountHandlePlaidErrorParams;
     [WRITE_COMMANDS.REPORT_VIRTUAL_EXPENSIFY_CARD_FRAUD]: Parameters.ReportVirtualExpensifyCardFraudParams;
     [WRITE_COMMANDS.REQUEST_REPLACEMENT_EXPENSIFY_CARD]: Parameters.RequestReplacementExpensifyCardParams;
+    [WRITE_COMMANDS.ACTIVATE_PHYSICAL_EXPENSIFY_CARD]: Parameters.ActivatePhysicalExpensifyCardParams;
     [WRITE_COMMANDS.RESOLVE_FRAUD_ALERT]: Parameters.ResolveFraudAlertParams;
     [WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_LIMIT]: Parameters.UpdateExpensifyCardLimitParams;
     [WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_TITLE]: Parameters.UpdateExpensifyCardTitleParams;
@@ -797,6 +806,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.INVITE_WORKSPACE_EMPLOYEES_TO_UBER]: Parameters.InviteWorkspaceEmployeesToUberParams;
     [WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES]: Parameters.EnablePolicyDistanceRatesParams;
     [WRITE_COMMANDS.ENABLE_POLICY_TRAVEL]: Parameters.EnablePolicyTravelParams;
+    [WRITE_COMMANDS.SET_POLICY_TRAVEL_SETTINGS]: Parameters.SetPolicyTravelSettingsParams;
     [WRITE_COMMANDS.ENABLE_POLICY_TAGS]: Parameters.EnablePolicyTagsParams;
     [WRITE_COMMANDS.ENABLE_POLICY_TAXES]: Parameters.EnablePolicyTaxesParams;
     [WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS]: Parameters.EnablePolicyWorkflowsParams;
@@ -1040,7 +1050,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_WORKSPACE_APPROVAL]: Parameters.UpdateWorkspaceApprovalParams;
     [WRITE_COMMANDS.REMOVE_WORKSPACE_APPROVAL]: Parameters.RemoveWorkspaceApprovalParams;
     [WRITE_COMMANDS.CONFIGURE_EXPENSIFY_CARDS_FOR_POLICY]: Parameters.ConfigureExpensifyCardsForPolicyParams;
-    [WRITE_COMMANDS.CREATE_EXPENSIFY_CARD]: Parameters.CreateExpensifyCardParams;
+    [WRITE_COMMANDS.CREATE_EXPENSIFY_CARD]: Omit<Parameters.CreateExpensifyCardParams, 'validFrom' | 'validThru'>;
     [WRITE_COMMANDS.CREATE_ADMIN_ISSUED_VIRTUAL_CARD]: Omit<Parameters.CreateExpensifyCardParams, 'feedCountry'>;
     [WRITE_COMMANDS.QUEUE_EXPENSIFY_CARD_FOR_BILLING]: Parameters.QueueExpensifyCardForBillingParams;
     [WRITE_COMMANDS.ADD_DELEGATE]: Parameters.AddDelegateParams;
@@ -1051,6 +1061,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.DELETE_SAVED_SEARCH]: Parameters.DeleteSavedSearchParams;
     [WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_FREQUENCY]: Parameters.UpdateCardSettlementFrequencyParams;
     [WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_ACCOUNT]: Parameters.UpdateCardSettlementAccountParams;
+    [WRITE_COMMANDS.SET_TRAVEL_INVOICING_SETTLEMENT_ACCOUNT]: Parameters.SetTravelInvoicingSettlementAccountParams;
+    [WRITE_COMMANDS.UPDATE_TRAVEL_INVOICE_SETTLEMENT_FREQUENCY]: Parameters.UpdateTravelInvoicingSettlementFrequencyParams;
     [WRITE_COMMANDS.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS]: Parameters.SetPersonalDetailsAndShipExpensifyCardsParams;
     [WRITE_COMMANDS.SELF_TOUR_VIEWED]: null;
 
@@ -1111,9 +1123,11 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_TECHNICAL_CONTACT_EMAIL]: Parameters.SetTechnicalContactEmailParams;
     [WRITE_COMMANDS.TOGGLE_CONSOLIDATED_DOMAIN_BILLING]: Parameters.ToggleConsolidatedDomainBillingParams;
     [WRITE_COMMANDS.REMOVE_DOMAIN_ADMIN]: Parameters.RemoveDomainAdminParams;
+    [WRITE_COMMANDS.DELETE_DOMAIN_MEMBER]: Parameters.DeleteDomainMemberParams;
     [WRITE_COMMANDS.DELETE_DOMAIN]: Parameters.DeleteDomainParams;
     [WRITE_COMMANDS.ADD_DOMAIN_ADMIN]: Parameters.AddAdminToDomainParams;
     [WRITE_COMMANDS.ADD_DOMAIN_MEMBER]: Parameters.AddMemberToDomainParams;
+    [WRITE_COMMANDS.TOGGLE_TWO_FACTOR_AUTH_REQUIRED_FOR_DOMAIN]: Parameters.ToggleTwoFactorAuthRequiredForDomainParams;
 };
 
 const READ_COMMANDS = {
@@ -1144,7 +1158,6 @@ const READ_COMMANDS = {
     OPEN_ROOM_MEMBERS_PAGE: 'OpenRoomMembersPage',
     SEARCH_FOR_REPORTS: 'SearchForReports',
     SEARCH_FOR_ROOMS_TO_MENTION: 'SearchForRoomsToMention',
-    SEND_PERFORMANCE_TIMING: 'SendPerformanceTiming',
     GRAPHITE: 'Graphite',
     GET_ROUTE: 'GetRoute',
     GET_ROUTE_FOR_DRAFT: 'GetRouteForDraft',
@@ -1190,6 +1203,7 @@ const READ_COMMANDS = {
     GET_CORPAY_ONBOARDING_FIELDS: 'GetCorpayOnboardingFields',
     OPEN_WORKSPACE_PLAN_PAGE: 'OpenWorkspacePlanPage',
     OPEN_SECURITY_SETTINGS_PAGE: 'OpenSecuritySettingsPage',
+    OPEN_TROUBLESHOOT_SETTINGS_PAGE: 'OpenTroubleshootSettingsPage',
     OPEN_UNREPORTED_EXPENSES_PAGE: 'OpenUnreportedExpensesPage',
     GET_GUIDE_CALL_AVAILABILITY_SCHEDULE: 'GetGuideCallAvailabilitySchedule',
     GET_TRANSACTIONS_FOR_MERGING: 'GetTransactionsForMerging',
@@ -1228,7 +1242,6 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_ROOM_MEMBERS_PAGE]: Parameters.OpenRoomMembersPageParams;
     [READ_COMMANDS.SEARCH_FOR_REPORTS]: Parameters.SearchForReportsParams;
     [READ_COMMANDS.SEARCH_FOR_ROOMS_TO_MENTION]: Parameters.SearchForRoomsToMentionParams;
-    [READ_COMMANDS.SEND_PERFORMANCE_TIMING]: Parameters.SendPerformanceTimingParams;
     [READ_COMMANDS.GRAPHITE]: Parameters.GraphiteParams;
     [READ_COMMANDS.GET_ROUTE]: Parameters.GetRouteParams;
     [READ_COMMANDS.GET_ROUTE_FOR_DRAFT]: Parameters.GetRouteParams;
@@ -1276,6 +1289,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.GET_CORPAY_ONBOARDING_FIELDS]: Parameters.GetCorpayOnboardingFieldsParams;
     [READ_COMMANDS.OPEN_WORKSPACE_PLAN_PAGE]: Parameters.OpenWorkspacePlanPageParams;
     [READ_COMMANDS.OPEN_SECURITY_SETTINGS_PAGE]: null;
+    [READ_COMMANDS.OPEN_TROUBLESHOOT_SETTINGS_PAGE]: null;
     [READ_COMMANDS.OPEN_UNREPORTED_EXPENSES_PAGE]: Parameters.OpenUnreportedExpensesPageParams;
     [READ_COMMANDS.GET_GUIDE_CALL_AVAILABILITY_SCHEDULE]: Parameters.GetGuideCallAvailabilityScheduleParams;
     [READ_COMMANDS.GET_TRANSACTIONS_FOR_MERGING]: Parameters.GetTransactionsForMergingParams;
@@ -1297,7 +1311,6 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     SET_PERSONAL_DETAILS_AND_REVEAL_EXPENSIFY_CARD: 'SetPersonalDetailsAndRevealExpensifyCard',
     TWO_FACTOR_AUTH_VALIDATE: 'TwoFactorAuth_Validate',
     CONNECT_AS_DELEGATE: 'ConnectAsDelegate',
-    ACTIVATE_PHYSICAL_EXPENSIFY_CARD: 'ActivatePhysicalExpensifyCard',
     DISCONNECT_AS_DELEGATE: 'DisconnectAsDelegate',
     COMPLETE_HYBRID_APP_ONBOARDING: 'CompleteHybridAppOnboarding',
     CONNECT_POLICY_TO_QUICKBOOKS_DESKTOP: 'ConnectPolicyToQuickbooksDesktop',
@@ -1341,7 +1354,6 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.PAY_MONEY_REQUEST_ON_SEARCH]: Parameters.PayMoneyRequestOnSearchParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.MERGE_INTO_ACCOUNT_AND_LOGIN]: Parameters.MergeIntoAccountAndLogInParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT]: Parameters.LogOutParams;
-    [SIDE_EFFECT_REQUEST_COMMANDS.ACTIVATE_PHYSICAL_EXPENSIFY_CARD]: Parameters.ActivatePhysicalExpensifyCardParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.CREATE_DIGITAL_WALLET]: Parameters.CreateDigitalWalletParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.VERIFY_TEST_DRIVE_RECIPIENT]: Parameters.VerifyTestDriveRecipientParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.LOCK_ACCOUNT]: Parameters.LockAccountParams;

@@ -45,6 +45,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
         const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
         const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
         const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${props.route.params.reportID}`, {canEvict: false, canBeMissing: true});
+        const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
 
         const parentReportAction = useParentReportAction(report);
         const linkedReportAction = useMemo(() => {
@@ -66,7 +67,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
             if (!shouldUseNarrowLayout || (!isEmptyObject(report) && !isEmptyObject(linkedReportAction))) {
                 return;
             }
-            openReport(props.route.params.reportID);
+            openReport(props.route.params.reportID, introSelected);
             // eslint-disable-next-line react-hooks/exhaustive-deps
         }, [shouldUseNarrowLayout, props.route.params.reportID]);
 

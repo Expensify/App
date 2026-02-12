@@ -1,40 +1,36 @@
 import React from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 import useLocalize from '@hooks/useLocalize';
-import type {TranslationPaths} from '@src/languages/types';
+import {MULTIFACTOR_AUTHENTICATION_DEFAULT_UI, MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from './config';
+import type {MultifactorAuthenticationScenario} from './config/types';
 
 type MultifactorAuthenticationTriggerCancelConfirmModalProps = {
     isVisible: boolean;
     onConfirm: () => void;
     onCancel: () => void;
+    scenario?: MultifactorAuthenticationScenario;
 };
 
-// TODO: this config will be part of the scenario configuration, the current implementation is for testing purposes (https://github.com/Expensify/App/issues/79373)
-const mockedConfig = {
-    title: 'common.areYouSure',
-    description: 'multifactorAuthentication.biometricsTest.areYouSureToReject',
-    confirmButtonText: 'multifactorAuthentication.biometricsTest.rejectAuthentication',
-    cancelButtonText: 'common.cancel',
-} as const satisfies Record<string, TranslationPaths>;
-
-function MultifactorAuthenticationTriggerCancelConfirmModal({isVisible, onConfirm, onCancel}: MultifactorAuthenticationTriggerCancelConfirmModalProps) {
+function MultifactorAuthenticationTriggerCancelConfirmModal({isVisible, onConfirm, onCancel, scenario}: MultifactorAuthenticationTriggerCancelConfirmModalProps) {
     const {translate} = useLocalize();
 
-    const title = translate(mockedConfig.title);
-    const description = translate(mockedConfig.description);
-    const confirmButtonText = translate(mockedConfig.confirmButtonText);
-    const cancelButtonText = translate(mockedConfig.cancelButtonText);
+    /**
+     * Retrieves the cancel confirmation modal configuration for a given scenario.
+     * Falls back to default UI configuration if scenario-specific config doesn't exist.
+     */
+    const {title, description, cancelButtonText, confirmButtonText} = (scenario ? MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario] : MULTIFACTOR_AUTHENTICATION_DEFAULT_UI).MODALS
+        .cancelConfirmation;
 
     return (
         <ConfirmModal
             danger
-            title={title}
+            title={translate(title)}
             onConfirm={onConfirm}
             onCancel={onCancel}
             isVisible={isVisible}
-            prompt={description}
-            confirmText={confirmButtonText}
-            cancelText={cancelButtonText}
+            prompt={translate(description)}
+            confirmText={translate(confirmButtonText)}
+            cancelText={translate(cancelButtonText)}
             shouldShowCancelButton
         />
     );

@@ -158,7 +158,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             Navigation.navigate(ROUTES.WORKSPACE_MEMBERS_IMPORTED_CONFIRMATION.getRoute(policyID));
         } else {
             setIsImporting(true);
-            importPolicyMembers(policyID, allMembers);
+            importPolicyMembers(policy, allMembers);
         }
     }, [validate, spreadsheet?.columns, spreadsheet?.data, policy, containsHeader, route.params.policyID, policyID]);
 
