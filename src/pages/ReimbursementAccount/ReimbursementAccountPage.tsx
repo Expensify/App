@@ -161,8 +161,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     }
 
     const shouldShowContinueSetupButtonValue = useMemo(() => {
-        return hasInProgressVBBA(achData, isNonUSDWorkspace, nonUSDCountryDraftValue);
-    }, [achData, isNonUSDWorkspace, nonUSDCountryDraftValue]);
+        return hasInProgressVBBA(achData, isNonUSDWorkspace, nonUSDCountryDraftValue, policyIDParam);
+    }, [achData, isNonUSDWorkspace, nonUSDCountryDraftValue, policyIDParam]);
 
     /**
      When this page is first opened, `reimbursementAccount` prop might not yet be fully loaded from Onyx.

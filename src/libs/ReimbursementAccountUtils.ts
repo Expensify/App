@@ -48,7 +48,11 @@ const hasInProgressNonUSDVBBA = (achData?: ACHDataReimbursementAccount, nonUSDCo
 };
 
 /** Returns true if VBBA flow is in progress */
-const hasInProgressVBBA = (achData?: ACHDataReimbursementAccount, isNonUSDWorkspace?: boolean, nonUSDCountryDraftValue?: string) => {
+const hasInProgressVBBA = (achData?: ACHDataReimbursementAccount, isNonUSDWorkspace?: boolean, nonUSDCountryDraftValue?: string, policyID?: string) => {
+    if (achData?.policyID !== policyID) {
+        return false;
+    }
+
     if (isNonUSDWorkspace) {
         return hasInProgressNonUSDVBBA(achData, nonUSDCountryDraftValue);
     }
