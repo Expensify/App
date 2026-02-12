@@ -14,6 +14,7 @@ import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation
 import type {ConnectExistingBankAccountNavigatorParamList} from '@navigation/types';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import type {PaymentMethodPressHandlerParams} from '@pages/settings/Wallet/WalletPage/types';
+import {setReimbursementAccountLoading} from '@userActions/BankAccounts';
 import {setWorkspaceReimbursement} from '@userActions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
@@ -55,13 +56,14 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
             state: accountData?.state,
             lastPaymentMethod: lastPaymentMethod?.[policyID],
             shouldUpdateLastPaymentMethod: accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN,
-            shouldIndicateReimbursementAccountLoading: true,
         });
 
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             if (isBankAccountPartiallySetup(accountData?.state)) {
+                setReimbursementAccountLoading(true);
                 navigateToBankAccountRoute(route.params.policyID);
             } else {
+                setReimbursementAccountLoading(false);
                 Navigation.closeRHPFlow();
             }
         });
