@@ -168,7 +168,6 @@ function tryInitialize() {
  */
 Onyx.connectWithoutView({
     key: ONYXKEYS.SHOULD_RECORD_TROUBLESHOOT_DATA,
-    initWithStoredValues: true,
     callback: (value) => {
         shouldRecordTroubleshootData = value;
         isRecordingLoaded = true;
@@ -182,7 +181,6 @@ Onyx.connectWithoutView({
  */
 Onyx.connectWithoutView({
     key: ONYXKEYS.TROUBLESHOOT_RECORDING_START_TIME,
-    initWithStoredValues: true,
     callback: (value) => {
         troubleshootRecordingStartTime = value;
         isStartTimeLoaded = true;
