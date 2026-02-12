@@ -427,7 +427,6 @@ function WorkspaceTaxesPage({
                     onTurnOnSelectionMode={(item) => item && toggleTax(item)}
                     onSelectAll={filteredTaxesList.length > 0 ? toggleAllTaxes : undefined}
                     onDismissError={(item) => (item.keyForList ? clearTaxRateError(policyID, item.keyForList, item.pendingAction) : undefined)}
-                    style={{listHeaderWrapperStyle: [styles.ph9, styles.pv3, styles.pb5]}}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     shouldUseDefaultRightHandSideCheckmark={false}
                     customListHeader={getCustomListHeader()}

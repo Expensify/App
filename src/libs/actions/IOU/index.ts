@@ -257,6 +257,7 @@ import type {ReportNextStep} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
+import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
@@ -465,9 +466,6 @@ type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
     pendingFields?: PendingFields<string>;
     distance?: number;
     isLinkedTrackedExpenseReportArchived?: boolean;
-    customUnit?: TransactionCustomUnit;
-    odometerStart?: number;
-    odometerEnd?: number;
 
     /** Transaction type (e.g., 'time' for time tracking expenses) */
     type?: ValueOf<typeof CONST.TRANSACTION.TYPE>;
@@ -1681,6 +1679,22 @@ function setMoneyRequestOdometerReading(transactionID: string, startReading: num
     });
 }
 
+function revokeOdometerImageUri(image: FileObject | string | null | undefined, nextImage?: FileObject | string | null): void {
+    if (typeof URL === 'undefined') {
+        return;
+    }
+
+    const currentUri = typeof image === 'string' ? image : image?.uri;
+    if (!currentUri?.startsWith('blob:')) {
+        return;
+    }
+    const nextUri = typeof nextImage === 'string' ? nextImage : nextImage?.uri;
+    if (currentUri === nextUri) {
+        return;
+    }
+    URL.revokeObjectURL(currentUri);
+}
+
 /**
  * Set odometer image for a transaction
  * @param transactionID - The transaction ID
@@ -1690,9 +1704,21 @@ function setMoneyRequestOdometerReading(transactionID: string, startReading: num
  */
 function setMoneyRequestOdometerImage(transactionID: string, imageType: OdometerImageType, file: File | string, isDraft: boolean) {
     const imageKey = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? 'odometerStartImage' : 'odometerEndImage';
+    const normalizedFile: FileObject | string =
+        typeof file === 'string'
+            ? file
+            : {
+                  uri: file.uri ?? (typeof URL !== 'undefined' ? URL.createObjectURL(file) : undefined),
+                  name: file.name,
+                  type: file.type,
+                  size: file.size,
+              };
+    const transaction = isDraft ? allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`] : allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const existingImage = transaction?.comment?.[imageKey];
+    revokeOdometerImageUri(existingImage, normalizedFile);
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
-            [imageKey]: file,
+            [imageKey]: normalizedFile,
         },
     });
 }
@@ -1701,11 +1727,13 @@ function setMoneyRequestOdometerImage(transactionID: string, imageType: Odometer
  * Remove odometer image from a transaction
  * @param transactionID - The transaction ID
  * @param imageType - 'start' or 'end'
- * @param file - The image file (File object on web, URI string on native)
  * @param isDraft - Whether this is a draft transaction
  */
-function removeMoneyRequestOdometerImage(transactionID: string, imageType: OdometerImageType, file: File | string, isDraft: boolean) {
+function removeMoneyRequestOdometerImage(transactionID: string, imageType: OdometerImageType, isDraft: boolean) {
     const imageKey = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? 'odometerStartImage' : 'odometerEndImage';
+    const transaction = isDraft ? allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`] : allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const existingImage = transaction?.comment?.[imageKey];
+    revokeOdometerImageUri(existingImage);
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
             [imageKey]: null,
@@ -3014,7 +3042,7 @@ function buildOnyxDataForTrackExpense({
 }
 
 function getDeleteTrackExpenseInformation(
-    chatReportID: string,
+    chatReport: OnyxEntry<OnyxTypes.Report>,
     transactionID: string | undefined,
     reportAction: OnyxTypes.ReportAction,
     isChatReportArchived: boolean | undefined,
@@ -3025,7 +3053,6 @@ function getDeleteTrackExpenseInformation(
     shouldRemoveIOUTransaction = true,
 ) {
     // STEP 1: Get all collections we're updating
-    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] ?? null;
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const transactionThreadID = reportAction.childReportID;
@@ -3062,8 +3089,8 @@ function getDeleteTrackExpenseInformation(
     if (chatReport) {
         canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(chatReport, isChatReportArchived);
     }
-    const lastVisibleAction = getLastVisibleAction(chatReportID, canUserPerformWriteAction, updatedReportAction);
-    const {lastMessageText = '', lastMessageHtml = ''} = getLastVisibleMessage(chatReportID, canUserPerformWriteAction, updatedReportAction);
+    const lastVisibleAction = getLastVisibleAction(chatReport?.reportID, canUserPerformWriteAction, updatedReportAction);
+    const {lastMessageText = '', lastMessageHtml = ''} = getLastVisibleMessage(chatReport?.reportID, canUserPerformWriteAction, updatedReportAction);
 
     // STEP 4: Build Onyx data
     const optimisticData: Array<
@@ -3163,7 +3190,7 @@ function getDeleteTrackExpenseInformation(
     failureData.push(...cleanUpTransactionThreadReportOnyxData.failureData);
 
     if (actionableWhisperReportActionID) {
-        const actionableWhisperReportAction = getReportAction(chatReportID, actionableWhisperReportActionID);
+        const actionableWhisperReportAction = getReportAction(chatReport?.reportID, actionableWhisperReportActionID);
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
@@ -3191,7 +3218,7 @@ function getDeleteTrackExpenseInformation(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
-            value: chatReport,
+            value: chatReport ?? null,
         },
     );
 
@@ -3468,18 +3495,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     // I want to clean this up at some point, but it's possible this will live in the code for a while so I've created https://github.com/Expensify/App/issues/25417
     // to remind me to do this.
     if (isDistanceRequest && existingTransaction) {
-        // For split expenses, exclude merchant from merge to preserve merchant from splitExpense
-        if (isSplitExpense) {
-            // Preserve merchant from transactionParams (splitExpense.merchant) before merge
-            const preservedMerchant = merchant || optimisticTransaction.merchant;
-            const {merchant: omittedMerchant, ...existingTransactionWithoutMerchant} = existingTransaction;
-            optimisticTransaction = fastMerge(existingTransactionWithoutMerchant, optimisticTransaction, false) as OnyxTypes.Transaction;
-
-            // Explicitly set merchant from splitExpense to ensure it's not overwritten
-            optimisticTransaction.merchant = preservedMerchant;
-        } else {
-            optimisticTransaction = fastMerge(existingTransaction, optimisticTransaction, false);
-        }
+        optimisticTransaction = fastMerge(existingTransaction, optimisticTransaction, false);
     }
 
     if (isSplitExpense && existingTransaction) {
@@ -5876,7 +5892,7 @@ const getConvertTrackedExpenseInformation = (
         successData: deleteSuccessData,
         failureData: deleteFailureData,
     } = getDeleteTrackExpenseInformation(
-        linkedTrackedExpenseReportID,
+        allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${linkedTrackedExpenseReportID}`],
         transactionID,
         linkedTrackedExpenseReportAction,
         isLinkedTrackedExpenseReportArchived,
@@ -9436,7 +9452,7 @@ function deleteTrackExpense({
     const whisperAction = getTrackExpenseActionableWhisper(transactionID, chatReportID);
     const actionableWhisperReportActionID = whisperAction?.reportActionID;
     const {parameters, optimisticData, successData, failureData} = getDeleteTrackExpenseInformation(
-        chatReportID,
+        chatReport,
         transactionID,
         reportAction,
         isChatReportArchived,

@@ -28,7 +28,6 @@ import type {
     InviteToGroupChatParams,
     InviteToRoomParams,
     LeaveRoomParams,
-    MarkAllMessagesAsReadParams,
     MarkAsExportedParams,
     MarkAsUnreadParams,
     MoveIOUReportToExistingPolicyParams,
@@ -157,12 +156,10 @@ import {
     isProcessingReport,
     isReportManuallyReimbursed,
     isSelfDM,
-    isUnread,
     isValidReportIDFromPath,
     prepareOnboardingOnyxData,
 } from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
-import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {getAmount, getCurrency, hasValidModifiedAmount, isOnHold, shouldClearConvertedAmount} from '@libs/TransactionUtils';
 import addTrailingForwardSlash from '@libs/UrlUtils';
@@ -1932,75 +1929,14 @@ function readNewestAction(reportID: string | undefined, shouldResetUnreadMarker 
     }
 }
 
-function markAllMessagesAsRead(archivedReportsIdSet: ArchivedReportsIDSet) {
-    if (isAnonymousUser()) {
-        return;
-    }
-
-    const newLastReadTime = NetworkConnection.getDBTimeWithSkew();
-
-    type PartialReport = {
-        lastReadTime: Report['lastReadTime'] | null;
-    };
-    const optimisticReports: Record<string, PartialReport> = {};
-    const failureReports: Record<string, PartialReport> = {};
-    const reportIDList: string[] = [];
-    for (const report of Object.values(allReports ?? {})) {
-        if (!report) {
-            continue;
-        }
-
-        const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
-        const oneTransactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report, chatReport, allReportActions?.[report.reportID]);
-        const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
-        const isArchivedReport = archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
-        if (!isUnread(report, oneTransactionThreadReport, isArchivedReport)) {
-            continue;
-        }
-
-        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`;
-        optimisticReports[reportKey] = {lastReadTime: newLastReadTime};
-        failureReports[reportKey] = {lastReadTime: report.lastReadTime ?? null};
-        reportIDList.push(report.reportID);
-    }
-
-    if (reportIDList.length === 0) {
-        return;
-    }
-
-    const optimisticData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
-            key: ONYXKEYS.COLLECTION.REPORT,
-            value: optimisticReports,
-        },
-    ];
-
-    const failureData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
-            key: ONYXKEYS.COLLECTION.REPORT,
-            value: failureReports,
-        },
-    ];
-
-    const parameters: MarkAllMessagesAsReadParams = {
-        reportIDList,
-    };
-
-    API.write(WRITE_COMMANDS.MARK_ALL_MESSAGES_AS_READ, parameters, {optimisticData, failureData});
-}
-
 /**
  * Sets the last read time on a report
  */
-function markCommentAsUnread(reportID: string | undefined, reportAction: ReportAction, currentUserAccountID: number) {
+function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEntry<ReportActions>, reportAction: ReportAction, currentUserAccountID: number) {
     if (!reportID) {
         Log.warn('7339cd6c-3263-4f89-98e5-730f0be15784 Invalid report passed to MarkCommentAsUnread. Not calling the API because it wil fail.');
         return;
     }
-
-    const reportActions = allReportActions?.[reportID];
 
     // Find the latest report actions from other users
     const latestReportActionFromOtherUsers = Object.values(reportActions ?? {}).reduce((latest: ReportAction | null, current: ReportAction) => {
@@ -6720,7 +6656,6 @@ export {
     openReport,
     openRoomMembersPage,
     readNewestAction,
-    markAllMessagesAsRead,
     removeFromGroupChat,
     removeFromRoom,
     resolveActionableMentionWhisper,

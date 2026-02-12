@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@selectors/Onboarding';
-import {createPoliciesSelector} from '@selectors/Policy';
+import {createPoliciesSelector, groupPaidPoliciesWithExpenseChatEnabledSelector} from '@selectors/Policy';
 import {Str} from 'expensify-common';
 import type {ImageContentFit} from 'expo-image';
 import type {ForwardedRef} from 'react';
@@ -41,14 +41,7 @@ import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction'
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink, shouldOpenTravelDotLinkWeb} from '@libs/openTravelDotLink';
 import Permissions from '@libs/Permissions';
-import {
-    areAllGroupPoliciesExpenseChatDisabled,
-    canSendInvoice as canSendInvoicePolicyUtils,
-    getDefaultChatEnabledPolicy,
-    getGroupPaidPoliciesWithExpenseChatEnabled,
-    isPaidGroupPolicy,
-    shouldShowPolicy,
-} from '@libs/PolicyUtils';
+import {areAllGroupPoliciesExpenseChatDisabled, canSendInvoice as canSendInvoicePolicyUtils, getDefaultChatEnabledPolicy, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getQuickActionIcon, getQuickActionTitle, isQuickActionAllowed} from '@libs/QuickActionUtils';
 import {
     generateReportID,
@@ -201,8 +194,20 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     const isUserPaidPolicyMember = useIsPaidPolicyAdmin();
     const reportID = useMemo(() => generateReportID(), []);
 
+    const groupPaidPoliciesWithChatEnabled = useCallback(
+        (policies: OnyxCollection<OnyxTypes.Policy>) => groupPaidPoliciesWithExpenseChatEnabledSelector(policies, session?.email),
+        [session?.email],
+    );
+
     const isReportInSearch = isOnSearchMoneyRequestReportPage();
-    const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled(allPolicies as OnyxCollection<OnyxTypes.Policy>);
+    const [groupPoliciesWithChatEnabled = CONST.EMPTY_ARRAY] = useOnyx(
+        ONYXKEYS.COLLECTION.POLICY,
+        {
+            selector: groupPaidPoliciesWithChatEnabled,
+            canBeMissing: true,
+        },
+        [session?.email],
+    );
 
     /**
      * There are scenarios where users who have not yet had their group workspace-chats in NewDot (isPolicyExpenseChatEnabled). In those scenarios, things can get confusing if they try to submit/track expenses. To address this, we block them from Creating, Tracking, Submitting expenses from NewDot if they are:

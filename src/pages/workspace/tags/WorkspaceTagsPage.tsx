@@ -785,7 +785,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             onSelectAll={filteredTagList.length > 0 ? toggleAllTags : undefined}
                             customListHeader={filteredTagList.length > 0 ? getCustomListHeader() : undefined}
                             onDismissError={(item) => !hasDependentTags && clearPolicyTagErrors({policyID, tagName: item.value, tagListIndex: 0, policyTags})}
-                            style={{listHeaderWrapperStyle: [styles.ph9, styles.pv3, styles.pb5]}}
                             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                             onTurnOnSelectionMode={(item) => item && toggleTag(item)}
                             turnOnSelectionModeOnLongPress={!hasDependentTags}
