@@ -981,8 +981,15 @@ const translations: TranslationDeepObject<typeof en> = {
                 cta: '审核',
             },
             ctaFix: '修复',
-            fixCompanyCardConnection: {title: ({feedName}: {feedName: string}) => (feedName ? `修复 ${feedName} 公司卡连接` : '修复公司卡连接'), subtitle: '工作区 > 公司卡片'},
-            fixAccountingConnection: {title: ({integrationName}: {integrationName: string}) => `修复 ${integrationName} 连接`, subtitle: '工作区 > 会计'},
+            fixCompanyCardConnection: {
+                title: ({feedName}: {feedName: string}) => (feedName ? `修复 ${feedName} 公司卡连接` : '修复公司卡连接'),
+                subtitle: '工作区 > 公司卡片',
+            },
+            fixAccountingConnection: {
+                title: ({integrationName}: {integrationName: string}) => `修复 ${integrationName} 连接`,
+                defaultSubtitle: '工作区 > 会计',
+                subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会计`,
+            },
         },
         announcements: '公告',
         discoverSection: {

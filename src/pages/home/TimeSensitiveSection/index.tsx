@@ -27,6 +27,9 @@ type BrokenAccountingConnection = {
     /** The policy ID associated with this connection */
     policyID: string;
 
+    /** The policy name associated with this connection */
+    policyName: string;
+
     /** The connection name that has an error */
     connectionName: PolicyConnectionName;
 };
@@ -73,6 +76,7 @@ function TimeSensitiveSection() {
             if (hasSynchronizationErrorMessage(policy, connectionName, isSyncInProgress)) {
                 brokenAccountingConnections.push({
                     policyID: policy.id,
+                    policyName: policy.name,
                     connectionName,
                 });
             }
@@ -157,6 +161,7 @@ function TimeSensitiveSection() {
                         key={`accounting-${connection.policyID}-${connection.connectionName}`}
                         connectionName={connection.connectionName}
                         policyID={connection.policyID}
+                        policyName={connection.policyName}
                     />
                 ))}
 

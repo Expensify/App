@@ -769,7 +769,8 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             fixAccountingConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Reconectar con ${integrationName}`,
-                subtitle: 'Espacio de trabajo > Contabilidad',
+                defaultSubtitle: 'Espacio de trabajo > Contabilidad',
+                subtitle: ({policyName}: {policyName: string}) => `${policyName} > Contabilidad`,
             },
             addShippingAddress: {
                 title: 'Necesitamos tu dirección de envío',

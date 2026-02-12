@@ -999,7 +999,8 @@ const translations = {
             },
             fixAccountingConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Fix ${integrationName} connection`,
-                subtitle: 'Workspace > Accounting',
+                defaultSubtitle: 'Workspace > Accounting',
+                subtitle: ({policyName}: {policyName: string}) => `${policyName} > Accounting`,
             },
             addShippingAddress: {
                 title: 'We need your shipping address',

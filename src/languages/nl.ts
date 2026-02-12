@@ -999,7 +999,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: ({feedName}: {feedName: string}) => (feedName ? `Verbinding bedrijfskaart ${feedName} herstellen` : 'Verbinding van bedrijfskaart repareren'),
                 subtitle: 'Werkruimte > Bedrijfspassen',
             },
-            fixAccountingConnection: {title: ({integrationName}: {integrationName: string}) => `Verbinding met ${integrationName} repareren`, subtitle: 'Werkruimte > Boekhouding'},
+            fixAccountingConnection: {
+                title: ({integrationName}: {integrationName: string}) => `Verbinding met ${integrationName} repareren`,
+                defaultSubtitle: 'Werkruimte > Boekhouding',
+                subtitle: ({policyName}: {policyName: string}) => `${policyName} > Boekhouding`,
+            },
         },
         announcements: 'Aankondigingen',
         discoverSection: {

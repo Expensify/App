@@ -1000,7 +1000,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: ({feedName}: {feedName: string}) => (feedName ? `Napraw połączenie karty firmowej ${feedName}` : 'Napraw połączenie karty firmowej'),
                 subtitle: 'Workspace > Karty firmowe',
             },
-            fixAccountingConnection: {title: ({integrationName}: {integrationName: string}) => `Napraw połączenie ${integrationName}`, subtitle: 'Przestrzeń robocza > Księgowość'},
+            fixAccountingConnection: {
+                title: ({integrationName}: {integrationName: string}) => `Napraw połączenie ${integrationName}`,
+                defaultSubtitle: 'Przestrzeń robocza > Księgowość',
+                subtitle: ({policyName}: {policyName: string}) => `${policyName} > Księgowość`,
+            },
         },
         announcements: 'Ogłoszenia',
         discoverSection: {

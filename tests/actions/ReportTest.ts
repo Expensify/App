@@ -3920,17 +3920,23 @@ describe('actions/Report', () => {
     });
 
     describe('explain', () => {
+        const TEST_USER_ACCOUNT_ID = 1;
+        const TEST_USER_LOGIN = 'test@domain.com';
+        const PARENT_REPORT_ID = '1';
+        const CHILD_REPORT_ID = '2';
+        const REPORT_ACTION_ID = 1;
+        const MOCK_NEW_THREAD_REPORT_ID = '9876';
+
         beforeEach(() => {
             jest.spyOn(global, 'requestAnimationFrame').mockImplementation((cb: FrameRequestCallback) => {
                 cb(0);
                 return 0;
             });
         });
-        const TEST_USER_ACCOUNT_ID = 1;
-        const TEST_USER_LOGIN = 'test@domain.com';
-        const PARENT_REPORT_ID = '1';
-        const CHILD_REPORT_ID = '2';
-        const REPORT_ACTION_ID = 1;
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
 
         it('should return early if originalReport is not provided', () => {
             const REPORT_ACTION: OnyxTypes.ReportAction = {
@@ -3986,7 +3992,7 @@ describe('actions/Report', () => {
             Report.explain(undefined, PARENT_REPORT, REPORT_ACTION, TestHelper.translateLocal, TEST_USER_ACCOUNT_ID, CONST.DEFAULT_TIME_ZONE);
             await waitForBatchedUpdates();
 
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute('9876'));
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(MOCK_NEW_THREAD_REPORT_ID));
         });
 
         it('should handle explain with default timezone parameter', async () => {

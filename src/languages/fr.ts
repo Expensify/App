@@ -1004,7 +1004,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: ({feedName}: {feedName: string}) => (feedName ? `Corriger la connexion de la carte d'entreprise ${feedName}` : 'Corriger la connexion de la carte entreprise'),
                 subtitle: 'Espace de travail > Cartes d’entreprise',
             },
-            fixAccountingConnection: {title: ({integrationName}: {integrationName: string}) => `Corriger la connexion ${integrationName}`, subtitle: 'Espace de travail > Comptabilité'},
+            fixAccountingConnection: {
+                title: ({integrationName}: {integrationName: string}) => `Corriger la connexion ${integrationName}`,
+                defaultSubtitle: 'Espace de travail > Comptabilité',
+                subtitle: ({policyName}: {policyName: string}) => `${policyName} > Comptabilité`,
+            },
         },
         announcements: 'Annonces',
         discoverSection: {

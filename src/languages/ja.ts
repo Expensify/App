@@ -995,7 +995,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: ({feedName}: {feedName: string}) => (feedName ? `${feedName} 会社カード接続を修正` : '法人クレジットカードの接続を修正'),
                 subtitle: 'ワークスペース > 会社カード',
             },
-            fixAccountingConnection: {title: ({integrationName}: {integrationName: string}) => `${integrationName} 接続を修正`, subtitle: 'ワークスペース > 会計'},
+            fixAccountingConnection: {
+                title: ({integrationName}: {integrationName: string}) => `${integrationName} 接続を修正`,
+                defaultSubtitle: 'ワークスペース > 会計',
+                subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会計`,
+            },
         },
         announcements: 'お知らせ',
         discoverSection: {
