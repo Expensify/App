@@ -11,7 +11,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import type {ListItem, SelectionListHandle} from '@components/SelectionListWithSections/types';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -22,7 +21,8 @@ import {fetchPerDiemRates} from '@libs/actions/Policy/PerDiem';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPerDiemCustomUnit, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getPolicyExpenseChat} from '@libs/ReportUtils';
+import {findSelfDMReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import variables from '@styles/variables';
 import {
     clearSubrates,
@@ -73,7 +73,9 @@ function IOURequestStepDestination({
     const {top} = useSafeAreaInsets();
     const customUnit = getPerDiemCustomUnit(policy);
     const selectedDestination = transaction?.comment?.customUnit?.customUnitRateID;
-    const defaultExpensePolicy = useDefaultExpensePolicy();
+    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`, {canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses']);
     const {translate} = useLocalize();
@@ -97,21 +99,27 @@ function IOURequestStepDestination({
     };
 
     const updateDestination = (destination: ListItem & {currency: string}) => {
+        if (openedFromStartPage && policy?.id && shouldRestrictUserBillableActions(policy.id)) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+            return;
+        }
+
         if (isEmptyObject(customUnit)) {
             return;
         }
-        let targetReport: OnyxEntry<Report> = explicitPolicyID && transaction?.isFromGlobalCreate ? policyExpenseReport : report;
+        const targetReport: OnyxEntry<Report> = explicitPolicyID && transaction?.isFromGlobalCreate ? policyExpenseReport : report;
         if (selectedDestination !== destination.keyForList) {
             if (openedFromStartPage) {
-                if (iouType === CONST.IOU.TYPE.CREATE && transaction?.isFromGlobalCreate) {
-                    targetReport = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
-                }
                 setTransactionReport(transactionID, {reportID: targetReport?.reportID}, true);
-                setMoneyRequestParticipantsFromReport(transactionID, targetReport, accountID);
+                if (iouType === CONST.IOU.TYPE.TRACK) {
+                    setMoneyRequestParticipantsFromReport(transactionID, selfDMReport, currentUserPersonalDetails.accountID, false);
+                } else {
+                    setMoneyRequestParticipantsFromReport(transactionID, targetReport, accountID);
+                }
                 setCustomUnitID(transactionID, customUnit.customUnitID);
                 setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '', undefined);
             }
-            setCustomUnitRateID(transactionID, destination.keyForList ?? '', transaction, policy);
+            setCustomUnitRateID(transactionID, destination.keyForList ?? '');
             setMoneyRequestCurrency(transactionID, destination.currency);
             clearSubrates(transactionID);
         }
@@ -201,6 +209,7 @@ function IOURequestStepDestination({
                                     }}
                                     text={translate('workspace.perDiem.editPerDiemRates')}
                                     pressOnEnter
+                                    sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.EDIT_PER_DIEM_RATES_BUTTON}
                                 />
                             </FixedFooter>
                         )}
