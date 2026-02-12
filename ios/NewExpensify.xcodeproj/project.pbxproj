@@ -27,7 +27,6 @@
 		47347EFF2DA5664A00633001 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47347EFE2DA5664A00633001 /* AppDelegate.swift */; };
 		524F95D57E75496EBD14B0AA /* ExpensifyMono-BoldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = A96F65C6624044318D21DAB1 /* ExpensifyMono-BoldItalic.otf */; };
 		59164B2F48344A53975791A9 /* CustomEmojiNativeFont.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B42BBCC5FB8E4E40B1A9202C /* CustomEmojiNativeFont.ttf */; };
-		7041848526A8E47D00E09F4D /* RCTStartupTimer.m in Sources */ = {isa = PBXBuildFile; fileRef = 7041848426A8E47D00E09F4D /* RCTStartupTimer.m */; };
 		70CF6E82262E297300711ADC /* BootSplash.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 70CF6E81262E297300711ADC /* BootSplash.storyboard */; };
 		7F9DD8DA2B2A445B005E3AFA /* ExpError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F9DD8D92B2A445B005E3AFA /* ExpError.swift */; };
 		7FB680AE2CC94EDA006693CF /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 7FB680AD2CC94EDA006693CF /* GoogleService-Info.plist */; };
@@ -118,8 +117,6 @@
 		67D096CE2C3CB125AAC20F11 /* Pods-NotificationServiceExtension.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NotificationServiceExtension.debug.xcconfig"; path = "Target Support Files/Pods-NotificationServiceExtension/Pods-NotificationServiceExtension.debug.xcconfig"; sourceTree = "<group>"; };
 		6E887A8466FD8FE3B8A0F396 /* Pods_NewExpensify.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_NewExpensify.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		6FFAB4E4A2A56FFA9B6357B3 /* Pods-NewExpensify.debugdevelopment.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.debugdevelopment.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.debugdevelopment.xcconfig"; sourceTree = "<group>"; };
-		7041848326A8E40900E09F4D /* RCTStartupTimer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RCTStartupTimer.h; path = NewExpensify/RCTStartupTimer.h; sourceTree = "<group>"; };
-		7041848426A8E47D00E09F4D /* RCTStartupTimer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = RCTStartupTimer.m; path = NewExpensify/RCTStartupTimer.m; sourceTree = "<group>"; };
 		70CF6E81262E297300711ADC /* BootSplash.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = BootSplash.storyboard; path = NewExpensify/BootSplash.storyboard; sourceTree = "<group>"; };
 		7F3784A22C75103800063508 /* NewExpensifyDebugDevelopment.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = NewExpensifyDebugDevelopment.entitlements; path = NewExpensify/NewExpensifyDebugDevelopment.entitlements; sourceTree = "<group>"; };
 		7F3784A32C75129D00063508 /* NewExpensifyDebugAdHoc.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = NewExpensifyDebugAdHoc.entitlements; path = NewExpensify/NewExpensifyDebugAdHoc.entitlements; sourceTree = "<group>"; };
@@ -279,8 +276,6 @@
 				F0C450E92705020500FD2970 /* colors.json */,
 				DD7904292792E76D004484B4 /* RCTBootSplash.h */,
 				DD79042A2792E76D004484B4 /* RCTBootSplash.mm */,
-				7041848326A8E40900E09F4D /* RCTStartupTimer.h */,
-				7041848426A8E47D00E09F4D /* RCTStartupTimer.m */,
 				18D050DF262400AF000D658B /* BridgingFile.swift */,
 				13B07FAE1A68108700A75B9A /* NewExpensify */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
@@ -705,13 +700,11 @@
 				"${PODS_CONFIGURATION_BUILD_DIR}/EXConstants/EXConstants.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/EXConstants/ExpoConstants_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/EXTaskManager/ExpoTaskManager_privacy.bundle",
-				"${PODS_CONFIGURATION_BUILD_DIR}/FirebaseABTesting/FirebaseABTesting_Privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/FirebaseCore/FirebaseCore_Privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/FirebaseCoreExtension/FirebaseCoreExtension_Privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/FirebaseCoreInternal/FirebaseCoreInternal_Privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/FirebaseCrashlytics/FirebaseCrashlytics_Privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/FirebaseInstallations/FirebaseInstallations_Privacy.bundle",
-				"${PODS_CONFIGURATION_BUILD_DIR}/FirebaseRemoteConfig/FirebaseRemoteConfig_Privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/GTMAppAuth/GTMAppAuth_Privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/GTMSessionFetcher/GTMSessionFetcher_Core_Privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/GoogleDataTransport/GoogleDataTransport_Privacy.bundle",
@@ -740,13 +733,11 @@
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/EXConstants.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ExpoConstants_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ExpoTaskManager_privacy.bundle",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/FirebaseABTesting_Privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/FirebaseCore_Privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/FirebaseCoreExtension_Privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/FirebaseCoreInternal_Privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/FirebaseCrashlytics_Privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/FirebaseInstallations_Privacy.bundle",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/FirebaseRemoteConfig_Privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/GTMAppAuth_Privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/GTMSessionFetcher_Core_Privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/GoogleDataTransport_Privacy.bundle",
@@ -787,6 +778,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
+			shellScript = "";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -802,7 +794,6 @@
 				47347EFF2DA5664A00633001 /* AppDelegate.swift in Sources */,
 				0F5E5350263B73FD004CA14F /* EnvironmentChecker.m in Sources */,
 				374FB8D728A133FE000D84EF /* OriginImageRequestHandler.mm in Sources */,
-				7041848526A8E47D00E09F4D /* RCTStartupTimer.m in Sources */,
 				DD79042B2792E76D004484B4 /* RCTBootSplash.mm in Sources */,
 				DDCB2E57F334C143AC462B43 /* ExpoModulesProvider.swift in Sources */,
 			);

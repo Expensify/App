@@ -472,6 +472,7 @@ function MoneyRequestParticipantsSelector({
                         pressOnEnter
                         large
                         isDisabled={shouldShowSplitBillErrorMessage}
+                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.PARTICIPANTS_NEXT_BUTTON}
                     />
                 )}
                 {isCategorizeOrShareAction && (
@@ -481,6 +482,7 @@ function MoneyRequestParticipantsSelector({
                         onPress={() => onFinish()}
                         pressOnEnter
                         large
+                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.PARTICIPANTS_NEW_WORKSPACE_BUTTON}
                     />
                 )}
             </>
@@ -526,6 +528,7 @@ function MoneyRequestParticipantsSelector({
                 icon={icons.UserPlus}
                 onPress={goToSettings}
                 shouldShowRightIcon
+                sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.PARTICIPANTS_IMPORT_CONTACTS_ITEM}
             />
         );
     }, [icons.UserPlus, contactState?.showImportUI, showImportContacts, translate]);

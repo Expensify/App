@@ -55,7 +55,7 @@ const useSearchTypeMenuSections = () => {
 
     const {defaultCardFeed, cardFeedsByPolicy} = useCardFeedsForDisplay();
 
-    const icons = useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']);
+    const icons = useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']);
     const {isOffline} = useNetwork();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: true});
     const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: currentUserLoginAndAccountIDSelector, canBeMissing: false});
