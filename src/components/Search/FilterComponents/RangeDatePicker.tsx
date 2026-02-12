@@ -50,29 +50,29 @@ function RangeDatePicker({fromValue, toValue, onFromSelected, onToSelected, shou
         <>
             <View style={[!shouldStack && styles.flexRow, styles.mh5, styles.mt3]}>
                 <View style={[!shouldStack && styles.flex1, !shouldStack && styles.mr2]}>
-                    <View style={[styles.borderedContentCard, !isSmallScreenWidth ? styles.p4 : styles.p3]}>
-                        <Text style={[styles.textLabelSupporting, styles.mb2, styles.ph3, styles.pt1]}>{translate('common.from')}</Text>
+                    <View style={[styles.borderedContentCard]}>
+                        <Text style={[styles.textLabelSupporting, styles.mb2, styles.ph4, styles.pt4]}>{translate('common.from')}</Text>
                         <CalendarPicker
                             value={fromValue}
                             onSelected={onFromSelected}
                             minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                             maxDate={toValue ? new Date(toValue) : CONST.CALENDAR_PICKER.MAX_DATE}
                             DayComponent={GreenSelectedDay}
-                            headerContainerStyle={styles.ph3}
+                            headerContainerStyle={styles.ph4}
                         />
                     </View>
                 </View>
 
                 <View style={[!shouldStack && styles.flex1, !shouldStack && styles.ml2, shouldStack && styles.mt4]}>
-                    <View style={[styles.borderedContentCard, !isSmallScreenWidth ? styles.p4 : styles.p3]}>
-                        <Text style={[styles.textLabelSupporting, styles.mb2, styles.ph3, styles.pt1]}>{translate('common.to')}</Text>
+                    <View style={[styles.borderedContentCard]}>
+                        <Text style={[styles.textLabelSupporting, styles.mb2, styles.ph4, styles.pt4]}>{translate('common.to')}</Text>
                         <CalendarPicker
                             value={toValue}
                             onSelected={onToSelected}
                             minDate={fromValue ? new Date(fromValue) : CONST.CALENDAR_PICKER.MIN_DATE}
                             maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                             DayComponent={GreenSelectedDay}
-                            headerContainerStyle={styles.ph3}
+                            headerContainerStyle={styles.ph4}
                         />
                     </View>
                 </View>

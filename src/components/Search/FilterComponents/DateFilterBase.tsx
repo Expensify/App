@@ -179,9 +179,9 @@ function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
                     forceVerticalCalendars
                 />
                 {selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE && hasRangeInput && (
-                    <Text style={[styles.textMicroSupporting, styles.mh5, styles.mt3]}>
+                    <Text style={[styles.textLabelSupporting, styles.mh5, styles.mt2]}>
                         {`${translate('common.range')}: `}
-                        <Text style={[styles.textMicroSupporting, styles.textStrong]}>{rangeDisplayText}</Text>
+                        <Text style={[styles.textLabel]}>{rangeDisplayText}</Text>
                     </Text>
                 )}
                 <View style={styles.flexGrow1} />

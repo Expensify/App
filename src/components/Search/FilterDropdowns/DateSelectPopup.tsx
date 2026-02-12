@@ -228,7 +228,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
                             {rangeText ? (
                                 <>
                                     {`${translate('common.range')}: `}
-                                    <Text style={[styles.textLabelSupporting, styles.textStrong]}>{rangeText}</Text>
+                                    <Text style={[styles.textLabel]}>{rangeText}</Text>
                                 </>
                             ) : null}
                         </Text>
@@ -291,9 +291,9 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
                     onDateValuesChange={setTrackedDateValues}
                 />
                 {!!rangeText && selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE && (
-                    <Text style={[styles.textMicroSupporting, styles.ph5, styles.mt4, styles.textAlignCenter]}>
+                    <Text style={[styles.textLabelSupporting, styles.ph5, styles.mt2, styles.textAlignCenter]}>
                         {`${translate('common.range')}: `}
-                        <Text style={[styles.textMicroSupporting, styles.textStrong]}>{rangeText}</Text>
+                        <Text style={[styles.textLabel]}>{rangeText}</Text>
                     </Text>
                 )}
             </ScrollView>
