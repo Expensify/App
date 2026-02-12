@@ -92,7 +92,10 @@ function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
 
         if (selectedDateModifier) {
             searchDatePresetFilterBaseRef.current.clearDateValueOfSelectedDateModifier();
-            setSelectedDateModifier(null);
+            // Update tracked state to reflect cleared values
+            const clearedDateValues = searchDatePresetFilterBaseRef.current.getDateValues();
+            setTrackedDateValues(clearedDateValues);
+            setShouldShowRangeError(false);
             return;
         }
 

@@ -117,7 +117,10 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
 
         if (selectedDateModifier) {
             searchDatePresetFilterBaseRef.current.clearDateValueOfSelectedDateModifier();
-            clearSelection();
+            // Update tracked state to reflect cleared values
+            const clearedDateValues = searchDatePresetFilterBaseRef.current.getDateValues();
+            setTrackedDateValues(clearedDateValues);
+            setShouldShowRangeError(false);
             return;
         }
 
@@ -130,7 +133,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
             [CONST.SEARCH.DATE_MODIFIERS.RANGE]: undefined,
         });
         closeOverlay();
-    }, [clearSelection, closeOverlay, onChange, selectedDateModifier]);
+    }, [closeOverlay, onChange, selectedDateModifier]);
 
     const isInRangeMode = selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE;
     const rangeFrom = trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER];
