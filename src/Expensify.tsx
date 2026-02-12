@@ -101,6 +101,7 @@ function Expensify() {
     const linkingChangeListener = useRef<NativeEventSubscription | null>(null);
     const hasLoggedDelegateMismatchRef = useRef(false);
     const hasHandledMissingIsLoadingAppRef = useRef(false);
+    const hasProcessedDeepLinkRef = useRef(false);
     const [isNavigationReady, setIsNavigationReady] = useState(false);
     const [isOnyxMigrated, setIsOnyxMigrated] = useState(false);
     const {splashScreenState} = useSplashScreenState();
@@ -332,39 +333,58 @@ function Expensify() {
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, []);
 
+    // Check if there's a deep link URL immediately on mount. This does NOT need session state.
+    // If there's no URL, we can call doneCheckingPublicRoom() right away to unblock the splash screen.
     useEffect(() => {
-        if (isLoadingOnyxValue(sessionMetadata)) {
+        Linking.getInitialURL()
+            .then((url) => {
+                setInitialUrl(url as Route);
+
+                if (!url) {
+                    Report.doneCheckingPublicRoom();
+                    endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.DEEP_LINK);
+                }
+            })
+            .catch((error) => {
+                Log.alert('[Deep link] getInitialURL failed', {error: String(error)});
+                Report.doneCheckingPublicRoom();
+                endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.DEEP_LINK);
+            });
+    }, []);
+
+    // Process the deep link URL once session state is known. openReportFromDeepLink needs isAuthenticated
+    // to decide how to handle the URL (public room vs authenticated report).
+    useEffect(() => {
+        if (isLoadingOnyxValue(sessionMetadata) || !initialUrl || hasProcessedDeepLinkRef.current) {
             return;
         }
-        // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
-        Linking.getInitialURL().then((url) => {
-            setInitialUrl(url as Route);
 
-            if (url) {
-                if (conciergeReportID === undefined) {
-                    Log.info('[Deep link] conciergeReportID is undefined when processing initial URL', false, {url});
-                }
-                if (introSelected === undefined) {
-                    Log.info('[Deep link] introSelected is undefined when processing initial URL', false, {url});
-                }
-                openReportFromDeepLink(
-                    url,
-                    currentOnboardingPurposeSelected,
-                    currentOnboardingCompanySize,
-                    onboardingInitialPath,
-                    allReports,
-                    isAuthenticated,
-                    introSelected,
-                    conciergeReportID,
-                );
-            } else {
-                Report.doneCheckingPublicRoom();
-            }
+        hasProcessedDeepLinkRef.current = true;
 
-            endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.DEEP_LINK);
-        });
+        if (conciergeReportID === undefined) {
+            Log.info('[Deep link] conciergeReportID is undefined when processing initial URL', false, {url: initialUrl});
+        }
+        if (introSelected === undefined) {
+            Log.info('[Deep link] introSelected is undefined when processing initial URL', false, {url: initialUrl});
+        }
 
-        // Open chat report from a deep link (only mobile native)
+        openReportFromDeepLink(
+            initialUrl,
+            currentOnboardingPurposeSelected,
+            currentOnboardingCompanySize,
+            onboardingInitialPath,
+            allReports,
+            isAuthenticated,
+            introSelected,
+            conciergeReportID,
+        );
+
+        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.DEEP_LINK);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want this to run once when session is loaded and initialUrl is set
+    }, [sessionMetadata?.status, initialUrl]);
+
+    // Open chat report from a deep link (only mobile native)
+    useEffect(() => {
         linkingChangeListener.current = Linking.addEventListener('url', (state) => {
             if (conciergeReportID === undefined) {
                 Log.info('[Deep link] conciergeReportID is undefined when processing URL change', false, {url: state.url});
@@ -389,7 +409,7 @@ function Expensify() {
             linkingChangeListener.current?.remove();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want this effect to re-run when conciergeReportID changes
-    }, [sessionMetadata?.status, conciergeReportID, introSelected]);
+    }, [conciergeReportID, introSelected]);
 
     useLayoutEffect(() => {
         if (!isNavigationReady || !lastRoute) {
