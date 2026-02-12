@@ -20,7 +20,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useSingleExecution from '@hooks/useSingleExecution';
-import useStickySearchFilters from '@hooks/useStickySearchFilters';
 import useSuggestedSearchDefaultNavigation from '@hooks/useSuggestedSearchDefaultNavigation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setSearchContext} from '@libs/actions/Search';
@@ -28,13 +27,12 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, shouldSkipSuggestedSearchNavigation as shouldSkipSuggestedSearchNavigationForQuery} from '@libs/SearchQueryUtils';
 import type {SavedSearchMenuItem} from '@libs/SearchUIUtils';
-import {createBaseSavedSearchMenuItem, getActiveSearchItemIndex, getOverflowMenu as getOverflowMenuUtil, updateQueryStringOnSearchTypeChange} from '@libs/SearchUIUtils';
+import {createBaseSavedSearchMenuItem, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
 import SuggestedSearchSkeleton from './SuggestedSearchSkeleton';
 
@@ -227,12 +225,15 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         [expensifyIcons.Bookmark, styles.sectionMenuItem],
     );
 
-    const [activeItemIndex, isExploreSectionActive] = useMemo(
-        () => getActiveSearchItemIndex(flattenedMenuItems, similarSearchHash, isSavedSearchActive, queryJSON?.type),
-        [similarSearchHash, isSavedSearchActive, flattenedMenuItems, queryJSON?.type],
-    );
+    const activeItemIndex = useMemo(() => {
+        // If we have a suggested search, then none of the menu items are active
+        if (isSavedSearchActive) {
+            return -1;
+        }
 
-    const allSearchAdvancedFilters = useStickySearchFilters(isExploreSectionActive && !shouldShowSuggestedSearchSkeleton);
+        return flattenedMenuItems.findIndex((item) => item.similarSearchHash === similarSearchHash);
+    }, [similarSearchHash, isSavedSearchActive, flattenedMenuItems]);
+
     return (
         <>
             {CreateReportConfirmationModal}
@@ -264,12 +265,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                             const onPress = singleExecution(() => {
                                                 clearSelectedTransactions();
                                                 setSearchContext(false);
-                                                let queryString = item.searchQuery;
-
-                                                if (section.translationPath === 'common.explore' && !isEmptyObject(allSearchAdvancedFilters)) {
-                                                    queryString = updateQueryStringOnSearchTypeChange(item.type, allSearchAdvancedFilters, queryJSON);
-                                                }
-                                                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
+                                                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.searchQuery}));
                                             });
 
                                             return (

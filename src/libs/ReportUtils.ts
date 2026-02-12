@@ -154,7 +154,6 @@ import {
     getForwardsToAccount,
     getManagerAccountEmail,
     getManagerAccountID,
-    getPolicyEmployeeListByIdWithoutCurrentUser,
     getPolicyNameByID,
     getPolicyRole,
     getRuleApprovers,
@@ -1991,13 +1990,6 @@ function shouldEnableNegative(report: OnyxEntry<Report>, policy?: OnyxEntry<Poli
 }
 
 /**
- * Given an array of reports, return them filtered by a policyID and policyMemberAccountIDs.
- */
-function filterReportsByPolicyIDAndMemberAccountIDs(reports: Array<OnyxEntry<Report>>, policyMemberAccountIDs: number[] = [], policyID?: string) {
-    return reports.filter((report) => !!report && doesReportBelongToWorkspace(report, policyMemberAccountIDs, policyID, conciergeReportIDOnyxConnect ?? ''));
-}
-
-/**
  * Returns true if report is still being processed
  */
 function isProcessingReport(report: OnyxEntry<Report>): boolean {
@@ -2253,8 +2245,10 @@ function hasExpensifyGuidesEmails(accountIDs: number[]): boolean {
 
 function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, reportMetadata: OnyxCollection<ReportMetadata>): OnyxEntry<Report> {
     const filteredReports = reports.filter((report) => {
-        const shouldKeep = !isChatThread(report) || !isHiddenForCurrentUser(report);
-        return shouldKeep && !!report?.reportID && !!(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`]?.lastVisitTime ?? report?.lastReadTime);
+        if (!report?.isPinned && isHiddenForCurrentUser(report)) {
+            return false;
+        }
+        return !!report?.reportID && !!(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`]?.lastVisitTime ?? report?.lastReadTime);
     });
     return lodashMaxBy(filteredReports, (a) => [reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${a?.reportID}`]?.lastVisitTime ?? '', a?.lastReadTime ?? '']);
 }
@@ -2263,36 +2257,17 @@ function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, reportM
  * This function is used to find the last accessed report and we don't need to subscribe the data in the UI.
  * So please use `Onyx.connectWithoutView()` to get the necessary data when we remove the `Onyx.connect()`
  */
-function findLastAccessedReport(
-    ignoreDomainRooms: boolean,
-    openOnAdminRoom = false,
-    policyID?: string,
-    excludeReportID?: string,
-    archivedReportsIdSet?: ArchivedReportsIDSet,
-): OnyxEntry<Report> {
-    // If it's the user's first time using New Expensify, then they could either have:
-    //   - just a Concierge report, if so we'll return that
-    //   - their Concierge report, and a separate report that must have deeplinked them to the app before they created their account.
-    // If it's the latter, we'll use the deeplinked report over the Concierge report,
-    // since the Concierge report would be incorrectly selected over the deep-linked report in the logic below.
-
-    const policyMemberAccountIDs = getPolicyEmployeeListByIdWithoutCurrentUser(allPolicies, policyID, currentUserAccountID);
-
+function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = false, excludeReportID?: string, archivedReportsIdSet?: ArchivedReportsIDSet): OnyxEntry<Report> {
     let reportsValues = Object.values(allReports ?? {});
 
-    if (!!policyID || policyMemberAccountIDs.length > 0) {
-        reportsValues = filterReportsByPolicyIDAndMemberAccountIDs(reportsValues, policyMemberAccountIDs, policyID);
-    }
-
-    let adminReport: OnyxEntry<Report>;
     if (openOnAdminRoom) {
-        adminReport = reportsValues.find((report) => {
+        const adminReport = reportsValues.find((report) => {
             const chatType = getChatType(report);
             return chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
         });
-    }
-    if (adminReport) {
-        return adminReport;
+        if (adminReport) {
+            return adminReport;
+        }
     }
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -2327,7 +2302,8 @@ function findLastAccessedReport(
     // Return the most recently visited report. Get the last read report from the report metadata.
     // If allReportMetadata is empty we'll return most recent report owned by user
     if (isEmptyObject(allReportMetadata)) {
-        const ownedReports = reportsValues.filter((report) => report?.ownerAccountID === currentUserAccountID);
+        const visibleReports = reportsValues.filter((report) => !!report?.isPinned || !isHiddenForCurrentUser(report));
+        const ownedReports = visibleReports.filter((report) => report?.ownerAccountID === currentUserAccountID);
         if (ownedReports.length > 0) {
             return lodashMaxBy(ownedReports, (a) => a?.lastReadTime ?? '');
         }
@@ -3514,8 +3490,7 @@ function getParticipantsAccountIDsForDisplay(
 }
 
 function getParticipantsList(report: Report, personalDetails: OnyxEntry<PersonalDetailsList>, isRoomMembersList = false, reportMetadata: OnyxEntry<ReportMetadata> = undefined): number[] {
-    const isReportGroupChat = isGroupChat(report);
-    const shouldExcludeHiddenParticipants = !isReportGroupChat && !isInvoiceReport(report) && !isMoneyRequestReport(report) && !isMoneyRequest(report);
+    const shouldExcludeHiddenParticipants = !isGroupChat(report) && !isInvoiceReport(report) && !isMoneyRequestReport(report) && !isMoneyRequest(report) && !isPolicyExpenseChat(report);
     const chatParticipants = getParticipantsAccountIDsForDisplay(report, isRoomMembersList || shouldExcludeHiddenParticipants, false, false, reportMetadata);
 
     return chatParticipants.filter((accountID) => {
@@ -9433,7 +9408,17 @@ function reasonForReportToBeInOptionList({
     }
 
     // Hide chats between two users that haven't been commented on from the LNH
-    if (excludeEmptyChats && isEmptyChat && isChatReport(report) && !isPolicyExpenseChat(report) && !isTripRoom(report) && !isSystemChat(report) && canHideReport) {
+    const isSelfDMWithVisiblePreference = isSelfDM(report) && !isHiddenForCurrentUser(report);
+    if (
+        excludeEmptyChats &&
+        isEmptyChat &&
+        isChatReport(report) &&
+        !isPolicyExpenseChat(report) &&
+        !isTripRoom(report) &&
+        !isSystemChat(report) &&
+        !isSelfDMWithVisiblePreference &&
+        canHideReport
+    ) {
         return null;
     }
 
@@ -12100,7 +12085,7 @@ function getFieldViolationTranslation(reportField: PolicyReportField, violation?
     switch (violation) {
         case 'fieldRequired':
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal('reportViolations.fieldRequired', {fieldName: reportField.name});
+            return translateLocal('reportViolations.fieldRequired', reportField.name);
         default:
             return '';
     }

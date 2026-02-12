@@ -280,14 +280,8 @@ const ROUTES = {
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/subscription', backTo),
     },
     SETTINGS_SUBSCRIPTION_SIZE: {
-        route: 'settings/subscription/subscription-size/:subPage?',
-        getRoute: (canChangeSize?: 0 | 1, subPage?: string) => {
-            const baseRoute = 'settings/subscription/subscription-size';
-            const subPageParam = subPage ? `/${subPage}` : '';
-            const canChangeSizeParam = canChangeSize !== undefined ? `?canChangeSize=${canChangeSize as number}` : '';
-
-            return `${baseRoute}${subPageParam}${canChangeSizeParam}` as const;
-        },
+        route: 'settings/subscription/subscription-size',
+        getRoute: (canChangeSize: 0 | 1) => `settings/subscription/subscription-size?canChangeSize=${canChangeSize as number}` as const,
     },
     SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS: 'settings/subscription/details',
     SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD: 'settings/subscription/add-payment-card',
@@ -1101,15 +1095,15 @@ const ROUTES = {
             getUrlWithBackToParam(`${action as string}/${iouType as string}/report/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo),
     },
     MONEY_REQUEST_RECEIPT_PREVIEW: {
-        route: ':action/:iouType/receipt/:transactionID/:reportID',
-        getRoute: (reportID: string, transactionID: string, action: IOUAction, iouType: IOUType) => {
+        route: ':action/:iouType/receipt/:transactionID/:reportID/:imageType?',
+        getRoute: (reportID: string, transactionID: string, action: IOUAction, iouType: IOUType, imageType?: OdometerImageType) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the MONEY_REQUEST_RECEIPT_PREVIEW route');
             }
             if (!transactionID) {
                 Log.warn('Invalid transactionID is used to build the MONEY_REQUEST_RECEIPT_PREVIEW route');
             }
-            return `${action}/${iouType}/receipt/${transactionID}/${reportID}?readonly=false` as const;
+            return `${action}/${iouType}/receipt/${transactionID}/${reportID}?readonly=false${imageType ? `&imageType=${imageType}` : ''}` as const;
         },
     },
     MONEY_REQUEST_EDIT_REPORT: {
@@ -1450,9 +1444,9 @@ const ROUTES = {
             `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new${backToReport ? `/${backToReport}` : ''}/distance-odometer` as const,
     },
     ODOMETER_IMAGE: {
-        route: ':action/:iouType/odometer-image/:transactionID/:readingType',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, readingType: OdometerImageType) =>
-            `${action as string}/${iouType as string}/odometer-image/${transactionID}/${readingType}` as const,
+        route: ':action/:iouType/odometer-image/:transactionID/:reportID/:imageType',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, imageType: OdometerImageType) =>
+            `${action as string}/${iouType as string}/odometer-image/${transactionID}/${reportID}/${imageType}` as const,
     },
     IOU_SEND_ADD_BANK_ACCOUNT: 'pay/new/add-bank-account',
     IOU_SEND_ADD_DEBIT_CARD: 'pay/new/add-debit-card',

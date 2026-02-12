@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {useFocusEffect} from '@react-navigation/native';
 import reportsSelector from '@selectors/Attributes';
-import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -93,11 +92,7 @@ function IOURequestStepDistanceManual({
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
 
-    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
-
     const isEditing = action === CONST.IOU.ACTION.EDIT;
-    const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
-    const currentTransaction = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const isCreatingNewRequest = !(backTo || isEditing);
 
     const isTransactionDraft = shouldUseTransactionDraft(action, iouType);
@@ -158,13 +153,6 @@ function IOURequestStepDistanceManual({
             setMoneyRequestDistance(transactionID, distanceAsFloat, isTransactionDraft);
 
             if (action === CONST.IOU.ACTION.EDIT) {
-                // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
-                if (isEditingSplit && transaction) {
-                    setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {distance: distanceAsFloat}, policy);
-                    Navigation.goBack(backTo);
-                    return;
-                }
-
                 if (distance !== distanceAsFloat) {
                     updateMoneyRequestDistance({
                         transactionID: transaction?.transactionID,
@@ -249,10 +237,8 @@ function IOURequestStepDistanceManual({
             introSelected,
             activePolicyID,
             reportNameValuePairs?.private_isArchived,
-            isEditingSplit,
-            distance,
-            splitDraftTransaction,
             policyForMovingExpenses,
+            distance,
             parentReport,
             policyTags,
             policyCategories,
@@ -330,6 +316,7 @@ function IOURequestStepDistanceManual({
                         onPress={submitAndNavigateToNextPage}
                         text={buttonText}
                         testID="next-button"
+                        sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.DISTANCE_MANUAL_NEXT_BUTTON}
                     />
                 }
             />

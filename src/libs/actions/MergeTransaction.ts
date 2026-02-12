@@ -18,15 +18,7 @@ import type {MergeFieldKey, MergeTransactionUpdateValues} from '@libs/MergeTrans
 import Navigation from '@libs/Navigation/Navigation';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getIOUActionForReportID, getTrackExpenseActionableWhisper} from '@libs/ReportActionsUtils';
-import {
-    findSelfDMReportID,
-    getReportOrDraftReport,
-    getReportTransactions,
-    getTransactionDetails,
-    isCurrentUserSubmitter,
-    isMoneyRequestReportEligibleForMerge,
-    isReportManager,
-} from '@libs/ReportUtils';
+import {getReportOrDraftReport, getReportTransactions, getTransactionDetails, isCurrentUserSubmitter, isMoneyRequestReportEligibleForMerge, isReportManager} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import {isDistanceRequest, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -306,6 +298,7 @@ type MergeTransactionRequestParams = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     isASAPSubmitBetaEnabled: boolean;
+    selfDMReport: OnyxEntry<Report>;
 };
 /**
  * Merges two transactions by updating the target transaction with selected fields and deleting the source transaction
@@ -325,6 +318,7 @@ function mergeTransactionRequest({
     currentUserAccountIDParam,
     currentUserEmailParam,
     isASAPSubmitBetaEnabled,
+    selfDMReport,
 }: MergeTransactionRequestParams) {
     // For both unreported expenses and expense reports, negate the display amount when storing
     // This preserves the user's chosen sign while following the storage convention
@@ -371,7 +365,7 @@ function mergeTransactionRequest({
 
     // Optimistic delete the source transaction and also delete its report if it was a single expense report
     const isUnreportedSourceTransaction = sourceTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-    const selfDMReportID = findSelfDMReportID();
+    const selfDMReportID = selfDMReport?.reportID;
 
     const sourceTransactionOptimisticData: OnyxUpdate[] = [];
     const sourceTransactionSuccessData: OnyxUpdate[] = [];
@@ -479,7 +473,7 @@ function mergeTransactionRequest({
             Log.warn("Can't find the iouAction for the transaction in the selfDM report.");
         } else {
             const {optimisticData, successData, failureData} = getDeleteTrackExpenseInformation(
-                selfDMReportID,
+                selfDMReport,
                 sourceTransaction.transactionID,
                 sourceIouAction,
                 false,

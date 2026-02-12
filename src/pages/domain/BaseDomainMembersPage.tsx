@@ -3,10 +3,9 @@ import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchBar from '@components/SearchBar';
-// eslint-disable-next-line no-restricted-imports
-import SelectionList from '@components/SelectionList';
 import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -62,6 +61,24 @@ type BaseDomainMembersPageProps = {
 
     /** Callback fired when the user dismisses an error message for a specific row */
     onDismissError?: (item: MemberOption) => void;
+
+    /** Allow multiple members to be selected at the same time. Defaults to false. */
+    canSelectMultiple?: boolean;
+
+    /** Stores list of selected members. Only works with canSelectMultiple === true. */
+    selectedMembers?: string[];
+
+    /** Setter for a list of selected members. Only works with canSelectMultiple === true. */
+    setSelectedMembers?: React.Dispatch<React.SetStateAction<string[]>>;
+
+    /** Whether the selection mode header should be shown (changes title and hides icon) */
+    useSelectionModeHeader?: boolean;
+
+    /** Custom back button press handler */
+    onBackButtonPress?: () => void;
+
+    /** Weather long press should enable selection mode on mobile */
+    turnOnSelectionModeOnLongPress?: boolean;
 };
 
 function BaseDomainMembersPage({
@@ -75,8 +92,14 @@ function BaseDomainMembersPage({
     getCustomRightElement,
     getCustomRowProps,
     onDismissError,
+    selectedMembers,
+    setSelectedMembers,
+    canSelectMultiple = false,
+    useSelectionModeHeader,
+    turnOnSelectionModeOnLongPress = false,
+    onBackButtonPress,
 }: BaseDomainMembersPageProps) {
-    const {formatPhoneNumber, localeCompare} = useLocalize();
+    const {formatPhoneNumber, localeCompare, translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
@@ -119,13 +142,42 @@ function BaseDomainMembersPage({
 
     const [inputValue, setInputValue, filteredData] = useSearchResults(data, filterMember, sortMembers);
 
+    const isUserToggleEnabled = setSelectedMembers && filteredData.length > 0;
+
+    const toggleAllUsers = isUserToggleEnabled
+        ? () => {
+              const enabledAccounts = filteredData.filter((member) => !member.isDisabled && !member.isDisabledCheckbox);
+              const enabledAccountIDs = enabledAccounts.map((member) => member.keyForList);
+              const everySelected = enabledAccountIDs.every((accountID) => selectedMembers?.includes(accountID));
+
+              if (everySelected) {
+                  setSelectedMembers((prevSelected) => prevSelected.filter((accountID) => !enabledAccountIDs.includes(accountID)));
+              } else {
+                  setSelectedMembers((prevSelected) => {
+                      const newSelected = new Set([...prevSelected, ...enabledAccountIDs]);
+                      return Array.from(newSelected);
+                  });
+              }
+          }
+        : undefined;
+
+    const toggleUser = isUserToggleEnabled
+        ? (member: MemberOption) => {
+              if (selectedMembers?.includes(member.keyForList)) {
+                  setSelectedMembers((prevSelected) => prevSelected.filter((accountID) => accountID !== member.keyForList));
+              } else {
+                  setSelectedMembers((prevSelected) => [...prevSelected, member.keyForList]);
+              }
+          }
+        : undefined;
+
     const getCustomListHeader = () => {
         if (filteredData.length === 0) {
             return null;
         }
         return (
             <CustomListHeader
-                canSelectMultiple={false}
+                canSelectMultiple={canSelectMultiple}
                 leftHeaderText={headerTitle}
             />
         );
@@ -150,36 +202,40 @@ function BaseDomainMembersPage({
                 testID={BaseDomainMembersPage.displayName}
             >
                 <HeaderWithBackButton
-                    title={headerTitle}
-                    onBackButtonPress={Navigation.goBack}
-                    icon={headerIcon}
+                    title={useSelectionModeHeader ? translate('common.selectMultiple') : headerTitle}
+                    onBackButtonPress={onBackButtonPress ?? Navigation.goBack}
+                    icon={!useSelectionModeHeader ? headerIcon : undefined}
                     shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldUseHeadlineHeader={!useSelectionModeHeader}
                 >
                     {!shouldUseNarrowLayout && !!headerContent && <View style={[styles.flexRow, styles.gap2]}>{headerContent}</View>}
                 </HeaderWithBackButton>
 
                 {shouldUseNarrowLayout && !!headerContent && <View style={[styles.pl5, styles.pr5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
 
-                <SelectionList
+                <SelectionListWithModal
                     data={filteredData}
                     shouldShowRightCaret
-                    canSelectMultiple={false}
                     style={{
                         containerStyle: styles.flex1,
-                        listHeaderWrapperStyle: [styles.ph9, styles.pv3, styles.pb5],
+                        listHeaderWrapperStyle: styles.baseListHeaderWrapperStyle,
                         listItemTitleContainerStyles: shouldUseNarrowLayout ? undefined : styles.pr3,
-                        listItemErrorRowStyles: [styles.ph4, styles.pb4],
+                        listItemErrorRowStyles: [styles.ph4, styles.pb2],
                     }}
                     ListItem={TableListItem}
                     onSelectRow={onSelectRow}
                     onDismissError={onDismissError}
                     showListEmptyContent={false}
                     showScrollIndicator={false}
-                    addBottomSafeAreaPadding
                     shouldHeaderBeInsideList
                     customListHeader={getCustomListHeader()}
                     customListHeaderContent={listHeaderContent}
-                    disableMaintainingScrollPosition
+                    canSelectMultiple={canSelectMultiple}
+                    onSelectAll={toggleAllUsers}
+                    onCheckboxPress={toggleUser}
+                    selectedItems={selectedMembers}
+                    turnOnSelectionModeOnLongPress={turnOnSelectionModeOnLongPress}
+                    onTurnOnSelectionMode={(item) => item && toggleUser?.(item)}
                 />
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>
