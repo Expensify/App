@@ -16,6 +16,7 @@ import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultTimeTrackingRate} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {computeTimeAmount, formatTimeMerchant} from '@libs/TimeTrackingUtils';
 import variables from '@styles/variables';
 import {setMoneyRequestAmount, setMoneyRequestMerchant, setMoneyRequestParticipantsFromReport, setMoneyRequestTimeCount, setMoneyRequestTimeRate} from '@userActions/IOU';
@@ -163,8 +164,15 @@ function IOURequestStepHours({
                         medium={isExtraSmallScreenHeight}
                         large={!isExtraSmallScreenHeight}
                         style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt0]}
-                        onPress={saveTime}
+                        onPress={() => {
+                            if (policyID && shouldRestrictUserBillableActions(policyID)) {
+                                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
+                                return;
+                            }
+                            saveTime();
+                        }}
                         text={translate(isEditingConfirmation ? 'common.save' : 'common.next')}
+                        sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.HOURS_NEXT_BUTTON}
                     />
                 }
             />

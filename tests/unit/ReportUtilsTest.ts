@@ -33,6 +33,7 @@ import {
     buildOptimisticChatReport,
     buildOptimisticCreatedReportAction,
     buildOptimisticCreatedReportForUnapprovedAction,
+    buildOptimisticEmptyReport,
     buildOptimisticExpenseReport,
     buildOptimisticInvoiceReport,
     buildOptimisticIOUReportAction,
@@ -62,6 +63,7 @@ import {
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     getApprovalChain,
     getAvailableReportFields,
+    getBillableAndTaxTotal,
     getChatByParticipants,
     getChatRoomSubtitle,
     getDefaultWorkspaceAvatar,
@@ -74,6 +76,7 @@ import {
     getIOUReportActionDisplayMessage,
     getMoneyReportPreviewName,
     getMostRecentlyVisitedReport,
+    getOriginalReportID,
     getOutstandingChildRequest,
     getParentNavigationSubtitle,
     getParticipantsList,
@@ -3520,7 +3523,7 @@ describe('ReportUtils', () => {
     describe('getMostRecentlyVisitedReport', () => {
         it('should filter out report without reportID & lastReadTime and return the most recently visited report', () => {
             const reports: Array<OnyxEntry<Report>> = [
-                {reportID: '1', lastReadTime: '2023-07-08 07:15:44.030'},
+                {reportID: '1', lastReadTime: '2023-07-08 07:15:44.030', participants: {[currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}}},
                 {reportID: '2', lastReadTime: undefined},
                 {reportID: '3', lastReadTime: '2023-07-06 07:15:44.030'},
                 {reportID: '4', lastReadTime: '2023-07-07 07:15:44.030', type: CONST.REPORT.TYPE.IOU},
@@ -3528,7 +3531,11 @@ describe('ReportUtils', () => {
                 {reportID: '6'},
                 undefined,
             ];
-            const latestReport: OnyxEntry<Report> = {reportID: '1', lastReadTime: '2023-07-08 07:15:44.030'};
+            const latestReport: OnyxEntry<Report> = {
+                reportID: '1',
+                lastReadTime: '2023-07-08 07:15:44.030',
+                participants: {[currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
+            };
             expect(getMostRecentlyVisitedReport(reports, undefined)).toEqual(latestReport);
         });
     });
@@ -4518,7 +4525,7 @@ describe('ReportUtils', () => {
                 type: CONST.REPORT.TYPE.CHAT,
                 participants: {
                     '1': {
-                        notificationPreference: 'always',
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                     },
                 },
                 lastMessageText: 'fake',
@@ -5384,6 +5391,11 @@ describe('ReportUtils', () => {
                 lastReadTime: '2024-02-01 04:56:47.233',
                 lastVisibleActionCreated: '2024-02-01 04:56:47.233',
                 ownerAccountID: 1,
+                participants: {
+                    [currentUserAccountID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
             };
 
             ownedReport = {
@@ -5392,6 +5404,11 @@ describe('ReportUtils', () => {
                 lastReadTime: '2024-01-01 04:56:47.233', // Older last read time
                 lastVisibleActionCreated: '2024-01-01 04:56:47.233',
                 ownerAccountID: currentUserAccountID,
+                participants: {
+                    [currentUserAccountID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
             };
 
             // Add reports to Onyx
@@ -6103,8 +6120,8 @@ describe('ReportUtils', () => {
                 ...createRandomReport(1, undefined),
                 chatType: 'policyRoom',
                 participants: {
-                    1: {notificationPreference: 'hidden'},
-                    2: {notificationPreference: 'always'},
+                    1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+                    2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
             const participants = getParticipantsList(report, participantsPersonalDetails);
@@ -6116,8 +6133,8 @@ describe('ReportUtils', () => {
                 ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.IOU,
                 participants: {
-                    1: {notificationPreference: 'hidden'},
-                    2: {notificationPreference: 'always'},
+                    1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+                    2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
             const participants = getParticipantsList(report, participantsPersonalDetails);
@@ -6129,8 +6146,8 @@ describe('ReportUtils', () => {
                 ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 participants: {
-                    1: {notificationPreference: 'hidden'},
-                    2: {notificationPreference: 'always'},
+                    1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+                    2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
             const participants = getParticipantsList(report, participantsPersonalDetails);
@@ -6163,8 +6180,8 @@ describe('ReportUtils', () => {
                 parentReportID: parentReport.reportID,
                 parentReportActionID: parentReportAction.reportActionID,
                 participants: {
-                    1: {notificationPreference: 'hidden'},
-                    2: {notificationPreference: 'always'},
+                    1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+                    2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
             const participants = getParticipantsList(report, participantsPersonalDetails);
@@ -6196,6 +6213,20 @@ describe('ReportUtils', () => {
                 ...createRandomReport(1, undefined),
                 parentReportID: parentReport.reportID,
                 parentReportActionID: parentReportAction.reportActionID,
+                participants: {
+                    1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+                    2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+            const participants = getParticipantsList(report, participantsPersonalDetails);
+            expect(participants.length).toBe(2);
+        });
+
+        it('should include hidden participants for policy expense chat', async () => {
+            const report: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 participants: {
                     1: {notificationPreference: 'hidden'},
                     2: {notificationPreference: 'always'},
@@ -6363,7 +6394,7 @@ describe('ReportUtils', () => {
             const report: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SYSTEM),
                 participants: {
-                    1: {notificationPreference: 'hidden'},
+                    1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
                 },
             };
             const result = getMoneyReportPreviewName(action, report);
@@ -6379,8 +6410,8 @@ describe('ReportUtils', () => {
             const report: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.TRIP_ROOM),
                 participants: {
-                    1: {notificationPreference: 'hidden'},
-                    2: {notificationPreference: 'always'},
+                    1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+                    2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
             const result = getMoneyReportPreviewName(action, report);
@@ -8554,10 +8585,10 @@ describe('ReportUtils', () => {
 
     describe('excludeParticipantsForDisplay', () => {
         const mockParticipants = {
-            1: {notificationPreference: 'always'},
-            2: {notificationPreference: 'hidden'},
-            3: {notificationPreference: 'daily'},
-            4: {notificationPreference: 'always'},
+            1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+            3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY},
+            4: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
         } as Participants;
 
         const mockReportMetadata = {
@@ -9601,6 +9632,64 @@ describe('ReportUtils', () => {
             const currency = CONST.CURRENCY.USD;
             const expenseReport = buildOptimisticExpenseReport({chatReportID, policyID: undefined, payeeAccountID: 1, total, currency, betas: [CONST.BETAS.ALL]});
             expect(expenseReport.reportName).toBe(`${fakePolicy.name} owes ${convertToDisplayString(-total, currency)}`);
+        });
+
+        it('should set reportName to "New Report" when policy field list is empty', async () => {
+            // Given a policy with an empty field list
+            const policyID = '200';
+            const policyWithEmptyFieldList: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                type: CONST.POLICY.TYPE.TEAM,
+                fieldList: {},
+            };
+
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.ALL]);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithEmptyFieldList);
+            await waitForBatchedUpdates();
+
+            // When we create an expense report offline
+            const chatReportID = '1';
+            const reportDraft: Report = {
+                ...createRandomReport(Number(chatReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                policyID,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${chatReportID}`, reportDraft);
+            const total = 100;
+            const currency = CONST.CURRENCY.USD;
+            const expenseReport = buildOptimisticExpenseReport({chatReportID, policyID, payeeAccountID: 1, total, currency, betas: [CONST.BETAS.ALL]});
+
+            // Then the report name should be "New Report" instead of the default name
+            expect(expenseReport.reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
+        });
+
+        it('should set reportName to default expense report name when policy field list is empty for different report', async () => {
+            // Given a policy with an empty field list
+            const policyID = '201';
+            const policyWithEmptyFieldList: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                type: CONST.POLICY.TYPE.TEAM,
+                fieldList: {},
+            };
+
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.ALL]);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithEmptyFieldList);
+            await waitForBatchedUpdates();
+
+            // When we create an expense report offline
+            const chatReportID = '2';
+            const reportDraft: Report = {
+                ...createRandomReport(Number(chatReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                policyID,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${chatReportID}`, reportDraft);
+            const total = 100;
+            const currency = CONST.CURRENCY.USD;
+            const expenseReport = buildOptimisticExpenseReport({chatReportID, policyID, payeeAccountID: 1, total, currency, betas: [CONST.BETAS.ALL]});
+
+            // Then the report name should be the default expense report name
+            expect(expenseReport.reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
         });
     });
 
@@ -11898,6 +11987,66 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('buildOptimisticEmptyReport', () => {
+        it('should set reportName to "New Report" when policy field list is empty', async () => {
+            // Given a policy with an empty field list
+            const policyWithEmptyFieldList: Policy = {
+                ...createRandomPolicy(200),
+                id: '200',
+                type: CONST.POLICY.TYPE.TEAM,
+                fieldList: {},
+            };
+
+            const betas = [CONST.BETAS.ALL];
+            await Onyx.set(ONYXKEYS.BETAS, betas);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyWithEmptyFieldList.id}`, policyWithEmptyFieldList);
+            await waitForBatchedUpdates();
+
+            // When we create an empty expense report
+            const reportID = 'test-report-id-123';
+            const accountID = currentUserAccountID;
+            const parentReport = {
+                ...createPolicyExpenseChat(accountID),
+                policyID: policyWithEmptyFieldList.id,
+            };
+            const parentReportActionID = 'parent-report-action-id-456';
+            const timeOfCreation = DateUtils.getDBTime();
+
+            // Then the report name should be "New Report"
+            const optimisticReport = buildOptimisticEmptyReport(reportID, accountID, parentReport, parentReportActionID, policyWithEmptyFieldList, timeOfCreation, betas);
+            expect(optimisticReport.reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
+        });
+
+        it('should set reportName to "New Report" when policy field list is empty for different report', async () => {
+            // Given a policy with an empty field list
+            const policyWithEmptyFieldList: Policy = {
+                ...createRandomPolicy(201),
+                id: '201',
+                type: CONST.POLICY.TYPE.TEAM,
+                fieldList: {},
+            };
+
+            const betas = [CONST.BETAS.ALL];
+            await Onyx.set(ONYXKEYS.BETAS, betas);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyWithEmptyFieldList.id}`, policyWithEmptyFieldList);
+            await waitForBatchedUpdates();
+
+            // When we create an empty expense report
+            const reportID = 'test-report-id-456';
+            const accountID = currentUserAccountID;
+            const parentReport = {
+                ...createPolicyExpenseChat(accountID),
+                policyID: policyWithEmptyFieldList.id,
+            };
+            const parentReportActionID = 'parent-report-action-id-789';
+            const timeOfCreation = DateUtils.getDBTime();
+
+            // Then the report name should be "New Report"
+            const optimisticReport = buildOptimisticEmptyReport(reportID, accountID, parentReport, parentReportActionID, policyWithEmptyFieldList, timeOfCreation, betas);
+            expect(optimisticReport.reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
+        });
+    });
+
     describe('getReportSubtitlePrefix', () => {
         it('should return empty string if it is not a chat room', () => {
             const report = createExpenseReport(1);
@@ -12195,6 +12344,186 @@ describe('ReportUtils', () => {
                 policies: [],
             });
             expect(result).toBe('Report Fallback Name');
+        });
+    });
+
+    describe('getBillableAndTaxTotal', () => {
+        const expenseReport: Report = {
+            ...createExpenseReport(1),
+            reportID: 'expense-1',
+            currency: CONST.CURRENCY.USD,
+        };
+
+        const chatReport: Report = {
+            ...createRandomReport(2, undefined),
+            type: CONST.REPORT.TYPE.CHAT,
+            reportID: 'chat-1',
+        };
+
+        it('should return zeros when report is undefined', () => {
+            expect(getBillableAndTaxTotal(undefined, [])).toEqual({
+                billableTotal: 0,
+                taxTotal: 0,
+            });
+        });
+
+        it('should return zeros when report is not an expense report', () => {
+            const transaction = createRandomTransaction(1);
+            expect(getBillableAndTaxTotal(chatReport, [transaction])).toEqual({
+                billableTotal: 0,
+                taxTotal: 0,
+            });
+        });
+
+        it('should return zeros when expense report has no transactions', () => {
+            expect(getBillableAndTaxTotal(expenseReport, [])).toEqual({
+                billableTotal: 0,
+                taxTotal: 0,
+            });
+        });
+
+        it('should sum billable amount and tax when transaction currency matches report currency', async () => {
+            const transaction = {
+                ...createRandomTransaction(1),
+                reportID: expenseReport.reportID,
+                amount: -100,
+                taxAmount: -10,
+                currency: CONST.CURRENCY.USD,
+                billable: true,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await waitForBatchedUpdates();
+
+            expect(getBillableAndTaxTotal(expenseReport, [transaction])).toEqual({
+                billableTotal: 100,
+                taxTotal: 10,
+            });
+        });
+
+        it('should use convertedAmount and convertedTaxAmount when transaction currency differs from report', async () => {
+            const transaction = {
+                ...createRandomTransaction(1),
+                reportID: expenseReport.reportID,
+                amount: -100,
+                taxAmount: -10,
+                currency: CONST.CURRENCY.EUR,
+                billable: true,
+                convertedAmount: -80,
+                convertedTaxAmount: -8,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await waitForBatchedUpdates();
+
+            expect(getBillableAndTaxTotal(expenseReport, [transaction])).toEqual({
+                billableTotal: 80,
+                taxTotal: 8,
+            });
+        });
+
+        it('should not add to billableTotal when billable is false', async () => {
+            const transaction = {
+                ...createRandomTransaction(1),
+                reportID: expenseReport.reportID,
+                amount: -100,
+                taxAmount: 0,
+                currency: CONST.CURRENCY.USD,
+                billable: false,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await waitForBatchedUpdates();
+
+            expect(getBillableAndTaxTotal(expenseReport, [transaction])).toEqual({
+                billableTotal: 0,
+                taxTotal: 0,
+            });
+        });
+
+        it('should not add to taxTotal when taxAmount is zero', async () => {
+            const transaction = {
+                ...createRandomTransaction(1),
+                reportID: expenseReport.reportID,
+                amount: -100,
+                taxAmount: 0,
+                currency: CONST.CURRENCY.USD,
+                billable: true,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await waitForBatchedUpdates();
+
+            expect(getBillableAndTaxTotal(expenseReport, [transaction])).toEqual({
+                billableTotal: 100,
+                taxTotal: 0,
+            });
+        });
+
+        it('should sum multiple transactions with same currency', async () => {
+            const transaction1 = {
+                ...createRandomTransaction(1),
+                reportID: expenseReport.reportID,
+                amount: -50,
+                taxAmount: -5,
+                currency: CONST.CURRENCY.USD,
+                billable: true,
+            };
+            const transaction2 = {
+                ...createRandomTransaction(2),
+                reportID: expenseReport.reportID,
+                amount: -75,
+                taxAmount: -7,
+                currency: CONST.CURRENCY.USD,
+                billable: true,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`, transaction1);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`, transaction2);
+            await waitForBatchedUpdates();
+
+            expect(getBillableAndTaxTotal(expenseReport, [transaction1, transaction2])).toEqual({
+                billableTotal: 125,
+                taxTotal: 12,
+            });
+        });
+    });
+
+    describe('getOriginalReportID', () => {
+        it('should return undefined when reportID is undefined', () => {
+            const reportAction = createRandomReportAction(1);
+            const result = getOriginalReportID(undefined, reportAction, undefined);
+            expect(result).toBeUndefined();
+        });
+
+        it('should return reportID when currentReportAction exists in reportActions', () => {
+            const reportID = '123';
+            const reportAction = createRandomReportAction(1);
+            const reportActions = {
+                [reportAction.reportActionID]: reportAction,
+            };
+
+            const result = getOriginalReportID(reportID, reportAction, reportActions);
+            expect(result).toBe(reportID);
+        });
+
+        it('should return reportID when reportActions is undefined but reportAction has no reportActionID', () => {
+            const reportID = '123';
+            const reportAction = {
+                ...createRandomReportAction(1),
+                reportActionID: undefined,
+            } as unknown as ReportAction;
+
+            const result = getOriginalReportID(reportID, reportAction, undefined);
+            expect(result).toBe(reportID);
+        });
+
+        it('should return reportID when reportActions is empty and no thread conditions apply', () => {
+            const reportID = '123';
+            const reportAction = createRandomReportAction(1);
+
+            const result = getOriginalReportID(reportID, reportAction, {});
+            expect(result).toBe(reportID);
         });
     });
 });

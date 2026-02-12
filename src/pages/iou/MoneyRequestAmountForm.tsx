@@ -219,6 +219,7 @@ function MoneyRequestAmountForm({
                         shouldShowPersonalBankAccountOption
                         enterKeyEventListenerPriority={1}
                         chatReportID={chatReportID}
+                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.AMOUNT_PAY_BUTTON}
                     />
                 ) : (
                     <Button
@@ -232,6 +233,7 @@ function MoneyRequestAmountForm({
                         onPress={() => submitAndNavigateToNextPage()}
                         text={buttonText}
                         testID="next-button"
+                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.AMOUNT_NEXT_BUTTON}
                     />
                 )}
             </View>

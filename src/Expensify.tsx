@@ -252,6 +252,7 @@ function Expensify() {
 
     const onSplashHide = useCallback(() => {
         setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN);
+        endSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION);
         endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP);
         endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT);
         endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.SPLASH_HIDER);

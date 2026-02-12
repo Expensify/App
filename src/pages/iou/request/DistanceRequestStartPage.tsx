@@ -4,7 +4,7 @@ import {Keyboard, View} from 'react-native';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import TabSelector from '@components/TabSelector/TabSelector';
+import ScrollableTabSelector from '@components/TabSelector/ScrollableTabSelector/ScrollableTabSelector';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -191,7 +191,7 @@ function DistanceRequestStartPage({
                         id={CONST.TAB.DISTANCE_REQUEST_TYPE}
                         defaultSelectedTab={defaultSelectedTab}
                         onTabSelected={resetIOUTypeIfChanged}
-                        tabBar={TabSelector}
+                        tabBar={ScrollableTabSelector}
                         onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
                         onActiveTabFocusTrapContainerElementChanged={setActiveTabContainerElement}
                         lazyLoadEnabled

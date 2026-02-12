@@ -53,10 +53,12 @@ import {
     getMovedActionMessage,
     getMovedTransactionMessage,
     getReportPreviewMessage,
+    getReportTransactions,
     isCanceledTaskReport,
     isExpensifyOnlyParticipantInReport,
 } from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
+import {isScanning} from '@libs/TransactionUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -4253,6 +4255,87 @@ describe('OptionsListUtils', () => {
                 isReportArchived: false,
             });
             expect(result).toBe(expectedVisibleText);
+        });
+        it('should return "No activity yet" for MoneyRequestReport with zero transactions', async () => {
+            const report: Report = {
+                ...createRandomReport(0, undefined),
+                type: Math.floor(Math.random() * 2) === 1 ? CONST.REPORT.TYPE.IOU : CONST.REPORT.TYPE.EXPENSE,
+                transactionCount: 0,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            const lastMessage = getLastMessageTextForReport({
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                isReportArchived: false,
+            });
+            expect(lastMessage).toBe(translateLocal('report.noActivityYet'));
+        });
+        it('should return "Receipt scanning..." for MoneyRequestReport with scanning transactions', async () => {
+            const report: Report = {
+                ...createRandomReport(0, undefined),
+                type: Math.floor(Math.random() * 2) === 1 ? CONST.REPORT.TYPE.IOU : CONST.REPORT.TYPE.EXPENSE,
+                transactionCount: 1,
+            };
+            const scannedTransaction: Transaction = {
+                ...createRandomTransaction(2),
+                reportID: report.reportID,
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                modifiedMerchant: '',
+                amount: 0,
+                receipt: {
+                    state: CONST.IOU.RECEIPT_STATE.SCANNING,
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${scannedTransaction.transactionID}`, scannedTransaction);
+            await waitForBatchedUpdates();
+
+            const result = getLastMessageTextForReport({
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                isReportArchived: false,
+            });
+            const transactions = getReportTransactions(report.reportID);
+            const scanningTransactions = transactions.filter((transaction) => isScanning(transaction));
+            expect(result).toBe(translateLocal('iou.receiptScanning', {count: scanningTransactions.length}));
+        });
+        it('should NOT leak fraud alert text when user cannot perform write actions', async () => {
+            const report: Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                permissions: [CONST.REPORT.PERMISSIONS.READ],
+                lastMessageText: 'Fraud alert: Sensitive transaction details',
+            };
+            const fraudAction: ReportAction = {
+                ...createRandomReportAction(2),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
+                message: [
+                    {
+                        text: 'Sensitive',
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                        whisperedTo: [],
+                    },
+                ],
+                originalMessage: {
+                    whisperedTo: [],
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [fraudAction.reportActionID]: fraudAction,
+            });
+            await waitForBatchedUpdates();
+
+            const result = getLastMessageTextForReport({
+                report,
+                translate: translateLocal,
+                lastActorDetails: null,
+                isReportArchived: false,
+            });
+            expect(result).toBe('');
         });
 
         describe('DEW (Dynamic External Workflow)', () => {

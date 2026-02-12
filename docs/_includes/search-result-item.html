@@ -23,3 +23,38 @@
 <template id="search-error-template">
     <div class="search-error">Something went wrong. Please try again.</div>
 </template>
+
+<template id="ai-thinking-template">
+    <div class="ai-panel ai-panel-loading">
+        <div class="ai-header">
+            <img src="/assets/images/concierge-avatar.svg" class="ai-avatar" />
+            <span class="ai-title">Concierge AI is thinking...</span>
+        </div>
+        <div class="ai-illustration">
+            <img src="/assets/images/simple-illustration__concierge-bot.svg" />
+        </div>
+    </div>
+</template>
+
+<template id="ai-error-template">
+    <div class="ai-panel">
+        <div class="ai-header">
+            <img src="/assets/images/concierge-avatar.svg" class="ai-avatar" />
+            <span class="ai-title">Concierge AI</span>
+        </div>
+        <div class="ai-content">Something went wrong. Please try again.</div>
+    </div>
+</template>
+
+<template id="ai-response-template">
+    <div class="ai-panel">
+        <div class="ai-header">
+            <img src="/assets/images/concierge-avatar.svg" class="ai-avatar" />
+            <span class="ai-title">Concierge AI summary:</span>
+        </div>
+        <div class="ai-content"></div>
+        <button class="ai-show-more hidden">
+            Show more <img src="/assets/images/down.svg" class="base-icon" />
+        </button>
+    </div>
+</template>

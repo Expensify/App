@@ -152,7 +152,6 @@ import {
     getIOUReportActionDisplayMessage,
     getMovedActionMessage,
     getMovedTransactionMessage,
-    getOriginalReportID,
     getPolicyChangeMessage,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
@@ -251,6 +250,7 @@ type ContextMenuActionPayload = {
     reportAction: ReportAction;
     transaction?: OnyxEntry<Transaction>;
     reportID: string | undefined;
+    originalReportID: string | undefined;
     currentUserAccountID: number;
     report: OnyxEntry<ReportType>;
     policy?: OnyxEntry<Policy>;
@@ -782,6 +782,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         movedFromReport,
                         movedToReport,
                         policyTags,
+                        currentUserLogin: currentUserPersonalDetails?.email ?? '',
                     });
                     Clipboard.setString(modifyExpenseMessage);
                 } else if (isReimbursementDeQueuedOrCanceledAction(reportAction)) {
@@ -1100,8 +1101,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isDynamicWorkflowRoutedAction = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED);
             return type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !isAttachmentTarget && !isMessageDeleted(reportAction) && !isDynamicWorkflowRoutedAction;
         },
-        onPress: (closePopover, {reportAction, reportID}) => {
-            const originalReportID = getOriginalReportID(reportID, reportAction);
+        onPress: (closePopover, {reportAction, originalReportID}) => {
             getEnvironmentURL().then((environmentURL) => {
                 const reportActionID = reportAction?.reportActionID;
                 Clipboard.setString(`${environmentURL}/r/${originalReportID}/${reportActionID}`);

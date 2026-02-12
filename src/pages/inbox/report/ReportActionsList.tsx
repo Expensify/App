@@ -185,6 +185,7 @@ function ReportActionsList({
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
     const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}`, {canBeMissing: true});
     const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}`, {canBeMissing: true});
+    const [reportActionsFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canBeMissing: true});
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: false});
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
@@ -680,7 +681,7 @@ function ReportActionsList({
 
     const renderItem = useCallback(
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
-            const originalReportID = getOriginalReportID(report.reportID, reportAction);
+            const originalReportID = getOriginalReportID(report.reportID, reportAction, reportActionsFromOnyx);
             const reportDraftMessages = draftMessage?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`];
             const matchingDraftMessage = reportDraftMessages?.[reportAction.reportActionID];
             const matchingDraftMessageString = matchingDraftMessage?.message;
@@ -755,6 +756,7 @@ function ReportActionsList({
             isReportArchived,
             reportNameValuePairs?.origin,
             reportNameValuePairs?.originalID,
+            reportActionsFromOnyx,
         ],
     );
 
@@ -803,7 +805,14 @@ function ReportActionsList({
         );
     }, [canShowHeader, retryLoadNewerChatsError]);
 
-    const shouldShowSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+    const shouldShowSkeleton = useMemo(
+        () => (isOffline || !reportMetadata?.hasOnceLoadedReportActions) && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED),
+        [isOffline, reportMetadata?.hasOnceLoadedReportActions, sortedVisibleReportActions],
+    );
+
+    // While reportActions are loading, use the last reportAction as a fallback
+    // since it’s available before the rest finish loading.
+    const reportActionsToRender = useMemo(() => (shouldShowSkeleton ? sortedVisibleReportActions.slice(0, 1) : sortedVisibleReportActions), [shouldShowSkeleton, sortedVisibleReportActions]);
 
     const listFooterComponent = useMemo(() => {
         if (!shouldShowSkeleton) {
@@ -858,7 +867,7 @@ function ReportActionsList({
                     ref={reportScrollManager.ref}
                     testID="report-actions-list"
                     style={styles.overscrollBehaviorContain}
-                    data={sortedVisibleReportActions}
+                    data={reportActionsToRender}
                     renderItem={renderItem}
                     renderScrollComponent={renderActionSheetAwareScrollView}
                     contentContainerStyle={[styles.chatContentScrollView, shouldFocusToTopOnMount ? styles.justifyContentEnd : undefined]}

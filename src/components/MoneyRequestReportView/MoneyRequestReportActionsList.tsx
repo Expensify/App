@@ -558,7 +558,7 @@ function MoneyRequestReportActionsList({
                 hasNextActionMadeBySameActor(visibleReportActions, index);
 
             const actionEmojiReactions = emojiReactions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportAction.reportActionID}`];
-            const originalReportID = getOriginalReportID(report.reportID, reportAction);
+            const originalReportID = getOriginalReportID(report.reportID, reportAction, undefined);
             const reportDraftMessages = draftMessage?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`];
             const matchingDraftMessage = reportDraftMessages?.[reportAction.reportActionID];
             const matchingDraftMessageString = matchingDraftMessage?.message;
