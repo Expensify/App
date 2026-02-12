@@ -32,7 +32,7 @@ import Timing from './libs/actions/Timing';
 import * as User from './libs/actions/User';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import {isSafari} from './libs/Browser';
-import {clearModule, processInitialURL} from './libs/DeepLinkHandler';
+import * as DeepLinkHandler from './libs/DeepLinkHandler';
 import * as Environment from './libs/Environment/Environment';
 import FS from './libs/Fullstory';
 import Growl, {growlRef} from './libs/Growl';
@@ -165,7 +165,7 @@ function Expensify() {
 
     useEffect(() => {
         return () => {
-            clearModule();
+            DeepLinkHandler.clearModule();
         };
     }, []);
 
@@ -330,7 +330,7 @@ function Expensify() {
             setInitialUrl(url as Route);
             if (url) {
                 // Pass the URL to DeepLinkHandler for processing
-                processInitialURL(url);
+                DeepLinkHandler.processInitialURL(url);
                 // If user is authenticated, unblock UI immediately (no need to wait for public room check)
                 if (isAuthenticated) {
                     Report.doneCheckingPublicRoom();

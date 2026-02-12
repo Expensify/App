@@ -2,52 +2,61 @@ import HybridAppModule from '@expensify/react-native-hybrid-app';
 import type {NativeEventSubscription} from 'react-native';
 import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {Connection, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {openReportFromDeepLink} from '@libs/actions/Link';
 import {hasAuthToken} from '@libs/actions/Session';
+import type {OnboardingCompanySize} from '@libs/actions/Welcome/OnboardingFlow';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {OnboardingPurpose, Report} from '@src/types/onyx';
 
 let allReports: OnyxCollection<Report> = {};
 let currentConciergeReportID: string | undefined;
-let areSubscriptionsSetUp = false;
 let isInitialized = false;
 let pendingDeepLinkUrl: string | null = null;
 
-let hasReportsReceived = false;
+let currentOnboardingPurposeSelected: OnyxEntry<OnboardingPurpose> | undefined;
+let currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize> | undefined;
+let onboardingInitialPath: OnyxEntry<string> | undefined;
 
 let linkingEventSubscription: NativeEventSubscription | null = null;
 
 let hasSessionLoaded = false;
 
-Onyx.connectWithoutView({
-    key: ONYXKEYS.SESSION,
-    callback: () => {
-        if (hasSessionLoaded) {
-            return;
-        }
+const onyxConnections: Connection[] = [];
 
-        hasSessionLoaded = true;
+onyxConnections.push(
+    Onyx.connectWithoutView({
+        key: ONYXKEYS.SESSION,
+        callback: () => {
+            if (hasSessionLoaded) {
+                return;
+            }
 
-        initializeDeepLinkHandler();
-    },
-});
+            hasSessionLoaded = true;
 
+            initializeDeepLinkHandler();
+        },
+    }),
+);
 
-Onyx.connectWithoutView({
-    key: ONYXKEYS.CONCIERGE_REPORT_ID,
-    callback: (value) => {
-        currentConciergeReportID = value ?? undefined;
-    },
-});
+onyxConnections.push(
+    Onyx.connectWithoutView({
+        key: ONYXKEYS.CONCIERGE_REPORT_ID,
+        callback: (value) => {
+            currentConciergeReportID = value ?? undefined;
+
+            initializeDeepLinkHandler();
+        },
+    }),
+);
 
 function processPendingDeepLinkIfReady() {
     if (!pendingDeepLinkUrl) {
         return;
     }
 
-    if (!hasReportsReceived) {
+    if (allReports === undefined || currentOnboardingPurposeSelected === undefined || currentOnboardingCompanySize === undefined || onboardingInitialPath === undefined) {
         return;
     }
 
@@ -55,25 +64,67 @@ function processPendingDeepLinkIfReady() {
     pendingDeepLinkUrl = null;
 
     const isCurrentlyAuthenticated = hasAuthToken();
-    openReportFromDeepLink(urlToProcess, allReports, isCurrentlyAuthenticated, currentConciergeReportID);
+    openReportFromDeepLink(
+        urlToProcess,
+        currentOnboardingPurposeSelected,
+        currentOnboardingCompanySize,
+        onboardingInitialPath,
+        allReports,
+        isCurrentlyAuthenticated,
+        currentConciergeReportID,
+    );
+
+    currentConciergeReportID = undefined;
+    allReports = undefined;
+    currentOnboardingPurposeSelected = undefined;
+    currentOnboardingCompanySize = undefined;
+    onboardingInitialPath = undefined;
 }
 
 function setUpOnyxSubscriptions() {
-    if (areSubscriptionsSetUp) {
-        return;
-    }
+    onyxConnections.push(
+        Onyx.connectWithoutView({
+            key: ONYXKEYS.COLLECTION.REPORT,
+            waitForCollectionCallback: true,
+            callback: (value) => {
+                allReports = value ?? undefined;
+                processPendingDeepLinkIfReady();
+            },
+        }),
+    );
 
-    Onyx.connectWithoutView({
-        key: ONYXKEYS.COLLECTION.REPORT,
-        waitForCollectionCallback: true,
-        callback: (value) => {
-            allReports = value ?? {};
-            hasReportsReceived = true;
-            processPendingDeepLinkIfReady();
-        },
-    });
+    onyxConnections.push(
+        Onyx.connectWithoutView({
+            key: ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
+            callback: (value) => {
+                currentOnboardingPurposeSelected = value ?? undefined;
 
-    areSubscriptionsSetUp = true;
+                processPendingDeepLinkIfReady();
+            },
+        }),
+    );
+
+    onyxConnections.push(
+        Onyx.connectWithoutView({
+            key: ONYXKEYS.ONBOARDING_COMPANY_SIZE,
+            callback: (value) => {
+                currentOnboardingCompanySize = value ?? undefined;
+
+                processPendingDeepLinkIfReady();
+            },
+        }),
+    );
+
+    onyxConnections.push(
+        Onyx.connectWithoutView({
+            key: ONYXKEYS.ONBOARDING_LAST_VISITED_PATH,
+            callback: (value) => {
+                onboardingInitialPath = value ?? undefined;
+
+                processPendingDeepLinkIfReady();
+            },
+        }),
+    );
 }
 
 function handleDeepLink(url: string | null, fromUrlChangeEvent: boolean) {
@@ -81,17 +132,20 @@ function handleDeepLink(url: string | null, fromUrlChangeEvent: boolean) {
         return;
     }
 
-    if (fromUrlChangeEvent) {
+    pendingDeepLinkUrl = url;
+
+    if (fromUrlChangeEvent && !!allReports && currentOnboardingPurposeSelected !== undefined && currentOnboardingCompanySize !== undefined && onboardingInitialPath !== undefined) {
         const isCurrentlyAuthenticated = hasAuthToken();
-        openReportFromDeepLink(url, allReports, isCurrentlyAuthenticated, currentConciergeReportID);
+        openReportFromDeepLink(url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isCurrentlyAuthenticated, currentConciergeReportID);
+        currentConciergeReportID = undefined;
+        allReports = undefined;
+        currentOnboardingPurposeSelected = undefined;
+        currentOnboardingCompanySize = undefined;
+        onboardingInitialPath = undefined;
         return;
     }
 
     setUpOnyxSubscriptions();
-
-    hasReportsReceived = false;
-
-    pendingDeepLinkUrl = url;
 
     processPendingDeepLinkIfReady();
 }
@@ -123,6 +177,10 @@ function processInitialURL(url: string | null) {
 function clearModule() {
     linkingEventSubscription?.remove();
     linkingEventSubscription = null;
+
+    for (const connection of onyxConnections) {
+        Onyx.disconnect(connection);
+    }
 }
 
 export {processInitialURL, clearModule};
