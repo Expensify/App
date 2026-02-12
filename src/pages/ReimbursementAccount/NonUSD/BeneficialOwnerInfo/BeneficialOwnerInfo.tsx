@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import type {ComponentType} from 'react';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import YesNoStep from '@components/SubStepForms/YesNoStep';
 import useLocalize from '@hooks/useLocalize';
@@ -67,6 +67,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames}: Beneficia
     const [totalOwnedPercentage, setTotalOwnedPercentage] = useState<Record<string, number>>({});
     const companyName = reimbursementAccount?.achData?.corpay?.[COMPANY_NAME] ?? reimbursementAccountDraft?.[COMPANY_NAME] ?? '';
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const isSubmittingRef = useRef(false);
 
     const totalOwnedPercentageSum = Object.values(totalOwnedPercentage).reduce((acc, value) => acc + value, 0);
     const canAddMoreOwners = totalOwnedPercentageSum <= 75;
@@ -80,6 +81,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames}: Beneficia
             [BENEFICIAL_OWNERS]: JSON.stringify(ownerDetails),
         });
 
+        isSubmittingRef.current = true;
         saveCorpayOnboardingBeneficialOwners({
             inputs: JSON.stringify({...ownerDetails, anyIndividualOwn25PercentOrMore}),
             ...ownerFiles,
@@ -94,7 +96,9 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames}: Beneficia
             return;
         }
 
-        if (reimbursementAccount?.isSuccess) {
+        // We need to check value of local isSubmittingRef because on initial render reimbursementAccount?.isSuccess is still true after submitting the previous step
+        if (reimbursementAccount?.isSuccess && isSubmittingRef.current) {
+            isSubmittingRef.current = false;
             onSubmit();
             clearReimbursementAccountSaveCorpayOnboardingBeneficialOwners();
         }

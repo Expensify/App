@@ -2,16 +2,20 @@ import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import RenderHTML from '@components/RenderHTML';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {resetSamlEnabledError, resetSamlRequiredError, setSamlEnabled, setSamlRequired} from '@libs/actions/Domain';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
+import {addLeadingForwardSlash} from '@libs/Url';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {domainSamlSettingsStateSelector, metaIdentitySelector} from '@src/selectors/Domain';
+import ROUTES from '@src/ROUTES';
+import {domainMemberSettingsSelector, domainSamlSettingsStateSelector, metaIdentitySelector} from '@src/selectors/Domain';
 
 type SamlLoginSectionContentProps = {
     /** The unique identifier for the domain. */
@@ -39,6 +43,10 @@ function SamlLoginSectionContent({accountID, domainName, isSamlEnabled, isSamlRe
         selector: domainSamlSettingsStateSelector,
     });
     const [metaIdentity] = useOnyx(`${ONYXKEYS.COLLECTION.SAML_METADATA}${accountID}`, {canBeMissing: true, selector: metaIdentitySelector});
+    const [domainSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${accountID}`, {
+        canBeMissing: false,
+        selector: domainMemberSettingsSelector,
+    });
     const [isOktaScimConfirmModalVisible, setIsScimConfirmModalVisible] = useState(false);
 
     useEffect(() => {
@@ -46,6 +54,9 @@ function SamlLoginSectionContent({accountID, domainName, isSamlEnabled, isSamlRe
         resetSamlEnabledError(accountID);
         resetSamlRequiredError(accountID);
     }, [accountID]);
+
+    const {environmentURL} = useEnvironment();
+    const domainMembersSettingsHref = `${environmentURL}${addLeadingForwardSlash(ROUTES.DOMAIN_MEMBERS_SETTINGS.getRoute(accountID))}`;
 
     return (
         <>
@@ -62,11 +73,18 @@ function SamlLoginSectionContent({accountID, domainName, isSamlEnabled, isSamlRe
                         <Switch
                             accessibilityLabel={translate('domain.samlLogin.enableSamlLogin')}
                             isOn={isSamlEnabled}
+                            disabled={domainSettings?.twoFactorAuthRequired}
                             onToggle={() => setSamlEnabled({enabled: !isSamlEnabled, accountID, domainName})}
                         />
                     </View>
 
-                    <Text style={[styles.formHelp, styles.pr15]}>{translate('domain.samlLogin.allowMembers')}</Text>
+                    {domainSettings?.twoFactorAuthRequired ? (
+                        <View>
+                            <RenderHTML html={translate('domain.samlLogin.pleaseDisableTwoFactorAuth', domainMembersSettingsHref)} />
+                        </View>
+                    ) : (
+                        <Text style={[styles.formHelp, styles.pr15]}>{translate('domain.samlLogin.allowMembers')}</Text>
+                    )}
                 </View>
             </OfflineWithFeedback>
 

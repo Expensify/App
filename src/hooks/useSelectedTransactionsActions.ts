@@ -4,8 +4,8 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchContext} from '@components/Search/SearchContext';
-import {initSplitExpense} from '@libs/actions/IOU';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
+import {initSplitExpense} from '@libs/actions/IOU/Split';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {exportReportToCSV} from '@libs/actions/Report';
 import {getExportTemplates, handlePreventSearchAPI} from '@libs/actions/Search';
@@ -97,17 +97,16 @@ function useSelectedTransactionsActions({
     const knownOwnerIDs = new Set<number>();
     let hasUnknownOwner = false;
 
-    for (const selectedTransactionInfo of Object.values(selectedTransactionsMeta ?? {})) {
-        const ownerAccountID = selectedTransactionInfo?.ownerAccountID;
-        if (typeof ownerAccountID === 'number') {
-            knownOwnerIDs.add(ownerAccountID);
-        } else {
-            hasUnknownOwner = true;
-        }
-    }
-
     for (const selectedTransaction of selectedTransactionsList) {
+        const transactionID = selectedTransaction?.transactionID;
         const reportID = selectedTransaction?.reportID;
+
+        const metadataOwnerID = selectedTransactionsMeta?.[transactionID]?.ownerAccountID;
+        if (typeof metadataOwnerID === 'number') {
+            knownOwnerIDs.add(metadataOwnerID);
+            continue;
+        }
+
         if (!reportID || reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
             hasUnknownOwner = true;
             continue;

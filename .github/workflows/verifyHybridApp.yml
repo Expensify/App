@@ -47,7 +47,7 @@ jobs:
     name: Comment on all PRs that are forks
     # Only run on pull requests that *are* a fork
     if: ${{ github.event.pull_request.head.repo.fork && github.event_name == 'pull_request_target' }}
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Comment on forks
         run: |
@@ -74,7 +74,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
   verify_android:
     name: Verify Android HybridApp builds on main
-    runs-on: ubuntu-latest-xl
+    runs-on: blacksmith-16vcpu-ubuntu-2404
     # Only run on pull requests that are *not* on a fork
     if: ${{ !github.event.pull_request.head.repo.fork && github.event_name == 'pull_request' }}
     steps:

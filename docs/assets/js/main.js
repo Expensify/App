@@ -75,95 +75,174 @@ function injectFooterCopyright() {
     footer.innerHTML = `&copy;2008-${new Date().getFullYear()} Expensify, Inc.`;
 }
 
-function closeSidebar() {
-    document.getElementById('sidebar-layer').style.display = 'none';
+const SEARCH_API_URL = 'https://www.expensify.com/api/SearchHelpsite';
+const ASK_AI_API_URL = 'https://www.expensify.com/api/AskHelpsiteAI';
 
-    // Make the body scrollable again
-    const body = document.body;
-    const scrollY = body.style.top;
-
-    // Reset the position and top styles of the body element
-    body.style.position = '';
-    body.style.top = '';
-
-    // Scroll to the original scroll position
-    window.scrollTo(0, parseInt(scrollY || '0', 10) * -1);
+function getTitleFromURL(url) {
+    return url.split('/').pop().replace(/-/g, ' ');
 }
 
-function closeSidebarOnClickOutside(event) {
-    const sidebarLayer = document.getElementById('sidebar-layer');
+/**
+ * Clone a template element by its ID.
+ *
+ * @param {string} templateId
+ * @returns {DocumentFragment}
+ */
+function cloneTemplate(templateId) {
+    return document.getElementById(templateId).content.cloneNode(true);
+}
 
-    if (event.target !== sidebarLayer) {
+function searchPageQuery(query) {
+    const resultsContainer = document.getElementById('search-page-results');
+    if (!query.trim()) {
+        resultsContainer.innerHTML = '';
         return;
     }
-    closeSidebar();
-}
 
-function openSidebar() {
-    document.getElementById('sidebar-layer').style.display = 'block';
-    document.getElementById('gsc-i-id1').focus();
+    resultsContainer.innerHTML = '';
+    resultsContainer.appendChild(cloneTemplate('search-loading-template'));
 
-    // Make body unscrollable
-    const yAxis = document.documentElement.style.getPropertyValue('y-axis');
-    const body = document.body;
-    body.style.position = 'fixed';
-    body.style.top = `-${yAxis}`;
+    askHelpsiteAI(query);
 
-    document.getElementById('gsc-i-id1').focus();
+    const formData = new FormData();
+    formData.append('command', 'SearchHelpsite');
+    formData.append('query', query.trim());
 
-    // Close the sidebar when clicking sidebar layer (outside the sidebar search)
-    const sidebarLayer = document.getElementById('sidebar-layer');
-    if (sidebarLayer) {
-        sidebarLayer.addEventListener('click', closeSidebarOnClickOutside);
+    const platform = new URLSearchParams(window.location.search).get('platform');
+    if (platform) {
+        formData.append('platform', platform);
     }
+
+    fetch(SEARCH_API_URL, {method: 'POST', body: formData})
+        .then((response) => response.json())
+        .then((data) => {
+            const results = (data.searchResults || []).filter((result) => !result.url.includes('/Unlisted/'));
+            resultsContainer.innerHTML = '';
+            if (results.length === 0) {
+                resultsContainer.appendChild(cloneTemplate('search-no-results-template'));
+                return;
+            }
+            results.forEach((result) => {
+                const item = cloneTemplate('search-result-item-template');
+                const link = item.querySelector('.search-result-item');
+                link.href = result.url;
+                link.querySelector('.search-result-title').textContent = getTitleFromURL(result.url);
+                const description = link.querySelector('.search-result-description');
+                if (result.description) {
+                    description.textContent = result.description;
+                } else {
+                    description.remove();
+                }
+                resultsContainer.appendChild(item);
+            });
+        })
+        .catch(() => {
+            resultsContainer.innerHTML = '';
+            resultsContainer.appendChild(cloneTemplate('search-error-template'));
+        });
 }
 
-// Function to adapt & fix cropped SVG viewBox from Google based on viewport (Mobile or Tablet-Desktop)
-function changeSVGViewBoxGoogle() {
-    // Get all inline Google SVG elements on the page
-    const svgsGoogle = document.querySelectorAll('svg[data-source]:not(.logo), .gsc-search-button.gsc-search-button-v2 svg');
+function clearSearchInput() {
+    const input = document.getElementById('search-page-input');
+    input.value = '';
+    input.focus();
+}
 
-    Array.from(svgsGoogle).forEach((svg) => {
-        // Set the viewBox attribute to '0 0 13 13' to make the svg fit in the mobile view
-        svg.setAttribute('viewBox', '0 0 20 20');
-        svg.setAttribute('height', '16');
-        svg.setAttribute('width', '16');
+let aiAbortController = null;
+
+function askHelpsiteAI(query) {
+    const aiContainer = document.getElementById('ai-answer-container');
+    if (!aiContainer) {
+        return;
+    }
+
+    if (aiAbortController) {
+        aiAbortController.abort();
+    }
+    aiAbortController = new AbortController();
+
+    aiContainer.innerHTML = '';
+    aiContainer.appendChild(cloneTemplate('ai-thinking-template'));
+
+    const formData = new FormData();
+    formData.append('command', 'AskHelpsiteAI');
+    formData.append('query', query.trim());
+
+    const platform = new URLSearchParams(window.location.search).get('platform');
+    if (platform) {
+        formData.append('platform', platform);
+    }
+
+    fetch(ASK_AI_API_URL, {method: 'POST', body: formData, signal: aiAbortController.signal})
+        .then((response) => response.json())
+        .then((data) => {
+            const answer = data.answer || '';
+            if (!answer) {
+                aiContainer.innerHTML = '';
+                return;
+            }
+
+            const template = cloneTemplate('ai-response-template');
+            const content = template.querySelector('.ai-content');
+            content.innerHTML = answer;
+
+            const showMoreButton = template.querySelector('.ai-show-more');
+            aiContainer.innerHTML = '';
+            aiContainer.appendChild(template);
+
+            // Show "Show more" button if content overflows
+            const renderedContent = aiContainer.querySelector('.ai-content');
+            if (renderedContent.scrollHeight > renderedContent.clientHeight) {
+                renderedContent.classList.add('has-overflow');
+                showMoreButton.classList.remove('hidden');
+                showMoreButton.addEventListener('click', () => {
+                    renderedContent.classList.toggle('expanded');
+                    showMoreButton.firstChild.textContent = renderedContent.classList.contains('expanded') ? 'Show less ' : 'Show more ';
+                });
+            }
+        })
+        .catch((error) => {
+            if (error.name === 'AbortError') {
+                return;
+            }
+            aiContainer.innerHTML = '';
+            aiContainer.appendChild(cloneTemplate('ai-error-template'));
+        });
+}
+
+function initSearchPage() {
+    const searchForm = document.getElementById('search-page-form');
+    if (!searchForm) {
+        return;
+    }
+
+    const input = document.getElementById('search-page-input');
+    const params = new URLSearchParams(window.location.search);
+    const query = params.get('q') || '';
+    const platform = params.get('platform') || '';
+
+    const title = document.getElementById('search-page-title');
+    if (query) {
+        input.value = query;
+        title.textContent = 'Search results';
+        searchPageQuery(query);
+    }
+
+    input.focus();
+
+    searchForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const query = input.value.trim();
+        if (query) {
+            const url = '/search?q=' + encodeURIComponent(query) + (platform ? '&platform=' + encodeURIComponent(platform) : '');
+            history.replaceState(null, '', url);
+            title.textContent = 'Search results';
+            searchPageQuery(query);
+        }
     });
+
+    document.getElementById('search-page-clear').addEventListener('click', clearSearchInput);
 }
-
-// Function to insert element after another
-// In this case, we insert the label element after the Google Search Input so we can have the same label animation effect
-function insertElementAfter(referenceNode, newNode) {
-    referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
-}
-
-// Update the ICON for search input.
-/* Change the path of the Google Search Button icon into Expensify icon */
-function updateGoogleSearchIcon() {
-    const node = document.querySelector('.gsc-search-button.gsc-search-button-v2 svg path');
-    node.setAttribute(
-        'd',
-        'M8 1c3.9 0 7 3.1 7 7 0 1.4-.4 2.7-1.1 3.8l5.2 5.2c.6.6.6 1.5 0 2.1-.6.6-1.5.6-2.1 0l-5.2-5.2C10.7 14.6 9.4 15 8 15c-3.9 0-7-3.1-7-7s3.1-7 7-7zm0 3c2.2 0 4 1.8 4 4s-1.8 4-4 4-4-1.8-4-4 1.8-4 4-4z',
-    );
-}
-
-// Need to wait up until page is load, so the svg viewBox can be changed
-// And the search label can be inserted
-window.addEventListener('load', () => {
-    changeSVGViewBoxGoogle();
-
-    updateGoogleSearchIcon();
-
-    // Add required into the search input
-    const searchInput = document.getElementById('gsc-i-id1');
-    searchInput.setAttribute('required', '');
-
-    // Insert search label after the search input
-    const searchLabel = document.createElement('label');
-    searchLabel.classList.add('search-label');
-    searchLabel.innerHTML = 'Search for something...';
-    insertElementAfter(searchInput, searchLabel);
-});
 
 const FIXED_HEADER_HEIGHT = 80;
 
@@ -238,23 +317,14 @@ handleBreakpointChange();
 window.addEventListener('DOMContentLoaded', () => {
     injectFooterCopyright();
 
-    // Handle open & close the sidebar
-    const buttonOpenSidebar = document.getElementById('toggle-search-open');
-    if (buttonOpenSidebar) {
-        buttonOpenSidebar.addEventListener('click', openSidebar);
-    }
-
-    const buttonCloseSidebar = document.getElementById('toggle-search-close');
-    if (buttonCloseSidebar) {
-        buttonCloseSidebar.addEventListener('click', closeSidebar);
-    }
-
     if (window.tocbot) {
         window.tocbot.init({
             ...tocbotOptions,
             contentSelector: '.article-toc-content',
         });
     }
+
+    initSearchPage();
 
     document.getElementById('header-button').addEventListener('click', toggleHeaderMenu);
 
@@ -290,9 +360,6 @@ window.addEventListener('DOMContentLoaded', () => {
         const scrollingElement = e.target.scrollingElement;
         const scrollPercentageInArticleContent = clamp(scrollingElement.scrollTop - articleContent.offsetTop, 0, articleContent.scrollHeight) / articleContent.scrollHeight;
         lhnContent.scrollTop = scrollPercentageInArticleContent * lhnContent.scrollHeight;
-
-        // Count property of y-axis to keep scroll position & reference it later for making the body fixed when sidebar opened
-        document.documentElement.style.setProperty('y-axis', `${window.scrollY}px`);
     });
 });
 
@@ -317,49 +384,3 @@ window.addEventListener('hashchange', () => {
         behavior: 'smooth',
     });
 });
-
-// We need to pass the results from readyCallback to renderedCallback so we make two part callback here to customize the results from GCSE API
-const makeTwoPartCallback = () => {
-    let customResults = [];
-    const readyCallback = (name, q, promos, results, resultsDiv) => {
-        customResults = [];
-        results.forEach((result) => {
-            const {ogUrl, ogSiteName} = result.richSnippet.metatags;
-
-            let newOgSiteName;
-            if (ogUrl.includes('expensify-classic')) {
-                newOgSiteName = 'Expensify Classic';
-            } else if (ogUrl.includes('travel')) {
-                newOgSiteName = 'Expensify Travel';
-            } else {
-                newOgSiteName = 'New Expensify';
-            }
-
-            result.title = result.title.replace(`- ${ogSiteName}`, `• ${newOgSiteName}`);
-            result.titleNoFormatting = result.titleNoFormatting.replace(`- ${ogSiteName}`, `• ${newOgSiteName}`);
-            if (!result.title.endsWith(` • ${newOgSiteName}`)) {
-                result.title = result.title + ` • ${newOgSiteName}`;
-            }
-            customResults.push(result);
-        });
-    };
-    const renderedCallback = (name, q, promos, results) => {
-        for (let i = 0; i < results.length; ++i) {
-            const div = results[i];
-            const result = customResults[i];
-            const titleElement = div.querySelector('a.gs-title');
-            titleElement.innerHTML = result.title;
-        }
-    };
-    return {readyCallback, renderedCallback};
-};
-
-const {readyCallback: webResultsReadyCallback, renderedCallback: webResultsRenderedCallback} = makeTwoPartCallback();
-
-window.__gcse || (window.__gcse = {});
-window.__gcse.searchCallbacks = {
-    web: {
-        ready: webResultsReadyCallback,
-        rendered: webResultsRenderedCallback,
-    },
-};

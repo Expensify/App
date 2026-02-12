@@ -133,13 +133,20 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
                                 return JSON.stringify(cell);
                             }),
                         );
-                        setSpreadsheetData(formattedSpreadsheetData, fileURI, file.type, file.name, isImportingMultiLevelTags ?? false, importedSpreadsheet?.importTransactionSettings)
-                            .then(() => {
-                                Navigation.navigate(goTo);
-                            })
-                            .catch(() => {
-                                setUploadFileError(true, 'spreadsheet.importFailedTitle', 'spreadsheet.invalidFileMessage');
-                            });
+                        return setSpreadsheetData(
+                            formattedSpreadsheetData,
+                            fileURI,
+                            file.type,
+                            file.name,
+                            isImportingMultiLevelTags ?? false,
+                            importedSpreadsheet?.importTransactionSettings,
+                        );
+                    })
+                    .then(() => {
+                        Navigation.navigate(goTo);
+                    })
+                    .catch(() => {
+                        setUploadFileError(true, 'spreadsheet.importFailedTitle', 'spreadsheet.invalidFileMessage');
                     })
                     .finally(() => {
                         setIsReadingFile(false);
