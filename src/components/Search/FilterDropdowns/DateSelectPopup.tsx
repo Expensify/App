@@ -2,6 +2,7 @@ import {format, parseISO} from 'date-fns';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {ScrollView, View} from 'react-native';
 import Button from '@components/Button';
+import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -73,7 +74,10 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
 
     const handleBackPress = useCallback(() => {
         if (searchDatePresetFilterBaseRef.current && selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
-            searchDatePresetFilterBaseRef.current.clearDateValueOfSelectedDateModifier();
+            const hasExistingRange = !!value[CONST.SEARCH.DATE_MODIFIERS.AFTER] && !!value[CONST.SEARCH.DATE_MODIFIERS.BEFORE];
+            if (!hasExistingRange) {
+                searchDatePresetFilterBaseRef.current.clearDateValueOfSelectedDateModifier();
+            }
             setTrackedDateValues(value);
         }
         clearSelection();
@@ -101,7 +105,11 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
             }
 
             searchDatePresetFilterBaseRef.current.setDateValueOfSelectedDateModifier();
+            const dateValues = searchDatePresetFilterBaseRef.current.getDateValues();
+            setTrackedDateValues(dateValues);
             clearSelection();
+            onChange(dateValues);
+            closeOverlay();
             return;
         }
 
@@ -291,15 +299,23 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
                     onSelectDateModifier={setSelectedDateModifier}
                     presets={presets}
                     shouldShowRangeError={shouldShowRangeError}
+                    shouldShowRangeErrorInPicker={false}
                     onDateValuesChange={setTrackedDateValues}
                 />
-                {!!rangeText && selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE && (
-                    <Text style={[styles.textLabelSupporting, styles.ph5, styles.mt2, styles.textAlignCenter]}>
-                        {`${translate('common.range')}: `}
-                        <Text style={[styles.textLabel]}>{rangeText}</Text>
-                    </Text>
-                )}
             </ScrollView>
+            {shouldShowRangeError && selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE && (
+                <FormHelpMessage
+                    isError
+                    message={translate('search.errors.pleaseSelectDatesForBothFromAndTo')}
+                    style={[styles.mh3, styles.mt2]}
+                />
+            )}
+            {!!rangeText && selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE && (
+                <Text style={[styles.textLabelSupporting, styles.ph5, styles.mt2, styles.textAlignLeft]}>
+                    {`${translate('common.range')}: `}
+                    <Text style={[styles.textLabel]}>{rangeText}</Text>
+                </Text>
+            )}
             <View style={[styles.flexRow, styles.ph5, buttonRowSpacing, styles.alignItemsCenter, styles.gap2]}>
                 <Button
                     medium

@@ -29,6 +29,9 @@ type DatePresetFilterBaseHandle = {
 
     /** Clears the date value of the selected date modifier */
     clearDateValueOfSelectedDateModifier: () => void;
+
+    /** Resets date values to the provided defaults */
+    resetDateValuesToDefault: () => void;
 };
 
 type DatePresetFilterBaseProps = {
@@ -49,6 +52,9 @@ type DatePresetFilterBaseProps = {
 
     /** Whether to show the range validation error */
     shouldShowRangeError?: boolean;
+
+    /** Whether the range error should be rendered inside the picker */
+    shouldShowRangeErrorInPicker?: boolean;
 
     /** Callback when date values change (useful for parent to track range display text) */
     onDateValuesChange?: (dateValues: SearchDateValues) => void;
@@ -77,6 +83,7 @@ function DatePresetFilterBase({
     presets,
     isSearchAdvancedFiltersFormLoading,
     shouldShowRangeError = false,
+    shouldShowRangeErrorInPicker = true,
     onDateValuesChange,
     forceVerticalCalendars = false,
     ref,
@@ -191,6 +198,10 @@ function DatePresetFilterBase({
                 return dateValues;
             },
 
+            resetDateValuesToDefault() {
+                updateDateValues(defaultDateValues);
+            },
+
             clearDateValues() {
                 updateDateValues({
                     [CONST.SEARCH.DATE_MODIFIERS.ON]: undefined,
@@ -230,7 +241,7 @@ function DatePresetFilterBase({
                 setDateValue(selectedDateModifier, undefined);
             },
         }),
-        [selectedDateModifier, dateValues, ephemeralDateValue, setDateValue, updateDateValues],
+        [selectedDateModifier, dateValues, defaultDateValues, ephemeralDateValue, setDateValue, updateDateValues],
     );
 
     const rangeFromValue = dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER];
@@ -298,7 +309,7 @@ function DatePresetFilterBase({
                 toValue={dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]}
                 onFromSelected={(date) => setDateValue(CONST.SEARCH.DATE_MODIFIERS.AFTER, date)}
                 onToSelected={(date) => setDateValue(CONST.SEARCH.DATE_MODIFIERS.BEFORE, date)}
-                shouldShowError={shouldShowRangeError}
+                shouldShowError={shouldShowRangeErrorInPicker ? shouldShowRangeError : false}
                 forceVertical={forceVerticalCalendars}
             />
         );

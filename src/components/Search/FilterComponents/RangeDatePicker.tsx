@@ -14,7 +14,7 @@ function GreenSelectedDay({disabled, selected, children}: DayProps) {
     const themeStyles = useThemeStyles();
     return (
         <View style={[themeStyles.calendarDayContainer, selected ? themeStyles.buttonSuccess : {}]}>
-            <Text style={[disabled ? themeStyles.buttonOpacityDisabled : {}, selected ? themeStyles.buttonSuccessText : {}]}>{children}</Text>
+            <Text style={[disabled ? themeStyles.buttonOpacityDisabled : {}, selected ? themeStyles.themeTextColor : {}]}>{children}</Text>
         </View>
     );
 }
@@ -48,7 +48,7 @@ function RangeDatePicker({fromValue, toValue, onFromSelected, onToSelected, shou
 
     return (
         <>
-            <View style={[!shouldStack && styles.flexRow, styles.mh5, styles.mt3]}>
+            <View style={[!shouldStack && styles.flexRow, styles.mh5, isSmallScreenWidth && styles.mt3]}>
                 <View style={[!shouldStack && styles.flex1, !shouldStack && styles.mr2]}>
                     <View style={[styles.borderedContentCard]}>
                         <Text style={[styles.textLabelSupporting, styles.mb2, styles.ph4, styles.pt4]}>{translate('common.from')}</Text>

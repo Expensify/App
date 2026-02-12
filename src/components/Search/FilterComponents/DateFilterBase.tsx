@@ -137,10 +137,15 @@ function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
     const goBack = () => {
         if (selectedDateModifier) {
             if (searchDatePresetFilterBaseRef.current && selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
-                searchDatePresetFilterBaseRef.current.clearDateValueOfSelectedDateModifier();
-                // Get the cleared date values to update tracked state
-                const clearedDateValues = searchDatePresetFilterBaseRef.current.getDateValues();
-                setTrackedDateValues(clearedDateValues);
+                const hasExistingRange = !!(dateAfterValue && dateBeforeValue);
+                if (hasExistingRange) {
+                    searchDatePresetFilterBaseRef.current.resetDateValuesToDefault();
+                    setTrackedDateValues(defaultDateValues);
+                } else {
+                    searchDatePresetFilterBaseRef.current.clearDateValueOfSelectedDateModifier();
+                    const clearedDateValues = searchDatePresetFilterBaseRef.current.getDateValues();
+                    setTrackedDateValues(clearedDateValues);
+                }
             }
             setSelectedDateModifier(null);
             setShouldShowRangeError(false);
