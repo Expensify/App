@@ -590,6 +590,14 @@ function duplicateExpenseTransaction({
                 ...(params.participantParams ?? {}),
                 participant: {accountID: userAccountID, selected: true},
             },
+            existingTransaction: {
+                ...(params.transactionParams ?? {}),
+                comment: transaction.comment,
+                iouRequestType: getRequestType(transaction),
+                modifiedCreated: '',
+                reportID: '1',
+                transactionID: '1',
+            },
             transactionParams: {
                 ...(params.transactionParams ?? {}),
                 validWaypoints: transactionDetails?.waypoints as WaypointCollection | undefined,
