@@ -85,8 +85,11 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             attendees.map((attendee) => ({
                 ...attendee,
                 reportID: CONST.DEFAULT_NUMBER_ID.toString(),
+                keyForList: `${attendee.accountID ?? (attendee.email || attendee.displayName)}`,
                 selected: true,
-                login: attendee.email ? attendee.email : attendee.displayName,
+                // Use || to fall back to displayName for name-only attendees (empty email)
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                login: attendee.email || attendee.displayName,
                 ...getPersonalDetailByEmail(attendee.email),
             })),
         [attendees],
@@ -194,6 +197,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                     pressOnEnter
                     large
                     isDisabled={shouldShowErrorMessage}
+                    sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.ATTENDEES_SAVE_BUTTON}
                 />
             </>
         );

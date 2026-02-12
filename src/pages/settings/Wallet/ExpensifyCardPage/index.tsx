@@ -34,7 +34,6 @@ import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import RedDotCardSection from '@pages/settings/Wallet/RedDotCardSection';
 import CardDetails from '@pages/settings/Wallet/WalletPage/CardDetails';
-import {clearActivatedCardPin} from '@userActions/Card';
 import {openOldDotLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -83,7 +82,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const {cardID} = route.params;
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterOutPersonalCards, canBeMissing: false});
-    const [pin] = useOnyx(ONYXKEYS.ACTIVATED_CARD_PIN, {canBeMissing: true});
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: false});
     const {currencyList} = useCurrencyList();
     const styles = useThemeStyles();
@@ -106,15 +104,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
         return [cardList?.[cardID]];
     }, [shouldDisplayCardDomain, cardList, cardID, domain]);
     const currentCard = useMemo(() => cardsToShow?.find((card) => String(card?.cardID) === cardID) ?? cardsToShow?.at(0), [cardsToShow, cardID]);
-
-    useEffect(() => {
-        return () => {
-            if (!pin) {
-                return;
-            }
-            clearActivatedCardPin();
-        };
-    }, [pin]);
 
     useEffect(() => {
         setIsNotFound(!currentCard);
@@ -355,7 +344,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                 {shouldShowPIN && (
                                     <MenuItemWithTopDescription
                                         description={translate('cardPage.physicalCardPin')}
-                                        title={maskPin(pin)}
+                                        title={maskPin()}
                                         interactive={false}
                                         titleStyle={styles.walletCardNumber}
                                     />
