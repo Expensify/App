@@ -39,6 +39,7 @@ function ReportActionItemImageWithAspectRatio({image, shouldUseAspectRatio = fal
                             {...image}
                             shouldMapHaveBorderRadius={false}
                             shouldUseFullHeight={shouldUseAspectRatio}
+                            shouldUseThumbnailImage
                         />
                     </View>
                 </ImageBehaviorContextProvider>
