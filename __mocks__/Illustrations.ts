@@ -88,6 +88,9 @@ const Filters = 'Filters';
 const MagnifyingGlassMoney = 'MagnifyingGlassMoney';
 const Rules = 'Rules';
 const CompanyCardsEmptyState = 'CompanyCardsEmptyState';
+const CompanyCardsEmptyStateGeneric = 'CompanyCardsEmptyStateGeneric';
+const CompanyCardsEmptyStateUkEu = 'CompanyCardsEmptyStateUkEu';
+const CompanyCardsEmptyStateUsCa = 'CompanyCardsEmptyStateUsCa';
 const CompanyCardsPendingState = 'CompanyCardsPendingState';
 const VisaCompanyCardDetail = 'VisaCompanyCardDetail';
 const MasterCardCompanyCardDetail = 'MasterCardCompanyCardDetail';
@@ -206,6 +209,9 @@ export {
     MagnifyingGlassMoney,
     Rules,
     CompanyCardsEmptyState,
+    CompanyCardsEmptyStateGeneric,
+    CompanyCardsEmptyStateUkEu,
+    CompanyCardsEmptyStateUsCa,
     CompanyCardsPendingState,
     VisaCompanyCardDetail,
     MasterCardCompanyCardDetail,

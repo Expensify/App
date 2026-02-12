@@ -337,7 +337,13 @@ function WorkspaceCompanyCardsTable({
             isItemInFilter={isItemInFilter}
             filters={filterConfig}
             initialSortColumn="member"
-            ListEmptyComponent={isLoadingCards ? <TableRowSkeleton fixedNumItems={5} /> : <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />}
+            ListEmptyComponent={
+                isLoadingCards ? (
+                    <TableRowSkeleton fixedNumItems={5} />
+                ) : (
+                    <WorkspaceCompanyCardsFeedAddedEmptyPage policyID={policyID} shouldShowGBDisclaimer={shouldShowGBDisclaimer} />
+                )
+            }
             ListHeaderComponent={shouldUseNarrowTableLayout ? headerButtonsComponent : undefined}
         >
             {shouldRenderHeaderAsChild && headerButtonsComponent}

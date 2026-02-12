@@ -1,23 +1,33 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import ScrollView from '@components/ScrollView';
 import CardRowSkeleton from '@components/Skeletons/CardRowSkeleton';
 import Text from '@components/Text';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
+import getCompanyCardsEmptyStateIllustrationKey from './companyCardsIllustrationUtils';
 
 type WorkspaceCompanyCardsFeedAddedEmptyPageProps = {
+    /** Policy ID for the workspace, used to show locale-specific illustration */
+    policyID?: string;
     /** Whether to disable GB disclaimer */
     shouldShowGBDisclaimer?: boolean;
 };
 
-function WorkspaceCompanyCardsFeedAddedEmptyPage({shouldShowGBDisclaimer}: WorkspaceCompanyCardsFeedAddedEmptyPageProps) {
+function WorkspaceCompanyCardsFeedAddedEmptyPage({policyID, shouldShowGBDisclaimer}: WorkspaceCompanyCardsFeedAddedEmptyPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['CompanyCardsEmptyState']);
+    const policy = usePolicy(policyID ?? '');
+    const companyCardsIllustrationKey = useMemo(
+        () => getCompanyCardsEmptyStateIllustrationKey(policy?.outputCurrency),
+        [policy?.outputCurrency],
+    );
+    const illustrations = useMemoizedLazyIllustrations([companyCardsIllustrationKey]);
+    const companyCardsIllustration = illustrations[companyCardsIllustrationKey];
 
     return (
         <ScrollView
@@ -27,7 +37,7 @@ function WorkspaceCompanyCardsFeedAddedEmptyPage({shouldShowGBDisclaimer}: Works
             <EmptyStateComponent
                 SkeletonComponent={CardRowSkeleton}
                 headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
-                headerMedia={illustrations.CompanyCardsEmptyState}
+                headerMedia={companyCardsIllustration}
                 containerStyles={styles.mt5}
                 headerStyles={[styles.emptyStateCardIllustrationContainer, styles.justifyContentStart, {backgroundColor: colors.blue700}]}
                 headerContentStyles={styles.emptyStateCardIllustration}

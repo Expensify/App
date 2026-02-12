@@ -13,6 +13,9 @@ import StripeCompanyCardDetail from '@assets/images/companyCards/card-stripe.svg
 import VisaCompanyCardDetail from '@assets/images/companyCards/card-visa.svg';
 import WellsFargoCompanyCardDetail from '@assets/images/companyCards/card-wellsfargo.svg';
 import CompanyCardsEmptyState from '@assets/images/companyCards/emptystate__card-pos.svg';
+import CompanyCardsEmptyStateGeneric from '@assets/images/companyCards/companycards-generic.svg';
+import CompanyCardsEmptyStateUkEu from '@assets/images/companyCards/companycards-uk_eu.svg';
+import CompanyCardsEmptyStateUsCa from '@assets/images/companyCards/companycards-us_ca.svg';
 import AmexCardCompanyCardDetailLarge from '@assets/images/companyCards/large/card-amex-large.svg';
 import BankOfAmericaCompanyCardDetailLarge from '@assets/images/companyCards/large/card-bofa-large.svg';
 import BrexCompanyCardDetailLarge from '@assets/images/companyCards/large/card-brex-large.svg';
@@ -194,6 +197,9 @@ const Illustrations = {
     VisaCompanyCardDetailLarge,
     WellsFargoCompanyCardDetailLarge,
     CompanyCardsEmptyState,
+    CompanyCardsEmptyStateGeneric,
+    CompanyCardsEmptyStateUkEu,
+    CompanyCardsEmptyStateUsCa,
     EmptyCardState,
     PendingBank,
     CompanyCardsPendingState,

@@ -1,4 +1,4 @@
-import React, {useContext} from 'react';
+import React, {useContext, useMemo} from 'react';
 import {View} from 'react-native';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import FeatureList from '@components/FeatureList';
@@ -17,6 +17,7 @@ import {clearAddNewCardFlow} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import getCompanyCardsEmptyStateIllustrationKey from './companyCardsIllustrationUtils';
 import WorkspaceCompanyCardExpensifyCardPromotionBanner from './WorkspaceCompanyCardExpensifyCardPromotionBanner';
 
 type WorkspaceCompanyCardPageEmptyStateProps = {
@@ -35,7 +36,17 @@ function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer}: 
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const shouldShowExpensifyCardPromotionBanner = !hasIssuedExpensifyCard(workspaceAccountID, allWorkspaceCards);
 
-    const illustrations = useMemoizedLazyIllustrations(['CreditCardsNew', 'HandCard', 'MagnifyingGlassMoney', 'CompanyCardsEmptyState']);
+    const companyCardsIllustrationKey = useMemo(
+        () => getCompanyCardsEmptyStateIllustrationKey(policy?.outputCurrency),
+        [policy?.outputCurrency],
+    );
+    const illustrations = useMemoizedLazyIllustrations([
+        'CreditCardsNew',
+        'HandCard',
+        'MagnifyingGlassMoney',
+        companyCardsIllustrationKey,
+    ]);
+    const companyCardsIllustration = illustrations[companyCardsIllustrationKey];
 
     const features = [
         {
@@ -83,7 +94,7 @@ function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer}: 
                 ctaAccessibilityLabel={translate('workspace.companyCards.addCards')}
                 onCtaPress={handleCtaPress}
                 illustrationBackgroundColor={colors.blue700}
-                illustration={illustrations.CompanyCardsEmptyState}
+                illustration={companyCardsIllustration}
                 illustrationStyle={styles.emptyStateCardIllustration}
                 illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentStart]}
                 titleStyles={styles.textHeadlineH1}
