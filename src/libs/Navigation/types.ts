@@ -614,8 +614,6 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.SETTINGS.SUBSCRIPTION.SIZE]: {
         canChangeSize: 0 | 1;
-        subPage?: string;
-        action?: 'edit';
     };
     [SCREENS.SETTINGS.SUBSCRIPTION.SETTINGS_DETAILS]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD]: undefined;
@@ -1537,6 +1535,12 @@ type SettingsNavigatorParamList = {
     [SCREENS.DOMAIN.ADD_MEMBER]: {
         domainAccountID: number;
     };
+    [SCREENS.DOMAIN.MEMBERS_SETTINGS]: {
+        domainAccountID: number;
+    };
+    [SCREENS.DOMAIN.MEMBERS_SETTINGS_TWO_FACTOR_AUTH]: {
+        domainAccountID: number;
+    };
 } & ReimbursementAccountNavigatorParamList;
 
 type DomainCardNavigatorParamList = {
@@ -1896,7 +1900,8 @@ type MoneyRequestNavigatorParamList = {
         action: IOUAction;
         iouType: IOUType;
         transactionID: string;
-        readingType: OdometerImageType;
+        reportID: string;
+        imageType: OdometerImageType;
     };
     [SCREENS.MONEY_REQUEST.CREATE]: {
         iouType: IOUType;
@@ -2887,6 +2892,7 @@ type AttachmentModalScreensParamList = {
         action?: IOUAction;
         iouType?: IOUType;
         mergeTransactionID?: string;
+        imageType?: OdometerImageType;
     };
     [SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW]: AttachmentModalContainerModalProps & {
         reportID: string;

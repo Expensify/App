@@ -1352,6 +1352,7 @@ const translations: TranslationDeepObject<typeof en> = {
 
             return `${formatList(fragments)} a través de <a href="${policyRulesRoute}">reglas del espacio de trabajo</a>`;
         },
+        duplicateNonDefaultWorkspacePerDiemError: 'No puedes duplicar gastos de viáticos entre espacios de trabajo porque las tarifas pueden variar entre ellos.',
     },
     transactionMerge: {
         listPage: {
@@ -2915,6 +2916,7 @@ ${amount} para ${merchant} - ${date}`,
         whenClearStatus: '¿Cuándo deberíamos borrar tu estado?',
         vacationDelegate: 'Delegado de vacaciones',
         setVacationDelegate: 'Configura un delegado de vacaciones para aprobar informes en tu nombre mientras estás fuera de la oficina.',
+        cannotSetVacationDelegate: `No puedes establecer un delegado de vacaciones porque actualmente eres el delegado de los siguientes miembros:`,
         vacationDelegateError: 'Hubo un error al actualizar tu delegado de vacaciones.',
         asVacationDelegate: ({nameOrEmail: managerName}) => `como delegado de vacaciones de ${managerName}`,
         toAsVacationDelegate: ({submittedToName, vacationDelegateName}) => `a ${submittedToName} como delegado de vacaciones de ${vacationDelegateName}`,
@@ -7739,8 +7741,8 @@ ${amount} para ${merchant} - ${date}`,
     },
     cardTransactions: {
         notActivated: 'No activado',
-        outOfPocket: 'Gastos por cuenta propia',
-        companySpend: 'Gastos de empresa',
+        outOfPocket: 'Reembolsable',
+        companySpend: 'No reembolsable',
     },
     distance: {
         addStop: 'Añadir parada',
@@ -7766,6 +7768,8 @@ ${amount} para ${merchant} - ${date}`,
             totalDistance: 'Distancia total',
             startTitle: 'Foto inicial del odómetro',
             endTitle: 'Foto final del odómetro',
+            deleteOdometerPhoto: 'Eliminar foto del odómetro',
+            deleteOdometerPhotoConfirmation: '¿Estás seguro de que deseas eliminar esta foto del odómetro?',
             startMessageWeb: 'Añade una foto de tu odómetro al <strong>inicio</strong> de tu viaje. Arrastra un archivo aquí o elige uno para subirlo.',
             endMessageWeb: 'Añade una foto de tu odómetro al <strong>final</strong> de tu viaje. Arrastra un archivo aquí o elige uno para subirlo.',
         },
@@ -8514,6 +8518,8 @@ ${amount} para ${merchant} - ${date}`,
             disableSamlRequired: 'Deshabilitar requisito de SAML',
             oktaWarningPrompt: '¿Estás seguro? Esto también deshabilitará Okta SCIM.',
             requireWithEmptyMetadataError: 'Por favor, añade los metadatos del Proveedor de Identidad a continuación para habilitar',
+            pleaseDisableTwoFactorAuth: (twoFactorAuthSettingsUrl: string) =>
+                `<muted-text>Por favor, deshabilita <a href="${twoFactorAuthSettingsUrl}">forzar la autenticación de dos factores</a> para habilitar el inicio de sesión con SAML.</muted-text>`,
         },
         samlConfigurationDetails: {
             title: 'Detalles de configuración de SAML',
@@ -8562,7 +8568,6 @@ ${amount} para ${merchant} - ${date}`,
             primaryContact: 'Contacto principal',
             addPrimaryContact: 'Añadir contacto principal',
             setPrimaryContactError: 'No se pudo establecer el contacto principal. Por favor, inténtalo de nuevo más tarde.',
-            settings: 'Configuración',
             consolidatedDomainBilling: 'Facturación consolidada del dominio',
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>Cuando está habilitada, el contacto principal pagará todos los espacios de trabajo de los miembros de <strong>${domainName}</strong> y recibirá todos los recibos de facturación.</muted-text-label></comment>`,
@@ -8587,16 +8592,32 @@ ${amount} para ${merchant} - ${date}`,
             findMember: 'Buscar miembro',
             addMember: 'Añadir miembro',
             email: 'Dirección de correo electrónico',
-            closeAccount: 'Cerrar cuenta',
+            closeAccount: () => ({
+                one: 'Cerrar cuenta',
+                other: 'Cerrar cuentas',
+            }),
             closeAccountPrompt: '¿Estás seguro? Esta acción es permanente.',
-            forceCloseAccount: 'Forzar cierre de cuenta',
-            safeCloseAccount: 'Cierre seguro de cuenta',
-            closeAccountInfo:
-                'Recomendamos cerrar la cuenta de forma segura para omitir el cierre si hay: <ul><li>Aprobaciones pendientes</li><li>Reembolsos en curso</li><li>No hay otro método de inicio de sesión</li></ul>De lo contrario, puedes ignorar las precauciones de seguridad anteriores y forzar el cierre de las cuentas seleccionadas.',
+            forceCloseAccount: () => ({one: 'Forzar cierre de cuenta', other: 'Forzar cierre de cuentas'}),
+            safeCloseAccount: () => ({
+                one: 'Cierre seguro de cuenta',
+                other: 'Cierre seguro de cuentas',
+            }),
+            closeAccountInfo: () => ({
+                one: 'Recomendamos cerrar la cuenta de forma segura para omitir el cierre si hay: <ul><li>Aprobaciones pendientes</li><li>Reembolsos en curso</li><li>No hay otro método de inicio de sesión</li></ul>De lo contrario, puedes ignorar las precauciones de seguridad anteriores y forzar el cierre de la cuenta seleccionada.',
+                other: 'Recomendamos cerrar las cuentas de forma segura para omitir el cierre si hay: <ul><li>Aprobaciones pendientes</li><li>Reembolsos en curso</li><li>No hay otro método de inicio de sesión</li></ul>De lo contrario, puedes ignorar las precauciones de seguridad anteriores y forzar el cierre de las cuentas seleccionadas.',
+            }),
             error: {
                 removeMember: 'No se pudo eliminar a este usuario. Por favor, inténtalo de nuevo.',
                 addMember: 'No se pudo añadir este miembro. Por favor, inténtalo de nuevo.',
             },
+            forceTwoFactorAuth: 'Forzar la autenticación de dos factores',
+            forceTwoFactorAuthSAMLEnabledDescription: (samlPageUrl: string) =>
+                `<muted-text>Por favor, deshabilita <a href="${samlPageUrl}">SAML</a> para forzar la autenticación de dos factores.</muted-text>`,
+            forceTwoFactorAuthDescription: `<muted-text>Requiere la autenticación de dos factores para todos los miembros de este dominio. Se les pedirá a los miembros del dominio que configuren la autenticación de dos factores en su cuenta cuando inicien sesión.</muted-text>`,
+            forceTwoFactorAuthError: 'No se pudo cambiar la autenticación de dos factores forzada. Por favor, inténtalo de nuevo más tarde.',
+        },
+        common: {
+            settings: 'Configuración',
         },
     },
     gps: {

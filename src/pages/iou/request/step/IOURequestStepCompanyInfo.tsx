@@ -89,6 +89,7 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
             companyWebsite,
             policyRecentlyUsedCategories,
             policyRecentlyUsedTags,
+            isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
         });
     };
 

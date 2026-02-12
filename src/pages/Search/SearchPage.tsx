@@ -1022,9 +1022,7 @@ function SearchPage({route}: SearchPageProps) {
                 icon: expensifyIcons.ArrowSplit,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.SPLIT,
                 onSelected: () => {
-                    const report = firstTransaction?.reportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${firstTransaction.reportID}`] : undefined;
-                    const transactionPolicy = report?.policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] : undefined;
-                    initSplitExpense(allTransactions, allReports, firstTransaction, transactionPolicy);
+                    initSplitExpense(allTransactions, allReports, firstTransaction);
                 },
             });
         }

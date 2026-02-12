@@ -139,6 +139,7 @@ const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.HYBRID_APP,
     ONYXKEYS.SHOULD_USE_STAGING_SERVER,
     ONYXKEYS.IS_DEBUG_MODE_ENABLED,
+    ONYXKEYS.COLLECTION.PASSKEY_CREDENTIALS,
 
     // Preserve IS_USING_IMPORTED_STATE so that when the app restarts (especially in HybridApp mode),
     // we know if we're in imported state mode and should skip API calls that would cause infinite loading
@@ -633,7 +634,7 @@ function savePolicyDraftByNewWorkspace({
         makeMeAdmin,
         policyName,
         policyID,
-        engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+        engagementChoice: introSelected?.choice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND ? CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE : CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
         currency,
         file,
         lastUsedPaymentMethod,

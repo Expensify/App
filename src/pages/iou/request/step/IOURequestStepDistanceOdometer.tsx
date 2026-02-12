@@ -1,5 +1,4 @@
 import reportsSelector from '@selectors/Attributes';
-import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -34,7 +33,6 @@ import {
     trackExpense,
     updateMoneyRequestDistance,
 } from '@libs/actions/IOU';
-import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -52,6 +50,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type Transaction from '@src/types/onyx/Transaction';
+import type {FileObject} from '@src/types/utils/Attachment';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import DiscardChangesConfirmation from './DiscardChangesConfirmation';
 import StepScreenWrapper from './StepScreenWrapper';
@@ -96,8 +95,8 @@ function IOURequestStepDistanceOdometer({
     // Track local state via refs to avoid including them in useEffect dependencies
     const startReadingRef = useRef<string>('');
     const endReadingRef = useRef<string>('');
-    const initialStartImageRef = useRef<File | string | undefined>(undefined);
-    const initialEndImageRef = useRef<File | string | undefined>(undefined);
+    const initialStartImageRef = useRef<FileObject | string | undefined>(undefined);
+    const initialEndImageRef = useRef<FileObject | string | undefined>(undefined);
     const prevSelectedTabRef = useRef<string | undefined>(undefined);
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
@@ -111,7 +110,6 @@ function IOURequestStepDistanceOdometer({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: true});
-    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
@@ -124,8 +122,6 @@ function IOURequestStepDistanceOdometer({
 
     // isEditing: we're changing an already existing odometer expense; isEditingConfirmation: we navigated here by pressing 'Distance' field from the confirmation step during the creation of a new odometer expense to adjust the input before submitting
     const isEditing = action === CONST.IOU.ACTION.EDIT;
-    const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
-    const currentTransaction = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const isEditingConfirmation = routeName !== SCREENS.MONEY_REQUEST.DISTANCE_CREATE && !isEditing;
     const isCreatingNewRequest = !isEditingConfirmation && !isEditing;
     const isTransactionDraft = shouldUseTransactionDraft(action, iouType);
@@ -135,7 +131,7 @@ function IOURequestStepDistanceOdometer({
 
     const shouldUseDefaultExpensePolicy = useMemo(() => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy), [iouType, defaultExpensePolicy]);
 
-    const unit = DistanceRequestUtils.getRate({transaction: currentTransaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
+    const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
 
     const shouldSkipConfirmation: boolean = !skipConfirmation || !report?.reportID ? false : !(isArchived || isPolicyExpenseChatUtils(report));
 
@@ -179,27 +175,22 @@ function IOURequestStepDistanceOdometer({
         if (hasInitializedRefs.current) {
             return;
         }
-        const currentStart = currentTransaction?.comment?.odometerStart;
-        const currentEnd = currentTransaction?.comment?.odometerEnd;
+        const currentStart = transaction?.comment?.odometerStart;
+        const currentEnd = transaction?.comment?.odometerEnd;
         const startValue = currentStart !== null && currentStart !== undefined ? currentStart.toString() : '';
         const endValue = currentEnd !== null && currentEnd !== undefined ? currentEnd.toString() : '';
         initialStartReadingRef.current = startValue;
         initialEndReadingRef.current = endValue;
-        initialStartImageRef.current = currentTransaction?.comment?.odometerStartImage;
-        initialEndImageRef.current = currentTransaction?.comment?.odometerEndImage;
+        initialStartImageRef.current = transaction?.comment?.odometerStartImage;
+        initialEndImageRef.current = transaction?.comment?.odometerEndImage;
         hasInitializedRefs.current = true;
-    }, [
-        currentTransaction?.comment?.odometerStart,
-        currentTransaction?.comment?.odometerEnd,
-        currentTransaction?.comment?.odometerStartImage,
-        currentTransaction?.comment?.odometerEndImage,
-    ]);
+    }, [transaction?.comment?.odometerStart, transaction?.comment?.odometerEnd, transaction?.comment?.odometerStartImage, transaction?.comment?.odometerEndImage]);
 
     // Initialize values from transaction when editing or when transaction has data (but not when switching tabs)
     // This updates the current state, but NOT the initial refs (those are set only once on mount)
     useEffect(() => {
-        const currentStart = currentTransaction?.comment?.odometerStart;
-        const currentEnd = currentTransaction?.comment?.odometerEnd;
+        const currentStart = transaction?.comment?.odometerStart;
+        const currentEnd = transaction?.comment?.odometerEnd;
 
         // Only initialize if:
         // 1. We haven't initialized yet AND transaction has data, OR
@@ -223,7 +214,7 @@ function IOURequestStepDistanceOdometer({
                 endReadingRef.current = endValue;
             }
         }
-    }, [currentTransaction?.comment?.odometerStart, currentTransaction?.comment?.odometerEnd, isEditing]);
+    }, [transaction?.comment?.odometerStart, transaction?.comment?.odometerEnd, isEditing]);
 
     // Calculate total distance - updated live after every input change
     const totalDistance = (() => {
@@ -238,7 +229,7 @@ function IOURequestStepDistanceOdometer({
     })();
 
     // Get image source for web (blob URL) or native (URI string)
-    const getImageSource = useCallback((image: File | string | {uri?: string} | undefined): string | undefined => {
+    const getImageSource = useCallback((image: FileObject | string | {uri?: string} | undefined): string | undefined => {
         if (!image) {
             return undefined;
         }
@@ -325,9 +316,19 @@ function IOURequestStepDistanceOdometer({
 
     const handleCaptureImage = useCallback(
         (imageType: OdometerImageType) => {
-            Navigation.navigate(ROUTES.ODOMETER_IMAGE.getRoute(action, iouType, transactionID, imageType));
+            Navigation.navigate(ROUTES.ODOMETER_IMAGE.getRoute(action, iouType, transactionID, reportID, imageType));
         },
-        [action, iouType, transactionID],
+        [action, iouType, transactionID, reportID],
+    );
+
+    const handleViewOdometerImage = useCallback(
+        (imageType: OdometerImageType) => {
+            if (!reportID || !transactionID) {
+                return;
+            }
+            Navigation.navigate(ROUTES.MONEY_REQUEST_RECEIPT_PREVIEW.getRoute(reportID, transactionID, action, iouType, imageType));
+        },
+        [reportID, transactionID, action, iouType],
     );
 
     // Navigate to confirmation page helper - following Manual tab pattern
@@ -370,22 +371,6 @@ function IOURequestStepDistanceOdometer({
         setMoneyRequestDistance(transactionID, calculatedDistance, isTransactionDraft);
 
         if (isEditing) {
-            // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
-            if (isEditingSplit && transaction) {
-                setDraftSplitTransaction(
-                    transaction.transactionID,
-                    splitDraftTransaction,
-                    {
-                        distance: calculatedDistance,
-                        odometerStart: start,
-                        odometerEnd: end,
-                    },
-                    policy,
-                );
-                Navigation.goBack();
-                return;
-            }
-
             // Update existing transaction
             const previousDistance = transaction?.comment?.customUnit?.quantity;
             const previousStart = transaction?.comment?.odometerStart;
@@ -607,7 +592,13 @@ function IOURequestStepDistanceOdometer({
                             accessible={false}
                             accessibilityRole="button"
                             sentryLabel={CONST.SENTRY_LABEL.ODOMETER_EXPENSE.CAPTURE_IMAGE_START}
-                            onPress={() => handleCaptureImage(CONST.IOU.ODOMETER_IMAGE_TYPE.START)}
+                            onPress={() => {
+                                if (odometerStartImage) {
+                                    handleViewOdometerImage(CONST.IOU.ODOMETER_IMAGE_TYPE.START);
+                                } else {
+                                    handleCaptureImage(CONST.IOU.ODOMETER_IMAGE_TYPE.START);
+                                }
+                            }}
                             style={[
                                 StyleUtils.getWidthAndHeightStyle(variables.inputHeight, variables.inputHeight),
                                 StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
@@ -647,7 +638,13 @@ function IOURequestStepDistanceOdometer({
                             accessible={false}
                             accessibilityRole="button"
                             sentryLabel={CONST.SENTRY_LABEL.ODOMETER_EXPENSE.CAPTURE_IMAGE_END}
-                            onPress={() => handleCaptureImage(CONST.IOU.ODOMETER_IMAGE_TYPE.END)}
+                            onPress={() => {
+                                if (odometerEndImage) {
+                                    handleViewOdometerImage(CONST.IOU.ODOMETER_IMAGE_TYPE.END);
+                                } else {
+                                    handleCaptureImage(CONST.IOU.ODOMETER_IMAGE_TYPE.END);
+                                }
+                            }}
                             style={[
                                 StyleUtils.getWidthAndHeightStyle(variables.inputHeight, variables.inputHeight),
                                 StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
@@ -697,6 +694,7 @@ function IOURequestStepDistanceOdometer({
                         onPress={handleNext}
                         text={buttonText}
                         testID="next-save-button"
+                        sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.DISTANCE_ODOMETER_NEXT_BUTTON}
                     />
                 </View>
             </View>

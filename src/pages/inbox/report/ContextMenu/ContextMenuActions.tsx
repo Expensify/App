@@ -782,6 +782,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         movedFromReport,
                         movedToReport,
                         policyTags,
+                        currentUserLogin: currentUserPersonalDetails?.email ?? '',
                     });
                     Clipboard.setString(modifyExpenseMessage);
                 } else if (isReimbursementDeQueuedOrCanceledAction(reportAction)) {

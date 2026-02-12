@@ -63,6 +63,7 @@ import {
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     getApprovalChain,
     getAvailableReportFields,
+    getBillableAndTaxTotal,
     getChatByParticipants,
     getChatRoomSubtitle,
     getDefaultWorkspaceAvatar,
@@ -3522,7 +3523,7 @@ describe('ReportUtils', () => {
     describe('getMostRecentlyVisitedReport', () => {
         it('should filter out report without reportID & lastReadTime and return the most recently visited report', () => {
             const reports: Array<OnyxEntry<Report>> = [
-                {reportID: '1', lastReadTime: '2023-07-08 07:15:44.030'},
+                {reportID: '1', lastReadTime: '2023-07-08 07:15:44.030', participants: {[currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}}},
                 {reportID: '2', lastReadTime: undefined},
                 {reportID: '3', lastReadTime: '2023-07-06 07:15:44.030'},
                 {reportID: '4', lastReadTime: '2023-07-07 07:15:44.030', type: CONST.REPORT.TYPE.IOU},
@@ -3530,7 +3531,11 @@ describe('ReportUtils', () => {
                 {reportID: '6'},
                 undefined,
             ];
-            const latestReport: OnyxEntry<Report> = {reportID: '1', lastReadTime: '2023-07-08 07:15:44.030'};
+            const latestReport: OnyxEntry<Report> = {
+                reportID: '1',
+                lastReadTime: '2023-07-08 07:15:44.030',
+                participants: {[currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
+            };
             expect(getMostRecentlyVisitedReport(reports, undefined)).toEqual(latestReport);
         });
     });
@@ -4520,7 +4525,7 @@ describe('ReportUtils', () => {
                 type: CONST.REPORT.TYPE.CHAT,
                 participants: {
                     '1': {
-                        notificationPreference: 'always',
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                     },
                 },
                 lastMessageText: 'fake',
@@ -5386,6 +5391,11 @@ describe('ReportUtils', () => {
                 lastReadTime: '2024-02-01 04:56:47.233',
                 lastVisibleActionCreated: '2024-02-01 04:56:47.233',
                 ownerAccountID: 1,
+                participants: {
+                    [currentUserAccountID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
             };
 
             ownedReport = {
@@ -5394,6 +5404,11 @@ describe('ReportUtils', () => {
                 lastReadTime: '2024-01-01 04:56:47.233', // Older last read time
                 lastVisibleActionCreated: '2024-01-01 04:56:47.233',
                 ownerAccountID: currentUserAccountID,
+                participants: {
+                    [currentUserAccountID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
             };
 
             // Add reports to Onyx
@@ -6105,8 +6120,8 @@ describe('ReportUtils', () => {
                 ...createRandomReport(1, undefined),
                 chatType: 'policyRoom',
                 participants: {
-                    1: {notificationPreference: 'hidden'},
-                    2: {notificationPreference: 'always'},
+                    1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+                    2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
             const participants = getParticipantsList(report, participantsPersonalDetails);
@@ -6118,8 +6133,8 @@ describe('ReportUtils', () => {
                 ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.IOU,
                 participants: {
-                    1: {notificationPreference: 'hidden'},
-                    2: {notificationPreference: 'always'},
+                    1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+                    2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
             const participants = getParticipantsList(report, participantsPersonalDetails);
@@ -6131,8 +6146,8 @@ describe('ReportUtils', () => {
                 ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 participants: {
-                    1: {notificationPreference: 'hidden'},
-                    2: {notificationPreference: 'always'},
+                    1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+                    2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
             const participants = getParticipantsList(report, participantsPersonalDetails);
@@ -6165,8 +6180,8 @@ describe('ReportUtils', () => {
                 parentReportID: parentReport.reportID,
                 parentReportActionID: parentReportAction.reportActionID,
                 participants: {
-                    1: {notificationPreference: 'hidden'},
-                    2: {notificationPreference: 'always'},
+                    1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+                    2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
             const participants = getParticipantsList(report, participantsPersonalDetails);
@@ -6198,6 +6213,20 @@ describe('ReportUtils', () => {
                 ...createRandomReport(1, undefined),
                 parentReportID: parentReport.reportID,
                 parentReportActionID: parentReportAction.reportActionID,
+                participants: {
+                    1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+                    2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+            const participants = getParticipantsList(report, participantsPersonalDetails);
+            expect(participants.length).toBe(2);
+        });
+
+        it('should include hidden participants for policy expense chat', async () => {
+            const report: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 participants: {
                     1: {notificationPreference: 'hidden'},
                     2: {notificationPreference: 'always'},
@@ -6365,7 +6394,7 @@ describe('ReportUtils', () => {
             const report: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SYSTEM),
                 participants: {
-                    1: {notificationPreference: 'hidden'},
+                    1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
                 },
             };
             const result = getMoneyReportPreviewName(action, report);
@@ -6381,8 +6410,8 @@ describe('ReportUtils', () => {
             const report: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.TRIP_ROOM),
                 participants: {
-                    1: {notificationPreference: 'hidden'},
-                    2: {notificationPreference: 'always'},
+                    1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+                    2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
             const result = getMoneyReportPreviewName(action, report);
@@ -8556,10 +8585,10 @@ describe('ReportUtils', () => {
 
     describe('excludeParticipantsForDisplay', () => {
         const mockParticipants = {
-            1: {notificationPreference: 'always'},
-            2: {notificationPreference: 'hidden'},
-            3: {notificationPreference: 'daily'},
-            4: {notificationPreference: 'always'},
+            1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+            3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY},
+            4: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
         } as Participants;
 
         const mockReportMetadata = {
@@ -12315,6 +12344,148 @@ describe('ReportUtils', () => {
                 policies: [],
             });
             expect(result).toBe('Report Fallback Name');
+        });
+    });
+
+    describe('getBillableAndTaxTotal', () => {
+        const expenseReport: Report = {
+            ...createExpenseReport(1),
+            reportID: 'expense-1',
+            currency: CONST.CURRENCY.USD,
+        };
+
+        const chatReport: Report = {
+            ...createRandomReport(2, undefined),
+            type: CONST.REPORT.TYPE.CHAT,
+            reportID: 'chat-1',
+        };
+
+        it('should return zeros when report is undefined', () => {
+            expect(getBillableAndTaxTotal(undefined, [])).toEqual({
+                billableTotal: 0,
+                taxTotal: 0,
+            });
+        });
+
+        it('should return zeros when report is not an expense report', () => {
+            const transaction = createRandomTransaction(1);
+            expect(getBillableAndTaxTotal(chatReport, [transaction])).toEqual({
+                billableTotal: 0,
+                taxTotal: 0,
+            });
+        });
+
+        it('should return zeros when expense report has no transactions', () => {
+            expect(getBillableAndTaxTotal(expenseReport, [])).toEqual({
+                billableTotal: 0,
+                taxTotal: 0,
+            });
+        });
+
+        it('should sum billable amount and tax when transaction currency matches report currency', async () => {
+            const transaction = {
+                ...createRandomTransaction(1),
+                reportID: expenseReport.reportID,
+                amount: -100,
+                taxAmount: -10,
+                currency: CONST.CURRENCY.USD,
+                billable: true,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await waitForBatchedUpdates();
+
+            expect(getBillableAndTaxTotal(expenseReport, [transaction])).toEqual({
+                billableTotal: 100,
+                taxTotal: 10,
+            });
+        });
+
+        it('should use convertedAmount and convertedTaxAmount when transaction currency differs from report', async () => {
+            const transaction = {
+                ...createRandomTransaction(1),
+                reportID: expenseReport.reportID,
+                amount: -100,
+                taxAmount: -10,
+                currency: CONST.CURRENCY.EUR,
+                billable: true,
+                convertedAmount: -80,
+                convertedTaxAmount: -8,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await waitForBatchedUpdates();
+
+            expect(getBillableAndTaxTotal(expenseReport, [transaction])).toEqual({
+                billableTotal: 80,
+                taxTotal: 8,
+            });
+        });
+
+        it('should not add to billableTotal when billable is false', async () => {
+            const transaction = {
+                ...createRandomTransaction(1),
+                reportID: expenseReport.reportID,
+                amount: -100,
+                taxAmount: 0,
+                currency: CONST.CURRENCY.USD,
+                billable: false,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await waitForBatchedUpdates();
+
+            expect(getBillableAndTaxTotal(expenseReport, [transaction])).toEqual({
+                billableTotal: 0,
+                taxTotal: 0,
+            });
+        });
+
+        it('should not add to taxTotal when taxAmount is zero', async () => {
+            const transaction = {
+                ...createRandomTransaction(1),
+                reportID: expenseReport.reportID,
+                amount: -100,
+                taxAmount: 0,
+                currency: CONST.CURRENCY.USD,
+                billable: true,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await waitForBatchedUpdates();
+
+            expect(getBillableAndTaxTotal(expenseReport, [transaction])).toEqual({
+                billableTotal: 100,
+                taxTotal: 0,
+            });
+        });
+
+        it('should sum multiple transactions with same currency', async () => {
+            const transaction1 = {
+                ...createRandomTransaction(1),
+                reportID: expenseReport.reportID,
+                amount: -50,
+                taxAmount: -5,
+                currency: CONST.CURRENCY.USD,
+                billable: true,
+            };
+            const transaction2 = {
+                ...createRandomTransaction(2),
+                reportID: expenseReport.reportID,
+                amount: -75,
+                taxAmount: -7,
+                currency: CONST.CURRENCY.USD,
+                billable: true,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`, transaction1);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`, transaction2);
+            await waitForBatchedUpdates();
+
+            expect(getBillableAndTaxTotal(expenseReport, [transaction1, transaction2])).toEqual({
+                billableTotal: 125,
+                taxTotal: 12,
+            });
         });
     });
 

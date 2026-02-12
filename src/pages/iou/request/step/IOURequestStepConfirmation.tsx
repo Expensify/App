@@ -26,7 +26,7 @@ import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransaction
 import useParentReportAction from '@hooks/useParentReportAction';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePermissions from '@hooks/usePermissions';
-import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -53,6 +53,7 @@ import Performance from '@libs/Performance';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {
     doesReportReceiverMatchParticipant,
+    findSelfDMReportID,
     generateReportID,
     getReportOrDraftReport,
     hasViolations as hasViolationsReportUtils,
@@ -85,6 +86,7 @@ import {
     setMoneyRequestReceipt,
     setMoneyRequestReimbursable,
     startMoneyRequest,
+    submitPerDiemExpenseForSelfDM,
     submitPerDiemExpense as submitPerDiemExpenseIOUActions,
     trackExpense as trackExpenseIOUActions,
     updateLastLocationPermissionPrompt,
@@ -145,10 +147,12 @@ function IOURequestStepConfirmation({
         () => (!isLoadingCurrentTransaction ? (optimisticTransaction ?? existingTransaction) : undefined),
         [existingTransaction, optimisticTransaction, isLoadingCurrentTransaction],
     );
+    const requestType = getRequestType(transaction);
+    const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
-    const {policyForMovingExpenses, policyForMovingExpensesID} = usePolicyForMovingExpenses();
-    const realPolicyID = isCreatingTrackExpense || isUnreported ? policyForMovingExpensesID : getIOURequestPolicyID(initialTransaction, reportReal);
+
+    const realPolicyID = getIOURequestPolicyID(initialTransaction, reportReal);
     const draftPolicyID = getIOURequestPolicyID(initialTransaction, reportDraft);
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${draftPolicyID}`, {canBeMissing: true});
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${realPolicyID}`, {canBeMissing: true});
@@ -186,22 +190,30 @@ function IOURequestStepConfirmation({
         return reportWithDraftFallback;
     }, [isUnreported, shouldUseTransactionReport, transactionReport, reportWithDraftFallback, isTransactionReportDifferentFromRoute]);
 
-    const policy = isCreatingTrackExpense || isUnreported ? policyForMovingExpenses : (policyReal ?? policyDraft);
-    const policyID = isCreatingTrackExpense || isUnreported ? policyForMovingExpensesID : getIOURequestPolicyID(transaction, report);
+    const {policy} = usePolicyForTransaction({
+        transaction: initialTransaction,
+        reportPolicyID: realPolicyID ?? draftPolicyID,
+        action,
+        iouType,
+        isPerDiemRequest,
+    });
+    const policyID = policy?.id;
     const isDraftPolicy = policy === policyDraft;
 
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${draftPolicyID}`, {canBeMissing: true});
-    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${realPolicyID}`, {canBeMissing: true});
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${realPolicyID}`, {canBeMissing: true});
-    const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${realPolicyID}`, {canBeMissing: true});
+    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
+    const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, {canBeMissing: true});
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
+
+    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`, {canBeMissing: true});
 
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: hasSeenTourSelector});
 
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
-    const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${realPolicyID}`, {canBeMissing: true});
+    const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`, {canBeMissing: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
 
@@ -210,12 +222,12 @@ function IOURequestStepConfirmation({
             return policyCategoriesDraft;
         }
 
-        if (realPolicyID) {
-            return allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${realPolicyID}`];
+        if (policyID) {
+            return allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
         }
 
         return undefined;
-    }, [allPolicyCategories, realPolicyID, policyCategoriesDraft, draftPolicyID, isDraftPolicy]);
+    }, [isDraftPolicy, draftPolicyID, policyID, policyCategoriesDraft, allPolicyCategories]);
 
     const receiverParticipant: Participant | InvoiceReceiver | undefined = transaction?.participants?.find((participant) => participant?.accountID) ?? report?.invoiceReceiver;
     const receiverAccountID = receiverParticipant && 'accountID' in receiverParticipant && receiverParticipant.accountID ? receiverParticipant.accountID : CONST.DEFAULT_NUMBER_ID;
@@ -235,13 +247,11 @@ function IOURequestStepConfirmation({
     const [selectedParticipantList, setSelectedParticipantList] = useState<Participant[]>([]);
 
     const [receiptFiles, setReceiptFiles] = useState<Record<string, Receipt>>({});
-    const requestType = getRequestType(transaction);
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
     const isOdometerDistanceRequest = isOdometerDistanceRequestTransactionUtils(transaction);
     const isGPSDistanceRequest = isGPSDistanceRequestTransactionUtils(transaction);
     const transactionDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (transaction?.comment?.customUnit?.quantity ?? undefined) : undefined;
-    const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
     const isTimeRequest = requestType === CONST.IOU.REQUEST_TYPE.TIME;
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {canBeMissing: true});
     const {
@@ -316,12 +326,12 @@ function IOURequestStepConfirmation({
     }, []);
 
     useEffect(() => {
-        if (!isCreatingTrackExpense || policyForMovingExpensesID === undefined) {
+        if (!isCreatingTrackExpense || policyID === undefined) {
             return;
         }
 
-        openDraftWorkspaceRequest(policyForMovingExpensesID);
-    }, [isCreatingTrackExpense, policy?.pendingAction, policyForMovingExpensesID]);
+        openDraftWorkspaceRequest(policyID);
+    }, [isCreatingTrackExpense, policy?.pendingAction, policyID]);
 
     const policyExpenseChatPolicyID = useMemo(() => {
         return participants?.find((participant) => participant.isPolicyExpenseChat)?.policyID;
@@ -604,7 +614,7 @@ function IOURequestStepConfirmation({
                         actionableWhisperReportActionID: item.actionableWhisperReportActionID,
                         linkedTrackedExpenseReportAction: item.linkedTrackedExpenseReportAction,
                         linkedTrackedExpenseReportID: item.linkedTrackedExpenseReportID,
-                        waypoints: Object.keys(item.comment?.waypoints ?? {}).length ? getValidWaypoints(item.comment?.waypoints, true) : undefined,
+                        waypoints: Object.keys(item.comment?.waypoints ?? {}).length ? getValidWaypoints(item.comment?.waypoints, true, isGPSDistanceRequest) : undefined,
                         customUnitRateID,
                         isTestDrive: item.receipt?.isTestDriveReceipt,
                         originalTransactionID: item.comment?.originalTransactionID,
@@ -664,6 +674,7 @@ function IOURequestStepConfirmation({
             isSelfTourViewed,
             betas,
             personalDetails,
+            isGPSDistanceRequest,
         ],
     );
 
@@ -677,50 +688,74 @@ function IOURequestStepConfirmation({
             if (!participant || isEmptyObject(transaction.comment) || isEmptyObject(transaction.comment.customUnit)) {
                 return;
             }
-            submitPerDiemExpenseIOUActions({
-                report,
-                participantParams: {
-                    payeeEmail: currentUserPersonalDetails.login,
-                    payeeAccountID: currentUserPersonalDetails.accountID,
-                    participant,
-                },
-                policyParams: {
+            if (iouType === CONST.IOU.TYPE.TRACK) {
+                submitPerDiemExpenseForSelfDM({
+                    selfDMReport,
                     policy,
-                    policyTagList: policyTags,
-                    policyRecentlyUsedTags,
-                    policyCategories,
-                    policyRecentlyUsedCategories: policyRecentlyUsedCategoriesParam,
-                },
-                recentlyUsedParams: {
-                    destinations: recentlyUsedDestinations,
-                },
-                transactionParams: {
-                    currency: transaction.currency,
-                    created: transaction.created,
-                    comment: trimmedComment,
-                    category: transaction.category,
-                    tag: transaction.tag,
-                    customUnit: transaction.comment?.customUnit,
-                    billable: transaction.billable,
-                    reimbursable: transaction.reimbursable,
-                    attendees: transaction.comment?.attendees,
-                    isFromGlobalCreate: transaction.isFromFloatingActionButton ?? transaction.isFromGlobalCreate,
-                },
-                isASAPSubmitBetaEnabled,
-                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                currentUserEmailParam: currentUserPersonalDetails.login ?? '',
-                hasViolations,
-                policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                quickAction,
-                betas,
-            });
+                    transactionParams: {
+                        currency: transaction.currency,
+                        created: transaction.created,
+                        comment: trimmedComment,
+                        category: transaction.category,
+                        tag: transaction.tag,
+                        customUnit: transaction.comment?.customUnit,
+                        billable: transaction.billable,
+                        reimbursable: transaction.reimbursable,
+                        attendees: transaction.comment?.attendees,
+                        isFromGlobalCreate: transaction.isFromFloatingActionButton ?? transaction.isFromGlobalCreate,
+                    },
+                    currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                    currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                    quickAction,
+                });
+            } else {
+                submitPerDiemExpenseIOUActions({
+                    report,
+                    participantParams: {
+                        payeeEmail: currentUserPersonalDetails.login,
+                        payeeAccountID: currentUserPersonalDetails.accountID,
+                        participant,
+                    },
+                    policyParams: {
+                        policy,
+                        policyTagList: policyTags,
+                        policyRecentlyUsedTags,
+                        policyCategories,
+                        policyRecentlyUsedCategories: policyRecentlyUsedCategoriesParam,
+                    },
+                    recentlyUsedParams: {
+                        destinations: recentlyUsedDestinations,
+                    },
+                    transactionParams: {
+                        currency: transaction.currency,
+                        created: transaction.created,
+                        comment: trimmedComment,
+                        category: transaction.category,
+                        tag: transaction.tag,
+                        customUnit: transaction.comment?.customUnit,
+                        billable: transaction.billable,
+                        reimbursable: transaction.reimbursable,
+                        attendees: transaction.comment?.attendees,
+                        isFromGlobalCreate: transaction.isFromFloatingActionButton ?? transaction.isFromGlobalCreate,
+                    },
+                    isASAPSubmitBetaEnabled,
+                    currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                    currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                    hasViolations,
+                    policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                    quickAction,
+                    betas,
+                });
+            }
         },
         [
             transaction,
-            report,
-            currentUserPersonalDetails.login,
-            currentUserPersonalDetails.accountID,
+            iouType,
+            selfDMReport,
             policy,
+            currentUserPersonalDetails.accountID,
+            currentUserPersonalDetails.login,
+            report,
             policyTags,
             policyRecentlyUsedTags,
             policyCategories,
@@ -778,7 +813,7 @@ function IOURequestStepConfirmation({
                         billable: item.billable,
                         reimbursable: item.reimbursable,
                         gpsPoint,
-                        validWaypoints: Object.keys(item?.comment?.waypoints ?? {}).length ? getValidWaypoints(item.comment?.waypoints, true) : undefined,
+                        validWaypoints: Object.keys(item?.comment?.waypoints ?? {}).length ? getValidWaypoints(item.comment?.waypoints, true, isGPSDistanceRequest) : undefined,
                         actionableWhisperReportActionID: item.actionableWhisperReportActionID,
                         linkedTrackedExpenseReportAction: item.linkedTrackedExpenseReportAction,
                         linkedTrackedExpenseReportID: item.linkedTrackedExpenseReportID,
@@ -866,7 +901,7 @@ function IOURequestStepConfirmation({
                     taxAmount: transactionTaxAmount,
                     customUnitRateID,
                     splitShares: transaction.splitShares,
-                    validWaypoints: getValidWaypoints(transaction.comment?.waypoints, true),
+                    validWaypoints: getValidWaypoints(transaction.comment?.waypoints, true, isGPSDistanceRequest),
                     billable: transaction.billable,
                     reimbursable: transaction.reimbursable,
                     attendees: transaction.comment?.attendees,
@@ -1073,7 +1108,7 @@ function IOURequestStepConfirmation({
                 return;
             }
 
-            if (iouType === CONST.IOU.TYPE.TRACK || isCategorizingTrackExpense || isSharingTrackExpense) {
+            if (!isPerDiemRequest && (iouType === CONST.IOU.TYPE.TRACK || isCategorizingTrackExpense || isSharingTrackExpense)) {
                 if (Object.values(receiptFiles).filter((receipt) => !!receipt).length && transaction) {
                     // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
                     if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && locationPermissionGranted) {

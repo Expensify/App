@@ -1564,6 +1564,7 @@ const translations: TranslationDeepObject<typeof en> = {
             });
             return `${formatList(fragments)} tramite le <a href="${policyRulesRoute}">regole dello spazio di lavoro</a>`;
         },
+        duplicateNonDefaultWorkspacePerDiemError: 'Non puoi duplicare le spese di diaria tra diversi spazi di lavoro perché le tariffe potrebbero essere diverse tra gli spazi di lavoro.',
     },
     transactionMerge: {
         listPage: {
@@ -2031,8 +2032,8 @@ const translations: TranslationDeepObject<typeof en> = {
         whatIsTwoFactorAuth:
             'L’autenticazione a due fattori (2FA) contribuisce a mantenere il tuo account al sicuro. Quando effettui l’accesso, dovrai inserire un codice generato dalla tua app di autenticazione preferita.',
         disableTwoFactorAuth: 'Disattiva l’autenticazione a due fattori',
-        explainProcessToRemove: 'Per disattivare l’autenticazione a due fattori (2FA), inserisci un codice valido dalla tua app di autenticazione.',
-        explainProcessToRemoveWithRecovery: 'Per disattivare l’autenticazione a due fattori (2FA), inserisci un codice di recupero valido.',
+        explainProcessToRemove: 'Per disabilitare l’autenticazione a due fattori (2FA), inserisci un codice valido dalla tua app di autenticazione.',
+        explainProcessToRemoveWithRecovery: 'Per disabilitare l’autenticazione a due fattori (2FA), inserisci un codice di recupero valido.',
         disabled: "L'autenticazione a due fattori è ora disattivata",
         noAuthenticatorApp: 'Non sarà più necessaria un’app di autenticazione per accedere a Expensify.',
         stepCodes: 'Codici di recupero',
@@ -2726,11 +2727,11 @@ ${amount} per ${merchant} - ${date}`,
                 title: ({workspaceCategoriesLink}) => `Configura le [categorie](${workspaceCategoriesLink})`,
                 description: ({workspaceCategoriesLink}) =>
                     dedent(`
-                        *Configura le categorie* in modo che il tuo team possa classificare le spese per una rendicontazione più semplice.
+                        *Configura le categorie* in modo che il tuo team possa codificare le spese per creare report facilmente.
 
-                        1. Fai clic su *Workspaces*.
-                        2. Seleziona il tuo workspace.
-                        3. Fai clic su *Categories*.
+                        1. Fai clic su *Spazi di lavoro*.
+                        2. Seleziona il tuo spazio di lavoro.
+                        3. Fai clic su *Categorie*.
                         4. Disattiva le categorie di cui non hai bisogno.
                         5. Aggiungi le tue categorie in alto a destra.
 
@@ -2819,11 +2820,11 @@ ${
                     dedent(`
                         *Invita il tuo team* su Expensify così potrà iniziare a tracciare le spese oggi stesso.
 
-                        1. Fai clic su *Spazi di lavoro*.
-                        2. Seleziona il tuo spazio di lavoro.
-                        3. Fai clic su *Membri* > *Invita membro*.
+                        1. Fai clic su *Workspaces*.
+                        2. Seleziona il tuo workspace.
+                        3. Fai clic su *Members* > *Invite member*.
                         4. Inserisci email o numeri di telefono.
-                        5. Aggiungi un messaggio di invito personalizzato, se vuoi!
+                        5. Aggiungi un messaggio di invito personalizzato se vuoi!
 
                         [Portami ai membri dello spazio di lavoro](${workspaceMembersLink}).
                     `),
@@ -2840,16 +2841,16 @@ ${
                 title: ({workspaceTagsLink}) => `Configura i [tag](${workspaceTagsLink})`,
                 description: ({workspaceMoreFeaturesLink}) =>
                     dedent(`
-                        Usa i tag per aggiungere dettagli extra alle spese, come progetti, clienti, sedi e reparti. Se ti servono più livelli di tag, puoi eseguire l’upgrade al piano Control.
+                        Usa i tag per aggiungere dettagli extra alle spese, come progetti, clienti, sedi e reparti. Se ti servono più livelli di tag, puoi passare al piano Control.
 
-                        1. Fai clic su *Workspaces*.
-                        2. Seleziona il tuo workspace.
-                        3. Fai clic su *More features*.
-                        4. Attiva *Tags*.
-                        5. Vai a *Tags* nell’editor del workspace.
-                        6. Fai clic su *+ Add tag* per crearne uno personalizzato.
+                        1. Fai clic su *Spazi di lavoro*.
+                        2. Seleziona il tuo spazio di lavoro.
+                        3. Fai clic su *Altre funzionalità*.
+                        4. Attiva *Tag*.
+                        5. Vai su *Tag* nell’editor dello spazio di lavoro.
+                        6. Fai clic su *+ Aggiungi tag* per creare i tuoi.
 
-                        [Portami a More features](${workspaceMoreFeaturesLink}).
+                        [Portami alle altre funzionalità](${workspaceMoreFeaturesLink}).
 
                     `),
             },
@@ -3119,6 +3120,7 @@ ${
         whenClearStatus: 'Quando dovremmo cancellare il tuo stato?',
         vacationDelegate: 'Delegato ferie',
         setVacationDelegate: `Imposta un delegato per le ferie per approvare i report per tuo conto mentre sei fuori ufficio.`,
+        cannotSetVacationDelegate: `Non puoi impostare un delegato per le ferie perché al momento sei il delegato per i seguenti membri:`,
         vacationDelegateError: 'Si è verificato un errore durante l’aggiornamento del tuo delegato per le ferie.',
         asVacationDelegate: ({nameOrEmail}: VacationDelegateParams) => `come delegato per le ferie di ${nameOrEmail}`,
         toAsVacationDelegate: ({submittedToName, vacationDelegateName}: SubmittedToVacationDelegateParams) => `a ${submittedToName} come delegato ferie per ${vacationDelegateName}`,
@@ -7535,8 +7537,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
     },
     cardTransactions: {
         notActivated: 'Non attivato',
-        outOfPocket: 'Spesa personale',
-        companySpend: 'Spese aziendali',
+        outOfPocket: 'Rimborsabile',
+        companySpend: 'Non rimborsabile',
     },
     distance: {
         addStop: 'Aggiungi fermata',
@@ -7560,10 +7562,12 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             endReading: 'Fine lettura',
             saveForLater: 'Salva per dopo',
             totalDistance: 'Distanza totale',
-            startTitle: 'Foto iniziale del contachilometri',
-            endTitle: 'Foto del contachilometri finale',
             startMessageWeb: 'Aggiungi una foto del contachilometri all’<strong>inizio</strong> del tuo viaggio. Trascina qui un file oppure scegli un file da caricare.',
             endMessageWeb: 'Aggiungi una foto del contachilometri scattata alla <strong>fine</strong> del viaggio. Trascina qui un file oppure scegli un file da caricare.',
+            startTitle: 'Foto iniziale del contachilometri',
+            endTitle: 'Foto contachilometri finale',
+            deleteOdometerPhoto: 'Elimina foto del contachilometri',
+            deleteOdometerPhotoConfirmation: 'Sei sicuro di voler eliminare questa foto del contachilometri?',
         },
     },
     gps: {
@@ -8376,6 +8380,8 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             disableSamlRequired: 'Disattiva richiesta SAML',
             oktaWarningPrompt: 'Sei sicuro? Questo disabiliterà anche Okta SCIM.',
             requireWithEmptyMetadataError: 'Aggiungi qui sotto i metadati del provider di identità per abilitare',
+            pleaseDisableTwoFactorAuth: (twoFactorAuthSettingsUrl: string) =>
+                `<muted-text>Disattiva <a href="${twoFactorAuthSettingsUrl}">l’obbligo dell’autenticazione a due fattori</a> per abilitare l’accesso SAML.</muted-text>`,
         },
         samlConfigurationDetails: {
             title: 'Dettagli configurazione SAML',
@@ -8424,7 +8430,6 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             primaryContact: 'Contatto principale',
             addPrimaryContact: 'Aggiungi contatto principale',
             setPrimaryContactError: 'Impossibile impostare il contatto principale. Riprova più tardi.',
-            settings: 'Impostazioni',
             consolidatedDomainBilling: 'Fatturazione dominio consolidata',
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>Se abilitata, la persona di contatto principale pagherà tutti gli spazi di lavoro di proprietà dei membri di <strong>${domainName}</strong> e riceverà tutte le ricevute di fatturazione.</muted-text-label></comment>`,
@@ -8449,17 +8454,31 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             findMember: 'Trova membro',
             addMember: 'Aggiungi membro',
             email: 'Indirizzo email',
-            closeAccount: 'Chiudi account',
+            closeAccount: () => ({
+                one: 'Chiudi account',
+                other: 'Chiudi account',
+            }),
             closeAccountPrompt: 'Sei sicuro? Questa azione è permanente.',
-            forceCloseAccount: 'Forza chiusura account',
-            safeCloseAccount: 'Chiudi il conto in sicurezza',
-            closeAccountInfo:
-                'Consigliamo di chiudere l’account in modo sicuro per evitare problemi in caso di: <ul><li>Approvazioni in sospeso</li><li>Rimborsi attivi</li><li>Nessun metodo di accesso alternativo</li></ul>In caso contrario, puoi ignorare le precauzioni di sicurezza sopra indicate e forzare la chiusura dell’account selezionato.',
+            forceCloseAccount: () => ({one: 'Forza chiusura account', other: 'Forza chiusura account'}),
+            safeCloseAccount: () => ({
+                one: 'Chiudi il conto in sicurezza',
+                other: 'Chiudi i conti in sicurezza',
+            }),
+            closeAccountInfo: () => ({
+                one: 'Consigliamo di chiudere l’account in modo sicuro per evitare problemi in caso di: <ul><li>Approvazioni in sospeso</li><li>Rimborsi attivi</li><li>Nessun metodo di accesso alternativo</li></ul>In caso contrario, puoi ignorare le precauzioni di sicurezza sopra indicate e forzare la chiusura dell’account selezionato.',
+                other: 'Consigliamo di chiudere gli account in modo sicuro per evitare problemi in caso di: <ul><li>Approvazioni in sospeso</li><li>Rimborsi attivi</li><li>Nessun metodo di accesso alternativo</li></ul>In caso contrario, puoi ignorare le precauzioni di sicurezza sopra indicate e forzare la chiusura degli account selezionati.',
+            }),
             error: {
                 removeMember: 'Impossibile rimuovere questo utente. Riprova.',
                 addMember: 'Impossibile aggiungere questo membro. Riprova.',
             },
+            forceTwoFactorAuth: 'Imponi l’autenticazione a due fattori',
+            forceTwoFactorAuthSAMLEnabledDescription: (samlPageUrl: string) =>
+                `<muted-text>Disabilita <a href="${samlPageUrl}">SAML</a> per imporre l’autenticazione a due fattori.</muted-text>`,
+            forceTwoFactorAuthDescription: `<muted-text>Richiedi l’autenticazione a due fattori per tutti i membri di questo dominio. Ai membri del dominio verrà chiesto di configurare l’autenticazione a due fattori sul proprio account quando effettuano l’accesso.</muted-text>`,
+            forceTwoFactorAuthError: 'Impossibile modificare l’impostazione “Forza l’autenticazione a due fattori”. Riprova più tardi.',
         },
+        common: {settings: 'Impostazioni'},
     },
 };
 export default translations;

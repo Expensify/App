@@ -33,11 +33,13 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {hasNonReimbursableTransactions, isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
+import {isPolicyTaxEnabled} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {groupTransactionsByCategory, groupTransactionsByTag} from '@libs/ReportLayoutUtils';
 import {
     canAddTransaction,
     getAddExpenseDropdownOptions,
+    getBillableAndTaxTotal,
     getMoneyRequestSpendBreakdown,
     getReportOfflinePendingActionAndErrors,
     isCurrentUserSubmitter,
@@ -177,10 +179,15 @@ function MoneyRequestReportTransactionList({
     const [selectedTransactionID, setSelectedTransactionID] = useState<string>('');
     const {reportPendingAction} = getReportOfflinePendingActionAndErrors(report);
 
+    const isTaxEnabled = isPolicyTaxEnabled(policy);
     const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
+    const {billableTotal, taxTotal} = getBillableAndTaxTotal(report, transactions);
     const formattedOutOfPocketAmount = convertToDisplayString(reimbursableSpend, report?.currency);
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
-    const shouldShowBreakdown = useMemo(() => shouldShowExpenseBreakdown(transactions), [transactions]);
+    const formattedBillableAmount = convertToDisplayString(billableTotal, report?.currency);
+    const formattedTaxAmount = convertToDisplayString(taxTotal, report?.currency);
+    const shouldShowExpenseReportBreakDown = shouldShowExpenseBreakdown(transactions);
+    const shouldShowBreakdown = shouldShowExpenseReportBreakDown || !!billableTotal || (!!taxTotal && isTaxEnabled);
     const transactionsWithoutPendingDelete = useMemo(() => transactions.filter((t) => !isTransactionPendingDelete(t)), [transactions]);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isReportArchived = useReportIsArchived(report?.reportID);
@@ -622,34 +629,44 @@ function MoneyRequestReportTransactionList({
                     {shouldShowBreakdown && (
                         <View style={[styles.dFlex, styles.alignItemsEnd, styles.gap2, styles.mb2, styles.flex1]}>
                             {[
-                                {text: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount},
-                                {text: 'cardTransactions.companySpend', value: formattedCompanySpendAmount},
-                            ].map(({text, value}) => (
-                                <View
-                                    key={text}
-                                    style={[
-                                        styles.dFlex,
-                                        styles.flexRow,
-                                        styles.alignItemsCenter,
-                                        styles.pr3,
-                                        styles.mw100,
-                                        shouldUseNarrowLayout && [styles.justifyContentBetween, styles.w100],
-                                    ]}
-                                >
-                                    <Text
-                                        style={[styles.textLabelSupporting, styles.mr3]}
-                                        numberOfLines={1}
+                                {text: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount, shouldShow: shouldShowExpenseReportBreakDown},
+                                {text: 'cardTransactions.companySpend', value: formattedCompanySpendAmount, shouldShow: shouldShowExpenseReportBreakDown},
+                                {text: 'common.billable', value: formattedBillableAmount, shouldShow: !!billableTotal},
+                                {text: 'common.tax', value: formattedTaxAmount, shouldShow: !!taxTotal && isTaxEnabled},
+                            ]
+                                .filter(({shouldShow}) => shouldShow)
+                                .map(({text, value}) => (
+                                    <View
+                                        key={text}
+                                        style={[
+                                            styles.dFlex,
+                                            styles.flexRow,
+                                            styles.alignItemsCenter,
+                                            styles.pr3,
+                                            styles.mw100,
+                                            shouldUseNarrowLayout && [styles.justifyContentBetween, styles.w100],
+                                        ]}
                                     >
-                                        {translate(text as TranslationPaths)}
-                                    </Text>
-                                    <Text
-                                        numberOfLines={1}
-                                        style={[styles.textLabelSupporting, styles.textNormal, shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p, styles.textAlignRight]}
-                                    >
-                                        {value}
-                                    </Text>
-                                </View>
-                            ))}
+                                        <Text
+                                            style={[styles.textLabelSupporting, styles.mr3, hasPendingAction && styles.opacitySemiTransparent]}
+                                            numberOfLines={1}
+                                        >
+                                            {translate(text as TranslationPaths)}
+                                        </Text>
+                                        <Text
+                                            numberOfLines={1}
+                                            style={[
+                                                styles.textLabelSupporting,
+                                                styles.textNormal,
+                                                shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p,
+                                                styles.textAlignRight,
+                                                hasPendingAction && styles.opacitySemiTransparent,
+                                            ]}
+                                        >
+                                            {value}
+                                        </Text>
+                                    </View>
+                                ))}
                         </View>
                     )}
 

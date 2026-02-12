@@ -1069,7 +1069,7 @@ describe('actions/IOU', () => {
 
             const createdTransaction = Object.values(transactions ?? {}).at(0);
             expect(createdTransaction?.taxCode).toBe(testTaxCode);
-            expect(createdTransaction?.taxAmount).toBe(testTaxAmount);
+            expect(createdTransaction?.taxAmount).toBe(-testTaxAmount);
         });
 
         it('should set billable and reimbursable flags correctly', async () => {
@@ -8427,7 +8427,7 @@ describe('actions/IOU', () => {
 
             // When deleting expense
             const {optimisticData, successData, shouldDeleteTransactionThread} = getDeleteTrackExpenseInformation(
-                selfDMReport.reportID,
+                selfDMReport,
                 transaction?.transactionID,
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 createIOUAction!,
@@ -8477,7 +8477,7 @@ describe('actions/IOU', () => {
 
             // When deleting expense
             const {optimisticData, successData, shouldDeleteTransactionThread} = getDeleteTrackExpenseInformation(
-                selfDMReport.reportID,
+                selfDMReport,
                 transaction?.transactionID,
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 createIOUAction!,

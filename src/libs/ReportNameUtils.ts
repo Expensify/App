@@ -732,12 +732,9 @@ function computeReportName(
     if (!report || !report.reportID) {
         return '';
     }
-
     const privateIsArchivedValue = privateIsArchived ?? allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]?.private_isArchived;
-    const reportPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-
     const isArchivedNonExpense = isArchivedNonExpenseReport(report, !!privateIsArchivedValue);
-
+    const reportPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
     const parentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
     const parentReportAction = isThread(report) ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`]?.[report.parentReportActionID] : undefined;
 
@@ -746,6 +743,10 @@ function computeReportName(
 
     if (parentReportActionBasedName) {
         return parentReportActionBasedName;
+    }
+
+    if (report?.reportName && report.type === CONST.REPORT.TYPE.EXPENSE) {
+        return isArchivedNonExpense ? generateArchivedReportName(report?.reportName) : report?.reportName;
     }
 
     if (isTaskReport(report)) {
