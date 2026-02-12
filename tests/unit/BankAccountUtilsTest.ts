@@ -1,102 +1,101 @@
 import {getDefaultCompanyWebsite, getLastFourDigits, hasPartiallySetupBankAccount, isBankAccountPartiallySetup, isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import CONST from '@src/CONST';
-import type {Account, BankAccountList, PrivatePersonalDetails, Session} from '@src/types/onyx';
+import type {Account, BankAccountList, Session} from '@src/types/onyx';
 import type AccountData from '@src/types/onyx/AccountData';
 
 describe('BankAccountUtils', () => {
     describe('isPersonalBankAccountMissingInfo', () => {
-        const completePersonalDetails: PrivatePersonalDetails = {
-            legalFirstName: 'John',
-            legalLastName: 'Doe',
-            phoneNumber: '+15551234567',
-            addresses: [{street: '123 Main St', city: 'New York', state: 'NY', zip: '10001', country: 'US', current: true}],
-        };
-
-        const usPersonalBankAccount: AccountData = {
+        const completeAccountData: AccountData = {
             type: CONST.BANK_ACCOUNT.TYPE.PERSONAL,
             state: CONST.BANK_ACCOUNT.STATE.OPEN,
-            additionalData: {country: CONST.COUNTRY.US},
+            additionalData: {
+                country: CONST.COUNTRY.US,
+                firstName: 'John',
+                lastName: 'Doe',
+                addressStreet: '123 Main St',
+                addressCity: 'New York',
+                addressState: 'NY',
+                addressZipCode: '10001',
+                companyPhone: '+15551234567',
+            },
         } as AccountData;
 
         it('returns false for non-personal bank accounts', () => {
             const accountData = {
-                ...usPersonalBankAccount,
+                ...completeAccountData,
                 type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
             } as AccountData;
-            expect(isPersonalBankAccountMissingInfo(accountData, completePersonalDetails)).toBe(false);
+            expect(isPersonalBankAccountMissingInfo(accountData)).toBe(false);
         });
 
         it('returns false for accounts not in OPEN state', () => {
             const accountData = {
-                ...usPersonalBankAccount,
+                ...completeAccountData,
                 state: CONST.BANK_ACCOUNT.STATE.SETUP,
             } as AccountData;
-            expect(isPersonalBankAccountMissingInfo(accountData, completePersonalDetails)).toBe(false);
+            expect(isPersonalBankAccountMissingInfo(accountData)).toBe(false);
         });
 
         it('returns false for non-US accounts', () => {
             const accountData = {
-                ...usPersonalBankAccount,
-                additionalData: {country: 'CA'},
+                ...completeAccountData,
+                additionalData: {...completeAccountData.additionalData, country: 'CA'},
             } as AccountData;
-            expect(isPersonalBankAccountMissingInfo(accountData, completePersonalDetails)).toBe(false);
+            expect(isPersonalBankAccountMissingInfo(accountData)).toBe(false);
         });
 
-        it('returns true when legal first name is missing', () => {
-            const details: PrivatePersonalDetails = {
-                ...completePersonalDetails,
-                legalFirstName: '',
-            };
-            expect(isPersonalBankAccountMissingInfo(usPersonalBankAccount, details)).toBe(true);
+        it('returns true when firstName is missing', () => {
+            const accountData = {
+                ...completeAccountData,
+                additionalData: {...completeAccountData.additionalData, firstName: ''},
+            } as AccountData;
+            expect(isPersonalBankAccountMissingInfo(accountData)).toBe(true);
         });
 
-        it('returns true when legal last name is missing', () => {
-            const details: PrivatePersonalDetails = {
-                ...completePersonalDetails,
-                legalLastName: '',
-            };
-            expect(isPersonalBankAccountMissingInfo(usPersonalBankAccount, details)).toBe(true);
+        it('returns true when lastName is missing', () => {
+            const accountData = {
+                ...completeAccountData,
+                additionalData: {...completeAccountData.additionalData, lastName: ''},
+            } as AccountData;
+            expect(isPersonalBankAccountMissingInfo(accountData)).toBe(true);
         });
 
         it.each([
-            {field: 'street', address: {street: '', city: 'New York', state: 'NY', zip: '10001', country: 'US' as const, current: true}},
-            {field: 'city', address: {street: '123 Main St', city: '', state: 'NY', zip: '10001', country: 'US' as const, current: true}},
-            {field: 'state', address: {street: '123 Main St', city: 'New York', state: '', zip: '10001', country: 'US' as const, current: true}},
-            {field: 'zip', address: {street: '123 Main St', city: 'New York', state: 'NY', zip: '', country: 'US' as const, current: true}},
-        ])('returns true when address $field is missing', ({address}) => {
-            const details: PrivatePersonalDetails = {
-                ...completePersonalDetails,
-                addresses: [address],
-            };
-            expect(isPersonalBankAccountMissingInfo(usPersonalBankAccount, details)).toBe(true);
+            {field: 'addressStreet', override: {addressStreet: ''}},
+            {field: 'addressCity', override: {addressCity: ''}},
+            {field: 'addressState', override: {addressState: ''}},
+            {field: 'addressZipCode', override: {addressZipCode: ''}},
+        ])('returns true when $field is missing', ({override}) => {
+            const accountData = {
+                ...completeAccountData,
+                additionalData: {...completeAccountData.additionalData, ...override},
+            } as AccountData;
+            expect(isPersonalBankAccountMissingInfo(accountData)).toBe(true);
         });
 
-        it('returns true when addresses array is empty', () => {
-            const details: PrivatePersonalDetails = {
-                ...completePersonalDetails,
-                addresses: [],
-            };
-            expect(isPersonalBankAccountMissingInfo(usPersonalBankAccount, details)).toBe(true);
+        it('returns true when companyPhone is missing', () => {
+            const accountData = {
+                ...completeAccountData,
+                additionalData: {...completeAccountData.additionalData, companyPhone: ''},
+            } as AccountData;
+            expect(isPersonalBankAccountMissingInfo(accountData)).toBe(true);
         });
 
-        it('returns true when phone number is missing', () => {
-            const details: PrivatePersonalDetails = {
-                ...completePersonalDetails,
-                phoneNumber: '',
-            };
-            expect(isPersonalBankAccountMissingInfo(usPersonalBankAccount, details)).toBe(true);
-        });
-
-        it('returns false when all personal info is present', () => {
-            expect(isPersonalBankAccountMissingInfo(usPersonalBankAccount, completePersonalDetails)).toBe(false);
+        it('returns false when all info is present', () => {
+            expect(isPersonalBankAccountMissingInfo(completeAccountData)).toBe(false);
         });
 
         it('returns false when accountData is undefined', () => {
-            expect(isPersonalBankAccountMissingInfo(undefined, completePersonalDetails)).toBe(false);
+            expect(isPersonalBankAccountMissingInfo(undefined)).toBe(false);
         });
 
-        it('returns false when privatePersonalDetails is undefined', () => {
-            expect(isPersonalBankAccountMissingInfo(usPersonalBankAccount, undefined)).toBe(true);
+        it('returns true when additionalData is missing', () => {
+            const accountData = {
+                type: CONST.BANK_ACCOUNT.TYPE.PERSONAL,
+                state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                additionalData: {country: CONST.COUNTRY.US},
+            } as AccountData;
+            expect(isPersonalBankAccountMissingInfo(accountData)).toBe(true);
         });
     });
 

@@ -406,7 +406,7 @@ function PaymentMethodList({
                 methodID: paymentMethod.methodID,
                 description: paymentMethod.description,
             };
-            const isMissingPersonalInfo = isPersonalBankAccountMissingInfo(paymentMethod.accountData, privatePersonalDetails);
+            const isMissingPersonalInfo = isPersonalBankAccountMissingInfo(paymentMethod.accountData);
 
             return {
                 ...paymentMethod,
@@ -455,7 +455,6 @@ function PaymentMethodList({
         activePaymentMethodID,
         actionPaymentMethodType,
         onThreeDotsMenuPress,
-        privatePersonalDetails,
         policiesForAssignedCards,
     ]);
 

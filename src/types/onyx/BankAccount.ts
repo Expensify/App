@@ -39,19 +39,25 @@ type BankAccountAdditionalData = {
         achAuthorizationForm?: FileObject[];
     };
 
-    /** City of the business's address */
+    /** First name of the bank account owner */
+    firstName?: string;
+
+    /** Last name of the bank account owner */
+    lastName?: string;
+
+    /** City of the bank account owner's address */
     addressCity?: string;
 
-    /** State of the business's address */
+    /** State of the bank account owner's address */
     addressState?: string;
 
-    /** Business's street address */
+    /** Street address of the bank account owner */
     addressStreet?: string;
 
-    /** Zip code of the business's address */
+    /** Zip code of the bank account owner's address */
     addressZipCode?: string;
 
-    /** Phone number of the company */
+    /** Phone number of the bank account owner */
     companyPhone?: string;
 };
 

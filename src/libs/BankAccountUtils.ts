@@ -3,7 +3,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type AccountData from '@src/types/onyx/AccountData';
-import {getCurrentAddress} from './PersonalDetailsUtils';
 
 function getDefaultCompanyWebsite(session: OnyxEntry<OnyxTypes.Session>, account: OnyxEntry<OnyxTypes.Account>, shouldShowPublicDomain = false): string {
     return account?.isFromPublicDomain && !shouldShowPublicDomain ? '' : `https://www.${Str.extractEmailDomain(session?.email ?? '')}`;
@@ -23,12 +22,12 @@ function hasPartiallySetupBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankA
 
 /**
  * Check if a US personal bank account in OPEN state is missing required personal information
- * (legal name, address, or phone number) from PrivatePersonalDetails.
+ * (owner name, address, or phone number) from the bank account's additionalData.
  *
  * This is used to show "Action required" badge for existing accounts that need updates
  * to enable global reimbursement payments.
  */
-function isPersonalBankAccountMissingInfo(accountData: AccountData | undefined, privatePersonalDetails: OnyxEntry<OnyxTypes.PrivatePersonalDetails>): boolean {
+function isPersonalBankAccountMissingInfo(accountData: AccountData | undefined): boolean {
     // Only applies to personal bank accounts
     if (accountData?.type !== CONST.BANK_ACCOUNT.TYPE.PERSONAL) {
         return false;
@@ -45,13 +44,12 @@ function isPersonalBankAccountMissingInfo(accountData: AccountData | undefined, 
         return false;
     }
 
-    // Check if personal details are missing
-    const currentAddress = getCurrentAddress(privatePersonalDetails);
-    const hasLegalName = !!privatePersonalDetails?.legalFirstName && !!privatePersonalDetails?.legalLastName;
-    const hasAddress = !!currentAddress?.street && !!currentAddress?.city && !!currentAddress?.state && !!currentAddress?.zip;
-    const hasPhoneNumber = !!privatePersonalDetails?.phoneNumber;
+    const {additionalData} = accountData;
+    const hasName = !!additionalData?.firstName && !!additionalData?.lastName;
+    const hasAddress = !!additionalData?.addressStreet && !!additionalData?.addressCity && !!additionalData?.addressState && !!additionalData?.addressZipCode;
+    const hasPhone = !!additionalData?.companyPhone;
 
-    return !hasLegalName || !hasAddress || !hasPhoneNumber;
+    return !hasName || !hasAddress || !hasPhone;
 }
 
 export {getDefaultCompanyWebsite, getLastFourDigits, hasPartiallySetupBankAccount, isBankAccountPartiallySetup, isPersonalBankAccountMissingInfo};
