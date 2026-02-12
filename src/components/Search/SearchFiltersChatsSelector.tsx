@@ -56,7 +56,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
 
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const [selectedReportIDs, setSelectedReportIDs] = useState<string[]>(initialReportIDs);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');

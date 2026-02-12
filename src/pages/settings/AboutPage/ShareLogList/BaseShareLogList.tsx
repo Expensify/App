@@ -25,7 +25,7 @@ type Sections = Array<Section<SearchOptionData>>;
 function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: true});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized} = useSearchSelector({

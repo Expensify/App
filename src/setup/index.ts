@@ -60,6 +60,7 @@ export default function () {
         },
         skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
         snapshotMergeKeys: ['pendingAction', 'pendingFields'],
+        ramOnlyKeys: [ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, ONYXKEYS.UPDATE_AVAILABLE, ONYXKEYS.UPDATE_REQUIRED, ONYXKEYS.IS_SEARCHING_FOR_REPORTS, ONYXKEYS.WALLET_ONFIDO],
     });
 
     initOnyxDerivedValues();

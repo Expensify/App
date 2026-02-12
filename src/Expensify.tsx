@@ -111,9 +111,9 @@ function Expensify() {
     const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE, {canBeMissing: true});
     const [userMetadata] = useOnyx(ONYXKEYS.USER_METADATA, {canBeMissing: true});
-    const [isCheckingPublicRoom = true] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false, canBeMissing: true});
-    const [updateAvailable] = useOnyx(ONYXKEYS.UPDATE_AVAILABLE, {initWithStoredValues: false, canBeMissing: true});
-    const [updateRequired] = useOnyx(ONYXKEYS.UPDATE_REQUIRED, {initWithStoredValues: false, canBeMissing: true});
+    const [isCheckingPublicRoom = true] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {canBeMissing: true});
+    const [updateAvailable] = useOnyx(ONYXKEYS.UPDATE_AVAILABLE, {canBeMissing: true});
+    const [updateRequired] = useOnyx(ONYXKEYS.UPDATE_REQUIRED, {canBeMissing: true});
     const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED, {canBeMissing: true});
     const [screenShareRequest] = useOnyx(ONYXKEYS.SCREEN_SHARE_REQUEST, {canBeMissing: true});
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});

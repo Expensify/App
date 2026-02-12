@@ -17,8 +17,6 @@ function OnfidoStep() {
     const {translate} = useLocalize();
     const [walletOnfidoData] = useOnyx(ONYXKEYS.WALLET_ONFIDO, {
         canBeMissing: true,
-        // Let's get a new onfido token each time the user hits this flow (as it should only be once)
-        initWithStoredValues: false,
     });
 
     const shouldShowOnfido = walletOnfidoData?.hasAcceptedPrivacyPolicy && !walletOnfidoData?.isLoading && !walletOnfidoData?.errors && walletOnfidoData?.sdkToken;

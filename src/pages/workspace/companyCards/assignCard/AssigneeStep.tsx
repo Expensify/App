@@ -48,7 +48,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: true});
 
     const ineligibleInvites = getIneligibleInvitees(policy?.employeeList);
     const excludedUsers: Record<string, boolean> = {};

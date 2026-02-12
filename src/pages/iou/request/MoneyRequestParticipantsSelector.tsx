@@ -116,7 +116,7 @@ function MoneyRequestParticipantsSelector({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`];
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: true, initWithStoredValues: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserLogin = currentUserPersonalDetails.login;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';

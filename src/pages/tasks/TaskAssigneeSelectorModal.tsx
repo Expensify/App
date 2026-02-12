@@ -41,7 +41,7 @@ function TaskAssigneeSelectorModal() {
     const backTo = route.params?.backTo;
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [task] = useOnyx(ONYXKEYS.TASK, {canBeMissing: false});
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: true});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';

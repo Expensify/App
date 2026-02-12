@@ -67,7 +67,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const [, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
     const {areOptionsInitialized} = useOptionsList();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: true});
     const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
     const shouldShowList = isRecentSearchesDataLoaded && areOptionsInitialized;
     const personalDetails = usePersonalDetails();

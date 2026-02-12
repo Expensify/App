@@ -239,7 +239,7 @@ function NewChatPage({ref}: NewChatPageProps) {
     const personalData = useCurrentUserPersonalDetails();
     const currentUserAccountID = personalData.accountID;
     const {top} = useSafeAreaInsets();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: true});
     const [reportAttributesDerivedFull] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true});
     const reportAttributesDerived = reportAttributesDerivedFull?.reports;
     const selectionListRef = useRef<SelectionListHandle | null>(null);
