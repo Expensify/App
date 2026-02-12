@@ -4379,6 +4379,11 @@ const staticStyles = (theme: ThemeColors) =>
             aspectRatio: 16 / 9,
         },
 
+        reportActionItemContainer: {
+            borderRadius: 12,
+            overflow: 'hidden',
+        },
+
         reportActionItemImages: {
             flexDirection: 'row',
             borderRadius: 12,
