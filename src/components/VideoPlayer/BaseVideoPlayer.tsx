@@ -56,6 +56,7 @@ function BaseVideoPlayer({
     const {currentlyPlayingURL, sharedElement, originalParent, currentVideoPlayerRef, currentVideoViewRef, mountedVideoPlayersRef, playerStatus} = usePlaybackStateContext();
     const {pauseVideo, playVideo, replayVideo, shareVideoPlayerElements, updateCurrentURLAndReportID, setCurrentlyPlayingURL, updatePlayerStatus} = usePlaybackActionsContext();
     const {isFullScreenRef} = useFullScreenContext();
+    const [isFullScreen, setIsFullScreen] = useState(false);
 
     const isOffline = useNetwork().isOffline;
     const [duration, setDuration] = useState(videoDuration);
@@ -483,29 +484,25 @@ function BaseVideoPlayer({
                                             allowsFullscreen
                                             player={videoPlayerRef.current}
                                             style={[styles.w100, styles.h100, videoPlayerStyle, hasErrorIconVisible && {opacity: 0}]}
-                                            nativeControls={isFullScreenRef.current}
+                                            nativeControls={isFullScreen}
                                             playsInline
                                             testID={CONST.VIDEO_PLAYER_TEST_ID}
                                             ref={videoViewRef}
                                             contentFit="contain"
                                             onFullscreenEnter={() => {
                                                 isFullScreenRef.current = true;
-
+                                                setIsFullScreen(true);
                                                 if (!(videoPlayerElementParentRef.current && 'addEventListener' in videoPlayerElementParentRef.current)) {
                                                     return;
                                                 }
-                                                // When the video is in fullscreen, we don't want the scroll to be captured by the InvertedFlatList of report screen.
-                                                // This will also allow the user to scroll the video playback speed.
                                                 videoPlayerElementParentRef.current.addEventListener('wheel', stopWheelPropagation);
                                             }}
                                             onFullscreenExit={() => {
                                                 isFullScreenRef.current = false;
-
+                                                setIsFullScreen(false);
                                                 if (videoPlayerElementParentRef.current && 'removeEventListener' in videoPlayerElementParentRef.current) {
                                                     videoPlayerElementParentRef.current.removeEventListener('wheel', stopWheelPropagation);
                                                 }
-
-                                                // Sync volume updates in full screen mode after leaving it
                                                 updateVolume(videoPlayerRef.current.muted ? 0 : videoPlayerRef.current.volume || 1);
                                             }}
                                         />
