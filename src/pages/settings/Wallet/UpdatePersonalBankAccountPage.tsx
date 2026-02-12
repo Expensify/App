@@ -9,6 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {formatE164PhoneNumber} from '@libs/LoginUtils';
+import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import {clearPersonalBankAccount, updatePersonalBankAccountInfo} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
@@ -49,9 +50,16 @@ function UpdatePersonalBankAccountPage() {
     };
 
     const submitPersonalInfo = () => {
+        const currentAddress = getCurrentAddress(privatePersonalDetails);
         const finalPhoneNumber = personalBankAccountDraft?.phoneNumber ?? privatePersonalDetails?.phoneNumber ?? '';
         const accountData = {
-            ...privatePersonalDetails,
+            legalFirstName: privatePersonalDetails?.legalFirstName,
+            legalLastName: privatePersonalDetails?.legalLastName,
+            addressStreet: currentAddress?.street,
+            addressCity: currentAddress?.city,
+            addressState: currentAddress?.state,
+            addressZipCode: currentAddress?.zip,
+            country: currentAddress?.country,
             ...personalBankAccountDraft,
             phoneNumber: formatE164PhoneNumber(finalPhoneNumber, countryCode),
         };
