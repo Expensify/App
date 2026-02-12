@@ -641,9 +641,9 @@ function ReportActionsList({
      * the height of the smallest report action possible.
      */
     const initialNumToRender = useMemo((): number | undefined => {
-        const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom + variables.fontSizeNormalHeight;
+        const estimatedReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom + variables.lineHeightXLarge + variables.fontSizeNormalHeight;
         const availableHeight = windowHeight - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
-        const numToRender = Math.ceil(availableHeight / minimumReportActionHeight);
+        const numToRender = Math.ceil(availableHeight / estimatedReportActionHeight);
         if (linkedReportActionID) {
             return getInitialNumToRender(numToRender);
         }
