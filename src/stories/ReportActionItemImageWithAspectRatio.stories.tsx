@@ -24,6 +24,7 @@ function Template(props: ReportActionItemImageWithAspectRatioProps) {
             style={{flex: 1}}
         >
             <ReportActionItemImageWithAspectRatio
+                /* Storybook template passes all story args to the component */
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             />

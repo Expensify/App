@@ -35,6 +35,7 @@ function ReportActionItemImageWithAspectRatio({image, shouldUseAspectRatio = fal
                 >
                     <View style={styles.reportActionItemImage}>
                         <ReportActionItemImage
+                            /* Props are passed through from image data - spreading is intentional */
                             /* eslint-disable-next-line react/jsx-props-no-spreading */
                             {...image}
                             shouldMapHaveBorderRadius={false}
