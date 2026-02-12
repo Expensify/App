@@ -1,17 +1,13 @@
 import React from 'react';
 import {View} from 'react-native';
 import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
-import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
-import {openExternalLink} from '@libs/actions/Link';
 import {clearTravelInvoicingSettlementAccountErrors, clearTravelInvoicingSettlementFrequencyErrors, setTravelInvoicingSettlementAccount} from '@libs/actions/TravelInvoicing';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import {getEligibleBankAccountsForCard} from '@libs/CardUtils';
@@ -47,8 +43,6 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const {isExecuting, singleExecution} = useSingleExecution();
-    const icons = useMemoizedLazyExpensifyIcons(['LuggageWithLines', 'NewWindow']);
 
     // For Travel Invoicing, we use a travel-specific card settings key
     // The format is: private_expensifyCardSettings_{workspaceAccountID}_{feedType}
@@ -231,28 +225,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
         </Section>
     );
 
-    return (
-        <>
-            <Section
-                title={translate('workspace.moreFeatures.travel.travelInvoicing.travelBookingSection.title')}
-                subtitle={translate('workspace.moreFeatures.travel.travelInvoicing.travelBookingSection.subtitle')}
-                subtitleStyles={styles.mb6}
-                isCentralPane
-                subtitleMuted
-            >
-                <MenuItem
-                    title={translate('workspace.moreFeatures.travel.travelInvoicing.travelBookingSection.manageTravelLabel')}
-                    onPress={singleExecution(() => openExternalLink(CONST.FOOTER.TRAVEL_URL))}
-                    disabled={isExecuting}
-                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                    iconRight={icons.NewWindow}
-                    icon={icons.LuggageWithLines}
-                    shouldShowRightIcon
-                />
-            </Section>
-            {optionItems.map(renderOptionItem)}
-        </>
-    );
+    return <>{optionItems.map(renderOptionItem)}</>;
 }
 
 export default WorkspaceTravelInvoicingSection;

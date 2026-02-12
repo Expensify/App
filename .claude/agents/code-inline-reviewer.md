@@ -529,12 +529,18 @@ const results = items.map((item) => {
 - **Condition**: Flag ONLY when ALL of these are true:
 
   - A `useEffect` subscribes to an external source (DOM events, third-party store, browser API)
-  - The Effect's only purpose is to read a value from that source and write it into state via `setState`
-  - The pattern follows: subscribe in setup, unsubscribe in cleanup, `setState` in the listener
+  - Inside the listener, at least one `setState` call directly mirrors an external value
+    (e.g., `setWidth(window.innerWidth)`, `setOnline(navigator.onLine)`)
+  - The pattern for that state variable follows: subscribe in setup, unsubscribe in cleanup,
+    `setState(externalValue)` in the listener
+  - Evaluate each state variable independently — if one state variable is a raw mirror of an
+    external value, flag it even if the same effect also manages other state for different purposes
 
   **DO NOT flag if:**
 
-  - The subscription triggers side effects beyond reading a value (e.g., logging, navigation)
+  - The specific state variable being flagged undergoes transformation, debouncing, or derives
+    from computation rather than directly mirroring the external value. Other state variables
+    in the same effect that DO directly mirror external values should still be flagged.
   - The external API doesn't fit the `subscribe` / `getSnapshot` contract
   - The code already uses `useSyncExternalStore`
   - The subscription is managed by a library (e.g., Onyx's `useOnyx`)
@@ -607,11 +613,11 @@ function ChatIndicator() {
 
   **Case 1 — Missing cleanup:**
   - A `useEffect` performs async work (fetch, promise chain, async/await)
-  - The async result is written to state via `setState`
+  - The async callback performs side effects (setState, navigation, data mutations, deletions)
   - There is no cleanup mechanism to discard stale responses (no `ignore` flag, no `AbortController`, no cancellation token)
 
   **Case 2 — Suppressed dependency lint:**
-  - A `useEffect` performs async work and sets state
+  - A `useEffect` performs async work and triggers side effects (setState, navigation, mutations)
   - The dependency array has an `eslint-disable` comment suppressing `react-hooks/exhaustive-deps`
   - This hides a dependency that could change and cause a race condition
 
@@ -619,8 +625,11 @@ function ChatIndicator() {
 
   - The Effect includes an `ignore`/`cancelled` boolean checked before `setState`
   - The Effect uses `AbortController` to cancel the request on cleanup
-  - The dependency array is empty `[]` with no suppressed lint (no race possible — deps never change)
-  - The async operation doesn't set state (fire-and-forget)
+  - The async operation is truly fire-and-forget (no setState, no navigation, no mutations —
+    just logging or analytics that are safe to complete after unmount)
+  - The dependency array is empty `[]` with no suppressed lint, AND the async callback only
+    performs idempotent/safe operations (no navigation, no destructive mutations that could
+    fire after unmount)
   - Data fetching is handled by a library/framework (e.g., Onyx, React Query)
 
 - **Reasoning**: When an Effect's dependencies change, the previous async operation [may still be in flight](https://react.dev/learn/you-might-not-need-an-effect#fetching-data). Without cleanup, a slow earlier response can overwrite the result of a faster later response, showing stale data. This is especially dangerous for search inputs and navigation where dependencies change rapidly.
@@ -687,8 +696,15 @@ useEffect(() => {
 
   **DO NOT flag if:**
 
-  - A module-level guard variable prevents double execution (`if (didInit) return`)
+  - A module-level or ref-based guard variable prevents double execution. A proper execution
+    guard follows this pattern: `if (didInit) return; didInit = true;` — it checks a flag AND
+    sets it. Conditional checks on data/props (e.g., `if (!transaction) return`,
+    `if (action !== 'CREATE') return`) are NOT execution guards — they validate preconditions
+    but don't prevent the logic from running again if the same preconditions hold in a second
+    invocation (which happens in React Strict Mode).
   - The logic is idempotent (safe to run twice with no side effects)
+  - NOTE: Navigation calls (e.g., `navigate()`), data deletion (e.g., `removeDraftTransactions()`),
+    and similar mutations are NOT idempotent — running them twice produces different/undesirable results.
   - The logic is at module level, outside any component
   - The Effect has non-empty dependencies (not one-time init)
 

@@ -1,4 +1,4 @@
-import type {MemoryInfo} from '../getMemoryInfo/types';
+import type {MemoryInfo} from '@libs/telemetry/getMemoryInfo/types';
 
 /**
  * Format breadcrumb message for web platform

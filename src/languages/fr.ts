@@ -900,7 +900,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'Votre espace',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Bienvenue dans ${roomName} !`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `Utilisez le bouton + pour ${additionalText} une dépense.`,
-        askConcierge: 'Posez-moi vos questions !',
+        askConcierge: 'Ceci est votre chat avec Concierge, votre agent IA personnel. Je peux faire presque tout, essayez-moi !',
         conciergeSupport: 'Votre agent IA personnel',
         create: 'créer',
         iouTypes: {
@@ -992,6 +992,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: 'Activez votre carte Expensify',
                 subtitle: 'Validez votre carte et commencez à dépenser.',
                 cta: 'Activer',
+            },
+            reviewCardFraud: {
+                title: 'Examiner un risque potentiel de fraude sur votre carte Expensify',
+                titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Examiner ${amount} de fraude potentielle chez ${merchant}`,
+                subtitle: 'Carte Expensify',
+                cta: 'Examiner',
             },
             ctaFix: 'Corriger',
             fixCompanyCardConnection: {
@@ -1568,6 +1574,8 @@ const translations: TranslationDeepObject<typeof en> = {
             });
             return `${formatList(fragments)} via les <a href="${policyRulesRoute}">règles de l’espace de travail</a>`;
         },
+        duplicateNonDefaultWorkspacePerDiemError:
+            'Vous ne pouvez pas dupliquer les indemnités journalières entre plusieurs espaces de travail, car les taux peuvent différer d’un espace de travail à l’autre.',
     },
     transactionMerge: {
         listPage: {
@@ -2734,7 +2742,7 @@ ${amount} pour ${merchant} - ${date}`,
                 title: ({workspaceCategoriesLink}) => `Configurer les [catégories](${workspaceCategoriesLink})`,
                 description: ({workspaceCategoriesLink}) =>
                     dedent(`
-                        *Configurez des catégories* pour que votre équipe puisse coder les dépenses afin de faciliter les rapports.
+                        *Configurez les catégories* pour que votre équipe puisse coder les dépenses et faciliter le reporting.
 
                         1. Cliquez sur *Espaces de travail*.
                         2. Sélectionnez votre espace de travail.
@@ -2825,12 +2833,12 @@ ${
                 title: ({workspaceMembersLink}) => `Invitez [votre équipe](${workspaceMembersLink})`,
                 description: ({workspaceMembersLink}) =>
                     dedent(`
-                        *Invitez votre équipe* sur Expensify pour qu’elle puisse commencer à suivre ses dépenses dès aujourd’hui.
+                        *Invitez votre équipe* sur Expensify afin qu’elle puisse commencer à suivre ses dépenses dès aujourd’hui.
 
                         1. Cliquez sur *Espaces de travail*.
                         2. Sélectionnez votre espace de travail.
                         3. Cliquez sur *Membres* > *Inviter un membre*.
-                        4. Saisissez des adresses e-mail ou des numéros de téléphone.
+                        4. Saisissez des e-mails ou des numéros de téléphone.
                         5. Ajoutez un message d’invitation personnalisé si vous le souhaitez !
 
                         [Aller aux membres de l’espace de travail](${workspaceMembersLink}).
@@ -2848,7 +2856,7 @@ ${
                 title: ({workspaceTagsLink}) => `Configurer les [tags](${workspaceTagsLink})`,
                 description: ({workspaceMoreFeaturesLink}) =>
                     dedent(`
-                        Utilisez des tags pour ajouter des détails supplémentaires à vos dépenses, comme les projets, clients, lieux et services. Si vous avez besoin de plusieurs niveaux de tags, vous pouvez passer au plan Contrôle.
+                        Utilisez les tags pour ajouter des détails supplémentaires sur les dépenses, comme les projets, les clients, les lieux et les services. Si vous avez besoin de plusieurs niveaux de tags, vous pouvez passer au plan Control.
 
                         1. Cliquez sur *Espaces de travail*.
                         2. Sélectionnez votre espace de travail.
@@ -3128,6 +3136,7 @@ ${
         whenClearStatus: 'Quand devons-nous effacer votre statut ?',
         vacationDelegate: 'Délégué de vacances',
         setVacationDelegate: `Définissez un délégué de vacances pour approuver les notes de frais en votre nom pendant votre absence du bureau.`,
+        cannotSetVacationDelegate: `Vous ne pouvez pas définir un délégué de vacances car vous êtes actuellement le délégué des membres suivants :`,
         vacationDelegateError: 'Une erreur s’est produite lors de la mise à jour de votre remplaçant de congés.',
         asVacationDelegate: ({nameOrEmail}: VacationDelegateParams) => `en tant que délégué de vacances de ${nameOrEmail}`,
         toAsVacationDelegate: ({submittedToName, vacationDelegateName}: SubmittedToVacationDelegateParams) =>
@@ -5180,16 +5189,17 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     ctaText: 'Demande envoyée',
                 },
                 bookOrManageYourTrip: {
-                    title: 'Réserver ou gérer votre voyage',
-                    subtitle: 'Utilisez Expensify Travel pour obtenir les meilleures offres de voyage et gérer toutes vos dépenses professionnelles en un seul endroit.',
-                    ctaText: 'Réserver ou gérer',
+                    title: 'Réservation de voyage',
+                    subtitle: 'Félicitations ! Vous êtes prêt à réserver et gérer des voyages dans cet espace de travail.',
+                    ctaText: 'Gérer les déplacements',
+                },
+                settings: {
+                    autoAddTripName: {
+                        title: 'Ajouter des noms de voyage aux dépenses',
+                        subtitle: 'Ajouter automatiquement les noms de voyage aux descriptions des dépenses pour les voyages réservés dans Expensify.',
+                    },
                 },
                 travelInvoicing: {
-                    travelBookingSection: {
-                        title: 'Réservation de voyage',
-                        subtitle: 'Félicitations ! Vous êtes prêt à réserver et gérer des voyages sur cet espace de travail.',
-                        manageTravelLabel: 'Gérer les déplacements',
-                    },
                     centralInvoicingSection: {
                         title: 'Facturation centralisée',
                         subtitle: 'Centralisez toutes les dépenses de voyage dans une facture mensuelle au lieu de payer au moment de l’achat.',
@@ -6402,8 +6412,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 preventSelfApprovalsSubtitle: 'Empêcher les membres de l’espace de travail d’approuver leurs propres notes de frais.',
                 autoApproveCompliantReportsTitle: 'Approuver automatiquement les notes de frais conformes',
                 autoApproveCompliantReportsSubtitle: 'Configurer quelles notes de frais sont éligibles à l’auto-approbation.',
-                autoApproveReportsUnderTitle: 'Approuver automatiquement les notes de frais inférieures à',
-                autoApproveReportsUnderDescription: 'Les notes de frais entièrement conformes en dessous de ce montant seront automatiquement approuvées.',
+                autoApproveReportsUnderTitle: 'Approuver automatiquement les notes de frais dont toutes les dépenses sont inférieures à',
+                autoApproveReportsUnderDescription: 'Les notes de frais entièrement conformes dont toutes les dépenses sont en dessous de ce montant seront automatiquement approuvées.',
                 randomReportAuditTitle: 'Audit aléatoire de notes de frais',
                 randomReportAuditDescription: 'Exiger que certaines notes de frais soient approuvées manuellement, même si elles sont éligibles à l’auto-approbation.',
                 autoPayApprovedReportsTitle: 'Payer automatiquement les notes de frais approuvées',
@@ -7281,6 +7291,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             selectAllMatchingItems: 'Sélectionnez tous les éléments correspondants',
             allMatchingItemsSelected: 'Tous les éléments correspondants sont sélectionnés',
         },
+        spendOverTime: 'Dépenses dans le temps',
     },
     genericErrorPage: {
         title: 'Oups, quelque chose s’est mal passé !',
@@ -7586,11 +7597,13 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             endReading: 'Fin de lecture',
             saveForLater: 'Enregistrer pour plus tard',
             totalDistance: 'Distance totale',
-            startTitle: 'Photo du compteur au départ',
-            endTitle: 'Photo de fin d’odomètre',
             startMessageWeb:
                 'Ajoutez une photo de votre compteur kilométrique prise au <strong>début</strong> de votre trajet. Faites glisser un fichier ici ou choisissez-en un à télécharger.',
             endMessageWeb: 'Ajoutez une photo du compteur kilométrique prise à la <strong>fin</strong> de votre trajet. Faites glisser un fichier ici ou choisissez-en un à télécharger.',
+            startTitle: 'Photo du compteur de départ',
+            endTitle: 'Photo du compteur (arrivée)',
+            deleteOdometerPhoto: 'Supprimer la photo du compteur kilométrique',
+            deleteOdometerPhotoConfirmation: 'Voulez-vous vraiment supprimer cette photo de l’odomètre ?',
         },
     },
     gps: {
@@ -8402,6 +8415,8 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             disableSamlRequired: 'Désactiver SAML obligatoire',
             oktaWarningPrompt: 'Voulez-vous continuer ? Cela désactivera également Okta SCIM.',
             requireWithEmptyMetadataError: "Veuillez ajouter ci-dessous les métadonnées du fournisseur d'identité pour activer",
+            pleaseDisableTwoFactorAuth: (twoFactorAuthSettingsUrl: string) =>
+                `<muted-text>Désactivez <a href="${twoFactorAuthSettingsUrl}">forcer l’authentification à deux facteurs</a> pour activer la connexion SAML.</muted-text>`,
         },
         samlConfigurationDetails: {
             title: 'Détails de configuration SAML',
@@ -8451,7 +8466,6 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             primaryContact: 'Contact principal',
             addPrimaryContact: 'Ajouter un contact principal',
             setPrimaryContactError: 'Impossible de définir le contact principal. Veuillez réessayer plus tard.',
-            settings: 'Paramètres',
             consolidatedDomainBilling: 'Facturation de domaine consolidée',
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>Lorsque cette option est activée, le contact principal paiera pour tous les espaces de travail appartenant aux membres de <strong>${domainName}</strong> et recevra tous les reçus de facturation.</muted-text-label></comment>`,
@@ -8476,17 +8490,31 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             findMember: 'Trouver un membre',
             addMember: 'Ajouter un membre',
             email: 'Adresse e-mail',
-            closeAccount: 'Fermer le compte',
+            closeAccount: () => ({
+                one: 'Fermer le compte',
+                other: 'Fermer les comptes',
+            }),
             closeAccountPrompt: 'Êtes-vous sûr(e) ? Cette action est définitive.',
-            forceCloseAccount: 'Forcer la fermeture du compte',
-            safeCloseAccount: 'Fermer le compte en toute sécurité',
-            closeAccountInfo:
-                'Nous recommandons de fermer le compte en toute sécurité afin d’éviter de le fermer dans le cas où il y aurait : <ul><li>Des validations en attente</li><li>Des remboursements actifs</li><li>Aucune autre méthode de connexion</li></ul>Sinon, vous pouvez ignorer les précautions de sécurité ci-dessus et forcer la fermeture du compte sélectionné.',
+            forceCloseAccount: () => ({one: 'Forcer la fermeture du compte', other: 'Forcer la fermeture des comptes'}),
+            safeCloseAccount: () => ({
+                one: 'Fermer le compte en toute sécurité',
+                other: 'Fermer les comptes en toute sécurité',
+            }),
+            closeAccountInfo: () => ({
+                one: 'Nous recommandons de fermer le compte en toute sécurité afin d’éviter de le fermer dans le cas où il y aurait : <ul><li>Des validations en attente</li><li>Des remboursements actifs</li><li>Aucune autre méthode de connexion</li></ul>Sinon, vous pouvez ignorer les précautions de sécurité ci-dessus et forcer la fermeture du compte sélectionné.',
+                other: 'Nous recommandons de fermer les comptes en toute sécurité afin d’éviter de les fermer dans le cas où il y aurait : <ul><li>Des validations en attente</li><li>Des remboursements actifs</li><li>Aucune autre méthode de connexion</li></ul>Sinon, vous pouvez ignorer les précautions de sécurité ci-dessus et forcer la fermeture des comptes sélectionnés.',
+            }),
             error: {
                 removeMember: 'Impossible de supprimer cet utilisateur. Veuillez réessayer.',
                 addMember: 'Impossible d’ajouter ce membre. Veuillez réessayer.',
             },
+            forceTwoFactorAuth: 'Imposer l’authentification à deux facteurs',
+            forceTwoFactorAuthSAMLEnabledDescription: (samlPageUrl: string) =>
+                `<muted-text>Veuillez désactiver <a href="${samlPageUrl}">SAML</a> pour imposer l’authentification à deux facteurs.</muted-text>`,
+            forceTwoFactorAuthDescription: `<muted-text>Exiger l’authentification à deux facteurs pour tous les membres de ce domaine. Les membres du domaine seront invités à configurer l’authentification à deux facteurs sur leur compte lorsqu’ils se connectent.</muted-text>`,
+            forceTwoFactorAuthError: 'L’activation forcée de l’authentification à deux facteurs n’a pas pu être modifiée. Veuillez réessayer plus tard.',
         },
+        common: {settings: 'Paramètres'},
     },
 };
 export default translations;
