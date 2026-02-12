@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import DraggableList from '@components/DraggableList';
@@ -144,6 +144,23 @@ function SearchColumnsPage() {
         disableCyclicTraversal: true,
     });
 
+    const listContainerRef = useRef<View>(null);
+
+    useEffect(() => {
+        const container = listContainerRef.current as unknown as HTMLElement | null;
+        if (!container) {
+            return;
+        }
+        const handleFocusOut = (event: FocusEvent) => {
+            if (event.relatedTarget instanceof Node && container.contains(event.relatedTarget)) {
+                return;
+            }
+            setFocusedIndex(-1);
+        };
+        container.addEventListener('focusout', handleFocusOut);
+        return () => container.removeEventListener('focusout', handleFocusOut);
+    }, [setFocusedIndex]);
+
     const groupLength = groupBy ? groupColumnsList.length : 0;
     const groupFocusedIndex = focusedIndex >= 0 && focusedIndex < groupLength ? focusedIndex : -1;
     const typeFocusedIndex = focusedIndex >= groupLength ? focusedIndex - groupLength : -1;
@@ -236,6 +253,15 @@ function SearchColumnsPage() {
                 showTooltip={false}
                 onSelectRow={onSelectItem}
                 isDisabled={item.isDisabled}
+                onFocus={() => {
+                    if (item.isDisabled) {
+                        return;
+                    }
+                    const flatIndex = flatItems.findIndex((i) => i.keyForList === item.keyForList);
+                    if (flatIndex >= 0) {
+                        setFocusedIndex(flatIndex);
+                    }
+                }}
             />
         );
     };
@@ -255,37 +281,39 @@ function SearchColumnsPage() {
                     style={styles.flex1}
                     contentContainerStyle={styles.flex1}
                 >
-                    {!!groupBy && (
-                        <>
-                            <View style={[styles.ph5, styles.pb3]}>
-                                <Text style={styles.textLabelSupporting}>{translate('search.groupColumns')}</Text>
-                            </View>
+                    <View ref={listContainerRef}>
+                        {!!groupBy && (
+                            <>
+                                <View style={[styles.ph5, styles.pb3]}>
+                                    <Text style={styles.textLabelSupporting}>{translate('search.groupColumns')}</Text>
+                                </View>
 
-                            <DraggableList
-                                disableScroll
-                                data={groupColumnsList}
-                                keyExtractor={(item) => item.value}
-                                onDragEnd={onGroupDragEnd}
-                                focusedIndex={groupFocusedIndex}
-                                renderItem={renderItem}
-                            />
+                                <DraggableList
+                                    disableScroll
+                                    data={groupColumnsList}
+                                    keyExtractor={(item) => item.value}
+                                    onDragEnd={onGroupDragEnd}
+                                    focusedIndex={groupFocusedIndex}
+                                    renderItem={renderItem}
+                                />
 
-                            <View style={styles.dividerLine} />
+                                <View style={styles.dividerLine} />
 
-                            <View style={[styles.ph5, styles.pv3]}>
-                                <Text style={styles.textLabelSupporting}>{translate('search.expenseColumns')}</Text>
-                            </View>
-                        </>
-                    )}
+                                <View style={[styles.ph5, styles.pv3]}>
+                                    <Text style={styles.textLabelSupporting}>{translate('search.expenseColumns')}</Text>
+                                </View>
+                            </>
+                        )}
 
-                    <DraggableList
-                        disableScroll
-                        data={typeColumnsList}
-                        keyExtractor={(item) => item.value}
-                        onDragEnd={onTypeDragEnd}
-                        focusedIndex={typeFocusedIndex}
-                        renderItem={renderItem}
-                    />
+                        <DraggableList
+                            disableScroll
+                            data={typeColumnsList}
+                            keyExtractor={(item) => item.value}
+                            onDragEnd={onTypeDragEnd}
+                            focusedIndex={typeFocusedIndex}
+                            renderItem={renderItem}
+                        />
+                    </View>
                 </ScrollView>
             </View>
             <View style={[styles.ph5, styles.pb5]}>

@@ -11,6 +11,9 @@ function SortableItem({id, children, disabled = false, isFocused = false}: Sorta
         if (!isFocused || !itemRef.current) {
             return;
         }
+        if (itemRef.current.contains(document.activeElement)) {
+            return;
+        }
         itemRef.current.focus();
     }, [isFocused]);
 
