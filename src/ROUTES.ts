@@ -671,8 +671,8 @@ const ROUTES = {
         getRoute: (threadReportID: string, currency: string, backTo: string) => `r/${threadReportID}/edit/currency?currency=${currency}&backTo=${backTo}` as const,
     },
     EDIT_REPORT_FIELD_REQUEST: {
-        route: 'r/:reportID/edit/policyField/:policyID/:fieldID',
-        getRoute: (reportID: string | undefined, policyID: string | undefined, fieldID: string, backTo?: string) => {
+        route: 'r/:reportID/edit/policyField/:policyID/:fieldID/:shouldGoBackToBackTo?',
+        getRoute: (reportID: string | undefined, policyID: string | undefined, fieldID: string, backTo?: string, shouldGoBackToBackTo?: boolean) => {
             if (!policyID || !reportID) {
                 Log.warn('Invalid policyID or reportID is used to build the EDIT_REPORT_FIELD_REQUEST route', {
                     policyID,
@@ -681,7 +681,7 @@ const ROUTES = {
             }
 
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`r/${reportID}/edit/policyField/${policyID}/${encodeURIComponent(fieldID)}` as const, backTo);
+            return getUrlWithBackToParam(`r/${reportID}/edit/policyField/${policyID}/${encodeURIComponent(fieldID)}/${shouldGoBackToBackTo ? 'true' : 'false'}` as const, backTo);
         },
     },
     REPORT_WITH_ID_DETAILS_SHARE_CODE: {

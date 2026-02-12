@@ -39,7 +39,7 @@ import EditReportFieldText from './EditReportFieldText';
 type EditReportFieldPageProps = PlatformStackScreenProps<EditRequestNavigatorParamList, typeof SCREENS.EDIT_REQUEST.REPORT_FIELD>;
 
 function EditReportFieldPage({route}: EditReportFieldPageProps) {
-    const {backTo, reportID, policyID} = route.params;
+    const {backTo, reportID, policyID, shouldGoBackToBackTo} = route.params;
     const fieldKey = getReportFieldKey(route.params.fieldID);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
@@ -83,7 +83,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     }
 
     const goBack = () => {
-        if (isReportFieldTitle) {
+        if (isReportFieldTitle && !!shouldGoBackToBackTo === false) {
             Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
             return;
         }
