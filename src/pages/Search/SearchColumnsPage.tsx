@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
 import Button from '@components/Button';
 import DraggableList from '@components/DraggableList';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -147,6 +147,9 @@ function SearchColumnsPage() {
     const listContainerRef = useRef<View>(null);
 
     useEffect(() => {
+        if (Platform.OS !== 'web') {
+            return;
+        }
         const container = listContainerRef.current as unknown as HTMLElement | null;
         if (!container) {
             return;
