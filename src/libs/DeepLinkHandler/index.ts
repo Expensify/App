@@ -71,6 +71,7 @@ function setUpOnyxSubscriptions() {
         Onyx.connectWithoutView({
             key: ONYXKEYS.NVP_INTRO_SELECTED,
             callback: (value) => {
+                introSelected = value;
                 hasIntroSelectedLoaded = true;
                 if (value === undefined) {
                     Log.info('[Deep link] introSelected is undefined when processing initial URL', false, {url: pendingDeepLinkUrl});
