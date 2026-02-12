@@ -152,9 +152,11 @@ function calculateSplitPercentagesFromAmounts(amountsInCents: number[], totalInC
         }
         let percentage = (amount / totalAbs) * 100;
         // Flip sign if original total is negative (so user sees intuitive percentages)
+
         if (totalInCents < 0) {
             percentage = -percentage;
         }
+
         // For negative percentages, floor towards zero (Math.ceil for negative numbers)
         return percentage < 0 ? Math.ceil(percentage * 10) / 10 : floorToOneDecimal(percentage);
     });
@@ -189,6 +191,7 @@ function calculateSplitPercentagesFromAmounts(amountsInCents: number[], totalInC
 
     const adjustedPercentages = [...percentages];
     const currentPercentage = adjustedPercentages.at(lastMaxIndex) ?? 0;
+
     // Add remainder with the same sign as the current percentage
     adjustedPercentages[lastMaxIndex] = roundToOneDecimal(currentPercentage + (currentPercentage < 0 ? -remainder : remainder));
 

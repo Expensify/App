@@ -159,6 +159,7 @@ function NumberWithSymbolForm({
     ...props
 }: NumberWithSymbolFormProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'PlusMinus']);
+
     // Combined flag for validation - allows negative values either through flip mechanism or direct input
     const canAcceptNegativeValues = allowFlippingAmount || shouldAllowNegative;
     const styles = useThemeStyles();
