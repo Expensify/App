@@ -44,28 +44,35 @@ describe('BankAccountUtils', () => {
             expect(isPersonalBankAccountMissingInfo(accountData)).toBe(false);
         });
 
-        it('returns true when firstName is missing', () => {
+        it('returns false when country is undefined on additionalData', () => {
             const accountData = {
                 ...completeAccountData,
-                additionalData: {...completeAccountData.additionalData, firstName: ''},
+                additionalData: {...completeAccountData.additionalData, country: undefined},
             } as AccountData;
-            expect(isPersonalBankAccountMissingInfo(accountData)).toBe(true);
+            expect(isPersonalBankAccountMissingInfo(accountData)).toBe(false);
         });
 
-        it('returns true when lastName is missing', () => {
+        it('returns false when accountData is undefined', () => {
+            expect(isPersonalBankAccountMissingInfo(undefined)).toBe(false);
+        });
+
+        it('returns false when additionalData is undefined', () => {
             const accountData = {
-                ...completeAccountData,
-                additionalData: {...completeAccountData.additionalData, lastName: ''},
+                type: CONST.BANK_ACCOUNT.TYPE.PERSONAL,
+                state: CONST.BANK_ACCOUNT.STATE.OPEN,
             } as AccountData;
-            expect(isPersonalBankAccountMissingInfo(accountData)).toBe(true);
+            expect(isPersonalBankAccountMissingInfo(accountData)).toBe(false);
         });
 
         it.each([
+            {field: 'firstName', override: {firstName: ''}},
+            {field: 'lastName', override: {lastName: ''}},
             {field: 'addressStreet', override: {addressStreet: ''}},
             {field: 'addressCity', override: {addressCity: ''}},
             {field: 'addressState', override: {addressState: ''}},
             {field: 'addressZipCode', override: {addressZipCode: ''}},
-        ])('returns true when $field is missing', ({override}) => {
+            {field: 'companyPhone', override: {companyPhone: ''}},
+        ])('returns true when $field is empty string', ({override}) => {
             const accountData = {
                 ...completeAccountData,
                 additionalData: {...completeAccountData.additionalData, ...override},
@@ -73,29 +80,47 @@ describe('BankAccountUtils', () => {
             expect(isPersonalBankAccountMissingInfo(accountData)).toBe(true);
         });
 
-        it('returns true when companyPhone is missing', () => {
+        it.each([
+            {field: 'firstName', override: {firstName: undefined}},
+            {field: 'lastName', override: {lastName: undefined}},
+            {field: 'addressStreet', override: {addressStreet: undefined}},
+            {field: 'addressCity', override: {addressCity: undefined}},
+            {field: 'addressState', override: {addressState: undefined}},
+            {field: 'addressZipCode', override: {addressZipCode: undefined}},
+            {field: 'companyPhone', override: {companyPhone: undefined}},
+        ])('returns true when $field is undefined', ({override}) => {
             const accountData = {
                 ...completeAccountData,
-                additionalData: {...completeAccountData.additionalData, companyPhone: ''},
+                additionalData: {...completeAccountData.additionalData, ...override},
             } as AccountData;
             expect(isPersonalBankAccountMissingInfo(accountData)).toBe(true);
         });
 
-        it('returns false when all info is present', () => {
-            expect(isPersonalBankAccountMissingInfo(completeAccountData)).toBe(false);
-        });
-
-        it('returns false when accountData is undefined', () => {
-            expect(isPersonalBankAccountMissingInfo(undefined)).toBe(false);
-        });
-
-        it('returns true when additionalData is missing', () => {
+        it('returns true when all owner fields are missing (only country present)', () => {
             const accountData = {
                 type: CONST.BANK_ACCOUNT.TYPE.PERSONAL,
                 state: CONST.BANK_ACCOUNT.STATE.OPEN,
                 additionalData: {country: CONST.COUNTRY.US},
             } as AccountData;
             expect(isPersonalBankAccountMissingInfo(accountData)).toBe(true);
+        });
+
+        it('returns true when name and phone are missing but address is present', () => {
+            const accountData = {
+                ...completeAccountData,
+                additionalData: {
+                    country: CONST.COUNTRY.US,
+                    addressStreet: '123 Main St',
+                    addressCity: 'New York',
+                    addressState: 'NY',
+                    addressZipCode: '10001',
+                },
+            } as AccountData;
+            expect(isPersonalBankAccountMissingInfo(accountData)).toBe(true);
+        });
+
+        it('returns false when all info is present', () => {
+            expect(isPersonalBankAccountMissingInfo(completeAccountData)).toBe(false);
         });
     });
 
