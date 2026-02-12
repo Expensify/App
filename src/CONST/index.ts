@@ -5539,8 +5539,6 @@ const CONST = {
         LINK: 'link',
         /** Use to identify a list of items. */
         LIST: 'list',
-        /** Use for a widget that allows the user to select one or more items from a list of choices. */
-        LISTBOX: 'listbox',
         /** Use for a list of choices or options. */
         MENU: 'menu',
         /** Use for a container of multiple menus. */
@@ -5549,8 +5547,6 @@ const CONST = {
         MENUITEM: 'menuitem',
         /** Use when no specific role is needed. */
         NONE: 'none',
-        /** Use for a selectable item within a listbox. */
-        OPTION: 'option',
         /** Use for elements that don't require a specific role. */
         PRESENTATION: 'presentation',
         /** Use for elements showing progress of a task. */

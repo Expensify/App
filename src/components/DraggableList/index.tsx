@@ -2,7 +2,7 @@ import type {DragEndEvent} from '@dnd-kit/core';
 import {closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors} from '@dnd-kit/core';
 import {restrictToParentElement, restrictToVerticalAxis} from '@dnd-kit/modifiers';
 import {arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy} from '@dnd-kit/sortable';
-import React, {Fragment, useEffect, useRef} from 'react';
+import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import ScrollView from '@components/ScrollView';
@@ -27,9 +27,7 @@ function DraggableList<T>({
     onDragEnd: onDragEndCallback,
     onSelectRow,
     isKeyboardActive = false,
-    onArrowUpOverflow,
-    onArrowDownOverflow,
-    activeFocusIndex = -1,
+    focusedIndex: controlledFocusedIndex,
     // eslint-disable-next-line @typescript-eslint/naming-convention
     ListFooterComponent,
     disableScroll,
@@ -43,7 +41,7 @@ function DraggableList<T>({
 
     const disabledArrowKeyIndexes = data.flatMap((item, index) => (getDraggableItemState(item).isDisabled ? [index] : []));
 
-    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
+    const [internalFocusedIndex, setInternalFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: -1,
         maxIndex: data.length - 1,
         disabledIndexes: disabledArrowKeyIndexes,
@@ -51,13 +49,7 @@ function DraggableList<T>({
         disableCyclicTraversal: true,
     });
 
-    const prevIsKeyboardActive = useRef(isKeyboardActive);
-    useEffect(() => {
-        if (isKeyboardActive && !prevIsKeyboardActive.current && activeFocusIndex >= 0) {
-            setFocusedIndex(activeFocusIndex);
-        }
-        prevIsKeyboardActive.current = isKeyboardActive;
-    }, [isKeyboardActive, activeFocusIndex, setFocusedIndex]);
+    const focusedIndex = controlledFocusedIndex ?? internalFocusedIndex;
 
     const selectFocusedOption = () => {
         const focusedItem = data.at(focusedIndex);
@@ -69,27 +61,6 @@ function DraggableList<T>({
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         isActive: isKeyboardActive && focusedIndex >= 0 && !!onSelectRow,
     });
-
-    const lastEnabledIndex = data.findLastIndex((item, index) => !disabledArrowKeyIndexes.includes(index));
-    const firstEnabledIndex = data.findIndex((_, index) => !disabledArrowKeyIndexes.includes(index));
-
-    useKeyboardShortcut(
-        CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN,
-        () => {
-            onArrowDownOverflow?.();
-            setFocusedIndex(-1);
-        },
-        {isActive: isKeyboardActive && focusedIndex === lastEnabledIndex && !!onArrowDownOverflow},
-    );
-
-    useKeyboardShortcut(
-        CONST.KEYBOARD_SHORTCUTS.ARROW_UP,
-        () => {
-            onArrowUpOverflow?.();
-            setFocusedIndex(-1);
-        },
-        {isActive: isKeyboardActive && focusedIndex === firstEnabledIndex && !!onArrowUpOverflow},
-    );
 
     /**
      * Function to be called when the user finishes dragging an item
@@ -105,7 +76,7 @@ function DraggableList<T>({
 
             const reorderedItems = arrayMove(data, oldIndex, newIndex);
             onDragEndCallback?.({data: reorderedItems});
-            setFocusedIndex(-1);
+            setInternalFocusedIndex(-1);
         }
     };
 
@@ -129,8 +100,6 @@ function DraggableList<T>({
                 key={key}
                 disabled={isDragDisabled}
                 isFocused={isFocused}
-                isItemDisabled={isItemDisabled}
-                isKeyboardManaged={isKeyboardActive}
             >
                 {itemWithFocus}
             </SortableItem>
@@ -148,15 +117,9 @@ function DraggableList<T>({
         }),
     );
 
-    const Container = disableScroll ? Fragment : ScrollView;
-
-    return (
-        <Container
-            ref={ref}
-            style={styles.flex1}
-            contentContainerStyle={styles.flex1}
-        >
-            <div role={isKeyboardActive ? CONST.ROLE.LISTBOX : undefined}>
+    const content = (
+        <>
+            <div>
                 <DndContext
                     onDragEnd={onDragEnd}
                     sensors={sensors}
@@ -172,7 +135,21 @@ function DraggableList<T>({
                 </DndContext>
             </div>
             {ListFooterComponent}
-        </Container>
+        </>
+    );
+
+    if (disableScroll) {
+        return content;
+    }
+
+    return (
+        <ScrollView
+            ref={ref}
+            style={styles.flex1}
+            contentContainerStyle={styles.flex1}
+        >
+            {content}
+        </ScrollView>
     );
 }
 

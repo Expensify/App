@@ -11,6 +11,8 @@ import type {ListItem} from '@components/SelectionList/types';
 import MultiSelectListItem from '@components/SelectionListWithSections/MultiSelectListItem';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -33,8 +35,6 @@ type ColumnItem = {
     isDragDisabled: boolean;
     leftElement: React.JSX.Element;
 };
-
-type ActiveList = 'group' | 'type' | 'none';
 
 function SearchColumnsPage() {
     const theme = useTheme();
@@ -116,7 +116,7 @@ function SearchColumnsPage() {
                 isSelected: isEffectivelySelected,
                 isDisabled: isRequired,
                 isDragDisabled,
-                tabIndex: -1,
+                tabIndex: isRequired ? -1 : undefined,
                 leftElement: (
                     <View style={[styles.mr3, isDragDisabled && styles.cursorDisabled]}>
                         <Icon
@@ -133,15 +133,27 @@ function SearchColumnsPage() {
     const typeColumnsList = allColumnsList.filter((column) => allTypeCustomColumns.includes(column.keyForList));
     const groupColumnsList = allColumnsList.filter((column) => allGroupCustomColumns.includes(column.keyForList));
 
-    const [activeList, setActiveList] = useState<ActiveList>(groupBy ? 'group' : 'type');
+    const flatItems = groupBy ? [...groupColumnsList, ...typeColumnsList] : typeColumnsList;
+    const disabledIndexes = flatItems.flatMap((item, index) => (item.isDisabled ? [index] : []));
+
+    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
+        initialFocusedIndex: -1,
+        maxIndex: flatItems.length - 1,
+        disabledIndexes,
+        isActive: true,
+        disableCyclicTraversal: true,
+    });
+
+    const groupLength = groupBy ? groupColumnsList.length : 0;
+    const groupFocusedIndex = focusedIndex >= 0 && focusedIndex < groupLength ? focusedIndex : -1;
+    const typeFocusedIndex = focusedIndex >= groupLength ? focusedIndex - groupLength : -1;
 
     const isDefaultState =
         columns.length === defaultColumns.length &&
         columns.every((col, index) => col.columnId === defaultColumns.at(index)?.columnId && col.isSelected === defaultColumns.at(index)?.isSelected);
 
-    const onSelectItem = (item: ListItem, listType: 'group' | 'type') => {
+    const onSelectItem = (item: ListItem) => {
         const updatedColumnId = item.keyForList as SearchCustomColumnIds;
-        setActiveList(listType);
 
         if (requiredColumns.has(updatedColumnId)) {
             return;
@@ -157,65 +169,48 @@ function SearchColumnsPage() {
             const newIsSelected = !columnToUpdate.isSelected;
 
             if (newIsSelected) {
-                const selected = prevColumns.filter((col) => col.isSelected);
+                const selectedCols = prevColumns.filter((col) => col.isSelected);
                 const unselected = prevColumns.filter((col) => !col.isSelected && col.columnId !== updatedColumnId);
                 const unselectedSorted = unselected.sort((a, b) => {
                     const textA = translate(getSearchColumnTranslationKey(a.columnId));
                     const textB = translate(getSearchColumnTranslationKey(b.columnId));
                     return localeCompare(textA, textB);
                 });
-                return [...selected, {columnId: updatedColumnId, isSelected: true}, ...unselectedSorted];
+                return [...selectedCols, {columnId: updatedColumnId, isSelected: true}, ...unselectedSorted];
             }
 
-            const updatedColumns = prevColumns.map((col) => (col.columnId === updatedColumnId ? {...col, isSelected: false} : col));
-            return updatedColumns;
+            return prevColumns.map((col) => (col.columnId === updatedColumnId ? {...col, isSelected: false} : col));
         });
     };
 
-    const onSelectGroupItem = (item: ListItem) => onSelectItem(item, 'group');
-    const onSelectTypeItem = (item: ListItem) => onSelectItem(item, 'type');
-
-    const [typeFocusIndex, setTypeFocusIndex] = useState(-1);
-    const [groupFocusIndex, setGroupFocusIndex] = useState(-1);
-
-    const setGroupListActive = () => {
-        setActiveList('group');
-        setGroupFocusIndex(-1);
-    };
-    const setTypeListActive = () => {
-        setActiveList('type');
-        setTypeFocusIndex(-1);
-    };
-    const deactivateListKeyboard = () => setActiveList('none');
-
-    const onGroupArrowDownOverflow = () => {
-        const firstEnabledTypeIndex = typeColumnsList.findIndex((item) => !item.isDisabled);
-        setTypeFocusIndex(firstEnabledTypeIndex);
-        setActiveList('type');
+    const selectFocusedItem = () => {
+        const item = flatItems.at(focusedIndex);
+        if (item) {
+            onSelectItem(item);
+        }
     };
 
-    const onTypeArrowUpOverflow = () => {
-        const lastEnabledGroupIndex = groupColumnsList.findLastIndex((item) => !item.isDisabled);
-        setGroupFocusIndex(lastEnabledGroupIndex);
-        setActiveList('group');
-    };
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedItem, {
+        isActive: focusedIndex >= 0,
+    });
 
     const onGroupDragEnd = ({data}: {data: typeof allColumnsList}) => {
         const newGroupColumns = data.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
         const existingTypeColumns = typeColumnsList.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
-        const newColumns = [...existingTypeColumns, ...newGroupColumns];
-        setColumns(newColumns);
+        setColumns([...existingTypeColumns, ...newGroupColumns]);
+        setFocusedIndex(-1);
     };
 
     const onTypeDragEnd = ({data}: {data: typeof allColumnsList}) => {
         const newTypeColumns = data.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
         const existingGroupColumns = groupColumnsList.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
-        const newColumns = [...existingGroupColumns, ...newTypeColumns];
-        setColumns(newColumns);
+        setColumns([...existingGroupColumns, ...newTypeColumns]);
+        setFocusedIndex(-1);
     };
 
     const resetColumns = () => {
         setColumns(defaultColumns);
+        setFocusedIndex(-1);
     };
 
     const applyChanges = () => {
@@ -234,23 +229,12 @@ function SearchColumnsPage() {
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
     };
 
-    const renderGroupItem = ({item}: {item: ListItem}) => {
+    const renderItem = ({item}: {item: ListItem}) => {
         return (
             <MultiSelectListItem
                 item={item}
                 showTooltip={false}
-                onSelectRow={onSelectGroupItem}
-                isDisabled={item.isDisabled}
-            />
-        );
-    };
-
-    const renderTypeItem = ({item}: {item: ListItem}) => {
-        return (
-            <MultiSelectListItem
-                item={item}
-                showTooltip={false}
-                onSelectRow={onSelectTypeItem}
+                onSelectRow={onSelectItem}
                 isDisabled={item.isDisabled}
             />
         );
@@ -263,11 +247,9 @@ function SearchColumnsPage() {
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
         >
-            <View onFocus={deactivateListKeyboard}>
-                <HeaderWithBackButton title={translate('search.columns')}>
-                    {!isDefaultState && <TextLink onPress={resetColumns}>{translate('search.resetColumns')}</TextLink>}
-                </HeaderWithBackButton>
-            </View>
+            <HeaderWithBackButton title={translate('search.columns')}>
+                {!isDefaultState && <TextLink onPress={resetColumns}>{translate('search.resetColumns')}</TextLink>}
+            </HeaderWithBackButton>
             <View style={styles.flex1}>
                 <ScrollView
                     style={styles.flex1}
@@ -279,22 +261,14 @@ function SearchColumnsPage() {
                                 <Text style={styles.textLabelSupporting}>{translate('search.groupColumns')}</Text>
                             </View>
 
-                            <View
-                                onPointerEnter={setGroupListActive}
-                                onFocus={setGroupListActive}
-                            >
-                                <DraggableList
-                                    disableScroll
-                                    data={groupColumnsList}
-                                    keyExtractor={(item) => item.value}
-                                    onDragEnd={onGroupDragEnd}
-                                    onSelectRow={onSelectGroupItem}
-                                    isKeyboardActive={activeList === 'group'}
-                                    activeFocusIndex={groupFocusIndex}
-                                    onArrowDownOverflow={onGroupArrowDownOverflow}
-                                    renderItem={renderGroupItem}
-                                />
-                            </View>
+                            <DraggableList
+                                disableScroll
+                                data={groupColumnsList}
+                                keyExtractor={(item) => item.value}
+                                onDragEnd={onGroupDragEnd}
+                                focusedIndex={groupFocusedIndex}
+                                renderItem={renderItem}
+                            />
 
                             <View style={styles.dividerLine} />
 
@@ -304,29 +278,17 @@ function SearchColumnsPage() {
                         </>
                     )}
 
-                    <View
-                        onPointerEnter={setTypeListActive}
-                        onFocus={setTypeListActive}
-                    >
-                        <DraggableList
-                            disableScroll
-                            data={typeColumnsList}
-                            keyExtractor={(item) => item.value}
-                            onDragEnd={onTypeDragEnd}
-                            onSelectRow={onSelectTypeItem}
-                            isKeyboardActive={activeList === 'type'}
-                            activeFocusIndex={typeFocusIndex}
-                            onArrowUpOverflow={groupBy ? onTypeArrowUpOverflow : undefined}
-                            renderItem={renderTypeItem}
-                        />
-                    </View>
+                    <DraggableList
+                        disableScroll
+                        data={typeColumnsList}
+                        keyExtractor={(item) => item.value}
+                        onDragEnd={onTypeDragEnd}
+                        focusedIndex={typeFocusedIndex}
+                        renderItem={renderItem}
+                    />
                 </ScrollView>
             </View>
-            <View
-                style={[styles.ph5, styles.pb5]}
-                onPointerEnter={deactivateListKeyboard}
-                onFocus={deactivateListKeyboard}
-            >
+            <View style={[styles.ph5, styles.pb5]}>
                 <Button
                     large
                     success

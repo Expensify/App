@@ -37,7 +37,7 @@ function MultiSelectListItem<TItem extends ListItem>({
                 isIndeterminate={item.isIndeterminate}
                 style={[isMultilineSupported ? styles.ml3 : null]}
                 disabled={isDisabled ?? false}
-                tabIndex={item.tabIndex}
+                tabIndex={-1}
             />
         );
     }, [isDisabled, isMultilineSupported, isSelected, item, onSelectRow, styles.ml3]);

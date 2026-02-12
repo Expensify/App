@@ -1,10 +1,9 @@
 import {useSortable} from '@dnd-kit/sortable';
 import {CSS} from '@dnd-kit/utilities';
 import React, {useEffect, useRef} from 'react';
-import CONST from '@src/CONST';
 import type {SortableItemProps} from './types';
 
-function SortableItem({id, children, disabled = false, isFocused = false, isItemDisabled = false, isKeyboardManaged = false}: SortableItemProps) {
+function SortableItem({id, children, disabled = false, isFocused = false}: SortableItemProps) {
     const {attributes, listeners, setNodeRef, transform, transition} = useSortable({id, disabled});
     const itemRef = useRef<HTMLDivElement>(null);
 
@@ -33,9 +32,8 @@ function SortableItem({id, children, disabled = false, isFocused = false, isItem
             {...attributes}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...(disabled ? {} : listeners)}
-            role={isKeyboardManaged ? CONST.ROLE.OPTION : undefined}
-            aria-selected={isKeyboardManaged ? isFocused : undefined}
-            tabIndex={isKeyboardManaged && !isItemDisabled ? 0 : -1}
+            // Override dnd-kit's tabIndex to prevent double focus (outer wrapper + inner MenuItem)
+            tabIndex={-1}
         >
             {children}
         </div>

@@ -41,14 +41,8 @@ type DraggableListProps<T> = {
     /** Whether keyboard navigation is active for this list. Defaults to false. */
     isKeyboardActive?: boolean;
 
-    /** Called when arrow down is pressed at the last enabled item */
-    onArrowDownOverflow?: () => void;
-
-    /** Called when arrow up is pressed at the first enabled item */
-    onArrowUpOverflow?: () => void;
-
-    /** Index to focus when the list becomes keyboard-active. -1 means no initial focus. */
-    activeFocusIndex?: number;
+    /** Controlled focused index from parent. When provided, overrides internal focus management. */
+    focusedIndex?: number;
 
     /** Rendered at the bottom of all the items. Just like in the FlatList. */
     ListFooterComponent?: React.ReactElement;
@@ -64,10 +58,6 @@ type SortableItemProps = {
     disabled?: boolean;
     /** Whether this item is currently focused for keyboard navigation */
     isFocused?: boolean;
-    /** Whether this item is disabled (not selectable, skipped in Tab navigation) */
-    isItemDisabled?: boolean;
-    /** Whether keyboard navigation manages this item's tabIndex */
-    isKeyboardManaged?: boolean;
 };
 
 export default DraggableListProps;
