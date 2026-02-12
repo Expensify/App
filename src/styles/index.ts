@@ -5290,6 +5290,12 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        emptyStateHeaderContainer: {
+            maxWidth: 400,
+            width: '100%',
+            alignSelf: 'center',
+        },
+
         emptyStateFolderWithPaperIconSize: {
             width: 160,
             height: 100,
@@ -5648,12 +5654,6 @@ const staticStyles = (theme: ThemeColors) =>
         easeInOpacityTransition: {
             transition: 'opacity 0.2s ease-in',
         },
-        emptyStateHeaderContainer: {
-            maxWidth: 400,
-            width: '100%',
-            alignSelf: 'center',
-        },
-
         overscrollSpacerPosition: {
             position: 'absolute',
             left: 0,
