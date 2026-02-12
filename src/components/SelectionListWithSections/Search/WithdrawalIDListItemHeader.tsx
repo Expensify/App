@@ -1,12 +1,12 @@
 import React from 'react';
 import {View} from 'react-native';
+import Badge from '@components/Badge';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
 import RenderHTML from '@components/RenderHTML';
 import type {SearchColumnType} from '@components/Search/types';
 import type {ListItem, TransactionWithdrawalIDGroupListItemType} from '@components/SelectionListWithSections/types';
-import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -176,9 +176,12 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                                 />
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
                                     {!!badgeProps && (
-                                        <View style={[styles.reportStatusContainer, badgeProps.badgeStyles]}>
-                                            <Text style={[styles.reportStatusText, badgeProps.textStyles]}>{badgeProps.text}</Text>
-                                        </View>
+                                        <Badge
+                                            text={badgeProps.text}
+                                            isCondensed
+                                            badgeStyles={[styles.ml0, styles.borderNone, badgeProps.badgeStyles]}
+                                            textStyles={[styles.fontWeightNormal, badgeProps.textStyles]}
+                                        />
                                     )}
                                     <TextWithTooltip
                                         text={withdrawalInfoText}

@@ -113,19 +113,18 @@ function ActionCell({
                 <Badge
                     text={text}
                     icon={action === CONST.SEARCH.ACTION_TYPES.DONE ? expensifyIcons.Checkbox : expensifyIcons.Checkmark}
+                    isCondensed={extraSmall}
                     badgeStyles={[
                         styles.ml0,
                         styles.ph2,
                         styles.gap1,
                         isLargeScreenWidth ? styles.alignSelfCenter : styles.alignSelfEnd,
-                        StyleUtils.getHeight(variables.h20),
-                        StyleUtils.getMinimumHeight(variables.h20),
+                        !extraSmall && StyleUtils.getHeight(variables.h20),
+                        !extraSmall && StyleUtils.getMinimumHeight(variables.h20),
                         isSelected ? StyleUtils.getBorderColorStyle(theme.buttonHoveredBG) : StyleUtils.getBorderColorStyle(theme.border),
                     ]}
-                    textStyles={StyleUtils.getFontSizeStyle(extraSmall ? variables.fontSizeExtraSmall : variables.fontSizeSmall)}
                     iconStyles={styles.mr0}
                     success
-                    shouldUseXXSmallIcon={extraSmall}
                 />
             </View>
         );

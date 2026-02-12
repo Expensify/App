@@ -86,17 +86,15 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
             <View style={[StyleUtils.getHeight(variables.h28), styles.justifyContentCenter]}>
                 <Badge
                     success
+                    isCondensed
                     text={translate('task.completed')}
                     icon={Expensicons.Checkmark}
                     iconStyles={styles.mr0}
-                    textStyles={StyleUtils.getFontSizeStyle(variables.fontSizeExtraSmall)}
                     badgeStyles={[
                         styles.ml0,
                         styles.ph2,
                         styles.gap1,
                         isLargeScreenWidth ? styles.alignSelfCenter : styles.alignSelfEnd,
-                        StyleUtils.getHeight(variables.h20),
-                        StyleUtils.getMinimumHeight(variables.h20),
                         StyleUtils.getBorderColorStyle(theme.border),
                     ]}
                 />

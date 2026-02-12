@@ -1,7 +1,8 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import Text from '@components/Text';
+import Badge from '@components/Badge';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getReportStatusColorStyle, getReportStatusTranslation} from '@libs/ReportUtils';
@@ -20,23 +21,20 @@ type StatusCellProps = {
 function StatusCell({stateNum, statusNum, isPending}: StatusCellProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
     const statusText = useMemo(() => getReportStatusTranslation({stateNum, statusNum, translate}), [stateNum, statusNum, translate]);
     const reportStatusColorStyle = useMemo(() => getReportStatusColorStyle(theme, stateNum, statusNum), [theme, stateNum, statusNum]);
 
-    const backgroundColorStyle = useMemo(
-        () => ({
-            backgroundColor: reportStatusColorStyle?.backgroundColor,
-        }),
-        [reportStatusColorStyle?.backgroundColor],
+    const badgeStyles = useMemo(
+        () => [styles.ml0, styles.alignSelfStart, styles.borderNone, StyleUtils.getBackgroundColorStyle(reportStatusColorStyle?.backgroundColor ?? theme.transparent)],
+        [styles.ml0, styles.alignSelfStart, styles.borderNone, StyleUtils, reportStatusColorStyle?.backgroundColor, theme.transparent],
     );
 
-    const textColorStyle = useMemo(
-        () => ({
-            color: reportStatusColorStyle?.textColor,
-        }),
-        [reportStatusColorStyle?.textColor],
+    const textStyles = useMemo(
+        () => [styles.fontWeightNormal, StyleUtils.getColorStyle((reportStatusColorStyle?.textColor ?? theme.text) as string)],
+        [styles.fontWeightNormal, StyleUtils, reportStatusColorStyle?.textColor, theme.text],
     );
 
     if (!statusText || !reportStatusColorStyle) {
@@ -45,9 +43,12 @@ function StatusCell({stateNum, statusNum, isPending}: StatusCellProps) {
 
     return (
         <View style={[styles.w100, styles.justifyContentCenter, isPending && styles.offlineFeedbackPending]}>
-            <View style={[styles.reportStatusContainer, backgroundColorStyle]}>
-                <Text style={[styles.reportStatusText, textColorStyle]}>{statusText}</Text>
-            </View>
+            <Badge
+                text={statusText}
+                isCondensed
+                badgeStyles={badgeStyles}
+                textStyles={textStyles}
+            />
         </View>
     );
 }

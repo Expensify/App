@@ -353,7 +353,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         reportStatusContainer: {
-            paddingHorizontal: 4,
+            paddingHorizontal: 8,
             alignItems: 'center',
             justifyContent: 'center',
             borderRadius: variables.componentBorderRadiusSmall,
@@ -361,7 +361,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         reportStatusText: {
-            fontSize: variables.fontSizeSmall,
+            fontSize: variables.fontSizeExtraSmall,
             fontWeight: FontUtils.fontWeight.normal,
         },
 
@@ -1058,6 +1058,47 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: 20,
             height: 20,
             paddingHorizontal: 8,
+        },
+
+        condensedBadge: {
+            minHeight: 16,
+            height: 16,
+            paddingHorizontal: 8,
+        },
+
+        condensedBadgeWithIcon: {
+            minHeight: 20,
+            height: 20,
+            paddingHorizontal: 8,
+        },
+
+        badgeSuccessStrong: {
+            backgroundColor: theme.success,
+            borderColor: theme.success,
+        },
+
+        badgeSuccessStrongPressed: {
+            backgroundColor: theme.successHover,
+            borderColor: theme.successHover,
+        },
+
+        badgeDangerStrong: {
+            backgroundColor: theme.danger,
+            borderColor: theme.danger,
+        },
+
+        badgeDangerStrongPressed: {
+            backgroundColor: theme.dangerHover,
+            borderColor: theme.dangerHover,
+        },
+
+        badgeStrongText: {
+            color: colors.white,
+        },
+
+        condensedBadgeText: {
+            fontSize: variables.fontSizeExtraSmall,
+            lineHeight: variables.lineHeightXSmall,
         },
 
         badgeText: {
