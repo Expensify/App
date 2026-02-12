@@ -51,6 +51,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Basket',
         'Bookmark',
+        'CalendarSolid',
         'Checkmark',
         'Pencil',
         'Receipt',

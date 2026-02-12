@@ -1437,7 +1437,7 @@ describe('ReportActionsUtils', () => {
         const activeExpensifyCard: Card = {
             cardID: 789,
             state: CONST.EXPENSIFY_CARD.STATE.OPEN,
-            bank: '',
+            bank: 'Expensify Card',
             availableSpend: 0,
             domainName: '',
             lastFourPAN: '',

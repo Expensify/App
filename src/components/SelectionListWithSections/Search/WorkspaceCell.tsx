@@ -26,7 +26,7 @@ function WorkspaceCell({policyID, report}: WorkspaceCellProps) {
     }
 
     return (
-        <View style={[styles.flexRow, styles.gap3, styles.flex1, styles.alignItemsCenter]}>
+        <View style={[styles.flexRow, styles.gap2, styles.flex1, styles.alignItemsCenter]}>
             <Avatar
                 imageStyles={[styles.alignSelfCenter]}
                 size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}

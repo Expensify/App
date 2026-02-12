@@ -5,24 +5,20 @@ import Onyx from 'react-native-onyx';
 import type {Connection, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {openReportFromDeepLink} from '@libs/actions/Link';
 import {hasAuthToken} from '@libs/actions/Session';
-import type {OnboardingCompanySize} from '@libs/actions/Welcome/OnboardingFlow';
+import Log from '@libs/Log';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnboardingPurpose, Report} from '@src/types/onyx';
+import type {IntroSelected, Report} from '@src/types/onyx';
 
 let allReports: OnyxCollection<Report> = {};
 let currentConciergeReportID: string | undefined;
 let isInitialized = false;
 let pendingDeepLinkUrl: string | null = null;
 
-let currentOnboardingPurposeSelected: OnyxEntry<OnboardingPurpose> | undefined;
-let currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize> | undefined;
-let onboardingInitialPath: OnyxEntry<string> | undefined;
+let introSelected: OnyxEntry<IntroSelected> | undefined;
 
 let hasAllReportsLoaded = false;
-let hasCurrentOnboardingPurposeSelectedLoaded = false;
-let hasCurrentOnboardingCompanySizeLoaded = false;
-let hasOnboardingInitialPathLoaded = false;
+let hasIntroSelectedLoaded = false;
 let hasCurrentConciergeReportIDLoaded = false;
 
 let linkingEventSubscription: NativeEventSubscription | null = null;
@@ -43,13 +39,7 @@ function processPendingDeepLinkIfReady() {
         return;
     }
 
-    if (
-        hasAllReportsLoaded === false ||
-        hasCurrentOnboardingPurposeSelectedLoaded === false ||
-        hasCurrentOnboardingCompanySizeLoaded === false ||
-        hasOnboardingInitialPathLoaded === false ||
-        hasCurrentConciergeReportIDLoaded === false
-    ) {
+    if (hasAllReportsLoaded === false || hasIntroSelectedLoaded === false || hasCurrentConciergeReportIDLoaded === false) {
         return;
     }
 
@@ -57,20 +47,10 @@ function processPendingDeepLinkIfReady() {
     pendingDeepLinkUrl = null;
 
     const isCurrentlyAuthenticated = hasAuthToken();
-    openReportFromDeepLink(
-        urlToProcess,
-        currentOnboardingPurposeSelected,
-        currentOnboardingCompanySize,
-        onboardingInitialPath,
-        allReports,
-        isCurrentlyAuthenticated,
-        currentConciergeReportID,
-    );
+    openReportFromDeepLink(urlToProcess, allReports, isCurrentlyAuthenticated, currentConciergeReportID, introSelected);
 
     hasAllReportsLoaded = false;
-    hasCurrentOnboardingPurposeSelectedLoaded = false;
-    hasCurrentOnboardingCompanySizeLoaded = false;
-    hasOnboardingInitialPathLoaded = false;
+    hasIntroSelectedLoaded = false;
     hasCurrentConciergeReportIDLoaded = false;
 }
 
@@ -89,32 +69,12 @@ function setUpOnyxSubscriptions() {
 
     onyxConnections.push(
         Onyx.connectWithoutView({
-            key: ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
+            key: ONYXKEYS.NVP_INTRO_SELECTED,
             callback: (value) => {
-                currentOnboardingPurposeSelected = value ?? undefined;
-                hasCurrentOnboardingPurposeSelectedLoaded = true;
-                processPendingDeepLinkIfReady();
-            },
-        }),
-    );
-
-    onyxConnections.push(
-        Onyx.connectWithoutView({
-            key: ONYXKEYS.ONBOARDING_COMPANY_SIZE,
-            callback: (value) => {
-                currentOnboardingCompanySize = value ?? undefined;
-                hasCurrentOnboardingCompanySizeLoaded = true;
-                processPendingDeepLinkIfReady();
-            },
-        }),
-    );
-
-    onyxConnections.push(
-        Onyx.connectWithoutView({
-            key: ONYXKEYS.ONBOARDING_LAST_VISITED_PATH,
-            callback: (value) => {
-                onboardingInitialPath = value ?? undefined;
-                hasOnboardingInitialPathLoaded = true;
+                hasIntroSelectedLoaded = true;
+                if (value === undefined) {
+                    Log.info('[Deep link] introSelected is undefined when processing initial URL', false, {url: pendingDeepLinkUrl});
+                }
                 processPendingDeepLinkIfReady();
             },
         }),
@@ -124,6 +84,9 @@ function setUpOnyxSubscriptions() {
         Onyx.connectWithoutView({
             key: ONYXKEYS.CONCIERGE_REPORT_ID,
             callback: (value) => {
+                if (value === undefined) {
+                    Log.info('[Deep link] conciergeReportID is undefined when processing URL change', false, {url: pendingDeepLinkUrl});
+                }
                 currentConciergeReportID = value ?? undefined;
                 hasCurrentConciergeReportIDLoaded = true;
                 processPendingDeepLinkIfReady();
@@ -139,20 +102,11 @@ function handleDeepLink(url: string | null, fromUrlChangeEvent: boolean) {
 
     pendingDeepLinkUrl = url;
 
-    if (
-        fromUrlChangeEvent &&
-        hasAllReportsLoaded &&
-        hasCurrentOnboardingPurposeSelectedLoaded &&
-        hasCurrentOnboardingCompanySizeLoaded &&
-        hasOnboardingInitialPathLoaded &&
-        hasCurrentConciergeReportIDLoaded
-    ) {
+    if (fromUrlChangeEvent && hasAllReportsLoaded && hasIntroSelectedLoaded && hasCurrentConciergeReportIDLoaded) {
         const isCurrentlyAuthenticated = hasAuthToken();
-        openReportFromDeepLink(url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isCurrentlyAuthenticated, currentConciergeReportID);
+        openReportFromDeepLink(url, allReports, isCurrentlyAuthenticated, currentConciergeReportID, introSelected);
         hasAllReportsLoaded = false;
-        hasCurrentOnboardingPurposeSelectedLoaded = false;
-        hasCurrentOnboardingCompanySizeLoaded = false;
-        hasOnboardingInitialPathLoaded = false;
+        hasIntroSelectedLoaded = false;
         hasCurrentConciergeReportIDLoaded = false;
         return;
     }

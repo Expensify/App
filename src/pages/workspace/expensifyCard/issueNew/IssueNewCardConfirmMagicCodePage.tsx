@@ -52,10 +52,6 @@ function IssueNewCardConfirmMagicCodePage({route}: IssueNewCardConfirmMagicCodeP
 
     const handleSubmit = useCallback(
         (validateCode: string) => {
-            if (!assigneeTimeZone) {
-                return;
-            }
-
             // NOTE: For Expensify Card UK/EU, the backend will automatically detect the correct feedCountry to use
             issueExpensifyCard(defaultFundID, policyID, isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) ? '' : CONST.COUNTRY.US, validateCode, assigneeTimeZone, data);
         },

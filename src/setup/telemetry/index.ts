@@ -1,6 +1,5 @@
 import * as Sentry from '@sentry/react-native';
 import {Platform} from 'react-native';
-import Timing from '@libs/actions/Timing';
 import {isDevelopment} from '@libs/Environment/Environment';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {browserProfilingIntegration, navigationIntegration, tracingIntegration} from '@libs/telemetry/integrations';
@@ -40,6 +39,4 @@ export default function (): void {
         name: CONST.TELEMETRY.SPAN_APP_STARTUP,
         op: CONST.TELEMETRY.SPAN_APP_STARTUP,
     });
-
-    Timing.start(CONST.TELEMETRY.SPAN_APP_STARTUP);
 }
