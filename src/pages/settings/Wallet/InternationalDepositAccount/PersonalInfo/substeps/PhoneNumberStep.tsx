@@ -22,7 +22,7 @@ function PhoneNumberStep({onNext, onMove, isEditing}: SubStepProps) {
     const defaultPhoneNumber = privatePersonalDetails?.[PERSONAL_INFO_STEP_KEY.PHONE_NUMBER] ?? '';
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM> => {
-        const errors = getFieldRequiredErrors(values, STEP_FIELDS);
+        const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
         if (values.phoneNumber) {
             const phoneNumberWithCountryCode = appendCountryCode(values.phoneNumber, countryCode);

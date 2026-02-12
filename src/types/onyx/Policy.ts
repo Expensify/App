@@ -1513,7 +1513,7 @@ type ACHAccount = {
     /** Bank account state */
     state?: string;
 
-    /** All user emails that have access to this bank account */
+    /** Emails of users who have had the bank account shared with them */
     sharees?: string[];
 };
 
@@ -1747,6 +1747,12 @@ type CodingRule = {
 
     /** When this rule was created */
     created?: string;
+
+    /** The type of action that's pending  */
+    pendingAction?: OnyxCommon.PendingAction;
+
+    /** Error objects keyed by field name containing errors keyed by microtime */
+    errors?: OnyxCommon.Errors;
 };
 
 /** Model of policy data */
