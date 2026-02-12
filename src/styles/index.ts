@@ -5286,8 +5286,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         emptyStateContent: {
-            maxWidth: 400,
             width: '100%',
+            alignItems: 'center',
         },
 
         emptyStateFolderWithPaperIconSize: {
@@ -5648,13 +5648,16 @@ const staticStyles = (theme: ThemeColors) =>
         easeInOpacityTransition: {
             transition: 'opacity 0.2s ease-in',
         },
+        emptyStateHeaderContainer: {
+            maxWidth: 400,
+            width: '100%',
+            alignSelf: 'center',
+        },
+
         overscrollSpacerPosition: {
             position: 'absolute',
             left: 0,
             right: 0,
-        },
-        emptyStateHeader: {
-            minHeight: 200,
         },
         sidePanelOverlay: {
             ...positioning.pFixed,
