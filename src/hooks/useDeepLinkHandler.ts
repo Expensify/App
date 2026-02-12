@@ -1,4 +1,5 @@
 import {useEffect} from 'react';
+// eslint-disable-next-line no-restricted-syntax
 import * as DeepLinkHandler from '@libs/DeepLinkHandler';
 
 /**
