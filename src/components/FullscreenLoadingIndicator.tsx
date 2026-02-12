@@ -32,6 +32,12 @@ type FullScreenLoadingIndicatorProps = {
 
     /** Reason attributes for skeleton span telemetry */
     reasonAttributes?: SkeletonSpanReasonAttributes;
+
+    /** Whether to show a secondary cancel action alongside the loading indicator */
+    shouldShowSecondaryAction?: boolean;
+
+    /** Callback for the secondary cancel action */
+    onSecondaryAction?: () => void;
 };
 
 function FullScreenLoadingIndicator({
@@ -41,6 +47,8 @@ function FullScreenLoadingIndicator({
     testID = '',
     extraLoadingContext,
     reasonAttributes,
+    shouldShowSecondaryAction = false,
+    onSecondaryAction,
 }: FullScreenLoadingIndicatorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -74,6 +82,14 @@ function FullScreenLoadingIndicator({
                         <Button
                             text={translate('common.goBack')}
                             onPress={() => Navigation.goBack()}
+                        />
+                    </View>
+                )}
+                {shouldShowSecondaryAction && (
+                    <View style={styles.mt4}>
+                        <Button
+                            text={translate('common.cancel')}
+                            onPress={onSecondaryAction}
                         />
                     </View>
                 )}
