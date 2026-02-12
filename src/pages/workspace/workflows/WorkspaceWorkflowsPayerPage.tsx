@@ -194,7 +194,8 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         const isSelectedPayerOwner = policy?.owner === selectedPayer;
         const isSelectedAlreadyAPayer = policy?.achAccount?.reimburser === selectedPayer;
         const isAccountAlreadyShared = bankAccountInfo?.accountData?.sharees ? bankAccountInfo?.accountData.sharees.includes(selectedPayer) : false;
-        if (isAccountAlreadyShared || isSelectedPayerOwner || isSelectedAlreadyAPayer) {
+        const isAccountAlreadySharedOnMainBankAccount = policy?.achAccount?.sharees ? policy?.achAccount.sharees.includes(selectedPayer) : false;
+        if (isAccountAlreadyShared || isSelectedPayerOwner || isSelectedAlreadyAPayer || isAccountAlreadySharedOnMainBankAccount) {
             onButtonPress();
             return;
         }
