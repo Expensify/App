@@ -55,6 +55,7 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
             state: accountData?.state,
             lastPaymentMethod: lastPaymentMethod?.[policyID],
             shouldUpdateLastPaymentMethod: accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN,
+            shouldIndicateReimbursementAccountLoading: true,
         });
 
         Navigation.setNavigationActionToMicrotaskQueue(() => {
