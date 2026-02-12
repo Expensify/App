@@ -578,7 +578,7 @@ function PureReportActionItem({
         isActionableMentionWhisper(action) || isActionableMentionInviteToSubmitExpenseConfirmWhisper(action) || isActionableTrackExpense(action) || isActionableReportMentionWhisper(action);
     const isReportArchived = useReportIsArchived(reportID);
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
-    const isInlineEditing = !isNarrowLayout && draftMessage !== undefined;
+    const isEditingInline = !isNarrowLayout && draftMessage !== undefined;
     const isHarvestCreatedExpenseReport = isHarvestCreatedExpenseReportUtils(reportNameValuePairsOrigin, reportNameValuePairsOriginalID);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Eye'] as const);
 
@@ -1783,7 +1783,21 @@ function PureReportActionItem({
                 <MentionReportContext.Provider value={mentionReportContextValue}>
                     <ShowContextMenuContext.Provider value={contextValue}>
                         <AttachmentContext.Provider value={attachmentContextValue}>
-                            {!isInlineEditing ? (
+                            {isEditingInline ? (
+                                <ReportActionItemMessageEdit
+                                    action={action}
+                                    draftMessage={draftMessage}
+                                    reportID={reportID}
+                                    originalReportID={originalReportID}
+                                    policyID={report?.policyID}
+                                    index={index}
+                                    ref={composerTextInputRef}
+                                    shouldDisableEmojiPicker={
+                                        (chatIncludesConcierge(report) && isBlockedFromConcierge(blockedFromConcierge)) || isArchivedNonExpenseReport(report, isArchivedRoom)
+                                    }
+                                    isGroupPolicyReport={!!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE}
+                                />
+                            ) : (
                                 <View style={displayAsGroup && hasBeenFlagged ? styles.blockquote : {}}>
                                     <ReportActionItemMessage
                                         reportID={reportID}
@@ -1836,20 +1850,6 @@ function PureReportActionItem({
                                         />
                                     )}
                                 </View>
-                            ) : (
-                                <ReportActionItemMessageEdit
-                                    action={action}
-                                    draftMessage={draftMessage}
-                                    reportID={reportID}
-                                    originalReportID={originalReportID}
-                                    policyID={report?.policyID}
-                                    index={index}
-                                    ref={composerTextInputRef}
-                                    shouldDisableEmojiPicker={
-                                        (chatIncludesConcierge(report) && isBlockedFromConcierge(blockedFromConcierge)) || isArchivedNonExpenseReport(report, isArchivedRoom)
-                                    }
-                                    isGroupPolicyReport={!!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE}
-                                />
                             )}
                         </AttachmentContext.Provider>
                     </ShowContextMenuContext.Provider>
