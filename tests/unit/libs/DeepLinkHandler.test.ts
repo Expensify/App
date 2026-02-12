@@ -1,11 +1,9 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
-import type {NativeEventSubscription} from 'react-native';
 import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 import {openReportFromDeepLink} from '@libs/actions/Link';
 import {hasAuthToken} from '@libs/actions/Session';
 import Log from '@libs/Log';
-import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -43,7 +41,10 @@ jest.mock('@src/CONFIG', () => mockConfig);
 
 // Import DeepLinkHandler once at the module level
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const DeepLinkHandler = require('@libs/DeepLinkHandler');
+const DeepLinkHandler = require('@libs/DeepLinkHandler') as {
+    processInitialURL: (url: string | null) => void;
+    clearModule: () => void;
+};
 
 describe('DeepLinkHandler', () => {
     beforeAll(async () => {
@@ -91,6 +92,7 @@ describe('DeepLinkHandler', () => {
         it('should set up Linking event listener on SESSION change', async () => {
             // Given: Module is imported and initialized in beforeAll
             // Then: Linking.addEventListener should have been called
+            // eslint-disable-next-line @typescript-eslint/unbound-method
             expect(Linking.addEventListener).toHaveBeenCalledWith('url', expect.any(Function));
         });
 
@@ -103,6 +105,7 @@ describe('DeepLinkHandler', () => {
             await waitForBatchedUpdates();
 
             // Then: Linking.addEventListener should not be called again
+            // eslint-disable-next-line @typescript-eslint/unbound-method
             expect(Linking.addEventListener).toHaveBeenCalledTimes(initialCallCount);
         });
 
@@ -128,6 +131,7 @@ describe('DeepLinkHandler', () => {
         it('should handle URL change events from Linking.addEventListener', async () => {
             // Given: Module is initialized (from beforeAll)
             // Get the callback passed to addEventListener
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, rulesdir/prefer-at
             const urlCallback = (Linking.addEventListener as jest.Mock).mock.calls[0][1];
 
             // Prepare Onyx data
@@ -137,6 +141,7 @@ describe('DeepLinkHandler', () => {
             await waitForBatchedUpdates();
 
             // When: URL change event is triggered
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             urlCallback({url: 'https://new.expensify.com/r/123'});
             await waitForBatchedUpdates();
 
@@ -215,9 +220,11 @@ describe('DeepLinkHandler', () => {
             await waitForBatchedUpdates();
 
             // Get the URL change callback
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, rulesdir/prefer-at
             const urlCallback = (Linking.addEventListener as jest.Mock).mock.calls[0][1];
 
             // When: URL change event is triggered
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             urlCallback({url: 'https://new.expensify.com/r/789'});
             await waitForBatchedUpdates();
 
@@ -233,9 +240,11 @@ describe('DeepLinkHandler', () => {
             await Onyx.merge(ONYXKEYS.CONCIERGE_REPORT_ID, '123');
             await waitForBatchedUpdates();
 
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, rulesdir/prefer-at
             const urlCallback = (Linking.addEventListener as jest.Mock).mock.calls[0][1];
 
             // When: URL change event is triggered
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             urlCallback({url: 'https://new.expensify.com/r/999'});
             await waitForBatchedUpdates();
 
@@ -306,6 +315,7 @@ describe('DeepLinkHandler', () => {
             await waitForBatchedUpdates();
 
             // Then: Should not add multiple listeners
+            // eslint-disable-next-line @typescript-eslint/unbound-method
             expect(Linking.addEventListener).toHaveBeenCalledTimes(firstCallCount);
         });
     });
