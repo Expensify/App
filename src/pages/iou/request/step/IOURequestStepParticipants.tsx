@@ -32,8 +32,8 @@ import {
     setMoneyRequestParticipants,
     setMoneyRequestParticipantsFromReport,
     setMoneyRequestTag,
-    setSplitShares,
 } from '@userActions/IOU';
+import {setSplitShares} from '@userActions/IOU/Split';
 import {createDraftWorkspace} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -111,7 +111,7 @@ function IOURequestStepParticipants({
         return translate('iou.chooseRecipient');
     }, [iouType, translate, isSplitRequest, action]);
 
-    const selfDMReportID = useMemo(() => findSelfDMReportID(), []);
+    const selfDMReportID = findSelfDMReportID();
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
@@ -191,7 +191,7 @@ function IOURequestStepParticipants({
 
         const rateID = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
         for (const transaction of transactions) {
-            setCustomUnitRateID(transaction.transactionID, rateID, transaction, activePolicy);
+            setCustomUnitRateID(transaction.transactionID, rateID);
             const shouldSetParticipantAutoAssignment = iouType === CONST.IOU.TYPE.CREATE;
             setMoneyRequestParticipantsFromReport(
                 transaction.transactionID,
@@ -199,7 +199,7 @@ function IOURequestStepParticipants({
                 currentUserPersonalDetails.accountID,
                 shouldSetParticipantAutoAssignment ? isActivePolicyRequest : false,
             );
-            setTransactionReport(transaction.transactionID, {reportID: selfDMReportID}, true);
+            setTransactionReport(transaction.transactionID, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
         }
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.TRACK, initialTransactionID, selfDMReportID);
         waitForKeyboardDismiss(() => {
@@ -215,19 +215,7 @@ function IOURequestStepParticipants({
                 }
             });
         });
-    }, [
-        selfDMReportID,
-        transactions,
-        action,
-        initialTransactionID,
-        waitForKeyboardDismiss,
-        iouType,
-        selfDMReport,
-        currentUserPersonalDetails.accountID,
-        isActivePolicyRequest,
-        backTo,
-        activePolicy,
-    ]);
+    }, [selfDMReportID, transactions, action, initialTransactionID, waitForKeyboardDismiss, iouType, selfDMReport, currentUserPersonalDetails.accountID, isActivePolicyRequest, backTo]);
 
     const addParticipant = useCallback(
         (val: Participant[]) => {
@@ -264,11 +252,11 @@ function IOURequestStepParticipants({
 
                 if (transactions.length > 0) {
                     for (const transaction of transactions) {
-                        setCustomUnitRateID(transaction.transactionID, rateID, transaction, policy);
+                        setCustomUnitRateID(transaction.transactionID, rateID);
                     }
                 } else {
                     // Fallback to using initialTransactionID directly
-                    setCustomUnitRateID(initialTransactionID, rateID, undefined, policy);
+                    setCustomUnitRateID(initialTransactionID, rateID);
                 }
             }
 

@@ -217,18 +217,10 @@ function activatePhysicalExpensifyCard(cardLastFourDigits: string, cardID: numbe
         cardID,
     };
 
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.ACTIVATE_PHYSICAL_EXPENSIFY_CARD, parameters, {
+    API.write(WRITE_COMMANDS.ACTIVATE_PHYSICAL_EXPENSIFY_CARD, parameters, {
         optimisticData,
         successData,
         failureData,
-    }).then((response) => {
-        if (!response) {
-            return;
-        }
-        if (response.pin) {
-            Onyx.set(ONYXKEYS.ACTIVATED_CARD_PIN, response.pin);
-        }
     });
 }
 
@@ -237,13 +229,6 @@ function activatePhysicalExpensifyCard(cardLastFourDigits: string, cardID: numbe
  */
 function clearCardListErrors(cardID: number) {
     Onyx.merge(ONYXKEYS.CARD_LIST, {[cardID]: {errors: null, isLoading: false}});
-}
-
-/**
- * Clears the PIN for an activated card
- */
-function clearActivatedCardPin() {
-    Onyx.set(ONYXKEYS.ACTIVATED_CARD_PIN, '');
 }
 
 function clearCardErrorField(cardID: number, fieldName: string) {
@@ -327,7 +312,7 @@ function setPersonalCardReimbursable(cardID: number, reimbursable: boolean, prev
     API.write(WRITE_COMMANDS.SET_PERSONAL_CARD_REIMBURSABLE, parameters, {optimisticData, finallyData, failureData});
 }
 
-function syncCard(cardID: number, lastScrapeResult?: number) {
+function syncCard(cardID: number, lastScrapeResult?: number, breakConnection?: boolean) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -381,9 +366,14 @@ function syncCard(cardID: number, lastScrapeResult?: number) {
         },
     ];
 
-    const parameters = {
+    const parameters: {cardID: number; breakConnection?: number} = {
         cardID,
     };
+
+    if (breakConnection) {
+        // Simulate "Account not found" error code for testing
+        parameters.breakConnection = 434;
+    }
 
     API.write(WRITE_COMMANDS.SYNC_CARD, parameters, {optimisticData, finallyData, failureData});
 }
@@ -913,7 +903,16 @@ function updateExpensifyCardTitle(workspaceAccountID: number, cardID: number, ne
     API.write(WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_TITLE, parameters, {optimisticData, successData, failureData});
 }
 
-function updateExpensifyCardLimitType(workspaceAccountID: number, cardID: number, newLimitType: CardLimitType, oldLimitType?: CardLimitType) {
+function updateExpensifyCardLimitType(
+    workspaceAccountID: number,
+    cardID: number,
+    newLimitType: CardLimitType,
+    timeZone: SelectedTimezone | undefined,
+    oldCardNameValuePairs?: Card['nameValuePairs'],
+    validFrom?: string,
+    validThru?: string,
+    shouldClearValidityDates?: boolean,
+) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -922,7 +921,13 @@ function updateExpensifyCardLimitType(workspaceAccountID: number, cardID: number
                 [cardID]: {
                     nameValuePairs: {
                         limitType: newLimitType,
-                        pendingFields: {limitType: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                        pendingFields: {
+                            limitType: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            validFrom: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            validThru: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        },
+                        validFrom: shouldClearValidityDates ? null : validFrom,
+                        validThru: shouldClearValidityDates ? null : validThru,
                     },
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     pendingFields: {availableSpend: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
@@ -941,7 +946,7 @@ function updateExpensifyCardLimitType(workspaceAccountID: number, cardID: number
                 [cardID]: {
                     isLoading: false,
                     nameValuePairs: {
-                        pendingFields: {limitType: null},
+                        pendingFields: {limitType: null, validFrom: null, validThru: null},
                     },
                     pendingAction: null,
                     pendingFields: {availableSpend: null},
@@ -957,8 +962,10 @@ function updateExpensifyCardLimitType(workspaceAccountID: number, cardID: number
             value: {
                 [cardID]: {
                     nameValuePairs: {
-                        limitType: oldLimitType,
-                        pendingFields: {limitType: null},
+                        limitType: oldCardNameValuePairs?.limitType,
+                        validFrom: oldCardNameValuePairs?.validFrom,
+                        validThru: oldCardNameValuePairs?.validThru,
+                        pendingFields: {limitType: null, validFrom: null, validThru: null},
                     },
                     pendingFields: {availableSpend: null},
                     pendingAction: null,
@@ -972,6 +979,9 @@ function updateExpensifyCardLimitType(workspaceAccountID: number, cardID: number
     const parameters: UpdateExpensifyCardLimitTypeParams = {
         cardID,
         limitType: newLimitType,
+        validFrom: validFrom ? DateUtils.normalizeDateToStartOfDay(validFrom, timeZone) : undefined,
+        validThru: validThru ? DateUtils.normalizeDateToEndOfDay(validThru, timeZone) : undefined,
+        clearValidityDates: shouldClearValidityDates,
     };
 
     API.write(WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_LIMIT_TYPE, parameters, {optimisticData, successData, failureData});
@@ -1175,7 +1185,14 @@ function configureExpensifyCardsForPolicy(policyID: string, workspaceAccountID: 
     });
 }
 
-function issueExpensifyCard(domainAccountID: number, policyID: string | undefined, feedCountry: string, validateCode: string, timeZone: SelectedTimezone, data?: IssueNewCardData) {
+function issueExpensifyCard(
+    domainAccountID: number,
+    policyID: string | undefined,
+    feedCountry: string,
+    validateCode: string,
+    timeZone: SelectedTimezone | undefined,
+    data?: IssueNewCardData,
+) {
     if (!data) {
         return;
     }
@@ -1455,7 +1472,6 @@ export {
     configureExpensifyCardsForPolicy,
     issueExpensifyCard,
     openCardDetailsPage,
-    clearActivatedCardPin,
     clearCardErrorField,
     clearCardNameValuePairsErrorField,
     setPersonalCardReimbursable,

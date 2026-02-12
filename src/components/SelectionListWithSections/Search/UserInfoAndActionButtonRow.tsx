@@ -19,12 +19,14 @@ function UserInfoAndActionButtonRow({
     shouldShowUserInfo,
     containerStyles,
     isInMobileSelectionMode,
+    isDisabledItem = false,
 }: {
     item: TransactionReportGroupListItemType | TransactionListItemType;
     handleActionButtonPress: () => void;
     shouldShowUserInfo: boolean;
     containerStyles?: StyleProp<ViewStyle>;
     isInMobileSelectionMode: boolean;
+    isDisabledItem?: boolean;
 }) {
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
@@ -73,7 +75,7 @@ function UserInfoAndActionButtonRow({
                     hash={item.hash}
                     amount={(item as TransactionListItemType)?.amount ?? (item as TransactionReportGroupListItemType)?.total}
                     extraSmall={!isLargeScreenWidth}
-                    shouldDisablePointerEvents={isInMobileSelectionMode}
+                    shouldDisablePointerEvents={isInMobileSelectionMode || isDisabledItem}
                 />
             </View>
         </View>

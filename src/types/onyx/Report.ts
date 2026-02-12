@@ -78,9 +78,6 @@ type ReportNextStep = {
         /** The ETA date time */
         dateTime?: string;
     };
-
-    /** The fill color of the icon */
-    iconFill?: string;
 };
 
 /** Model of report data */
