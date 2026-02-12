@@ -17,6 +17,7 @@ import UpdateAppModal from './components/UpdateAppModal';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
 import useDebugShortcut from './hooks/useDebugShortcut';
+import useDeepLinkHandler from './hooks/useDeepLinkHandler';
 import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useLocalize from './hooks/useLocalize';
 import useNetwork from './hooks/useNetwork';
@@ -163,11 +164,7 @@ function Expensify() {
         });
     }, []);
 
-    useEffect(() => {
-        return () => {
-            DeepLinkHandler.clearModule();
-        };
-    }, []);
+    useDeepLinkHandler();
 
     const isAuthenticated = useIsAuthenticated();
 
