@@ -12,7 +12,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
+import useReceiptRetryParams from '@hooks/useReceiptRetryParams';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -28,7 +28,6 @@ import {
     getCreationReportErrors,
     isInvoiceReport,
     isPaidGroupPolicy,
-    isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
     isTrackExpenseReportNew,
 } from '@libs/ReportUtils';
 import {
@@ -40,7 +39,6 @@ import {
 } from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
 import Navigation from '@navigation/Navigation';
-import type {CreateTrackExpenseParams, RequestMoneyInformation} from '@userActions/IOU';
 import {cleanUpMoneyRequest} from '@userActions/IOU';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import {clearAllRelatedReportActionErrors} from '@userActions/ReportActions';
@@ -110,17 +108,6 @@ function MoneyRequestReceiptView({
         canBeMissing: true,
     });
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${parentReport?.policyID}`, {canBeMissing: true});
-    const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${parentReport?.policyID}`, {canBeMissing: true});
-    const [recentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {canBeMissing: true});
-    const {isBetaEnabled} = usePermissions();
 
     const [isLoading, setIsLoading] = useState(true);
     const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
@@ -137,6 +124,7 @@ function MoneyRequestReceiptView({
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(linkedTransactionID)}`, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`, {canBeMissing: true});
+    const retryAction = useReceiptRetryParams(transaction, iouReport, chatReport, policy, isTrackExpense);
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
 
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
@@ -227,153 +215,14 @@ function MoneyRequestReceiptView({
             return {};
         }
 
-        let action = '';
-        let retryParams = '';
-
-        const currentUserAccountID = session?.accountID;
-        const canReconstruct = !!currentUserAccountID && !!transaction;
-
-        if (canReconstruct) {
-            const payeeAccountID = iouReport?.ownerAccountID ?? currentUserAccountID;
-            const payeeEmail = personalDetails?.[payeeAccountID]?.login ?? session?.email;
-            const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-
-            if (isTrackExpense) {
-                action = CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE;
-                const trackRetryParams: CreateTrackExpenseParams = {
-                    report: undefined,
-                    isDraftPolicy: false,
-                    participantParams: {
-                        payeeEmail,
-                        payeeAccountID,
-                        participant: {accountID: payeeAccountID, login: payeeEmail},
-                    },
-                    policyParams: {
-                        policy,
-                        policyCategories,
-                        policyTagList,
-                    },
-                    transactionParams: {
-                        amount: transaction.amount,
-                        currency: transaction.currency,
-                        created: transaction.created,
-                        merchant: transaction.merchant,
-                        comment: transaction.comment?.comment,
-                        category: transaction.category,
-                        tag: transaction.tag,
-                        taxCode: transaction.taxCode,
-                        taxAmount: transaction.taxAmount,
-                        billable: transaction.billable,
-                        reimbursable: transaction.reimbursable,
-                        receipt: undefined,
-                        attendees: transaction.comment?.attendees,
-                        customUnitRateID: transaction.comment?.customUnit?.customUnitRateID,
-                    },
-                    isRetry: true,
-                    shouldPlaySound: false,
-                    // Don't navigate — dismissError already navigates back to the chat
-                    shouldHandleNavigation: false,
-                    isASAPSubmitBetaEnabled,
-                    currentUserAccountIDParam: currentUserAccountID,
-                    currentUserEmailParam: session?.email ?? '',
-                    introSelected,
-                    activePolicyID,
-                    quickAction,
-                    recentWaypoints,
-                    betas,
-                };
-                retryParams = JSON.stringify(trackRetryParams);
-            } else {
-                action = CONST.IOU.ACTION_PARAMS.MONEY_REQUEST;
-                const managerID = iouReport?.managerID;
-                const isPolicyChat = isPolicyExpenseChatReportUtils(chatReport);
-                const moneyRetryParams: RequestMoneyInformation = {
-                    report: undefined,
-                    existingIOUReport: undefined,
-                    participantParams: {
-                        payeeEmail,
-                        payeeAccountID,
-                        participant: {
-                            accountID: managerID ?? CONST.DEFAULT_NUMBER_ID,
-                            login: managerID ? personalDetails?.[managerID]?.login : undefined,
-                            ...(isPolicyChat ? {isPolicyExpenseChat: true, reportID: chatReport?.reportID} : {}),
-                        },
-                    },
-                    policyParams: {
-                        policy,
-                        policyCategories,
-                        policyTagList,
-                    },
-                    transactionParams: {
-                        amount: transaction.amount,
-                        currency: transaction.currency,
-                        created: transaction.created,
-                        merchant: transaction.merchant,
-                        comment: transaction.comment?.comment,
-                        category: transaction.category,
-                        tag: transaction.tag,
-                        taxCode: transaction.taxCode,
-                        taxAmount: transaction.taxAmount,
-                        billable: transaction.billable,
-                        reimbursable: transaction.reimbursable,
-                        receipt: undefined,
-                        attendees: transaction.comment?.attendees,
-                        waypoints: transaction.comment?.waypoints,
-                        customUnit: transaction.comment?.customUnit,
-                        type: transaction.comment?.type,
-                        count: transaction.comment?.units?.count,
-                        rate: transaction.comment?.units?.rate,
-                        unit: transaction.comment?.units?.unit,
-                    },
-                    shouldGenerateTransactionThreadReport: true,
-                    isASAPSubmitBetaEnabled,
-                    currentUserAccountIDParam: currentUserAccountID,
-                    currentUserEmailParam: session?.email ?? '',
-                    transactionViolations: {},
-                    quickAction,
-                    policyRecentlyUsedCurrencies: recentlyUsedCurrencies ?? [],
-                    isSelfTourViewed: false,
-                    betas,
-                    personalDetails,
-                    isRetry: true,
-                    shouldPlaySound: false,
-                    // Don't navigate — dismissError already navigates back to the chat
-                    shouldHandleNavigation: false,
-                };
-                retryParams = JSON.stringify(moneyRetryParams);
-            }
-        }
-
         return getMicroSecondOnyxErrorObject({
             error: CONST.IOU.RECEIPT_ERROR,
-            source: transaction?.receipt?.source?.toString() ?? '',
-            filename: transaction?.receipt?.filename ?? '',
-            action,
-            retryParams,
+            source: transaction.receipt.source?.toString() ?? '',
+            filename: transaction.receipt.filename ?? '',
+            action: retryAction?.action ?? '',
+            retryParams: retryAction?.retryParams ?? '',
         });
-    }, [
-        hasReceiptUploadError,
-        reportCreationError,
-        hasReceipt,
-        transaction,
-        session?.accountID,
-        session?.email,
-        iouReport?.ownerAccountID,
-        iouReport?.managerID,
-        personalDetails,
-        isBetaEnabled,
-        isTrackExpense,
-        chatReport,
-        policy,
-        policyCategories,
-        policyTagList,
-        introSelected,
-        activePolicyID,
-        quickAction,
-        recentWaypoints,
-        betas,
-        recentlyUsedCurrencies,
-    ]);
+    }, [hasReceiptUploadError, reportCreationError, hasReceipt, transaction, retryAction?.action, retryAction?.retryParams]);
 
     const errors = useMemo(() => {
         if (hasReceiptUploadError) {
