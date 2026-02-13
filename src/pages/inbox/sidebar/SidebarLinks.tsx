@@ -66,6 +66,7 @@ function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.
                 (shouldUseNarrowLayout && isActiveReport(option.reportID) && !reportActionID) ||
                 shouldBlockReportNavigation
             ) {
+                cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT_PHASES.NAVIGATE}_${option.reportID}`);
                 cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${option.reportID}`);
                 return;
             }

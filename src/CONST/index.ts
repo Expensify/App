@@ -1768,6 +1768,12 @@ const CONST = {
         TAG_AUTHENTICATION_JSON_CODE: 'authentication_json_code',
         // Span names
         SPAN_OPEN_REPORT: 'ManualOpenReport',
+        SPAN_OPEN_REPORT_PHASES: {
+            NAVIGATE: 'ManualOpenReport_Navigate',
+            SCREEN_MOUNT: 'ManualOpenReport_ScreenMount',
+            DATA_FETCH: 'ManualOpenReport_DataFetch',
+            RENDER: 'ManualOpenReport_Render',
+        },
         SPAN_APP_STARTUP: 'ManualAppStartup',
         SPAN_NAVIGATE_TO_REPORTS_TAB: 'ManualNavigateToReportsTab',
         SPAN_NAVIGATE_TO_REPORTS_TAB_RENDER: 'ManualNavigateToReportsTabRender',

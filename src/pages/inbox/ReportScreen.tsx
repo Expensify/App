@@ -87,7 +87,8 @@ import {
     isTaskReport,
     isValidReportIDFromPath,
 } from '@libs/ReportUtils';
-import {cancelSpan} from '@libs/telemetry/activeSpans';
+import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {cancelOpenReportChildSpans} from '@libs/telemetry/markOpenReportEnd';
 import {isNumeric} from '@libs/ValidationUtils';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
 import {setShouldShowComposeInput} from '@userActions/Composer';
@@ -162,6 +163,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const {translate} = useLocalize();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
+    endSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT_PHASES.SCREEN_MOUNT}_${reportIDFromRoute}`);
     const reportActionIDFromRoute = route?.params?.reportActionID;
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
@@ -650,7 +652,8 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         return () => {
             skipOpenReportListener.remove();
 
-            // We need to cancel telemetry span when user leaves the screen before full report data is loaded
+            // We need to cancel telemetry spans when user leaves the screen before full report data is loaded
+            cancelOpenReportChildSpans(reportID);
             cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`);
         };
     }, [reportID]);
@@ -695,6 +698,15 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     }, []);
 
     useEffect(() => {
+        // Start DataFetch child span if the parent open report span exists
+        const parentSpan = getSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportIDFromRoute}`);
+        if (parentSpan) {
+            startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT_PHASES.DATA_FETCH}_${reportIDFromRoute}`, {
+                name: CONST.TELEMETRY.SPAN_OPEN_REPORT_PHASES.DATA_FETCH,
+                op: CONST.TELEMETRY.SPAN_OPEN_REPORT_PHASES.DATA_FETCH,
+                parentSpan,
+            });
+        }
         // This function is triggered when a user clicks on a link to navigate to a report.
         // For each link click, we retrieve the report data again, even though it may already be cached.
         // There should be only one openReport execution per page start or navigating

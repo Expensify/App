@@ -32,6 +32,7 @@ import {
     shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
 import {buildOptimisticCreatedReportAction, buildOptimisticIOUReportAction, canUserPerformWriteAction, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
+import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -107,6 +108,8 @@ function ReportActionsView({
     const prevReportActionID = usePrevious(reportActionID);
     const reportPreviewAction = useMemo(() => getReportPreviewAction(report.chatReportID, report.reportID), [report.chatReportID, report.reportID]);
     const didLayout = useRef(false);
+    const didStartRenderSpan = useRef(false);
+    const prevIsLoadingInitialReportActions = usePrevious(isLoadingInitialReportActions);
     const {isOffline} = useNetwork();
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -245,6 +248,13 @@ function ReportActionsView({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shouldUseNarrowLayout, reportActions, isReportFullyVisible]);
 
+    // End DataFetch child span when initial report actions finish loading
+    useEffect(() => {
+        if (prevIsLoadingInitialReportActions && !isLoadingInitialReportActions) {
+            endSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT_PHASES.DATA_FETCH}_${reportID}`);
+        }
+    }, [prevIsLoadingInitialReportActions, isLoadingInitialReportActions, reportID]);
+
     const allReportActionIDs = useMemo(() => {
         return allReportActions?.map((action) => action.reportActionID) ?? [];
     }, [allReportActions]);
@@ -269,6 +279,7 @@ function ReportActionsView({
 
         didLayout.current = true;
 
+        endSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT_PHASES.RENDER}_${report.reportID}`);
         markOpenReportEnd(report);
     }, [report]);
 
@@ -311,6 +322,19 @@ function ReportActionsView({
 
     if (!isReportTransactionThread && isMissingReportActions) {
         return <ReportActionsSkeletonView shouldAnimate={false} />;
+    }
+
+    // Start Render child span once (ref-guarded) when we pass the skeleton early-returns
+    if (!didStartRenderSpan.current) {
+        didStartRenderSpan.current = true;
+        const parentSpan = getSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`);
+        if (parentSpan) {
+            startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT_PHASES.RENDER}_${reportID}`, {
+                name: CONST.TELEMETRY.SPAN_OPEN_REPORT_PHASES.RENDER,
+                op: CONST.TELEMETRY.SPAN_OPEN_REPORT_PHASES.RENDER,
+                parentSpan,
+            });
+        }
     }
 
     // AutoScroll is disabled when we do linking to a specific reportAction

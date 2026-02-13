@@ -140,7 +140,7 @@ const Log = new Logger({
         });
     },
     maxLogLinesBeforeFlush: 150,
-    isDebug: true,
+    isDebug: false,
     getContextEmail: getCurrentUserEmail,
 });
 timeout = setTimeout(() => Log.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);

@@ -2,7 +2,21 @@ import Performance from '@libs/Performance';
 import {isOneTransactionReport, isReportTransactionThread} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
-import {endSpan, getSpan} from './activeSpans';
+import {cancelSpan, endSpan, getSpan} from './activeSpans';
+
+/**
+ * Cancel all child spans for an open report flow. Safe to call even if spans don't exist.
+ */
+function cancelOpenReportChildSpans(reportID: string | undefined) {
+    if (!reportID) {
+        return;
+    }
+    const phases = CONST.TELEMETRY.SPAN_OPEN_REPORT_PHASES;
+    cancelSpan(`${phases.NAVIGATE}_${reportID}`);
+    cancelSpan(`${phases.SCREEN_MOUNT}_${reportID}`);
+    cancelSpan(`${phases.DATA_FETCH}_${reportID}`);
+    cancelSpan(`${phases.RENDER}_${reportID}`);
+}
 
 /**
  * Mark all 'open_report*' performance events as finished using both Performance (local) and Timing (remote) tracking.
@@ -22,6 +36,7 @@ function markOpenReportEnd(report: OnyxTypes.Report) {
         [CONST.TELEMETRY.ATTRIBUTE_CHAT_TYPE]: chatType,
     });
 
+    cancelOpenReportChildSpans(reportID);
     endSpan(spanId);
 
     Performance.markEnd(CONST.TIMING.OPEN_REPORT);
@@ -34,3 +49,4 @@ function markOpenReportEnd(report: OnyxTypes.Report) {
 }
 
 export default markOpenReportEnd;
+export {cancelOpenReportChildSpans};

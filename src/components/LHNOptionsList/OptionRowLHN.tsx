@@ -178,9 +178,14 @@ function OptionRowLHN({
 
     const onOptionPress = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
         Performance.markStart(CONST.TIMING.OPEN_REPORT);
-        startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`, {
+        const parentSpan = startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`, {
             name: 'OptionRowLHN',
             op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
+        });
+        startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT_PHASES.NAVIGATE}_${reportID}`, {
+            name: CONST.TELEMETRY.SPAN_OPEN_REPORT_PHASES.NAVIGATE,
+            op: CONST.TELEMETRY.SPAN_OPEN_REPORT_PHASES.NAVIGATE,
+            parentSpan,
         });
 
         event?.preventDefault();

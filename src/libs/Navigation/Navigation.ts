@@ -14,7 +14,7 @@ import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {shallowCompare} from '@libs/ObjectUtils';
-import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -285,33 +285,58 @@ function navigate(route: Route, options?: LinkToOptions) {
     }
 
     // Start a Sentry span for report navigation
-    if (route.startsWith('r/') || route.startsWith('search/r/') || route.startsWith('e/')) {
+    const reportIDMatch = route.match(/^(?:search\/)?(?:r|e)\/(\w+)/);
+    const reportID = reportIDMatch?.at(1);
+    if (reportID && (route.startsWith('r/') || route.startsWith('search/r/') || route.startsWith('e/'))) {
         const routePath = Str.cutAfter(route, '?');
-        const reportIDMatch = route.match(/^(?:search\/)?(?:r|e)\/(\w+)/);
-        const reportID = reportIDMatch?.at(1);
-        if (reportID) {
-            const spanId = `${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`;
-            let span = getSpan(spanId);
-            if (!span) {
-                let spanName = '/r/*';
-                if (route.startsWith('search/r/')) {
-                    spanName = '/search/r/*';
-                } else if (route.startsWith('e/')) {
-                    spanName = '/e/*';
-                }
-                span = startSpan(spanId, {
-                    name: spanName,
-                    op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
-                });
+        const spanId = `${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`;
+        let span = getSpan(spanId);
+        if (!span) {
+            let spanName = '/r/*';
+            if (route.startsWith('search/r/')) {
+                spanName = '/search/r/*';
+            } else if (route.startsWith('e/')) {
+                spanName = '/e/*';
             }
-            span.setAttributes({
-                [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
-                [CONST.TELEMETRY.ATTRIBUTE_ROUTE_FROM]: getActiveRouteWithoutParams(),
-                [CONST.TELEMETRY.ATTRIBUTE_ROUTE_TO]: Str.cutAfter(routePath, '?'),
+            span = startSpan(spanId, {
+                name: spanName,
+                op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
+            });
+        }
+        span.setAttributes({
+            [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
+            [CONST.TELEMETRY.ATTRIBUTE_ROUTE_FROM]: getActiveRouteWithoutParams(),
+            [CONST.TELEMETRY.ATTRIBUTE_ROUTE_TO]: Str.cutAfter(routePath, '?'),
+        });
+
+        // Start Navigate child span if not already started (fallback for non-LHN entry points)
+        const navigateSpanId = `${CONST.TELEMETRY.SPAN_OPEN_REPORT_PHASES.NAVIGATE}_${reportID}`;
+        if (!getSpan(navigateSpanId)) {
+            startSpan(navigateSpanId, {
+                name: CONST.TELEMETRY.SPAN_OPEN_REPORT_PHASES.NAVIGATE,
+                op: CONST.TELEMETRY.SPAN_OPEN_REPORT_PHASES.NAVIGATE,
+                parentSpan: span,
             });
         }
     }
     linkTo(navigationRef.current, route, options);
+
+    if (reportID) {
+        const parentSpan = getSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`);
+
+        // End Navigate phase
+        endSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT_PHASES.NAVIGATE}_${reportID}`);
+
+        // Start ScreenMount phase
+        if (parentSpan) {
+            startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT_PHASES.SCREEN_MOUNT}_${reportID}`, {
+                name: CONST.TELEMETRY.SPAN_OPEN_REPORT_PHASES.SCREEN_MOUNT,
+                op: CONST.TELEMETRY.SPAN_OPEN_REPORT_PHASES.SCREEN_MOUNT,
+                parentSpan,
+            });
+        }
+    }
+
     closeSidePanelOnNarrowScreen();
 }
 /**
