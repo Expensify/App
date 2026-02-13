@@ -181,7 +181,6 @@ function parseRangeQueryValue(rangeValue?: string) {
 
 function normalizeRangeFilterKey(rawKey: string): string {
     const normalizedKey = rawKey.toLowerCase();
-    const reportFieldNoDashPrefix = 'report' + 'field-';
 
     if (DATE_FILTER_KEYS.includes(normalizedKey as SearchDateFilterKeys)) {
         return normalizedKey;
@@ -191,6 +190,8 @@ function normalizeRangeFilterKey(rawKey: string): string {
         return `${CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX}${rawKey.slice('report-field-'.length)}`;
     }
 
+    // cspell:ignore reportfield
+    const reportFieldNoDashPrefix = 'reportfield-';
     if (normalizedKey.startsWith(reportFieldNoDashPrefix)) {
         return `${CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX}${rawKey.slice(reportFieldNoDashPrefix.length)}`;
     }
