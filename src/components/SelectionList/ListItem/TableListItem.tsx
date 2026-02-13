@@ -73,7 +73,7 @@ function TableListItem<TItem extends ListItem>({
             onDismissError={onDismissError}
             rightHandSideComponent={rightHandSideComponent}
             errors={item.errors}
-            errorRowStyles={errorRowStyles}
+            errorRowStyles={[styles.mb2, errorRowStyles]}
             pendingAction={item.pendingAction}
             keyForList={item.keyForList}
             onFocus={onFocus}

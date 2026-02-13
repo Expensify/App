@@ -14,6 +14,7 @@ import type {ArchivedReportsIDSet} from './SearchUIUtils';
 function getReportIDAfterOnboarding(
     isSmallScreenWidth: boolean,
     canUseDefaultRooms: boolean | undefined,
+    conciergeReportID: string,
     archivedReportsIdSet: ArchivedReportsIDSet,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
@@ -29,12 +30,12 @@ function getReportIDAfterOnboarding(
         return undefined;
     }
 
-    const lastAccessedReport = findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom() && !shouldPreventOpenAdminRoom, undefined, undefined, archivedReportsIdSet);
+    const lastAccessedReport = findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom() && !shouldPreventOpenAdminRoom, undefined, archivedReportsIdSet);
     const lastAccessedReportID = lastAccessedReport?.reportID;
 
     // When the user goes through the onboarding flow, a workspace can be created if the user selects specific options. The user should be taken to the #admins room for that workspace because it is the most natural place for them to start their experience in the app.
     // The user should never go to the self DM or the Concierge chat if a workspace was created during the onboarding flow.
-    if (lastAccessedReportID && lastAccessedReport.policyID !== onboardingPolicyID && !isConciergeChatReport(lastAccessedReport) && !isSelfDM(lastAccessedReport)) {
+    if (lastAccessedReportID && lastAccessedReport.policyID !== onboardingPolicyID && !isConciergeChatReport(lastAccessedReport, conciergeReportID) && !isSelfDM(lastAccessedReport)) {
         return lastAccessedReportID;
     }
 
@@ -44,6 +45,7 @@ function getReportIDAfterOnboarding(
 function navigateAfterOnboarding(
     isSmallScreenWidth: boolean,
     canUseDefaultRooms: boolean | undefined,
+    conciergeReportID: string,
     archivedReportsIdSet: ArchivedReportsIDSet,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
@@ -56,7 +58,15 @@ function navigateAfterOnboarding(
         return;
     }
 
-    const reportID = getReportIDAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, archivedReportsIdSet, onboardingPolicyID, onboardingAdminsChatReportID, shouldPreventOpenAdminRoom);
+    const reportID = getReportIDAfterOnboarding(
+        isSmallScreenWidth,
+        canUseDefaultRooms,
+        conciergeReportID,
+        archivedReportsIdSet,
+        onboardingPolicyID,
+        onboardingAdminsChatReportID,
+        shouldPreventOpenAdminRoom,
+    );
     if (reportID) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
     }
@@ -78,6 +88,7 @@ function navigateAfterOnboarding(
 function navigateAfterOnboardingWithMicrotaskQueue(
     isSmallScreenWidth: boolean,
     canUseDefaultRooms: boolean | undefined,
+    conciergeReportID: string,
     archivedReportsIdSet: ArchivedReportsIDSet,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
@@ -85,7 +96,15 @@ function navigateAfterOnboardingWithMicrotaskQueue(
 ) {
     Navigation.dismissModal();
     Navigation.setNavigationActionToMicrotaskQueue(() => {
-        navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, archivedReportsIdSet, onboardingPolicyID, onboardingAdminsChatReportID, shouldPreventOpenAdminRoom);
+        navigateAfterOnboarding(
+            isSmallScreenWidth,
+            canUseDefaultRooms,
+            conciergeReportID,
+            archivedReportsIdSet,
+            onboardingPolicyID,
+            onboardingAdminsChatReportID,
+            shouldPreventOpenAdminRoom,
+        );
     });
 }
 
