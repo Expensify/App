@@ -10,6 +10,7 @@ import type {Emoji} from '@assets/emojis/types';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import {AttachmentContext} from '@components/AttachmentContext';
 import Button from '@components/Button';
+import type {ComposerRef} from '@components/Composer/types';
 import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
@@ -566,13 +567,12 @@ function PureReportActionItem({
     const reactionListRef = useContext(ReactionListContext);
     const {updateHiddenAttachments} = useContext(AttachmentModalContext);
     const kycWallRef = useContext(KYCWallContext);
-    const composerTextInputRef = useRef<TextInput | HTMLTextAreaElement>(null);
+    const composerRef = useRef<ComposerRef | null>(null);
     const popoverAnchorRef = useRef<Exclude<ContextMenuAnchor, TextInput>>(null);
     const downloadedPreviews = useRef<string[]>([]);
     const prevDraftMessage = usePrevious(draftMessage);
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
     const [isReportActionActive, setIsReportActionActive] = useState(!!isReportActionLinked);
-    const isNarrowLayout = getIsNarrowLayout();
     const isActionableWhisper =
         isActionableMentionWhisper(action) || isActionableMentionInviteToSubmitExpenseConfirmWhisper(action) || isActionableTrackExpense(action) || isActionableReportMentionWhisper(action);
     const isReportArchived = useReportIsArchived(reportID);
@@ -689,7 +689,7 @@ function PureReportActionItem({
             return;
         }
 
-        focusComposerWithDelay(composerTextInputRef.current)(true);
+        focusComposerWithDelay(composerRef.current)(true);
     }, [prevDraftMessage, draftMessage]);
 
     useEffect(() => {
@@ -1793,7 +1793,7 @@ function PureReportActionItem({
                                     originalReportID={originalReportID}
                                     policyID={report?.policyID}
                                     index={index}
-                                    ref={composerTextInputRef}
+                                    ref={composerRef}
                                     shouldDisableEmojiPicker={
                                         (chatIncludesConcierge(report) && isBlockedFromConcierge(blockedFromConcierge)) || isArchivedNonExpenseReport(report, isArchivedRoom)
                                     }
