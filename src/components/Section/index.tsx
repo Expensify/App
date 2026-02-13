@@ -13,7 +13,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Accessibility from '@libs/Accessibility';
 import isIllustrationLottieAnimation from '@libs/isIllustrationLottieAnimation';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -130,8 +129,6 @@ function Section({
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const isReduceMotionEnabled = Accessibility.useReducedMotion();
-
     const isLottie = isIllustrationLottieAnimation(illustration);
 
     const lottieIllustration = isLottie ? illustration : undefined;
@@ -163,7 +160,6 @@ function Section({
                                 source={illustration}
                                 style={styles.h100}
                                 webStyle={styles.h100}
-                                autoPlay={!isReduceMotionEnabled}
                                 loop
                                 shouldLoadAfterInteractions={shouldUseNarrowLayout}
                             />

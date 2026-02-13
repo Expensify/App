@@ -64,10 +64,12 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
         }
         const unsubscribeNavigationFocus = navigator.addListener('focus', () => {
             setHasNavigatedAway(false);
-            animationRef.current?.play();
+            if (!isReduceMotionEnabled) {
+                animationRef.current?.play();
+            }
         });
         return unsubscribeNavigationFocus;
-    }, [browser, navigationContainerRef, navigator]);
+    }, [browser, navigationContainerRef, navigator, isReduceMotionEnabled]);
 
     useEffect(() => {
         if (!browser || !navigationContainerRef || !navigator) {
@@ -92,19 +94,17 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
         animationRef?.current?.pause();
     }, [hasNavigatedAway]);
 
-    // If the page navigates to another screen, the image fails to load, app is in background state, animation file isn't ready, the splash screen isn't hidden yet,
-    // or the user prefers reduced motion, we'll just render an empty view as the fallback to prevent
+    // If the page navigates to another screen, the image fails to load, app is in background state, animation file isn't ready, or the splash screen isn't hidden yet,
+    // we'll just render an empty view as the fallback to prevent
     // 1. heavy rendering, see issues: https://github.com/Expensify/App/issues/34696 and https://github.com/Expensify/App/issues/47273
     // 2. lag on react navigation transitions, see issue: https://github.com/Expensify/App/issues/44812
-    // 3. animation playing for users who have reduced motion enabled (WCAG 2.2.2), see issue: https://github.com/Expensify/App/issues/77157
     if (
         isError ||
         appState.isBackground ||
         !animationFile ||
         hasNavigatedAway ||
         splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN ||
-        (!isInteractionComplete && shouldLoadAfterInteractions) ||
-        isReduceMotionEnabled
+        (!isInteractionComplete && shouldLoadAfterInteractions)
     ) {
         return (
             <View
@@ -123,6 +123,7 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
             ref={(newRef) => {
                 animationRef.current = newRef;
             }}
+            autoPlay={!isReduceMotionEnabled}
             style={[aspectRatioStyle, props.style]}
             webStyle={{...aspectRatioStyle, ...webStyle}}
             onAnimationFailure={() => setIsError(true)}
