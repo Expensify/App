@@ -858,9 +858,11 @@ function ReportActionsList({
                 style={[styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
                 fsClass={reportActionsListFSClass}
             >
-                {shouldRenderTopReportActionOutsideOfInvertedList && topReportAction
-                    ? renderItem({item: topReportAction, index: sortedVisibleReportActions.length - 1} as ListRenderItemInfo<OnyxTypes.ReportAction>)
-                    : undefined}
+                {shouldRenderTopReportActionOutsideOfInvertedList && topReportAction ? (
+                    <View style={[styles.overflowScroll, styles.overflowXHidden]}>
+                        {renderItem({item: topReportAction, index: sortedVisibleReportActions.length - 1} as ListRenderItemInfo<OnyxTypes.ReportAction>)}
+                    </View>
+                ) : undefined}
                 {shouldScrollToEndAfterLayout && topReportAction && !shouldRenderTopReportActionOutsideOfInvertedList ? renderTopReportActions() : undefined}
                 <InvertedFlatList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}

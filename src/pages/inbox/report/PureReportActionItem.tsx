@@ -66,6 +66,7 @@ import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getCleanedTagName, hasDynamicExternalWorkflow, isPolicyAdmin, isPolicyMember, isPolicyOwner} from '@libs/PolicyUtils';
+import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {containsActionableFollowUps, parseFollowupsFromHtml} from '@libs/ReportActionFollowupUtils';
 import {
     extractLinksFromMessageHtml,
@@ -2095,15 +2096,26 @@ function PureReportActionItem({
             return;
         }
 
-        const composer =
-            Array.from(document.querySelectorAll<HTMLElement>('[aria-label="Write something..."], [role="textbox"], textarea')).find((element) => element.offsetParent !== null) ?? null;
-        if (!composer) {
+        event.preventDefault();
+        currentRow.tabIndex = -1;
+
+        // Prefer the shared composer focus manager so focus lands reliably in all layouts.
+        const managedComposer = ReportActionComposeFocusManager.composerRef.current;
+        if (managedComposer) {
+            focusComposerWithDelay(managedComposer)(true);
             return;
         }
 
-        event.preventDefault();
-        currentRow.tabIndex = -1;
-        composer.focus();
+        const composer =
+            Array.from(document.querySelectorAll<HTMLElement>('[aria-label="Write something..."], [placeholder="Write something..."], [role="textbox"], textarea')).find(
+                (element) => element.offsetParent !== null,
+            ) ?? null;
+        if (composer) {
+            composer.focus();
+            return;
+        }
+
+        ReportActionComposeFocusManager.focus(true);
     };
 
     return (
