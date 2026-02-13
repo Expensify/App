@@ -110,7 +110,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             return;
         }
         hasCalledOnLayout.current = true;
-
         onFirstItemRendered();
     }, [onFirstItemRendered]);
 
@@ -207,6 +206,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
             const isReportArchived = !!itemReportNameValuePairs?.private_isArchived;
             const canUserPerformWrite = canUserPerformWriteActionUtil(item, isReportArchived);
+
             const sortedReportActions = getSortedReportActionsForDisplay(itemReportActions, canUserPerformWrite);
             const lastReportAction = sortedReportActions.at(0);
 
@@ -230,6 +230,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const movedFromReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastReportAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
             const movedToReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastReportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
             const itemReportMetadata = reportMetadataCollection?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`];
+
             const lastMessageTextFromReport = getLastMessageTextForReport({
                 translate,
                 report: item,
@@ -317,6 +318,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             personalDetails,
             policyForMovingExpensesID,
             firstReportIDWithGBRorRBR,
+            isFullscreenVisible,
             optionMode,
             shouldDisableFocusOptions,
             onSelectRow,
@@ -326,7 +328,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             activePolicyID,
             introSelected?.choice,
             onboarding,
-            isFullscreenVisible,
             isReportsSplitNavigatorLast,
             isScreenFocused,
             localeCompare,

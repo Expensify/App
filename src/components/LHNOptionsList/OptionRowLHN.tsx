@@ -9,7 +9,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {useSession} from '@components/OnyxListItemProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
-import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
@@ -36,6 +35,7 @@ import variables from '@styles/variables';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import LHNAvatar from './LHNAvatar';
 import type {OptionRowLHNProps} from './types';
 
 function OptionRowLHN({
@@ -128,6 +128,7 @@ function OptionRowLHN({
     const contentContainerStyles = isInFocusMode ? [styles.flex1, styles.flexRow, styles.overflowHidden, StyleUtils.getCompactContentContainerStyles()] : [styles.flex1];
     const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
+    const singleAvatarContainerStyle = useMemo(() => [styles.actionAvatar, styles.mr3], [styles.actionAvatar, styles.mr3]);
 
     /**
      * Show the ReportActionContextMenu modal popover.
@@ -189,6 +190,7 @@ function OptionRowLHN({
         hideProductTrainingTooltip();
         onSelectRow(optionItem, popoverAnchor);
     };
+
     return (
         <OfflineWithFeedback
             pendingAction={optionItem.pendingAction}
@@ -257,18 +259,15 @@ function OptionRowLHN({
                                 <View style={sidebarInnerRowStyle}>
                                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                         {!!optionItem.icons?.length && !!firstIcon && (
-                                            <ReportActionAvatars
-                                                subscriptAvatarBorderColor={hovered && !isOptionFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                                                useMidSubscriptSizeForMultipleAvatars={isInFocusMode}
+                                            <LHNAvatar
+                                                icons={optionItem.icons}
+                                                shouldShowSubscript={!!optionItem.shouldShowSubscript}
                                                 size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
-                                                secondaryAvatarContainerStyle={[
-                                                    StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                                                    isOptionFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
-                                                    hovered && !isOptionFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
-                                                ]}
-                                                singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
+                                                subscriptAvatarBorderColor={hovered && !isOptionFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
+                                                useMidSubscriptSize={isInFocusMode}
+                                                secondaryAvatarBackgroundColor={isOptionFocused ? focusedBackgroundColor : hovered ? hoveredBackgroundColor : theme.sidebar}
+                                                singleAvatarContainerStyle={singleAvatarContainerStyle}
                                                 shouldShowTooltip={shouldOptionShowTooltip(optionItem)}
-                                                reportID={optionItem?.reportID}
                                             />
                                         )}
                                         <View style={contentContainerStyles}>
