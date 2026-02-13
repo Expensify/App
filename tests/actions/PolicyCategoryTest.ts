@@ -1,5 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import usePolicyData from '@hooks/usePolicyData';
@@ -7,6 +8,7 @@ import {
     createPolicyCategory,
     deleteWorkspaceCategories,
     enablePolicyCategories,
+    importPolicyCategories,
     renamePolicyCategory,
     setPolicyCategoryTax,
     setWorkspaceCategoryEnabled,
@@ -15,13 +17,15 @@ import {
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import type {ImportedSpreadsheet, Policy, PolicyCategory} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
 import createRandomPolicyTags from '../utils/collections/policyTags';
 import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForNetworkPromises from '../utils/waitForNetworkPromises';
+
 
 OnyxUpdateManager();
 describe('actions/PolicyCategory', () => {
@@ -612,5 +616,164 @@ describe('actions/PolicyCategory', () => {
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();
         });
+    });
+    describe('importPolicyCategories', () => {
+        it('Import categories with correct success modal data', async () => {
+            const fakePolicy = createRandomPolicy(0);
+            const categoriesToImport: PolicyCategory[] = [
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                {name: 'Advertising', enabled: true, 'GL Code': '6000'},
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                {name: 'Benefits', enabled: true, 'GL Code': '6001'},
+            ];
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            mockFetch?.pause?.();
+            importPolicyCategories(fakePolicy.id, categoriesToImport);
+            await waitForBatchedUpdates();
+
+            await mockFetch?.resume?.();
+            await act(waitForNetworkPromises);
+
+            const spreadsheet = await new Promise<OnyxEntry<ImportedSpreadsheet>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.IMPORTED_SPREADSHEET,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+            expect(spreadsheet?.shouldFinalModalBeOpened).toBe(true);
+            expect(spreadsheet?.importFinalModal?.titleKey).toBe('spreadsheet.importSuccessfulTitle');
+            expect(spreadsheet?.importFinalModal?.promptKey).toBe('spreadsheet.importCategoriesSuccessfulDescription');
+            expect(spreadsheet?.importFinalModal?.promptKeyParams).toStrictEqual({added: 2, updated: 0}); });
+
+        it('Import categories with failure modal data', async () => {
+            const fakePolicy = createRandomPolicy(0);
+            const categoriesToImport: PolicyCategory[] = [
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                {name: 'Travel', enabled: true, 'GL Code': 'GL001'},
+            ];
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            mockFetch?.pause?.();
+            importPolicyCategories(fakePolicy.id, categoriesToImport);
+            await waitForBatchedUpdates();
+
+            mockFetch?.fail?.();
+            await mockFetch?.resume?.();
+            await act(waitForNetworkPromises);
+
+            const spreadsheet = await new Promise<OnyxEntry<ImportedSpreadsheet>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.IMPORTED_SPREADSHEET,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+            expect(spreadsheet?.shouldFinalModalBeOpened).toBe(true);
+            expect(spreadsheet?.importFinalModal?.titleKey).toBe('spreadsheet.importFailedTitle');
+            expect(spreadsheet?.importFinalModal?.promptKey).toBe('spreadsheet.importFailedDescription');
+        });
+
+        it('Duplicate category names are counted only once for the unique categories length', async () => {
+            const fakePolicy = createRandomPolicy(0);
+            const categoriesToImport: PolicyCategory[] = [
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                {name: 'Advertising', enabled: true, 'GL Code': '6000'},
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                {name: 'Advertising', enabled: false, 'GL Code': '9999'},
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                {name: 'Benefits', enabled: true, 'GL Code': '6001'},
+            ];
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            mockFetch?.pause?.();
+            importPolicyCategories(fakePolicy.id, categoriesToImport);
+            await waitForBatchedUpdates();
+
+            await mockFetch?.resume?.();
+            await act(waitForNetworkPromises);
+
+            const spreadsheet = await new Promise<OnyxEntry<ImportedSpreadsheet>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.IMPORTED_SPREADSHEET,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+expect(spreadsheet?.importFinalModal?.promptKeyParams).toStrictEqual({added: 2, updated: 0});        });
+
+        it('Categories with empty names are skipped when counting unique categories', async () => {
+            const fakePolicy = createRandomPolicy(0);
+            const categoriesToImport: PolicyCategory[] = [
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                {name: '', enabled: true, 'GL Code': '6000'},
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                {name: 'Meals', enabled: true, 'GL Code': '100'},
+            ];
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            mockFetch?.pause?.();
+            importPolicyCategories(fakePolicy.id, categoriesToImport);
+            await waitForBatchedUpdates();
+
+            await mockFetch?.resume?.();
+            await act(waitForNetworkPromises);
+
+            const spreadsheet = await new Promise<OnyxEntry<ImportedSpreadsheet>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.IMPORTED_SPREADSHEET,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+            expect(spreadsheet?.importFinalModal?.promptKeyParams).toStrictEqual({added: 1, updated: 0});        });
+
+        it('Empty categories array results in zero unique count', async () => {
+            const fakePolicy = createRandomPolicy(0);
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            mockFetch?.pause?.();
+            importPolicyCategories(fakePolicy.id, []);
+            await waitForBatchedUpdates();
+
+            await mockFetch?.resume?.();
+            await act(waitForNetworkPromises);
+
+            const spreadsheet = await new Promise<OnyxEntry<ImportedSpreadsheet>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.IMPORTED_SPREADSHEET,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+            expect(spreadsheet?.shouldFinalModalBeOpened).toBe(true);
+            expect(spreadsheet?.shouldFinalModalBeOpened).toBe(true);
+            expect(spreadsheet?.importFinalModal?.promptKeyParams).toStrictEqual({added: 0, updated: 0});        });
     });
 });
