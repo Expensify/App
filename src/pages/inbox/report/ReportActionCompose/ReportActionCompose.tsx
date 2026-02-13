@@ -62,7 +62,7 @@ import AgentZeroProcessingRequestIndicator from '@pages/inbox/report/AgentZeroPr
 import ParticipantLocalTime from '@pages/inbox/report/ParticipantLocalTime';
 import ReportTypingIndicator from '@pages/inbox/report/ReportTypingIndicator';
 import {hideEmojiPicker, isActive as isActiveEmojiPickerAction, isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
-import {addAttachmentWithComment, deleteReportActionDraft, setIsComposerFullSize} from '@userActions/Report';
+import {addAttachmentWithComment, setIsComposerFullSize} from '@userActions/Report';
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -167,12 +167,9 @@ function ReportActionCompose({
     });
 
     const [activeEdit, setActiveEdit] = useState<ActiveEdit | null>(null);
-    const previousActiveEditRef = useRef<ActiveEdit | null>(null);
 
     // Set the active edit when the report actions or draft comments change
     useEffect(() => {
-        const previousActiveEdit = previousActiveEditRef.current;
-
         if (activeEdit) {
             return;
         }
@@ -193,7 +190,6 @@ function ReportActionCompose({
 
         const [reportActionID, draft] = reportDraftEntry;
 
-        previousActiveEditRef.current = activeEdit;
         setActiveEdit({
             reportActionID,
             reportAction: reportActions?.[reportActionID] ?? null,
