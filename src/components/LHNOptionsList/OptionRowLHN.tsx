@@ -100,7 +100,7 @@ function OptionRowLHN({
         [optionItem?.alternateText],
     );
 
-    const singleAvatarContainerStyle = useMemo(() => [styles.actionAvatar, styles.mr3], [styles.actionAvatar, styles.mr3]);
+    const singleAvatarContainerStyle = [styles.actionAvatar, styles.mr3];
 
     if (!optionItem && !isOptionFocused) {
         // rendering null as a render item causes the FlashList to render all

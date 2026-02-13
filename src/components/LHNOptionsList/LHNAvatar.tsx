@@ -1,4 +1,3 @@
-import React from 'react';
 import type {ColorValue, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -96,6 +95,4 @@ function LHNAvatar({
     );
 }
 
-LHNAvatar.displayName = 'LHNAvatar';
-
-export default React.memo(LHNAvatar);
+export default LHNAvatar;

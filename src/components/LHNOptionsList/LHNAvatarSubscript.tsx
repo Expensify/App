@@ -1,4 +1,3 @@
-import React, {useMemo} from 'react';
 import type {ColorValue} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -24,18 +23,14 @@ function LHNAvatarSubscript({primaryIcon, secondaryIcon, size, subscriptAvatarBo
     const containerStyle = StyleUtils.getContainerStyles(size);
     const isSmall = size === CONST.AVATAR_SIZE.SMALL;
 
-    const subscriptAvatarStyle = useMemo(() => {
-        if (size === CONST.AVATAR_SIZE.SMALL) {
-            return styles.secondAvatarSubscriptCompact;
-        }
-        if (size === CONST.AVATAR_SIZE.SMALL_NORMAL) {
-            return styles.secondAvatarSubscriptSmallNormal;
-        }
-        if (size === CONST.AVATAR_SIZE.X_LARGE) {
-            return styles.secondAvatarSubscriptXLarge;
-        }
-        return styles.secondAvatarSubscript;
-    }, [size, styles]);
+    let subscriptAvatarStyle = styles.secondAvatarSubscript;
+    if (size === CONST.AVATAR_SIZE.SMALL) {
+        subscriptAvatarStyle = styles.secondAvatarSubscriptCompact;
+    } else if (size === CONST.AVATAR_SIZE.SMALL_NORMAL) {
+        subscriptAvatarStyle = styles.secondAvatarSubscriptSmallNormal;
+    } else if (size === CONST.AVATAR_SIZE.X_LARGE) {
+        subscriptAvatarStyle = styles.secondAvatarSubscriptXLarge;
+    }
 
     const subscriptAvatarSize = size === CONST.AVATAR_SIZE.X_LARGE ? CONST.AVATAR_SIZE.HEADER : CONST.AVATAR_SIZE.SUBSCRIPT;
 
@@ -85,6 +80,4 @@ function LHNAvatarSubscript({primaryIcon, secondaryIcon, size, subscriptAvatarBo
     );
 }
 
-LHNAvatarSubscript.displayName = 'LHNAvatarSubscript';
-
-export default React.memo(LHNAvatarSubscript);
+export default LHNAvatarSubscript;

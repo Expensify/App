@@ -1,4 +1,3 @@
-import React, {useMemo} from 'react';
 import type {ColorValue} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -25,47 +24,37 @@ function LHNAvatarDiagonal({primaryIcon, secondaryIcon, size, secondaryAvatarBac
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const avatarContainerStyles = StyleUtils.getContainerStyles(size);
-    const secondaryAvatarContainerStyle = useMemo(
-        () => (secondaryAvatarBackgroundColor ? StyleUtils.getBackgroundAndBorderStyle(secondaryAvatarBackgroundColor) : undefined),
-        [secondaryAvatarBackgroundColor, StyleUtils],
-    );
+    const secondaryAvatarContainerStyle = secondaryAvatarBackgroundColor ? StyleUtils.getBackgroundAndBorderStyle(secondaryAvatarBackgroundColor) : undefined;
 
-    const avatarSizeToStylesMap = useMemo(
-        () => ({
-            [CONST.AVATAR_SIZE.SMALL]: {
-                singleAvatarStyle: styles.singleAvatarSmall,
-                secondAvatarStyles: styles.secondAvatarSmall,
-            },
-            [CONST.AVATAR_SIZE.LARGE]: {
-                singleAvatarStyle: styles.singleAvatarMedium,
-                secondAvatarStyles: styles.secondAvatarMedium,
-            },
-            [CONST.AVATAR_SIZE.X_LARGE]: {
-                singleAvatarStyle: styles.singleAvatarMediumLarge,
-                secondAvatarStyles: styles.secondAvatarMediumLarge,
-            },
-            [CONST.AVATAR_SIZE.DEFAULT]: {
-                singleAvatarStyle: styles.singleAvatar,
-                secondAvatarStyles: styles.secondAvatar,
-            },
-        }),
-        [styles],
-    );
+    const avatarSizeToStylesMap = {
+        [CONST.AVATAR_SIZE.SMALL]: {
+            singleAvatarStyle: styles.singleAvatarSmall,
+            secondAvatarStyles: styles.secondAvatarSmall,
+        },
+        [CONST.AVATAR_SIZE.LARGE]: {
+            singleAvatarStyle: styles.singleAvatarMedium,
+            secondAvatarStyles: styles.secondAvatarMedium,
+        },
+        [CONST.AVATAR_SIZE.X_LARGE]: {
+            singleAvatarStyle: styles.singleAvatarMediumLarge,
+            secondAvatarStyles: styles.secondAvatarMediumLarge,
+        },
+        [CONST.AVATAR_SIZE.DEFAULT]: {
+            singleAvatarStyle: styles.singleAvatar,
+            secondAvatarStyles: styles.secondAvatar,
+        },
+    };
 
-    const avatarSize = useMemo(() => {
-        if (useMidSubscriptSize) {
-            return CONST.AVATAR_SIZE.MID_SUBSCRIPT;
-        }
-        if (size === CONST.AVATAR_SIZE.LARGE) {
-            return CONST.AVATAR_SIZE.MEDIUM;
-        }
-        if (size === CONST.AVATAR_SIZE.X_LARGE) {
-            return CONST.AVATAR_SIZE.MEDIUM_LARGE;
-        }
-        return CONST.AVATAR_SIZE.SMALLER;
-    }, [useMidSubscriptSize, size]);
+    let avatarSize = CONST.AVATAR_SIZE.SMALLER;
+    if (useMidSubscriptSize) {
+        avatarSize = CONST.AVATAR_SIZE.MID_SUBSCRIPT;
+    } else if (size === CONST.AVATAR_SIZE.LARGE) {
+        avatarSize = CONST.AVATAR_SIZE.MEDIUM;
+    } else if (size === CONST.AVATAR_SIZE.X_LARGE) {
+        avatarSize = CONST.AVATAR_SIZE.MEDIUM_LARGE;
+    }
 
-    const {singleAvatarStyle, secondAvatarStyles} = useMemo(() => avatarSizeToStylesMap[size as AvatarSizeToStyles] ?? avatarSizeToStylesMap.default, [size, avatarSizeToStylesMap]);
+    const {singleAvatarStyle, secondAvatarStyles} = avatarSizeToStylesMap[size as AvatarSizeToStyles] ?? avatarSizeToStylesMap.default;
 
     return (
         <View style={avatarContainerStyles}>
@@ -119,6 +108,4 @@ function LHNAvatarDiagonal({primaryIcon, secondaryIcon, size, secondaryAvatarBac
     );
 }
 
-LHNAvatarDiagonal.displayName = 'LHNAvatarDiagonal';
-
-export default React.memo(LHNAvatarDiagonal);
+export default LHNAvatarDiagonal;
