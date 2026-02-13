@@ -173,8 +173,7 @@ function ReportActionCompose({
     useEffect(() => {
         const previousActiveEdit = previousActiveEditRef.current;
 
-        if (activeEdit && previousActiveEdit && activeEdit !== previousActiveEdit) {
-            deleteReportActionDraft(reportID, activeEdit.reportAction);
+        if (activeEdit) {
             return;
         }
 

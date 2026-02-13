@@ -167,6 +167,7 @@ import {
 import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils';
 import {setDownload} from '@userActions/Download';
 import {
+    clearReportActionDrafts,
     deleteReportActionDraft,
     explain,
     markCommentAsUnread,
@@ -192,7 +193,6 @@ import type {
     ReportAction,
     ReportActionReactions,
     ReportActions,
-    ReportActionsDrafts,
     Report as ReportType,
     Transaction,
 } from '@src/types/onyx';
@@ -258,8 +258,6 @@ type ContextMenuActionPayload = {
     report: OnyxEntry<ReportType>;
     policy?: OnyxEntry<Policy>;
     draftMessage: string;
-    allDraftMessages?: ReportActionsDrafts;
-    shouldUseNarrowLayout: boolean;
     selection: string;
     close: () => void;
     transitionActionSheetState: (params: {type: string; payload?: Record<string, unknown>}) => void;
@@ -518,7 +516,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         icon: 'Pencil',
         shouldShow: ({type, reportAction, isArchivedRoom, isChronosReport, moneyRequestAction}) =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && (canEditReportAction(reportAction) || canEditReportAction(moneyRequestAction)) && !isArchivedRoom && !isChronosReport,
-        onPress: (closePopover, {reportID, reportAction, allDraftMessages, shouldUseNarrowLayout, draftMessage, moneyRequestAction, introSelected}) => {
+        onPress: (closePopover, {reportID, reportAction, draftMessage, moneyRequestAction, introSelected}) => {
             if (isMoneyRequestAction(reportAction) || isMoneyRequestAction(moneyRequestAction)) {
                 const editExpense = () => {
                     const childReportID = reportAction?.childReportID;
@@ -533,19 +531,12 @@ const ContextMenuActions: ContextMenuAction[] = [
                 return;
             }
             const editAction = () => {
-                if (!draftMessage) {
-                    if (shouldUseNarrowLayout && allDraftMessages) {
-                        for (const actionID of Object.keys(allDraftMessages)) {
-                            if (actionID === reportAction.reportActionID) {
-                                continue;
-                            }
-                            deleteReportActionDraft(reportID, reportAction);
-                        }
-                    }
+                clearReportActionDrafts(reportID);
 
-                    saveReportActionDraft(reportID, reportAction, Parser.htmlToMarkdown(getActionHtml(reportAction)));
-                } else {
+                if (draftMessage) {
                     deleteReportActionDraft(reportID, reportAction);
+                } else {
+                    saveReportActionDraft(reportID, reportAction, Parser.htmlToMarkdown(getActionHtml(reportAction)));
                 }
             };
 

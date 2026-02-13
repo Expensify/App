@@ -2380,6 +2380,10 @@ function editReportComment(
     );
 }
 
+function clearReportActionDrafts(reportID: string | undefined) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`, null);
+}
+
 /** Deletes the draft for a comment report action. */
 function deleteReportActionDraft(reportID: string | undefined, reportAction: ReportAction | null | undefined) {
     if (!reportAction) {
@@ -6645,6 +6649,7 @@ export {
     completeOnboarding,
     createNewReport,
     deleteReport,
+    clearReportActionDrafts,
     deleteReportActionDraft,
     deleteReportComment,
     deleteReportField,
