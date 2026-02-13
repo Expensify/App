@@ -9,6 +9,7 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import type {SearchQueryJSON} from '@components/Search/types';
 import useAncestors from '@hooks/useAncestors';
+import markAllMessagesAsRead from '@libs/actions/Report/MarkAllMessageAsRead';
 import {CONCIERGE_RESPONSE_DELAY_MS, resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -464,7 +465,7 @@ describe('actions/Report', () => {
                 expect(ReportUtils.isUnreadWithMention(report)).toBe(false);
 
                 // When the user manually marks a message as "unread"
-                Report.markCommentAsUnread(REPORT_ID, reportActions['1'], USER_1_ACCOUNT_ID);
+                Report.markCommentAsUnread(REPORT_ID, reportActions, reportActions['1'], USER_1_ACCOUNT_ID);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -609,7 +610,7 @@ describe('actions/Report', () => {
                 expect(ReportUtils.isUnread(report, undefined, undefined)).toBe(false);
 
                 // When the user manually marks a message as "unread"
-                Report.markCommentAsUnread(REPORT_ID, reportActions[400], USER_1_ACCOUNT_ID);
+                Report.markCommentAsUnread(REPORT_ID, reportActions, reportActions[400], USER_1_ACCOUNT_ID);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -2380,7 +2381,7 @@ describe('actions/Report', () => {
             await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportCollections);
 
             // When mark all reports as read
-            Report.markAllMessagesAsRead(new Set<string>());
+            markAllMessagesAsRead(new Set<string>());
 
             await waitForBatchedUpdates();
 
@@ -3920,17 +3921,23 @@ describe('actions/Report', () => {
     });
 
     describe('explain', () => {
+        const TEST_USER_ACCOUNT_ID = 1;
+        const TEST_USER_LOGIN = 'test@domain.com';
+        const PARENT_REPORT_ID = '1';
+        const CHILD_REPORT_ID = '2';
+        const REPORT_ACTION_ID = 1;
+        const MOCK_NEW_THREAD_REPORT_ID = '9876';
+
         beforeEach(() => {
             jest.spyOn(global, 'requestAnimationFrame').mockImplementation((cb: FrameRequestCallback) => {
                 cb(0);
                 return 0;
             });
         });
-        const TEST_USER_ACCOUNT_ID = 1;
-        const TEST_USER_LOGIN = 'test@domain.com';
-        const PARENT_REPORT_ID = '1';
-        const CHILD_REPORT_ID = '2';
-        const REPORT_ACTION_ID = 1;
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
 
         it('should return early if originalReport is not provided', () => {
             const REPORT_ACTION: OnyxTypes.ReportAction = {
@@ -3986,7 +3993,7 @@ describe('actions/Report', () => {
             Report.explain(undefined, PARENT_REPORT, REPORT_ACTION, TestHelper.translateLocal, TEST_USER_ACCOUNT_ID, CONST.DEFAULT_TIME_ZONE);
             await waitForBatchedUpdates();
 
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute('9876'));
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(MOCK_NEW_THREAD_REPORT_ID));
         });
 
         it('should handle explain with default timezone parameter', async () => {

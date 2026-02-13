@@ -8,25 +8,26 @@ import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 
-const eligiblePoliciesSelector = (policies: OnyxCollection<Policy>) => {
+const eligiblePoliciesSelector = (policies: OnyxCollection<Policy>): string[] => {
     return Object.values(policies ?? {}).reduce((policiesIDs, policy) => {
         if (isPaidGroupPolicy(policy) && policy?.areCompanyCardsEnabled) {
-            policiesIDs.add(policy.id);
+            policiesIDs.push(policy.id);
         }
         return policiesIDs;
-    }, new Set<string>());
+    }, [] as string[]);
 };
 
 const useCardFeedsForDisplay = () => {
     const {localeCompare, translate} = useLocalize();
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [eligiblePoliciesIDs] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+    const [eligiblePoliciesIDsArray] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: eligiblePoliciesSelector,
         canBeMissing: true,
     });
 
     const cardFeedsByPolicy = getCardFeedsForDisplayPerPolicy(allFeeds, translate);
+    const eligiblePoliciesIDs = new Set(eligiblePoliciesIDsArray);
 
     let defaultCardFeed;
     if (eligiblePoliciesIDs) {

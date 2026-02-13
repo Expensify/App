@@ -7,6 +7,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
+import type {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
 import {getDecodedCategoryName, isCategoryMissing} from './CategoryUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -16,7 +18,7 @@ import {formatList, translateLocal} from './Localize';
 import Log from './Log';
 import Parser from './Parser';
 import {getPersonalDetailByEmail} from './PersonalDetailsUtils';
-import {getCleanedTagName, getPolicy, getSortedTagKeys, isPolicyAdmin} from './PolicyUtils';
+import {getCleanedTagName, getCommaSeparatedTagNameWithSanitizedColons, getPolicy, getSortedTagKeys, isPolicyAdmin} from './PolicyUtils';
 import {getOriginalMessage, isModifiedExpenseAction} from './ReportActionsUtils';
 // This cycle import is safe because ReportNameUtils was extracted from ReportUtils to separate report name computation logic.
 // The functions imported here are pure utility functions that don't create initialization-time dependencies.
@@ -83,7 +85,7 @@ function buildMessageFragmentForValue(
 
     if (!oldValue || isOldValuePartialMerchant || isOldCategoryMissing) {
         if (!(isOldCategoryMissing && isNewCategoryMissing)) {
-            const fragment = translate('iou.setTheRequest', {valueName: displayValueName, newValueToDisplay});
+            const fragment = translate('iou.setTheRequest', displayValueName, newValueToDisplay);
             setFragments.push(fragment);
         }
     } else if (!newValue || newValue === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) {
@@ -146,7 +148,7 @@ function getForDistanceRequest(translate: LocalizedTranslate, newMerchant: strin
     }
     const translatedChangedField = translate(`common.${changedField}`).toLowerCase();
     if (!oldMerchant.length) {
-        return translate('iou.setTheDistanceMerchant', {translatedChangedField, newMerchant, newAmountToDisplay: newAmount});
+        return translate('iou.setTheDistanceMerchant', translatedChangedField, newMerchant, newAmount);
     }
     return translate('iou.updatedTheDistanceMerchant', {
         translatedChangedField,
@@ -197,6 +199,41 @@ function getMovedFromOrToReportMessage(translate: LocalizedTranslate, movedFromR
         const originReportName = getReportName(movedFromReport);
         return translate('iou.movedFromReport', originReportName ?? '');
     }
+}
+
+function getPolicyRulesModifiedMessage(translate: LocalizedTranslate, fields: PolicyRulesModifiedFields, policyID: string) {
+    const route = `${environmentURL}/${ROUTES.WORKSPACE_RULES.getRoute(policyID)}`;
+    const entries = ObjectUtils.typedEntries(fields);
+
+    const fragments = entries.map(([key, value], i) => {
+        const isFirst = i === 0;
+
+        if (key === 'reimbursable') {
+            return translate('iou.policyRulesModifiedFields.reimbursable', value as boolean);
+        }
+
+        if (key === 'billable') {
+            return translate('iou.policyRulesModifiedFields.billable', value as boolean);
+        }
+
+        if (key === 'tax') {
+            const taxEntry = value as PolicyRulesModifiedFields['tax'];
+            const taxRateName = taxEntry?.field_id_TAX.name ?? '';
+            return translate('iou.policyRulesModifiedFields.tax', taxRateName, isFirst);
+        }
+
+        const updatedValue = value as string;
+        if (key === 'category') {
+            return translate('iou.policyRulesModifiedFields.common', key, getDecodedCategoryName(updatedValue), isFirst);
+        }
+        if (key === 'tag') {
+            return translate('iou.policyRulesModifiedFields.common', key, getCommaSeparatedTagNameWithSanitizedColons(updatedValue), isFirst);
+        }
+
+        return translate('iou.policyRulesModifiedFields.common', key, updatedValue, isFirst);
+    });
+
+    return translate('iou.policyRulesModifiedFields.format', formatList(fragments), route);
 }
 
 /**
@@ -474,9 +511,8 @@ function getForReportAction({
         const policyRulesModifiedFields = reportActionOriginalMessage.policyRulesModifiedFields;
 
         if (policyRulesModifiedFields && rulePolicyID) {
-            const policyRulesRoute = `${environmentURL}/${ROUTES.WORKSPACE_RULES.getRoute(rulePolicyID)}`;
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal('iou.policyRulesModifiedFields', policyRulesModifiedFields, policyRulesRoute, formatList);
+            return getPolicyRulesModifiedMessage(translateLocal, policyRulesModifiedFields, rulePolicyID);
         }
     }
 
@@ -718,8 +754,7 @@ function getForReportActionTemp({
         const {policyRulesModifiedFields, policyID} = reportActionOriginalMessage;
 
         if (policyRulesModifiedFields && policyID) {
-            const policyRulesRoute = `${environmentURL}/${ROUTES.WORKSPACE_RULES.getRoute(policyID)}`;
-            return translate('iou.policyRulesModifiedFields', policyRulesModifiedFields, policyRulesRoute, formatList);
+            return getPolicyRulesModifiedMessage(translate, policyRulesModifiedFields, policyID);
         }
     }
 
