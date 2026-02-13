@@ -2,7 +2,7 @@ import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import type {Ref, RefObject} from 'react';
 import React, {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {BlurEvent, LayoutChangeEvent, MeasureInWindowOnSuccessCallback, TextInput, TextInputContentSizeChangeEvent, TextInputKeyPressEvent, TextInputScrollEvent} from 'react-native';
+import type {BlurEvent, LayoutChangeEvent, MeasureInWindowOnSuccessCallback, TextInputContentSizeChangeEvent, TextInputKeyPressEvent, TextInputScrollEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, NativeModules, StyleSheet, View} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -10,7 +10,7 @@ import {useAnimatedRef, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
 import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
 import Composer from '@components/Composer';
-import type {CustomSelectionChangeEvent, TextSelection} from '@components/Composer/types';
+import type {ComposerRef, CustomSelectionChangeEvent, TextSelection} from '@components/Composer/types';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -63,6 +63,26 @@ type SyncSelection = {
 };
 
 type NewlyAddedChars = {startIndex: number; endIndex: number; diff: string};
+
+type ComposerWithSuggestionsRef = ComposerRef & {
+    /** Focus the composer */
+    focus: (shouldDelay?: boolean) => void;
+
+    /** Replace the selection with text */
+    replaceSelectionWithText: OnEmojiSelected;
+
+    /** Get the current text of the composer */
+    getCurrentText: () => string;
+
+    /**
+     * Calling clear will immediately clear the input on the UI thread (its a worklet).
+     * Once the composer ahs cleared onCleared will be called with the value that was cleared.
+     */
+    clearWorklet: () => void;
+
+    /** Reset the height of the composer */
+    resetHeight: () => void;
+};
 
 type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
     ForwardedFSClassProps & {
@@ -142,7 +162,7 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
         didHideComposerInput?: boolean;
 
         /** Reference to the outer element */
-        ref?: Ref<ComposerRef | null>;
+        ref?: Ref<ComposerWithSuggestionsRef | null>;
     };
 
 type SwitchToCurrentReportProps = {
@@ -150,26 +170,6 @@ type SwitchToCurrentReportProps = {
     reportToCopyDraftTo: string;
     callback: () => void;
 };
-
-type ComposerRef = {
-    blur: () => void;
-    focus: (shouldDelay?: boolean) => void;
-    replaceSelectionWithText: OnEmojiSelected;
-    getCurrentText: () => string;
-    isFocused: () => boolean;
-
-    /**
-     * Calling clear will immediately clear the input on the UI thread (its a worklet).
-     * Once the composer ahs cleared onCleared will be called with the value that was cleared.
-     */
-    clearWorklet: () => void;
-
-    /**
-     * Reset the height of the composer.
-     */
-    resetHeight: () => void;
-};
-
 const {RNTextInputReset} = NativeModules;
 
 const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
@@ -334,7 +334,7 @@ function ComposerWithSuggestions({
     const [composerHeightAfterClear, setDefaultComposerHeight] = useState<number | null>(null);
     const emptyComposerHeightRef = useRef<number | null>(null);
 
-    const textInputRef = useRef<TextInput | null>(null);
+    const composerRef = useRef<ComposerRef | null>(null);
 
     const syncSelectionWithOnChangeTextRef = useRef<SyncSelection | null>(null);
 
@@ -353,10 +353,10 @@ function ComposerWithSuggestions({
     /**
      * Set the TextInput Ref
      */
-    const setTextInputRef = useCallback(
-        (el: TextInput) => {
+    const setComposerRef = useCallback(
+        (el: ComposerRef) => {
             ReportActionComposeFocusManager.composerRef.current = el;
-            textInputRef.current = el;
+            composerRef.current = el;
             if (typeof animatedRef === 'function') {
                 animatedRef(el);
             }
@@ -650,7 +650,7 @@ function ComposerWithSuggestions({
                 InteractionManager.runAfterInteractions(() => {
                     // note: this implementation is only available on non-web RN, thus the wrapping
                     // 'if' block contains a redundant (since the ref is only used on iOS) platform check
-                    textInputRef.current?.setSelection(positionSnapshot, positionSnapshot);
+                    composerRef.current?.setSelection(positionSnapshot, positionSnapshot);
                 });
             }
         },
@@ -661,7 +661,7 @@ function ComposerWithSuggestions({
         (e: CustomSelectionChangeEvent) => {
             setSelection(e.nativeEvent.selection);
 
-            if (!textInputRef.current?.isFocused()) {
+            if (!composerRef.current?.isFocused()) {
                 return;
             }
             suggestionsRef.current?.onSelectionChange?.(e);
@@ -695,7 +695,7 @@ function ComposerWithSuggestions({
     const focus = useCallback((shouldDelay = false) => {
         // If we're stacked above another RHP, wait for the transition to complete before focusing.
         const delay = shouldDelayAutoFocusRef.current ? CONST.ANIMATED_TRANSITION : CONST.COMPOSER_FOCUS_DELAY;
-        focusComposerWithDelay(textInputRef.current, delay)(shouldDelay);
+        focusComposerWithDelay(composerRef.current, delay)(shouldDelay);
     }, []);
 
     /**
@@ -782,10 +782,10 @@ function ComposerWithSuggestions({
     );
 
     const blur = useCallback(() => {
-        if (!textInputRef.current) {
+        if (!composerRef.current) {
             return;
         }
-        textInputRef.current.blur();
+        composerRef.current.blur();
     }, []);
 
     const clearWorklet = useCallback(() => {
@@ -810,7 +810,7 @@ function ComposerWithSuggestions({
         const unsubscribeNavigationFocus = navigation.addListener('focus', () => {
             addKeyDownPressListener(focusComposerOnKeyPress);
             // The report isn't unmounted and can be focused again after going back from another report so we should update the composerRef again
-            ReportActionComposeFocusManager.composerRef.current = textInputRef.current;
+            ReportActionComposeFocusManager.composerRef.current = composerRef.current;
             setUpComposeFocusManager();
         });
         addKeyDownPressListener(focusComposerOnKeyPress);
@@ -838,7 +838,7 @@ function ComposerWithSuggestions({
 
         // We want to blur the input immediately when a screen is out of focus.
         if (!isFocused) {
-            textInputRef.current?.blur();
+            composerRef.current?.blur();
             return;
         }
 
@@ -863,22 +863,40 @@ function ComposerWithSuggestions({
 
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
-        updateMultilineInputRange(textInputRef.current, !!shouldAutoFocus);
+        updateMultilineInputRange(composerRef.current, !!shouldAutoFocus);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useImperativeHandle(
         ref,
-        () => ({
-            blur,
-            focus,
-            replaceSelectionWithText,
-            isFocused: () => !!textInputRef.current?.isFocused(),
-            getCurrentText,
-            clearWorklet,
-            resetHeight,
-        }),
-        [blur, focus, replaceSelectionWithText, clearWorklet, resetHeight, getCurrentText],
+        () =>
+            new Proxy(
+                {},
+                {
+                    get: (_target, prop) => {
+                        if (prop === 'blur') {
+                            return blur;
+                        }
+                        if (prop === 'focus') {
+                            return focus;
+                        }
+                        if (prop === 'replaceSelectionWithText') {
+                            return replaceSelectionWithText;
+                        }
+                        if (prop === 'getCurrentText') {
+                            return getCurrentText;
+                        }
+                        if (prop === 'clearWorklet') {
+                            return clearWorklet;
+                        }
+                        if (prop === 'resetHeight') {
+                            return resetHeight;
+                        }
+
+                        return composerRef.current?.[prop as keyof ComposerRef];
+                    },
+                },
+            ) as ComposerWithSuggestionsRef,
     );
 
     useEffect(() => {
@@ -897,7 +915,7 @@ function ComposerWithSuggestions({
 
     useEffect(() => {
         // We use the tag to store the native ID of the text input. Later, we use it in onSelectionChange to pick up the proper text input data.
-        tag.set(findNodeHandle(textInputRef.current) ?? -1);
+        tag.set(findNodeHandle(composerRef.current) ?? -1);
     }, [tag]);
 
     useFocusedInputHandler(
@@ -917,7 +935,7 @@ function ComposerWithSuggestions({
     );
     const measureParentContainerAndReportCursor = useCallback(
         (callback: MeasureParentContainerAndCursorCallback) => {
-            const {scrollValue} = getScrollPosition({mobileInputScrollPosition, textInputRef});
+            const {scrollValue} = getScrollPosition({mobileInputScrollPosition, textInputRef: composerRef});
             const {x: xPosition, y: yPosition} = getCursorPosition({positionOnMobile: cursorPositionValue.get(), positionOnWeb: selection});
             measureParentContainer((x, y, width, height) => {
                 callback({
@@ -974,7 +992,7 @@ function ComposerWithSuggestions({
         }
 
         queueMicrotask(() => {
-            textInputRef.current?.setSelection?.(endOfSuggestionSelection, endOfSuggestionSelection);
+            composerRef.current?.setSelection?.(endOfSuggestionSelection, endOfSuggestionSelection);
         });
     }, []);
 
@@ -992,7 +1010,7 @@ function ComposerWithSuggestions({
                     // So we must also prevent the TextInput's immediate `autoFocus` and rely on our delayed manual focus instead.
                     autoFocus={!!shouldAutoFocus && !shouldDelayAutoFocus}
                     multiline
-                    ref={setTextInputRef}
+                    ref={setComposerRef}
                     placeholder={inputPlaceholder}
                     placeholderTextColor={theme.placeholderText}
                     onChangeText={onChangeText}
@@ -1008,7 +1026,7 @@ function ComposerWithSuggestions({
                     onBlur={onBlur}
                     onClick={setShouldBlockSuggestionCalcToFalse}
                     onPasteFile={(files) => {
-                        textInputRef.current?.blur();
+                        composerRef.current?.blur();
                         onPasteFile(files);
                     }}
                     onClear={onClear}
@@ -1030,7 +1048,7 @@ function ComposerWithSuggestions({
 
             <Suggestions
                 ref={suggestionsRef}
-                isComposerFocused={textInputRef.current?.isFocused()}
+                isComposerFocused={composerRef.current?.isFocused()}
                 updateComment={updateComment}
                 measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
                 isGroupPolicyReport={isGroupPolicyReport}
@@ -1062,4 +1080,4 @@ function ComposerWithSuggestions({
 
 export default memo(ComposerWithSuggestions);
 
-export type {ComposerWithSuggestionsProps, ComposerRef};
+export type {ComposerWithSuggestionsProps, ComposerWithSuggestionsRef};

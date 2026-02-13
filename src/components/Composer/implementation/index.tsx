@@ -5,7 +5,7 @@ import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, use
 // eslint-disable-next-line no-restricted-imports
 import type {TextInputKeyPressEvent, TextInputSelectionChangeEvent} from 'react-native';
 import {DeviceEventEmitter, StyleSheet} from 'react-native';
-import type {ComposerProps} from '@components/Composer/types';
+import type {ComposerProps, ComposerRef} from '@components/Composer/types';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 import useHtmlPaste from '@hooks/useHtmlPaste';
@@ -57,7 +57,7 @@ function Composer({
     const styles = useThemeStyles();
     const markdownStyle = useMarkdownStyle(textContainsOnlyEmojis, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
     const StyleUtils = useStyleUtils();
-    const textInput = useRef<AnimatedMarkdownTextInputRef | null>(null);
+    const textInputRef = useRef<AnimatedMarkdownTextInputRef | null>(null);
     const [selection, setSelection] = useState<
         | {
               start: number;
@@ -72,7 +72,7 @@ function Composer({
     });
     const [isRendered, setIsRendered] = useState(false);
 
-    const isScrollBarVisible = useIsScrollBarVisible(textInput, value ?? '');
+    const isScrollBarVisible = useIsScrollBarVisible(textInputRef, value ?? '');
     const [prevScroll, setPrevScroll] = useState<number | undefined>();
     const [prevHeight, setPrevHeight] = useState<number | undefined>();
     const isReportFlatListScrolling = useRef(false);
@@ -94,13 +94,13 @@ function Composer({
             const range = sel.getRangeAt(0).cloneRange();
             range.collapse(true);
             const rect = range.getClientRects()[0] || range.startContainer.parentElement?.getClientRects()[0];
-            const containerRect = textInput.current?.getBoundingClientRect();
+            const containerRect = textInputRef.current?.getBoundingClientRect();
 
             let x = 0;
             let y = 0;
             if (rect && containerRect) {
                 x = rect.left - containerRect.left;
-                y = rect.top - containerRect.top + (textInput?.current?.scrollTop ?? 0) - rect.height / 2;
+                y = rect.top - containerRect.top + (textInputRef?.current?.scrollTop ?? 0) - rect.height / 2;
             }
 
             const selectionValue = {
@@ -131,14 +131,14 @@ function Composer({
     const handlePaste = useCallback(
         (event: ClipboardEvent) => {
             const isVisible = checkComposerVisibility();
-            const isFocused = textInput.current?.isFocused();
+            const isFocused = textInputRef.current?.isFocused();
             const isContenteditableDivFocused = document.activeElement?.nodeName === 'DIV' && document.activeElement?.hasAttribute('contenteditable');
 
             if (!(isVisible || isFocused)) {
                 return true;
             }
 
-            if (textInput.current !== event.target && !(isContenteditableDivFocused && !event.clipboardData?.files.length)) {
+            if (textInputRef.current !== event.target && !(isContenteditableDivFocused && !event.clipboardData?.files.length)) {
                 const eventTarget = event.target as HTMLInputElement | HTMLTextAreaElement | null;
                 // To make sure the composer does not capture paste events from other inputs, we check where the event originated
                 // If it did originate in another input, we return early to prevent the composer from handling the paste
@@ -147,7 +147,7 @@ function Composer({
                     return true;
                 }
 
-                textInput.current?.focus();
+                textInputRef.current?.focus();
             }
 
             event.preventDefault();
@@ -202,19 +202,19 @@ function Composer({
     );
 
     useEffect(() => {
-        if (!textInput.current) {
+        if (!textInputRef.current) {
             return;
         }
         const debouncedSetPrevScroll = lodashDebounce(() => {
-            if (!textInput.current) {
+            if (!textInputRef.current) {
                 return;
             }
-            setPrevScroll(textInput.current.scrollTop);
+            setPrevScroll(textInputRef.current.scrollTop);
         }, 100);
 
-        textInput.current.addEventListener('scroll', debouncedSetPrevScroll);
+        textInputRef.current.addEventListener('scroll', debouncedSetPrevScroll);
         return () => {
-            textInput.current?.removeEventListener('scroll', debouncedSetPrevScroll);
+            textInputRef.current?.removeEventListener('scroll', debouncedSetPrevScroll);
         };
     }, []);
 
@@ -235,40 +235,40 @@ function Composer({
 
             // When the composer has no scrollable content, the stopPropagation will prevent the inverted wheel event handler on the Chat body
             // which defaults to the browser wheel behavior. This causes the chat body to scroll in the opposite direction creating jerky behavior.
-            if (textInput.current && textInput.current.scrollHeight <= textInput.current.clientHeight) {
+            if (textInputRef.current && textInputRef.current.scrollHeight <= textInputRef.current.clientHeight) {
                 return;
             }
             e.stopPropagation();
         };
-        textInput.current?.addEventListener('wheel', handleWheel, {passive: false});
+        textInputRef.current?.addEventListener('wheel', handleWheel, {passive: false});
 
         return () => {
-            textInput.current?.removeEventListener('wheel', handleWheel);
+            textInputRef.current?.removeEventListener('wheel', handleWheel);
         };
     }, []);
 
     useEffect(() => {
-        if (!textInput.current || prevScroll === undefined || prevHeight === undefined) {
+        if (!textInputRef.current || prevScroll === undefined || prevHeight === undefined) {
             return;
         }
-        textInput.current.scrollTop = prevScroll + prevHeight - textInput.current.clientHeight;
+        textInputRef.current.scrollTop = prevScroll + prevHeight - textInputRef.current.clientHeight;
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isComposerFullSize]);
 
     const isActive = useIsFocused();
-    useHtmlPaste(textInput, handlePaste, isActive);
+    useHtmlPaste(textInputRef, handlePaste, isActive);
 
     useEffect(() => {
         setIsRendered(true);
     }, []);
 
     const clear = useCallback(() => {
-        if (!textInput.current) {
+        if (!textInputRef.current) {
             return;
         }
 
-        const currentText = textInput.current.value;
-        textInput.current.clear();
+        const currentText = textInputRef.current.value;
+        textInputRef.current.clear();
 
         // We need to reset the selection to 0,0 manually after clearing the text input on web
         const selectionEvent = {
@@ -285,24 +285,30 @@ function Composer({
         onClear(currentText);
     }, [onClear, onSelectionChange]);
 
-    useImperativeHandle(ref, () => {
-        const textInputRef = textInput.current;
-        if (!textInputRef) {
-            throw new Error('textInputRef is not available. This should never happen and indicates a developer error.');
-        }
-
-        return {
-            ...textInputRef,
-            // Overwrite clear with our custom implementation, which mimics how the native TextInput's clear method works
-            clear,
-            // We have to redefine these methods as they are inherited by prototype chain and are not accessible directly
-            blur: () => textInputRef.blur(),
-            focus: () => textInputRef.focus(),
-            get scrollTop() {
-                return textInputRef.scrollTop;
-            },
-        };
-    }, [clear]);
+    useImperativeHandle(
+        ref,
+        () =>
+            new Proxy(
+                {},
+                {
+                    get: (_target, prop) => {
+                        if (prop === 'clear') {
+                            return clear;
+                        }
+                        if (prop === 'blur') {
+                            return () => textInputRef.current?.blur();
+                        }
+                        if (prop === 'focus') {
+                            return () => textInputRef.current?.focus();
+                        }
+                        if (prop === 'scrollTop') {
+                            return textInputRef.current?.scrollTop;
+                        }
+                        return textInputRef.current?.[prop as keyof AnimatedMarkdownTextInputRef];
+                    },
+                },
+            ) as ComposerRef,
+    );
 
     const handleKeyPress = useCallback(
         (e: TextInputKeyPressEvent) => {
@@ -343,9 +349,7 @@ function Composer({
             autoComplete="off"
             autoCorrect={!isMobileSafari()}
             placeholderTextColor={theme.placeholderText}
-            ref={(el) => {
-                textInput.current = el;
-            }}
+            ref={textInputRef}
             selection={selection}
             style={[inputStyleMemo]}
             markdownStyle={markdownStyle}

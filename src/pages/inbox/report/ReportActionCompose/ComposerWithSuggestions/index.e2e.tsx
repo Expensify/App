@@ -2,8 +2,7 @@ import React, {useCallback, useRef} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {Keyboard} from 'react-native';
 import E2EClient from '@libs/E2E/client';
-import type {ComposerRef} from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
-import type {ComposerWithSuggestionsProps} from './ComposerWithSuggestions';
+import type {ComposerWithSuggestionsProps, ComposerWithSuggestionsRef} from './ComposerWithSuggestions';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 
 let rerenderCount = 0;
@@ -24,7 +23,7 @@ function ComposerWithSuggestionsE2e({ref, ...props}: ComposerWithSuggestionsProp
     // for this component. This file is only used for e2e tests, so it's okay to
     // disable compiler for this file.
 
-    const textInputRef = useRef<ComposerRef | null>(null);
+    const textInputRef = useRef<ComposerWithSuggestionsRef | null>(null);
     const hasFocusBeenRequested = useRef(false);
     const onLayout = useCallback((event: LayoutChangeEvent) => {
         const testConfig = E2EClient.getCurrentActiveTestConfig();
