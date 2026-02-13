@@ -5,14 +5,11 @@ import type {OnyxCollection} from 'react-native-onyx';
 import WidgetContainer from '@components/WidgetContainer';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasSynchronizationErrorMessage, isConnectionInProgress} from '@libs/actions/connections';
-import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName, PolicyConnectionName} from '@src/types/onyx/Policy';
@@ -24,10 +21,14 @@ import FixAccountingConnection from './items/FixAccountingConnection';
 import FixCompanyCardConnection from './items/FixCompanyCardConnection';
 import Offer25off from './items/Offer25off';
 import Offer50off from './items/Offer50off';
+import ReviewCardFraud from './items/ReviewCardFraud';
 
 type BrokenAccountingConnection = {
     /** The policy ID associated with this connection */
     policyID: string;
+
+    /** The policy name associated with this connection */
+    policyName: string;
 
     /** The connection name that has an error */
     connectionName: PolicyConnectionName;
@@ -43,15 +44,13 @@ type BrokenCompanyCardConnection = {
 
 function TimeSensitiveSection() {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Stopwatch']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {login} = useCurrentUserPersonalDetails();
 
     // Use custom hooks for offers and cards (Release 3)
     const {shouldShow50off, shouldShow25off, firstDayFreeTrial, discountInfo} = useTimeSensitiveOffers();
-    const {shouldShowAddShippingAddress, shouldShowActivateCard, cardsNeedingShippingAddress, cardsNeedingActivation} = useTimeSensitiveCards();
+    const {shouldShowAddShippingAddress, shouldShowActivateCard, shouldShowReviewCardFraud, cardsNeedingShippingAddress, cardsNeedingActivation, cardsWithFraud} = useTimeSensitiveCards();
 
     // Selector for filtering admin policies (Release 4)
     const adminPoliciesSelectorWrapper = useCallback((policies: OnyxCollection<Policy>) => activeAdminPoliciesSelector(policies, login ?? ''), [login]);
@@ -77,6 +76,7 @@ function TimeSensitiveSection() {
             if (hasSynchronizationErrorMessage(policy, connectionName, isSyncInProgress)) {
                 brokenAccountingConnections.push({
                     policyID: policy.id,
+                    policyName: policy.name,
                     connectionName,
                 });
             }
@@ -110,29 +110,36 @@ function TimeSensitiveSection() {
     const hasBrokenCompanyCards = brokenCompanyCardConnections.length > 0;
     const hasBrokenAccountingConnections = brokenAccountingConnections.length > 0;
     const hasAnyTimeSensitiveContent =
-        shouldShow50off || shouldShow25off || hasBrokenCompanyCards || hasBrokenAccountingConnections || shouldShowAddShippingAddress || shouldShowActivateCard;
+        shouldShowReviewCardFraud || shouldShow50off || shouldShow25off || hasBrokenCompanyCards || hasBrokenAccountingConnections || shouldShowAddShippingAddress || shouldShowActivateCard;
 
     if (!hasAnyTimeSensitiveContent) {
         return null;
     }
 
     // Priority order:
-    // 1. Potential card fraud ( not implemented here)
+    // 1. Potential card fraud
     // 2. Broken bank connections (company cards)
     // 3. Broken accounting connections
     // 4. Early adoption discount (50% or 25%)
     // 5. Expensify card shipping
     // 6. Expensify card activation
     return (
-        <WidgetContainer
-            icon={icons.Stopwatch}
-            iconWidth={variables.iconSizeNormal}
-            iconHeight={variables.iconSizeNormal}
-            iconFill={theme.danger}
-            title={translate('homePage.timeSensitiveSection.title')}
-            titleColor={theme.danger}
-        >
+        <WidgetContainer title={translate('homePage.timeSensitiveSection.title')}>
             <View style={styles.getForYouSectionContainerStyle(shouldUseNarrowLayout)}>
+                {/* Priority 1: Card fraud alerts */}
+                {shouldShowReviewCardFraud &&
+                    cardsWithFraud.map((card) => {
+                        if (!card.nameValuePairs?.possibleFraud) {
+                            return null;
+                        }
+                        return (
+                            <ReviewCardFraud
+                                key={card.cardID}
+                                possibleFraud={card.nameValuePairs.possibleFraud}
+                            />
+                        );
+                    })}
+
                 {/* Priority 2: Broken company card connections */}
                 {brokenCompanyCardConnections.map((connection) => {
                     const card = cardFeedErrors.cardsWithBrokenFeedConnection[connection.cardID];
@@ -154,6 +161,7 @@ function TimeSensitiveSection() {
                         key={`accounting-${connection.policyID}-${connection.connectionName}`}
                         connectionName={connection.connectionName}
                         policyID={connection.policyID}
+                        policyName={connection.policyName}
                     />
                 ))}
 
