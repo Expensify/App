@@ -154,6 +154,7 @@ function SettlementButton({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const isPayInvoiceViaExpensifyBetaEnabled = isBetaEnabled(CONST.BETAS.PAY_INVOICE_VIA_EXPENSIFY);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, accountID, email ?? '');
 
     const isInvoiceReport = (!isEmptyObject(iouReport) && isInvoiceReportUtil(iouReport)) || false;
@@ -337,7 +338,7 @@ function SettlementButton({
         }
 
         if (isInvoiceReport) {
-            const isCurrencySupported = isCurrencySupportedForGlobalReimbursement(currency as CurrencyType);
+            const showPayViaExpensifyOptions = isPayInvoiceViaExpensifyBetaEnabled && isCurrencySupportedForGlobalReimbursement(currency as CurrencyType);
             const hasActivePolicyAsAdmin = !!activePolicy && isPolicyAdmin(activePolicy) && isPaidGroupPolicy(activePolicy);
 
             const isActivePolicyCurrencySupported = isCurrencySupportedForDirectReimbursement(activePolicy?.outputCurrency ?? '');
@@ -379,8 +380,8 @@ function SettlementButton({
                     value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 };
                 return [
-                    ...(isCurrencySupported ? getPaymentSubItems(payAsBusiness) : []),
-                    ...(isCurrencySupported && isPolicyCurrencySupported ? [addBankAccountItem] : []),
+                    ...(showPayViaExpensifyOptions ? getPaymentSubItems(payAsBusiness) : []),
+                    ...(showPayViaExpensifyOptions && isPolicyCurrencySupported ? [addBankAccountItem] : []),
                     {
                         text: translate('iou.payElsewhere', ''),
                         icon: icons.Cash,
@@ -397,17 +398,24 @@ function SettlementButton({
             };
 
             if (isIndividualInvoiceRoomUtil(chatReport)) {
+                // Gate default so main split button never triggers Pay via Expensify when beta is off (or currency unsupported).
+                let invoiceDefaultValue = lastPaymentMethod ?? CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
+                if (showPayViaExpensifyOptions && (hasIntentToPay || lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY)) {
+                    invoiceDefaultValue = CONST.IOU.PAYMENT_TYPE.EXPENSIFY;
+                } else if (lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+                    invoiceDefaultValue = CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
+                }
                 buttonOptions.push({
                     text: translate('iou.settlePersonal', formattedAmount),
                     icon: icons.User,
-                    value: hasIntentToPay ? CONST.IOU.PAYMENT_TYPE.EXPENSIFY : (lastPaymentMethod ?? CONST.IOU.PAYMENT_TYPE.ELSEWHERE),
+                    value: invoiceDefaultValue,
                     backButtonText: translate('iou.individual'),
                     subMenuItems: getInvoicesOptions(false),
                 });
                 buttonOptions.push({
                     text: translate('iou.settleBusiness', formattedAmount),
                     icon: icons.Building,
-                    value: hasIntentToPay ? CONST.IOU.PAYMENT_TYPE.EXPENSIFY : (lastPaymentMethod ?? CONST.IOU.PAYMENT_TYPE.ELSEWHERE),
+                    value: invoiceDefaultValue,
                     backButtonText: translate('iou.business'),
                     subMenuItems: getInvoicesOptions(true),
                 });
@@ -445,6 +453,7 @@ function SettlementButton({
         activeAdminPolicies,
         checkForNecessaryAction,
         icons,
+        isPayInvoiceViaExpensifyBetaEnabled,
     ]);
 
     const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType) => {
@@ -459,7 +468,7 @@ function SettlementButton({
 
         if (isInvoiceReport) {
             // if user has intent to pay, we should get the only bank account information to pay the invoice.
-            if (hasIntentToPay) {
+            if (hasIntentToPay && isPayInvoiceViaExpensifyBetaEnabled) {
                 const currentBankInformation = formattedPaymentMethods.at(0) as BankAccount;
                 onPress(
                     CONST.IOU.PAYMENT_TYPE.EXPENSIFY,

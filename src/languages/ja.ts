@@ -18,7 +18,6 @@ import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
     AddBudgetParams,
@@ -1112,6 +1111,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noLongerHaveReportAccess: '以前のクイック操作の宛先にはアクセスできなくなりました。下から新しい宛先を選択してください。',
         updateDestination: '送信先を更新',
         createReport: 'レポートを作成',
+        createTimeExpense: '時間経費を作成',
     },
     iou: {
         amount: '金額',
@@ -1510,31 +1510,15 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctDistanceRateError: '距離レートのエラーを修正して、もう一度お試しください。',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>説明</strong></a> &#x2728;`,
-        policyRulesModifiedFields: (policyRulesModifiedFields: PolicyRulesModifiedFields, policyRulesRoute: string, formatList: (list: string[]) => string) => {
-            const entries = ObjectUtils.typedEntries(policyRulesModifiedFields);
-            const fragments = entries.map(([key, value], i) => {
-                const isFirst = i === 0;
-                if (key === 'reimbursable') {
-                    return value ? '経費を「精算対象」としてマークしました' : '経費を「非精算」としてマークしました';
-                }
-                if (key === 'billable') {
-                    return value ? '経費を「請求可能」に設定しました' : '経費を「請求不可」としてマークしました';
-                }
-                if (key === 'tax') {
-                    const taxEntry = value as PolicyRulesModifiedFields['tax'];
-                    const taxRateName = taxEntry?.field_id_TAX.name ?? '';
-                    if (isFirst) {
-                        return `税率を「${taxRateName}」に設定する`;
-                    }
-                    return `税率を「${taxRateName}」に`;
-                }
-                const updatedValue = value as string | boolean;
-                if (isFirst) {
-                    return `${translations.common[key].toLowerCase()} を「${updatedValue}」に設定する`;
-                }
-                return `${translations.common[key].toLowerCase()} から「${updatedValue}」へ`;
-            });
-            return `${formatList(fragments)}（<a href="${policyRulesRoute}">ワークスペースルール</a>経由）`;
+        policyRulesModifiedFields: {
+            reimbursable: (value: boolean) => (value ? '経費を「精算対象」としてマークしました' : '経費を「非精算」としてマークしました'),
+            billable: (value: boolean) => (value ? '経費を「請求可能」に設定しました' : '経費を「請求不可」としてマークしました'),
+            tax: (value: string, isFirst: boolean) => (isFirst ? `税率を「${value}」に設定する` : `税率を「${value}」に`),
+            common: (key: keyof PolicyRulesModifiedFields, value: string, isFirst: boolean) => {
+                const field = translations.common[key].toLowerCase();
+                return isFirst ? `${field} を「${value}」に設定する` : `${field} から「${value}」へ`;
+            },
+            format: (fragments: string, route: string) => `${fragments}（<a href="${route}">ワークスペースルール</a>経由）`,
         },
         duplicateNonDefaultWorkspacePerDiemError: 'ワークスペースごとに日当レートが異なる場合があるため、日当経費をワークスペース間で複製することはできません。',
     },

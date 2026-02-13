@@ -18,7 +18,6 @@ import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
     AddBudgetParams,
@@ -1123,6 +1122,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noLongerHaveReportAccess: 'Vous n’avez plus accès à votre précédente destination d’action rapide. Choisissez-en une nouvelle ci-dessous.',
         updateDestination: 'Mettre à jour la destination',
         createReport: 'Créer une note de frais',
+        createTimeExpense: 'Créer une dépense de temps',
     },
     iou: {
         amount: 'Montant',
@@ -1525,31 +1525,15 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctDistanceRateError: 'Corrigez l’erreur de taux de distance, puis réessayez.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Expliquer</strong></a> &#x2728;`,
-        policyRulesModifiedFields: (policyRulesModifiedFields: PolicyRulesModifiedFields, policyRulesRoute: string, formatList: (list: string[]) => string) => {
-            const entries = ObjectUtils.typedEntries(policyRulesModifiedFields);
-            const fragments = entries.map(([key, value], i) => {
-                const isFirst = i === 0;
-                if (key === 'reimbursable') {
-                    return value ? 'a marqué la dépense comme « remboursable »' : 'a marqué la dépense comme « non remboursable »';
-                }
-                if (key === 'billable') {
-                    return value ? 'a marqué la dépense comme « facturable »' : 'a marqué la dépense comme « non refacturable »';
-                }
-                if (key === 'tax') {
-                    const taxEntry = value as PolicyRulesModifiedFields['tax'];
-                    const taxRateName = taxEntry?.field_id_TAX.name ?? '';
-                    if (isFirst) {
-                        return `définir le taux de taxe sur « ${taxRateName} »`;
-                    }
-                    return `taux de taxe à « ${taxRateName} »`;
-                }
-                const updatedValue = value as string | boolean;
-                if (isFirst) {
-                    return `définir ${translations.common[key].toLowerCase()} sur « ${updatedValue} »`;
-                }
-                return `${translations.common[key].toLowerCase()} à « ${updatedValue} »`;
-            });
-            return `${formatList(fragments)} via les <a href="${policyRulesRoute}">règles de l’espace de travail</a>`;
+        policyRulesModifiedFields: {
+            reimbursable: (value: boolean) => (value ? 'a marqué la dépense comme « remboursable »' : 'a marqué la dépense comme « non remboursable »'),
+            billable: (value: boolean) => (value ? 'a marqué la dépense comme « facturable »' : 'a marqué la dépense comme « non refacturable »'),
+            tax: (value: string, isFirst: boolean) => (isFirst ? `définir le taux de taxe sur « ${value} »` : `taux de taxe à « ${value} »`),
+            common: (key: keyof PolicyRulesModifiedFields, value: string, isFirst: boolean) => {
+                const field = translations.common[key].toLowerCase();
+                return isFirst ? `définir ${field} sur « ${value} »` : `${field} à « ${value} »`;
+            },
+            format: (fragments: string, route: string) => `${fragments} via les <a href="${route}">règles de l’espace de travail</a>`,
         },
         duplicateNonDefaultWorkspacePerDiemError:
             'Vous ne pouvez pas dupliquer les indemnités journalières entre plusieurs espaces de travail, car les taux peuvent différer d’un espace de travail à l’autre.',

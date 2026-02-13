@@ -40,6 +40,7 @@ type Props = {
     transactionIDs?: string[];
     selectedReportID?: string;
     selectedPolicyID?: string;
+    transactionPolicyID?: string;
     targetOwnerAccountID?: number;
     selectReport: (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => void;
     removeFromReport?: () => void;
@@ -57,6 +58,7 @@ function IOURequestEditReportCommon({
     selectedReportID,
     selectedPolicyID,
     targetOwnerAccountID,
+    transactionPolicyID,
     removeFromReport,
     isEditing = false,
     isUnreported,
@@ -85,7 +87,9 @@ function IOURequestEditReportCommon({
     const reportPolicy = usePolicy(selectedReport?.policyID);
     // Pass the expense's policyID so that the "Create report" button shows the correct workspace
     // instead of defaulting to the user's active workspace
-    const {policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiemRequest, selectedReport?.policyID);
+    // we need to fall back to transactionPolicyID because for a new workspace there is no report created yet
+    // and if we choose this workspace as participant we want to create a new report in the chosen workspace
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiemRequest, selectedReport?.policyID ?? transactionPolicyID);
 
     const [perDiemWarningModalVisible, setPerDiemWarningModalVisible] = useState(false);
 

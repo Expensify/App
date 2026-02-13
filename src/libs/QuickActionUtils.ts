@@ -6,11 +6,11 @@ import type QuickAction from '@src/types/onyx/QuickAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import getIconForAction from './getIconForAction';
-import {getPerDiemCustomUnit} from './PolicyUtils';
+import {getPerDiemCustomUnit, isTimeTrackingEnabled} from './PolicyUtils';
 import {canCreateRequest} from './ReportUtils';
 
 const getQuickActionIcon = (
-    icons: Record<'CalendarSolid' | 'Car' | 'Task' | 'Coins' | 'Receipt' | 'Cash' | 'Transfer' | 'ReceiptScan' | 'MoneyCircle', IconAsset>,
+    icons: Record<'CalendarSolid' | 'Car' | 'Task' | 'Coins' | 'Receipt' | 'Cash' | 'Transfer' | 'ReceiptScan' | 'MoneyCircle' | 'Clock', IconAsset>,
     action: QuickActionName,
 ): IconAsset => {
     switch (action) {
@@ -37,6 +37,8 @@ const getQuickActionIcon = (
             return getIconForAction(CONST.IOU.TYPE.TRACK, icons);
         case CONST.QUICK_ACTIONS.TRACK_SCAN:
             return icons.ReceiptScan;
+        case CONST.QUICK_ACTIONS.REQUEST_TIME:
+            return icons.Clock;
         default:
             return icons.MoneyCircle;
     }
@@ -47,6 +49,7 @@ const getIOUType = (action: QuickActionName | undefined) => {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
         case CONST.QUICK_ACTIONS.REQUEST_SCAN:
         case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
+        case CONST.QUICK_ACTIONS.REQUEST_TIME:
         case CONST.QUICK_ACTIONS.PER_DIEM:
             return CONST.IOU.TYPE.SUBMIT;
         case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
@@ -88,6 +91,8 @@ const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
             return 'quickAction.paySomeone';
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
             return 'quickAction.assignTask';
+        case CONST.QUICK_ACTIONS.REQUEST_TIME:
+            return 'quickAction.createTimeExpense';
         default:
             return '' as TranslationPaths;
     }
@@ -112,6 +117,12 @@ const isQuickActionAllowed = (
             return false;
         }
     }
+    if (quickAction?.action === CONST.QUICK_ACTIONS.REQUEST_TIME) {
+        if (!isTimeTrackingEnabled(quickActionPolicy)) {
+            return false;
+        }
+    }
+
     const iouType = getIOUType(quickAction?.action);
     if (iouType) {
         // We're disabling QAB for Manager McTest reports to prevent confusion when submitting real data for Manager McTest
