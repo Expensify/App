@@ -260,7 +260,7 @@ function ComposerWithSuggestions({
 
     const composerRef = useRef<ComposerRef | null>(null);
 
-    const {editingReportActionID, editingMessage, currentEditMessageSelection, setCurrentEditMessageSelection, didSubmitEditRef} = useReportActionActiveEdit();
+    const {editingReportActionID, editingReportAction, editingMessage, currentEditMessageSelection, setCurrentEditMessageSelection, didSubmitEditRef} = useReportActionActiveEdit();
 
     const [value, setValue] = useState(() => {
         const initialValue = shouldUseNarrowLayout ? (editingMessage ?? draftComment) : draftComment;
@@ -318,9 +318,6 @@ function ComposerWithSuggestions({
 
     const syncSelectionWithOnChangeTextRef = useRef<SyncSelection | null>(null);
 
-    // The ref to check whether the comment saving is in progress
-    const isCommentPendingSaved = useRef(false);
-
     // Tracks transition state to prevent SilentCommentUpdater from overwriting the just-saved draft during report ID changes
     const isTransitioningToPreExistingReport = useRef(false);
 
@@ -350,6 +347,34 @@ function ComposerWithSuggestions({
         }
         RNTextInputReset.resetKeyboardInput(CONST.COMPOSER.NATIVE_ID);
     }, []);
+
+    // The ref to check whether the comment saving is in progress
+    const isDraftPendingSaved = useRef(false);
+
+    /**
+     * Save the draft of the comment. This debounced so that we're not ceaselessly saving your edit. Saving the draft
+     * allows one to navigate somewhere else and come back to the comment and still have it in edit mode.
+     * @param {String} newDraft
+     */
+    const debouncedSaveDraft = useMemo(
+        () =>
+            lodashDebounce((newDraft: string) => {
+                saveReportActionDraft(reportID, editingReportAction, newDraft);
+                isDraftPendingSaved.current = false;
+            }, 1000),
+        [reportID, editingReportAction],
+    );
+
+    useEffect(
+        () => () => {
+            debouncedSaveDraft.cancel();
+            isDraftPendingSaved.current = false;
+        },
+        [debouncedSaveDraft],
+    );
+
+    // The ref to check whether the comment saving is in progress
+    const isCommentPendingSaved = useRef(false);
 
     const debouncedSaveReportComment = useMemo(
         () =>
@@ -497,7 +522,12 @@ function ComposerWithSuggestions({
             commentRef.current = newCommentConverted;
             if (shouldUseNarrowLayout) {
                 if (editingReportActionID && !didSubmitEditRef.current) {
-                    saveReportActionDraft(reportID, {reportActionID: editingReportActionID} as OnyxTypes.ReportAction, newCommentConverted);
+                    if (shouldDebounceSaveComment) {
+                        isDraftPendingSaved.current = true;
+                        debouncedSaveDraft(newCommentConverted);
+                    } else {
+                        saveReportActionDraft(reportID, {reportActionID: editingReportActionID} as OnyxTypes.ReportAction, newCommentConverted);
+                    }
                 }
 
                 if (newCommentConverted) {
@@ -527,6 +557,7 @@ function ComposerWithSuggestions({
             currentEditMessageSelection,
             editingReportActionID,
             didSubmitEditRef,
+            debouncedSaveDraft,
             reportID,
             currentUserAccountID,
             debouncedSaveReportComment,
