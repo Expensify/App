@@ -8,7 +8,6 @@ import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSpl
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
-import RHPAccessibilityWrapper from './RHPAccessibilityWrapper';
 
 const loadInitialSettingsPage = () => require<ReactComponentModule>('../../../../pages/settings/InitialSettingsPage').default;
 
@@ -36,10 +35,9 @@ function SettingsSplitNavigator() {
     usePreloadFullScreenNavigators();
 
     return (
-        <RHPAccessibilityWrapper>
-            <FocusTrapForScreens>
-                <View style={{flex: 1}}>
-                    <Split.Navigator
+        <FocusTrapForScreens>
+            <View style={{flex: 1}}>
+                <Split.Navigator
                     persistentScreens={[SCREENS.SETTINGS.ROOT]}
                     sidebarScreen={SCREENS.SETTINGS.ROOT}
                     defaultCentralScreen={SCREENS.SETTINGS.PROFILE.ROOT}
@@ -60,10 +58,9 @@ function SettingsSplitNavigator() {
                             />
                         );
                     })}
-                    </Split.Navigator>
-                </View>
-            </FocusTrapForScreens>
-        </RHPAccessibilityWrapper>
+                </Split.Navigator>
+            </View>
+        </FocusTrapForScreens>
     );
 }
 

@@ -26,7 +26,6 @@ import type SCREENS from '@src/SCREENS';
 import BookOrManageYourTrip from './BookOrManageYourTrip';
 import GetStartedTravel from './GetStartedTravel';
 import ReviewingRequest from './ReviewingRequest';
-import WorkspaceTravelInvoicingSection from './WorkspaceTravelInvoicingSection';
 
 type WorkspaceTravelPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.TRAVEL>;
 
@@ -42,7 +41,6 @@ function WorkspaceTravelPage({
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
     const illustrations = useMemoizedLazyIllustrations(['Luggage'] as const);
-    const isTravelInvoicingEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_INVOICING);
     const workspaceAccountID = useWorkspaceAccountID(policyID);
 
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
@@ -74,9 +72,6 @@ function WorkspaceTravelPage({
     const mainContent = (() => {
         switch (step) {
             case CONST.TRAVEL.STEPS.BOOK_OR_MANAGE_YOUR_TRIP:
-                if (isTravelInvoicingEnabled) {
-                    return <WorkspaceTravelInvoicingSection policyID={policyID} />;
-                }
                 return <BookOrManageYourTrip policyID={policyID} />;
             case CONST.TRAVEL.STEPS.REVIEWING_REQUEST:
                 return <ReviewingRequest />;
@@ -103,7 +98,7 @@ function WorkspaceTravelPage({
                     title={translate('workspace.moreFeatures.travel.title')}
                     shouldUseHeadlineHeader
                     shouldShowBackButton={shouldUseNarrowLayout}
-                    onBackButtonPress={Navigation.popToSidebar}
+                    onBackButtonPress={Navigation.goBack}
                 />
                 <ScrollViewWithContext addBottomSafeAreaPadding>
                     <View style={[styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>{mainContent}</View>

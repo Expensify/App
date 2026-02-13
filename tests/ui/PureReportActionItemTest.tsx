@@ -1,6 +1,6 @@
 import {PortalProvider} from '@gorhom/portal';
 import * as NativeNavigation from '@react-navigation/native';
-import {act, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
@@ -9,6 +9,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {openLink} from '@libs/actions/Link';
 import Parser from '@libs/Parser';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import PureReportActionItem from '@pages/inbox/report/PureReportActionItem';
@@ -24,6 +25,16 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 jest.mock('@react-navigation/native');
+
+type LinkModuleMock = {openLink: typeof openLink} & Record<string, unknown>;
+
+jest.mock('@libs/actions/Link', () => {
+    const actual = jest.requireActual<LinkModuleMock>('@libs/actions/Link');
+    return {
+        ...actual,
+        openLink: jest.fn(),
+    };
+});
 
 const ACTOR_ACCOUNT_ID = 123456789;
 const actorEmail = 'test@test.com';
@@ -489,6 +500,64 @@ describe('PureReportActionItem', () => {
 
             // Verify followup buttons are NOT displayed (resolved state)
             expect(screen.queryByText(followupQuestion)).not.toBeOnTheScreen();
+        });
+    });
+
+    describe('Modified expense message', () => {
+        it('clicking the workspace rules link opens the workspace rules URL', async () => {
+            const workspaceRulesUrl = 'https://example.com/workspaces/policy123/rules';
+            const modifiedExpenseMessage = `marked the expense as "billable" via <a href="${workspaceRulesUrl}">workspace rules</a>`;
+
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, {
+                policyID: 'policy123',
+                policyRulesModifiedFields: {billable: true},
+            });
+
+            const report = {
+                reportID: 'testReport',
+                type: CONST.REPORT.TYPE.CHAT,
+                policyID: 'policy123',
+            };
+
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <OptionsListContextProvider>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <PureReportActionItem
+                                    allReports={undefined}
+                                    policies={undefined}
+                                    personalPolicyID={undefined}
+                                    report={report}
+                                    reportActions={[]}
+                                    parentReportAction={undefined}
+                                    action={action}
+                                    displayAsGroup={false}
+                                    isMostRecentIOUReportAction={false}
+                                    shouldDisplayNewMarker={false}
+                                    index={0}
+                                    isFirstVisibleReportAction={false}
+                                    taskReport={undefined}
+                                    linkedReport={undefined}
+                                    iouReportOfLinkedReport={undefined}
+                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
+                                    allTransactionDrafts={undefined}
+                                    modifiedExpenseMessage={modifiedExpenseMessage}
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </OptionsListContextProvider>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            const workspaceRulesLink = screen.getByText('workspace rules');
+            expect(workspaceRulesLink).toBeOnTheScreen();
+
+            fireEvent.press(workspaceRulesLink);
+
+            expect(openLink).toHaveBeenCalledTimes(1);
+            expect(openLink).toHaveBeenCalledWith(workspaceRulesUrl, expect.any(String));
         });
     });
 });

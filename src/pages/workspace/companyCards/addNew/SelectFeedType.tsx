@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -20,10 +20,12 @@ function SelectFeedType() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
-    const [typeSelected, setTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.FEED_TYPE>>();
+    const [localTypeSelected, setLocalTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.FEED_TYPE>>();
     const [hasError, setHasError] = useState(false);
     const doesCountrySupportPlaid = isPlaidSupportedCountry(addNewCard?.data?.selectedCountry);
     const isUSCountry = addNewCard?.data?.selectedCountry === CONST.COUNTRY.US;
+    const defaultTypeSelected = addNewCard?.data.selectedFeedType ?? (doesCountrySupportPlaid ? CONST.COMPANY_CARDS.FEED_TYPE.DIRECT : undefined);
+    const typeSelected = localTypeSelected ?? defaultTypeSelected;
 
     const submit = useCallback(() => {
         if (!typeSelected) {
@@ -45,16 +47,6 @@ function SelectFeedType() {
             data: {selectedFeedType: typeSelected},
         });
     }, [isUSCountry, typeSelected]);
-
-    useEffect(() => {
-        if (addNewCard?.data.selectedFeedType) {
-            setTypeSelected(addNewCard?.data.selectedFeedType);
-            return;
-        }
-        if (doesCountrySupportPlaid) {
-            setTypeSelected(CONST.COMPANY_CARDS.FEED_TYPE.DIRECT);
-        }
-    }, [addNewCard?.data.selectedFeedType, doesCountrySupportPlaid]);
 
     const handleBackButtonPress = () => {
         setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_COUNTRY});
@@ -118,7 +110,7 @@ function SelectFeedType() {
                 ListItem={RadioListItem}
                 data={finalData}
                 onSelectRow={({value}) => {
-                    setTypeSelected(value);
+                    setLocalTypeSelected(value);
                     setHasError(false);
                 }}
                 shouldSingleExecuteRowSelect

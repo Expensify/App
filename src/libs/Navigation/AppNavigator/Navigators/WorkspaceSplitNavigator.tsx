@@ -11,7 +11,6 @@ import type {AuthScreensParamList, WorkspaceSplitNavigatorParamList} from '@libs
 import type NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
-import RHPAccessibilityWrapper from './RHPAccessibilityWrapper';
 
 type Screens = Partial<Record<keyof WorkspaceSplitNavigatorParamList, () => React.ComponentType>>;
 
@@ -50,11 +49,10 @@ function WorkspaceSplitNavigator({route, navigation}: PlatformStackScreenProps<A
     useEnableBackAnimationWhenOpenedFromTabBar(navigation, route.key);
 
     return (
-        <RHPAccessibilityWrapper>
-            <FocusTrapForScreens>
-                <View style={styles.flex1}>
-                    <Split.Navigator
-                        persistentScreens={[SCREENS.WORKSPACE.INITIAL]}
+        <FocusTrapForScreens>
+            <View style={styles.flex1}>
+                <Split.Navigator
+                    persistentScreens={[SCREENS.WORKSPACE.INITIAL]}
                     sidebarScreen={SCREENS.WORKSPACE.INITIAL}
                     defaultCentralScreen={SCREENS.WORKSPACE.PROFILE}
                     parentRoute={route}
@@ -72,10 +70,9 @@ function WorkspaceSplitNavigator({route, navigation}: PlatformStackScreenProps<A
                             getComponent={componentGetter}
                         />
                     ))}
-                    </Split.Navigator>
-                </View>
-            </FocusTrapForScreens>
-        </RHPAccessibilityWrapper>
+                </Split.Navigator>
+            </View>
+        </FocusTrapForScreens>
     );
 }
 

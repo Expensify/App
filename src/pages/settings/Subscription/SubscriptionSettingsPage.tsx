@@ -56,11 +56,11 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
             <HeaderWithBackButton
                 title={translate('workspace.common.subscription')}
                 onBackButtonPress={() => {
-                    if (Navigation.getShouldPopToSidebar()) {
-                        Navigation.popToSidebar();
+                    if (backTo) {
+                        Navigation.goBack(backTo);
                         return;
                     }
-                    Navigation.goBack(backTo);
+                    Navigation.goBack();
                 }}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter

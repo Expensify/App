@@ -5,7 +5,7 @@ import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import type {TabSelectorProps} from '@components/TabSelector/TabSelector';
+import type {TabSelectorProps} from '@components/TabSelector/types';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Tab from '@userActions/Tab';

@@ -1,13 +1,14 @@
 import {Str} from 'expensify-common';
-import React, {useState} from 'react';
+import React from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import ConfirmModal from '@components/ConfirmModal';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {useSession} from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -15,8 +16,10 @@ import {deleteReportField, updateReportField, updateReportName} from '@libs/acti
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {EditRequestNavigatorParamList} from '@libs/Navigation/types';
+import {isPolicyFieldListEmpty} from '@libs/PolicyUtils';
 import {
     getReportFieldKey,
+    getTitleFieldWithFallback,
     hasViolations as hasViolationsReportUtils,
     isInvoiceReport,
     isPaidGroupPolicyExpenseReport,
@@ -41,8 +44,18 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const [recentlyUsedReportFields] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS, {canBeMissing: true});
-    const reportField = report?.fieldList?.[fieldKey] ?? policy?.fieldList?.[fieldKey];
-    const policyField = policy?.fieldList?.[fieldKey] ?? reportField;
+
+    const isTitleField = route.params.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID;
+    let reportField = report?.fieldList?.[fieldKey] ?? policy?.fieldList?.[fieldKey];
+    let policyField = policy?.fieldList?.[fieldKey] ?? reportField;
+
+    // If the title field is missing, use fallback so that it can still be edited and matches the OldDot behavior.
+    if (isTitleField && !reportField && !policyField) {
+        const fallbackTitleField = getTitleFieldWithFallback(policy);
+        reportField = fallbackTitleField;
+        policyField = fallbackTitleField;
+    }
+
     const isDisabled = isReportFieldDisabledForUser(report, reportField, policy) && reportField?.type !== CONST.REPORT_FIELD_TYPES.FORMULA;
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -50,8 +63,8 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
 
-    const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const isReportFieldTitle = isReportFieldOfTypeTitle(reportField);
     const reportFieldsEnabled = ((isPaidGroupPolicyExpenseReport(report) || isInvoiceReport(report)) && !!policy?.areReportFieldsEnabled) || isReportFieldTitle;
     const hasOtherViolations =
@@ -77,15 +90,32 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
         Navigation.goBack(backTo);
     };
 
-    const handleReportFieldDelete = () => {
-        setIsDeleteModalVisible(false);
-        goBack();
-        setTimeout(() => {
-            deleteReportField(report.reportID, reportField);
-        }, CONST.ANIMATED_TRANSITION);
+    const handleReportFieldDelete = async () => {
+        const result = await showConfirmModal({
+            title: translate('workspace.reportFields.delete'),
+            prompt: translate('workspace.reportFields.deleteConfirmation'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            danger: true,
+            shouldEnableNewFocusManagement: true,
+        });
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            goBack();
+            setTimeout(() => {
+                deleteReportField(report.reportID, reportField);
+            }, CONST.ANIMATED_TRANSITION);
+        });
     };
 
-    const fieldValue = isReportFieldTitle ? (report.reportName ?? '') : (reportField.value ?? reportField.defaultValue);
+    // Provide a default when the report name and the policy field list are empty
+    /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+    const fieldValue = isReportFieldTitle
+        ? report.reportName || (isPolicyFieldListEmpty(policy) ? CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME : '')
+        : (reportField.value ?? reportField.defaultValue);
+    /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
 
     const handleReportFieldChange = (form: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM>) => {
         const value = form[fieldKey];
@@ -121,7 +151,14 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     const isReportFieldDeletable = reportField.deletable && reportField?.fieldID !== CONST.REPORT_FIELD_TITLE_FIELD_ID;
 
     if (isReportFieldDeletable) {
-        menuItems.push({icon: Expensicons.Trashcan, text: translate('common.delete'), onSelected: () => setIsDeleteModalVisible(true), shouldCallAfterModalHide: true});
+        menuItems.push({
+            icon: Expensicons.Trashcan,
+            text: translate('common.delete'),
+            onSelected: () => {
+                handleReportFieldDelete();
+            },
+            shouldCallAfterModalHide: true,
+        });
     }
 
     const fieldName = Str.UCFirst(reportField.name);
@@ -137,18 +174,6 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
                 threeDotsMenuItems={menuItems}
                 shouldShowThreeDotsButton={!!menuItems?.length}
                 onBackButtonPress={goBack}
-            />
-
-            <ConfirmModal
-                title={translate('workspace.reportFields.delete')}
-                isVisible={isDeleteModalVisible}
-                onConfirm={handleReportFieldDelete}
-                onCancel={() => setIsDeleteModalVisible(false)}
-                prompt={translate('workspace.reportFields.deleteConfirmation')}
-                confirmText={translate('common.delete')}
-                cancelText={translate('common.cancel')}
-                danger
-                shouldEnableNewFocusManagement
             />
 
             {(reportField.type === CONST.REPORT_FIELD_TYPES.TEXT || isReportFieldTitle) && (
