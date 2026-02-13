@@ -30,6 +30,8 @@ import ModalContext from './ModalContext';
 import ReanimatedModal from './ReanimatedModal';
 import type BaseModalProps from './types';
 
+const MAX_DISMISS_BUTTON_FOCUS_RETRIES = 5;
+
 function BaseModal({
     isVisible,
     onClose,
@@ -284,6 +286,7 @@ function BaseModal({
         }
 
         let retries = 0;
+        let frameID: number | undefined;
         const focusDismissButton = () => {
             const target = dismissButtonRef.current;
             if (target && 'focus' in target && typeof target.focus === 'function') {
@@ -291,14 +294,21 @@ function BaseModal({
                 return;
             }
 
-            if (retries >= 5) {
+            if (retries >= MAX_DISMISS_BUTTON_FOCUS_RETRIES) {
                 return;
             }
             retries++;
-            requestAnimationFrame(focusDismissButton);
+            frameID = requestAnimationFrame(focusDismissButton);
         };
 
-        requestAnimationFrame(focusDismissButton);
+        frameID = requestAnimationFrame(focusDismissButton);
+
+        return () => {
+            if (frameID === undefined) {
+                return;
+            }
+            cancelAnimationFrame(frameID);
+        };
     }, [isWeb, isVisible, shouldShowBottomDockedDismissButton]);
 
     const modalPaddingStyles = useMemo(() => {
