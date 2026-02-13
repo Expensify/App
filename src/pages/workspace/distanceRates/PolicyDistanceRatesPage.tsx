@@ -12,10 +12,10 @@ import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchBar from '@components/SearchBar';
+import TableListItem from '@components/SelectionList/ListItem/TableListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
-import TableListItem from '@components/SelectionListWithSections/TableListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useFilteredSelection from '@hooks/useFilteredSelection';
@@ -184,7 +184,6 @@ function PolicyDistanceRatesPage({
 
     useEffect(() => {
         fetchDistanceRates();
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -218,39 +217,43 @@ function PolicyDistanceRatesPage({
         [canDisableOrDeleteRate, customUnit, policyID],
     );
 
+    const unitTranslation = translate(`common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`);
+
     const distanceRatesList = useMemo<RateForList[]>(
         () =>
-            Object.values(customUnitRates).map((value) => ({
-                rate: value.rate,
-                value: value.customUnitRateID,
-                text: value.name,
-                alternateText: `${convertAmountToDisplayString(value.rate, value.currency ?? CONST.CURRENCY.USD)} / ${translate(
-                    `common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`,
-                )}`,
-                keyForList: value.customUnitRateID,
-                isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                pendingAction:
-                    value.pendingAction ??
-                    value.pendingFields?.rate ??
-                    value.pendingFields?.enabled ??
-                    value.pendingFields?.currency ??
-                    value.pendingFields?.taxRateExternalID ??
-                    value.pendingFields?.taxClaimablePercentage ??
-                    value.pendingFields?.name ??
-                    customUnit?.pendingFields?.attributes ??
-                    (policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ? policy?.pendingAction : undefined),
-                errors: value.errors ?? undefined,
-                rightElement: (
-                    <Switch
-                        isOn={!!value?.enabled}
-                        accessibilityLabel={translate('workspace.distanceRates.trackTax')}
-                        onToggle={(newValue: boolean) => updateDistanceRateEnabled(newValue, value.customUnitRateID)}
-                        showLockIcon={!canDisableOrDeleteRate(value.customUnitRateID)}
-                        disabled={value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                    />
-                ),
-            })),
-        [canDisableOrDeleteRate, customUnitRates, translate, customUnit?.attributes?.unit, customUnit?.pendingFields?.attributes, policy?.pendingAction, updateDistanceRateEnabled],
+            Object.values(customUnitRates).map((value) => {
+                const alternateText = `${convertAmountToDisplayString(value.rate, value.currency ?? CONST.CURRENCY.USD)} / ${unitTranslation}`;
+
+                return {
+                    rate: value.rate,
+                    value: value.customUnitRateID,
+                    text: value.name,
+                    alternateText,
+                    keyForList: value.customUnitRateID,
+                    isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    pendingAction:
+                        value.pendingAction ??
+                        value.pendingFields?.rate ??
+                        value.pendingFields?.enabled ??
+                        value.pendingFields?.currency ??
+                        value.pendingFields?.taxRateExternalID ??
+                        value.pendingFields?.taxClaimablePercentage ??
+                        value.pendingFields?.name ??
+                        customUnit?.pendingFields?.attributes ??
+                        (policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ? policy?.pendingAction : undefined),
+                    errors: value.errors ?? undefined,
+                    rightElement: (
+                        <Switch
+                            isOn={!!value?.enabled}
+                            accessibilityLabel={value?.name ?? ''}
+                            onToggle={(newValue: boolean) => updateDistanceRateEnabled(newValue, value.customUnitRateID)}
+                            showLockIcon={!canDisableOrDeleteRate(value.customUnitRateID)}
+                            disabled={value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                        />
+                    ),
+                };
+            }),
+        [canDisableOrDeleteRate, customUnitRates, unitTranslation, customUnit?.pendingFields?.attributes, policy?.pendingAction, updateDistanceRateEnabled],
     );
 
     const filterRate = useCallback((rate: RateForList, searchInput: string) => {
@@ -483,7 +486,7 @@ function PolicyDistanceRatesPage({
                             turnOffMobileSelectionMode();
                             return;
                         }
-                        Navigation.popToSidebar();
+                        Navigation.goBack();
                     }}
                 >
                     {!shouldUseNarrowLayout && headerButtons}
@@ -497,24 +500,23 @@ function PolicyDistanceRatesPage({
                 )}
                 {Object.values(customUnitRates).length > 0 && (
                     <SelectionListWithModal
-                        addBottomSafeAreaPadding
-                        canSelectMultiple={canSelectMultiple}
-                        turnOnSelectionModeOnLongPress
-                        onTurnOnSelectionMode={(item) => item && toggleRate(item)}
-                        sections={[{data: filteredDistanceRatesList, isDisabled: false}]}
-                        shouldUseDefaultRightHandSideCheckmark={false}
-                        selectedItems={selectedDistanceRates}
-                        onCheckboxPress={toggleRate}
-                        onSelectRow={openRateDetails}
-                        onSelectAll={filteredDistanceRatesList.length > 0 ? toggleAllRates : undefined}
-                        onDismissError={dismissError}
+                        data={filteredDistanceRatesList}
                         ListItem={TableListItem}
-                        listHeaderContent={headerContent}
-                        shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                        onSelectRow={openRateDetails}
+                        onCheckboxPress={toggleRate}
+                        selectedItems={selectedDistanceRates}
                         customListHeader={getCustomListHeader()}
-                        shouldShowListEmptyContent={false}
-                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                        shouldUseDefaultRightHandSideCheckmark={false}
+                        onTurnOnSelectionMode={(item) => item && toggleRate(item)}
+                        onSelectAll={filteredDistanceRatesList.length > 0 ? toggleAllRates : undefined}
+                        shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                        customListHeaderContent={headerContent}
+                        canSelectMultiple={canSelectMultiple}
+                        onDismissError={dismissError}
+                        showListEmptyContent={false}
                         showScrollIndicator={false}
+                        turnOnSelectionModeOnLongPress
+                        shouldHeaderBeInsideList
                         shouldShowRightCaret
                     />
                 )}

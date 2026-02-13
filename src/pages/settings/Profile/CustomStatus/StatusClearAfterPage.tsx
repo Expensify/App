@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -42,11 +43,11 @@ function getSelectedStatusType(data: string): CustomStatusTypes {
     }
 }
 
-const useValidateCustomDate = (data: string) => {
+const useValidateCustomDate = (translate: LocalizedTranslate, data: string) => {
     const [customDateError, setCustomDateError] = useState('');
     const [customTimeError, setCustomTimeError] = useState('');
     const validate = () => {
-        const {dateValidationErrorKey, timeValidationErrorKey} = validateDateTimeIsAtLeastOneMinuteInFuture(data);
+        const {dateValidationErrorKey, timeValidationErrorKey} = validateDateTimeIsAtLeastOneMinuteInFuture(translate, data);
 
         setCustomDateError(dateValidationErrorKey);
         setCustomTimeError(timeValidationErrorKey);
@@ -62,7 +63,7 @@ const useValidateCustomDate = (data: string) => {
             return;
         }
         validate();
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [data]);
 
     const validateCustomDate = () => validate();
@@ -91,7 +92,7 @@ function StatusClearAfterPage() {
         [draftPeriod, translate],
     );
 
-    const {customDateError, customTimeError} = useValidateCustomDate(draftClearAfter);
+    const {customDateError, customTimeError} = useValidateCustomDate(translate, draftClearAfter);
 
     const {redBrickDateIndicator, redBrickTimeIndicator} = useMemo(
         () => ({
@@ -117,7 +118,7 @@ function StatusClearAfterPage() {
 
     useEffect(() => {
         updateStatusDraftCustomClearAfterDate(draftClearAfter || clearAfter);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const customStatusDate = DateUtils.extractDate(statusDraftCustomClearAfterDate ?? '');

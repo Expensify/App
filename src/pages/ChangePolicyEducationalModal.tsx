@@ -40,6 +40,7 @@ function ChangePolicyEducationalModal() {
             contentInnerContainerStyles={[styles.mb5, styles.gap2]}
             onClose={onConfirm}
             onConfirm={onConfirm}
+            shouldUseScrollView
         >
             <ChangeWorkspaceMenuSectionList />
         </FeatureTrainingModal>

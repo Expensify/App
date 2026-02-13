@@ -62,7 +62,7 @@ function EditPerDiemCurrencyPage({route}: EditPerDiemCurrencyPageProps) {
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_PER_DIEM_DETAILS.getRoute(policyID, rateID, subRateID))}
                 />
                 <View style={[styles.pb4, styles.mh5]}>
-                    <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.perDiem.editCurrencySubtitle', {destination: selectedRate?.name ?? ''})}</Text>
+                    <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.perDiem.editCurrencySubtitle', selectedRate?.name ?? '')}</Text>
                 </View>
                 <CurrencySelectionList
                     initiallySelectedCurrencyCode={selectedRate?.currency}

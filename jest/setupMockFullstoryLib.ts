@@ -24,6 +24,11 @@ export default function mockFSLibrary() {
             consentAndIdentify: jest.fn(),
             anonymize: jest.fn(),
             getSessionId: jest.fn().mockResolvedValue(undefined),
+            getSessionURL: jest.fn().mockResolvedValue(undefined),
+            event: jest.fn(),
+            log: jest.fn(),
+            setUserVars: jest.fn(),
+            resetIdleTimer: jest.fn(),
         };
     });
 }

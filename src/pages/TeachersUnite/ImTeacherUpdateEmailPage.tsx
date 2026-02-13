@@ -1,11 +1,11 @@
 import React from 'react';
+import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -33,9 +33,9 @@ function ImTeacherUpdateEmailPage() {
                 icon={illustrations.EmailAddress}
                 title={translate('teachersUnitePage.updateYourEmail')}
                 CustomSubtitle={
-                    <Text style={[styles.textAlignCenter]}>
-                        <RenderHTML html={translate('teachersUnitePage.schoolMailAsDefault', contactMethodsRoute)} />
-                    </Text>
+                    <View style={[styles.textAlignCenter, styles.flexRow, styles.w100]}>
+                        <RenderHTML html={`<centered-text>${translate('teachersUnitePage.schoolMailAsDefault', contactMethodsRoute)}</centered-text>`} />
+                    </View>
                 }
                 iconWidth={variables.signInLogoWidthLargeScreen}
                 iconHeight={variables.signInLogoHeightLargeScreen}

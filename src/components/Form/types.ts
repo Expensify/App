@@ -1,5 +1,5 @@
 import type {ComponentType, FocusEvent, Key, ReactNode, Ref, RefObject} from 'react';
-import type {GestureResponderEvent, StyleProp, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, StyleProp, SubmitBehavior, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import type AddressSearch from '@components/AddressSearch';
@@ -39,6 +39,7 @@ import type {OnyxFormKey, OnyxValues} from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
 import type {BaseForm} from '@src/types/form/Form';
 import type {FileObject} from '@src/types/utils/Attachment';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 /**
  * This type specifies all the inputs that can be used with `InputWrapper` component. Make sure to update it
@@ -121,7 +122,7 @@ type InputComponentBaseProps<TValue extends ValueTypeKey = ValueTypeKey> = Input
     ref?: Ref<unknown>;
     multiline?: boolean;
     autoGrowHeight?: boolean;
-    blurOnSubmit?: boolean;
+    submitBehavior?: SubmitBehavior;
     shouldSubmitForm?: boolean;
     uncontrolled?: boolean;
 };
@@ -129,58 +130,59 @@ type InputComponentBaseProps<TValue extends ValueTypeKey = ValueTypeKey> = Input
 type FormOnyxValues<TFormID extends OnyxFormKey = OnyxFormKey> = Omit<OnyxValues[TFormID], keyof BaseForm>;
 type FormOnyxKeys<TFormID extends OnyxFormKey = OnyxFormKey> = keyof FormOnyxValues<TFormID>;
 
-type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = ForwardedFSClassProps & {
-    /** A unique Onyx key identifying the form */
-    formID: TFormID;
+type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = ForwardedFSClassProps &
+    WithSentryLabel & {
+        /** A unique Onyx key identifying the form */
+        formID: TFormID;
 
-    /** Text to be displayed in the submit button */
-    submitButtonText: string;
+        /** Text to be displayed in the submit button */
+        submitButtonText: string;
 
-    /** Submit button styles */
-    submitButtonStyles?: StyleProp<ViewStyle>;
+        /** Submit button styles */
+        submitButtonStyles?: StyleProp<ViewStyle>;
 
-    /** Controls the submit button's visibility */
-    isSubmitButtonVisible?: boolean;
+        /** Controls the submit button's visibility */
+        isSubmitButtonVisible?: boolean;
 
-    /** Callback to submit the form */
-    onSubmit: (values: FormOnyxValues<TFormID>) => void;
+        /** Callback to submit the form */
+        onSubmit: (values: FormOnyxValues<TFormID>) => void;
 
-    /** Should the button be enabled when offline */
-    enabledWhenOffline?: boolean;
+        /** Should the button be enabled when offline */
+        enabledWhenOffline?: boolean;
 
-    /** Whether the form submit action is dangerous */
-    isSubmitActionDangerous?: boolean;
+        /** Whether the form submit action is dangerous */
+        isSubmitActionDangerous?: boolean;
 
-    /** Should fix the errors alert be displayed when there is an error in the form */
-    shouldHideFixErrorsAlert?: boolean;
+        /** Should fix the errors alert be displayed when there is an error in the form */
+        shouldHideFixErrorsAlert?: boolean;
 
-    /** Whether ScrollWithContext should be used instead of regular ScrollView. Set to true when there's a nested Picker component in Form. */
-    scrollContextEnabled?: boolean;
+        /** Whether ScrollWithContext should be used instead of regular ScrollView. Set to true when there's a nested Picker component in Form. */
+        scrollContextEnabled?: boolean;
 
-    /** Whether to use ScrollView */
-    shouldUseScrollView?: boolean;
+        /** Whether to use ScrollView */
+        shouldUseScrollView?: boolean;
 
-    /** Container styles */
-    style?: StyleProp<ViewStyle>;
+        /** Container styles */
+        style?: StyleProp<ViewStyle>;
 
-    /** Custom content to display in the footer after submit button */
-    footerContent?: ReactNode;
+        /** Custom content to display in the footer after submit button */
+        footerContent?: ReactNode;
 
-    /** Disable press on enter for submit button */
-    disablePressOnEnter?: boolean;
+        /** Disable press on enter for submit button */
+        disablePressOnEnter?: boolean;
 
-    /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
-    enterKeyEventListenerPriority?: number;
+        /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
+        enterKeyEventListenerPriority?: number;
 
-    /** Render extra button above submit button */
-    shouldRenderFooterAboveSubmit?: boolean;
+        /** Render extra button above submit button */
+        shouldRenderFooterAboveSubmit?: boolean;
 
-    /**
-     * Determines whether the form should automatically scroll to the end upon rendering or when the value changes.
-     * If `true`, the form will smoothly scroll to the bottom after interactions have completed.
-     */
-    shouldScrollToEnd?: boolean;
-};
+        /**
+         * Determines whether the form should automatically scroll to the end upon rendering or when the value changes.
+         * If `true`, the form will smoothly scroll to the bottom after interactions have completed.
+         */
+        shouldScrollToEnd?: boolean;
+    };
 
 type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
     resetForm: (optionalValue: FormOnyxValues<TFormID>) => void;

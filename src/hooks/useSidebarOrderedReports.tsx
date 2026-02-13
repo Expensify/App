@@ -9,7 +9,7 @@ import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import useCurrentReportID from './useCurrentReportID';
+import {useCurrentReportIDState} from './useCurrentReportID';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDeepCompareRef from './useDeepCompareRef';
 import useLocalize from './useLocalize';
@@ -31,15 +31,17 @@ type SidebarOrderedReportsContextValue = {
     orderedReportIDs: string[];
     currentReportID: string | undefined;
     policyMemberAccountIDs: number[];
+    clearLHNCache: () => void;
 };
 
-type ReportsToDisplayInLHN = Record<string, OnyxTypes.Report & {hasErrorsOtherThanFailedReceipt?: boolean}>;
+type ReportsToDisplayInLHN = Record<string, OnyxTypes.Report & {hasErrorsOtherThanFailedReceipt?: boolean; requiresAttention?: boolean}>;
 
 const SidebarOrderedReportsContext = createContext<SidebarOrderedReportsContextValue>({
     orderedReports: [],
     orderedReportIDs: [],
     currentReportID: '',
     policyMemberAccountIDs: [],
+    clearLHNCache: () => {},
 });
 
 const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PartialPolicyForSidebar =>
@@ -77,9 +79,13 @@ function SidebarOrderedReportsContextProvider({
     const [currentReportsToDisplay, setCurrentReportsToDisplay] = useState<ReportsToDisplayInLHN>({});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {accountID} = useCurrentUserPersonalDetails();
-    const currentReportIDValue = useCurrentReportID();
-    const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue?.currentReportID;
+    const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
+    const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue;
     const prevDerivedCurrentReportID = usePrevious(derivedCurrentReportID);
+
+    // we need to force reportsToDisplayInLHN to re-compute when we clear currentReportsToDisplay, but the way it currently works relies on not having currentReportsToDisplay as a memo dependency, so we just need something we can change to trigger it
+    // I don't like it either, but clearing the cache is only a hack for the debug modal and I will endeavor to make it better as I work to improve the cache correctness of the LHN more broadly
+    const [clearCacheDummyCounter, setClearCacheDummyCounter] = useState(0);
 
     const policyMemberAccountIDs = useMemo(() => getPolicyEmployeeListByIdWithoutCurrentUser(policies, undefined, accountID), [policies, accountID]);
     const prevBetas = usePrevious(betas);
@@ -185,6 +191,7 @@ function SidebarOrderedReportsContextProvider({
                 draftComments: reportsDrafts,
             });
         } else {
+            Log.info('[useSidebarOrderedReports] building reportsToDisplay from scratch');
             reportsToDisplay = SidebarUtils.getReportsToDisplayInLHN(
                 derivedCurrentReportID,
                 chatReports,
@@ -200,9 +207,23 @@ function SidebarOrderedReportsContextProvider({
 
         return reportsToDisplay;
         // Rule disabled intentionally — triggering a re-render on currentReportsToDisplay would cause an infinite loop
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [getUpdatedReports, chatReports, derivedCurrentReportID, priorityMode, betas, policies, transactionViolations, reportNameValuePairs, reportAttributes, reportsDrafts]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [
+        getUpdatedReports,
+        chatReports,
+        derivedCurrentReportID,
+        priorityMode,
+        betas,
+        policies,
+        transactionViolations,
+        reportNameValuePairs,
+        reportAttributes,
+        reportsDrafts,
+        clearCacheDummyCounter,
+    ]);
 
+    // useDeepCompareRef prevents unnecessary useCallback recreations when these have same content but different reference.
+    // Without this, getOrderedReportIDs would be recreated on every render, causing expensive orderedReportIDs recalculation.
     const deepComparedReportsToDisplayInLHN = useDeepCompareRef(reportsToDisplayInLHN);
     const deepComparedReportsDrafts = useDeepCompareRef(reportsDrafts);
 
@@ -211,9 +232,9 @@ function SidebarOrderedReportsContextProvider({
     }, [reportsToDisplayInLHN]);
 
     const getOrderedReportIDs = useCallback(
-        () => SidebarUtils.sortReportsToDisplayInLHN(deepComparedReportsToDisplayInLHN ?? {}, priorityMode, localeCompare, deepComparedReportsDrafts, reportNameValuePairs, reportAttributes),
+        () => SidebarUtils.sortReportsToDisplayInLHN(deepComparedReportsToDisplayInLHN ?? {}, priorityMode, localeCompare, deepComparedReportsDrafts, reportNameValuePairs),
         // Rule disabled intentionally - reports should be sorted only when the reportsToDisplayInLHN changes
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [deepComparedReportsToDisplayInLHN, localeCompare, deepComparedReportsDrafts],
     );
 
@@ -232,6 +253,12 @@ function SidebarOrderedReportsContextProvider({
 
     const orderedReports = useMemo(() => getOrderedReports(orderedReportIDs), [getOrderedReports, orderedReportIDs]);
 
+    const clearLHNCache = useCallback(() => {
+        Log.info('[useSidebarOrderedReports] Clearing sidebar cache manually via debug modal');
+        setCurrentReportsToDisplay({});
+        setClearCacheDummyCounter((current) => current + 1);
+    }, []);
+
     const contextValue: SidebarOrderedReportsContextValue = useMemo(() => {
         // We need to make sure the current report is in the list of reports, but we do not want
         // to have to re-generate the list every time the currentReportID changes. To do that
@@ -240,8 +267,8 @@ function SidebarOrderedReportsContextProvider({
         // case we re-generate the list a 2nd time with the current report included.
 
         // We also execute the following logic if `shouldUseNarrowLayout` is false because this is
-        // requirement for web and desktop. Consider a case, where we have report with expenses and we click on
-        // any expense, a new LHN item is added in the list and is visible on web and desktop. But on mobile, we
+        // requirement for web. Consider a case, where we have report with expenses and we click on
+        // any expense, a new LHN item is added in the list and is visible on web. But on mobile, we
         // just navigate to the screen with expense details, so there seems no point to execute this logic on mobile.
         if (
             (!shouldUseNarrowLayout || orderedReportIDs.length === 0) &&
@@ -256,6 +283,7 @@ function SidebarOrderedReportsContextProvider({
                 orderedReportIDs: updatedReportIDs,
                 currentReportID: derivedCurrentReportID,
                 policyMemberAccountIDs,
+                clearLHNCache,
             };
         }
 
@@ -264,8 +292,9 @@ function SidebarOrderedReportsContextProvider({
             orderedReportIDs,
             currentReportID: derivedCurrentReportID,
             policyMemberAccountIDs,
+            clearLHNCache,
         };
-    }, [getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID, policyMemberAccountIDs, shouldUseNarrowLayout, getOrderedReports, orderedReports]);
+    }, [getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID, policyMemberAccountIDs, shouldUseNarrowLayout, getOrderedReports, orderedReports, clearLHNCache]);
 
     const currentDeps = {
         priorityMode,

@@ -1,12 +1,17 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
+import {getApprovalLimitDescription} from '@libs/WorkflowUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsByEmailSelector} from '@src/selectors/PersonalDetails';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import Icon from './Icon';
 import MenuItem from './MenuItem';
@@ -19,37 +24,39 @@ type ApprovalWorkflowSectionProps = {
 
     /** A function that is called when the section is pressed */
     onPress: () => void;
+
+    /** Currency used for formatting approval limits */
+    currency?: string;
 };
 
-function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSectionProps) {
+function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CURRENCY.USD}: ApprovalWorkflowSectionProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Lightbulb', 'Users', 'UserCheck']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const [personalDetailsByEmail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        canBeMissing: true,
+        selector: personalDetailsByEmailSelector,
+    });
 
-    const approverTitle = useCallback(
-        (index: number) =>
-            approvalWorkflow.approvers.length > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`,
-        [approvalWorkflow.approvers.length, toLocaleOrdinal, translate],
-    );
+    const approverTitle = (index: number) =>
+        approvalWorkflow.approvers.length > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`;
 
-    const members = useMemo(() => {
-        if (approvalWorkflow.isDefault) {
-            return translate('workspace.common.everyone');
-        }
-
-        return sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare)
-            .map((m) => Str.removeSMSDomain(m.displayName))
-            .join(', ');
-    }, [approvalWorkflow.isDefault, approvalWorkflow.members, translate, localeCompare]);
-
+    const members = approvalWorkflow.isDefault
+        ? translate('workspace.common.everyone')
+        : sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare)
+              .map((m) => Str.removeSMSDomain(m.displayName))
+              .join(', ');
     return (
         <PressableWithoutFeedback
             accessibilityRole="button"
             style={[styles.border, shouldUseNarrowLayout ? styles.p3 : styles.p4, styles.flexRow, styles.justifyContentBetween, styles.mt6, styles.mbn3]}
             onPress={onPress}
-            accessibilityLabel={translate('workflowsPage.addApprovalsTitle')}
+            accessibilityLabel={translate('workflowsPage.accessibilityLabel', {
+                members,
+                approvers: approvalWorkflow?.approvers.map((approver) => Str.removeSMSDomain(approver?.displayName ?? '')).join(', '),
+            })}
         >
             <View style={[styles.flex1]}>
                 {approvalWorkflow.isDefault && (
@@ -75,6 +82,8 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
                     descriptionTextStyle={[styles.textNormalThemeText, styles.lineHeightXLarge]}
                     description={members}
                     numberOfLinesDescription={4}
+                    shouldBeAccessible={false}
+                    tabIndex={-1}
                     icon={icons.Users}
                     iconHeight={20}
                     iconWidth={20}
@@ -94,12 +103,16 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
                             descriptionTextStyle={[styles.textNormalThemeText, styles.lineHeightXLarge]}
                             description={Str.removeSMSDomain(approver.displayName)}
                             icon={icons.UserCheck}
+                            shouldBeAccessible={false}
+                            tabIndex={-1}
                             iconHeight={20}
                             iconWidth={20}
                             numberOfLinesDescription={1}
                             iconFill={theme.icon}
                             onPress={onPress}
                             shouldRemoveBackground
+                            helperText={getApprovalLimitDescription({approver, currency, translate, personalDetailsByEmail})}
+                            helperTextStyle={styles.workflowApprovalLimitText}
                         />
                     </View>
                 ))}

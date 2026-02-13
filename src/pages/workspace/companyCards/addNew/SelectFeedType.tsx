@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -10,7 +10,6 @@ import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isPlaidSupportedCountry} from '@libs/CardUtils';
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
@@ -21,11 +20,12 @@ function SelectFeedType() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
-    const [typeSelected, setTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.FEED_TYPE>>();
+    const [localTypeSelected, setLocalTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.FEED_TYPE>>();
     const [hasError, setHasError] = useState(false);
-    const {isBetaEnabled} = usePermissions();
     const doesCountrySupportPlaid = isPlaidSupportedCountry(addNewCard?.data?.selectedCountry);
     const isUSCountry = addNewCard?.data?.selectedCountry === CONST.COUNTRY.US;
+    const defaultTypeSelected = addNewCard?.data.selectedFeedType ?? (doesCountrySupportPlaid ? CONST.COMPANY_CARDS.FEED_TYPE.DIRECT : undefined);
+    const typeSelected = localTypeSelected ?? defaultTypeSelected;
 
     const submit = useCallback(() => {
         if (!typeSelected) {
@@ -34,7 +34,7 @@ function SelectFeedType() {
         }
         const isDirectSelected = typeSelected === CONST.COMPANY_CARDS.FEED_TYPE.DIRECT;
 
-        if (!isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) || !isDirectSelected) {
+        if (!isDirectSelected) {
             setAddNewCompanyCardStepAndData({
                 step: isDirectSelected ? CONST.COMPANY_CARDS.STEP.BANK_CONNECTION : CONST.COMPANY_CARDS.STEP.CARD_TYPE,
                 data: {selectedFeedType: typeSelected},
@@ -46,29 +46,17 @@ function SelectFeedType() {
             step,
             data: {selectedFeedType: typeSelected},
         });
-    }, [isBetaEnabled, isUSCountry, typeSelected]);
-
-    useEffect(() => {
-        if (addNewCard?.data.selectedFeedType) {
-            setTypeSelected(addNewCard?.data.selectedFeedType);
-            return;
-        }
-        if (doesCountrySupportPlaid) {
-            setTypeSelected(CONST.COMPANY_CARDS.FEED_TYPE.DIRECT);
-        }
-    }, [addNewCard?.data.selectedFeedType, doesCountrySupportPlaid]);
+    }, [isUSCountry, typeSelected]);
 
     const handleBackButtonPress = () => {
-        setAddNewCompanyCardStepAndData({step: isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) ? CONST.COMPANY_CARDS.STEP.SELECT_COUNTRY : CONST.COMPANY_CARDS.STEP.SELECT_BANK});
+        setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_COUNTRY});
     };
 
     const data = [
         {
             value: CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM,
             text: translate('workspace.companyCards.commercialFeed'),
-            alternateText: translate(
-                isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) ? 'workspace.companyCards.addNewCard.commercialFeedPlaidDetails' : 'workspace.companyCards.addNewCard.commercialFeedDetails',
-            ),
+            alternateText: translate('workspace.companyCards.addNewCard.commercialFeedPlaidDetails'),
             keyForList: CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM,
             isSelected: typeSelected === CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM,
         },
@@ -82,9 +70,6 @@ function SelectFeedType() {
     ];
 
     const getFinalData = () => {
-        if (!isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS)) {
-            return data;
-        }
         if (doesCountrySupportPlaid) {
             return data.reverse();
         }
@@ -125,7 +110,7 @@ function SelectFeedType() {
                 ListItem={RadioListItem}
                 data={finalData}
                 onSelectRow={({value}) => {
-                    setTypeSelected(value);
+                    setLocalTypeSelected(value);
                     setHasError(false);
                 }}
                 shouldSingleExecuteRowSelect

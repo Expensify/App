@@ -105,7 +105,7 @@ function handleSAMLLoginError(errorMessage: string, shouldClearSignInData: boole
     }
 
     setAccountError(errorMessage);
-    Navigation.goBack(ROUTES.HOME);
+    Navigation.goBack(ROUTES.INBOX);
 }
 
 function formatE164PhoneNumber(phoneNumber: string, countryCode: number) {
@@ -113,6 +113,22 @@ function formatE164PhoneNumber(phoneNumber: string, countryCode: number) {
     const parsedPhoneNumber = parsePhoneNumber(phoneNumberWithCountryCode);
 
     return parsedPhoneNumber.number?.e164;
+}
+
+/**
+ * Format a login string by removing SMS domain if applicable
+ * @param login - The login string to format
+ * @returns The formatted login string, or empty string if no login provided
+ */
+function normalizeLogin(login: string | undefined): string {
+    if (!login) {
+        return '';
+    }
+    return Str.isSMSLogin(login) ? Str.removeSMSDomain(login) : login;
+}
+
+function sanitizePhoneOrEmail(phoneOrEmail: string) {
+    return phoneOrEmail.replaceAll(CONST.REGEX.WHITESPACE, '').toLowerCase();
 }
 
 export {
@@ -127,4 +143,6 @@ export {
     formatE164PhoneNumber,
     getEmailDomain,
     isDomainPublic,
+    normalizeLogin,
+    sanitizePhoneOrEmail,
 };

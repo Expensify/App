@@ -1,6 +1,8 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import SaveResponseInOnyx from '@libs/Middleware/SaveResponseInOnyx';
+// This import is needed to initialize the Onyx connections that call replaceOptimisticReportWithActualReport
+import '@src/libs/actions/replaceOptimisticReportWithActualReport';
 import HttpUtils from '@src/libs/HttpUtils';
 import handleUnusedOptimisticID from '@src/libs/Middleware/HandleUnusedOptimisticID';
 import * as MainQueue from '@src/libs/Network/MainQueue';
@@ -24,6 +26,8 @@ beforeAll(() => {
 });
 
 beforeEach(async () => {
+    await Onyx.clear();
+    await waitForBatchedUpdates();
     SequentialQueue.pause();
     MainQueue.clear();
     HttpUtils.cancelPendingRequests();

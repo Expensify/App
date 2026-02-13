@@ -4,7 +4,7 @@ import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 
 type ReactionTooltipContentProps = Pick<WithCurrentUserPersonalDetailsProps, 'currentUserPersonalDetails'> & {
     /**
@@ -27,7 +27,7 @@ function ReactionTooltipContent({accountIDs, currentUserPersonalDetails, emojiCo
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const users = useMemo(
-        () => PersonalDetailsUtils.getPersonalDetailsByIDs({accountIDs, currentUserAccountID: currentUserPersonalDetails.accountID, shouldChangeUserDisplayName: true}),
+        () => getPersonalDetailsByIDs({accountIDs, currentUserAccountID: currentUserPersonalDetails.accountID, shouldChangeUserDisplayName: true}),
         [currentUserPersonalDetails.accountID, accountIDs],
     );
 
@@ -55,5 +55,7 @@ function ReactionTooltipContent({accountIDs, currentUserPersonalDetails, emojiCo
         </View>
     );
 }
+
+ReactionTooltipContent.displayName = 'ReactionTooltipContent';
 
 export default React.memo(ReactionTooltipContent);

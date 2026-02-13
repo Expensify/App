@@ -66,7 +66,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
 
         const missingRequiredColumns = requiredColumns.find((requiredColumn) => !columns.includes(requiredColumn.value));
         if (missingRequiredColumns) {
-            errors.required = translate('spreadsheet.fieldNotMapped', {fieldName: missingRequiredColumns.text});
+            errors.required = translate('spreadsheet.fieldNotMapped', missingRequiredColumns.text);
         } else {
             const duplicate = findDuplicate(columns);
             const duplicateColumn = columnRoles.find((role) => role.value === duplicate);
@@ -76,9 +76,9 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
             const containsEmptyName = categoriesNames?.some((name, index) => (!containsHeader || index > 0) && !name?.toString().trim());
 
             if (duplicateColumn) {
-                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', {fieldName: duplicateColumn.text});
+                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicateColumn.text);
             } else if (containsEmptyName) {
-                errors.emptyNames = translate('spreadsheet.emptyMappedField', {fieldName: translate('common.name')});
+                errors.emptyNames = translate('spreadsheet.emptyMappedField', translate('common.name'));
             } else {
                 errors = {};
             }
@@ -159,6 +159,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
             <ImportSpreadsheetConfirmModal
                 isVisible={spreadsheet?.shouldFinalModalBeOpened}
                 closeImportPageAndModal={closeImportPageAndModal}
+                shouldHandleNavigationBack={false}
             />
         </ScreenWrapper>
     );

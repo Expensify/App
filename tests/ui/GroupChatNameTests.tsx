@@ -1,7 +1,5 @@
 /* eslint-disable testing-library/no-node-access */
-
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {act, render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
@@ -121,7 +119,7 @@ jest.mock('@src/components/Navigation/NavigationTabBar', () => {
 });
 
 // Mock FloatingActionButtonAndPopover component to prevent act() warnings
-jest.mock('@src/pages/home/sidebar/FloatingActionButtonAndPopover', () => {
+jest.mock('@src/pages/inbox/sidebar/FloatingActionButtonAndPopover', () => {
     const {View} = require('react-native');
     return (props: Record<string, unknown>) => {
         return (
@@ -134,7 +132,7 @@ jest.mock('@src/pages/home/sidebar/FloatingActionButtonAndPopover', () => {
 });
 
 // Mock ProfileAvatarWithIndicator component to prevent act() warnings
-jest.mock('@src/pages/home/sidebar/ProfileAvatarWithIndicator', () => {
+jest.mock('@src/pages/inbox/sidebar/ProfileAvatarWithIndicator', () => {
     const {View} = require('react-native');
     return (props: Record<string, unknown>) => {
         return (
@@ -193,7 +191,7 @@ function signInAndGetApp(reportName = '', participantAccountIDs?: number[]): Pro
         })
         .then(async () => TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A'))
         .then(() => {
-            subscribeToUserEvents();
+            subscribeToUserEvents(USER_A_ACCOUNT_ID);
             return waitForBatchedUpdates();
         })
         .then(async () => {

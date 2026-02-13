@@ -13,7 +13,7 @@ const EslintUtils = {
      *
      * @param content - The line content to check
      * @param isFileLevel - Whether to check for file-level disable comments (true) or line-level (false)
-     * @param rules - Array of ESLint rule names to check for (e.g., ['react-compiler/react-compiler', 'react-hooks'])
+     * @param rules - Array of ESLint rule names to check for (e.g., ['react-hooks'])
      * @returns True if the line contains a matching eslint-disable comment
      */
     hasEslintDisableComment(content: string, isFileLevel: boolean, rules: string[]): boolean {

@@ -136,6 +136,7 @@ function Table<T, ColumnKey extends string = string, FilterKey extends string = 
     compareItems,
     isItemInFilter,
     isItemInSearch,
+    initialSortColumn,
     children,
     ...listProps
 }: TableProps<T, ColumnKey, FilterKey>) {
@@ -147,7 +148,7 @@ function Table<T, ColumnKey extends string = string, FilterKey extends string = 
 
     const {middleware: searchMiddleware, activeSearchString, methods: searchMethods} = useSearching<T>({isItemInSearch});
 
-    const {middleware: sortMiddleware, activeSorting, methods: sortMethods} = useSorting<T, ColumnKey>({compareItems});
+    const {middleware: sortMiddleware, activeSorting, methods: sortMethods} = useSorting<T, ColumnKey>({compareItems, initialSortColumn});
 
     const processedData = [filterMiddleware, searchMiddleware, sortMiddleware].reduce((acc, middleware) => middleware(acc), data);
 
@@ -175,18 +176,35 @@ function Table<T, ColumnKey extends string = string, FilterKey extends string = 
         }) as TableHandle<T, ColumnKey, FilterKey>;
     });
 
+    const originalDataLength = data?.length ?? 0;
+
+    // Check if filters are applied (not default values)
+    const hasActiveFilters = filters
+        ? (Object.keys(currentFilters) as FilterKey[]).some((key) => {
+              const filterValue = currentFilters[key];
+              const defaultValue = filters[key]?.default;
+              return filterValue !== defaultValue;
+          })
+        : false;
+
+    const hasSearchString = activeSearchString.trim().length > 0;
+    const isEmptyResult = processedData.length === 0 && originalDataLength > 0 && (hasSearchString || hasActiveFilters);
+
     // eslint-disable-next-line react/jsx-no-constructed-context-values
     const contextValue: TableContextValue<T, ColumnKey, FilterKey> = {
         listRef,
         listProps,
         processedData,
-        originalDataLength: data?.length ?? 0,
+        originalDataLength,
         columns,
         filterConfig: filters,
         activeFilters: currentFilters,
         activeSorting,
         activeSearchString,
         tableMethods,
+        hasActiveFilters,
+        hasSearchString,
+        isEmptyResult,
     };
 
     return <TableContext.Provider value={contextValue as unknown as TableContextValue<unknown, string>}>{children}</TableContext.Provider>;

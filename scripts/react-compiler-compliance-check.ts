@@ -1,7 +1,5 @@
 #!/usr/bin/env ts-node
-
 /* eslint-disable max-classes-per-file */
-
 /**
  * React Compiler Compliance Checker
  *
@@ -240,7 +238,7 @@ class ReactCompilerHealthcheck {
  * Analyzes git diffs to filter compiler results to only changed lines.
  */
 class DiffAnalyzer {
-    private static readonly ESLINT_LINT_RULES = ['react-compiler/react-compiler', 'react-hooks'] as const;
+    private static readonly ESLINT_LINT_RULES = ['react-hooks'] as const;
 
     /**
      * Filter compiler results to only include errors for lines that were changed in the git diff.

@@ -2,7 +2,7 @@ import {endOfDay, endOfMonth, endOfWeek, getDay, lastDayOfMonth, set, startOfMon
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {PersonalDetails, Policy, Report, Transaction} from '@src/types/onyx';
+import type {PersonalDetails, Policy, PolicyReportField, Report, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {convertToDisplayString, convertToDisplayStringWithoutCurrency, isValidCurrencyCode} from './CurrencyUtils';
 import {formatDate} from './FormulaDatetime';
@@ -26,6 +26,8 @@ type FormulaPart = {
     functions: string[];
 };
 
+type MinimalTransaction = Pick<Transaction, 'transactionID' | 'reportID' | 'created' | 'amount' | 'currency' | 'merchant' | 'pendingAction'>;
+
 type FormulaContext = {
     report: Report;
     policy: OnyxEntry<Policy>;
@@ -33,6 +35,9 @@ type FormulaContext = {
     submitterPersonalDetails?: PersonalDetails;
     managerPersonalDetails?: PersonalDetails;
     allTransactions?: Record<string, Transaction>;
+    fieldValues?: Record<string, string>;
+    fieldsByName?: Record<string, PolicyReportField>;
+    visitedFields?: Set<string>;
 };
 
 type FieldList = Record<string, {name: string; defaultValue: string}>;
@@ -199,40 +204,6 @@ function parsePart(definition: string): FormulaPart {
 }
 
 /**
- * Check if a formula requires backend computation (e.g., currency conversion with exchange rates)
- * This is used by OptimisticReportNames to skip optimistic updates when online and backend is needed
- */
-function requiresBackendComputation(parts: FormulaPart[], context?: FormulaContext): boolean {
-    if (!context) {
-        return false;
-    }
-
-    const {report} = context;
-
-    for (const part of parts) {
-        if (part.type === FORMULA_PART_TYPES.REPORT) {
-            const [field, ...additionalPath] = part.fieldPath;
-            // Reconstruct format string by joining additional path elements with ':'
-            // This handles format strings with colons like 'HH:mm:ss'
-            const format = additionalPath.length > 0 ? additionalPath.join(':') : undefined;
-            const fieldName = field?.toLowerCase();
-
-            if (fieldName === 'total' || fieldName === 'reimbursable') {
-                // Use formatAmount to check whether a currency conversion is needed.
-                // A null return means the backend must handle the conversion.
-                // We rely on report.total because zero values can be computed optimistically.
-                const result = formatAmount(report.total, report.currency, format);
-                if (result === null) {
-                    return true;
-                }
-            }
-        }
-    }
-
-    return false;
-}
-
-/**
  * Check if the report field formula value is containing circular references, e.g example:  A -> A,  A->B->A,  A->B->C->A, etc
  */
 function hasCircularReferences(fieldValue: string, fieldName: string, fieldList?: FieldList): boolean {
@@ -328,7 +299,7 @@ function compute(formula?: string, context?: FormulaContext): string {
                 }
                 break;
             case FORMULA_PART_TYPES.FIELD:
-                value = computeFieldPart(part);
+                value = computeFieldPart(part, context);
                 break;
             case FORMULA_PART_TYPES.USER:
                 value = computeUserPart(part);
@@ -460,10 +431,48 @@ function formatStatus(statusNum: number | undefined): string {
 }
 
 /**
- * Compute the value of a field formula part
+ * Check if a formula string contains field references ({field:X})
+ * Uses quick string check before expensive parsing for performance
  */
-function computeFieldPart(part: FormulaPart): string {
-    // Field computation will be implemented later
+function hasFieldReferences(formula: string | undefined): boolean {
+    if (!formula?.includes('{field:')) {
+        return false;
+    }
+    const parsed = parse(formula);
+    return parsed.some((part) => part.type === FORMULA_PART_TYPES.FIELD);
+}
+
+/**
+ * Compute the value of a field formula part with recursive resolution support
+ */
+function computeFieldPart(part: FormulaPart, context?: FormulaContext): string {
+    const fieldName = part.fieldPath.at(0)?.toLowerCase();
+
+    if (!fieldName) {
+        return part.definition;
+    }
+
+    // Prevent circular references by tracking visited fields
+    const visited = context?.visitedFields ?? new Set<string>();
+    if (visited.has(fieldName)) {
+        return part.definition;
+    }
+
+    // If we have the full field definitions, we can recursively resolve dependencies
+    if (context?.fieldsByName?.[fieldName]) {
+        const field = context.fieldsByName[fieldName];
+        if (hasFieldReferences(field.defaultValue)) {
+            visited.add(fieldName);
+            return compute(field.defaultValue, {...context, visitedFields: visited});
+        }
+        return field.value ?? field.defaultValue ?? '';
+    }
+
+    // Fallback to flat value map
+    if (context?.fieldValues?.[fieldName]) {
+        return context.fieldValues[fieldName];
+    }
+
     return part.definition;
 }
 
@@ -917,11 +926,11 @@ function computePersonalDetailsField(path: string[], personalDetails: PersonalDe
         case 'email':
             return personalDetails.login ?? '';
         // userid/customfield1 returns employeeUserID from policy.employeeList
-        // TODO: Check policy.glCodes once backend adds it (issue #568268)
         case 'userid':
         case 'customfield1': {
             const email = personalDetails.login;
-            if (!email || !policy?.employeeList) {
+            const isGlCodesEnabled = policy?.glCodes === true;
+            if (!isGlCodesEnabled || !email || !policy?.employeeList) {
                 return '';
             }
             // eslint-disable-next-line rulesdir/no-default-id-values
@@ -931,7 +940,8 @@ function computePersonalDetailsField(path: string[], personalDetails: PersonalDe
         case 'payrollid':
         case 'customfield2': {
             const email = personalDetails.login;
-            if (!email || !policy?.employeeList) {
+            const isGlCodesEnabled = policy?.glCodes === true;
+            if (!isGlCodesEnabled || !email || !policy?.employeeList) {
                 return '';
             }
             // eslint-disable-next-line rulesdir/no-default-id-values
@@ -942,6 +952,25 @@ function computePersonalDetailsField(path: string[], personalDetails: PersonalDe
     }
 }
 
-export {FORMULA_PART_TYPES, compute, extract, getAutoReportingDates, parse, hasCircularReferences, requiresBackendComputation};
+/**
+ * Resolve the display value for a report field, handling {field:X} references
+ */
+function resolveReportFieldValue(
+    field: PolicyReportField,
+    report: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    fieldValues: Record<string, string>,
+    fieldsByName: Record<string, PolicyReportField>,
+): string {
+    const fieldValue = field.value ?? field.defaultValue ?? '';
 
-export type {FormulaContext, FormulaPart, FieldList};
+    if (!report || !hasFieldReferences(field.defaultValue)) {
+        return fieldValue;
+    }
+
+    return compute(field.defaultValue, {report, policy, fieldValues, fieldsByName});
+}
+
+export {FORMULA_PART_TYPES, compute, parse, hasCircularReferences, resolveReportFieldValue};
+
+export type {FormulaContext, FieldList, MinimalTransaction};

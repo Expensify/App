@@ -34,7 +34,7 @@ type MessagesRowProps = {
     dismissError?: () => void;
 };
 
-function MessagesRow({messages = {}, type, onDismiss = () => {}, containerStyles, dismissError = () => {}, errorTextStyles}: MessagesRowProps) {
+function MessagesRow({messages = {}, type, onDismiss, containerStyles, dismissError = () => {}, errorTextStyles}: MessagesRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();

@@ -1,7 +1,6 @@
 type SetTechnicalContactEmailParams = {
-    authToken?: string | null;
     domainAccountID: number;
-    technicalContactAccountID: number;
+    technicalContactEmail: string;
 };
 
 export default SetTechnicalContactEmailParams;

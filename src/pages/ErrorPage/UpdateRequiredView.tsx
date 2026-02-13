@@ -2,7 +2,6 @@ import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import Header from '@components/Header';
-import HeaderGap from '@components/HeaderGap';
 import Lottie from '@components/Lottie';
 import LottieAnimations from '@components/LottieAnimations';
 import Text from '@components/Text';
@@ -27,7 +26,6 @@ function UpdateRequiredView() {
 
     return (
         <View style={[styles.appBG, styles.h100, StyleUtils.getPlatformSafeAreaPadding(insets)]}>
-            <HeaderGap />
             <View style={[styles.pt5, styles.ph5, styles.updateRequiredViewHeader]}>
                 <Header title={translate('updateRequiredView.updateRequired')} />
             </View>

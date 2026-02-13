@@ -3,6 +3,7 @@ import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import {useMouseContext} from '@hooks/useMouseContext';
 import usePrevious from '@hooks/usePrevious';
@@ -25,7 +26,6 @@ import CONST from '@src/CONST';
 import BigNumberPad from './BigNumberPad';
 import Button from './Button';
 import FormHelpMessage from './FormHelpMessage';
-import * as Expensicons from './Icon/Expensicons';
 import ScrollView from './ScrollView';
 import TextInput from './TextInput';
 import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
@@ -79,11 +79,17 @@ type NumberWithSymbolFormProps = {
     /** Whether to allow flipping amount */
     allowFlippingAmount?: boolean;
 
+    /** Whether to allow direct negative input (for split amounts where value is already negative) */
+    allowNegativeInput?: boolean;
+
     /** Whether the input is disabled or not */
     disabled?: boolean;
 
     /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
+
+    /** Callback when the user presses the submit key (Enter) */
+    onSubmitEditing?: () => void;
 } & Omit<TextInputWithSymbolProps, 'formattedAmount' | 'onAmountChange' | 'placeholder' | 'onSelectionChange' | 'onKeyPress' | 'onMouseDown' | 'onMouseUp'>;
 
 type NumberWithSymbolFormRef = {
@@ -141,12 +147,15 @@ function NumberWithSymbolForm({
     shouldWrapInputInContainer = true,
     isNegative = false,
     allowFlippingAmount = false,
+    allowNegativeInput = false,
     toggleNegative,
     clearNegative,
     ref,
     disabled,
+    onSubmitEditing,
     ...props
 }: NumberWithSymbolFormProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'PlusMinus']);
     const styles = useThemeStyles();
     const {toLocaleDigit, numberFormat, translate} = useLocalize();
 
@@ -213,11 +222,13 @@ function NumberWithSymbolForm({
             const newNumberWithoutSpaces = stripSpacesFromAmount(newNumber);
             const rawFinalNumber = newNumberWithoutSpaces.includes('.') ? stripCommaFromAmount(newNumberWithoutSpaces) : replaceCommasWithPeriod(newNumberWithoutSpaces);
 
-            const finalNumber = handleNegativeAmountFlipping(rawFinalNumber, allowFlippingAmount, toggleNegative);
+            // When allowNegativeInput is true, keep negative sign as-is (for split amounts)
+            // When allowFlippingAmount is true, strip the negative sign and call toggleNegative
+            const finalNumber = allowNegativeInput ? rawFinalNumber : handleNegativeAmountFlipping(rawFinalNumber, allowFlippingAmount, toggleNegative);
 
             // Use a shallow copy of selection to trigger setSelection
             // More info: https://github.com/Expensify/App/issues/16385
-            if (!validateAmount(finalNumber, decimals, maxLength)) {
+            if (!validateAmount(finalNumber, decimals, maxLength, allowNegativeInput)) {
                 setSelection((prevSelection) => ({...prevSelection}));
                 return;
             }
@@ -237,7 +248,7 @@ function NumberWithSymbolForm({
             });
             onInputChange?.(strippedNumber);
         },
-        [decimals, maxLength, onInputChange, allowFlippingAmount, toggleNegative],
+        [decimals, maxLength, onInputChange, allowFlippingAmount, toggleNegative, allowNegativeInput],
     );
 
     /**
@@ -248,11 +259,14 @@ function NumberWithSymbolForm({
         // Remove spaces from the new number because Safari on iOS adds spaces when pasting a copied number
         // More info: https://github.com/Expensify/App/issues/16974
         const newNumberWithoutSpaces = stripSpacesFromAmount(text);
-        const replacedCommasNumber = handleNegativeAmountFlipping(replaceCommasWithPeriod(newNumberWithoutSpaces), allowFlippingAmount, toggleNegative);
+        // When allowNegativeInput is true, keep negative sign as-is
+        const replacedCommasNumber = allowNegativeInput
+            ? replaceCommasWithPeriod(newNumberWithoutSpaces)
+            : handleNegativeAmountFlipping(replaceCommasWithPeriod(newNumberWithoutSpaces), allowFlippingAmount, toggleNegative);
 
-        const withLeadingZero = addLeadingZero(replacedCommasNumber);
+        const withLeadingZero = addLeadingZero(replacedCommasNumber, allowNegativeInput);
 
-        if (!validateAmount(withLeadingZero, decimals, maxLength)) {
+        if (!validateAmount(withLeadingZero, decimals, maxLength, allowNegativeInput)) {
             setSelection((prevSelection) => ({...prevSelection}));
             return;
         }
@@ -275,7 +289,7 @@ function NumberWithSymbolForm({
     // Modifies the number to match changed decimals.
     useEffect(() => {
         // If the number supports decimals, we can return
-        if (validateAmount(currentNumber, decimals, maxLength, allowFlippingAmount)) {
+        if (validateAmount(currentNumber, decimals, maxLength, allowNegativeInput || allowFlippingAmount)) {
             return;
         }
 
@@ -283,7 +297,7 @@ function NumberWithSymbolForm({
         setNewNumber(stripDecimalsFromAmount(currentNumber));
 
         // we want to update only when decimals change.
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [decimals]);
 
     /**
@@ -300,14 +314,14 @@ function NumberWithSymbolForm({
                 if (currentNumber.length > 0) {
                     const selectionStart = selection.start === selection.end ? selection.start - 1 : selection.start;
                     const newNumber = `${currentNumber.substring(0, selectionStart)}${currentNumber.substring(selection.end)}`;
-                    setNewNumber(addLeadingZero(newNumber));
+                    setNewNumber(addLeadingZero(newNumber, allowNegativeInput));
                 }
                 return;
             }
-            const newNumber = addLeadingZero(`${currentNumber.substring(0, selection.start)}${key}${currentNumber.substring(selection.end)}`);
+            const newNumber = addLeadingZero(`${currentNumber.substring(0, selection.start)}${key}${currentNumber.substring(selection.end)}`, allowNegativeInput);
             setNewNumber(newNumber);
         },
-        [currentNumber, selection.start, selection.end, shouldUpdateSelection, setNewNumber],
+        [currentNumber, selection.start, selection.end, shouldUpdateSelection, setNewNumber, allowNegativeInput],
     );
 
     /**
@@ -386,6 +400,7 @@ function NumberWithSymbolForm({
                 autoFocus={props.autoFocus}
                 autoGrowExtraSpace={props.autoGrowExtraSpace}
                 autoGrowMarginSide={props.autoGrowMarginSide}
+                onSubmitEditing={onSubmitEditing}
             />
         );
     }
@@ -452,6 +467,7 @@ function NumberWithSymbolForm({
             isNegative={isNegative}
             toggleNegative={toggleNegative}
             onFocus={props.onFocus}
+            accessibilityLabel={props.accessibilityLabel}
         />
     );
 
@@ -472,11 +488,12 @@ function NumberWithSymbolForm({
                             <Button
                                 shouldShowRightIcon
                                 small
-                                iconRight={Expensicons.DownArrow}
+                                iconRight={icons.DownArrow}
                                 onPress={onSymbolButtonPress}
                                 style={styles.minWidth18}
                                 isContentCentered
                                 text={currency}
+                                accessibilityLabel={`${translate('common.selectCurrency')}, ${currency}`}
                             />
                         )}
                         {!!errorText && (
@@ -497,22 +514,24 @@ function NumberWithSymbolForm({
                     <Button
                         shouldShowRightIcon
                         small
-                        iconRight={Expensicons.DownArrow}
+                        iconRight={icons.DownArrow}
                         onPress={onSymbolButtonPress}
                         style={styles.minWidth18}
                         isContentCentered
                         text={currency}
+                        accessibilityLabel={`${translate('common.selectCurrency')}, ${currency}`}
                     />
                 )}
                 {allowFlippingAmount && canUseTouchScreen && (
                     <Button
                         shouldShowRightIcon
                         small
-                        iconRight={Expensicons.PlusMinus}
+                        iconRight={icons.PlusMinus}
                         onPress={toggleNegative}
                         style={styles.minWidth18}
                         isContentCentered
                         text={translate('iou.flip')}
+                        accessibilityLabel={translate('iou.flip')}
                     />
                 )}
             </View>

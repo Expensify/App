@@ -4,9 +4,8 @@ import pdfWorkerSource from 'pdfjs-dist/build/pdf.worker.min.mjs';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {Document, pdfjs, Thumbnail} from 'react-pdf';
-import ActivityIndicator from '@components/ActivityIndicator';
+import LoadingIndicator from '@components/LoadingIndicator';
 import useThemeStyles from '@hooks/useThemeStyles';
-import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import PDFThumbnailError from './PDFThumbnailError';
 import type PDFThumbnailProps from './types';
 
@@ -14,15 +13,15 @@ if (!pdfjs.GlobalWorkerOptions.workerSrc) {
     pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([pdfWorkerSource], {type: 'text/javascript'}));
 }
 
-function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, enabled = true, onPassword, onLoadError, onLoadSuccess}: PDFThumbnailProps) {
+function PDFThumbnail({previewSourceURL, style, enabled = true, onPassword, onLoadError, onLoadSuccess}: PDFThumbnailProps) {
     const styles = useThemeStyles();
     const [failedToLoad, setFailedToLoad] = useState(false);
 
     const thumbnail = useMemo(
         () => (
             <Document
-                loading={<ActivityIndicator size="large" />}
-                file={isAuthTokenRequired ? addEncryptedAuthTokenToURL(previewSourceURL) : previewSourceURL}
+                loading={<LoadingIndicator />}
+                file={previewSourceURL}
                 options={{
                     cMapUrl: 'cmaps/',
                     cMapPacked: true,
@@ -51,7 +50,7 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
                 </View>
             </Document>
         ),
-        [isAuthTokenRequired, previewSourceURL, onPassword, onLoadError, onLoadSuccess],
+        [previewSourceURL, onPassword, onLoadError, onLoadSuccess],
     );
 
     return (
@@ -63,5 +62,7 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
         </View>
     );
 }
+
+PDFThumbnail.displayName = 'PDFThumbnail';
 
 export default React.memo(PDFThumbnail);

@@ -13,15 +13,16 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {savePreferredExportMethod as savePreferredExportMethodUtils} from '@libs/actions/Policy/Policy';
 import {exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
 import {canBeExported as canBeExportedUtils, getIntegrationIcon, isExported as isExportedUtils} from '@libs/ReportUtils';
-import type {ExportType} from '@pages/home/report/ReportDetailsExportPage';
+import type {ExportType} from '@pages/inbox/report/ReportDetailsExportPage';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportActions} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-type ExportWithDropdownMenuProps = {
+type ExportWithDropdownMenuProps = WithSentryLabel & {
     report: OnyxEntry<Report>;
 
     reportActions: OnyxEntry<ReportActions>;
@@ -31,9 +32,6 @@ type ExportWithDropdownMenuProps = {
     dropdownAnchorAlignment?: AnchorAlignment;
 
     wrapperStyle?: StyleProp<ViewStyle>;
-
-    /** Label for Sentry tracking */
-    sentryLabel?: string;
 };
 
 function ExportWithDropdownMenu({
@@ -87,7 +85,7 @@ function ExportWithDropdownMenu({
         }
         return options;
         // We do not include exportMethods not to re-render the component when the preferred export method changes
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [canBeExported, iconToDisplay, connectionName, report?.policyID, translate]);
 
     const confirmExport = useCallback(() => {

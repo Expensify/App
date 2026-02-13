@@ -6,9 +6,12 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
-import {setDraftSplitTransaction, setMoneyRequestCurrency, setMoneyRequestParticipantsFromReport, setMoneyRequestTaxAmount, updateMoneyRequestTaxAmount} from '@libs/actions/IOU';
-import {convertToBackendAmount, isValidCurrencyCode} from '@libs/CurrencyUtils';
+import {setMoneyRequestCurrency, setMoneyRequestParticipantsFromReport, setMoneyRequestTaxAmount, updateMoneyRequestTaxAmount} from '@libs/actions/IOU';
+import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
+import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {calculateTaxAmount, getAmount, getDefaultTaxCode, getTaxValue, getTaxAmount as getTransactionTaxAmount} from '@libs/TransactionUtils';
@@ -29,7 +32,7 @@ type IOURequestStepTaxAmountPageProps = WithWritableReportOrNotFoundProps<typeof
     transaction: OnyxEntry<Transaction>;
 };
 
-function getTaxAmount(transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>, currency: string | undefined, isEditing: boolean): number | undefined {
+function getTaxAmount(transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>, currency: string | undefined, decimals: number, isEditing: boolean): number | undefined {
     if (!transaction?.amount && !transaction?.modifiedAmount) {
         return;
     }
@@ -41,20 +44,24 @@ function getTaxAmount(transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Pol
     const moneyRequestTaxPercentage = (transactionTaxCode ? getTaxValueByTaxCode(transactionTaxCode) : defaultTaxValue) ?? '';
     const editingTaxPercentage = (transactionTaxCode ? getTaxValueByTaxCode(transactionTaxCode) : moneyRequestTaxPercentage) ?? '';
     const taxPercentage = isEditing ? editingTaxPercentage : moneyRequestTaxPercentage;
-    return convertToBackendAmount(calculateTaxAmount(taxPercentage, transactionTaxAmount, currency ?? CONST.CURRENCY.USD));
+    return convertToBackendAmount(calculateTaxAmount(taxPercentage, transactionTaxAmount, decimals));
 }
 
 function IOURequestStepTaxAmountPage({
     route: {
-        params: {action, iouType, reportID, transactionID, backTo, currency: selectedCurrency = ''},
+        params: {action, iouType, reportID, transactionID, backTo},
     },
     transaction,
     report,
 }: IOURequestStepTaxAmountPageProps) {
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
+    const {policy} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType});
+
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`, {canBeMissing: true});
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
+    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
+
     const {translate} = useLocalize();
     const textInput = useRef<BaseTextInputRef | null>(null);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
@@ -69,7 +76,8 @@ function IOURequestStepTaxAmountPage({
 
     const currentTransaction = isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const transactionDetails = getTransactionDetails(currentTransaction);
-    const currency = isValidCurrencyCode(selectedCurrency) ? selectedCurrency : transactionDetails?.currency;
+    const currency = transactionDetails?.currency;
+    const decimals = getCurrencyDecimals(currency);
 
     useFocusEffect(
         useCallback(() => {
@@ -87,23 +95,6 @@ function IOURequestStepTaxAmountPage({
         Navigation.goBack(backTo);
     };
 
-    const navigateToCurrencySelectionPage = () => {
-        // If the expense being created is a distance expense, don't allow the user to choose the currency.
-        // Only USD is allowed for distance expenses.
-        // Remove query from the route and encode it.
-        Navigation.navigate(
-            ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(
-                CONST.IOU.ACTION.CREATE,
-                iouType,
-                transactionID,
-                reportID,
-                backTo ? 'confirm' : '',
-                currency,
-                Navigation.getActiveRouteWithoutParams(),
-            ),
-        );
-    };
-
     const updateTaxAmount = (currentAmount: CurrentMoney) => {
         const taxAmountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(currentAmount.amount));
 
@@ -118,17 +109,19 @@ function IOURequestStepTaxAmountPage({
                 navigateBack();
                 return;
             }
-            updateMoneyRequestTaxAmount(
+            updateMoneyRequestTaxAmount({
                 transactionID,
-                report?.reportID,
-                taxAmountInSmallestCurrencyUnits,
+                transactionThreadReport: report,
+                parentReport,
+                taxAmount: taxAmountInSmallestCurrencyUnits,
                 policy,
-                policyTags,
+                policyTagList: policyTags,
                 policyCategories,
                 currentUserAccountIDParam,
                 currentUserEmailParam,
                 isASAPSubmitBetaEnabled,
-            );
+                parentReportNextStep,
+            });
             navigateBack();
             return;
         }
@@ -170,11 +163,12 @@ function IOURequestStepTaxAmountPage({
                 isEditing={!!(backTo || isEditing)}
                 currency={currency}
                 amount={Math.abs(transactionDetails?.taxAmount ?? 0)}
-                taxAmount={getTaxAmount(currentTransaction, policy, currency, !!(backTo || isEditing))}
+                taxAmount={getTaxAmount(currentTransaction, policy, currency, decimals, !!(backTo || isEditing))}
                 ref={(e) => {
                     textInput.current = e;
                 }}
-                onCurrencyButtonPress={navigateToCurrencySelectionPage}
+                // onCurrencyButtonPress is intentionally left empty as currency selection is not allowed on this page
+                onCurrencyButtonPress={() => {}}
                 onSubmitButtonPress={updateTaxAmount}
                 isCurrencyPressable={false}
                 chatReportID={reportID}

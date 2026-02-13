@@ -24,7 +24,7 @@ function CustomFlatList<T>({ref, enableAnimatedKeyboardDismissal = false, onMome
         }
     }, [ref]);
 
-    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const handleScrollEnd = useCallback(
         (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             onMomentumScrollEnd?.(event);

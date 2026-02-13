@@ -120,7 +120,7 @@ function WorkspaceCreateReportFieldsPage({
         (values: Record<string, string>) => {
             const errors: Record<string, string> = {};
             const name = values[INPUT_IDS.NAME];
-            if (Object.values(policy?.fieldList ?? {}).some((reportField) => reportField.name === name)) {
+            if (isReportFieldNameExisting(policy?.fieldList, name)) {
                 errors[INPUT_IDS.NAME] = translate('workspace.reportFields.existingReportFieldNameError');
             }
             return errors;

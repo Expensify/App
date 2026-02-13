@@ -1,8 +1,8 @@
 import {useRoute} from '@react-navigation/native';
-import {useCallback, useContext, useEffect} from 'react';
-import {InteractionManager} from 'react-native';
-import useBeforeRemove from '@hooks/useBeforeRemove';
-import {WideRHPContext} from '..';
+import {useCallback, useEffect} from 'react';
+import {navigationRef} from '@libs/Navigation/Navigation';
+import NAVIGATORS from '@src/NAVIGATORS';
+import {expandedRHPProgress, useWideRHPActions} from '..';
 
 /**
  * Hook that manages super wide RHP display for a screen based on condition or optimistic state.
@@ -22,17 +22,21 @@ function useShowSuperWideRHPVersion(condition: boolean) {
         removeSuperWideRHPRouteKey,
         isReportIDMarkedAsExpense,
         isReportIDMarkedAsMultiTransactionExpense,
-    } = useContext(WideRHPContext);
+    } = useWideRHPActions();
 
     const onSuperWideRHPClose = useCallback(() => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            removeWideRHPRouteKey(route);
-            removeSuperWideRHPRouteKey(route);
-        });
+        removeWideRHPRouteKey(route);
+        removeSuperWideRHPRouteKey(route);
+        // When the RHP has been closed, expandedRHPProgress should be set to 0.
+        if (navigationRef?.getRootState()?.routes?.at(-1)?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+            expandedRHPProgress.setValue(0);
+        }
     }, [removeSuperWideRHPRouteKey, removeWideRHPRouteKey, route]);
 
-    useBeforeRemove(onSuperWideRHPClose);
+    /**
+     * Effect that sets up cleanup when the screen is unmounted.
+     */
+    useEffect(() => () => onSuperWideRHPClose(), [onSuperWideRHPClose]);
 
     /**
      * Effect that determines whether to show wide RHP based on condition or optimistic state.

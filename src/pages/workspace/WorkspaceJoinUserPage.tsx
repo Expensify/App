@@ -32,11 +32,7 @@ function WorkspaceJoinUserPage({route}: WorkspaceJoinUserPageProps) {
         }
         if (!isEmptyObject(policy) && !policy?.isJoinRequestPending && !isPendingDeletePolicy(policy)) {
             Navigation.isNavigationReady().then(() => {
-                if (Navigation.getShouldPopToSidebar()) {
-                    Navigation.popToSidebar();
-                } else {
-                    Navigation.goBack();
-                }
+                Navigation.goBack();
                 Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
             });
             return;
@@ -48,7 +44,7 @@ function WorkspaceJoinUserPage({route}: WorkspaceJoinUserPageProps) {
             }
             navigateAfterJoinRequest();
         });
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we only want to run this once after the policy loads
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want to run this once after the policy loads
     }, [isPolicyLoading]);
 
     useEffect(

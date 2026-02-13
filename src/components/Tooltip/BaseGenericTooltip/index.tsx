@@ -1,11 +1,10 @@
-/* eslint-disable react-compiler/react-compiler */
-import React, {useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import ReactDOM from 'react-dom';
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 import AnimatedPressableWithoutFeedback from '@components/AnimatedPressableWithoutFeedback';
 import TransparentOverlay from '@components/AutoCompleteSuggestions/AutoCompleteSuggestionsPortal/TransparentOverlay/TransparentOverlay';
-import {PopoverContext} from '@components/PopoverProvider';
+import {usePopoverActions} from '@components/PopoverProvider';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
 import CONST from '@src/CONST';
@@ -54,7 +53,7 @@ function BaseGenericTooltip({
     const rootWrapper = useRef<HTMLDivElement>(null);
 
     const StyleUtils = useStyleUtils();
-    const {setActivePopoverExtraAnchorRef} = useContext(PopoverContext);
+    const {setActivePopoverExtraAnchorRef} = usePopoverActions();
 
     useEffect(() => {
         if (!isEducationTooltip) {
@@ -178,5 +177,7 @@ function BaseGenericTooltip({
         body,
     );
 }
+
+BaseGenericTooltip.displayName = 'BaseGenericTooltip';
 
 export default React.memo(BaseGenericTooltip);

@@ -1,4 +1,4 @@
-import type {StoryFn} from '@storybook/react';
+import type {StoryFn} from '@storybook/react-webpack5';
 import React, {useMemo} from 'react';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {ButtonWithDropdownMenuProps} from '@components/ButtonWithDropdownMenu/types';

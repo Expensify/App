@@ -6,8 +6,6 @@ import Animations, {InternalPlatformAnimations} from '@libs/Navigation/PlatformS
 import type {PublicScreensParamList} from '@navigation/types';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import LogInWithShortLivedAuthTokenPage from '@pages/LogInWithShortLivedAuthTokenPage';
-import AppleSignInDesktopPage from '@pages/signin/AppleSignInDesktopPage';
-import GoogleSignInDesktopPage from '@pages/signin/GoogleSignInDesktopPage';
 import SAMLSignInPage from '@pages/signin/SAMLSignInPage';
 import SignInPage from '@pages/signin/SignInPage';
 import UnlinkLoginPage from '@pages/UnlinkLoginPage';
@@ -27,9 +25,9 @@ function PublicScreens() {
     const StyleUtils = useStyleUtils();
     return (
         <RootStack.Navigator screenOptions={defaultScreenOptions}>
-            {/* The structure for the HOME route has to be the same in public and auth screens. That's why the name for SignInPage is REPORTS_SPLIT_NAVIGATOR. */}
+            {/* The structure for the HOME route has to be the same in public and auth screens. That's why the name for SignInPage is SCREENS.HOME. */}
             <RootStack.Screen
-                name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
+                name={SCREENS.HOME}
                 options={{
                     ...defaultScreenOptions,
                     // If you want to change this, make sure there aren't any animation bugs when signing out.
@@ -58,14 +56,6 @@ function PublicScreens() {
             <RootStack.Screen
                 name={SCREENS.UNLINK_LOGIN}
                 component={UnlinkLoginPage}
-            />
-            <RootStack.Screen
-                name={SCREENS.SIGN_IN_WITH_APPLE_DESKTOP}
-                component={AppleSignInDesktopPage}
-            />
-            <RootStack.Screen
-                name={SCREENS.SIGN_IN_WITH_GOOGLE_DESKTOP}
-                component={GoogleSignInDesktopPage}
             />
             <RootStack.Screen
                 name={SCREENS.SAML_SIGN_IN}

@@ -25,7 +25,7 @@ function RecordTroubleshootDataToolMenu() {
         zipRef.current.file(newFileName, JSON.stringify(logs, null, 2));
 
         const dir = RNFetchBlob.fs.dirs.DocumentDir;
-        const zipFileName = 'troubleshoot.zip';
+        const zipFileName = appendTimeToFileName('troubleshoot.zip');
 
         return ExportOnyxState.readFromOnyxDatabase()
             .then((value: Record<string, unknown>) => {

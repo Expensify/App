@@ -190,9 +190,6 @@ function HeaderWithBackButton({
 
     return (
         <View
-            // Hover on some part of close icons will not work on Electron if dragArea is true
-            // https://github.com/Expensify/App/issues/29598
-            dataSet={{dragArea: false}}
             style={[
                 styles.headerBar,
                 shouldUseHeadlineHeader && styles.headerBarHeight,
@@ -293,6 +290,7 @@ function HeaderWithBackButton({
                                         style={[styles.touchableButtonImage]}
                                         role="button"
                                         accessibilityLabel={translate('common.rotate')}
+                                        sentryLabel={CONST.SENTRY_LABEL.HEADER.ROTATE_BUTTON}
                                     >
                                         <Icon
                                             src={icons.Rotate}

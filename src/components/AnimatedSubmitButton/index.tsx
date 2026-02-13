@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {View} from 'react-native';
 import Animated, {Keyframe, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 import Button from '@components/Button';
@@ -7,8 +8,9 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-type AnimatedSubmitButtonProps = {
+type AnimatedSubmitButtonProps = WithSentryLabel & {
     // Whether to show the success state
     success: boolean | undefined;
 
@@ -26,9 +28,6 @@ type AnimatedSubmitButtonProps = {
 
     // Whether the button should be disabled
     isDisabled?: boolean;
-
-    // Label for Sentry tracking
-    sentryLabel?: string;
 };
 
 function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunning, onAnimationFinish, isDisabled, sentryLabel}: AnimatedSubmitButtonProps) {
@@ -107,14 +106,13 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
         return () => clearTimeout(timer);
     }, [isAnimationRunning, isShowingLoading]);
 
-    // eslint-disable-next-line react-compiler/react-compiler
     const showLoading = isShowingLoading || (!viewRef.current && isAnimationRunning);
 
     return (
         <Animated.View style={[containerStyles, {minWidth}]}>
             {isAnimationRunning && canShow && (
                 <Animated.View
-                    ref={(el) => {
+                    ref={(el: View | null) => {
                         viewRef.current = el as HTMLElement | null;
                     }}
                     exiting={buttonAnimation}
