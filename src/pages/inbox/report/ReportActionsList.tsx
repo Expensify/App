@@ -202,6 +202,9 @@ function ReportActionsList({
     const isMoneyRequestOrInvoiceReport = useMemo(() => isMoneyRequestReport(report) || isInvoiceReport(report), [report]);
     const shouldFocusToTopOnMount = useMemo(() => isTransactionThreadReport || isMoneyRequestOrInvoiceReport, [isMoneyRequestOrInvoiceReport, isTransactionThreadReport]);
     const topReportAction = sortedVisibleReportActions.at(-1);
+    const shouldRenderTopReportActionOutsideOfInvertedList =
+        (isTransactionThreadReport || isMoneyRequestOrInvoiceReport) && topReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
+    const visibleReportActionsForInvertedList = shouldRenderTopReportActionOutsideOfInvertedList ? sortedVisibleReportActions.slice(0, -1) : sortedVisibleReportActions;
     const [shouldScrollToEndAfterLayout, setShouldScrollToEndAfterLayout] = useState(shouldFocusToTopOnMount && !reportActionID);
     const isAnonymousUser = useIsAnonymousUser();
 
@@ -689,6 +692,7 @@ function ReportActionsList({
             const transactionID = isMoneyRequestAction(reportAction) && getOriginalMessage(reportAction)?.IOUTransactionID;
             const transaction = transactionID ? transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] : undefined;
             const actionLinkedTransactionRouteError = transaction?.errorFields?.route ?? undefined;
+            const messageTabOrder = visibleReportActionsForInvertedList.length - 1 - index;
 
             return (
                 <ReportActionsListItemRenderer
@@ -726,6 +730,7 @@ function ReportActionsList({
                     isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                     reportNameValuePairsOrigin={reportNameValuePairs?.origin}
                     reportNameValuePairsOriginalID={reportNameValuePairs?.originalID}
+                    messageTabOrder={messageTabOrder}
                 />
             );
         },
@@ -755,6 +760,7 @@ function ReportActionsList({
             isReportArchived,
             reportNameValuePairs?.origin,
             reportNameValuePairs?.originalID,
+            visibleReportActionsForInvertedList.length,
         ],
     );
 
@@ -852,13 +858,16 @@ function ReportActionsList({
                 style={[styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
                 fsClass={reportActionsListFSClass}
             >
-                {shouldScrollToEndAfterLayout && topReportAction ? renderTopReportActions() : undefined}
+                {shouldRenderTopReportActionOutsideOfInvertedList && topReportAction
+                    ? renderItem({item: topReportAction, index: sortedVisibleReportActions.length - 1} as ListRenderItemInfo<OnyxTypes.ReportAction>)
+                    : undefined}
+                {shouldScrollToEndAfterLayout && topReportAction && !shouldRenderTopReportActionOutsideOfInvertedList ? renderTopReportActions() : undefined}
                 <InvertedFlatList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                     ref={reportScrollManager.ref}
                     testID="report-actions-list"
                     style={styles.overscrollBehaviorContain}
-                    data={sortedVisibleReportActions}
+                    data={visibleReportActionsForInvertedList}
                     renderItem={renderItem}
                     renderScrollComponent={renderActionSheetAwareScrollView}
                     contentContainerStyle={[styles.chatContentScrollView, shouldFocusToTopOnMount ? styles.justifyContentEnd : undefined]}

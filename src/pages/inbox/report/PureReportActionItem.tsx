@@ -59,6 +59,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {OnyxDataWithErrors} from '@libs/ErrorUtils';
 import {getLatestErrorMessageField, isReceiptError} from '@libs/ErrorUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
+import getPlatform from '@libs/getPlatform';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
@@ -305,6 +306,9 @@ type PureReportActionItemProps = {
     /** Position index of the report action in the overall report FlatList view */
     index: number;
 
+    /** Deterministic tab-order index for message rows in expense detail view */
+    messageTabOrder?: number;
+
     /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine?: boolean;
 
@@ -544,6 +548,7 @@ function PureReportActionItem({
     reportNameValuePairsOrigin,
     reportNameValuePairsOriginalID,
     reportMetadata,
+    messageTabOrder,
 }: PureReportActionItemProps) {
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
     const {translate, formatPhoneNumber, localeCompare, formatTravelDate, getLocalDateFromDatetime} = useLocalize();
@@ -2047,6 +2052,60 @@ function PureReportActionItem({
         );
     };
 
+    const shouldUseSequentialMessageTabOrder = getPlatform() === CONST.PLATFORM.WEB && (isExpenseReport(report) || !!transactionThreadReport?.reportID);
+    const shouldUseRovingMessageRowTabIndex = shouldUseSequentialMessageTabOrder && action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED;
+    let messageRowTabIndex: 0 | -1 | undefined;
+    if (shouldUseRovingMessageRowTabIndex) {
+        messageRowTabIndex = messageTabOrder === 0 ? 0 : -1;
+    }
+
+    const handleMessageRowTab = (event: React.KeyboardEvent<Element>) => {
+        if (!shouldUseSequentialMessageTabOrder || action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED || event.key !== CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey || event.shiftKey) {
+            return;
+        }
+
+        if (typeof document === 'undefined') {
+            return;
+        }
+
+        const currentRow = event.currentTarget as HTMLElement;
+        const selector = '[data-sentry-label="Report-PureReportActionItem"]';
+        const listNode = currentRow.closest('[data-testid="report-actions-list"]');
+        const scopedRows = Array.from((listNode ?? document).querySelectorAll<HTMLElement>(selector)).filter((row) => row.offsetParent !== null);
+        if (scopedRows.length === 0) {
+            return;
+        }
+
+        const orderedRows = [...scopedRows].sort((rowA, rowB) => {
+            const rowAOrder = Number(rowA.getAttribute('data-message-tab-order') ?? Number.MAX_SAFE_INTEGER);
+            const rowBOrder = Number(rowB.getAttribute('data-message-tab-order') ?? Number.MAX_SAFE_INTEGER);
+            return rowAOrder - rowBOrder;
+        });
+        const currentOrder = Number(currentRow.getAttribute('data-message-tab-order') ?? Number.NaN);
+        if (Number.isNaN(currentOrder)) {
+            return;
+        }
+
+        const nextRow = orderedRows.find((row) => Number(row.getAttribute('data-message-tab-order')) === currentOrder + 1);
+        if (nextRow) {
+            event.preventDefault();
+            currentRow.tabIndex = -1;
+            nextRow.tabIndex = 0;
+            nextRow.focus();
+            return;
+        }
+
+        const composer =
+            Array.from(document.querySelectorAll<HTMLElement>('[aria-label="Write something..."], [role="textbox"], textarea')).find((element) => element.offsetParent !== null) ?? null;
+        if (!composer) {
+            return;
+        }
+
+        event.preventDefault();
+        currentRow.tabIndex = -1;
+        composer.focus();
+    };
+
     return (
         <View>
             {shouldShowCreatedAction && createdActionContent}
@@ -2067,6 +2126,9 @@ function PureReportActionItem({
                 onSecondaryInteraction={showPopover}
                 preventDefaultContextMenu={draftMessage === undefined && !hasErrors}
                 withoutFocusOnSecondaryInteraction
+                onKeyDown={handleMessageRowTab}
+                tabIndex={messageRowTabIndex}
+                dataSet={{messageTabOrder}}
                 accessibilityLabel={translate('accessibilityHints.chatMessage')}
                 accessibilityRole={CONST.ROLE.BUTTON}
                 sentryLabel={CONST.SENTRY_LABEL.REPORT.PURE_REPORT_ACTION_ITEM}
