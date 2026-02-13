@@ -10,7 +10,7 @@ const FS: Fullstory = {
 
     init: (userMetadata) => FS.consentAndIdentify(userMetadata),
 
-    onReady: () => Promise.resolve(),
+    onReady: () => FullStory.onReady(),
 
     shouldInitialize: shouldInitializeFullstory,
 
@@ -55,6 +55,28 @@ const FS: Fullstory = {
 
     getSessionURL: () => {
         return FullStory.getCurrentSessionURL();
+    },
+
+    event: (eventName, eventProperties = {}) => {
+        FullStory.event(eventName, eventProperties);
+    },
+
+    log: (level, message) => {
+        const logLevelMap = {
+            log: FullStory.LogLevel.Log,
+            info: FullStory.LogLevel.Info,
+            warn: FullStory.LogLevel.Warn,
+            error: FullStory.LogLevel.Error,
+        };
+        FullStory.log(logLevelMap[level] ?? FullStory.LogLevel.Log, message);
+    },
+
+    setUserVars: (userVars) => {
+        FullStory.setUserVars(userVars);
+    },
+
+    resetIdleTimer: () => {
+        FullStory.resetIdleTimer();
     },
 };
 

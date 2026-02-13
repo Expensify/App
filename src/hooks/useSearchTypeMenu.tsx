@@ -1,3 +1,4 @@
+import {feedKeysWithAssignedCardsSelector} from '@selectors/Card';
 import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -51,6 +52,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Basket',
         'Bookmark',
+        'CalendarSolid',
         'Checkmark',
         'Pencil',
         'Receipt',
@@ -67,6 +69,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
 
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
+    const [feedKeysWithCards] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {selector: feedKeysWithAssignedCardsSelector, canBeMissing: true});
     const flattenedMenuItems = useMemo(() => typeMenuSections.flatMap((section) => section.menuItems), [typeMenuSections]);
 
     useSuggestedSearchDefaultNavigation({
@@ -120,6 +123,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                     currentUserAccountID,
                     autoCompleteWithSpace: false,
                     translate,
+                    feedKeysWithCards,
                 });
             }
 
@@ -169,6 +173,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         taxRates,
         nonPersonalAndWorkspaceCards,
         allFeeds,
+        feedKeysWithCards,
         allPolicies,
         currentUserAccountID,
         translate,

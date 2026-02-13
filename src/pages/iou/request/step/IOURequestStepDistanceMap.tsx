@@ -28,8 +28,9 @@ import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaypointItems from '@hooks/useWaypointItems';
-import {getIOURequestPolicyID, setMoneyRequestAmount, setSplitShares, updateMoneyRequestDistance} from '@libs/actions/IOU';
+import {getIOURequestPolicyID, setMoneyRequestAmount, updateMoneyRequestDistance} from '@libs/actions/IOU';
 import {handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyRequest';
+import {setSplitShares} from '@libs/actions/IOU/Split';
 import {init, stop} from '@libs/actions/MapboxToken';
 import {openReport} from '@libs/actions/Report';
 import {openDraftDistanceExpense, removeWaypoint, updateWaypoints as updateWaypointsUtil} from '@libs/actions/Transaction';
@@ -268,7 +269,7 @@ function IOURequestStepDistanceMap({
             if (!transaction?.reportID || hasRoute(transaction, true)) {
                 return;
             }
-            openReport(transaction?.reportID);
+            openReport(transaction?.reportID, introSelected);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -355,7 +356,6 @@ function IOURequestStepDistanceMap({
         reportNameValuePairs?.private_isArchived,
         policyForMovingExpenses,
         selfDMReport,
-        reportNameValuePairs?.private_isArchived,
         betas,
     ]);
 
@@ -480,17 +480,22 @@ function IOURequestStepDistanceMap({
     ]);
 
     const renderItem = useCallback(
-        ({item, drag, isActive, getIndex}: RenderItemParams<string>) => (
-            <DistanceRequestRenderItem
-                waypoints={waypoints}
-                item={getWaypointKey(item)}
-                onSecondaryInteraction={drag}
-                isActive={isActive}
-                getIndex={getIndex}
-                onPress={navigateToWaypointEditPage}
-                disabled={isLoadingRoute}
-            />
-        ),
+        ({item, drag, isActive, getIndex}: RenderItemParams<string>) => {
+            const index = getIndex?.();
+            const sentryLabel = index === 0 ? CONST.SENTRY_LABEL.IOU_REQUEST_STEP.WAYPOINT_START_MENU_ITEM : CONST.SENTRY_LABEL.IOU_REQUEST_STEP.WAYPOINT_STOP_MENU_ITEM;
+            return (
+                <DistanceRequestRenderItem
+                    waypoints={waypoints}
+                    item={getWaypointKey(item)}
+                    onSecondaryInteraction={drag}
+                    isActive={isActive}
+                    getIndex={getIndex}
+                    onPress={navigateToWaypointEditPage}
+                    disabled={isLoadingRoute}
+                    sentryLabel={sentryLabel}
+                />
+            );
+        },
         [isLoadingRoute, navigateToWaypointEditPage, waypoints, getWaypointKey],
     );
 
@@ -538,6 +543,7 @@ function IOURequestStepDistanceMap({
                         onPress={submitWaypoints}
                         text={buttonText}
                         isLoading={!isOffline && (isLoadingRoute || shouldFetchRoute || isLoading)}
+                        sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.DISTANCE_MAP_NEXT_BUTTON}
                     />
                 </View>
             </>

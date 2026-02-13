@@ -4,12 +4,17 @@ import {Rect} from 'react-native-svg';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 
-function TabNavigatorSkeleton() {
+type TabNavigatorSkeletonProps = {
+    reasonAttributes?: SkeletonSpanReasonAttributes;
+};
+
+function TabNavigatorSkeleton({reasonAttributes}: TabNavigatorSkeletonProps = {}) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    useSkeletonSpan('TabNavigatorSkeleton');
+    useSkeletonSpan('TabNavigatorSkeleton', reasonAttributes);
 
     return (
         <View style={[styles.flexRow, styles.w100, styles.justifyContentBetween, styles.h10]}>

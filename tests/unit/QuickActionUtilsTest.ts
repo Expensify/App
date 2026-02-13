@@ -205,5 +205,50 @@ describe('QuickActionUtils', () => {
                 expect(isQuickActionAllowed(perDiemAction, report, policy, false, false)).toBe(false);
             });
         });
+
+        describe('Policy with time tracking', () => {
+            it('should allow requestTime action when policy has time tracking enabled', () => {
+                mockedPolicyUtils.isTimeTrackingEnabled.mockReturnValue(true);
+                expect(
+                    isQuickActionAllowed(
+                        {action: CONST.QUICK_ACTIONS.REQUEST_TIME},
+                        {
+                            reportID: '1',
+                            isOwnPolicyExpenseChat: true,
+                            type: CONST.REPORT.TYPE.EXPENSE,
+                            policyID: '1',
+                            ownerAccountID: 1,
+                        },
+                        {
+                            id: '1',
+                            units: {time: {enabled: true, rate: 1}},
+                        } as Policy,
+                        false,
+                        false,
+                    ),
+                ).toBe(true);
+            });
+
+            it('should not allow requestTime action when policy has time tracking disabled', () => {
+                mockedPolicyUtils.isTimeTrackingEnabled.mockReturnValue(false);
+                expect(
+                    isQuickActionAllowed(
+                        {action: CONST.QUICK_ACTIONS.REQUEST_TIME},
+                        {
+                            reportID: '1',
+                            isOwnPolicyExpenseChat: true,
+                            type: CONST.REPORT.TYPE.EXPENSE,
+                            policyID: '1',
+                            ownerAccountID: 1,
+                        },
+                        {
+                            id: '1',
+                        } as Policy,
+                        false,
+                        false,
+                    ),
+                ).toBe(false);
+            });
+        });
     });
 });
