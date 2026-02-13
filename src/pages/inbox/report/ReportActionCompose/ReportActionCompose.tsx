@@ -62,7 +62,7 @@ import AgentZeroProcessingRequestIndicator from '@pages/inbox/report/AgentZeroPr
 import ParticipantLocalTime from '@pages/inbox/report/ParticipantLocalTime';
 import ReportTypingIndicator from '@pages/inbox/report/ReportTypingIndicator';
 import {hideEmojiPicker, isActive as isActiveEmojiPickerAction, isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
-import {addAttachmentWithComment, setIsComposerFullSize} from '@userActions/Report';
+import {addAttachmentWithComment, deleteReportActionDraft, setIsComposerFullSize} from '@userActions/Report';
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -75,6 +75,7 @@ import ComposerWithSuggestions from './ComposerWithSuggestions';
 import type {ComposerWithSuggestionsProps, ComposerWithSuggestionsRef} from './ComposerWithSuggestions/ComposerWithSuggestions';
 import MessageEditCancelButton from './MessageEditCancelButton';
 import SendButton from './SendButton';
+import type {ActiveEdit} from './types';
 import useAttachmentUploadValidation from './useAttachmentUploadValidation';
 import useDebouncedCommentMaxLengthValidation from './useDebouncedCommentMaxLengthValidation';
 import useEditMessage from './useEditMessage';
@@ -158,28 +159,60 @@ function ReportActionCompose({
     const [initialModalState] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
     const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, {canBeMissing: true});
-    const [allActionDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS, {canBeMissing: true});
+    const [reportActionDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS, {canBeMissing: true});
 
-    const activeInlineDraft = useMemo(() => {
-        const reportDrafts = allActionDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`];
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {
+        canEvict: false,
+        canBeMissing: true,
+    });
+
+    const [activeEdit, setActiveEdit] = useState<ActiveEdit | null>(null);
+    const previousActiveEditRef = useRef<ActiveEdit | null>(null);
+
+    // Set the active edit when the report actions or draft comments change
+    useEffect(() => {
+        const previousActiveEdit = previousActiveEditRef.current;
+
+        if (activeEdit && previousActiveEdit && activeEdit !== previousActiveEdit) {
+            deleteReportActionDraft(reportID, activeEdit.reportAction);
+            return;
+        }
+
+        const reportDrafts = reportActionDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`];
 
         if (!reportDrafts) {
-            return null;
+            setActiveEdit(null);
+            return;
         }
 
-        const entry = Object.entries(reportDrafts).find(([, draft]) => draft?.message);
+        const reportDraftEntry = Object.entries(reportDrafts).find(([, draft]) => draft?.message);
 
-        if (!entry) {
-            return null;
+        if (!reportDraftEntry) {
+            setActiveEdit(null);
+            return;
         }
 
-        const [reportActionID, draft] = entry;
+        const [reportActionID, draft] = reportDraftEntry;
 
-        return {
+        previousActiveEditRef.current = activeEdit;
+        setActiveEdit({
             reportActionID,
+            reportAction: reportActions?.[reportActionID] ?? null,
             message: draft.message,
-        };
-    }, [allActionDrafts, reportID]);
+        });
+    }, [activeEdit, reportActionDrafts, reportActions, reportID]);
+
+    const isEditingInComposer = shouldUseNarrowLayout && !!activeEdit;
+
+    const isEditingLastReportAction = useMemo(() => {
+        if (!reportActions) {
+            return false;
+        }
+
+        const lastIndex = Object.keys(reportActions).length - 1;
+
+        return activeEdit?.reportActionID === reportActions[lastIndex]?.reportActionID;
+    }, [activeEdit?.reportActionID, reportActions]);
 
     const shouldFocusComposerOnScreenFocus = shouldFocusInputOnScreenFocus || !!draftComment;
 
@@ -198,7 +231,7 @@ function ReportActionCompose({
 
     const {isScrollLayoutTriggered, raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();
 
-    const effectiveDraft = shouldUseNarrowLayout ? activeInlineDraft?.message : draftComment;
+    const effectiveDraft = shouldUseNarrowLayout ? activeEdit?.message : draftComment;
 
     const [isCommentEmpty, setIsCommentEmpty] = useState(() => {
         return !effectiveDraft || !!effectiveDraft.match(CONST.REGEX.EMPTY_COMMENT);
@@ -239,33 +272,6 @@ function ReportActionCompose({
 
     const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
     const isExpensesReport = useMemo(() => reportTransactions && reportTransactions.length > 1, [reportTransactions]);
-
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {
-        canEvict: false,
-        canBeMissing: true,
-    });
-
-    const [reportActionDrafts] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`, {canBeMissing: true});
-
-    const [editingReportActionID, setEditingReportActionID] = useState<string | null>(null);
-    useEffect(() => {
-        if (!reportActionDrafts || editingReportActionID) {
-            return;
-        }
-
-        const entry = Object.entries(reportActionDrafts).find(([, draft]) => draft?.message);
-        setEditingReportActionID(entry?.[0] ?? null);
-    }, [editingReportActionID, reportActionDrafts]);
-
-    const editingReportAction = useMemo(() => {
-        if (!editingReportActionID || !reportActions) {
-            return null;
-        }
-
-        return reportActions[editingReportActionID] ?? null;
-    }, [editingReportActionID, reportActions]);
-
-    const isEditing = shouldUseNarrowLayout && !!editingReportAction;
 
     const personalDetail = useCurrentUserPersonalDetails();
 
@@ -381,24 +387,24 @@ function ReportActionCompose({
 
     const deleteDraftMessage = useCallback(() => {
         deleteDraft();
-        setEditingReportActionID(null);
+        setActiveEdit(null);
     }, [deleteDraft]);
 
     /**
-     * Add a new comment to this chat
+     * Add or edit a comment in the composer
      */
     const submitForm = useCallback(
-        (newComment: string) => {
-            const newCommentTrimmed = newComment.trim();
+        (draftMessage: string) => {
+            const draftMessageTrimmed = draftMessage.trim();
 
-            if (!newCommentTrimmed && !attachmentFileRef.current) {
+            if (isEditingInComposer && !attachmentFileRef.current) {
+                publishDraft(draftMessageTrimmed);
+                deleteDraft();
+                setActiveEdit(null);
                 return;
             }
 
-            if (isEditing && !attachmentFileRef.current) {
-                publishDraft(newCommentTrimmed);
-                deleteDraft();
-                setEditingReportActionID(null);
+            if (!draftMessageTrimmed && !attachmentFileRef.current) {
                 return;
             }
 
@@ -413,27 +419,27 @@ function ReportActionCompose({
                     ancestors,
                     attachments: attachmentFileRef.current,
                     currentUserAccountID: currentUserPersonalDetails.accountID,
-                    text: newCommentTrimmed,
+                    text: draftMessageTrimmed,
                     timezone: personalDetail.timezone,
                     shouldPlaySound: true,
                     isInSidePanel,
                 });
                 attachmentFileRef.current = null;
             } else {
-                Performance.markStart(CONST.TIMING.SEND_MESSAGE, {message: newCommentTrimmed});
+                Performance.markStart(CONST.TIMING.SEND_MESSAGE, {message: draftMessageTrimmed});
                 startSpan(CONST.TELEMETRY.SPAN_SEND_MESSAGE, {
                     name: 'send-message',
                     op: CONST.TELEMETRY.SPAN_SEND_MESSAGE,
                     attributes: {
                         [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
-                        [CONST.TELEMETRY.ATTRIBUTE_MESSAGE_LENGTH]: newCommentTrimmed.length,
+                        [CONST.TELEMETRY.ATTRIBUTE_MESSAGE_LENGTH]: draftMessageTrimmed.length,
                     },
                 });
-                onSubmit(newCommentTrimmed);
+                onSubmit(draftMessageTrimmed);
             }
         },
         [
-            isEditing,
+            isEditingInComposer,
             isConciergeChat,
             publishDraft,
             deleteDraft,
@@ -475,9 +481,9 @@ function ReportActionCompose({
     }, [onComposerFocus]);
 
     useEffect(() => {
-        const valueToCheck = shouldUseNarrowLayout ? activeInlineDraft?.message : draftComment;
+        const valueToCheck = shouldUseNarrowLayout ? activeEdit?.message : draftComment;
         setIsCommentEmpty(!valueToCheck || !!valueToCheck.match(CONST.REGEX.EMPTY_COMMENT));
-    }, [activeInlineDraft?.message, draftComment, shouldUseNarrowLayout]);
+    }, [activeEdit?.message, draftComment, shouldUseNarrowLayout]);
 
     // We are returning a callback here as we want to invoke the method on unmount only
     useEffect(
@@ -499,8 +505,8 @@ function ReportActionCompose({
 
     const hasReportRecipient = !isEmptyObject(reportRecipient);
 
-    const isNewCommentEmpty = isCommentEmpty && !isEditing;
-    const isSendDisabled = !isEditing && (isBlockedFromConcierge || isExceedingMaxLength || isNewCommentEmpty);
+    const isNewCommentEmpty = isCommentEmpty && !isEditingInComposer;
+    const isSendDisabled = !isEditingInComposer && (isBlockedFromConcierge || isExceedingMaxLength || isNewCommentEmpty);
 
     // Note: using JS refs is not well supported in reanimated, thus we need to store the function in a shared value
     // useSharedValue on web doesn't support functions, so we need to wrap it in an object.
@@ -609,7 +615,7 @@ function ReportActionCompose({
                         ]}
                     >
                         {PDFValidationComponent}
-                        {isEditing ? (
+                        {isEditingInComposer ? (
                             <MessageEditCancelButton onCancel={deleteDraftMessage} />
                         ) : (
                             <AttachmentPickerWithMenuItems
@@ -667,6 +673,9 @@ function ReportActionCompose({
                             onBlur={onBlur}
                             measureParentContainer={measureContainer}
                             onValueChange={onValueChange}
+                            isEditingInComposer={isEditingInComposer}
+                            activeEdit={activeEdit}
+                            setActiveEdit={setActiveEdit}
                             didHideComposerInput={didHideComposerInput}
                             forwardedFSClass={fsClass}
                         />
@@ -708,7 +717,7 @@ function ReportActionCompose({
                             />
                         )}
                         <SendButton
-                            isEditing={isEditing}
+                            isEditing={isEditingInComposer}
                             isDisabled={isSendDisabled}
                             onSend={handleSendMessage}
                         />

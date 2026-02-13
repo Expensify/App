@@ -59,7 +59,6 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {OnyxDataWithErrors} from '@libs/ErrorUtils';
 import {getLatestErrorMessageField, isReceiptError} from '@libs/ErrorUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
-import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
@@ -578,7 +577,10 @@ function PureReportActionItem({
         isActionableMentionWhisper(action) || isActionableMentionInviteToSubmitExpenseConfirmWhisper(action) || isActionableTrackExpense(action) || isActionableReportMentionWhisper(action);
     const isReportArchived = useReportIsArchived(reportID);
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
-    const isEditingInline = !isNarrowLayout && draftMessage !== undefined;
+    const isEditingInline = !shouldUseNarrowLayout && draftMessage !== undefined;
+
+    console.log({isEditingInline, draftMessage, shouldUseNarrowLayout});
+
     const isHarvestCreatedExpenseReport = isHarvestCreatedExpenseReportUtils(reportNameValuePairsOrigin, reportNameValuePairsOriginalID);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Eye'] as const);
 
@@ -1932,7 +1934,7 @@ function PureReportActionItem({
             return emptyHTML;
         }
 
-        if (!isNarrowLayout && draftMessage !== undefined) {
+        if (!shouldUseNarrowLayout && draftMessage !== undefined) {
             return <ReportActionItemDraft>{content}</ReportActionItemDraft>;
         }
 
@@ -1940,7 +1942,7 @@ function PureReportActionItem({
             return (
                 <ReportActionItemSingle
                     action={action}
-                    showHeader={draftMessage === undefined || isNarrowLayout}
+                    showHeader={draftMessage === undefined || shouldUseNarrowLayout}
                     wrapperStyle={{
                         ...(isOnSearch && styles.p0),
                         ...(isWhisper && styles.pt1),

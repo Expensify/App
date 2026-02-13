@@ -43,6 +43,7 @@ import getScrollPosition from '@pages/inbox/report/ReportActionCompose/getScroll
 import type {SuggestionsRef} from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
 import SilentCommentUpdater from '@pages/inbox/report/ReportActionCompose/SilentCommentUpdater';
 import Suggestions from '@pages/inbox/report/ReportActionCompose/Suggestions';
+import type {ActiveEdit} from '@pages/inbox/report/ReportActionCompose/types';
 import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
 import type {OnEmojiSelected} from '@userActions/EmojiPickerAction';
 import {inputFocusChange} from '@userActions/InputFocus';
@@ -161,6 +162,15 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
         /** Whether the main composer was hidden */
         didHideComposerInput?: boolean;
 
+        /** Whether the composer is editing in composer */
+        isEditingInComposer: boolean;
+
+        /** The active edit */
+        activeEdit?: ActiveEdit | null;
+
+        /** Function to set the active edit */
+        setActiveEdit: (activeEdit: ActiveEdit | null) => void;
+
         /** Reference to the outer element */
         ref?: Ref<ComposerWithSuggestionsRef | null>;
     };
@@ -207,6 +217,9 @@ function ComposerWithSuggestions({
     lastReportAction,
     isGroupPolicyReport,
     policyID,
+    isEditingInComposer,
+    activeEdit,
+    setActiveEdit,
 
     // Focus
     onFocus,
@@ -257,55 +270,55 @@ function ComposerWithSuggestions({
     const [draftComment = ''] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, {canBeMissing: true});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const [allActionDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS, {canBeMissing: true});
-    const activeInlineEdit = useMemo(() => {
-        if (!shouldUseNarrowLayout) {
-            return null;
-        }
-
-        const reportDrafts = allActionDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`];
-
-        if (!reportDrafts) {
-            return null;
-        }
-
-        const entry = Object.entries(reportDrafts).find(([, d]) => d?.message);
-
-        if (!entry) {
-            return null;
-        }
-
-        const [reportActionID, draft] = entry;
-
-        return {
-            reportActionID,
-            message: draft?.message ?? '',
-        };
-    }, [allActionDrafts, reportID, shouldUseNarrowLayout]);
-
-    const initialValue = shouldUseNarrowLayout ? (activeInlineEdit?.message ?? draftComment) : draftComment;
+    const composerRef = useRef<ComposerRef | null>(null);
 
     const [value, setValue] = useState(() => {
+        const initialValue = shouldUseNarrowLayout ? (activeEdit?.message ?? draftComment) : draftComment;
+
         if (initialValue) {
             emojisPresentBefore.current = extractEmojis(initialValue);
         }
         return initialValue;
     });
+    const [selection, setSelection] = useState<TextSelection>(() => ({start: value.length, end: value.length, positionX: 0, positionY: 0}));
+
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const commentRef = useRef(value);
 
+    // Focus the composer when editing in composer
     useEffect(() => {
-        if (!shouldUseNarrowLayout) {
+        if (!isEditingInComposer) {
             return;
         }
 
-        const nextValue = activeInlineEdit?.message ?? draftComment ?? '';
+        composerRef.current?.focus();
+        if (activeEdit?.currentSelection) {
+            setSelection(activeEdit?.currentSelection ?? {start: value.length, end: value.length, positionX: 0, positionY: 0});
+        }
+    }, [activeEdit?.currentSelection, isEditingInComposer, value.length]);
+
+    // Reset the composer value when the app extends to wide layout,
+    // because the inline composer is showing up
+    useEffect(() => {
+        if (!activeEdit || shouldUseNarrowLayout) {
+            return;
+        }
+
+        setValue('');
+    }, [activeEdit, shouldUseNarrowLayout]);
+
+    useEffect(() => {
+        if (!shouldUseNarrowLayout || !activeEdit) {
+            return;
+        }
+
+        const nextValue = activeEdit.message ?? draftComment ?? '';
 
         emojisPresentBefore.current = extractEmojis(nextValue);
         setValue(nextValue);
         commentRef.current = nextValue;
-    }, [activeInlineEdit?.message, activeInlineEdit?.reportActionID, draftComment, shouldUseNarrowLayout]);
+    }, [activeEdit, draftComment, shouldUseNarrowLayout]);
 
     const {superWideRHPRouteKeys} = useWideRHPState();
     // When SearchReport is stacked above another RHP, delay autofocus until after the transition completes to avoid animation jank
@@ -329,12 +342,8 @@ function ComposerWithSuggestions({
     const valueRef = useRef(value);
     valueRef.current = value;
 
-    const [selection, setSelection] = useState<TextSelection>(() => ({start: value.length, end: value.length, positionX: 0, positionY: 0}));
-
     const [composerHeightAfterClear, setDefaultComposerHeight] = useState<number | null>(null);
     const emptyComposerHeightRef = useRef<number | null>(null);
-
-    const composerRef = useRef<ComposerRef | null>(null);
 
     const syncSelectionWithOnChangeTextRef = useRef<SyncSelection | null>(null);
 
@@ -514,10 +523,8 @@ function ComposerWithSuggestions({
 
             commentRef.current = newCommentConverted;
             if (shouldUseNarrowLayout) {
-                const editingReportActionID = activeInlineEdit?.reportActionID;
-
-                if (editingReportActionID) {
-                    saveReportActionDraft(reportID, {reportActionID: editingReportActionID} as OnyxTypes.ReportAction, newCommentConverted);
+                if (activeEdit?.reportActionID) {
+                    saveReportActionDraft(reportID, {reportActionID: activeEdit.reportActionID} as OnyxTypes.ReportAction, newCommentConverted);
                 }
 
                 if (newCommentConverted) {
@@ -542,7 +549,7 @@ function ComposerWithSuggestions({
             suggestionsRef,
             raiseIsScrollLikelyLayoutTriggered,
             debouncedSaveReportComment,
-            activeInlineEdit?.reportActionID,
+            activeEdit?.reportActionID,
             shouldUseNarrowLayout,
             selection?.end,
             selection?.start,
@@ -665,8 +672,15 @@ function ComposerWithSuggestions({
                 return;
             }
             suggestionsRef.current?.onSelectionChange?.(e);
+
+            if (activeEdit) {
+                setActiveEdit({
+                    ...activeEdit,
+                    currentSelection: e.nativeEvent.selection,
+                });
+            }
         },
-        [suggestionsRef],
+        [activeEdit, setActiveEdit, suggestionsRef],
     );
 
     const hideSuggestionMenu = useCallback(
@@ -781,13 +795,6 @@ function ComposerWithSuggestions({
         [checkComposerVisibility, focus, isSidePanelHiddenOrLargeScreen],
     );
 
-    const blur = useCallback(() => {
-        if (!composerRef.current) {
-            return;
-        }
-        composerRef.current.blur();
-    }, []);
-
     const clearWorklet = useCallback(() => {
         'worklet';
 
@@ -874,9 +881,6 @@ function ComposerWithSuggestions({
                 {},
                 {
                     get: (_target, prop) => {
-                        if (prop === 'blur') {
-                            return blur;
-                        }
                         if (prop === 'focus') {
                             return focus;
                         }
