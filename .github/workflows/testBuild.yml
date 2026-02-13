@@ -217,7 +217,9 @@ jobs:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - name: Deploy to S3 for internal testing
-        run: aws s3 cp --recursive --acl public-read "$GITHUB_WORKSPACE"/dist s3://ad-hoc-expensify-cash/web/"$PULL_REQUEST_NUMBER"
+        run: aws s3 cp --recursive --acl public-read "$GITHUB_WORKSPACE"/dist s3://ad-hoc-expensify-cash/web/"$COMMIT_SHA"
+        env:
+          COMMIT_SHA: ${{ needs.prep.outputs.APP_REF }}
 
   androidHybrid:
     name: Build Android HybridApp
@@ -492,7 +494,7 @@ jobs:
           WEB: ${{ needs.web.result }}
           ANDROID_LINK: ${{ needs.androidHybrid.outputs.ROCK_ANDROID_ADHOC_INDEX_URL }}
           IOS_LINK: ${{ needs.iosHybrid.outputs.ROCK_IOS_ADHOC_INDEX_URL }}
-          WEB_LINK: https://${{ needs.prep.outputs.APP_PR_NUMBER }}.pr-testing.expensify.com
+          WEB_LINK: https://${{ needs.prep.outputs.APP_REF }}.pr-testing.expensify.com
 
       - name: Publish links to apps for download on Expensify/Mobile-Expensify PR
         if: ${{ needs.getMobileExpensifyPR.outputs.MOBILE_EXPENSIFY_PR }}
