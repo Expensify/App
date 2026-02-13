@@ -1,5 +1,4 @@
 import {findFocusedRoute} from '@react-navigation/native';
-import {screensWithEnteringAnimation} from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import {SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {CustomStateHookProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -13,11 +12,6 @@ import NAVIGATORS from '@src/NAVIGATORS';
 function getShouldHidePreloadedRoutes(route?: NavigationRoute) {
     if (!route) {
         return false;
-    }
-
-    // If the route was pushed with entering animation, hide preloaded routes so the swipe-back gesture works properly.
-    if (route.key && screensWithEnteringAnimation.has(route.key)) {
-        return true;
     }
 
     // Swiping back should work in any navigator except full screen navigators.
@@ -43,10 +37,7 @@ export default function useCustomRootStackNavigatorState({state}: CustomStateHoo
     const lastSplitIndex = state.routes.findLastIndex((route) => isFullScreenName(route.name));
     const routesToRender = state.routes.slice(Math.max(0, lastSplitIndex - 1), state.routes.length);
     const stateToRender = {...state, routes: routesToRender, index: routesToRender.length - 1};
-
-    const lastRoute = stateToRender.routes.at(-1);
-
-    if (getShouldHidePreloadedRoutes(lastRoute)) {
+    if (getShouldHidePreloadedRoutes(stateToRender.routes.at(-1))) {
         return {...stateToRender, preloadedRoutes: []};
     }
     return stateToRender;
