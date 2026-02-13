@@ -3,7 +3,7 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {Card} from '.';
 import type {CardList} from './Card';
-import type {CompanyCardFeedWithDomainID, CompanyCardFeedWithNumber} from './CardFeeds';
+import type {CardFeedWithDomainID, CompanyCardFeedWithNumber} from './CardFeeds';
 import type {Errors} from './OnyxCommon';
 import type Report from './Report';
 import type Transaction from './Transaction';
@@ -106,11 +106,6 @@ type CardFeedErrorState = {
     shouldShowRBR: boolean;
 
     /**
-     * Whether some failed card assignments.
-     */
-    hasFailedCardAssignments: boolean;
-
-    /**
      * Whether a specific feed within a workspace/domain has errors.
      */
     hasFeedErrors: boolean;
@@ -118,7 +113,7 @@ type CardFeedErrorState = {
     /**
      * Whether some workspace has errors.
      */
-    // hasWorkspaceErrors: boolean;
+    hasWorkspaceErrors: boolean;
 
     /**
      * Whether some feed connection is broken.
@@ -138,6 +133,10 @@ type FeedErrors = CardFeedErrorState & {
      * The errors of all cards for a specific feed within a workspace/domain.
      */
     cardErrors: Record<string, CardErrors>;
+    /**
+     * The errors of the workspace/domain.
+     */
+    workspaceErrors?: Errors;
 };
 
 /**
@@ -153,7 +152,7 @@ type AllCardFeedErrorsMap = Map<number, Map<CardFeedId, FeedErrors>>;
 /**
  * The errors of all card feeds.
  */
-type CardFeedErrorsObject = Record<CompanyCardFeedWithDomainID, FeedErrors>;
+type CardFeedErrorsObject = Record<CardFeedWithDomainID, FeedErrors>;
 
 /**
  * The errors of card feeds.
@@ -205,6 +204,34 @@ type CardFeedErrorsDerivedValue = CardFeedErrors;
  */
 type NonPersonalAndWorkspaceCardListDerivedValue = CardList;
 
+/**
+ * Metadata for todo search results.
+ */
+type TodoMetadata = {
+    /** Total number of transactions across all reports */
+    count: number;
+    /** Sum of all report totals (in cents) */
+    total: number;
+    /** Currency of the first report, used as reference currency */
+    currency: string | undefined;
+};
+
+/**
+ * The derived value for todos.
+ */
+type TodosDerivedValue = {
+    /** Reports that need to be submitted */
+    reportsToSubmit: Report[];
+    /** Reports that need to be approved */
+    reportsToApprove: Report[];
+    /** Reports that need to be paid */
+    reportsToPay: Report[];
+    /** Reports that need to be exported */
+    reportsToExport: Report[];
+    /** Transactions grouped by report ID */
+    transactionsByReportID: Record<string, Transaction[]>;
+};
+
 export default ReportAttributesDerivedValue;
 export type {
     ReportAttributes,
@@ -214,6 +241,8 @@ export type {
     OutstandingReportsByPolicyIDDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
+    TodosDerivedValue,
+    TodoMetadata,
     AllCardFeedErrorsMap,
     CardFeedErrorsObject,
     FeedErrors,

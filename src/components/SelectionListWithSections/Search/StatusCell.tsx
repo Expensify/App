@@ -12,9 +12,12 @@ type StatusCellProps = {
 
     /** The statusNum of the report */
     statusNum?: number;
+
+    /** Whether the report's state/status is pending */
+    isPending?: boolean;
 };
 
-function StatusCell({stateNum, statusNum}: StatusCellProps) {
+function StatusCell({stateNum, statusNum, isPending}: StatusCellProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -41,7 +44,7 @@ function StatusCell({stateNum, statusNum}: StatusCellProps) {
     }
 
     return (
-        <View style={[styles.w100, styles.justifyContentCenter]}>
+        <View style={[styles.w100, styles.justifyContentCenter, isPending && styles.offlineFeedbackPending]}>
             <View style={[styles.reportStatusContainer, backgroundColorStyle]}>
                 <Text style={[styles.reportStatusText, textColorStyle]}>{statusText}</Text>
             </View>

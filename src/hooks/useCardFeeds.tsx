@@ -1,7 +1,8 @@
+import {feedKeysWithAssignedCardsSelector} from '@selectors/Card';
 import type {OnyxCollection, ResultMetadata} from 'react-native-onyx';
-import {getCombinedCardFeedsFromAllFeeds} from '@libs/CardFeedUtils';
+import {getCombinedCardFeedsFromAllFeeds, getWorkspaceCardFeedsStatus} from '@libs/CardFeedUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardFeeds, CombinedCardFeed, CombinedCardFeeds, CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import type {CardFeeds, CardFeedsStatusByDomainID, CombinedCardFeed, CombinedCardFeeds, CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import useOnyx from './useOnyx';
 import useWorkspaceAccountID from './useWorkspaceAccountID';
 
@@ -19,19 +20,22 @@ import useWorkspaceAccountID from './useWorkspaceAccountID';
  *     2. The result metadata from the Onyx collection fetch.
  *     3. Card feeds specific to the given policyID (or `undefined` if unavailable).
  */
-const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefined, ResultMetadata<OnyxCollection<CardFeeds>>, CardFeeds | undefined] => {
+const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefined, ResultMetadata<OnyxCollection<CardFeeds>>, CardFeeds | undefined, CardFeedsStatusByDomainID] => {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [allFeeds, allFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
+    const [feedKeysWithCards] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {selector: feedKeysWithAssignedCardsSelector, canBeMissing: true});
     const defaultFeed = allFeeds?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`];
 
     let workspaceFeeds: CombinedCardFeeds | undefined;
     if (policyID && allFeeds) {
         const shouldIncludeFeedPredicate = (combinedCardFeed: CombinedCardFeed) =>
             combinedCardFeed.preferredPolicy ? combinedCardFeed.preferredPolicy === policyID : combinedCardFeed.domainID === workspaceAccountID;
-        workspaceFeeds = getCombinedCardFeedsFromAllFeeds(allFeeds, shouldIncludeFeedPredicate);
+        workspaceFeeds = getCombinedCardFeedsFromAllFeeds(allFeeds, shouldIncludeFeedPredicate, feedKeysWithCards);
     }
 
-    return [workspaceFeeds, allFeedsResult, defaultFeed];
+    const workspaceCardFeedsStatus = getWorkspaceCardFeedsStatus(allFeeds);
+
+    return [workspaceFeeds, allFeedsResult, defaultFeed, workspaceCardFeedsStatus];
 };
 
 export default useCardFeeds;

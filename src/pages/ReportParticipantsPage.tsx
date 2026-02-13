@@ -171,7 +171,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
 
     const removeUsers = () => {
         const accountIDsToRemove = selectedMembers.filter((id) => id !== currentUserAccountID);
-        removeFromGroupChat(report.reportID, accountIDsToRemove);
+        removeFromGroupChat(report, accountIDsToRemove);
         setSearchValue('');
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
@@ -389,7 +389,6 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                         turnOnSelectionModeOnLongPress={isCurrentUserGroupChatAdmin}
                         shouldSingleExecuteRowSelect={!isCurrentUserGroupChatAdmin}
                         onTurnOnSelectionMode={(item) => item && toggleUser(item)}
-                        style={{listHeaderWrapperStyle: [styles.ph9, styles.mt3]}}
                         onSelectAll={() => toggleAllUsers(participants)}
                         onCheckboxPress={toggleUser}
                         shouldShowTextInput={shouldShowTextInput}

@@ -1,12 +1,15 @@
 import React from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getActivePoliciesWithExpenseChatAndPerDiemEnabled, getPerDiemCustomUnit} from '@libs/PolicyUtils';
-import {getPolicyExpenseChat} from '@libs/ReportUtils';
-import {setCustomUnitID, setMoneyRequestCategory, setMoneyRequestParticipants} from '@userActions/IOU';
+import {findSelfDMReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
+import {setCustomUnitID, setMoneyRequestCategory, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport} from '@userActions/IOU';
+import {setTransactionReport} from '@userActions/Transaction';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import BaseRequestStepWorkspace from './BaseRequestStepWorkspace';
@@ -18,6 +21,7 @@ function IOURequestStepPerDiemWorkspace({route, navigation}: IOURequestStepPerDi
         params: {action, iouType, transactionID},
     } = route;
     const {accountID} = useCurrentUserPersonalDetails();
+    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`, {canBeMissing: true});
 
     return (
         <BaseRequestStepWorkspace
@@ -30,15 +34,20 @@ function IOURequestStepPerDiemWorkspace({route, navigation}: IOURequestStepPerDi
                     return;
                 }
                 const perDiemUnit = getPerDiemCustomUnit(policy);
-                setMoneyRequestParticipants(transactionID, [
-                    {
-                        selected: true,
-                        accountID: 0,
-                        isPolicyExpenseChat: true,
-                        reportID: policyExpenseReportID,
-                        policyID: policy?.id,
-                    },
-                ]);
+                setTransactionReport(transactionID, {reportID: policyExpenseReportID}, true);
+                if (iouType === CONST.IOU.TYPE.TRACK) {
+                    setMoneyRequestParticipantsFromReport(transactionID, selfDMReport, accountID, false);
+                } else {
+                    setMoneyRequestParticipants(transactionID, [
+                        {
+                            selected: true,
+                            accountID: 0,
+                            isPolicyExpenseChat: true,
+                            reportID: policyExpenseReportID,
+                            policyID: policy?.id,
+                        },
+                    ]);
+                }
                 setCustomUnitID(transactionID, perDiemUnit?.customUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
                 setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '', undefined);
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DESTINATION.getRoute(action, iouType, transactionID, policyExpenseReportID));

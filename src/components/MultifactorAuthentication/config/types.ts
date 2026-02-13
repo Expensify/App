@@ -6,7 +6,7 @@ import type {EmptyObject, KebabCase, Replace, ValueOf} from 'type-fest';
 import type {IllustrationName} from '@components/Icon/chunks/illustrations.chunk';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type {
-    AllMultifactorAuthenticationFactors,
+    AllMultifactorAuthenticationBaseParameters,
     MultifactorAuthenticationActionParams,
     MultifactorAuthenticationKeyInfo,
     MultifactorAuthenticationReason,
@@ -14,7 +14,7 @@ import type {
 import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type SCREENS from '@src/SCREENS';
-import type {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG, MultifactorAuthenticationScenarioPayload} from './index';
+import type {MULTIFACTOR_AUTHENTICATION_PROMPT_UI, MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG, MultifactorAuthenticationScenarioPayload} from './index';
 
 /**
  * Configuration for cancel confirmation modal in multifactor authentication.
@@ -168,17 +168,12 @@ type MultifactorAuthenticationScenarioConfig<T extends Record<string, unknown> =
      * so the absence of payload will be tolerated at the run-time.
      */
     pure?: true;
-    nativePromptTitle: TranslationPaths;
 } & MultifactorAuthenticationUI;
 
 /**
  * Scenario configuration for custom scenarios with optional overrides.
  */
-type MultifactorAuthenticationScenarioCustomConfig<T extends Record<string, unknown> = EmptyObject> = Omit<
-    MultifactorAuthenticationScenarioConfig<T>,
-    'MODALS' | 'OUTCOMES' | 'nativePromptTitle'
-> & {
-    nativePromptTitle?: TranslationPaths;
+type MultifactorAuthenticationScenarioCustomConfig<T extends Record<string, unknown> = EmptyObject> = Omit<MultifactorAuthenticationScenarioConfig<T>, 'MODALS' | 'OUTCOMES'> & {
     MODALS?: MultifactorAuthenticationModalOptional;
     OUTCOMES: MultifactorAuthenticationOutcomeOptional;
 };
@@ -186,7 +181,7 @@ type MultifactorAuthenticationScenarioCustomConfig<T extends Record<string, unkn
 /**
  * Default UI configuration shared across scenarios.
  */
-type MultifactorAuthenticationDefaultUIConfig = Pick<MultifactorAuthenticationScenarioConfig, 'nativePromptTitle' | 'MODALS' | 'OUTCOMES'>;
+type MultifactorAuthenticationDefaultUIConfig = Pick<MultifactorAuthenticationScenarioConfig<never>, 'MODALS' | 'OUTCOMES'>;
 
 /**
  * Record mapping all scenarios to their configurations.
@@ -203,29 +198,23 @@ type MultifactorAuthenticationScenarioAdditionalParams<T extends MultifactorAuth
 /**
  * Optional authentication factors with scenario-specific parameters.
  */
-type MultifactorAuthenticationScenarioParams<T extends MultifactorAuthenticationScenario> = Partial<AllMultifactorAuthenticationFactors> &
+type MultifactorAuthenticationScenarioParams<T extends MultifactorAuthenticationScenario> = Partial<AllMultifactorAuthenticationBaseParameters> &
     MultifactorAuthenticationScenarioAdditionalParams<T>;
 
 /**
  * All required authentication factors with scenario-specific parameters.
  */
-type MultifactorAuthenticationProcessScenarioParameters<T extends MultifactorAuthenticationScenario> = AllMultifactorAuthenticationFactors &
+type MultifactorAuthenticationProcessScenarioParameters<T extends MultifactorAuthenticationScenario> = AllMultifactorAuthenticationBaseParameters &
     MultifactorAuthenticationScenarioAdditionalParams<T>;
 
-/**
- * Scenario response with success status indicator.
- */
-type MultifactorAuthenticationScenarioResponseWithSuccess = {
-    httpCode: number | undefined;
-    successful: boolean;
-};
+type MultifactorAuthenticationPromptType = keyof typeof MULTIFACTOR_AUTHENTICATION_PROMPT_UI;
 
 /**
  * Parameters required for biometrics registration scenario.
  */
 type RegisterBiometricsParams = MultifactorAuthenticationActionParams<
     {
-        keyInfo: MultifactorAuthenticationKeyInfo<'biometric'>;
+        keyInfo: MultifactorAuthenticationKeyInfo;
     },
     'validateCode'
 >;
@@ -250,15 +239,21 @@ type MultifactorAuthenticationScenario = ValueOf<typeof CONST.MULTIFACTOR_AUTHEN
 
 export type {
     MultifactorAuthenticationPrompt,
+    MultifactorAuthenticationOutcome,
+    MultifactorAuthenticationModal,
     MultifactorAuthenticationOutcomeRecord,
     MultifactorAuthenticationOutcomeMap,
-    MultifactorAuthenticationScenarioResponseWithSuccess,
+    MultifactorAuthenticationScenarioResponse,
     MultifactorAuthenticationScenarioAdditionalParams,
     MultifactorAuthenticationScenarioParameters,
     MultifactorAuthenticationScenario,
     MultifactorAuthenticationOutcomeOptions,
     MultifactorAuthenticationScenarioParams,
+    MultifactorAuthenticationPromptType,
+    MultifactorAuthenticationOutcomeType,
+    AllMultifactorAuthenticationOutcomeType,
     MultifactorAuthenticationScenarioConfig,
+    MultifactorAuthenticationUI,
     MultifactorAuthenticationScenarioConfigRecord,
     MultifactorAuthenticationProcessScenarioParameters,
     MultifactorAuthenticationDefaultUIConfig,
