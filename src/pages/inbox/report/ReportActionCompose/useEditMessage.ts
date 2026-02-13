@@ -24,7 +24,7 @@ type UseEditMessageProps = {
     reportID: string | undefined;
     originalReportID?: string;
     reportAction: OnyxTypes.ReportAction | null | undefined;
-    index: number;
+    shouldScrollToLastMessage?: boolean;
     isFocused: boolean;
     debouncedCommentMaxLengthValidation: DebouncedFuncLeading<(value: string) => boolean>;
     composerRef: React.RefObject<ComposerRef | null>;
@@ -33,7 +33,7 @@ type UseEditMessageProps = {
 /**
  * Delete the draft of the comment being edited. This will take the comment out of "edit mode" with the old content.
  */
-function useEditMessage({reportID, originalReportID, reportAction, index, isFocused, debouncedCommentMaxLengthValidation, composerRef}: UseEditMessageProps) {
+function useEditMessage({reportID, originalReportID, reportAction, shouldScrollToLastMessage = false, isFocused, debouncedCommentMaxLengthValidation, composerRef}: UseEditMessageProps) {
     const reportScrollManager = useReportScrollManager();
     const isFocusedRef = useRef(isFocused);
 
@@ -74,9 +74,9 @@ function useEditMessage({reportID, originalReportID, reportAction, index, isFocu
         }
 
         // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.
-        if (index === 0) {
+        if (shouldScrollToLastMessage) {
             KeyboardUtils.dismiss().then(() => {
-                reportScrollManager.scrollToIndex(index, false);
+                reportScrollManager.scrollToIndex(0, false);
             });
         }
     }

@@ -370,7 +370,14 @@ function ReportActionCompose({
 
     const {debouncedCommentMaxLengthValidation, exceededMaxLength, isExceedingMaxLength, isTaskTitle} = useDebouncedCommentMaxLengthValidation({reportID});
 
-    const {publishDraft, deleteDraft} = useEditMessage({reportID, reportAction: editingReportAction, index: 0, isFocused, debouncedCommentMaxLengthValidation, composerRef});
+    const {publishDraft, deleteDraft} = useEditMessage({
+        reportID,
+        reportAction: activeEdit?.reportAction,
+        shouldScrollToLastMessage: isEditingLastReportAction,
+        isFocused,
+        debouncedCommentMaxLengthValidation,
+        composerRef,
+    });
 
     const deleteDraftMessage = useCallback(() => {
         deleteDraft();

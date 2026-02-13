@@ -252,7 +252,15 @@ function ReportActionItemMessageEdit({
         // eslint-disable-next-line react-hooks/exhaustive-deps -- run this only when language is changed
     }, [action.reportActionID, preferredLocale]);
 
-    const {publishDraft, deleteDraft} = useEditMessage({reportID, originalReportID, reportAction: action, index, isFocused, debouncedCommentMaxLengthValidation, composerRef});
+    const {publishDraft, deleteDraft} = useEditMessage({
+        reportID,
+        originalReportID,
+        reportAction: action,
+        shouldScrollToLastMessage: index === 0,
+        isFocused,
+        debouncedCommentMaxLengthValidation,
+        composerRef,
+    });
 
     const publishDraftMessage = useCallback(() => publishDraft(draft), [publishDraft, draft]);
 
