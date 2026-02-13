@@ -51,4 +51,64 @@ describe('HoldReasonFormView', () => {
         const holdExpenseElements = screen.getAllByText(translateLocal('iou.holdExpense', {count: 2}));
         expect(holdExpenseElements.length).toBeGreaterThanOrEqual(2); // Title and button
     });
+
+    it('renders submitter copy when isApprover is false', () => {
+        render(
+            <LocaleContextProvider>
+                <HoldReasonFormView
+                    onSubmit={onSubmit}
+                    validate={validate}
+                    backTo={backTo}
+                    isApprover={false}
+                />
+            </LocaleContextProvider>,
+        );
+
+        expect(screen.getByText(translateLocal('iou.explainHold', {count: 1}))).toBeTruthy();
+    });
+
+    it('renders approver copy when isApprover is true', () => {
+        render(
+            <LocaleContextProvider>
+                <HoldReasonFormView
+                    onSubmit={onSubmit}
+                    validate={validate}
+                    backTo={backTo}
+                    isApprover
+                />
+            </LocaleContextProvider>,
+        );
+
+        expect(screen.getByText(translateLocal('iou.explainHoldApprover', {count: 1}))).toBeTruthy();
+    });
+
+    it('renders approver plural copy when isApprover is true with multiple expenses', () => {
+        render(
+            <LocaleContextProvider>
+                <HoldReasonFormView
+                    onSubmit={onSubmit}
+                    validate={validate}
+                    backTo={backTo}
+                    isApprover
+                    expenseCount={3}
+                />
+            </LocaleContextProvider>,
+        );
+
+        expect(screen.getByText(translateLocal('iou.explainHoldApprover', {count: 3}))).toBeTruthy();
+    });
+
+    it('defaults to submitter copy when isApprover is not provided', () => {
+        render(
+            <LocaleContextProvider>
+                <HoldReasonFormView
+                    onSubmit={onSubmit}
+                    validate={validate}
+                    backTo={backTo}
+                />
+            </LocaleContextProvider>,
+        );
+
+        expect(screen.getByText(translateLocal('iou.explainHold', {count: 1}))).toBeTruthy();
+    });
 });
