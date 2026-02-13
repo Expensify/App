@@ -110,7 +110,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
     const sumOfSplitExpenses = (draftTransaction?.comment?.splitExpenses ?? []).reduce((acc, item) => acc + (item.amount ?? 0), 0);
     const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
-
+    const invalidSplit = splitExpenses.find((split) => {
+        // A split is only invalid if it has the same sign as the total and its magnitude exceeds the total
+        const sameSign = (split.amount >= 0 && transactionDetailsAmount >= 0) || (split.amount < 0 && transactionDetailsAmount < 0);
+        return sameSign && Math.abs(split.amount) > Math.abs(transactionDetailsAmount);
+    });
+    const difference = sumOfSplitExpenses - transactionDetailsAmount;
     const currencySymbol = getCurrencySymbol(transactionDetails.currency ?? '') ?? transactionDetails.currency ?? CONST.CURRENCY.USD;
 
     const isPerDiem = isPerDiemRequest(transaction);
@@ -125,10 +130,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const childTransactions = getChildTransactions(allTransactions, allReports, transactionID);
     const splitFieldDataFromChildTransactions = childTransactions.map((childTransaction) => {
         const childTransactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childTransaction?.reportID}`];
-        return initSplitExpenseItemData(childTransaction, childTransactionReport);
+        return initSplitExpenseItemData(childTransaction, childTransactionReport, {isManuallyEdited: true});
     });
     const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
-    const splitFieldDataFromOriginalTransaction = initSplitExpenseItemData(transaction, transactionReport);
+    const splitFieldDataFromOriginalTransaction = initSplitExpenseItemData(transaction, transactionReport, {isManuallyEdited: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const icons = useMemoizedLazyExpensifyIcons(['ArrowsLeftRight', 'Plus'] as const);
@@ -200,14 +205,24 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         if (draftTransaction?.errors) {
             clearSplitTransactionDraftErrors(transactionID);
         }
+
+        if (invalidSplit && sumOfSplitExpenses !== transactionDetailsAmount) {
+            if (difference > 0) {
+                setErrorMessage(translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(Math.abs(difference), transactionDetails?.currency)}));
+            } else {
+                setErrorMessage(translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(Math.abs(difference), transactionDetails?.currency)}));
+            }
+            return;
+        }
+
         if (sumOfSplitExpenses > transactionDetailsAmount) {
-            const difference = sumOfSplitExpenses - transactionDetailsAmount;
-            setErrorMessage(translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)}));
+            const greaterThanDifference = sumOfSplitExpenses - transactionDetailsAmount;
+            setErrorMessage(translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(greaterThanDifference, transactionDetails?.currency)}));
             return;
         }
         if (sumOfSplitExpenses < transactionDetailsAmount && (isPerDiem || isCard)) {
-            const difference = transactionDetailsAmount - sumOfSplitExpenses;
-            setErrorMessage(translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)}));
+            const lessThanDifference = transactionDetailsAmount - sumOfSplitExpenses;
+            setErrorMessage(translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(lessThanDifference, transactionDetails?.currency)}));
             return;
         }
 
@@ -338,12 +353,18 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         </View>
     );
 
-    const difference = sumOfSplitExpenses - transactionDetailsAmount;
     let warningMessage = '';
-    if (difference < 0) {
-        warningMessage = translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(-difference, transactionDetails.currency)});
+
+    if (invalidSplit && sumOfSplitExpenses !== transactionDetailsAmount) {
+        if (difference > 0) {
+            warningMessage = translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(Math.abs(difference), transactionDetails?.currency)});
+        } else {
+            warningMessage = translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(Math.abs(difference), transactionDetails?.currency)});
+        }
+    } else if (difference < 0) {
+        warningMessage = translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(Math.abs(difference), transactionDetails.currency)});
     } else if (difference > 0) {
-        warningMessage = translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)});
+        warningMessage = translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(Math.abs(difference), transactionDetails?.currency)});
     }
 
     const footerContent = (

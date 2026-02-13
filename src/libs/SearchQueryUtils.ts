@@ -1,3 +1,4 @@
+import type {FeedKeysWithAssignedCards} from '@selectors/Card';
 import cloneDeep from 'lodash/cloneDeep';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -1099,6 +1100,7 @@ function getFilterDisplayValue(
     policies: OnyxCollection<OnyxTypes.Policy>,
     currentUserAccountID: number,
     translate: LocalizedTranslate,
+    feedKeysWithCards?: FeedKeysWithAssignedCards,
 ) {
     if (
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
@@ -1129,7 +1131,7 @@ function getFilterDisplayValue(
         return getCleanedTagName(filterValue);
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
-        const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeeds, cardList, translate);
+        const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeeds, cardList, translate, feedKeysWithCards);
         return cardFeedsForDisplay[filterValue]?.name ?? filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
@@ -1138,6 +1140,7 @@ function getFilterDisplayValue(
     return filterValue;
 }
 
+// eslint-disable-next-line @typescript-eslint/max-params
 function getDisplayQueryFiltersForKey(
     key: string,
     queryFilter: QueryFilter[],
@@ -1149,6 +1152,7 @@ function getDisplayQueryFiltersForKey(
     policies: OnyxCollection<OnyxTypes.Policy>,
     currentUserAccountID: number,
     translate: LocalizedTranslate,
+    feedKeysWithCards?: FeedKeysWithAssignedCards,
 ) {
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
         const taxRateIDs = queryFilter.map((filter) => filter.value.toString());
@@ -1172,7 +1176,7 @@ function getDisplayQueryFiltersForKey(
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
         return queryFilter.reduce((acc, filter) => {
             const feedKey = filter.value.toString();
-            const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeeds, cardList, translate);
+            const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeeds, cardList, translate, feedKeysWithCards);
             const plaidFeedName = feedKey?.split(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID)?.at(1);
             const regularBank = feedKey?.split('_')?.at(1) ?? CONST.DEFAULT_NUMBER_ID;
             const idPrefix = feedKey?.split('_')?.at(0) ?? CONST.DEFAULT_NUMBER_ID;
@@ -1285,6 +1289,7 @@ function buildUserReadableQueryString({
     currentUserAccountID,
     autoCompleteWithSpace = false,
     translate,
+    feedKeysWithCards,
 }: {
     queryJSON: SearchQueryJSON;
     PersonalDetails: OnyxTypes.PersonalDetailsList | undefined;
@@ -1296,6 +1301,7 @@ function buildUserReadableQueryString({
     currentUserAccountID: number;
     autoCompleteWithSpace: boolean;
     translate: LocalizedTranslate;
+    feedKeysWithCards?: FeedKeysWithAssignedCards;
 }) {
     const {type, status, groupBy, columns, policyID, rawFilterList, flatFilters: filters = [], limit} = queryJSON;
 
@@ -1339,6 +1345,7 @@ function buildUserReadableQueryString({
                 policies,
                 currentUserAccountID,
                 translate,
+                feedKeysWithCards,
             );
 
             if (!displayQueryFilters.length) {
@@ -1387,6 +1394,7 @@ function buildUserReadableQueryString({
             policies,
             currentUserAccountID,
             translate,
+            feedKeysWithCards,
         );
 
         if (!displayQueryFilters.length) {
