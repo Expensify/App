@@ -28,6 +28,7 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
     const policyID = route.params?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const policyName = policy?.name ?? '';
     const policyCurrency = policy?.outputCurrency ?? '';
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -45,22 +46,26 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
         }
 
         const newReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner ?? '';
-        setWorkspaceReimbursement({
-            policyID,
-            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
-            bankAccountID: methodID ?? CONST.DEFAULT_NUMBER_ID,
-            reimburserEmail: newReimburserEmail,
-            accountNumber: accountData?.accountNumber,
-            addressName: accountData?.addressName,
-            bankName: accountData?.additionalData?.bankName,
-            state: accountData?.state,
-            lastPaymentMethod: lastPaymentMethod?.[policyID],
-            shouldUpdateLastPaymentMethod: accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN,
-        });
+
+        if (bankAccountList && methodID && !bankAccountList[methodID]?.accountData?.policyIDs?.includes(policyID)) {
+            setWorkspaceReimbursement({
+                policyID,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                bankAccountID: methodID ?? CONST.DEFAULT_NUMBER_ID,
+                reimburserEmail: newReimburserEmail,
+                accountNumber: accountData?.accountNumber,
+                addressName: accountData?.addressName,
+                bankName: accountData?.additionalData?.bankName,
+                state: accountData?.state,
+                lastPaymentMethod: lastPaymentMethod?.[policyID],
+                shouldUpdateLastPaymentMethod: accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN,
+                bankAccountList,
+            });
+            setReimbursementAccountLoading(true);
+        }
 
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             if (isBankAccountPartiallySetup(accountData?.state)) {
-                setReimbursementAccountLoading(true);
                 navigateToBankAccountRoute(route.params.policyID);
             } else {
                 setReimbursementAccountLoading(false);
