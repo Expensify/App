@@ -6,6 +6,7 @@ import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, use
 import type {TextInputKeyPressEvent, TextInputSelectionChangeEvent} from 'react-native';
 import {DeviceEventEmitter, StyleSheet} from 'react-native';
 import type {ComposerProps} from '@components/Composer/types';
+import {useSession} from '@components/OnyxListItemProvider';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 import useHtmlPaste from '@hooks/useHtmlPaste';
@@ -55,6 +56,9 @@ function Composer({
     const textContainsOnlyEmojis = useMemo(() => containsOnlyEmojis(Parser.htmlToText(Parser.replace(value ?? ''))), [value]);
     const theme = useTheme();
     const styles = useThemeStyles();
+    const session = useSession();
+    const encryptedAuthToken = session?.encryptedAuthToken ?? '';
+    const addAuthTokenToImageURL = (url: string) => addEncryptedAuthTokenToURL(url, encryptedAuthToken);
     const markdownStyle = useMarkdownStyle(textContainsOnlyEmojis, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
     const StyleUtils = useStyleUtils();
     const textInput = useRef<AnimatedMarkdownTextInputRef | null>(null);
@@ -361,7 +365,7 @@ function Composer({
             }}
             disabled={isDisabled}
             onKeyPress={handleKeyPress}
-            addAuthTokenToImageURLCallback={addEncryptedAuthTokenToURL}
+            addAuthTokenToImageURLCallback={addAuthTokenToImageURL}
             imagePreviewAuthRequiredURLs={imagePreviewAuthRequiredURLs}
         />
     );

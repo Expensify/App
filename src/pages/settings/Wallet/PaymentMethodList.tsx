@@ -24,7 +24,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {
     getAssignedCardSortKey,
     getCardFeedIcon,
-    getCompanyCardFeedWithDomainID,
+    getCardFeedWithDomainID,
     getPlaidInstitutionIconUrl,
     isExpensifyCard,
     isExpensifyCardPendingAction,
@@ -39,7 +39,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {BankAccount, BankAccountList, CardList, CompanyCardFeed} from '@src/types/onyx';
+import type {BankAccount, BankAccountList, CardList} from '@src/types/onyx';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -211,19 +211,19 @@ function PaymentMethodList({
             for (const card of assignedCardsSorted) {
                 const isDisabled = card.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                 const isUserPersonalCard = isPersonalCard(card);
-                const isCSVCard = card.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
+                const isCSVCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
                 const assignedCardsGrouped = isUserPersonalCard ? personalCardsGrouped : companyCardsGrouped;
 
                 let icon;
                 if (isUserPersonalCard && isCSVCard) {
                     icon = getCardFeedIcon(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV, illustrations, companyCardFeedIcons);
                 } else {
-                    icon = getCardFeedIcon(card.bank as CompanyCardFeed, illustrations, companyCardFeedIcons);
+                    icon = getCardFeedIcon(card.bank, illustrations, companyCardFeedIcons);
                 }
 
                 let shouldShowRBR = false;
                 if (card.fundID) {
-                    const feedNameWithDomainID = getCompanyCardFeedWithDomainID(card.bank as CompanyCardFeed, card.fundID);
+                    const feedNameWithDomainID = getCardFeedWithDomainID(card.bank, card.fundID);
                     shouldShowRBR = shouldShowRbrForFeedNameWithDomainID[feedNameWithDomainID];
                 } else if (card.bank !== CONST.PERSONAL_CARD.BANK_NAME.CSV) {
                     // Don't show red dot for CSV imported cards without fundID
@@ -244,7 +244,7 @@ function PaymentMethodList({
                 if (!isExpensifyCard(card)) {
                     const lastFourPAN = lastFourNumbersFromCardName(card.cardName);
                     const plaidUrl = getPlaidInstitutionIconUrl(card.bank);
-                    const isCSVImportCard = card.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD;
+                    const isCSVImportCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD;
                     const cardTitle = isCSVImportCard ? (card.nameValuePairs?.cardTitle ?? card.cardName) : maskCardNumber(card.cardName, card.bank);
                     const pressHandler = onPress as CardPressHandler;
                     let cardDescription;

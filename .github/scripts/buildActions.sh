@@ -32,6 +32,7 @@ declare -r GITHUB_ACTIONS=(
     "$ACTIONS_DIR/reviewerChecklist/reviewerChecklist.ts"
     "$ACTIONS_DIR/validateReassureOutput/validateReassureOutput.ts"
     "$ACTIONS_DIR/verifySignedCommits/verifySignedCommits.ts"
+    "$ACTIONS_DIR/waitForPreviousRuns/waitForPreviousRuns.ts"
 )
 
 # This will be inserted at the top of all compiled files as a warning to devs.

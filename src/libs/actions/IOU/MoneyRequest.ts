@@ -26,7 +26,6 @@ import {
     getMoneyRequestParticipantsFromReport,
     getRecentWaypoints,
     requestMoney,
-    resetSplitShares,
     setCustomUnitRateID,
     setMoneyRequestMerchant,
     setMoneyRequestParticipants,
@@ -35,7 +34,7 @@ import {
     setMultipleMoneyRequestParticipantsFromReport,
     trackExpense,
 } from './index';
-import {startSplitBill} from './Split';
+import {resetSplitShares, startSplitBill} from './Split';
 
 type CreateTransactionParams = {
     transactions: Transaction[];
@@ -546,15 +545,6 @@ function handleMoneyRequestStepDistanceNavigation({
     if (report?.reportID && !isArchivedExpenseReport && iouType !== CONST.IOU.TYPE.CREATE) {
         const participants = getMoneyRequestParticipantOptions(currentUserAccountID, report, policy, personalDetails, privateIsArchived, reportAttributesDerived);
 
-        let validWaypoints: WaypointCollection | undefined;
-        if (!isManualDistance) {
-            if (isGPSDistance) {
-                validWaypoints = waypoints;
-            } else {
-                validWaypoints = getValidWaypoints(waypoints, true);
-            }
-        }
-
         setDistanceRequestData?.(participants);
         if (shouldSkipConfirmation) {
             setMoneyRequestPendingFields(transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
@@ -569,6 +559,8 @@ function handleMoneyRequestStepDistanceNavigation({
                 participant,
                 transactionReportID: transaction?.reportID,
             });
+
+            const validWaypoints = !isManualDistance ? getValidWaypoints(waypoints, true, isGPSDistance) : undefined;
 
             if (isCreatingTrackExpense && participant) {
                 trackExpense({

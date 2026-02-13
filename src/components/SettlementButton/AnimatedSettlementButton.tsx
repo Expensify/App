@@ -17,7 +17,6 @@ type AnimatedSettlementButtonProps = SettlementButtonProps & {
     isApprovedAnimationRunning: boolean;
     shouldAddTopMargin?: boolean;
     canIOUBePaid: boolean;
-    sentryLabel?: string;
 };
 
 function AnimatedSettlementButton({
