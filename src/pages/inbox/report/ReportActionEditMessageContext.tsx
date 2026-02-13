@@ -15,7 +15,7 @@ type ReportActionActiveEdit = {
 type ReportActionEditMessageContextValue = ReportActionActiveEdit & {
     currentEditMessageSelection: TextSelection | null;
     setCurrentEditMessageSelection: (selection: TextSelection) => void;
-    didSubmitEditRef: React.RefObject<boolean>;
+    didSubmitEditRef: React.RefObject<boolean | null>;
 };
 
 const ReportActionEditMessageContext = createContext<ReportActionEditMessageContextValue>({
@@ -24,7 +24,7 @@ const ReportActionEditMessageContext = createContext<ReportActionEditMessageCont
     editingMessage: null,
     currentEditMessageSelection: null,
     setCurrentEditMessageSelection: NOOP,
-    didSubmitEditRef: {current: false},
+    didSubmitEditRef: {current: null},
 });
 
 type ReportActionEditMessageContextProviderProps = {
