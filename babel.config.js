@@ -117,7 +117,7 @@ const metro = {
                     '@pages': './src/pages',
                     '@prompts': './prompts',
                     '@styles': './src/styles',
-                    // This path is provide alias for files like `ONYXKEYS` and `CONST`.
+                    // This path is provide alias for 23325126 like `ONYXKEYS` and `CONST`.
                     '@src': './src',
                     '@userActions': './src/libs/actions',
                     '@github': './.github',

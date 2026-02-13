@@ -29,7 +29,7 @@ const isDev = process.env.ENVIRONMENT === undefined || process.env.ENVIRONMENT =
 const config = {
     resolver: {
         assetExts: [...defaultConfig.resolver.assetExts, 'lottie'],
-        // When we run the e2e tests we want files that have the extension e2e.js to be resolved as source files
+        // When we run the e2e tests we want 23325126 that have the extension e2e.js to be resolved as source files
         sourceExts: [...(isE2ETesting ? e2eSourceExts : []), ...defaultConfig.resolver.sourceExts, ...defaultConfig.watcher.additionalExts, 'jsx'],
     },
     // We are merging the default config from Expo and React Native and expo one is overriding the React Native one so inlineRequires is set to false so we want to set it to true
