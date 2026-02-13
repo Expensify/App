@@ -1,8 +1,7 @@
 import type {NavigationState} from '@react-navigation/native';
-import {DarkTheme, DefaultTheme, findFocusedRoute, NavigationContainer} from '@react-navigation/native';
-import {hasCompletedGuidedSetupFlowSelector, wasInvitedToNewDotSelector} from '@selectors/Onboarding';
+import {DarkTheme, DefaultTheme, findFocusedRoute, getPathFromState, NavigationContainer} from '@react-navigation/native';
+import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
-import {useOnboardingValues} from '@components/OnyxListItemProvider';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import {useCurrentReportIDActions} from '@hooks/useCurrentReportID';
 import useOnyx from '@hooks/useOnyx';
@@ -17,8 +16,6 @@ import shouldOpenLastVisitedPath from '@libs/shouldOpenLastVisitedPath';
 import {getPathFromURL} from '@libs/Url';
 import {updateLastVisitedPath} from '@userActions/App';
 import {updateOnboardingLastVisitedPath} from '@userActions/Welcome';
-import {getOnboardingInitialPath} from '@userActions/Welcome/OnboardingFlow';
-import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import {endSpan, getSpan, startSpan} from '@src/libs/telemetry/activeSpans';
 import {navigationIntegration} from '@src/libs/telemetry/integrations';
@@ -29,7 +26,6 @@ import ROUTES from '@src/ROUTES';
 import AppNavigator from './AppNavigator';
 import {cleanPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import getAdaptedStateFromPath from './helpers/getAdaptedStateFromPath';
-import getPathFromState from './helpers/getPathFromState';
 import {isSplitNavigatorName, isWorkspacesTabScreenName} from './helpers/isNavigatorName';
 import {saveSettingsTabPathToSessionStorage, saveWorkspacesTabPathToSessionStorage} from './helpers/lastVisitedTabPathUtils';
 import {linkingConfig} from './linkingConfig';
@@ -57,7 +53,7 @@ function parseAndLogRoute(state: NavigationState) {
         return;
     }
 
-    const currentPath = getPathFromState(state);
+    const currentPath = getPathFromState(state, linkingConfig.config);
 
     const focusedRoute = findFocusedRoute(state);
 
@@ -103,26 +99,17 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         selector: hasCompletedGuidedSetupFlowSelector,
         canBeMissing: true,
     });
-    const [wasInvitedToNewDot = false] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
-        selector: wasInvitedToNewDotSelector,
-        canBeMissing: true,
-    });
-    const [hasNonPersonalPolicy] = useOnyx(ONYXKEYS.HAS_NON_PERSONAL_POLICY, {canBeMissing: true});
-    const [currentOnboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
-    const [currentOnboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
-    const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH, {canBeMissing: true});
-    const onboardingValues = useOnboardingValues();
+
     const previousAuthenticated = usePrevious(authenticated);
 
     const initialState = useMemo(() => {
         const path = initialUrl ? getPathFromURL(initialUrl) : null;
-
         if (path?.includes(ROUTES.MIGRATED_USER_WELCOME_MODAL.route) && shouldOpenLastVisitedPath(lastVisitedPath) && isOnboardingCompleted && authenticated) {
             Navigation.isNavigationReady().then(() => {
                 Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute());
             });
 
-            return getAdaptedStateFromPath(lastVisitedPath);
+            return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
         }
 
         if (!account || account.isFromPublicDomain) {
@@ -137,21 +124,6 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             return undefined;
         }
 
-        // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
-        // We also make sure that the user is authenticated, isn't part of a group workspace, isn't in the transition flow & wasn't invited to NewDot.
-        if (!CONFIG.IS_HYBRID_APP && !hasNonPersonalPolicy && !isOnboardingCompleted && !wasInvitedToNewDot && authenticated) {
-            return getAdaptedStateFromPath(
-                getOnboardingInitialPath({
-                    isUserFromPublicDomain: !!account.isFromPublicDomain,
-                    hasAccessiblePolicies: !!account.hasAccessibleDomainPolicies,
-                    currentOnboardingPurposeSelected,
-                    currentOnboardingCompanySize,
-                    onboardingInitialPath,
-                    onboardingValues,
-                }),
-            );
-        }
-
         if (shouldOpenLastVisitedPath(lastVisitedPath) && authenticated) {
             // Only skip restoration if there's a specific deep link that's not the root
             // This allows restoration when app is killed and reopened without a deep link
@@ -160,7 +132,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
             if (!isSpecificDeepLink) {
                 Log.info('Restoring last visited path on app startup', false, {lastVisitedPath, initialUrl, path});
-                return getAdaptedStateFromPath(lastVisitedPath);
+                return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
             }
         }
 

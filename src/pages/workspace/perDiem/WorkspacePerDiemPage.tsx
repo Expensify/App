@@ -468,7 +468,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         customListHeader={getCustomListHeader()}
                         selectedItems={selectedPerDiem.map((item) => item.subRateID)}
                         onSelectAll={filteredSubRatesList.length > 0 ? toggleAllSubRates : undefined}
-                        style={{listHeaderWrapperStyle: [styles.ph9, styles.pv3, styles.pb5], listItemTitleContainerStyles: styles.flex3}}
+                        style={{listItemTitleContainerStyles: styles.flex3}}
                         onTurnOnSelectionMode={(item) => item && toggleSubRate(item)}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         shouldUseDefaultRightHandSideCheckmark={false}

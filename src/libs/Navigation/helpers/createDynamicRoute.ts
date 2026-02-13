@@ -1,20 +1,13 @@
 import Navigation from '@libs/Navigation/Navigation';
 import type {DynamicRouteSuffix, Route} from '@src/ROUTES';
 import isDynamicRouteSuffix from './isDynamicRouteSuffix';
-import splitPathAndQuery from './splitPathAndQuery';
 
 const combinePathAndSuffix = (path: string, suffix: string): Route => {
-    const [normalizedPath, query] = splitPathAndQuery(path);
+    const [basePath, params] = path.split('?');
+    let newPath = basePath.endsWith('/') ? `${basePath}${suffix}` : `${basePath}/${suffix}`;
 
-    // This should never happen as the path should always be defined
-    if (!normalizedPath) {
-        throw new Error('Path is undefined or empty');
-    }
-
-    let newPath = `${normalizedPath}/${suffix}`;
-
-    if (query) {
-        newPath += `?${query}`;
+    if (params) {
+        newPath += `?${params}`;
     }
     return newPath as Route;
 };

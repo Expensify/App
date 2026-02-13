@@ -2,7 +2,7 @@ import {useFont} from '@shopify/react-native-skia';
 import React, {useCallback, useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
-import Animated, {useSharedValue} from 'react-native-reanimated';
+import {useSharedValue} from 'react-native-reanimated';
 import type {ChartBounds, PointsArray, Scale} from 'victory-native';
 import {Bar, CartesianChart} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -139,14 +139,14 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
         [barWidth, yZero],
     );
 
-    const {actionsRef, customGestures, activeDataIndex, isTooltipActive, tooltipStyle} = useChartInteractions({
+    const {actionsRef, customGestures, activeDataIndex, isTooltipActive, initialTooltipPosition} = useChartInteractions({
         handlePress: handleBarPress,
         checkIsOver: checkIsOverBar,
         chartBottom,
         yZero,
     });
 
-    const tooltipData = useTooltipData(activeDataIndex, data, yAxisUnit, yAxisUnitPosition);
+    const tooltipData = useTooltipData(activeDataIndex, data, formatYAxisLabel);
 
     const renderBar = useCallback(
         (point: PointsArray[number], chartBounds: ChartBounds, barCount: number) => {
@@ -241,13 +241,13 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
                     </CartesianChart>
                 )}
                 {isTooltipActive && !!tooltipData && (
-                    <Animated.View style={tooltipStyle}>
-                        <ChartTooltip
-                            label={tooltipData.label}
-                            amount={tooltipData.amount}
-                            percentage={tooltipData.percentage}
-                        />
-                    </Animated.View>
+                    <ChartTooltip
+                        label={tooltipData.label}
+                        amount={tooltipData.amount}
+                        percentage={tooltipData.percentage}
+                        chartWidth={chartWidth}
+                        initialTooltipPosition={initialTooltipPosition}
+                    />
                 )}
             </View>
         </View>
