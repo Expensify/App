@@ -169,14 +169,14 @@ function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
     // When in fresh Range mode (no flag), only show text after BOTH dates selected
     const rangeFromValue = hasRangeFlag ? trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] : undefined;
     const rangeToValue = hasRangeFlag ? trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE] : undefined;
-    
+
     // For fresh Range selection (no flag), only show text when BOTH dates selected
     const freshSelectionFrom = trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER];
     const freshSelectionTo = trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE];
     const hasBothFreshDates = !!(freshSelectionFrom && freshSelectionTo);
     const activeSelectionFrom = isInRangeMode && !hasRangeFlag && hasBothFreshDates ? freshSelectionFrom : undefined;
     const activeSelectionTo = isInRangeMode && !hasRangeFlag && hasBothFreshDates ? freshSelectionTo : undefined;
-    
+
     const displayFrom = rangeFromValue || activeSelectionFrom;
     const displayTo = rangeToValue || activeSelectionTo;
     const hasRangeInput = !!(displayFrom ?? displayTo);

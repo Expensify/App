@@ -150,7 +150,15 @@ function SearchFiltersBar({
             }
         });
         setDateRangeFlags(updatedFlags);
-    }, [searchAdvancedFiltersForm.dateRange, searchAdvancedFiltersForm.submittedRange, searchAdvancedFiltersForm.approvedRange, searchAdvancedFiltersForm.paidRange, searchAdvancedFiltersForm.exportedRange, searchAdvancedFiltersForm.postedRange, searchAdvancedFiltersForm.withdrawnRange]);
+    }, [
+        searchAdvancedFiltersForm.dateRange,
+        searchAdvancedFiltersForm.submittedRange,
+        searchAdvancedFiltersForm.approvedRange,
+        searchAdvancedFiltersForm.paidRange,
+        searchAdvancedFiltersForm.exportedRange,
+        searchAdvancedFiltersForm.postedRange,
+        searchAdvancedFiltersForm.withdrawnRange,
+    ]);
     // type, groupBy, status, and view values are not guaranteed to respect the ts type as they come from user input
     const {type: unsafeType, groupBy: unsafeGroupBy, status: unsafeStatus, view: unsafeView, flatFilters} = queryJSON;
     const [selectedIOUReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentSelectedReportID}`, {canBeMissing: true});
