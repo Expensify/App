@@ -366,16 +366,7 @@ function Expensify() {
             Log.info('[Deep link] introSelected is undefined when processing initial URL', false, {url: initialUrl});
         }
 
-        openReportFromDeepLink(
-            initialUrl,
-            currentOnboardingPurposeSelected,
-            currentOnboardingCompanySize,
-            onboardingInitialPath,
-            allReports,
-            isAuthenticated,
-            introSelected,
-            conciergeReportID,
-        );
+        openReportFromDeepLink(initialUrl, allReports, isAuthenticated, conciergeReportID, introSelected);
 
         endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.DEEP_LINK);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want this to run once when session is loaded and initialUrl is set
