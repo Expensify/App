@@ -716,6 +716,59 @@ button {
     }
 }
 
+// Keep mobile LHN layout (top bar) on tablet
+.mobile-lhn {
+    @include breakpoint($breakpoint-tablet) {
+        #lhn {
+            width: 100%;
+            height: auto;
+        }
+
+        #lhn #lhn-content {
+            display: none;
+
+            &.expanded {
+                display: block;
+            }
+        }
+
+        #lhn .lhn-header {
+            padding: 24px;
+
+            #header-button {
+                display: block;
+            }
+        }
+
+        #content-area {
+            margin-left: 0;
+        }
+    }
+
+    @include breakpoint($breakpoint-desktop) {
+        #lhn {
+            width: 420px;
+            height: 100%;
+        }
+
+        #lhn #lhn-content {
+            display: block;
+        }
+
+        #lhn .lhn-header {
+            padding: 44px 44px 40px 44px;
+
+            #header-button {
+                display: none;
+            }
+        }
+
+        #content-area {
+            margin-left: 420px;
+        }
+    }
+}
+
 .lhn-items {
     ol,
     ul {
@@ -1057,6 +1110,164 @@ button {
         width: 100%;
     }
 
+    .search-columns {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        margin-top: 48px;
+
+        @include breakpoint($breakpoint-tablet) {
+            flex-direction: row;
+            gap: 32px;
+        }
+    }
+
+    .search-articles-column {
+        flex: 1;
+        min-width: 0;
+        order: 2;
+
+        @include breakpoint($breakpoint-tablet) {
+            order: 1;
+        }
+
+        .homepage-results-container {
+            margin-top: 0;
+        }
+    }
+
+    .ai-answer-container {
+        order: 1;
+
+        @include breakpoint($breakpoint-tablet) {
+            order: 2;
+            width: 400px;
+            flex-shrink: 0;
+        }
+    }
+
+    .ai-panel {
+        background-color: var(--color-highlightBG);
+        border-radius: 12px;
+        padding: 20px;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+
+        &.ai-panel-loading {
+            min-height: 320px;
+
+            @include breakpoint($breakpoint-tablet) {
+                min-height: 676px;
+            }
+        }
+    }
+
+    .ai-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+    }
+
+    .ai-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+
+    .ai-title {
+        font-weight: 700;
+        font-size: 15px;
+        color: var(--color-text);
+    }
+
+
+    .ai-content {
+        font-size: 15px;
+        line-height: 24px;
+        max-height: 320px;
+        overflow: hidden;
+        color: var(--color-text);
+        position: relative;
+
+        @include breakpoint($breakpoint-tablet) {
+            max-height: 676px;
+        }
+
+        &.has-overflow::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: linear-gradient(to bottom, transparent, var(--color-highlightBG));
+            pointer-events: none;
+        }
+
+        &.expanded {
+            max-height: none;
+
+            &::after {
+                display: none;
+            }
+
+            ~ .ai-show-more {
+                margin-top: 16px;
+
+                img {
+                    transform: rotate(180deg);
+                }
+            }
+        }
+    }
+
+    .ai-illustration {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex: 1;
+
+        img {
+            width: 102px;
+            height: 102px;
+            animation: bounce 1s ease-in-out infinite;
+        }
+    }
+
+    @keyframes bounce {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-10px);
+        }
+    }
+
+    .ai-show-more {
+        background: var(--color-button-background);
+        border: none;
+        border-radius: 9999px;
+        color: var(--color-text);
+        cursor: pointer;
+        font-size: 15px;
+        font-weight: 700;
+        padding: 12px 16px;
+        margin-top: -20px;
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        align-self: center;
+        justify-content: center;
+        gap: 8px;
+
+        &.hidden {
+            display: none;
+        }
+    }
+
     .getting-started-cards {
         @include breakpoint($breakpoint-desktop) {
             grid-template-columns: repeat(3, 1fr);
@@ -1321,3 +1532,4 @@ button {
     height: 12px;
     width: 12px;
 }
+

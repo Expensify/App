@@ -8,7 +8,7 @@ import Button from '@components/Button';
 import DestinationPicker from '@components/DestinationPicker';
 import FixedFooter from '@components/FixedFooter';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type {ListItem, SelectionListHandle} from '@components/SelectionListWithSections/types';
+import type {ListItem, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -20,8 +20,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {fetchPerDiemRates} from '@libs/actions/Policy/PerDiem';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPerDiemCustomUnit, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getPolicyExpenseChat} from '@libs/ReportUtils';
+import {getPerDiemCustomUnit, getPolicyByCustomUnitID, isPolicyAdmin} from '@libs/PolicyUtils';
+import {findSelfDMReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import variables from '@styles/variables';
 import {
     clearSubrates,
@@ -66,17 +67,25 @@ function IOURequestStepDestination({
     explicitPolicyID,
     ref,
 }: IOURequestStepDestinationProps) {
-    const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${explicitPolicyID ?? getIOURequestPolicyID(transaction, report)}`, {canBeMissing: false});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const reportPolicyID = getIOURequestPolicyID(transaction, report);
+    const policyID = reportPolicyID === CONST.POLICY.ID_FAKE ? getPolicyByCustomUnitID(transaction, allPolicies)?.id : reportPolicyID;
+    const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${explicitPolicyID ?? policyID}`, {
+        canBeMissing: false,
+    });
     const {accountID} = useCurrentUserPersonalDetails();
     const policyExpenseReport = policy?.id ? getPolicyExpenseChat(accountID, policy.id) : undefined;
     const {top} = useSafeAreaInsets();
     const customUnit = getPerDiemCustomUnit(policy);
     const selectedDestination = transaction?.comment?.customUnit?.customUnitRateID;
+    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`, {canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses']);
     const {translate} = useLocalize();
 
-    const destinationSelectionListRef = useRef<SelectionListHandle | null>(null);
+    const destinationSelectionListRef = useRef<SelectionListWithSectionsHandle | null>(null);
 
     useImperativeHandle(ref, () => ({
         focus: destinationSelectionListRef.current?.focusTextInput,
@@ -95,6 +104,11 @@ function IOURequestStepDestination({
     };
 
     const updateDestination = (destination: ListItem & {currency: string}) => {
+        if (openedFromStartPage && policy?.id && shouldRestrictUserBillableActions(policy.id)) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+            return;
+        }
+
         if (isEmptyObject(customUnit)) {
             return;
         }
@@ -102,11 +116,15 @@ function IOURequestStepDestination({
         if (selectedDestination !== destination.keyForList) {
             if (openedFromStartPage) {
                 setTransactionReport(transactionID, {reportID: targetReport?.reportID}, true);
-                setMoneyRequestParticipantsFromReport(transactionID, targetReport, accountID);
+                if (iouType === CONST.IOU.TYPE.TRACK) {
+                    setMoneyRequestParticipantsFromReport(transactionID, selfDMReport, currentUserPersonalDetails.accountID, false);
+                } else {
+                    setMoneyRequestParticipantsFromReport(transactionID, targetReport, accountID);
+                }
                 setCustomUnitID(transactionID, customUnit.customUnitID);
                 setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '', undefined);
             }
-            setCustomUnitRateID(transactionID, destination.keyForList ?? '');
+            setCustomUnitRateID(transactionID, destination.keyForList ?? '', transaction, policy);
             setMoneyRequestCurrency(transactionID, destination.currency);
             clearSubrates(transactionID);
         }
@@ -196,6 +214,7 @@ function IOURequestStepDestination({
                                     }}
                                     text={translate('workspace.perDiem.editPerDiemRates')}
                                     pressOnEnter
+                                    sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.EDIT_PER_DIEM_RATES_BUTTON}
                                 />
                             </FixedFooter>
                         )}

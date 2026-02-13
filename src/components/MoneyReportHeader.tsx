@@ -100,6 +100,7 @@ import {
     isExpensifyCardTransaction,
     isPayAtEndExpense as isPayAtEndExpenseTransactionUtils,
     isPending,
+    isPerDiemRequest,
     isScanning,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from '@libs/TransactionUtils';
@@ -247,7 +248,7 @@ function MoneyReportHeader({
         'Table',
         'Info',
         'Export',
-        'Document',
+        'Download',
         'XeroSquare',
         'QBOSquare',
         'NetSuiteSquare',
@@ -338,6 +339,7 @@ function MoneyReportHeader({
     const isDEWPolicy = isDEWBetaEnabled && hasDynamicExternalWorkflow(policy);
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
     const hasCustomUnitOutOfPolicyViolation = hasCustomUnitOutOfPolicyViolationTransactionUtils(transactionViolations);
+    const isPerDiemRequestOnNonDefaultWorkspace = isPerDiemRequest(transaction) && defaultExpensePolicy?.id !== policy?.id;
 
     const [exportModalStatus, setExportModalStatus] = useState<ExportType | null>(null);
     const {showConfirmModal} = useConfirmModal();
@@ -406,9 +408,10 @@ function MoneyReportHeader({
 
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
 
+    const [rateErrorModalVisible, setRateErrorModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
-    const [duplicateDistanceErrorModalVisible, setDuplicateDistanceErrorModalVisible] = useState(false);
+    const [duplicatePerDiemErrorModalVisible, setDuplicatePerDiemErrorModalVisible] = useState(false);
     const [rejectModalAction, setRejectModalAction] = useState<ValueOf<
         typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK
     > | null>(null);
@@ -1241,7 +1244,7 @@ function MoneyReportHeader({
         [CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF,
             text: translate('common.downloadAsPDF'),
-            icon: expensifyIcons.Document,
+            icon: expensifyIcons.Download,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.DOWNLOAD_PDF,
             onSelected: () => {
                 if (!moneyRequestReport) {
@@ -1377,7 +1380,7 @@ function MoneyReportHeader({
                     return;
                 }
 
-                initSplitExpense(allTransactions, allReports, currentTransaction, policy);
+                initSplitExpense(allTransactions, allReports, currentTransaction);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.MERGE]: {
@@ -1399,7 +1402,12 @@ function MoneyReportHeader({
             value: CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE,
             onSelected: () => {
                 if (hasCustomUnitOutOfPolicyViolation) {
-                    setDuplicateDistanceErrorModalVisible(true);
+                    setRateErrorModalVisible(true);
+                    return;
+                }
+
+                if (isPerDiemRequestOnNonDefaultWorkspace) {
+                    setDuplicatePerDiemErrorModalVisible(true);
                     return;
                 }
 
@@ -1411,7 +1419,7 @@ function MoneyReportHeader({
 
                 duplicateExpenseTransaction([transaction]);
             },
-            shouldCloseModalOnSelect: hasCustomUnitOutOfPolicyViolation || activePolicyExpenseChat?.iouReportID === moneyRequestReport?.reportID,
+            shouldCloseModalOnSelect: isPerDiemRequestOnNonDefaultWorkspace || hasCustomUnitOutOfPolicyViolation || activePolicyExpenseChat?.iouReportID === moneyRequestReport?.reportID,
         },
         [CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE]: {
             text: translate('iou.changeWorkspace'),
@@ -1591,11 +1599,11 @@ function MoneyReportHeader({
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.PAY]: {
-            text: translate('iou.settlePayment', {formattedAmount: totalAmount}),
+            text: translate('iou.settlePayment', totalAmount),
             icon: expensifyIcons.Cash,
             rightIcon: expensifyIcons.ArrowRight,
             value: CONST.REPORT.SECONDARY_ACTIONS.PAY,
-            backButtonText: translate('iou.settlePayment', {formattedAmount: totalAmount}),
+            backButtonText: translate('iou.settlePayment', totalAmount),
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.PAY,
             subMenuItems: Object.values(paymentButtonOptions),
         },
@@ -1886,11 +1894,20 @@ function MoneyReportHeader({
             />
             <ConfirmModal
                 title={translate('common.duplicateExpense')}
-                isVisible={duplicateDistanceErrorModalVisible}
-                onConfirm={() => setDuplicateDistanceErrorModalVisible(false)}
-                onCancel={() => setDuplicateDistanceErrorModalVisible(false)}
+                isVisible={rateErrorModalVisible}
+                onConfirm={() => setRateErrorModalVisible(false)}
+                onCancel={() => setRateErrorModalVisible(false)}
                 confirmText={translate('common.buttonConfirm')}
-                prompt={translate('iou.correctDistanceRateError')}
+                prompt={translate('iou.correctRateError')}
+                shouldShowCancelButton={false}
+            />
+            <ConfirmModal
+                title={translate('common.duplicateExpense')}
+                isVisible={duplicatePerDiemErrorModalVisible}
+                onConfirm={() => setDuplicatePerDiemErrorModalVisible(false)}
+                onCancel={() => setDuplicatePerDiemErrorModalVisible(false)}
+                confirmText={translate('common.buttonConfirm')}
+                prompt={translate('iou.duplicateNonDefaultWorkspacePerDiemError')}
                 shouldShowCancelButton={false}
             />
             {!!rejectModalAction && (

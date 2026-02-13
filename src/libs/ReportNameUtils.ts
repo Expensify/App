@@ -29,7 +29,7 @@ import {translateLocal} from './Localize';
 import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {getCleanedTagName, isPolicyAdmin} from './PolicyUtils';
+import {getCleanedTagName, isPolicyAdmin, isPolicyFieldListEmpty} from './PolicyUtils';
 import {
     getActionableCardFraudAlertResolutionMessage,
     getAutoPayApprovedReportsEnabledMessage,
@@ -321,6 +321,13 @@ function getInvoicePayerName(report: OnyxEntry<Report>, invoiceReceiverPolicy?: 
  * Get the title for an IOU or expense chat which will be showing the payer and the amount
  */
 function getMoneyRequestReportName({report, policy, invoiceReceiverPolicy}: {report: OnyxEntry<Report>; policy?: OnyxEntry<Policy>; invoiceReceiverPolicy?: OnyxEntry<Policy>}): string {
+    // For expense reports with empty fieldList and empty reportName, return "New Report" (matches OldDot behavior)
+    if (isExpenseReport(report)) {
+        if (report?.reportName === '' && isPolicyFieldListEmpty(policy)) {
+            return CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME;
+        }
+    }
+
     if (report?.reportName && isExpenseReport(report)) {
         return report.reportName;
     }
@@ -725,12 +732,9 @@ function computeReportName(
     if (!report || !report.reportID) {
         return '';
     }
-
     const privateIsArchivedValue = privateIsArchived ?? allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]?.private_isArchived;
-    const reportPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-
     const isArchivedNonExpense = isArchivedNonExpenseReport(report, !!privateIsArchivedValue);
-
+    const reportPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
     const parentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
     const parentReportAction = isThread(report) ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`]?.[report.parentReportActionID] : undefined;
 
@@ -739,6 +743,10 @@ function computeReportName(
 
     if (parentReportActionBasedName) {
         return parentReportActionBasedName;
+    }
+
+    if (report?.reportName && report.type === CONST.REPORT.TYPE.EXPENSE) {
+        return isArchivedNonExpense ? generateArchivedReportName(report?.reportName) : report?.reportName;
     }
 
     if (isTaskReport(report)) {

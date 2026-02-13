@@ -847,7 +847,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         canSelectMultiple={canSelectMultiple}
                         turnOnSelectionModeOnLongPress={isPolicyAdmin}
                         onSelectAll={filteredData.length > 0 ? () => toggleAllUsers(filteredData) : undefined}
-                        style={{listHeaderWrapperStyle: [styles.ph9, styles.pv3, styles.pb5], listItemTitleContainerStyles: shouldUseNarrowLayout ? undefined : [styles.pr3]}}
+                        style={{listItemTitleContainerStyles: shouldUseNarrowLayout ? undefined : styles.pr3}}
                         onTurnOnSelectionMode={(item) => item && toggleUser(item.login)}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         onCheckboxPress={(item) => toggleUser(item.login)}
