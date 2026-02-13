@@ -3,13 +3,18 @@ import {View} from 'react-native';
 import {Rect} from 'react-native-svg';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 import SkeletonViewContentLoader from './SkeletonViewContentLoader';
 
-function MoneyReportHeaderStatusBarSkeleton() {
+type MoneyReportHeaderStatusBarSkeletonProps = {
+    reasonAttributes?: SkeletonSpanReasonAttributes;
+};
+
+function MoneyReportHeaderStatusBarSkeleton({reasonAttributes}: MoneyReportHeaderStatusBarSkeletonProps = {}) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    useSkeletonSpan('MoneyReportHeaderStatusBarSkeleton');
+    useSkeletonSpan('MoneyReportHeaderStatusBarSkeleton', reasonAttributes);
 
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.overflowHidden, styles.w100, {height: 28}]}>

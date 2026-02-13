@@ -25,17 +25,17 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getIOURequestPolicyID} from '@libs/actions/IOU';
+import {getIOUActionForTransactions} from '@libs/actions/IOU/Duplicate';
 import {
     addSplitExpenseField,
     clearSplitTransactionDraftErrors,
     evenlyDistributeSplitExpenseAmounts,
-    getIOURequestPolicyID,
     initDraftSplitExpenseDataForEdit,
     initSplitExpenseItemData,
     updateSplitExpenseAmountField,
-} from '@libs/actions/IOU';
-import {getIOUActionForTransactions} from '@libs/actions/IOU/Duplicate';
-import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/Split';
+    updateSplitTransactionsFromSplitExpensesFlow,
+} from '@libs/actions/IOU/Split';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -110,7 +110,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
     const sumOfSplitExpenses = (draftTransaction?.comment?.splitExpenses ?? []).reduce((acc, item) => acc + (item.amount ?? 0), 0);
     const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
-
+    const invalidSplit = splitExpenses.find((split) => {
+        // A split is only invalid if it has the same sign as the total and its magnitude exceeds the total
+        const sameSign = (split.amount >= 0 && transactionDetailsAmount >= 0) || (split.amount < 0 && transactionDetailsAmount < 0);
+        return sameSign && Math.abs(split.amount) > Math.abs(transactionDetailsAmount);
+    });
+    const difference = sumOfSplitExpenses - transactionDetailsAmount;
     const currencySymbol = getCurrencySymbol(transactionDetails.currency ?? '') ?? transactionDetails.currency ?? CONST.CURRENCY.USD;
 
     const isPerDiem = isPerDiemRequest(transaction);
@@ -125,10 +130,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const childTransactions = getChildTransactions(allTransactions, allReports, transactionID);
     const splitFieldDataFromChildTransactions = childTransactions.map((childTransaction) => {
         const childTransactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childTransaction?.reportID}`];
-        return initSplitExpenseItemData(childTransaction, childTransactionReport);
+        return initSplitExpenseItemData(childTransaction, childTransactionReport, {isManuallyEdited: true});
     });
     const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
-    const splitFieldDataFromOriginalTransaction = initSplitExpenseItemData(transaction, transactionReport);
+    const splitFieldDataFromOriginalTransaction = initSplitExpenseItemData(transaction, transactionReport, {isManuallyEdited: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const icons = useMemoizedLazyExpensifyIcons(['ArrowsLeftRight', 'Plus'] as const);
@@ -200,14 +205,24 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         if (draftTransaction?.errors) {
             clearSplitTransactionDraftErrors(transactionID);
         }
+
+        if (invalidSplit && sumOfSplitExpenses !== transactionDetailsAmount) {
+            if (difference > 0) {
+                setErrorMessage(translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(Math.abs(difference), transactionDetails?.currency)}));
+            } else {
+                setErrorMessage(translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(Math.abs(difference), transactionDetails?.currency)}));
+            }
+            return;
+        }
+
         if (sumOfSplitExpenses > transactionDetailsAmount) {
-            const difference = sumOfSplitExpenses - transactionDetailsAmount;
-            setErrorMessage(translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)}));
+            const greaterThanDifference = sumOfSplitExpenses - transactionDetailsAmount;
+            setErrorMessage(translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(greaterThanDifference, transactionDetails?.currency)}));
             return;
         }
         if (sumOfSplitExpenses < transactionDetailsAmount && (isPerDiem || isCard)) {
-            const difference = transactionDetailsAmount - sumOfSplitExpenses;
-            setErrorMessage(translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)}));
+            const lessThanDifference = transactionDetailsAmount - sumOfSplitExpenses;
+            setErrorMessage(translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(lessThanDifference, transactionDetails?.currency)}));
             return;
         }
 
@@ -324,6 +339,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 title={translate('iou.addSplit')}
                 icon={icons.Plus}
                 style={[styles.ph4]}
+                sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.ADD_SPLIT_BUTTON}
             />
             {isInitialSplit && (
                 <MenuItem
@@ -331,17 +347,24 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                     title={translate('iou.makeSplitsEven')}
                     icon={icons.ArrowsLeftRight}
                     style={[styles.ph4]}
+                    sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.MAKE_SPLITS_EVEN_BUTTON}
                 />
             )}
         </View>
     );
 
-    const difference = sumOfSplitExpenses - transactionDetailsAmount;
     let warningMessage = '';
-    if (difference < 0) {
-        warningMessage = translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(-difference, transactionDetails.currency)});
+
+    if (invalidSplit && sumOfSplitExpenses !== transactionDetailsAmount) {
+        if (difference > 0) {
+            warningMessage = translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(Math.abs(difference), transactionDetails?.currency)});
+        } else {
+            warningMessage = translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(Math.abs(difference), transactionDetails?.currency)});
+        }
+    } else if (difference < 0) {
+        warningMessage = translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(Math.abs(difference), transactionDetails.currency)});
     } else if (difference > 0) {
-        warningMessage = translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)});
+        warningMessage = translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(Math.abs(difference), transactionDetails?.currency)});
     }
 
     const footerContent = (
@@ -362,6 +385,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 onPress={onSaveSplitExpense}
                 pressOnEnter
                 enterKeyEventListenerPriority={1}
+                sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.SAVE_BUTTON}
             />
         </View>
     );
@@ -415,6 +439,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             initDraftSplitExpenseDataForEdit(draftTransaction, item.transactionID, item.reportID ?? reportID);
+            Navigation.navigate(ROUTES.SPLIT_EXPENSE_EDIT.getRoute(item.reportID ?? reportID, originalTransactionID, item.transactionID, Navigation.getActiveRoute()));
         });
     };
 

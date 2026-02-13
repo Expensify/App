@@ -1049,22 +1049,25 @@ async function submitForm(data: FormData) {
 
 ### [CLEAN-REACT-PATTERNS-1] Favor composition over configuration
 
-- **Search patterns**: `shouldShow`, `shouldEnable`, `canSelect`, `enable`, `disable`, configuration props patterns
+- **Search patterns**: `should\w+` (any prop starting with `should`), `canSelect`, `enable`, `disable`, configuration props patterns
 
 - **Condition**: Flag ONLY when ALL of these are true:
 
-  - A **new feature** is being introduced OR an **existing component's API is being expanded with new props**
-  - The change adds configuration properties (flags, conditional logic)
-  - These configuration options control feature presence or behavior within the component
-  - These features could instead be expressed as composable child components
+  - Any of these scenarios apply:
+    - A **new feature** is being introduced
+    - An **existing component's API** is being expanded with new props
+    - A **refactoring** creates a new component that still has boolean configuration props matching the search patterns controlling branching logic — refactoring is an opportunity to eliminate configuration flags, not preserve them
+  - The component contains boolean props matching the search patterns that cause `if/else` or ternary branching inside the component body
+  - These configuration options control feature presence, layout strategy, or behavior within the component
 
-  **Features that should be expressed as child components:**
+  **Features that should NOT be controlled by boolean flags:**
   - Optional UI elements that could be composed in
   - New behavior that could be introduced as new children
   - Features that currently require parent component code changes
+  - Layout strategy variants
 
   **DO NOT flag if:**
-  - Props are narrow, stable values needed for coordination between composed parts (e.g., `reportID`, `data`, `columns`)
+  - Props are non-boolean data values needed for coordination between composed parts (e.g., `reportID`, `data`, `columns`).
   - The component uses composition and child components for features
   - Parent components stay stable as features are added
 

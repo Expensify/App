@@ -418,7 +418,7 @@ function isPartialTransaction(transaction: OnyxEntry<Transaction>): boolean {
         return true;
     }
 
-    if (isAmountMissing(transaction) && isScanRequest(transaction)) {
+    if (getAmount(transaction) === 0 && isScanRequest(transaction) && isReceiptBeingScanned(transaction)) {
         return true;
     }
 
@@ -1164,13 +1164,15 @@ function getReportOwnerAsAttendee(transaction: OnyxInputOrEntry<Transaction>, cu
 
     if (creatorAccountID) {
         const [creatorDetails] = getPersonalDetailsByIDs({accountIDs: [creatorAccountID], currentUserAccountID: currentUserPersonalDetails?.accountID});
-        const creatorEmail = creatorDetails?.login ?? '';
-        const creatorDisplayName = creatorDetails?.displayName ?? creatorEmail;
 
-        if (creatorEmail) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        const creatorLogin = creatorDetails?.login || creatorDetails?.displayName || '';
+        const creatorDisplayName = creatorDetails?.displayName ?? creatorLogin;
+
+        if (creatorLogin) {
             return {
-                email: creatorEmail,
-                login: creatorEmail,
+                email: creatorLogin,
+                login: creatorLogin,
                 displayName: creatorDisplayName,
                 accountID: creatorAccountID,
                 text: creatorDisplayName,
@@ -1368,7 +1370,7 @@ function isFromCreditCardImport(transaction: OnyxEntry<Transaction>): boolean {
         return true;
     }
 
-    if (transaction?.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD) {
+    if (transaction?.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD) {
         return false;
     }
 
@@ -1774,9 +1776,13 @@ function getWaypointIndex(key: string): number {
 /**
  * Filters the waypoints which are valid and returns those
  */
-function getValidWaypoints(waypoints: WaypointCollection | undefined, reArrangeIndexes = false): WaypointCollection {
+function getValidWaypoints(waypoints: WaypointCollection | undefined, reArrangeIndexes = false, areWaypointsForGpsDistanceRequest = false): WaypointCollection {
     if (!waypoints) {
         return {};
+    }
+
+    if (areWaypointsForGpsDistanceRequest) {
+        return waypoints;
     }
 
     const sortedIndexes = Object.keys(waypoints)
@@ -2330,11 +2336,12 @@ function removeSettledAndApprovedTransactions(transactions: Array<OnyxEntry<Tran
  */
 
 function compareDuplicateTransactionFields(
-    reviewingTransaction?: OnyxEntry<Transaction>,
-    duplicates?: Array<OnyxEntry<Transaction>>,
-    report?: OnyxEntry<Report>,
-    selectedTransactionID?: string,
-    policyCategories?: PolicyCategories,
+    reviewingTransaction: OnyxEntry<Transaction>,
+    duplicates: Array<OnyxEntry<Transaction>> | undefined,
+    report: OnyxEntry<Report>,
+    selectedTransactionID: string | undefined,
+    policy: OnyxEntry<Policy>,
+    policyCategories: OnyxEntry<PolicyCategories>,
 ): {keep: Partial<ReviewDuplicates>; change: FieldsToChange} {
     const reportID = report?.reportID;
     const reviewingTransactionID = reviewingTransaction?.transactionID;
@@ -2411,9 +2418,6 @@ function compareDuplicateTransactionFields(
             const keys = fieldsToCompare[fieldName];
             const firstTransaction = transactions.at(0);
             const isFirstTransactionCommentEmptyObject = typeof firstTransaction?.comment === 'object' && firstTransaction?.comment?.comment === '';
-            // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const policy = getPolicy(report?.policyID);
 
             const areAllFieldsEqualForKey = areAllFieldsEqual(transactions, (item) => keys.map((key) => SafeString(item?.[key])).join('|'));
             if (fieldName === 'description') {
@@ -2844,6 +2848,7 @@ export {
     shouldShowExpenseBreakdown,
     isTimeRequest,
     getExpenseTypeTranslationKey,
+    isDistanceTypeRequest,
 };
 
 export type {TransactionChanges};

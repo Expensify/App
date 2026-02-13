@@ -174,7 +174,7 @@ function WalletPage() {
     const assignedCardPressed = ({event, cardData, icon, cardID}: CardPressHandlerParams) => {
         paymentMethodButtonRef.current = event?.currentTarget as HTMLDivElement;
         setSelectedCard(cardData);
-        const isCSVImportCard = cardData?.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD;
+        const isCSVImportCard = cardData?.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD;
         const cardTitle = isCSVImportCard ? (cardData?.nameValuePairs?.cardTitle ?? cardData?.cardName) : maskCardNumber(cardData?.cardName, cardData?.bank);
         setPaymentMethod({
             isSelectedPaymentMethodDefault: false,
@@ -327,7 +327,6 @@ function WalletPage() {
             shouldUseHeadlineHeader
             shouldShowBackButton={shouldUseNarrowLayout}
             shouldDisplaySearchRouter
-            onBackButtonPress={Navigation.popToSidebar}
         />
     );
 
@@ -444,7 +443,7 @@ function WalletPage() {
     );
 
     const cardThreeDotsMenuItems = useMemo(() => {
-        const shouldShowCSVImportItems = selectedCard?.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD && isBetaEnabled(CONST.BETAS.CSV_CARD_IMPORT);
+        const shouldShowCSVImportItems = selectedCard?.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD && isBetaEnabled(CONST.BETAS.CSV_CARD_IMPORT);
         return [
             ...(shouldUseNarrowLayout ? [bottomMountItem] : []),
             {
