@@ -378,7 +378,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.FINISH);
         }
     };
-    console.log({currentStep, USDBankAccountStep});
+
     const goBack = useCallback(() => {
         const shouldShowOnfido = onfidoToken && !achData?.isOnfidoSetupComplete;
 
