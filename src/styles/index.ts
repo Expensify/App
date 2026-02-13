@@ -5192,7 +5192,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         emptyStateCardIllustrationContainer: {
-            height: 220,
             ...flex.alignItemsCenter,
             ...flex.justifyContentCenter,
         },
@@ -5294,6 +5293,7 @@ const staticStyles = (theme: ThemeColors) =>
             maxWidth: 400,
             width: '100%',
             alignSelf: 'center',
+            marginBottom: 24,
         },
 
         emptyStateFolderWithPaperIconSize: {
