@@ -55,6 +55,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const isValidated = isCurrentUserValidated(loginList, session?.email);
 
     const {isBetaEnabled} = usePermissions();
+    const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
 
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
     const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
@@ -81,6 +82,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             navigateAfterOnboardingWithMicrotaskQueue(
                 isSmallScreenWidth,
                 isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+                conciergeReportID,
                 archivedReportsIdSet,
                 policy.automaticJoiningEnabled ? policy.policyID : undefined,
                 undefined,

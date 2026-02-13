@@ -8,12 +8,11 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-type TextInputClearButtonProps = {
+type TextInputClearButtonProps = WithSentryLabel & {
     style?: StyleProp<ViewStyle>;
     onPressButton: () => void;
-    /** Label for Sentry tracking */
-    sentryLabel?: string;
 };
 
 function TextInputClearButton({style, onPressButton, sentryLabel}: TextInputClearButtonProps) {

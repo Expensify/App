@@ -117,6 +117,7 @@ import {
     getReportOrDraftReport,
     getReportPreviewMessage,
     getReportSubtitlePrefix,
+    getReportTransactions,
     getUnreportedTransactionMessage,
     hasIOUWaitingOnCurrentUserBankAccount,
     isArchivedNonExpenseReport,
@@ -144,8 +145,8 @@ import {
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils';
+import {isScanning} from '@libs/TransactionUtils';
 import {generateAccountID} from '@libs/UserUtils';
-import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PrivateIsArchivedMap} from '@src/selectors/ReportNameValuePairs';
@@ -212,13 +213,6 @@ Onyx.connect({
 
         policies[key] = policy;
     },
-});
-
-let allPolicies: OnyxCollection<Policy> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (val) => (allPolicies = val),
 });
 
 let allReports: OnyxCollection<Report>;
@@ -852,6 +846,19 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = lastVisibleMessage?.lastMessageText;
     }
 
+    if (reportID && !lastMessageTextFromReport && reportUtilsIsMoneyRequestReport(report)) {
+        const transactions = getReportTransactions(reportID);
+        const scanningTransactions = transactions.filter((transaction) => isScanning(transaction));
+
+        if (scanningTransactions.length > 0) {
+            lastMessageTextFromReport = translate('iou.receiptScanning', {count: scanningTransactions.length});
+        } else if (report?.transactionCount && report?.transactionCount > 0 && report?.currency) {
+            lastMessageTextFromReport = lastVisibleMessage?.lastMessageText;
+        } else if (report?.transactionCount === 0) {
+            lastMessageTextFromReport = translate('report.noActivityYet');
+        }
+    }
+
     // If the last action differs from last original action, it means there's a hidden action (like a whisper), then use getLastVisibleMessage to get the preview text
     if (!lastMessageTextFromReport && !lastReportAction && !!lastOriginalReportAction) {
         return lastVisibleMessage?.lastMessageText ?? '';
@@ -1347,6 +1354,7 @@ function createFilteredOptionList(
     reports: OnyxCollection<Report>,
     currentUserAccountID: number,
     reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
+    privateIsArchivedMap: PrivateIsArchivedMap,
     options: {
         maxRecentReports?: number;
         includeP2P?: boolean;
@@ -1430,9 +1438,19 @@ function createFilteredOptionList(
         ? Object.values(personalDetails ?? {}).map((personalDetail) => {
               const accountID = personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
+              const report = reportMapForAccountIDs[accountID];
+              const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
               return {
                   item: personalDetail,
-                  ...createOption([accountID], personalDetails, reportMapForAccountIDs[accountID], currentUserAccountID, {showPersonalDetails: true}, reportAttributesDerived),
+                  ...createOption(
+                      [accountID],
+                      personalDetails,
+                      reportMapForAccountIDs[accountID],
+                      currentUserAccountID,
+                      {showPersonalDetails: true},
+                      reportAttributesDerived,
+                      privateIsArchived,
+                  ),
               };
           })
         : [];
@@ -1447,6 +1465,7 @@ function createOptionFromReport(
     report: Report,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     currentUserAccountID: number,
+    privateIsArchived: string | undefined,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     config?: PreviewConfig,
 ) {
@@ -1454,7 +1473,7 @@ function createOptionFromReport(
 
     return {
         item: report,
-        ...createOption(accountIDs, personalDetails, report, currentUserAccountID, config, reportAttributesDerived),
+        ...createOption(accountIDs, personalDetails, report, currentUserAccountID, config, reportAttributesDerived, privateIsArchived),
     };
 }
 
@@ -1491,12 +1510,10 @@ const recentReportComparator = (option: SearchOptionData) => {
  * Function uses a min heap to efficiently get the first sorted options.
  */
 function optionsOrderBy<T = SearchOptionData>(options: T[], comparator: (option: T) => number | string, limit?: number, filter?: (option: T) => boolean | undefined, reversed = false): T[] {
-    Timing.start(CONST.TIMING.SEARCH_MOST_RECENT_OPTIONS);
     const heap = reversed ? new MaxHeap<T>(comparator) : new MinHeap<T>(comparator);
 
     // If a limit is 0 or negative, return an empty array
     if (limit !== undefined && limit <= 0) {
-        Timing.end(CONST.TIMING.SEARCH_MOST_RECENT_OPTIONS);
         return [];
     }
 
@@ -1517,7 +1534,6 @@ function optionsOrderBy<T = SearchOptionData>(options: T[], comparator: (option:
             heap.push(option);
         }
     }
-    Timing.end(CONST.TIMING.SEARCH_MOST_RECENT_OPTIONS);
     return [...heap].reverse();
 }
 
@@ -2481,6 +2497,7 @@ type SearchOptionsConfig = {
     shouldShowGBR?: boolean;
     shouldUnreadBeBold?: boolean;
     loginList: OnyxEntry<Login>;
+    policyCollection: OnyxCollection<Policy>;
     currentUserAccountID: number;
     currentUserEmail: string;
     personalDetails?: OnyxEntry<PersonalDetailsList>;
@@ -2506,17 +2523,17 @@ function getSearchOptions({
     shouldShowGBR = false,
     shouldUnreadBeBold = false,
     loginList,
+    policyCollection,
     currentUserAccountID,
     currentUserEmail,
     reportAttributesDerived,
     personalDetails,
 }: SearchOptionsConfig): Options {
-    Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
 
     const optionList = getValidOptions(
         options,
-        allPolicies,
+        policyCollection,
         draftComments,
         nvpDismissedProductTraining,
         loginList,
@@ -2549,7 +2566,6 @@ function getSearchOptions({
         reportAttributesDerived,
     );
 
-    Timing.end(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markEnd(CONST.TIMING.LOAD_SEARCH_OPTIONS);
 
     return optionList;
@@ -2662,6 +2678,7 @@ function getMemberInviteOptions(
     loginList: OnyxEntry<Login>,
     currentUserAccountID: number,
     currentUserEmail: string,
+    personalDetailsCollection: OnyxEntry<PersonalDetailsList>,
     betas: Beta[] = [],
     excludeLogins: Record<string, boolean> = {},
     includeSelectedOptions = false,
@@ -2683,6 +2700,7 @@ function getMemberInviteOptions(
             includeRecentReports: false,
             searchString: '',
             maxElements: undefined,
+            personalDetails: personalDetailsCollection,
         },
         countryCode,
     );

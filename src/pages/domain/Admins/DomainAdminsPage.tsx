@@ -80,7 +80,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
             />
             <Button
                 onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainAccountID))}
-                text={translate('domain.admins.settings')}
+                text={translate('domain.common.settings')}
                 icon={hasSettingsErrors ? icons.DotIndicator : icons.Gear}
                 iconFill={hasSettingsErrors ? theme.danger : undefined}
                 iconHoverFill={hasSettingsErrors ? theme.dangerHover : undefined}

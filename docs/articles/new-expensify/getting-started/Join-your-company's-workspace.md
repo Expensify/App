@@ -26,7 +26,6 @@ Now, check your email inbox for the invite to join your company's workspace. If 
 Once you have gained access to Expensify, download the Expensify app:
 
 - **Mobile:** [Android](https://play.google.com/store/apps/details?id=com.expensify.chat) | [iOS](https://apps.apple.com/us/app/expensify-cash/id1530278510)
-- **Desktop:** [macOS](https://new.expensify.com/NewExpensify.dmg)
 
 ---
 
