@@ -260,7 +260,7 @@ function ComposerWithSuggestions({
 
     const composerRef = useRef<ComposerRef | null>(null);
 
-    const {editingReportActionID, editingMessage, currentEditMessageSelection, setCurrentEditMessageSelection} = useReportActionActiveEdit();
+    const {editingReportActionID, editingMessage, currentEditMessageSelection, setCurrentEditMessageSelection, didSubmitEditRef} = useReportActionActiveEdit();
 
     const [value, setValue] = useState(() => {
         const initialValue = shouldUseNarrowLayout ? (editingMessage ?? draftComment) : draftComment;
@@ -496,7 +496,7 @@ function ComposerWithSuggestions({
 
             commentRef.current = newCommentConverted;
             if (shouldUseNarrowLayout) {
-                if (editingReportActionID) {
+                if (editingReportActionID && !didSubmitEditRef.current) {
                     saveReportActionDraft(reportID, {reportActionID: editingReportActionID} as OnyxTypes.ReportAction, newCommentConverted);
                 }
 
@@ -526,6 +526,7 @@ function ComposerWithSuggestions({
             setCurrentEditMessageSelection,
             currentEditMessageSelection,
             editingReportActionID,
+            didSubmitEditRef,
             reportID,
             currentUserAccountID,
             debouncedSaveReportComment,

@@ -350,10 +350,6 @@ function ReportActionCompose({
         composerRef,
     });
 
-    const deleteDraftMessage = useCallback(() => {
-        deleteDraft();
-    }, [deleteDraft]);
-
     /**
      * Add or edit a comment in the composer
      */
@@ -579,7 +575,7 @@ function ReportActionCompose({
                     >
                         {PDFValidationComponent}
                         {isEditingInComposer ? (
-                            <MessageEditCancelButton onCancel={deleteDraftMessage} />
+                            <MessageEditCancelButton onCancel={deleteDraft} />
                         ) : (
                             <AttachmentPickerWithMenuItems
                                 onAttachmentPicked={(files) => validateAttachments({files})}
