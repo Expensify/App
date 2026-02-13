@@ -64,12 +64,13 @@ import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type {Icon as TIcon} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 type InitialSettingsPageProps = WithCurrentUserPersonalDetailsProps;
 
 type SettingsTopLevelScreens = keyof typeof SETTINGS_TO_RHP;
 
-type MenuData = {
+type MenuData = WithSentryLabel & {
     translationKey: TranslationPaths;
     icon: IconAsset;
     screenName?: SettingsTopLevelScreens;
@@ -87,7 +88,6 @@ type MenuData = {
     iconRight?: IconAsset;
     badgeText?: string;
     badgeStyle?: ViewStyle;
-    sentryLabel?: string;
 };
 
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};

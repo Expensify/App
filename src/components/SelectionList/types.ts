@@ -238,6 +238,9 @@ type TextInputOptions = {
     /** Whether the text input autofocus should be disabled */
     disableAutoFocus?: boolean;
 
+    /** Whether the text input auto correct should be disabled */
+    disableAutoCorrect?: boolean;
+
     /** Styles for the text input */
     style?: {
         /** Styles for the text input container */

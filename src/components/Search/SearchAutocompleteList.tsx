@@ -1,3 +1,4 @@
+import {feedKeysWithAssignedCardsSelector} from '@selectors/Card';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -189,11 +190,13 @@ function SearchAutocompleteList({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [feedKeysWithCards] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {selector: feedKeysWithAssignedCardsSelector, canBeMissing: true});
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
@@ -222,6 +225,7 @@ function SearchAutocompleteList({
             loginList,
             currentUserAccountID,
             currentUserEmail,
+            policyCollection: policies,
             personalDetails,
         });
     }, [
@@ -236,6 +240,7 @@ function SearchAutocompleteList({
         currentUserAccountID,
         currentUserEmail,
         personalDetails,
+        policies,
     ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
@@ -301,8 +306,8 @@ function SearchAutocompleteList({
     const feedAutoCompleteList = useMemo(() => {
         // We don't want to show the "Expensify Card" feeds in the autocomplete suggestion list as they don't have real "Statements"
         // Thus passing an empty object to the `allCards` parameter.
-        return Object.values(getCardFeedsForDisplay(allFeeds, {}, translate));
-    }, [allFeeds, translate]);
+        return Object.values(getCardFeedsForDisplay(allFeeds, {}, translate, feedKeysWithCards));
+    }, [allFeeds, translate, feedKeysWithCards]);
 
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: false});
     const [allRecentCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES, {canBeMissing: true});
@@ -312,8 +317,6 @@ function SearchAutocompleteList({
     const recentCategoriesAutocompleteList = useMemo(() => {
         return getAutocompleteRecentCategories(allRecentCategories);
     }, [allRecentCategories]);
-
-    const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
 
     const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
 
@@ -452,6 +455,7 @@ function SearchAutocompleteList({
                     countryCode,
                     loginList,
                     shouldShowGBR: true,
+                    policyCollection: policies,
                     currentUserAccountID,
                     currentUserEmail,
                     personalDetails,
@@ -486,6 +490,7 @@ function SearchAutocompleteList({
                     countryCode,
                     loginList,
                     shouldShowGBR: true,
+                    policyCollection: policies,
                     currentUserAccountID,
                     currentUserEmail,
                     personalDetails,
@@ -664,6 +669,7 @@ function SearchAutocompleteList({
         betas,
         countryCode,
         loginList,
+        policies,
         currentUserAccountID,
         currentUserEmail,
         groupByAutocompleteList,
@@ -697,6 +703,7 @@ function SearchAutocompleteList({
                       currentUserAccountID,
                       autoCompleteWithSpace: false,
                       translate,
+                      feedKeysWithCards,
                   })
                 : query,
             singleIcon: expensifyIcons.History,

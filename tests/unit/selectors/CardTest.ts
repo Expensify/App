@@ -376,7 +376,11 @@ describe('timeSensitiveCardsSelector', () => {
     });
 
     it('identifies cards with domain fraud', () => {
-        const cardWithDomainFraud = createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN, fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN});
+        const cardWithDomainFraud = createRandomExpensifyCard(1, {
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+            fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
+            possibleFraud: {triggerAmount: 5000, triggerMerchant: 'Test Merchant', currency: 'USD', fraudAlertReportID: 123},
+        });
         const normalCard = createRandomExpensifyCard(2, {state: CONST.EXPENSIFY_CARD.STATE.OPEN, fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE});
 
         const cardList: CardList = {
@@ -389,10 +393,15 @@ describe('timeSensitiveCardsSelector', () => {
         expect(result.cardsWithFraud).toHaveLength(1);
         expect(result.cardsWithFraud.at(0)?.cardID).toBe(1);
         expect(result.cardsWithFraud.at(0)?.fraud).toBe(CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN);
+        expect(result.cardsWithFraud.at(0)?.nameValuePairs?.possibleFraud?.triggerAmount).toBe(5000);
     });
 
     it('identifies cards with individual fraud', () => {
-        const cardWithIndividualFraud = createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN, fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL});
+        const cardWithIndividualFraud = createRandomExpensifyCard(1, {
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+            fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL,
+            possibleFraud: {triggerAmount: 3000, triggerMerchant: 'Suspicious Shop', currency: 'USD', fraudAlertReportID: 456},
+        });
         const normalCard = createRandomExpensifyCard(2, {state: CONST.EXPENSIFY_CARD.STATE.OPEN, fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE});
 
         const cardList: CardList = {
@@ -405,13 +414,25 @@ describe('timeSensitiveCardsSelector', () => {
         expect(result.cardsWithFraud).toHaveLength(1);
         expect(result.cardsWithFraud.at(0)?.cardID).toBe(1);
         expect(result.cardsWithFraud.at(0)?.fraud).toBe(CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL);
+        expect(result.cardsWithFraud.at(0)?.nameValuePairs?.possibleFraud?.triggerMerchant).toBe('Suspicious Shop');
     });
 
     it('detects fraud on both physical and virtual Expensify cards', () => {
-        const physicalCardWithFraud = createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN, fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN});
+        const physicalCardWithFraud = createRandomExpensifyCard(1, {
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+            fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
+            possibleFraud: {triggerAmount: 5000, triggerMerchant: 'Store A', currency: 'USD', fraudAlertReportID: 111},
+        });
         const virtualCardWithFraud: Card = {
-            ...createRandomExpensifyCard(2, {state: CONST.EXPENSIFY_CARD.STATE.OPEN, fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL}),
-            nameValuePairs: {isVirtual: true} as Card['nameValuePairs'],
+            ...createRandomExpensifyCard(2, {
+                state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL,
+                possibleFraud: {triggerAmount: 2000, triggerMerchant: 'Store B', currency: 'USD', fraudAlertReportID: 222},
+            }),
+            nameValuePairs: {
+                isVirtual: true,
+                possibleFraud: {triggerAmount: 2000, triggerMerchant: 'Store B', currency: 'USD', fraudAlertReportID: 222},
+            } as Card['nameValuePairs'],
         };
 
         const cardList: CardList = {
@@ -430,7 +451,11 @@ describe('timeSensitiveCardsSelector', () => {
             ...createRandomCompanyCard(1, {bank: 'vcf'}),
             fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
         };
-        const expensifyCardWithFraud = createRandomExpensifyCard(2, {state: CONST.EXPENSIFY_CARD.STATE.OPEN, fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN});
+        const expensifyCardWithFraud = createRandomExpensifyCard(2, {
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+            fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
+            possibleFraud: {triggerAmount: 7500, triggerMerchant: 'Online Store', currency: 'USD', fraudAlertReportID: 789},
+        });
 
         const cardList: CardList = {
             '1': companyCardWithFraud,
@@ -444,7 +469,7 @@ describe('timeSensitiveCardsSelector', () => {
         expect(result.cardsWithFraud.at(0)?.cardID).toBe(2);
     });
 
-    it('does not include cards with fraud type NONE', () => {
+    it('does not include cards with fraud type NONE and no possibleFraud data', () => {
         const cardWithNoFraud = createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN, fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE});
 
         const cardList: CardList = {
@@ -454,6 +479,26 @@ describe('timeSensitiveCardsSelector', () => {
         const result = timeSensitiveCardsSelector(cardList);
 
         expect(result.cardsWithFraud).toHaveLength(0);
+    });
+
+    it('includes cards with fraud type NONE when possibleFraud data exists in nameValuePairs', () => {
+        const cardWithPendingFraudAlert = createRandomExpensifyCard(1, {
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+            fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+            possibleFraud: {triggerAmount: 5663, triggerMerchant: 'WAL-MART #2366', currency: 'USD', fraudAlertReportID: 5230242215684213},
+        });
+        const normalCard = createRandomExpensifyCard(2, {state: CONST.EXPENSIFY_CARD.STATE.OPEN, fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE});
+
+        const cardList: CardList = {
+            '1': cardWithPendingFraudAlert,
+            '2': normalCard,
+        };
+
+        const result = timeSensitiveCardsSelector(cardList);
+
+        expect(result.cardsWithFraud).toHaveLength(1);
+        expect(result.cardsWithFraud.at(0)?.cardID).toBe(1);
+        expect(result.cardsWithFraud.at(0)?.nameValuePairs?.possibleFraud?.triggerAmount).toBe(5663);
     });
 });
 

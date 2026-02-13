@@ -80,6 +80,13 @@ Onyx.connect({
 });
 
 /**
+ * Returns true if the policy has no fieldList or its fieldList is empty.
+ */
+function isPolicyFieldListEmpty(policy: OnyxEntry<Policy>): boolean {
+    return !policy?.fieldList || Object.keys(policy.fieldList).length === 0;
+}
+
+/**
  * Filter out the active policies, which will exclude policies with pending deletion
  * and policies the current user doesn't belong to.
  * These are policies that we can use to create reports with in NewDot.
@@ -1945,6 +1952,15 @@ function getDefaultTimeTrackingRate(policy: Partial<OnyxEntry<Policy>>): number 
     return policy?.units?.time?.rate !== undefined ? convertToBackendAmount(policy.units.time.rate) : undefined;
 }
 
+function isPolicyTaxEnabled(policy: OnyxEntry<Policy>): boolean {
+    const isSyncTaxEnabled =
+        !!policy?.connections?.quickbooksOnline?.config?.syncTax ||
+        !!policy?.connections?.xero?.config?.importTaxRates ||
+        !!policy?.connections?.netsuite?.options?.config?.syncOptions?.syncTax;
+
+    return (policy?.tax?.trackingEnabled ?? false) || isSyncTaxEnabled;
+}
+
 export {
     canEditTaxRate,
     escapeTagName,
@@ -2005,6 +2021,7 @@ export {
     hasEligibleActiveAdminFromWorkspaces,
     isPolicyEmployee,
     isPolicyFeatureEnabled,
+    isPolicyFieldListEmpty,
     getUberConnectionErrorDirectlyFromPolicy,
     isPolicyOwner,
     isPolicyMember,
@@ -2117,6 +2134,7 @@ export {
     isTimeTrackingEnabled,
     getDefaultTimeTrackingRate,
     getActivePoliciesWithExpenseChatAndTimeEnabled,
+    isPolicyTaxEnabled,
 };
 
 export type {MemberEmailsToAccountIDs};
