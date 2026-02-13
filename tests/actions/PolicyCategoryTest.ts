@@ -26,7 +26,6 @@ import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
-
 OnyxUpdateManager();
 describe('actions/PolicyCategory', () => {
     beforeAll(() => {
@@ -650,7 +649,8 @@ describe('actions/PolicyCategory', () => {
             expect(spreadsheet?.shouldFinalModalBeOpened).toBe(true);
             expect(spreadsheet?.importFinalModal?.titleKey).toBe('spreadsheet.importSuccessfulTitle');
             expect(spreadsheet?.importFinalModal?.promptKey).toBe('spreadsheet.importCategoriesSuccessfulDescription');
-            expect(spreadsheet?.importFinalModal?.promptKeyParams).toStrictEqual({added: 2, updated: 0}); });
+            expect(spreadsheet?.importFinalModal?.promptKeyParams).toStrictEqual({added: 2, updated: 0});
+        });
 
         it('Import categories with failure modal data', async () => {
             const fakePolicy = createRandomPolicy(0);
@@ -716,7 +716,8 @@ describe('actions/PolicyCategory', () => {
                 });
             });
 
-expect(spreadsheet?.importFinalModal?.promptKeyParams).toStrictEqual({added: 2, updated: 0});        });
+            expect(spreadsheet?.importFinalModal?.promptKeyParams).toStrictEqual({added: 2, updated: 0});
+        });
 
         it('Categories with empty names are skipped when counting unique categories', async () => {
             const fakePolicy = createRandomPolicy(0);
@@ -747,7 +748,8 @@ expect(spreadsheet?.importFinalModal?.promptKeyParams).toStrictEqual({added: 2, 
                 });
             });
 
-            expect(spreadsheet?.importFinalModal?.promptKeyParams).toStrictEqual({added: 1, updated: 0});        });
+            expect(spreadsheet?.importFinalModal?.promptKeyParams).toStrictEqual({added: 1, updated: 0});
+        });
 
         it('Empty categories array results in zero unique count', async () => {
             const fakePolicy = createRandomPolicy(0);
@@ -774,6 +776,7 @@ expect(spreadsheet?.importFinalModal?.promptKeyParams).toStrictEqual({added: 2, 
 
             expect(spreadsheet?.shouldFinalModalBeOpened).toBe(true);
             expect(spreadsheet?.shouldFinalModalBeOpened).toBe(true);
-            expect(spreadsheet?.importFinalModal?.promptKeyParams).toStrictEqual({added: 0, updated: 0});        });
+            expect(spreadsheet?.importFinalModal?.promptKeyParams).toStrictEqual({added: 0, updated: 0});
+        });
     });
 });
