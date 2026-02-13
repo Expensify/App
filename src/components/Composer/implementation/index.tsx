@@ -285,30 +285,24 @@ function Composer({
         onClear(currentText);
     }, [onClear, onSelectionChange]);
 
-    useImperativeHandle(
-        ref,
-        () =>
-            new Proxy(
-                {},
-                {
-                    get: (_target, prop) => {
-                        if (prop === 'clear') {
-                            return clear;
-                        }
-                        if (prop === 'blur') {
-                            return () => textInputRef.current?.blur();
-                        }
-                        if (prop === 'focus') {
-                            return () => textInputRef.current?.focus();
-                        }
-                        if (prop === 'scrollTop') {
-                            return textInputRef.current?.scrollTop;
-                        }
-                        return textInputRef.current?.[prop as keyof AnimatedMarkdownTextInputRef];
-                    },
-                },
-            ) as ComposerRef,
-    );
+    useImperativeHandle(ref, () => {
+        const textInput = textInputRef.current;
+        if (!textInput) {
+            throw new Error('textInput is not available. This should never happen and indicates a developer error.');
+        }
+
+        return {
+            ...textInput,
+            // Overwrite clear with our custom implementation, which mimics how the native TextInput's clear method works
+            clear,
+            // We have to redefine these methods as they are inherited by prototype chain and are not accessible directly
+            blur: () => textInput.blur(),
+            focus: () => textInput.focus(),
+            get scrollTop() {
+                return textInput.scrollTop;
+            },
+        } as ComposerRef;
+    }, [clear]);
 
     const handleKeyPress = useCallback(
         (e: TextInputKeyPressEvent) => {
