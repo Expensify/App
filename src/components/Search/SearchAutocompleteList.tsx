@@ -194,6 +194,7 @@ function SearchAutocompleteList({
     const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
@@ -222,6 +223,7 @@ function SearchAutocompleteList({
             loginList,
             currentUserAccountID,
             currentUserEmail,
+            policyCollection: policies,
             personalDetails,
         });
     }, [
@@ -236,6 +238,7 @@ function SearchAutocompleteList({
         currentUserAccountID,
         currentUserEmail,
         personalDetails,
+        policies,
     ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
@@ -313,19 +316,22 @@ function SearchAutocompleteList({
         return getAutocompleteRecentCategories(allRecentCategories);
     }, [allRecentCategories]);
 
-    const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
-
     const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
 
     const taxAutocompleteList = useMemo(() => getAutocompleteTaxList(taxRates), [taxRates]);
 
-    const workspaceList = useMemo(
-        () =>
-            Object.values(policies)
-                .filter((singlePolicy) => !!singlePolicy && shouldShowPolicy(singlePolicy, false, currentUserEmail) && !singlePolicy?.isJoinRequestPending)
-                .map((singlePolicy) => ({id: singlePolicy?.id, name: singlePolicy?.name ?? ''})),
-        [policies, currentUserEmail],
-    );
+    const workspaceList = useMemo(() => {
+        const result = [];
+        for (const singlePolicy of Object.values(policies)) {
+            if (!singlePolicy || singlePolicy.isJoinRequestPending || !shouldShowPolicy(singlePolicy, false, currentUserEmail)) {
+                continue;
+            }
+
+            result.push({id: singlePolicy.id, name: singlePolicy.name ?? ''});
+        }
+
+        return result;
+    }, [policies, currentUserEmail]);
 
     const {currencyList} = useCurrencyList();
     const currencyAutocompleteList = useMemo(() => Object.keys(currencyList).filter((currency) => !currencyList[currency]?.retired), [currencyList]);
@@ -447,6 +453,7 @@ function SearchAutocompleteList({
                     countryCode,
                     loginList,
                     shouldShowGBR: true,
+                    policyCollection: policies,
                     currentUserAccountID,
                     currentUserEmail,
                     personalDetails,
@@ -481,6 +488,7 @@ function SearchAutocompleteList({
                     countryCode,
                     loginList,
                     shouldShowGBR: true,
+                    policyCollection: policies,
                     currentUserAccountID,
                     currentUserEmail,
                     personalDetails,
@@ -659,6 +667,7 @@ function SearchAutocompleteList({
         betas,
         countryCode,
         loginList,
+        policies,
         currentUserAccountID,
         currentUserEmail,
         groupByAutocompleteList,

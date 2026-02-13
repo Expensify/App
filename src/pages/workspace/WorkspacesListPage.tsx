@@ -1,6 +1,6 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FlatList, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -19,8 +19,6 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
-import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
-import type {ScrollViewProps} from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
@@ -47,6 +45,7 @@ import {clearWorkspaceOwnerChangeFlow, isApprover as isApproverUserAction, reque
 import {calculateBillNewDot, clearDeleteWorkspaceError, clearDuplicateWorkspace, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace} from '@libs/actions/Policy/Policy';
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
+import {hasDomainErrors} from '@libs/DomainUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
 import Navigation from '@libs/Navigation/Navigation';
@@ -182,30 +181,6 @@ function WorkspacesListPage() {
 
     const policyToDelete = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToDelete}`];
 
-    const {saveScrollOffset, getScrollOffset} = useContext(ScrollOffsetContext);
-    const onScroll = useCallback<NonNullable<ScrollViewProps['onScroll']>>(
-        (e) => {
-            // If the layout measurement is 0, it means the flash list is not displayed but the onScroll may be triggered with offset value 0.
-            // We should ignore this case.
-            if (e.nativeEvent.layoutMeasurement.height === 0) {
-                return;
-            }
-            saveScrollOffset(route, e.nativeEvent.contentOffset.y);
-        },
-        [route, saveScrollOffset],
-    );
-    const flatlistRef = useRef<FlatList | null>(null);
-    useLayoutEffect(() => {
-        const scrollOffset = getScrollOffset(route);
-        if (!scrollOffset || !flatlistRef.current) {
-            return;
-        }
-        flatlistRef.current?.scrollToOffset({
-            offset: scrollOffset,
-            animated: false,
-        });
-    }, [getScrollOffset, route]);
-
     // We need this to update translation for deleting a workspace when it has third party card feeds or expensify card assigned.
     const workspaceAccountID = policyToDelete?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [cardFeeds, , defaultCardFeeds] = useCardFeeds(policyIDToDelete);
@@ -213,6 +188,7 @@ function WorkspacesListPage() {
         selector: filterInactiveCards,
         canBeMissing: true,
     });
+    const flatlistRef = useRef<FlatList | null>(null);
     const [lastAccessedWorkspacePolicyID] = useOnyx(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, {canBeMissing: true});
 
     const prevPolicyToDelete = usePrevious(policyToDelete);
@@ -240,6 +216,7 @@ function WorkspacesListPage() {
         }
 
         deleteWorkspace({
+            policies,
             policyID: policyIDToDelete,
             activePolicyID,
             policyName: policyNameToDelete,
@@ -332,7 +309,7 @@ function WorkspacesListPage() {
             }
 
             clearWorkspaceOwnerChangeFlow(policyID);
-            requestWorkspaceOwnerChange(policyID, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
+            requestWorkspaceOwnerChange(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`], currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
             Navigation.navigate(
                 ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(
                     policyID,
@@ -342,7 +319,7 @@ function WorkspacesListPage() {
                 ),
             );
         },
-        [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login],
+        [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, policies],
     );
 
     useEffect(() => {
@@ -490,6 +467,7 @@ function WorkspacesListPage() {
                         style={[styles.mh5]}
                         disabled={item.disabled}
                         onPress={item.action}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKSPACE_MENU_ITEM}
                     >
                         {({hovered}) => (
                             <WorkspacesListRow
@@ -575,51 +553,54 @@ function WorkspacesListPage() {
             return [];
         }
 
-        return Object.values(policies)
-            .filter((policy): policy is PolicyType => shouldShowPolicy(policy, true, session?.email))
-            .map((policy): WorkspaceItem => {
-                const receiptUberBrickRoadIndicator = getUberConnectionErrorDirectlyFromPolicy(policy as OnyxEntry<PolicyType>) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
+        const result: WorkspaceItem[] = [];
+        for (const policy of Object.values(policies)) {
+            if (!policy || !shouldShowPolicy(policy, true, session?.email)) {
+                continue;
+            }
 
-                let brickRoadIndicator: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
-                if (isPolicyAdmin(policy, session?.email)) {
-                    const indicator = reimbursementAccountBrickRoadIndicator ?? receiptUberBrickRoadIndicator;
+            const receiptUberBrickRoadIndicator = getUberConnectionErrorDirectlyFromPolicy(policy as OnyxEntry<PolicyType>) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
 
-                    if (indicator) {
-                        brickRoadIndicator = indicator;
-                    } else if (policiesWithCardFeedErrors.find((p) => p.id === policy.id)) {
-                        brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-                    } else if (shouldShowEmployeeListError(policy)) {
-                        brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-                    } else {
-                        brickRoadIndicator = getPolicyBrickRoadIndicatorStatus(
-                            policy,
-                            isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`], policy),
-                        );
-                    }
+            let brickRoadIndicator: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
+            if (isPolicyAdmin(policy, session?.email)) {
+                const indicator = reimbursementAccountBrickRoadIndicator ?? receiptUberBrickRoadIndicator;
+
+                if (indicator) {
+                    brickRoadIndicator = indicator;
+                } else if (policiesWithCardFeedErrors.find((p) => p.id === policy.id)) {
+                    brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+                } else if (shouldShowEmployeeListError(policy)) {
+                    brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+                } else {
+                    brickRoadIndicator = getPolicyBrickRoadIndicatorStatus(
+                        policy,
+                        isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`], policy),
+                    );
                 }
+            }
 
-                if (policy?.isJoinRequestPending && policy?.policyDetailsForNonMembers) {
-                    const policyInfo = Object.values(policy.policyDetailsForNonMembers).at(0) as PolicyDetailsForNonMembers;
-                    const id = Object.keys(policy.policyDetailsForNonMembers).at(0);
-                    return {
-                        listItemType: 'workspace',
-                        title: policyInfo.name,
-                        icon: policyInfo?.avatar ? policyInfo.avatar : getDefaultWorkspaceAvatar(policy.name),
-                        disabled: true,
-                        ownerAccountID: policyInfo.ownerAccountID,
-                        type: policyInfo.type,
-                        iconType: policyInfo?.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
-                        iconFill: theme.textLight,
-                        fallbackIcon: icons.FallbackWorkspaceAvatar,
-                        policyID: id,
-                        role: CONST.POLICY.ROLE.USER,
-                        errors: undefined,
-                        action: () => null,
-                        dismissError: () => null,
-                        isJoinRequestPending: true,
-                    };
-                }
-                return {
+            if (policy?.isJoinRequestPending && policy?.policyDetailsForNonMembers) {
+                const policyInfo = Object.values(policy.policyDetailsForNonMembers).at(0) as PolicyDetailsForNonMembers;
+                const id = Object.keys(policy.policyDetailsForNonMembers).at(0);
+                result.push({
+                    listItemType: 'workspace',
+                    title: policyInfo.name,
+                    icon: policyInfo?.avatar ? policyInfo.avatar : getDefaultWorkspaceAvatar(policy.name),
+                    disabled: true,
+                    ownerAccountID: policyInfo.ownerAccountID,
+                    type: policyInfo.type,
+                    iconType: policyInfo?.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
+                    iconFill: theme.textLight,
+                    fallbackIcon: icons.FallbackWorkspaceAvatar,
+                    policyID: id,
+                    role: CONST.POLICY.ROLE.USER,
+                    errors: undefined,
+                    action: () => null,
+                    dismissError: () => null,
+                    isJoinRequestPending: true,
+                });
+            } else {
+                result.push({
                     listItemType: 'workspace',
                     title: policy.name,
                     icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
@@ -637,8 +618,11 @@ function WorkspacesListPage() {
                     role: policy.role,
                     type: policy.type,
                     employeeList: policy.employeeList,
-                };
-            });
+                });
+            }
+        }
+
+        return result;
     }, [
         reimbursementAccount?.errors,
         policies,
@@ -664,6 +648,7 @@ function WorkspacesListPage() {
                 return domainItems;
             }
             const isAdmin = !!adminAccess?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domain.accountID}`];
+            const domainErrors = allDomainErrors?.[`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domain.accountID}`];
             domainItems.push({
                 listItemType: 'domain',
                 accountID: domain.accountID,
@@ -672,7 +657,8 @@ function WorkspacesListPage() {
                 isAdmin,
                 isValidated: domain.validated,
                 pendingAction: domain.pendingAction,
-                errors: allDomainErrors?.[`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domain.accountID}`]?.errors,
+                errors: domainErrors?.errors,
+                brickRoadIndicator: hasDomainErrors(domainErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             });
 
             return domainItems;
@@ -837,10 +823,6 @@ function WorkspacesListPage() {
                         ListHeaderComponent={listHeaderComponent}
                         keyboardShouldPersistTaps="handled"
                         contentContainerStyle={styles.pb20}
-                        onScroll={onScroll}
-                        // Render all items on first mount to restore scroll position correctly.
-                        // Lists are small, so this won’t impact performance.
-                        initialNumToRender={data.length}
                     />
                 )}
             </View>

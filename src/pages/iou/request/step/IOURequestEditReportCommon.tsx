@@ -19,20 +19,13 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportTransactions from '@hooks/useReportTransactions';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
-import {
-    canAddTransaction,
-    getPolicyName,
-    getReportName,
-    isIOUReport,
-    isOpenReport,
-    isReportIneligibleForMoveExpenses,
-    isReportOwner,
-    sortOutstandingReportsBySelected,
-} from '@libs/ReportUtils';
+import {canAddTransaction, getPolicyName, getReportName, isIOUReport, isOpenReport, isReportOwner, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import StepScreenWrapper from './StepScreenWrapper';
@@ -47,6 +40,7 @@ type Props = {
     transactionIDs?: string[];
     selectedReportID?: string;
     selectedPolicyID?: string;
+    transactionPolicyID?: string;
     targetOwnerAccountID?: number;
     selectReport: (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => void;
     removeFromReport?: () => void;
@@ -64,6 +58,7 @@ function IOURequestEditReportCommon({
     selectedReportID,
     selectedPolicyID,
     targetOwnerAccountID,
+    transactionPolicyID,
     removeFromReport,
     isEditing = false,
     isUnreported,
@@ -92,7 +87,9 @@ function IOURequestEditReportCommon({
     const reportPolicy = usePolicy(selectedReport?.policyID);
     // Pass the expense's policyID so that the "Create report" button shows the correct workspace
     // instead of defaulting to the user's active workspace
-    const {policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiemRequest, selectedReport?.policyID);
+    // we need to fall back to transactionPolicyID because for a new workspace there is no report created yet
+    // and if we choose this workspace as participant we want to create a new report in the chosen workspace
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiemRequest, selectedReport?.policyID ?? transactionPolicyID);
 
     const [perDiemWarningModalVisible, setPerDiemWarningModalVisible] = useState(false);
 
@@ -132,10 +129,6 @@ function IOURequestEditReportCommon({
             .filter((report): report is NonNullable<typeof report> => report !== undefined)
             .filter((report) => {
                 const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-
-                if (isReportIneligibleForMoveExpenses(report, policy)) {
-                    return false;
-                }
 
                 if (canAddTransaction(report, undefined, true)) {
                     return true;
@@ -219,9 +212,16 @@ function IOURequestEditReportCommon({
             navigateBack();
             return;
         }
+
+        if (item?.policyID && shouldRestrictUserBillableActions(item.policyID)) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(item.policyID));
+            return;
+        }
+
         if (!validatePerDiemMove(item.policyID)) {
             return;
         }
+
         selectReport(item);
     };
 

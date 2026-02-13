@@ -12,9 +12,9 @@ if [[ ! -f "$REVIEWER_FILE" ]]; then
     exit 1
 fi
 
-# Extract rules in format [CAPS-NUMBER] (e.g., [PERF-1], [SEC-1], [STYLE-1])
+# Extract rules in format [CAPS-NUMBER] (e.g., [PERF-1], [CONSISTENCY-1], [CLEAN-REACT-PATTERNS-1])
 # Remove brackets to store as PERF-1, SEC-1, etc.
-grep -oE '\[[A-Z]+-[0-9]+\]' "$REVIEWER_FILE" | sed 's/\[\(.*\)\]/\1/' | sort -u > "$OUTPUT_FILE"
+grep -oE '\[[A-Z]+(-[A-Z]+)*-[0-9]+\]' "$REVIEWER_FILE" | sed 's/\[\(.*\)\]/\1/' | sort -u > "$OUTPUT_FILE"
 
 if [[ ! -s "$OUTPUT_FILE" ]]; then
     echo "Error: No allowed rules found in $REVIEWER_FILE" >&2

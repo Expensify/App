@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
@@ -49,7 +49,7 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
         Navigation.goBack();
     };
 
-    const goToNextStep = () => {
+    const goToNextStep = useCallback(() => {
         const defaultCardName = getDefaultCardName(assignCard?.cardToAssign?.invitingMemberEmail);
         const cardToAssign: Partial<AssignCardData> = {
             email: assignCard?.cardToAssign?.invitingMemberEmail,
@@ -91,7 +91,18 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
             });
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute(routeParams), {forceReplace: true});
         }
-    };
+    }, [
+        assignCard?.cardToAssign?.invitingMemberEmail,
+        assignCard?.cardToAssign?.startDate,
+        assignCard?.cardToAssign?.dateOption,
+        assignCard?.cardToAssign?.encryptedCardNumber,
+        assignCard?.cardToAssign?.cardName,
+        assignCard?.cardToAssign?.customCardName,
+        filteredCardList,
+        policyID,
+        feed,
+        cardID,
+    ]);
 
     // If the currently inviting member is already a member of the policy then we should just call goToNextStep
     // See https://github.com/Expensify/App/issues/74256 for more details
