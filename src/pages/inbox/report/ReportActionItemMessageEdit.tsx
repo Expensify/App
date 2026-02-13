@@ -121,9 +121,10 @@ function ReportActionItemMessageEdit({
         return draftMessage;
     });
 
-    const {setCurrentEditMessageSelection} = useReportActionActiveEdit();
+    const {currentEditMessageSelection, setCurrentEditMessageSelection} = useReportActionActiveEdit();
 
-    const [selection, setSelectionState] = useState<TextSelection>({start: draft.length, end: draft.length, positionX: 0, positionY: 0});
+    const defaultSelection = useMemo(() => ({start: draft.length, end: draft.length, positionX: 0, positionY: 0}), [draft.length]);
+    const [selection, setSelectionState] = useState<TextSelection>(() => currentEditMessageSelection ?? defaultSelection);
 
     const setSelection = useCallback(
         (newSelection: TextSelection) => {
@@ -132,6 +133,10 @@ function ReportActionItemMessageEdit({
         },
         [setSelectionState, setCurrentEditMessageSelection],
     );
+
+    useEffect(() => {
+        setSelectionState(currentEditMessageSelection ?? defaultSelection);
+    }, [currentEditMessageSelection, defaultSelection, draft.length, setSelection]);
 
     const [isFocused, setIsFocused] = useState<boolean>(false);
 

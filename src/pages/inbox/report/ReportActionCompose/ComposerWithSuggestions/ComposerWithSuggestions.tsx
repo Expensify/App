@@ -274,7 +274,7 @@ function ComposerWithSuggestions({
         }
         return initialValue;
     });
-    const [selection, setSelection] = useState<TextSelection>(() => ({start: value.length, end: value.length, positionX: 0, positionY: 0}));
+    const [selection, setSelection] = useState<TextSelection>(() => currentEditMessageSelection ?? {start: value.length, end: value.length, positionX: 0, positionY: 0});
 
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
@@ -287,9 +287,6 @@ function ComposerWithSuggestions({
         }
 
         composerRef.current?.focus();
-        if (currentEditMessageSelection) {
-            setSelection(currentEditMessageSelection ?? {start: value.length, end: value.length, positionX: 0, positionY: 0});
-        }
     }, [currentEditMessageSelection, isEditingInComposer, value.length]);
 
     // Reset the composer value when the app extends to wide layout,
@@ -513,6 +510,8 @@ function ComposerWithSuggestions({
                     positionX: prevSelection.positionX,
                     positionY: prevSelection.positionY,
                 }));
+
+                setCurrentEditMessageSelection({...currentEditMessageSelection, start: position, end: position});
             }
 
             commentRef.current = newCommentConverted;
@@ -544,6 +543,8 @@ function ComposerWithSuggestions({
             shouldUseNarrowLayout,
             suggestionsRef,
             setIsCommentEmpty,
+            setCurrentEditMessageSelection,
+            currentEditMessageSelection,
             editingReportActionID,
             reportID,
             currentUserAccountID,
@@ -610,17 +611,35 @@ function ComposerWithSuggestions({
                 if (lastGraphemeLength > 1) {
                     event.preventDefault();
                     const newText = lastTextRef.current.slice(0, selection.start - lastGraphemeLength) + lastTextRef.current.slice(selection.start);
+                    const newStart = selection.start - lastGraphemeLength;
+                    const newEnd = selection.start - lastGraphemeLength;
+
                     setSelection((prevSelection) => ({
-                        start: selection.start - lastGraphemeLength,
-                        end: selection.start - lastGraphemeLength,
+                        start: newStart,
+                        end: newEnd,
                         positionX: prevSelection.positionX,
                         positionY: prevSelection.positionY,
                     }));
+
+                    setCurrentEditMessageSelection({...currentEditMessageSelection, start: newStart, end: newEnd});
                     updateComment(newText, true);
                 }
             }
         },
-        [shouldUseNarrowLayout, isKeyboardShown, suggestionsRef, selection.start, includeChronos, onEnterKeyPress, lastReportAction, reportID, updateComment, selection.end],
+        [
+            shouldUseNarrowLayout,
+            isKeyboardShown,
+            suggestionsRef,
+            selection.start,
+            selection.end,
+            includeChronos,
+            onEnterKeyPress,
+            lastReportAction,
+            reportID,
+            setCurrentEditMessageSelection,
+            currentEditMessageSelection,
+            updateComment,
+        ],
     );
 
     /**
@@ -662,21 +681,19 @@ function ComposerWithSuggestions({
         (e: CustomSelectionChangeEvent) => {
             setSelection(e.nativeEvent.selection);
 
+            setCurrentEditMessageSelection({
+                start: e.nativeEvent.selection.start,
+                end: e.nativeEvent.selection.end,
+                positionX: 0,
+                positionY: 0,
+            });
+
             if (!composerRef.current?.isFocused()) {
                 return;
             }
             suggestionsRef.current?.onSelectionChange?.(e);
-
-            if (editingReportActionID) {
-                setCurrentEditMessageSelection({
-                    start: e.nativeEvent.selection.start,
-                    end: e.nativeEvent.selection.end,
-                    positionX: 0,
-                    positionY: 0,
-                });
-            }
         },
-        [editingReportActionID, setCurrentEditMessageSelection, suggestionsRef],
+        [setCurrentEditMessageSelection, suggestionsRef],
     );
 
     const hideSuggestionMenu = useCallback(
@@ -983,18 +1000,27 @@ function ComposerWithSuggestions({
 
     // When using the suggestions box (Suggestions) we need to imperatively
     // set the cursor to the end of the suggestion/mention after it's selected.
-    const onSuggestionSelected = useCallback((suggestionSelection: TextSelection) => {
-        const endOfSuggestionSelection = suggestionSelection.end;
-        setSelection(suggestionSelection);
+    const onSuggestionSelected = useCallback(
+        (suggestionSelection: TextSelection) => {
+            const endOfSuggestionSelection = suggestionSelection.end;
+            setSelection(suggestionSelection);
+            setCurrentEditMessageSelection({
+                start: suggestionSelection.start,
+                end: suggestionSelection.end,
+                positionX: 0,
+                positionY: 0,
+            });
 
-        if (endOfSuggestionSelection === undefined) {
-            return;
-        }
+            if (endOfSuggestionSelection === undefined) {
+                return;
+            }
 
-        queueMicrotask(() => {
-            composerRef.current?.setSelection?.(endOfSuggestionSelection, endOfSuggestionSelection);
-        });
-    }, []);
+            queueMicrotask(() => {
+                composerRef.current?.setSelection?.(endOfSuggestionSelection, endOfSuggestionSelection);
+            });
+        },
+        [setCurrentEditMessageSelection],
+    );
 
     return (
         <>

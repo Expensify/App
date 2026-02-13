@@ -44,12 +44,20 @@ function ReportActionEditMessageContextProvider({reportID, children}: ReportActi
     const [editingReportActionID, setEditingReportActionID] = useState<string | null>(null);
     const [editingReportAction, setEditingReportAction] = useState<OnyxTypes.ReportAction | null>(null);
     const [editingMessage, setEditingMessage] = useState<string | null>(null);
-    const [currentEditMessageSelection, setCurrentEditMessageSelection] = useState<TextSelection | null>(null);
+    const [currentEditMessageSelection, setCurrentEditMessageSelectionState] = useState<TextSelection | null>(null);
 
     function setActiveEdit(activeEdit: ReportActionActiveEdit | null) {
         setEditingReportActionID(activeEdit?.editingReportActionID ?? null);
         setEditingReportAction(activeEdit?.editingReportAction ?? null);
         setEditingMessage(activeEdit?.editingMessage ?? null);
+    }
+
+    function setCurrentEditMessageSelection(selection: TextSelection) {
+        if (!editingReportActionID) {
+            return;
+        }
+
+        setCurrentEditMessageSelectionState(selection);
     }
 
     // Set the active edit when the report actions or draft comments change
