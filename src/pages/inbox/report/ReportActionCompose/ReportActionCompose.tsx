@@ -24,6 +24,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useOriginalReportID from '@hooks/useOriginalReportID';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -341,8 +342,10 @@ function ReportActionCompose({
 
     const {debouncedCommentMaxLengthValidation, exceededMaxLength, isExceedingMaxLength, isTaskTitle} = useDebouncedCommentMaxLengthValidation({reportID});
 
+    const originalReportID = useOriginalReportID(reportID, editingReportAction);
     const {publishDraft, deleteDraft} = useEditMessage({
         reportID,
+        originalReportID,
         reportAction: editingReportAction,
         shouldScrollToLastMessage: isEditingLastReportAction,
         isFocused,

@@ -23,7 +23,7 @@ import KeyboardUtils from '@src/utils/keyboard';
 
 type UseEditMessageProps = {
     reportID: string | undefined;
-    originalReportID?: string;
+    originalReportID: string | undefined;
     reportAction: OnyxTypes.ReportAction | null | undefined;
     shouldScrollToLastMessage?: boolean;
     isFocused: boolean;
