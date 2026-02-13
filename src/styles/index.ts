@@ -6117,10 +6117,11 @@ const dynamicStyles = (theme: ThemeColors) =>
         getSelectionListPopoverHeight: (itemCount: number, windowHeight: number, isSearchable: boolean) => {
             const SEARCHBAR_HEIGHT = isSearchable ? 52 : 0;
             const SEARCHBAR_PADDING = isSearchable ? 12 : 0;
+            const LIST_BOTTOM_PADDING = 12;
             const PADDING = 32;
             const GAP = 8;
             const BUTTON_HEIGHT = 40;
-            const ESTIMATED_LIST_HEIGHT = itemCount * variables.optionRowHeightCompact + SEARCHBAR_HEIGHT + SEARCHBAR_PADDING;
+            const ESTIMATED_LIST_HEIGHT = itemCount * variables.optionRowHeightCompact + SEARCHBAR_HEIGHT + SEARCHBAR_PADDING + LIST_BOTTOM_PADDING;
             const MAX_HEIGHT = CONST.POPOVER_DROPDOWN_MAX_HEIGHT - (PADDING + GAP + BUTTON_HEIGHT);
 
             // Native platforms don't support maxHeight in the way thats expected, so lets manually set the height to either
