@@ -122,7 +122,7 @@ function EmptyStateComponent({
                                             customText={buttonText}
                                             options={dropDownOptions}
                                             isSplitButton={false}
-                                            style={[styles.flex1, style]}
+                                            style={[shouldUseNarrowLayout ? styles.flex1 : styles.alignSelfCenter, style]}
                                         />
                                     ) : (
                                         <Button
