@@ -77,8 +77,10 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 import type {ComposerRef, ComposerWithSuggestionsProps} from './ComposerWithSuggestions/ComposerWithSuggestions';
+import MessageEditCancelButton from './MessageEditCancelButton';
 import SendButton from './SendButton';
 import useAttachmentUploadValidation from './useAttachmentUploadValidation';
+import useDeleteDraft from './useDeleteDraft';
 
 type SuggestionsRef = {
     resetSuggestions: () => void;
@@ -545,6 +547,7 @@ function ReportActionCompose({
         });
     }, [isSendDisabled, debouncedValidate, isComposerFullSize, reportID, composerRefShared]);
 
+    const deleteDraft = useDeleteDraft({reportID, reportAction: editingReportAction, index: 0, isFocused});
     onSubmitAction = handleSendMessage;
 
     const emojiPositionValues = useMemo(
@@ -628,30 +631,34 @@ function ReportActionCompose({
                         ]}
                     >
                         {PDFValidationComponent}
-                        <AttachmentPickerWithMenuItems
-                            onAttachmentPicked={(files) => validateAttachments({files})}
-                            reportID={reportID}
-                            report={report}
-                            currentUserPersonalDetails={currentUserPersonalDetails}
-                            reportParticipantIDs={reportParticipantIDs}
-                            isFullComposerAvailable={isFullComposerAvailable}
-                            isComposerFullSize={isComposerFullSize}
-                            disabled={isBlockedFromConcierge}
-                            setMenuVisibility={setMenuVisibility}
-                            isMenuVisible={isMenuVisible}
-                            onTriggerAttachmentPicker={onTriggerAttachmentPicker}
-                            raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLayoutTriggered}
-                            onAddActionPressed={onAddActionPressed}
-                            onItemSelected={onItemSelected}
-                            onCanceledAttachmentPicker={() => {
-                                if (!shouldFocusComposerOnScreenFocus) {
-                                    return;
-                                }
-                                focus();
-                            }}
-                            actionButtonRef={actionButtonRef}
-                            shouldDisableAttachmentItem={!!exceededMaxLength}
-                        />
+                        {isEditingInline ? (
+                            <MessageEditCancelButton onCancel={deleteDraft} />
+                        ) : (
+                            <AttachmentPickerWithMenuItems
+                                onAttachmentPicked={(files) => validateAttachments({files})}
+                                reportID={reportID}
+                                report={report}
+                                currentUserPersonalDetails={currentUserPersonalDetails}
+                                reportParticipantIDs={reportParticipantIDs}
+                                isFullComposerAvailable={isFullComposerAvailable}
+                                isComposerFullSize={isComposerFullSize}
+                                disabled={isBlockedFromConcierge}
+                                setMenuVisibility={setMenuVisibility}
+                                isMenuVisible={isMenuVisible}
+                                onTriggerAttachmentPicker={onTriggerAttachmentPicker}
+                                raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLayoutTriggered}
+                                onAddActionPressed={onAddActionPressed}
+                                onItemSelected={onItemSelected}
+                                onCanceledAttachmentPicker={() => {
+                                    if (!shouldFocusComposerOnScreenFocus) {
+                                        return;
+                                    }
+                                    focus();
+                                }}
+                                actionButtonRef={actionButtonRef}
+                                shouldDisableAttachmentItem={!!exceededMaxLength}
+                            />
+                        )}
                         <ComposerWithSuggestions
                             ref={(ref) => {
                                 composerRef.current = ref;

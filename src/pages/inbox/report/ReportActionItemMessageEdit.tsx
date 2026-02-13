@@ -33,7 +33,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setShouldShowComposeInput} from '@libs/actions/Composer';
 import {clearActive, isActive as isEmojiPickerActive, isEmojiPickerVisible} from '@libs/actions/EmojiPickerAction';
 import {composerFocusKeepFocusOn} from '@libs/actions/InputFocus';
-import {deleteReportActionDraft, editReportComment, saveReportActionDraft} from '@libs/actions/Report';
+import {editReportComment, saveReportActionDraft} from '@libs/actions/Report';
 import {isMobileChrome} from '@libs/Browser';
 import {canSkipTriggerHotkeys, insertText} from '@libs/ComposerUtils';
 import DomUtils from '@libs/DomUtils';
@@ -53,12 +53,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 // eslint-disable-next-line no-restricted-imports
 import findNodeHandle from '@src/utils/findNodeHandle';
-import KeyboardUtils from '@src/utils/keyboard';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import getCursorPosition from './ReportActionCompose/getCursorPosition';
 import getScrollPosition from './ReportActionCompose/getScrollPosition';
+import MessageEditCancelButton from './ReportActionCompose/MessageEditCancelButton';
 import type {SuggestionsRef} from './ReportActionCompose/ReportActionCompose';
 import Suggestions from './ReportActionCompose/Suggestions';
+import useDeleteDraft from './ReportActionCompose/useDeleteDraft';
 import shouldUseEmojiPickerSelection from './shouldUseEmojiPickerSelection';
 
 type ReportActionItemMessageEditProps = {
@@ -188,12 +189,6 @@ function ReportActionItemMessageEdit({
         [],
     );
 
-    // We consider the report action active if it's focused, its emoji picker is open or its context menu is open
-    const isActive = useCallback(
-        () => isFocusedRef.current || isEmojiPickerActive(action.reportActionID) || ReportActionContextMenu.isActiveReportAction(action.reportActionID),
-        [action.reportActionID],
-    );
-
     /**
      * Focus the composer text input
      * @param shouldDelay - Impose delay before focusing the composer
@@ -276,26 +271,7 @@ function ReportActionItemMessageEdit({
         // eslint-disable-next-line react-hooks/exhaustive-deps -- run this only when language is changed
     }, [action.reportActionID, preferredLocale]);
 
-    /**
-     * Delete the draft of the comment being edited. This will take the comment out of "edit mode" with the old content.
-     */
-    const deleteDraft = useCallback(() => {
-        deleteReportActionDraft(reportID, action);
-
-        if (isActive()) {
-            ReportActionComposeFocusManager.clear(true);
-            // Wait for report action compose re-mounting on mWeb
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => ReportActionComposeFocusManager.focus());
-        }
-
-        // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.
-        if (index === 0) {
-            KeyboardUtils.dismiss().then(() => {
-                reportScrollManager.scrollToIndex(index, false);
-            });
-        }
-    }, [action, index, reportID, reportScrollManager, isActive]);
+    const deleteDraft = useDeleteDraft({reportID, reportAction: action, index, isFocused});
 
     /**
      * Save the draft of the comment to be the new comment message. This will take the comment out of "edit mode" with
@@ -477,8 +453,6 @@ function ReportActionItemMessageEdit({
         }
     }, [isFocused, hideSuggestionMenu]);
 
-    const closeButtonStyles = [styles.composerSizeButton, {marginVertical: styles.composerSizeButton.marginHorizontal}];
-
     return (
         <>
             <View
@@ -494,27 +468,7 @@ function ReportActionItemMessageEdit({
                         hasExceededMaxCommentLength && styles.borderColorDanger,
                     ]}
                 >
-                    <View style={[styles.justifyContentEnd, styles.mb1]}>
-                        <Tooltip text={translate('common.cancel')}>
-                            <PressableWithFeedback
-                                onPress={deleteDraft}
-                                style={closeButtonStyles}
-                                role={CONST.ROLE.BUTTON}
-                                accessibilityLabel={translate('common.close')}
-                                // disable dimming
-                                hoverDimmingValue={1}
-                                pressDimmingValue={1}
-                                // Keep focus on the composer when cancel button is clicked.
-                                onMouseDown={(e) => e.preventDefault()}
-                                sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_MESSAGE_EDIT_CANCEL_BUTTON}
-                            >
-                                <Icon
-                                    fill={theme.icon}
-                                    src={icons.Close}
-                                />
-                            </PressableWithFeedback>
-                        </Tooltip>
-                    </View>
+                    <MessageEditCancelButton onCancel={deleteDraft} />
                     <View style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}>
                         <Composer
                             multiline
