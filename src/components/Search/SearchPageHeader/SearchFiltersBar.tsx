@@ -1,6 +1,6 @@
 import {isUserValidatedSelector} from '@selectors/Account';
 import {emailSelector} from '@selectors/Session';
-import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {ReactNode} from 'react';
 import {FlatList, View} from 'react-native';
 import Button from '@components/Button';
@@ -79,19 +79,18 @@ type FilterItem = {
 type TranslateFunction = (key: TranslationPaths) => string;
 
 function createDateDisplayValueHelper(filterValues: {on?: string; after?: string; before?: string}, translate: TranslateFunction, isRange = false): [SearchDateValues, string[]] {
-    const shouldUseRange = isRange || (!!filterValues.after && !!filterValues.before && !filterValues.on);
     const value: SearchDateValues = {
         [CONST.SEARCH.DATE_MODIFIERS.ON]: filterValues.on,
         [CONST.SEARCH.DATE_MODIFIERS.AFTER]: filterValues.after,
         [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: filterValues.before,
-        [CONST.SEARCH.DATE_MODIFIERS.RANGE]: shouldUseRange ? 'range' : undefined,
+        [CONST.SEARCH.DATE_MODIFIERS.RANGE]: isRange ? 'range' : undefined,
     };
 
     const displayText: string[] = [];
     if (value.On) {
         displayText.push(isSearchDatePreset(value.On) ? translate(`search.filters.date.presets.${value.On}`) : `${translate('common.on')} ${DateUtils.formatToReadableString(value.On)}`);
     }
-    if (shouldUseRange && value.After && value.Before) {
+    if (isRange && value.After && value.Before) {
         displayText.push(`${translate('common.range')}: ${DateUtils.getFormattedDateRangeForSearch(value.After, value.Before, true)}`);
     } else {
         if (value.After) {
@@ -129,8 +128,29 @@ function SearchFiltersBar({
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
 
-    // Track which date filters were set via Range mode (persists while component is mounted)
-    const [dateRangeFlags, setDateRangeFlags] = useState<Partial<Record<SearchDateFilterKeys, boolean>>>({});
+    // Track which date filters were set via Range mode - initialize from persisted form data
+    const [dateRangeFlags, setDateRangeFlags] = useState<Partial<Record<SearchDateFilterKeys, boolean>>>(() => {
+        const initialFlags: Partial<Record<SearchDateFilterKeys, boolean>> = {};
+        DATE_FILTER_KEYS.forEach((key) => {
+            const rangeKey = `${key}Range` as keyof typeof searchAdvancedFiltersForm;
+            if (searchAdvancedFiltersForm[rangeKey]) {
+                initialFlags[key] = true;
+            }
+        });
+        return initialFlags;
+    });
+
+    // Sync dateRangeFlags when form data changes (e.g., filters reset or loaded)
+    useEffect(() => {
+        const updatedFlags: Partial<Record<SearchDateFilterKeys, boolean>> = {};
+        DATE_FILTER_KEYS.forEach((key) => {
+            const rangeKey = `${key}Range` as keyof typeof searchAdvancedFiltersForm;
+            if (searchAdvancedFiltersForm[rangeKey]) {
+                updatedFlags[key] = true;
+            }
+        });
+        setDateRangeFlags(updatedFlags);
+    }, [searchAdvancedFiltersForm.dateRange, searchAdvancedFiltersForm.submittedRange, searchAdvancedFiltersForm.approvedRange, searchAdvancedFiltersForm.paidRange, searchAdvancedFiltersForm.exportedRange, searchAdvancedFiltersForm.postedRange, searchAdvancedFiltersForm.withdrawnRange]);
     // type, groupBy, status, and view values are not guaranteed to respect the ts type as they come from user input
     const {type: unsafeType, groupBy: unsafeGroupBy, status: unsafeStatus, view: unsafeView, flatFilters} = queryJSON;
     const [selectedIOUReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentSelectedReportID}`, {canBeMissing: true});
@@ -452,6 +472,7 @@ function SearchFiltersBar({
                         [`${filterKey}On`]: selectedDates[CONST.SEARCH.DATE_MODIFIERS.ON],
                         [`${filterKey}After`]: selectedDates[CONST.SEARCH.DATE_MODIFIERS.AFTER],
                         [`${filterKey}Before`]: selectedDates[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
+                        [`${filterKey}Range`]: selectedDates[CONST.SEARCH.DATE_MODIFIERS.RANGE],
                     };
 
                     updateFilterForm(dateFormValues);

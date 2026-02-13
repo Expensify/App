@@ -58,18 +58,24 @@ function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
         ? (dateKey.replace(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX, CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX) as ReportFieldDateKey)
         : (`${dateKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}` as const);
 
+    // Range key: For report fields, use GLOBAL_PREFIX + Range + suffix; for regular fields, use dateKey + Range
+    const dateRangeKey = dateKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)
+        ? (`${CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX}${CONST.SEARCH.DATE_MODIFIERS.RANGE}${dateKey.replace(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX, '')}` as ReportFieldDateKey)
+        : (`${dateKey}${CONST.SEARCH.DATE_MODIFIERS.RANGE}` as const);
+
     const dateOnValue = searchAdvancedFiltersForm?.[dateOnKey];
     const dateBeforeValue = searchAdvancedFiltersForm?.[dateBeforeKey];
     const dateAfterValue = searchAdvancedFiltersForm?.[dateAfterKey];
+    const dateRangeValue = searchAdvancedFiltersForm?.[dateRangeKey];
 
     const defaultDateValues = useMemo(
         () => ({
             [CONST.SEARCH.DATE_MODIFIERS.ON]: dateOnValue,
             [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: dateBeforeValue,
             [CONST.SEARCH.DATE_MODIFIERS.AFTER]: dateAfterValue,
-            [CONST.SEARCH.DATE_MODIFIERS.RANGE]: undefined,
+            [CONST.SEARCH.DATE_MODIFIERS.RANGE]: dateRangeValue,
         }),
-        [dateAfterValue, dateBeforeValue, dateOnValue],
+        [dateAfterValue, dateBeforeValue, dateOnValue, dateRangeValue],
     );
 
     const presets = useMemo(() => {
@@ -120,7 +126,8 @@ function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
                 }
             }
 
-            searchDatePresetFilterBaseRef.current.setDateValueOfSelectedDateModifier();
+            const updatedDateValues = searchDatePresetFilterBaseRef.current.setDateValueOfSelectedDateModifier();
+            setTrackedDateValues(updatedDateValues);
             setSelectedDateModifier(null);
             setShouldShowRangeError(false);
             return;
@@ -131,13 +138,14 @@ function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
             [dateOnKey]: dateValues[CONST.SEARCH.DATE_MODIFIERS.ON] ?? null,
             [dateBeforeKey]: dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE] ?? null,
             [dateAfterKey]: dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] ?? null,
+            [dateRangeKey]: dateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE] ?? null,
         });
-    }, [selectedDateModifier, dateOnKey, dateBeforeKey, dateAfterKey, onSubmit]);
+    }, [selectedDateModifier, dateOnKey, dateBeforeKey, dateAfterKey, dateRangeKey, onSubmit]);
 
     const goBack = () => {
         if (selectedDateModifier) {
             if (searchDatePresetFilterBaseRef.current && selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
-                const hasExistingRange = !!(dateAfterValue && dateBeforeValue);
+                const hasExistingRange = !!dateRangeValue;
                 if (hasExistingRange) {
                     searchDatePresetFilterBaseRef.current.resetDateValuesToDefault();
                     setTrackedDateValues(defaultDateValues);
@@ -155,14 +163,28 @@ function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
         back();
     };
 
-    const rangeFromValue = trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER];
-    const rangeToValue = trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE];
-    const hasRangeInput = !!(rangeFromValue ?? rangeToValue);
+    const isInRangeMode = selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE;
+    const hasRangeFlag = !!trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE];
+    // MUTUAL EXCLUSIVITY: Only show range values when Range flag is explicitly set
+    // When in fresh Range mode (no flag), only show text after BOTH dates selected
+    const rangeFromValue = hasRangeFlag ? trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] : undefined;
+    const rangeToValue = hasRangeFlag ? trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE] : undefined;
+    
+    // For fresh Range selection (no flag), only show text when BOTH dates selected
+    const freshSelectionFrom = trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER];
+    const freshSelectionTo = trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE];
+    const hasBothFreshDates = !!(freshSelectionFrom && freshSelectionTo);
+    const activeSelectionFrom = isInRangeMode && !hasRangeFlag && hasBothFreshDates ? freshSelectionFrom : undefined;
+    const activeSelectionTo = isInRangeMode && !hasRangeFlag && hasBothFreshDates ? freshSelectionTo : undefined;
+    
+    const displayFrom = rangeFromValue || activeSelectionFrom;
+    const displayTo = rangeToValue || activeSelectionTo;
+    const hasRangeInput = !!(displayFrom ?? displayTo);
     let rangeDisplayText = '';
-    if (rangeFromValue && rangeToValue) {
-        rangeDisplayText = DateUtils.getFormattedDateRangeForSearch(rangeFromValue, rangeToValue, true);
-    } else if (rangeFromValue || rangeToValue) {
-        const singleRangeValue = rangeFromValue ?? rangeToValue;
+    if (displayFrom && displayTo) {
+        rangeDisplayText = DateUtils.getFormattedDateRangeForSearch(displayFrom, displayTo, true);
+    } else if (displayFrom || displayTo) {
+        const singleRangeValue = displayFrom ?? displayTo;
         if (singleRangeValue) {
             rangeDisplayText = format(parseISO(singleRangeValue), 'MMM d, yyyy');
         }

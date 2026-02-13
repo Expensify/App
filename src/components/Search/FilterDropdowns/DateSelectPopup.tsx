@@ -58,6 +58,11 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
     const [shouldShowRangeError, setShouldShowRangeError] = useState(false);
     const [trackedDateValues, setTrackedDateValues] = useState<SearchDateValues>(value);
 
+    // Sync trackedDateValues when actual date values change from parent
+    useEffect(() => {
+        setTrackedDateValues(value);
+    }, [value[CONST.SEARCH.DATE_MODIFIERS.ON], value[CONST.SEARCH.DATE_MODIFIERS.AFTER], value[CONST.SEARCH.DATE_MODIFIERS.BEFORE], value[CONST.SEARCH.DATE_MODIFIERS.RANGE]]);
+
     // Widen the popover when Range is selected, reset when not
     useEffect(() => {
         if (selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
@@ -104,8 +109,8 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
                 }
             }
 
-            searchDatePresetFilterBaseRef.current.setDateValueOfSelectedDateModifier();
-            const dateValues = searchDatePresetFilterBaseRef.current.getDateValues();
+            // This now returns the updated values synchronously
+            const dateValues = searchDatePresetFilterBaseRef.current.setDateValueOfSelectedDateModifier();
             setTrackedDateValues(dateValues);
             clearSelection();
             onChange(dateValues);
@@ -144,16 +149,29 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
     }, [closeOverlay, onChange, selectedDateModifier]);
 
     const isInRangeMode = selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE;
-    const rangeFrom = trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER];
-    const rangeTo = trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE];
-    const isRangeMode = isInRangeMode || (!selectedDateModifier && rangeFrom && rangeTo && !trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.ON]);
+    const hasRangeFlag = !!trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE];
+    // MUTUAL EXCLUSIVITY: Only show range values when Range flag is explicitly set
+    // When in fresh Range mode (no flag), only show text after BOTH dates selected
+    const rangeFrom = hasRangeFlag ? trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] : undefined;
+    const rangeTo = hasRangeFlag ? trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE] : undefined;
+    const isRangeMode = isInRangeMode || (!selectedDateModifier && hasRangeFlag);
+
+    // For fresh Range selection (no flag), only show text when BOTH dates selected
+    const freshSelectionFrom = trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER];
+    const freshSelectionTo = trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE];
+    const hasBothFreshDates = !!(freshSelectionFrom && freshSelectionTo);
+    const activeSelectionFrom = isInRangeMode && !hasRangeFlag && hasBothFreshDates ? freshSelectionFrom : undefined;
+    const activeSelectionTo = isInRangeMode && !hasRangeFlag && hasBothFreshDates ? freshSelectionTo : undefined;
 
     let rangeText: string | null = null;
-    if (isRangeMode && (rangeFrom || rangeTo)) {
-        if (rangeFrom && rangeTo) {
-            rangeText = DateUtils.getFormattedDateRangeForSearch(rangeFrom, rangeTo, true);
+    // Show range text from applied Range filter OR from active selection
+    const displayFrom = rangeFrom || activeSelectionFrom;
+    const displayTo = rangeTo || activeSelectionTo;
+    if (isRangeMode && (displayFrom || displayTo)) {
+        if (displayFrom && displayTo) {
+            rangeText = DateUtils.getFormattedDateRangeForSearch(displayFrom, displayTo, true);
         } else {
-            const singleRangeValue = rangeFrom ?? rangeTo;
+            const singleRangeValue = displayFrom ?? displayTo;
             if (singleRangeValue) {
                 rangeText = format(parseISO(singleRangeValue), 'MMM d, yyyy');
             }
