@@ -130,6 +130,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         'Cash',
         'Transfer',
         'MoneyCircle',
+        'Clock',
     ] as const);
     const styles = useThemeStyles();
     const theme = useTheme();

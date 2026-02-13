@@ -337,7 +337,7 @@ describe('Unread Indicators', () => {
                 const NEW_REPORT_FIST_MESSAGE_CREATED_DATE = addSeconds(NEW_REPORT_CREATED_DATE, 1);
                 const createdReportActionIDLocal = rand64();
                 const commentReportActionID = rand64();
-                PusherHelper.emitOnyxUpdate([
+                PusherHelper.emitOnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>([
                     {
                         onyxMethod: Onyx.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT}${NEW_REPORT_ID}`,

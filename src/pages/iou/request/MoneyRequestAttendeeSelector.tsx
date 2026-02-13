@@ -1,15 +1,14 @@
 import reportsSelector from '@selectors/Attributes';
 import {deepEqual} from 'fast-equals';
-import React, {memo, useCallback, useEffect, useMemo} from 'react';
+import React, {memo, useEffect} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import Button from '@components/Button';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import FormHelpMessage from '@components/FormHelpMessage';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-// eslint-disable-next-line no-restricted-imports
-import SelectionList from '@components/SelectionListWithSections';
-import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
-import type {SectionListDataType} from '@components/SelectionListWithSections/types';
+import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
+import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -37,6 +36,7 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 import SafeString from '@src/utils/SafeString';
 
 type MoneyRequestAttendeesSelectorProps = {
@@ -73,27 +73,19 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
+    const isPaidGroupPolicy = isPaidGroupPolicyFn(policy);
+    const recentAttendeeLists = getFilteredRecentAttendees(personalDetails, attendees, recentAttendees ?? [], currentUserEmail, currentUserAccountID);
 
-    const isPaidGroupPolicy = useMemo(() => isPaidGroupPolicyFn(policy), [policy]);
-
-    const recentAttendeeLists = useMemo(
-        () => getFilteredRecentAttendees(personalDetails, attendees, recentAttendees ?? [], currentUserEmail, currentUserAccountID),
-        [personalDetails, attendees, recentAttendees, currentUserEmail, currentUserAccountID],
-    );
-    const initialSelectedOptions = useMemo(
-        () =>
-            attendees.map((attendee) => ({
-                ...attendee,
-                reportID: CONST.DEFAULT_NUMBER_ID.toString(),
-                keyForList: `${attendee.accountID ?? (attendee.email || attendee.displayName)}`,
-                selected: true,
-                // Use || to fall back to displayName for name-only attendees (empty email)
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                login: attendee.email || attendee.displayName,
-                ...getPersonalDetailByEmail(attendee.email),
-            })),
-        [attendees],
-    );
+    const initialSelectedOptions = attendees.map((attendee) => ({
+        ...attendee,
+        reportID: CONST.DEFAULT_NUMBER_ID.toString(),
+        keyForList: String(attendee.accountID) ?? (attendee.email || attendee.displayName),
+        selected: true,
+        // Use || to fall back to displayName for name-only attendees (empty email)
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        login: attendee.email || attendee.displayName,
+        ...getPersonalDetailByEmail(attendee.email),
+    }));
 
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, onListEndReached} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
@@ -134,11 +126,10 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         searchInServer(debouncedSearchTerm.trim());
     }, [debouncedSearchTerm]);
 
-    const orderedAvailableOptions = useMemo(() => {
-        if (!isPaidGroupPolicy || !areOptionsInitialized) {
-            return availableOptions;
-        }
-
+    let orderedAvailableOptions;
+    if (!isPaidGroupPolicy || !areOptionsInitialized) {
+        orderedAvailableOptions = availableOptions;
+    } else {
         const orderedOptions = orderOptions(
             {
                 recentReports: availableOptions.recentReports,
@@ -152,31 +143,27 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
             },
         );
-
-        return {
+        orderedAvailableOptions = {
             ...availableOptions,
             recentReports: orderedOptions.recentReports,
             personalDetails: orderedOptions.personalDetails,
             workspaceChats: orderedOptions.workspaceChats,
         };
-    }, [availableOptions, isPaidGroupPolicy, areOptionsInitialized, searchTerm, action]);
+    }
 
     const shouldShowErrorMessage = selectedOptions.length < 1;
 
-    const handleConfirmSelection = useCallback(
-        (_keyEvent?: GestureResponderEvent | KeyboardEvent, option?: OptionData) => {
-            if (shouldShowErrorMessage || (!selectedOptions.length && !option)) {
-                return;
-            }
+    const handleConfirmSelection = (_keyEvent?: GestureResponderEvent | KeyboardEvent, option?: OptionData) => {
+        if (shouldShowErrorMessage || (!selectedOptions.length && !option)) {
+            return;
+        }
 
-            onFinish(CONST.IOU.TYPE.SUBMIT);
-        },
-        [shouldShowErrorMessage, onFinish, selectedOptions.length],
-    );
+        onFinish(CONST.IOU.TYPE.SUBMIT);
+    };
 
-    const showLoadingPlaceholder = useMemo(() => !areOptionsInitialized || !didScreenTransitionEnd, [areOptionsInitialized, didScreenTransitionEnd]);
+    const showLoadingPlaceholder = !areOptionsInitialized || !didScreenTransitionEnd;
 
-    const footerContent = useMemo(() => {
+    const getFooterContent = () => {
         if (!shouldShowErrorMessage && !selectedOptions.length) {
             return;
         }
@@ -201,17 +188,16 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 />
             </>
         );
-    }, [handleConfirmSelection, selectedOptions.length, shouldShowErrorMessage, styles, translate]);
+    };
+    const footerContent = getFooterContent();
 
-    /**
-     * Returns the sections needed for the OptionsSelector
-     */
-    const [sections, header] = useMemo(() => {
-        const newSections: Array<SectionListDataType<OptionData>> = [];
-        if (!areOptionsInitialized || !didScreenTransitionEnd) {
-            return [newSections, ''];
-        }
-
+    let sections: Array<Section<OptionData>>;
+    let header: string;
+    if (!areOptionsInitialized || !didScreenTransitionEnd) {
+        sections = [];
+        header = '';
+    } else {
+        const newSections: Array<Section<OptionData>> = [];
         const cleanSearchTerm = searchTerm.trim().toLowerCase();
         const formatResults = formatSectionsFromSearchTerm(
             cleanSearchTerm,
@@ -227,6 +213,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
 
         newSections.push({
             ...formatResults.section,
+            sectionIndex: 0,
             data: formatResults.section.data as OptionData[],
         });
 
@@ -234,6 +221,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             newSections.push({
                 title: translate('common.recents'),
                 data: orderedAvailableOptions.recentReports,
+                sectionIndex: 1,
             });
         }
 
@@ -241,6 +229,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             newSections.push({
                 title: translate('common.contacts'),
                 data: orderedAvailableOptions.personalDetails,
+                sectionIndex: 2,
             });
         }
 
@@ -264,67 +253,53 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                         ? getPolicyExpenseReportOption(participant, currentUserAccountID, personalDetails, reportAttributesDerived)
                         : getParticipantsOption(participant, personalDetails);
                 }) as OptionData[],
-                shouldShow: true,
+                sectionIndex: 3,
             });
         }
 
-        const headerMessage = getHeaderMessage(
+        header = getHeaderMessage(
             formatResults.section.data.length + (orderedAvailableOptions.personalDetails ?? []).length + (orderedAvailableOptions.recentReports ?? []).length !== 0,
             !!orderedAvailableOptions?.userToInvite,
             cleanSearchTerm,
             countryCode,
             attendees.some((attendee) => getPersonalDetailSearchTerms(attendee, currentUserAccountID).join(' ').toLowerCase().includes(cleanSearchTerm)),
         );
+        sections = newSections;
+    }
 
-        return [newSections, headerMessage];
-    }, [
-        areOptionsInitialized,
-        didScreenTransitionEnd,
-        searchTerm,
-        initialSelectedOptions,
-        attendees,
-        orderedAvailableOptions.recentReports,
-        orderedAvailableOptions.personalDetails,
-        orderedAvailableOptions.userToInvite,
-        personalDetails,
-        reportAttributesDerived,
-        loginList,
-        countryCode,
-        translate,
-        currentUserAccountID,
-        currentUserEmail,
-    ]);
+    const optionLength = !areOptionsInitialized ? 0 : sections.reduce((acc, section) => acc + (section.data?.length ?? 0), 0);
 
-    const optionLength = useMemo(() => {
-        if (!areOptionsInitialized) {
-            return 0;
-        }
-        return sections.reduce((acc, section) => acc + (section.data?.length ?? 0), 0);
-    }, [areOptionsInitialized, sections]);
+    const shouldShowListEmptyContent = optionLength === 0 && !showLoadingPlaceholder;
 
-    const shouldShowListEmptyContent = useMemo(() => optionLength === 0 && !showLoadingPlaceholder, [optionLength, showLoadingPlaceholder]);
+    const textInputOptions = {
+        label: translate('selectionList.nameEmailOrPhoneNumber'),
+        hint: offlineMessage,
+        value: searchTerm,
+        onChangeText: setSearchTerm,
+        headerMessage: header,
+        disableAutoCorrect: true,
+    };
 
     return (
-        <SelectionList
-            onConfirm={handleConfirmSelection}
-            sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
+        <SelectionListWithSections
+            sections={areOptionsInitialized ? sections : getEmptyArray<Section<OptionData>>()}
             ListItem={InviteMemberListItem}
-            textInputValue={searchTerm}
-            textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-            textInputHint={offlineMessage}
-            onChangeText={setSearchTerm}
-            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
             onSelectRow={toggleSelection}
-            shouldSingleExecuteRowSelect
+            textInputOptions={textInputOptions}
+            confirmButtonOptions={{
+                onConfirm: handleConfirmSelection,
+            }}
             footerContent={footerContent}
-            autoCorrect={false}
-            listEmptyContent={<EmptySelectionListContent contentType={iouType} />}
-            headerMessage={header}
-            showLoadingPlaceholder={showLoadingPlaceholder}
-            canSelectMultiple
             isLoadingNewOptions={!!isSearchingForReports}
-            shouldShowListEmptyContent={shouldShowListEmptyContent}
+            showLoadingPlaceholder={showLoadingPlaceholder}
+            showListEmptyContent={shouldShowListEmptyContent}
+            listEmptyContent={<EmptySelectionListContent contentType={iouType} />}
+            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
             onEndReached={onListEndReached}
+            disableMaintainingScrollPosition
+            shouldSingleExecuteRowSelect
+            shouldShowTextInput
+            canSelectMultiple
         />
     );
 }

@@ -106,7 +106,7 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM}
                 onSubmit={submit}
                 validate={validate}
-                submitButtonText={translate('iou.sendInvoice', {amount: formattedAmount})}
+                submitButtonText={translate('iou.sendInvoice', formattedAmount)}
                 enabledWhenOffline
             >
                 <InputWrapper
