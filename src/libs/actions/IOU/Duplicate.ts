@@ -24,7 +24,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
-import type {CreateDistanceRequestInformation, CreateTrackExpenseParams, RequestMoneyInformation} from '.';
+import type {CreateDistanceRequestInformation, CreateTrackExpenseParams, PerDiemExpenseInformation, RequestMoneyInformation} from '.';
 import {
     createDistanceRequest,
     getAllReportActionsFromIOU,
@@ -38,6 +38,7 @@ import {
     getRecentWaypoints,
     getUserAccountID,
     requestMoney,
+    submitPerDiemExpense,
     trackExpense,
 } from '.';
 
@@ -242,8 +243,12 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
         },
     };
 
-    const optimisticData: OnyxUpdate[] = [];
-    const failureData: OnyxUpdate[] = [];
+    const optimisticData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>
+    > = [];
+    const failureData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>
+    > = [];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [];
 
     optimisticData.push(
@@ -466,8 +471,8 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
         },
     };
 
-    const optimisticData: OnyxUpdate[] = [];
-    const failureData: OnyxUpdate[] = [];
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
 
     optimisticData.push(optimisticTransactionData, ...optimisticTransactionViolations, ...optimisticHoldActions, ...optimisticHoldTransactionActions, optimisticReportActionData);
     failureData.push(failureTransactionData, ...failureTransactionViolations, ...failureHoldActions, ...failureHoldTransactionActions, failureReportActionData);
@@ -530,6 +535,12 @@ function duplicateExpenseTransaction({
     const participants = getMoneyRequestParticipantsFromReport(targetReport, userAccountID);
     const transactionDetails = getTransactionDetails(transaction);
 
+    // Exclude linkedTrackedExpenseReportAction from the original transaction to avoid reportID collisions
+    // when duplicating split expenses that were removed from a report. linkedTrackedExpenseReportAction.childReportID
+    // gets used as existingTransactionThreadReportID in getMoneyRequestInformation, which would cause the backend
+    // to try to create a transaction thread report with an ID that already exists.
+    const {linkedTrackedExpenseReportAction, ...transactionWithoutLinkedAction} = transaction;
+
     const params: RequestMoneyInformation = {
         report: targetReport,
         optimisticChatReportID,
@@ -544,7 +555,7 @@ function duplicateExpenseTransaction({
         gpsPoint: undefined,
         action: CONST.IOU.ACTION.CREATE,
         transactionParams: {
-            ...transaction,
+            ...transactionWithoutLinkedAction,
             ...transactionDetails,
             attendees: transactionDetails?.attendees as Attendee[] | undefined,
             comment: Parser.htmlToMarkdown(transactionDetails?.comment ?? ''),
@@ -632,6 +643,19 @@ function duplicateExpenseTransaction({
                 recentWaypoints,
             };
             return createDistanceRequest(distanceParams);
+        }
+        case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM: {
+            const perDiemParams: PerDiemExpenseInformation = {
+                ...params,
+                transactionParams: {
+                    ...(params.transactionParams ?? {}),
+                    comment: transactionDetails?.comment ?? '',
+                    customUnit: transaction?.comment?.customUnit ?? {},
+                },
+                hasViolations: false,
+                customUnitPolicyID,
+            };
+            return submitPerDiemExpense(perDiemParams);
         }
         default:
             return requestMoney(params);
