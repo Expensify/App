@@ -162,9 +162,6 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
         /** Whether the main composer was hidden */
         didHideComposerInput?: boolean;
 
-        /** Whether the composer is editing in composer */
-        isEditingInComposer: boolean;
-
         /** Reference to the outer element */
         ref?: Ref<ComposerWithSuggestionsRef | null>;
     };
@@ -211,7 +208,6 @@ function ComposerWithSuggestions({
     lastReportAction,
     isGroupPolicyReport,
     policyID,
-    isEditingInComposer,
 
     // Focus
     onFocus,
@@ -274,42 +270,26 @@ function ComposerWithSuggestions({
         }
         return initialValue;
     });
+
     const [selection, setSelection] = useState<TextSelection>(() => currentEditMessageSelection ?? {start: value.length, end: value.length, positionX: 0, positionY: 0});
 
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const commentRef = useRef(value);
 
-    // Focus the composer when editing in composer
-    useEffect(() => {
-        if (!isEditingInComposer) {
-            return;
-        }
-
-        composerRef.current?.focus();
-    }, [currentEditMessageSelection, isEditingInComposer, value.length]);
-
-    // Reset the composer value when the app extends to wide layout,
-    // because the inline composer is showing up
-    useEffect(() => {
-        if (!editingReportActionID || shouldUseNarrowLayout) {
-            return;
-        }
-
-        setValue('');
-    }, [editingReportActionID, shouldUseNarrowLayout]);
-
     useEffect(() => {
         if (!shouldUseNarrowLayout || !editingReportActionID) {
+            setValue('');
             return;
         }
 
         const nextValue = editingMessage ?? draftComment ?? '';
-
-        emojisPresentBefore.current = extractEmojis(nextValue);
-        setValue(nextValue);
         commentRef.current = nextValue;
-    }, [editingMessage, draftComment, shouldUseNarrowLayout, editingReportActionID]);
+        emojisPresentBefore.current = extractEmojis(nextValue);
+
+        setValue(nextValue);
+        composerRef.current?.focus();
+    }, [draftComment, editingMessage, editingReportActionID, shouldUseNarrowLayout]);
 
     const {superWideRHPRouteKeys} = useWideRHPState();
     // When SearchReport is stacked above another RHP, delay autofocus until after the transition completes to avoid animation jank

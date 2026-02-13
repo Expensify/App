@@ -165,7 +165,7 @@ function ReportActionCompose({
         canBeMissing: true,
     });
 
-    const {editingReportActionID, editingReportAction, editingMessage, setActiveEdit} = useReportActionActiveEdit();
+    const {editingReportActionID, editingReportAction, editingMessage} = useReportActionActiveEdit();
 
     const isEditingInComposer = shouldUseNarrowLayout && !!editingReportActionID;
 
@@ -352,8 +352,7 @@ function ReportActionCompose({
 
     const deleteDraftMessage = useCallback(() => {
         deleteDraft();
-        setActiveEdit(null);
-    }, [deleteDraft, setActiveEdit]);
+    }, [deleteDraft]);
 
     /**
      * Add or edit a comment in the composer
@@ -365,7 +364,6 @@ function ReportActionCompose({
             if (isEditingInComposer && !attachmentFileRef.current) {
                 publishDraft(draftMessageTrimmed);
                 deleteDraft();
-                setActiveEdit(null);
                 return;
             }
 
@@ -408,7 +406,6 @@ function ReportActionCompose({
             isConciergeChat,
             publishDraft,
             deleteDraft,
-            setActiveEdit,
             kickoffWaitingIndicator,
             transactionThreadReport,
             report,
@@ -639,9 +636,9 @@ function ReportActionCompose({
                             onBlur={onBlur}
                             measureParentContainer={measureContainer}
                             onValueChange={onValueChange}
-                            isEditingInComposer={isEditingInComposer}
                             didHideComposerInput={didHideComposerInput}
                             forwardedFSClass={fsClass}
+                            key={editingReportActionID}
                         />
                         {shouldDisplayDualDropZone && (
                             <DualDropZone

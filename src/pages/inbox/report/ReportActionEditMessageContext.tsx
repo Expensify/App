@@ -1,4 +1,4 @@
-import React, {createContext, useContext, useEffect, useState} from 'react';
+import React, {createContext, useCallback, useContext, useEffect, useState} from 'react';
 import type {TextSelection} from '@components/Composer/types';
 import useOnyx from '@hooks/useOnyx';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -13,8 +13,6 @@ type ReportActionActiveEdit = {
 };
 
 type ReportActionEditMessageContextValue = ReportActionActiveEdit & {
-    setActiveEdit: (activeEdit: ReportActionActiveEdit | null) => void;
-
     currentEditMessageSelection: TextSelection | null;
     setCurrentEditMessageSelection: (selection: TextSelection) => void;
 };
@@ -23,8 +21,6 @@ const ReportActionEditMessageContext = createContext<ReportActionEditMessageCont
     editingReportActionID: null,
     editingReportAction: null,
     editingMessage: null,
-    setActiveEdit: NOOP,
-
     currentEditMessageSelection: null,
     setCurrentEditMessageSelection: NOOP,
 });
@@ -52,24 +48,24 @@ function ReportActionEditMessageContextProvider({reportID, children}: ReportActi
         setEditingMessage(activeEdit?.editingMessage ?? null);
     }
 
-    function setCurrentEditMessageSelection(selection: TextSelection) {
-        if (!editingReportActionID) {
-            return;
-        }
+    const setCurrentEditMessageSelection = useCallback(
+        (selection: TextSelection | null) => {
+            if (!editingReportActionID) {
+                return;
+            }
 
-        setCurrentEditMessageSelectionState(selection);
-    }
+            setCurrentEditMessageSelectionState(selection);
+        },
+        [editingReportActionID],
+    );
 
     // Set the active edit when the report actions or draft comments change
     useEffect(() => {
-        if (editingReportActionID) {
-            return;
-        }
-
         const reportDrafts = reportActionDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`];
 
         if (!reportDrafts) {
             setActiveEdit(null);
+            setCurrentEditMessageSelection(null);
             return;
         }
 
@@ -77,6 +73,7 @@ function ReportActionEditMessageContextProvider({reportID, children}: ReportActi
 
         if (!reportDraftEntry) {
             setActiveEdit(null);
+            setCurrentEditMessageSelection(null);
             return;
         }
 
@@ -87,7 +84,7 @@ function ReportActionEditMessageContextProvider({reportID, children}: ReportActi
             editingReportAction: reportActions?.[reportActionID] ?? null,
             editingMessage: draft.message,
         });
-    }, [editingReportActionID, reportActionDrafts, reportActions, reportID]);
+    }, [editingReportActionID, reportActionDrafts, reportActions, reportID, setCurrentEditMessageSelection]);
 
     return (
         <ReportActionEditMessageContext.Provider
@@ -96,7 +93,6 @@ function ReportActionEditMessageContextProvider({reportID, children}: ReportActi
                 editingReportActionID,
                 editingReportAction,
                 editingMessage,
-                setActiveEdit,
                 currentEditMessageSelection,
                 setCurrentEditMessageSelection,
             }}
