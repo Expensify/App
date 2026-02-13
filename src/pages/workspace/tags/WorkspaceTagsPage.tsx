@@ -9,7 +9,6 @@ import EmployeesSeeTagsAsText from '@components/EmployeesSeeTagsAsText';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
-import LottieAnimations from '@components/LottieAnimations';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -24,6 +23,7 @@ import Text from '@components/Text';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useEnvironment from '@hooks/useEnvironment';
+import useGenericEmptyStateIllustration from '@hooks/useGenericEmptyStateIllustration';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -114,6 +114,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     }, [policyID]);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT;
     const illustrations = useMemoizedLazyIllustrations(['Tag']);
+    const {headerMediaType, headerMedia, headerContentStyles, lottieWebViewStyles} = useGenericEmptyStateIllustration();
 
     const tagsList = useMemo(() => {
         if (isMultiLevelTags) {
@@ -862,13 +863,13 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     {!hasVisibleTags && !isLoading && (
                         <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                             <EmptyStateComponent
-                                headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-                                headerMedia={LottieAnimations.GenericEmptyState}
+                                headerMediaType={headerMediaType}
+                                headerMedia={headerMedia}
+                                headerContentStyles={headerContentStyles}
+                                lottieWebViewStyles={lottieWebViewStyles}
                                 title={translate('workspace.tags.emptyTags.title')}
                                 subtitleText={subtitleText}
                                 headerStyles={[styles.emptyStateCardIllustrationContainer]}
-                                lottieWebViewStyles={styles.emptyStateFolderWebStyles}
-                                headerContentStyles={styles.emptyStateFolderWebStyles}
                                 buttons={
                                     !hasAccountingConnections
                                         ? [

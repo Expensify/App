@@ -8,7 +8,6 @@ import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import LottieAnimations from '@components/LottieAnimations';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -18,6 +17,7 @@ import type {ListItem} from '@components/SelectionList/ListItem/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import Text from '@components/Text';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
+import useGenericEmptyStateIllustration from '@hooks/useGenericEmptyStateIllustration';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -128,6 +128,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: false});
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const illustrations = useMemoizedLazyIllustrations(['PerDiem']);
+    const {headerMediaType, headerMedia, headerContentStyles, lottieWebViewStyles} = useGenericEmptyStateIllustration();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Gear', 'Table', 'Download', 'Trashcan']);
 
     const [customUnit, allRatesArray, allSubRates] = useMemo(() => {
@@ -482,13 +483,13 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                 {!hasVisibleSubRates && !isLoading && (
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                         <EmptyStateComponent
-                            headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-                            headerMedia={LottieAnimations.GenericEmptyState}
+                            headerMediaType={headerMediaType}
+                            headerMedia={headerMedia}
+                            headerContentStyles={headerContentStyles}
+                            lottieWebViewStyles={lottieWebViewStyles}
                             title={translate('workspace.perDiem.emptyList.title')}
                             subtitle={translate('workspace.perDiem.emptyList.subtitle')}
                             headerStyles={[styles.emptyStateCardIllustrationContainer]}
-                            lottieWebViewStyles={styles.emptyStateFolderWebStyles}
-                            headerContentStyles={styles.emptyStateFolderWebStyles}
                             buttons={[
                                 {
                                     buttonText: translate('spreadsheet.importSpreadsheet'),

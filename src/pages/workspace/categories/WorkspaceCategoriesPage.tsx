@@ -11,7 +11,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
-import LottieAnimations from '@components/LottieAnimations';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -26,6 +25,7 @@ import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurn
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
+import useGenericEmptyStateIllustration from '@hooks/useGenericEmptyStateIllustration';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -92,6 +92,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
     const icons = useMemoizedLazyExpensifyIcons(['Download', 'Gear', 'Table']);
     const illustrations = useMemoizedLazyIllustrations(['FolderOpen']);
+    const {headerMediaType, headerMedia, headerContentStyles, lottieWebViewStyles} = useGenericEmptyStateIllustration();
 
     const {
         taskReport: setupCategoryTaskReport,
@@ -702,13 +703,13 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 {!hasVisibleCategories && !isLoading && inputValue.length === 0 && (
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                         <EmptyStateComponent
-                            headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-                            headerMedia={LottieAnimations.GenericEmptyState}
+                            headerMediaType={headerMediaType}
+                            headerMedia={headerMedia}
+                            headerContentStyles={headerContentStyles}
+                            lottieWebViewStyles={lottieWebViewStyles}
                             title={translate('workspace.categories.emptyCategories.title')}
                             subtitleText={subtitleText}
                             headerStyles={[styles.emptyStateCardIllustrationContainer]}
-                            lottieWebViewStyles={styles.emptyStateFolderWebStyles}
-                            headerContentStyles={styles.emptyStateFolderWebStyles}
                             buttons={
                                 !policyHasAccountingConnections
                                     ? [
