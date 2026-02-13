@@ -50,6 +50,7 @@ import SendButton from './ReportActionCompose/SendButton';
 import Suggestions from './ReportActionCompose/Suggestions';
 import useDebouncedCommentMaxLengthValidation from './ReportActionCompose/useDebouncedCommentMaxLengthValidation';
 import useEditMessage from './ReportActionCompose/useEditMessage';
+import {useReportActionActiveEdit} from './ReportActionEditMessageContext';
 import shouldUseEmojiPickerSelection from './shouldUseEmojiPickerSelection';
 
 type ReportActionItemMessageEditProps = {
@@ -119,7 +120,19 @@ function ReportActionItemMessageEdit({
         }
         return draftMessage;
     });
-    const [selection, setSelection] = useState<TextSelection>({start: draft.length, end: draft.length, positionX: 0, positionY: 0});
+
+    const {setCurrentEditMessageSelection} = useReportActionActiveEdit();
+
+    const [selection, setSelectionState] = useState<TextSelection>({start: draft.length, end: draft.length, positionX: 0, positionY: 0});
+
+    const setSelection = useCallback(
+        (newSelection: TextSelection) => {
+            setSelectionState(newSelection);
+            setCurrentEditMessageSelection({...newSelection, positionX: 0, positionY: 0});
+        },
+        [setSelectionState, setCurrentEditMessageSelection],
+    );
+
     const [isFocused, setIsFocused] = useState<boolean>(false);
 
     const {debouncedCommentMaxLengthValidation, isExceedingMaxLength} = useDebouncedCommentMaxLengthValidation({reportID});
@@ -244,7 +257,7 @@ function ReportActionItemMessageEdit({
             debouncedSaveDraft(newDraft);
             isCommentPendingSaved.current = true;
         },
-        [raiseIsScrollLayoutTriggered, debouncedSaveDraft, preferredSkinTone, preferredLocale, selection.end],
+        [raiseIsScrollLayoutTriggered, preferredSkinTone, preferredLocale, debouncedSaveDraft, selection?.end, setSelection],
     );
 
     useEffect(() => {

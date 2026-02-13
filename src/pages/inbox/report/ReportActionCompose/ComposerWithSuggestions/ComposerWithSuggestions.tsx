@@ -43,7 +43,7 @@ import getScrollPosition from '@pages/inbox/report/ReportActionCompose/getScroll
 import type {SuggestionsRef} from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
 import SilentCommentUpdater from '@pages/inbox/report/ReportActionCompose/SilentCommentUpdater';
 import Suggestions from '@pages/inbox/report/ReportActionCompose/Suggestions';
-import type {ActiveEdit} from '@pages/inbox/report/ReportActionCompose/types';
+import {useReportActionActiveEdit} from '@pages/inbox/report/ReportActionEditMessageContext';
 import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
 import type {OnEmojiSelected} from '@userActions/EmojiPickerAction';
 import {inputFocusChange} from '@userActions/InputFocus';
@@ -165,12 +165,6 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
         /** Whether the composer is editing in composer */
         isEditingInComposer: boolean;
 
-        /** The active edit */
-        activeEdit?: ActiveEdit | null;
-
-        /** Function to set the active edit */
-        setActiveEdit: (activeEdit: ActiveEdit | null) => void;
-
         /** Reference to the outer element */
         ref?: Ref<ComposerWithSuggestionsRef | null>;
     };
@@ -218,8 +212,6 @@ function ComposerWithSuggestions({
     isGroupPolicyReport,
     policyID,
     isEditingInComposer,
-    activeEdit,
-    setActiveEdit,
 
     // Focus
     onFocus,
@@ -272,8 +264,10 @@ function ComposerWithSuggestions({
 
     const composerRef = useRef<ComposerRef | null>(null);
 
+    const {editingReportActionID, editingMessage, currentEditMessageSelection, setCurrentEditMessageSelection} = useReportActionActiveEdit();
+
     const [value, setValue] = useState(() => {
-        const initialValue = shouldUseNarrowLayout ? (activeEdit?.message ?? draftComment) : draftComment;
+        const initialValue = shouldUseNarrowLayout ? (editingMessage ?? draftComment) : draftComment;
 
         if (initialValue) {
             emojisPresentBefore.current = extractEmojis(initialValue);
@@ -293,32 +287,32 @@ function ComposerWithSuggestions({
         }
 
         composerRef.current?.focus();
-        if (activeEdit?.currentSelection) {
-            setSelection(activeEdit?.currentSelection ?? {start: value.length, end: value.length, positionX: 0, positionY: 0});
+        if (currentEditMessageSelection) {
+            setSelection(currentEditMessageSelection ?? {start: value.length, end: value.length, positionX: 0, positionY: 0});
         }
-    }, [activeEdit?.currentSelection, isEditingInComposer, value.length]);
+    }, [currentEditMessageSelection, isEditingInComposer, value.length]);
 
     // Reset the composer value when the app extends to wide layout,
     // because the inline composer is showing up
     useEffect(() => {
-        if (!activeEdit || shouldUseNarrowLayout) {
+        if (!editingReportActionID || shouldUseNarrowLayout) {
             return;
         }
 
         setValue('');
-    }, [activeEdit, shouldUseNarrowLayout]);
+    }, [editingReportActionID, shouldUseNarrowLayout]);
 
     useEffect(() => {
-        if (!shouldUseNarrowLayout || !activeEdit) {
+        if (!shouldUseNarrowLayout || !editingReportActionID) {
             return;
         }
 
-        const nextValue = activeEdit.message ?? draftComment ?? '';
+        const nextValue = editingMessage ?? draftComment ?? '';
 
         emojisPresentBefore.current = extractEmojis(nextValue);
         setValue(nextValue);
         commentRef.current = nextValue;
-    }, [activeEdit, draftComment, shouldUseNarrowLayout]);
+    }, [editingMessage, draftComment, shouldUseNarrowLayout, editingReportActionID]);
 
     const {superWideRHPRouteKeys} = useWideRHPState();
     // When SearchReport is stacked above another RHP, delay autofocus until after the transition completes to avoid animation jank
@@ -523,8 +517,8 @@ function ComposerWithSuggestions({
 
             commentRef.current = newCommentConverted;
             if (shouldUseNarrowLayout) {
-                if (activeEdit?.reportActionID) {
-                    saveReportActionDraft(reportID, {reportActionID: activeEdit.reportActionID} as OnyxTypes.ReportAction, newCommentConverted);
+                if (editingReportActionID) {
+                    saveReportActionDraft(reportID, {reportActionID: editingReportActionID} as OnyxTypes.ReportAction, newCommentConverted);
                 }
 
                 if (newCommentConverted) {
@@ -541,19 +535,19 @@ function ComposerWithSuggestions({
             }
         },
         [
-            findNewlyAddedChars,
-            preferredLocale,
-            preferredSkinTone,
-            reportID,
-            setIsCommentEmpty,
-            suggestionsRef,
             raiseIsScrollLikelyLayoutTriggered,
-            debouncedSaveReportComment,
-            activeEdit?.reportActionID,
-            shouldUseNarrowLayout,
-            selection?.end,
             selection?.start,
+            selection.end,
+            findNewlyAddedChars,
+            preferredSkinTone,
+            preferredLocale,
+            shouldUseNarrowLayout,
+            suggestionsRef,
+            setIsCommentEmpty,
+            editingReportActionID,
+            reportID,
             currentUserAccountID,
+            debouncedSaveReportComment,
         ],
     );
 
@@ -673,14 +667,16 @@ function ComposerWithSuggestions({
             }
             suggestionsRef.current?.onSelectionChange?.(e);
 
-            if (activeEdit) {
-                setActiveEdit({
-                    ...activeEdit,
-                    currentSelection: e.nativeEvent.selection,
+            if (editingReportActionID) {
+                setCurrentEditMessageSelection({
+                    start: e.nativeEvent.selection.start,
+                    end: e.nativeEvent.selection.end,
+                    positionX: 0,
+                    positionY: 0,
                 });
             }
         },
-        [activeEdit, setActiveEdit, suggestionsRef],
+        [editingReportActionID, setCurrentEditMessageSelection, suggestionsRef],
     );
 
     const hideSuggestionMenu = useCallback(

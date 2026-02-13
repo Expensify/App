@@ -60,6 +60,7 @@ import {getTransactionID, hasReceipt as hasReceiptTransactionUtils} from '@libs/
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import AgentZeroProcessingRequestIndicator from '@pages/inbox/report/AgentZeroProcessingRequestIndicator';
 import ParticipantLocalTime from '@pages/inbox/report/ParticipantLocalTime';
+import {useReportActionActiveEdit} from '@pages/inbox/report/ReportActionEditMessageContext';
 import ReportTypingIndicator from '@pages/inbox/report/ReportTypingIndicator';
 import {hideEmojiPicker, isActive as isActiveEmojiPickerAction, isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
 import {addAttachmentWithComment, setIsComposerFullSize} from '@userActions/Report';
@@ -75,7 +76,6 @@ import ComposerWithSuggestions from './ComposerWithSuggestions';
 import type {ComposerWithSuggestionsProps, ComposerWithSuggestionsRef} from './ComposerWithSuggestions/ComposerWithSuggestions';
 import MessageEditCancelButton from './MessageEditCancelButton';
 import SendButton from './SendButton';
-import type {ActiveEdit} from './types';
 import useAttachmentUploadValidation from './useAttachmentUploadValidation';
 import useDebouncedCommentMaxLengthValidation from './useDebouncedCommentMaxLengthValidation';
 import useEditMessage from './useEditMessage';
@@ -159,45 +159,15 @@ function ReportActionCompose({
     const [initialModalState] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
     const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, {canBeMissing: true});
-    const [reportActionDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS, {canBeMissing: true});
 
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {
         canEvict: false,
         canBeMissing: true,
     });
 
-    const [activeEdit, setActiveEdit] = useState<ActiveEdit | null>(null);
+    const {editingReportActionID, editingReportAction, editingMessage, setActiveEdit} = useReportActionActiveEdit();
 
-    // Set the active edit when the report actions or draft comments change
-    useEffect(() => {
-        if (activeEdit) {
-            return;
-        }
-
-        const reportDrafts = reportActionDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`];
-
-        if (!reportDrafts) {
-            setActiveEdit(null);
-            return;
-        }
-
-        const reportDraftEntry = Object.entries(reportDrafts).find(([, draft]) => draft?.message);
-
-        if (!reportDraftEntry) {
-            setActiveEdit(null);
-            return;
-        }
-
-        const [reportActionID, draft] = reportDraftEntry;
-
-        setActiveEdit({
-            reportActionID,
-            reportAction: reportActions?.[reportActionID] ?? null,
-            message: draft.message,
-        });
-    }, [activeEdit, reportActionDrafts, reportActions, reportID]);
-
-    const isEditingInComposer = shouldUseNarrowLayout && !!activeEdit;
+    const isEditingInComposer = shouldUseNarrowLayout && !!editingReportActionID;
 
     const isEditingLastReportAction = useMemo(() => {
         if (!reportActions) {
@@ -206,8 +176,8 @@ function ReportActionCompose({
 
         const lastIndex = Object.keys(reportActions).length - 1;
 
-        return activeEdit?.reportActionID === reportActions[lastIndex]?.reportActionID;
-    }, [activeEdit?.reportActionID, reportActions]);
+        return editingReportActionID === reportActions[lastIndex]?.reportActionID;
+    }, [editingReportActionID, reportActions]);
 
     const shouldFocusComposerOnScreenFocus = shouldFocusInputOnScreenFocus || !!draftComment;
 
@@ -226,7 +196,7 @@ function ReportActionCompose({
 
     const {isScrollLayoutTriggered, raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();
 
-    const effectiveDraft = shouldUseNarrowLayout ? activeEdit?.message : draftComment;
+    const effectiveDraft = shouldUseNarrowLayout ? editingMessage : draftComment;
 
     const [isCommentEmpty, setIsCommentEmpty] = useState(() => {
         return !effectiveDraft || !!effectiveDraft.match(CONST.REGEX.EMPTY_COMMENT);
@@ -373,7 +343,7 @@ function ReportActionCompose({
 
     const {publishDraft, deleteDraft} = useEditMessage({
         reportID,
-        reportAction: activeEdit?.reportAction,
+        reportAction: editingReportAction,
         shouldScrollToLastMessage: isEditingLastReportAction,
         isFocused,
         debouncedCommentMaxLengthValidation,
@@ -383,7 +353,7 @@ function ReportActionCompose({
     const deleteDraftMessage = useCallback(() => {
         deleteDraft();
         setActiveEdit(null);
-    }, [deleteDraft]);
+    }, [deleteDraft, setActiveEdit]);
 
     /**
      * Add or edit a comment in the composer
@@ -438,6 +408,7 @@ function ReportActionCompose({
             isConciergeChat,
             publishDraft,
             deleteDraft,
+            setActiveEdit,
             kickoffWaitingIndicator,
             transactionThreadReport,
             report,
@@ -476,9 +447,9 @@ function ReportActionCompose({
     }, [onComposerFocus]);
 
     useEffect(() => {
-        const valueToCheck = shouldUseNarrowLayout ? activeEdit?.message : draftComment;
+        const valueToCheck = shouldUseNarrowLayout ? editingMessage : draftComment;
         setIsCommentEmpty(!valueToCheck || !!valueToCheck.match(CONST.REGEX.EMPTY_COMMENT));
-    }, [activeEdit?.message, draftComment, shouldUseNarrowLayout]);
+    }, [editingMessage, draftComment, shouldUseNarrowLayout]);
 
     // We are returning a callback here as we want to invoke the method on unmount only
     useEffect(
@@ -669,8 +640,6 @@ function ReportActionCompose({
                             measureParentContainer={measureContainer}
                             onValueChange={onValueChange}
                             isEditingInComposer={isEditingInComposer}
-                            activeEdit={activeEdit}
-                            setActiveEdit={setActiveEdit}
                             didHideComposerInput={didHideComposerInput}
                             forwardedFSClass={fsClass}
                         />
