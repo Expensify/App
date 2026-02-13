@@ -26,7 +26,16 @@ type LHNAvatarProps = {
  * Lightweight avatar component for LHN rows. Renders pre-computed icons
  * directly using Avatar, avoiding the heavy hooks in ReportActionAvatars.
  */
-function LHNAvatar({icons, shouldShowSubscript, size, secondaryAvatarBackgroundColor, singleAvatarContainerStyle, subscriptAvatarBorderColor, useMidSubscriptSize, shouldShowTooltip = false}: LHNAvatarProps) {
+function LHNAvatar({
+    icons,
+    shouldShowSubscript,
+    size,
+    secondaryAvatarBackgroundColor,
+    singleAvatarContainerStyle,
+    subscriptAvatarBorderColor,
+    useMidSubscriptSize,
+    shouldShowTooltip = false,
+}: LHNAvatarProps) {
     const theme = useTheme();
 
     const primaryIcon = icons.at(0);
