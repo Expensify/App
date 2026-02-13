@@ -38,7 +38,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
     // We first check if the report is part of a policy - if not, then it's a personal request (1:1 request)
     // For personal requests, we need to allow both users to put the request on hold
     const isWorkspaceRequest = isReportInGroupPolicy(report);
-    const isApprover = parentReportOwnerAccountID !== currentUserAccountID;
+    const isApprover = parentReportOwnerAccountID != null && parentReportOwnerAccountID !== currentUserAccountID;
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
 
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
