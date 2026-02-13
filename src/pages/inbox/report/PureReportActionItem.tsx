@@ -579,8 +579,6 @@ function PureReportActionItem({
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const isEditingInline = !shouldUseNarrowLayout && draftMessage !== undefined;
 
-    console.log({isEditingInline, draftMessage, shouldUseNarrowLayout});
-
     const isHarvestCreatedExpenseReport = isHarvestCreatedExpenseReportUtils(reportNameValuePairsOrigin, reportNameValuePairsOriginalID);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Eye'] as const);
 
