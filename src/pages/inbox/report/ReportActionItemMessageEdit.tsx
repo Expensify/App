@@ -1,39 +1,29 @@
 import lodashDebounce from 'lodash/debounce';
-import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import type {BlurEvent, MeasureInWindowOnSuccessCallback, TextInput, TextInputKeyPressEvent, TextInputScrollEvent} from 'react-native';
+import type {BlurEvent, MeasureInWindowOnSuccessCallback, TextInputKeyPressEvent, TextInputScrollEvent} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import {useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
 import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
 import Composer from '@components/Composer';
-import type {TextSelection} from '@components/Composer/types';
+import type {ComposerRef, TextSelection} from '@components/Composer/types';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
-import Icon from '@components/Icon';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import Tooltip from '@components/Tooltip';
-import useAncestors from '@hooks/useAncestors';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 import useKeyboardState from '@hooks/useKeyboardState';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
-import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollBlocker from '@hooks/useScrollBlocker';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setShouldShowComposeInput} from '@libs/actions/Composer';
 import {clearActive, isActive as isEmojiPickerActive, isEmojiPickerVisible} from '@libs/actions/EmojiPickerAction';
 import {composerFocusKeepFocusOn} from '@libs/actions/InputFocus';
-import {editReportComment, saveReportActionDraft} from '@libs/actions/Report';
+import {saveReportActionDraft} from '@libs/actions/Report';
 import {isMobileChrome} from '@libs/Browser';
 import {canSkipTriggerHotkeys, insertText} from '@libs/ComposerUtils';
 import DomUtils from '@libs/DomUtils';
@@ -41,12 +31,10 @@ import draftMessageVideoAttributeCache from '@libs/DraftMessageVideoAttributeCac
 import {extractEmojis, getZWNJCursorOffset, insertZWNJBetweenDigitAndEmoji, replaceAndExtractEmojis} from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import type {Selection} from '@libs/focusComposerWithDelay/types';
-import focusEditAfterCancelDelete from '@libs/focusEditAfterCancelDelete';
 import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import reportActionItemEventHandler from '@libs/ReportActionItemEventHandler';
 import {getReportActionHtml, isDeletedAction} from '@libs/ReportActionsUtils';
-import {getOriginalReportID} from '@libs/ReportUtils';
 import setShouldShowComposeInputKeyboardAware from '@libs/setShouldShowComposeInputKeyboardAware';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -58,8 +46,10 @@ import getCursorPosition from './ReportActionCompose/getCursorPosition';
 import getScrollPosition from './ReportActionCompose/getScrollPosition';
 import MessageEditCancelButton from './ReportActionCompose/MessageEditCancelButton';
 import type {SuggestionsRef} from './ReportActionCompose/ReportActionCompose';
+import SendButton from './ReportActionCompose/SendButton';
 import Suggestions from './ReportActionCompose/Suggestions';
-import useDeleteDraft from './ReportActionCompose/useDeleteDraft';
+import useDebouncedCommentMaxLengthValidation from './ReportActionCompose/useDebouncedCommentMaxLengthValidation';
+import useEditMessage from './ReportActionCompose/useEditMessage';
 import shouldUseEmojiPickerSelection from './shouldUseEmojiPickerSelection';
 
 type ReportActionItemMessageEditProps = {
@@ -88,7 +78,7 @@ type ReportActionItemMessageEditProps = {
     isGroupPolicyReport: boolean;
 
     /** Reference to the outer element */
-    ref?: ForwardedRef<TextInput | HTMLTextAreaElement | undefined>;
+    ref?: React.Ref<ComposerRef | undefined>;
 };
 
 const shouldUseForcedSelectionRange = shouldUseEmojiPickerSelection();
@@ -110,13 +100,11 @@ function ReportActionItemMessageEdit({
     ref,
 }: ReportActionItemMessageEditProps) {
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
-    const {email} = useCurrentUserPersonalDetails();
-    const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const containerRef = useRef<View>(null);
     const reportScrollManager = useReportScrollManager();
-    const {translate, preferredLocale} = useLocalize();
+    const {preferredLocale} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const prevDraftMessage = usePrevious(draftMessage);
@@ -133,8 +121,8 @@ function ReportActionItemMessageEdit({
     });
     const [selection, setSelection] = useState<TextSelection>({start: draft.length, end: draft.length, positionX: 0, positionY: 0});
     const [isFocused, setIsFocused] = useState<boolean>(false);
-    const {hasExceededMaxCommentLength, validateCommentMaxLength} = useHandleExceedMaxCommentLength();
-    const debouncedValidateCommentMaxLength = useMemo(() => lodashDebounce(validateCommentMaxLength, CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME), [validateCommentMaxLength]);
+
+    const {debouncedCommentMaxLengthValidation, isExceedingMaxLength} = useDebouncedCommentMaxLengthValidation({reportID});
 
     const {isScrollLayoutTriggered, raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();
 
@@ -143,19 +131,12 @@ function ReportActionItemMessageEdit({
 
     const {isScrolling, startScrollBlock, endScrollBlock} = useScrollBlocker();
 
-    const textInputRef = useRef<(HTMLTextAreaElement & TextInput) | null>(null);
+    const composerRef = useRef<ComposerRef | null>(null);
     const isFocusedRef = useRef<boolean>(false);
     const draftRef = useRef(draft);
     const emojiPickerSelectionRef = useRef<Selection | undefined>(undefined);
     // The ref to check whether the comment saving is in progress
     const isCommentPendingSaved = useRef(false);
-    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {canBeMissing: true});
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {canBeMissing: true});
-    const isOriginalReportArchived = useReportIsArchived(originalReportID);
-    const originalParentReportID = getOriginalReportID(originalReportID, action, reportActions);
-    const isOriginalParentReportArchived = useReportIsArchived(originalParentReportID);
-    const ancestors = useAncestors(originalReport);
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close']);
 
     useEffect(() => {
         draftMessageVideoAttributeCache.clear();
@@ -170,17 +151,17 @@ function ReportActionItemMessageEdit({
     }, [draftMessage, action, prevDraftMessage]);
 
     useEffect(() => {
-        composerFocusKeepFocusOn(textInputRef.current as HTMLElement, isFocused, modal, onyxInputFocused);
+        composerFocusKeepFocusOn(composerRef.current as HTMLElement, isFocused, modal, onyxInputFocused);
     }, [isFocused, modal, onyxInputFocused]);
 
     useEffect(
         // Remove focus callback on unmount to avoid stale callbacks
         () => {
-            if (textInputRef.current) {
-                ReportActionComposeFocusManager.editComposerRef.current = textInputRef.current;
+            if (composerRef.current) {
+                ReportActionComposeFocusManager.editComposerRef.current = composerRef.current;
             }
             return () => {
-                if (ReportActionComposeFocusManager.editComposerRef.current !== textInputRef.current) {
+                if (ReportActionComposeFocusManager.editComposerRef.current !== composerRef.current) {
                     return;
                 }
                 ReportActionComposeFocusManager.clear(true);
@@ -194,7 +175,7 @@ function ReportActionItemMessageEdit({
      * @param shouldDelay - Impose delay before focusing the composer
      */
     const focus = useCallback((shouldDelay = false, forcedSelectionRange?: Selection) => {
-        focusComposerWithDelay(textInputRef.current)(shouldDelay, forcedSelectionRange);
+        focusComposerWithDelay(composerRef.current)(shouldDelay, forcedSelectionRange);
     }, []);
 
     // Take over focus priority
@@ -271,50 +252,9 @@ function ReportActionItemMessageEdit({
         // eslint-disable-next-line react-hooks/exhaustive-deps -- run this only when language is changed
     }, [action.reportActionID, preferredLocale]);
 
-    const deleteDraft = useDeleteDraft({reportID, reportAction: action, index, isFocused});
+    const {publishDraft, deleteDraft} = useEditMessage({reportID, originalReportID, reportAction: action, index, isFocused, debouncedCommentMaxLengthValidation, composerRef});
 
-    /**
-     * Save the draft of the comment to be the new comment message. This will take the comment out of "edit mode" with
-     * the new content.
-     */
-    const publishDraft = useCallback(() => {
-        // Do nothing if draft exceed the character limit
-        if (!debouncedValidateCommentMaxLength.flush()) {
-            return;
-        }
-
-        const trimmedNewDraft = draft.trim();
-
-        // When user tries to save the empty message, it will delete it. Prompt the user to confirm deleting.
-        if (!trimmedNewDraft) {
-            textInputRef.current?.blur();
-            ReportActionContextMenu.showDeleteModal(originalReportID ?? reportID, action, true, deleteDraft, () => focusEditAfterCancelDelete(textInputRef.current));
-            return;
-        }
-        editReportComment(
-            originalReport,
-            action,
-            ancestors,
-            trimmedNewDraft,
-            isOriginalReportArchived,
-            isOriginalParentReportArchived,
-            email ?? '',
-            Object.fromEntries(draftMessageVideoAttributeCache),
-        );
-        deleteDraft();
-    }, [
-        reportID,
-        action,
-        ancestors,
-        deleteDraft,
-        draft,
-        originalReportID,
-        isOriginalReportArchived,
-        originalReport,
-        isOriginalParentReportArchived,
-        debouncedValidateCommentMaxLength,
-        email,
-    ]);
+    const publishDraftMessage = useCallback(() => publishDraft(draft), [publishDraft, draft]);
 
     /**
      * @param emoji
@@ -378,13 +318,13 @@ function ReportActionItemMessageEdit({
             }
             if (keyEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !keyEvent.shiftKey) {
                 e.preventDefault();
-                publishDraft();
+                publishDraftMessage();
             } else if (keyEvent.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey) {
                 e.preventDefault();
                 deleteDraft();
             }
         },
-        [deleteDraft, hideSuggestionMenu, isKeyboardShown, shouldUseNarrowLayout, publishDraft],
+        [deleteDraft, hideSuggestionMenu, isKeyboardShown, shouldUseNarrowLayout, publishDraftMessage],
     );
 
     const measureContainer = useCallback((callback: MeasureInWindowOnSuccessCallback) => {
@@ -397,7 +337,7 @@ function ReportActionItemMessageEdit({
     const measureParentContainerAndReportCursor = useCallback(
         (callback: MeasureParentContainerAndCursorCallback) => {
             const performMeasurement = () => {
-                const {scrollValue} = getScrollPosition({mobileInputScrollPosition, textInputRef});
+                const {scrollValue} = getScrollPosition({mobileInputScrollPosition, textInputRef: composerRef});
                 const {x: xPosition, y: yPosition} = getCursorPosition({positionOnMobile: cursorPositionValue.get(), positionOnWeb: selection});
                 measureContainer((x, y, width, height) => {
                     callback({
@@ -422,7 +362,7 @@ function ReportActionItemMessageEdit({
 
     useEffect(() => {
         // We use the tag to store the native ID of the text input. Later, we use it in onSelectionChange to pick up the proper text input data.
-        tag.set(findNodeHandle(textInputRef.current) ?? -1);
+        tag.set(findNodeHandle(composerRef.current) ?? -1);
     }, [tag]);
     useFocusedInputHandler(
         {
@@ -441,8 +381,8 @@ function ReportActionItemMessageEdit({
     );
 
     useEffect(() => {
-        debouncedValidateCommentMaxLength(draft, {reportID});
-    }, [draft, reportID, debouncedValidateCommentMaxLength]);
+        debouncedCommentMaxLengthValidation(draft);
+    }, [draft, debouncedCommentMaxLengthValidation]);
 
     useEffect(() => {
         // required for keeping last state of isFocused variable
@@ -465,15 +405,15 @@ function ReportActionItemMessageEdit({
                         styles.flexRow,
                         styles.flex1,
                         styles.chatItemComposeBox,
-                        hasExceededMaxCommentLength && styles.borderColorDanger,
+                        isExceedingMaxLength && styles.borderColorDanger,
                     ]}
                 >
                     <MessageEditCancelButton onCancel={deleteDraft} />
                     <View style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}>
                         <Composer
                             multiline
-                            ref={(el: TextInput & HTMLTextAreaElement) => {
-                                textInputRef.current = el;
+                            ref={(el) => {
+                                composerRef.current = el;
                                 if (typeof ref === 'function') {
                                     ref(el);
                                 } else if (ref) {
@@ -489,8 +429,8 @@ function ReportActionItemMessageEdit({
                             style={[styles.textInputCompose, styles.flex1, styles.bgTransparent, styles.textAlignLeft]}
                             onFocus={() => {
                                 setIsFocused(true);
-                                if (textInputRef.current) {
-                                    ReportActionComposeFocusManager.editComposerRef.current = textInputRef.current;
+                                if (composerRef.current) {
+                                    ReportActionComposeFocusManager.editComposerRef.current = composerRef.current;
                                 }
                                 startScrollBlock();
                                 // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -540,7 +480,7 @@ function ReportActionItemMessageEdit({
 
                     <Suggestions
                         ref={suggestionsRef}
-                        isComposerFocused={textInputRef.current?.isFocused()}
+                        isComposerFocused={composerRef.current?.isFocused()}
                         updateComment={updateDraft}
                         measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
                         isGroupPolicyReport={isGroupPolicyReport}
@@ -566,30 +506,14 @@ function ReportActionItemMessageEdit({
                         />
                     </View>
 
-                    <View style={styles.alignSelfEnd}>
-                        <Tooltip text={translate('common.saveChanges')}>
-                            <PressableWithFeedback
-                                style={[styles.chatItemSubmitButton, hasExceededMaxCommentLength ? {} : styles.buttonSuccess]}
-                                onPress={publishDraft}
-                                disabled={hasExceededMaxCommentLength}
-                                role={CONST.ROLE.BUTTON}
-                                accessibilityLabel={translate('common.saveChanges')}
-                                hoverDimmingValue={1}
-                                pressDimmingValue={0.2}
-                                // Keep focus on the composer when send button is clicked.
-                                onMouseDown={(e) => e.preventDefault()}
-                                sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_MESSAGE_EDIT_SAVE_BUTTON}
-                            >
-                                <Icon
-                                    src={icons.Checkmark}
-                                    fill={hasExceededMaxCommentLength ? theme.icon : theme.textLight}
-                                />
-                            </PressableWithFeedback>
-                        </Tooltip>
-                    </View>
+                    <SendButton
+                        isDisabled={isExceedingMaxLength}
+                        onSend={publishDraftMessage}
+                        isEditing
+                    />
                 </View>
             </View>
-            {hasExceededMaxCommentLength && <ExceededCommentLength />}
+            {isExceedingMaxLength && <ExceededCommentLength />}
         </>
     );
 }

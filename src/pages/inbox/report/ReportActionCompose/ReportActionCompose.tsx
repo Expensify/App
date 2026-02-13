@@ -1,4 +1,3 @@
-import lodashDebounce from 'lodash/debounce';
 import noop from 'lodash/noop';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {BlurEvent, MeasureInWindowOnSuccessCallback, TextInputSelectionChangeEvent} from 'react-native';
@@ -20,8 +19,6 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
-import useHandleExceedMaxTaskTitleLength from '@hooks/useHandleExceedMaxTaskTitleLength';
 import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -36,7 +33,6 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
-import draftMessageVideoAttributeCache from '@libs/DraftMessageVideoAttributeCache';
 import FS from '@libs/Fullstory';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Performance from '@libs/Performance';
@@ -66,7 +62,7 @@ import AgentZeroProcessingRequestIndicator from '@pages/inbox/report/AgentZeroPr
 import ParticipantLocalTime from '@pages/inbox/report/ParticipantLocalTime';
 import ReportTypingIndicator from '@pages/inbox/report/ReportTypingIndicator';
 import {hideEmojiPicker, isActive as isActiveEmojiPickerAction, isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
-import {addAttachmentWithComment, deleteReportActionDraft, editReportComment, setIsComposerFullSize} from '@userActions/Report';
+import {addAttachmentWithComment, setIsComposerFullSize} from '@userActions/Report';
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -76,11 +72,12 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
-import type {ComposerRef, ComposerWithSuggestionsProps} from './ComposerWithSuggestions/ComposerWithSuggestions';
+import type {ComposerWithSuggestionsProps, ComposerWithSuggestionsRef} from './ComposerWithSuggestions/ComposerWithSuggestions';
 import MessageEditCancelButton from './MessageEditCancelButton';
 import SendButton from './SendButton';
 import useAttachmentUploadValidation from './useAttachmentUploadValidation';
-import useDeleteDraft from './useDeleteDraft';
+import useDebouncedCommentMaxLengthValidation from './useDebouncedCommentMaxLengthValidation';
+import useEditMessage from './useEditMessage';
 
 type SuggestionsRef = {
     resetSuggestions: () => void;
@@ -150,7 +147,6 @@ function ReportActionCompose({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
-    const {email} = useCurrentUserPersonalDetails();
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
@@ -214,18 +210,10 @@ function ReportActionCompose({
     const [isMenuVisible, setMenuVisibility] = useState(false);
     const [isAttachmentPreviewActive, setIsAttachmentPreviewActive] = useState(false);
 
-    /**
-     * Updates the composer when the comment length is exceeded
-     * Shows red borders and prevents the comment from being sent
-     */
-    const {hasExceededMaxCommentLength, validateCommentMaxLength, setHasExceededMaxCommentLength} = useHandleExceedMaxCommentLength();
-    const {hasExceededMaxTaskTitleLength, validateTaskTitleMaxLength, setHasExceededMaxTitleLength} = useHandleExceedMaxTaskTitleLength();
-    const [exceededMaxLength, setExceededMaxLength] = useState<number | null>(null);
-
     const icons = useMemoizedLazyExpensifyIcons(['MessageInABottle']);
 
     const suggestionsRef = useRef<SuggestionsRef>(null);
-    const composerRef = useRef<ComposerRef | null>(null);
+    const composerRef = useRef<ComposerWithSuggestionsRef | null>(null);
     const reportParticipantIDs = useMemo(
         () =>
             Object.keys(report?.participants ?? {})
@@ -259,14 +247,15 @@ function ReportActionCompose({
 
     const [reportActionDrafts] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`, {canBeMissing: true});
 
-    const editingReportActionID = useMemo(() => {
-        if (!reportActionDrafts) {
-            return null;
+    const [editingReportActionID, setEditingReportActionID] = useState<string | null>(null);
+    useEffect(() => {
+        if (!reportActionDrafts || editingReportActionID) {
+            return;
         }
 
         const entry = Object.entries(reportActionDrafts).find(([, draft]) => draft?.message);
-        return entry?.[0] ?? null;
-    }, [reportActionDrafts]);
+        setEditingReportActionID(entry?.[0] ?? null);
+    }, [editingReportActionID, reportActionDrafts]);
 
     const editingReportAction = useMemo(() => {
         if (!editingReportActionID || !reportActions) {
@@ -276,7 +265,7 @@ function ReportActionCompose({
         return reportActions[editingReportActionID] ?? null;
     }, [editingReportActionID, reportActions]);
 
-    const isEditingInline = shouldUseNarrowLayout && !!editingReportAction;
+    const isEditing = shouldUseNarrowLayout && !!editingReportAction;
 
     const personalDetail = useCurrentUserPersonalDetails();
 
@@ -379,6 +368,15 @@ function ReportActionCompose({
         ComposerFocusManager.setReadyToFocus();
     }, [updateShouldShowSuggestionMenuToFalse]);
 
+    const {debouncedCommentMaxLengthValidation, exceededMaxLength, isExceedingMaxLength, isTaskTitle} = useDebouncedCommentMaxLengthValidation({reportID});
+
+    const {publishDraft, deleteDraft} = useEditMessage({reportID, reportAction: editingReportAction, index: 0, isFocused, debouncedCommentMaxLengthValidation, composerRef});
+
+    const deleteDraftMessage = useCallback(() => {
+        deleteDraft();
+        setEditingReportActionID(null);
+    }, [deleteDraft]);
+
     /**
      * Add a new comment to this chat
      */
@@ -390,9 +388,10 @@ function ReportActionCompose({
                 return;
             }
 
-            if (isEditingInline && !attachmentFileRef.current) {
-                editReportComment(report, editingReportAction, ancestors, newCommentTrimmed, isReportArchived, false, email ?? '', Object.fromEntries(draftMessageVideoAttributeCache));
-                deleteReportActionDraft(reportID, editingReportAction);
+            if (isEditing && !attachmentFileRef.current) {
+                publishDraft(newCommentTrimmed);
+                deleteDraft();
+                setEditingReportActionID(null);
                 return;
             }
 
@@ -427,16 +426,15 @@ function ReportActionCompose({
             }
         },
         [
-            isEditingInline,
+            isEditing,
             isConciergeChat,
-            report,
-            editingReportAction,
-            ancestors,
-            isReportArchived,
-            email,
-            reportID,
+            publishDraft,
+            deleteDraft,
             kickoffWaitingIndicator,
             transactionThreadReport,
+            report,
+            reportID,
+            ancestors,
             currentUserPersonalDetails.accountID,
             personalDetail.timezone,
             isInSidePanel,
@@ -474,16 +472,6 @@ function ReportActionCompose({
         setIsCommentEmpty(!valueToCheck || !!valueToCheck.match(CONST.REGEX.EMPTY_COMMENT));
     }, [activeInlineDraft?.message, draftComment, shouldUseNarrowLayout]);
 
-    useEffect(() => {
-        if (hasExceededMaxTaskTitleLength) {
-            setExceededMaxLength(CONST.TITLE_CHARACTER_LIMIT);
-        } else if (hasExceededMaxCommentLength) {
-            setExceededMaxLength(CONST.MAX_COMMENT_LENGTH);
-        } else {
-            setExceededMaxLength(null);
-        }
-    }, [hasExceededMaxTaskTitleLength, hasExceededMaxCommentLength]);
-
     // We are returning a callback here as we want to invoke the method on unmount only
     useEffect(
         () => () => {
@@ -504,30 +492,15 @@ function ReportActionCompose({
 
     const hasReportRecipient = !isEmptyObject(reportRecipient);
 
-    const isSendDisabled = isCommentEmpty || isBlockedFromConcierge || !!exceededMaxLength;
-
-    const validateMaxLength = useCallback(
-        (value: string) => {
-            const taskCommentMatch = value?.match(CONST.REGEX.TASK_TITLE_WITH_OPTIONAL_SHORT_MENTION);
-            if (taskCommentMatch) {
-                const title = taskCommentMatch?.[3] ? taskCommentMatch[3].trim().replaceAll('\n', ' ') : '';
-                setHasExceededMaxCommentLength(false);
-                return validateTaskTitleMaxLength(title);
-            }
-            setHasExceededMaxTitleLength(false);
-            return validateCommentMaxLength(value, {reportID});
-        },
-        [setHasExceededMaxCommentLength, setHasExceededMaxTitleLength, validateTaskTitleMaxLength, validateCommentMaxLength, reportID],
-    );
-
-    const debouncedValidate = useMemo(() => lodashDebounce(validateMaxLength, CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME, {leading: true}), [validateMaxLength]);
+    const isNewCommentEmpty = isCommentEmpty && !isEditing;
+    const isSendDisabled = !isEditing && (isBlockedFromConcierge || isExceedingMaxLength || isNewCommentEmpty);
 
     // Note: using JS refs is not well supported in reanimated, thus we need to store the function in a shared value
     // useSharedValue on web doesn't support functions, so we need to wrap it in an object.
-    const composerRefShared = useSharedValue<Partial<ComposerRef>>({});
+    const composerRefShared = useSharedValue<Partial<ComposerWithSuggestionsRef>>({});
 
     const handleSendMessage = useCallback(() => {
-        if (isSendDisabled || !debouncedValidate.flush()) {
+        if (isSendDisabled || !debouncedCommentMaxLengthValidation.flush()) {
             return;
         }
 
@@ -545,9 +518,7 @@ function ReportActionCompose({
 
             clearWorklet?.();
         });
-    }, [isSendDisabled, debouncedValidate, isComposerFullSize, reportID, composerRefShared]);
-
-    const deleteDraft = useDeleteDraft({reportID, reportAction: editingReportAction, index: 0, isFocused});
+    }, [isSendDisabled, debouncedCommentMaxLengthValidation, isComposerFullSize, reportID, composerRefShared]);
     onSubmitAction = handleSendMessage;
 
     const emojiPositionValues = useMemo(
@@ -585,9 +556,9 @@ function ReportActionCompose({
             if (value.length === 0 && isComposerFullSize) {
                 setIsComposerFullSize(reportID, false);
             }
-            debouncedValidate(value);
+            debouncedCommentMaxLengthValidation(value);
         },
-        [isComposerFullSize, reportID, debouncedValidate],
+        [isComposerFullSize, reportID, debouncedCommentMaxLengthValidation],
     );
 
     const {validateAttachments, onReceiptDropped, PDFValidationComponent, ErrorModal} = useAttachmentUploadValidation({
@@ -627,12 +598,12 @@ function ReportActionCompose({
                             styles.flexRow,
                             styles.chatItemComposeBox,
                             isComposerFullSize && styles.chatItemFullComposeBox,
-                            !!exceededMaxLength && styles.borderColorDanger,
+                            isExceedingMaxLength && styles.borderColorDanger,
                         ]}
                     >
                         {PDFValidationComponent}
-                        {isEditingInline ? (
-                            <MessageEditCancelButton onCancel={deleteDraft} />
+                        {isEditing ? (
+                            <MessageEditCancelButton onCancel={deleteDraftMessage} />
                         ) : (
                             <AttachmentPickerWithMenuItems
                                 onAttachmentPicked={(files) => validateAttachments({files})}
@@ -656,7 +627,7 @@ function ReportActionCompose({
                                     focus();
                                 }}
                                 actionButtonRef={actionButtonRef}
-                                shouldDisableAttachmentItem={!!exceededMaxLength}
+                                shouldDisableAttachmentItem={isExceedingMaxLength}
                             />
                         )}
                         <ComposerWithSuggestions
@@ -730,8 +701,9 @@ function ReportActionCompose({
                             />
                         )}
                         <SendButton
+                            isEditing={isEditing}
                             isDisabled={isSendDisabled}
-                            handleSendMessage={handleSendMessage}
+                            onSend={handleSendMessage}
                         />
                     </View>
                     {ErrorModal}
@@ -752,7 +724,7 @@ function ReportActionCompose({
                         {!!exceededMaxLength && (
                             <ExceededCommentLength
                                 maxCommentLength={exceededMaxLength}
-                                isTaskTitle={hasExceededMaxTaskTitleLength}
+                                isTaskTitle={isTaskTitle}
                             />
                         )}
                     </View>
@@ -769,4 +741,4 @@ function ReportActionCompose({
 
 export default memo(ReportActionCompose);
 export {onSubmitAction};
-export type {SuggestionsRef, ComposerRef, ReportActionComposeProps};
+export type {SuggestionsRef, ReportActionComposeProps};

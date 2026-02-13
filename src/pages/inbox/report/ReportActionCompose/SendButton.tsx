@@ -15,11 +15,14 @@ type SendButtonProps = {
     /** Whether the button is disabled */
     isDisabled: boolean;
 
+    /** Whether the button is in editing mode */
+    isEditing?: boolean;
+
     /** Handle clicking on send button */
-    handleSendMessage: () => void;
+    onSend: () => void;
 };
 
-function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonProps) {
+function SendButton({isDisabled: isDisabledProp, onSend, isEditing = false}: SendButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -28,9 +31,12 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonP
     const {isSmallScreenWidth} = useResponsiveLayout();
     const Tap = Gesture.Tap()
         .onEnd(() => {
-            handleSendMessage();
+            onSend();
         })
         .runOnJS(true);
+
+    const label = isEditing ? translate('common.saveChanges') : translate('common.send');
+    const sentryLabel = isEditing ? CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_MESSAGE_EDIT_SAVE_BUTTON : CONST.SENTRY_LABEL.REPORT.SEND_BUTTON;
 
     return (
         <View
@@ -48,10 +54,10 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonP
                     // In order to make buttons accessible, we have to wrap children in a View with accessible and accessibilityRole="button" props based on the docs: https://docs.swmansion.com/react-native-gesture-handler/docs/components/buttons/
                     accessible
                     role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={translate('common.send')}
+                    accessibilityLabel={label}
                     collapsable={false}
                 >
-                    <Tooltip text={translate('common.send')}>
+                    <Tooltip text={label}>
                         <PressableWithFeedback
                             style={({pressed, isDisabled}) => [
                                 styles.chatItemSubmitButton,
@@ -62,7 +68,7 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonP
                             // On Android when TalkBack is enabled, only the parent element should be accessible, otherwise the button will not work.
                             accessible={false}
                             focusable={false}
-                            sentryLabel={CONST.SENTRY_LABEL.REPORT.SEND_BUTTON}
+                            sentryLabel={sentryLabel}
                         >
                             {({pressed}) => (
                                 <Icon
@@ -73,6 +79,21 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonP
                         </PressableWithFeedback>
                     </Tooltip>
                 </View>
+
+                {/* <View style={styles.alignSelfEnd}>
+                            <PressableWithFeedback
+                                onPress={publishDraft}
+                                hoverDimmingValue={1}
+                                pressDimmingValue={0.2}
+                                // Keep focus on the composer when send button is clicked.
+                                onMouseDown={(e) => e.preventDefault()}
+                            >
+                                <Icon
+                                    src={icons.Checkmark}
+                                    fill={hasExceededMaxCommentLength ? theme.icon : theme.textLight}
+                                />
+                            </PressableWithFeedback>
+                    </View> */}
             </GestureDetector>
         </View>
     );
