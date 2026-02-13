@@ -5,12 +5,24 @@ on:
     branches: [main]
     paths-ignore: ['docs/**', 'contributingGuides/**', 'help/**', '.github/**', 'scripts/**', 'tests/**', 'jest/**', '.claude/**']
 
-concurrency:
-  group: 'testBuildOnPush'
-  cancel-in-progress: false
-
 jobs:
+  queue:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+
+      - name: Wait for earlier runs to finish (FIFO queue)
+        uses: ./.github/actions/javascript/waitForPreviousRuns
+        with:
+          GITHUB_TOKEN: ${{ github.token }}
+          WORKFLOW_ID: testBuildOnPush.yml
+          CURRENT_RUN_ID: ${{ github.run_id }}
+
   prep:
+    needs: [queue]
     runs-on: blacksmith-4vcpu-ubuntu-2404
     outputs:
       APP_REF: ${{ github.sha }}
@@ -110,11 +122,13 @@ jobs:
         with:
           ref: ${{ needs.prep.outputs.APP_REF }}
 
-      - name: Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it
+      - name: Create .env.adhoc file based on staging
         run: |
           cp .env.staging .env.adhoc
           sed -i 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
-          echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
+
+      - name: Inject CI data into JS bundle
+        run: ./.github/scripts/inject-ci-data.sh PULL_REQUEST_NUMBER="$PULL_REQUEST_NUMBER"
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
@@ -167,11 +181,13 @@ jobs:
             cd Mobile-Expensify
             npm run grunt:build:shared
 
-      - name: Setup dotenv
+      - name: Create .env.adhoc file based on staging
         run: |
-            cp .env.staging .env.adhoc
-            sed -i 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
-            echo "APP_PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
+          cp .env.staging .env.adhoc
+          sed -i 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
+
+      - name: Inject CI data into JS bundle
+        run: ./.github/scripts/inject-ci-data.sh PULL_REQUEST_NUMBER="$PULL_REQUEST_NUMBER"
 
       - name: Setup 1Password CLI and certificates
         uses: Expensify/GitHub-Actions/setup-certificate-1p@main
@@ -263,11 +279,13 @@ jobs:
         with:
           IS_HYBRID_BUILD: 'true'
 
-      - name: Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it
+      - name: Create .env.adhoc file based on staging
         run: |
           cp .env.staging .env.adhoc
           sed -i '' 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
-          echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
+
+      - name: Inject CI data into JS bundle
+        run: ./.github/scripts/inject-ci-data.sh PULL_REQUEST_NUMBER="$PULL_REQUEST_NUMBER"
 
       - name: Setup 1Password CLI and certificates
         uses: Expensify/GitHub-Actions/setup-certificate-1p@main

@@ -544,7 +544,6 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 icon: 'string',
                 actorAccountID: 'number',
                 eta: 'object',
-                iconFill: 'string',
             });
         case 'tripData':
             return validateObject<ObjectElement<Report, 'tripData'>>(value, {

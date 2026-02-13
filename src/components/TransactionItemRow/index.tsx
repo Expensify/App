@@ -409,6 +409,7 @@ function TransactionItemRow({
                             policyID={report?.policyID}
                             hash={transactionItem?.hash}
                             amount={report?.total}
+                            shouldDisablePointerEvents={isDisabled}
                         />
                     )}
                 </View>
@@ -602,6 +603,7 @@ function TransactionItemRow({
             isReportItemChild,
             onButtonPress,
             isActionLoading,
+            isDisabled,
             merchant,
             description,
             cardName,
@@ -780,6 +782,7 @@ function TransactionItemRow({
                     )}
                     {!!isLargeScreenWidth && !!onArrowRightPress && (
                         <PressableWithFeedback
+                            disabled={!!isDisabled}
                             onPress={() => onArrowRightPress?.()}
                             style={[styles.p3Half, styles.pl0half, styles.pr0half, styles.justifyContentCenter, styles.alignItemsEnd]}
                             accessibilityRole={CONST.ROLE.BUTTON}

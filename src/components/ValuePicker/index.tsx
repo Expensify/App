@@ -20,6 +20,7 @@ function ValuePicker({
     ref,
     forwardedFSClass,
     addBottomSafeAreaPadding = true,
+    disableKeyboardShortcuts = false,
 }: ValuePickerProps) {
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 
@@ -76,6 +77,7 @@ function ValuePicker({
                     onItemSelected={updateInput}
                     shouldShowTooltips={shouldShowTooltips}
                     addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+                    disableKeyboardShortcuts={disableKeyboardShortcuts}
                 />
             )}
         </View>

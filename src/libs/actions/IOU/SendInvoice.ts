@@ -813,7 +813,7 @@ function sendInvoice({
         isInvoice: true,
     });
 
-    notifyNewAction(invoiceRoom.reportID, currentUserAccountID);
+    notifyNewAction(invoiceRoom.reportID, undefined, true);
 }
 
 export {getReceiverType, getSendInvoiceInformation, sendInvoice};
