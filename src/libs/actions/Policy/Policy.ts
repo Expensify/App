@@ -1068,6 +1068,11 @@ function setWorkspaceReimbursement({
     const policy = getPolicy(policyID);
     const lastUsedPaymentMethod = typeof lastPaymentMethod === 'string' ? lastPaymentMethod : lastPaymentMethod?.expense?.name;
 
+    const oldBankAccountID = Object.keys(bankAccountList ?? {}).find((accountID) => {
+        const account = bankAccountList?.[accountID];
+        return account?.accountData?.policyIDs?.includes(policyID);
+    });
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.BANK_ACCOUNT_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1085,10 +1090,6 @@ function setWorkspaceReimbursement({
 
     if (bankAccountID !== undefined && bankAccountList !== undefined) {
         const optimisticBankAccountList: BankAccountList = {};
-        const oldBankAccountID = Object.keys(bankAccountList ?? {}).find((accountID) => {
-            const account = bankAccountList?.[accountID];
-            return account?.accountData?.policyIDs?.includes(policyID);
-        });
         if (oldBankAccountID) {
             optimisticBankAccountList[oldBankAccountID] = {
                 ...optimisticBankAccountList[oldBankAccountID],
@@ -1163,12 +1164,30 @@ function setWorkspaceReimbursement({
                 pendingFields: {reimbursementChoice: null},
             },
         },
-        {
+    ];
+
+    if (bankAccountID !== undefined && bankAccountList !== undefined) {
+        const failureBankAccountList: BankAccountList = {};
+        if (oldBankAccountID) {
+            failureBankAccountList[oldBankAccountID] = {
+                ...failureBankAccountList[oldBankAccountID],
+                accountData: {
+                    policyIDs: bankAccountList?.[oldBankAccountID]?.accountData?.policyIDs ?? [],
+                },
+            };
+        }
+        failureBankAccountList[bankAccountID] = {
+            ...failureBankAccountList[bankAccountID],
+            accountData: {
+                policyIDs: bankAccountList?.[bankAccountID]?.accountData?.policyIDs ?? [],
+            },
+        };
+        failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.BANK_ACCOUNT_LIST,
-            value: bankAccountList,
-        },
-    ];
+            value: failureBankAccountList,
+        });
+    }
 
     const params: SetWorkspaceReimbursementParams = {policyID, reimbursementChoice, bankAccountID};
 

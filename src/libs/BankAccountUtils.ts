@@ -16,7 +16,11 @@ function isBankAccountPartiallySetup(state: string | undefined) {
 }
 
 function doesPolicyHavePartiallySetupBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>, policyID: string) {
-    const bankAccounts = Object.values(bankAccountList ?? {});
+    if (!bankAccountList) {
+        return false;
+    }
+
+    const bankAccounts = Object.values(bankAccountList);
     const matchingBankAccount = bankAccounts.find((bankAccount) => bankAccount.accountData?.policyIDs?.includes(policyID));
 
     return isBankAccountPartiallySetup(matchingBankAccount?.accountData?.state);
