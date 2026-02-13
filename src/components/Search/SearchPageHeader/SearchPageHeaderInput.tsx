@@ -1,4 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
+import {feedKeysWithAssignedCardsSelector} from '@selectors/Card';
 import {accountIDSelector} from '@selectors/Session';
 import {deepEqual} from 'fast-equals';
 import isEmpty from 'lodash/isEmpty';
@@ -66,6 +67,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true});
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
+    const [feedKeysWithCards] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {selector: feedKeysWithAssignedCardsSelector, canBeMissing: true});
     const {inputQuery: originalInputQuery} = queryJSON;
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
     const queryText = buildUserReadableQueryString({
@@ -79,6 +81,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
         currentUserAccountID,
         autoCompleteWithSpace: true,
         translate,
+        feedKeysWithCards,
     });
 
     const [searchContext] = useOnyx(ONYXKEYS.SEARCH_CONTEXT, {canBeMissing: true});
