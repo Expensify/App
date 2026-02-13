@@ -226,6 +226,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
         // If USD bank account is in pending state, we should navigate straight to the validation step and skip Continue step
         if (policyCurrency === CONST.CURRENCY.USD && achData?.state === CONST.BANK_ACCOUNT.STATE.PENDING) {
             setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.VALIDATION);
+            goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.VALIDATION);
             return;
         }
 
@@ -377,7 +378,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.FINISH);
         }
     };
-
+    console.log({currentStep, USDBankAccountStep});
     const goBack = useCallback(() => {
         const shouldShowOnfido = onfidoToken && !achData?.isOnfidoSetupComplete;
 
