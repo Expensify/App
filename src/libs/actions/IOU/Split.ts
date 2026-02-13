@@ -36,6 +36,7 @@ import {
     getTransactionDetails,
     hasViolations as hasViolationsReportUtils,
     isArchivedReport,
+    isOpenReport,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
     updateReportPreview,
@@ -1810,9 +1811,13 @@ function initSplitExpense(transactions: OnyxCollection<OnyxTypes.Transaction>, r
     const originalTransactionID = transaction?.comment?.originalTransactionID;
     const originalTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
+    const relatedTransactions = getChildTransactions(transactions, reports, originalTransactionID);
+    const hasMultipleSplits = relatedTransactions.length > 1;
+    const transactionReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
+    const isReportOpen = isOpenReport(transactionReport);
+    const shouldShowSplitIndicator = isExpenseSplit && (hasMultipleSplits || isReportOpen);
 
-    if (isExpenseSplit) {
-        const relatedTransactions = getChildTransactions(transactions, reports, originalTransactionID);
+    if (shouldShowSplitIndicator) {
         const transactionDetails = getTransactionDetails(originalTransaction);
         const splitExpenses = relatedTransactions.map((currentTransaction) => {
             const currentTransactionReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`];
@@ -1844,7 +1849,6 @@ function initSplitExpense(transactions: OnyxCollection<OnyxTypes.Transaction>, r
 
     const transactionDetails = getTransactionDetails(transaction);
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
-    const transactionReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
 
     const splitExpenses = [
         initSplitExpenseItemData(transaction, transactionReport, {
