@@ -67,6 +67,8 @@ function useEditMessage({reportID, originalReportID, reportAction, shouldScrollT
             return;
         }
 
+        didSubmitEditRef.current = true;
+
         deleteReportActionDraft(reportID, reportAction);
 
         if (isActive()) {
@@ -107,7 +109,6 @@ function useEditMessage({reportID, originalReportID, reportAction, shouldScrollT
             return;
         }
 
-        didSubmitEditRef.current = true;
         editReportComment(
             originalReport,
             reportAction,

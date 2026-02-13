@@ -43,7 +43,7 @@ function ReportActionEditMessageContextProvider({reportID, children}: ReportActi
     const [editingReportAction, setEditingReportAction] = useState<OnyxTypes.ReportAction | null>(null);
     const [editingMessage, setEditingMessage] = useState<string | null>(null);
     const [currentEditMessageSelection, setCurrentEditMessageSelectionState] = useState<TextSelection | null>(null);
-    const didSubmitEditRef = useRef<boolean>(false);
+    const didSubmitEditRef = useRef<boolean | null>(null);
 
     const updateActiveEditState = useCallback(
         (activeEdit: ReportActionActiveEdit | null) => {
@@ -76,7 +76,11 @@ function ReportActionEditMessageContextProvider({reportID, children}: ReportActi
     );
 
     const reset = useCallback(() => {
-        didSubmitEditRef.current = false;
+        if (didSubmitEditRef.current === false) {
+            return;
+        }
+
+        didSubmitEditRef.current = null;
         updateActiveEditState(null);
         setCurrentEditMessageSelection(null);
     }, [updateActiveEditState, setCurrentEditMessageSelection]);
@@ -99,6 +103,7 @@ function ReportActionEditMessageContextProvider({reportID, children}: ReportActi
 
         const [reportActionID, draft] = reportDraftEntry;
 
+        didSubmitEditRef.current = false;
         updateActiveEditState({
             editingReportActionID: reportActionID,
             editingReportAction: reportActions?.[reportActionID] ?? null,
