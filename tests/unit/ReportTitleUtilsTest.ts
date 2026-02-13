@@ -20,6 +20,15 @@ const mockedReportUtils = ReportUtils as jest.Mocked<typeof ReportUtils>;
 
 describe('ReportTitleUtils', () => {
     beforeAll(async () => {
+        Onyx.init({
+            keys: ONYXKEYS,
+        });
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        await Onyx.clear();
+
         const mergedCollection: CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS> = {};
         mergedCollection[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}12345`] = {
             // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -28,10 +37,6 @@ describe('ReportTitleUtils', () => {
             },
         } as unknown as ReportNameValuePairs;
         await Onyx.merge(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, mergedCollection);
-    });
-
-    beforeEach(() => {
-        jest.clearAllMocks();
     });
 
     describe('getTitleFieldFromRNVP', () => {

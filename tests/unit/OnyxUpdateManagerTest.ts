@@ -52,6 +52,10 @@ const update8 = OnyxUpdateMockUtils.createUpdate(8);
 describe('OnyxUpdateManager', () => {
     let lastUpdateIDAppliedToClient = 1;
     beforeAll(() => {
+        Onyx.init({
+            keys: ONYXKEYS,
+        });
+
         Onyx.connect({
             key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
             callback: (value) => (lastUpdateIDAppliedToClient = value ?? 1),

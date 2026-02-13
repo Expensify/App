@@ -28,7 +28,6 @@ const renderLocaleContextProvider = () => {
 };
 
 const onyxDerivedTestSetup = () => {
-    Onyx.clear();
     Onyx.init({keys: ONYXKEYS});
     initOnyxDerivedValues();
 };

@@ -47,7 +47,6 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 const CARLOS_EMAIL = 'cmartins@expensifail.com';
-const CARLOS_ACCOUNT_ID = 1;
 function toLocaleDigitMock(dot: string): string {
     return dot;
 }
@@ -220,6 +219,12 @@ const policyTags = {
 };
 
 describe('PolicyUtils', () => {
+    beforeAll(() => {
+        Onyx.init({
+            keys: ONYXKEYS,
+        });
+    });
+
     describe('useDefaultFundID', () => {
         beforeEach(() => {
             wrapOnyxWithWaitForBatchedUpdates(Onyx);
@@ -739,15 +744,6 @@ describe('PolicyUtils', () => {
         });
     });
     describe('shouldShowPolicy', () => {
-        beforeAll(() => {
-            Onyx.init({
-                keys: ONYXKEYS,
-                initialKeyStates: {
-                    [ONYXKEYS.SESSION]: {accountID: CARLOS_ACCOUNT_ID, email: CARLOS_EMAIL},
-                },
-            });
-        });
-
         beforeEach(() => {
             global.fetch = TestHelper.getGlobalFetchMock();
             return Onyx.clear().then(waitForBatchedUpdates);
