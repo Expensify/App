@@ -56,7 +56,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const selectionRef = useRef('');
     const reportActionDraftMessageRef = useRef<string | undefined>(undefined);
     const isReportArchived = useReportIsArchived(reportIDRef.current);
-    const isOriginalReportArchived = useReportIsArchived(getOriginalReportID(reportIDRef.current, reportActionRef.current));
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDRef.current}`, {canBeMissing: true});
+    const isOriginalReportArchived = useReportIsArchived(getOriginalReportID(reportIDRef.current, reportActionRef.current, reportActions));
     const {iouReport, chatReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(reportActionRef.current);
     const {transitionActionSheetState} = useActionSheetAwareScrollViewActions();
 
@@ -86,7 +87,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const [shouldSwitchPositionIfOverflow, setShouldSwitchPositionIfOverflow] = useState(false);
     const [isWithoutOverlay, setIsWithoutOverlay] = useState<boolean>(true);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {canBeMissing: true});
 
     const contentRef = useRef<View>(null);
     const anchorRef = useRef<View | HTMLDivElement | null>(null);
@@ -324,6 +324,11 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDRef.current}`, {
         canBeMissing: true,
     });
+    const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionRef.current?.childReportID}`, {
+        canBeMissing: true,
+    });
+    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID, {canBeMissing: true});
+    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const {currentSearchHash} = useSearchContext();
@@ -333,7 +338,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         policy,
     });
 
-    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getOriginalReportID(reportIDRef.current, reportActionRef.current)}`, {
+    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getOriginalReportID(reportIDRef.current, reportActionRef.current, reportActions)}`, {
         canBeMissing: true,
     });
     const ancestorsRef = useRef<typeof ancestors>([]);
@@ -370,11 +375,11 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash);
             }
         } else if (isReportPreviewAction(reportAction)) {
-            deleteAppReport(reportAction.childReportID, email ?? '', currentUserAccountID, reportTransactions, allTransactionViolations, bankAccountList);
+            deleteAppReport(childReport, selfDMReport, email ?? '', currentUserAccountID, reportTransactions, allTransactionViolations, bankAccountList, currentSearchHash);
         } else if (reportAction) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
-                deleteReportComment(reportIDRef.current, reportAction, ancestorsRef.current, isReportArchived, isOriginalReportArchived, email ?? '', visibleReportActionsData ?? undefined);
+                deleteReportComment(report, reportAction, ancestorsRef.current, isReportArchived, isOriginalReportArchived, email ?? '');
             });
         }
 
@@ -382,21 +387,22 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         setIsDeleteCommentConfirmModalVisible(false);
     }, [
         report,
+        childReport,
+        selfDMReport,
         iouReport,
         chatReport,
         duplicateTransactions,
         duplicateTransactionViolations,
         isReportArchived,
         isChatIOUReportArchived,
+        allTransactionViolations,
+        currentUserAccountID,
         deleteTransactions,
         currentSearchHash,
         email,
         reportTransactions,
-        isOriginalReportArchived,
-        allTransactionViolations,
         bankAccountList,
-        visibleReportActionsData,
-        currentUserAccountID,
+        isOriginalReportArchived,
     ]);
 
     const hideDeleteModal = () => {

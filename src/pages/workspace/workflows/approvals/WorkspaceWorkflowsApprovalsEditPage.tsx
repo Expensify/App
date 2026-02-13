@@ -3,12 +3,13 @@ import React, {useEffect, useRef, useState} from 'react';
 import type {ScrollView} from 'react-native';
 import {InteractionManager} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import ConfirmModal from '@components/ConfirmModal';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,8 +38,8 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW, {canBeMissing: true});
     const [initialApprovalWorkflow, setInitialApprovalWorkflow] = useState<ApprovalWorkflow | undefined>();
-    const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const formRef = useRef<ScrollView>(null);
+    const {showConfirmModal} = useConfirmModal();
     const isDeleting = useRef(false);
 
     const updateApprovalWorkflowCallback = () => {
@@ -67,7 +68,6 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
 
         // Mark as deleting to prevent the useEffect from clearing the workflow and causing a blink
         isDeleting.current = true;
-        setIsDeleteModalVisible(false);
         Navigation.dismissModal();
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
@@ -152,7 +152,19 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                         <>
                             <ApprovalWorkflowEditor
                                 approvalWorkflow={approvalWorkflow}
-                                removeApprovalWorkflow={() => setIsDeleteModalVisible(true)}
+                                removeApprovalWorkflow={async () => {
+                                    const result = await showConfirmModal({
+                                        title: translate('workflowsEditApprovalsPage.deleteTitle'),
+                                        prompt: translate('workflowsEditApprovalsPage.deletePrompt'),
+                                        confirmText: translate('common.delete'),
+                                        cancelText: translate('common.cancel'),
+                                        danger: true,
+                                    });
+                                    if (result.action !== ModalActions.CONFIRM) {
+                                        return;
+                                    }
+                                    removeApprovalWorkflowCallback();
+                                }}
                                 policy={policy}
                                 policyID={route.params.policyID}
                                 ref={formRef}
@@ -171,16 +183,6 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                     )}
                     {!initialApprovalWorkflow && <FullScreenLoadingIndicator />}
                 </FullPageNotFoundView>
-                <ConfirmModal
-                    title={translate('workflowsEditApprovalsPage.deleteTitle')}
-                    isVisible={isDeleteModalVisible}
-                    onConfirm={removeApprovalWorkflowCallback}
-                    onCancel={() => setIsDeleteModalVisible(false)}
-                    prompt={translate('workflowsEditApprovalsPage.deletePrompt')}
-                    confirmText={translate('common.delete')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

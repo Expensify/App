@@ -17,7 +17,6 @@
     <script defer src="{{ '/assets/js/main.js' | cache_bust }}"></script>
     <script defer src="{{ '/assets/js/platform-tabs.js' | cache_bust }}"></script>
     <script defer src="{{ '/assets/js/selector.js' | cache_bust }}"></script>
-    <script async src="https://cse.google.com/cse.js?cx=4149bc31c5c314a1a"></script>
     <!-- Google Tag Manager -->
     <script>(function (w, d, s, l, i) { w[l] = w[l] || []; w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' }); var f = d.getElementsByTagName(s)[0], j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f); })(window, document, 'script', 'dataLayer', 'GTM-TQBQW7CR');</script>
     <!-- End Google Tag Manager -->
@@ -25,7 +24,7 @@
     <!-- SEO tags -->
     {% seo %}
 </head>
-<body>
+<body{% if page.url contains "/search" %} class="mobile-lhn"{% endif %}>
     <!-- Google Tag Manager (noscript) -->
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TQBQW7CR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
@@ -49,12 +48,27 @@
             </div>
         </div>
 
-        <!-- Sidebar Search sections -->
-        {% include sidebar-search.html id="sidebar-layer" %}
+        {% include search-result-item.html %}
 
         <!-- LHN content (Main navigation tree or Article TOC) -->
         <div id="lhn-content">
-            {% if page.url == "/" or page.url contains "/hubs/" %}
+            {% unless page.url == "/" or page.url contains "/search" %}
+                <form class="lhn-search-form" action="/search">
+                    {% if page.url contains "expensify-classic" %}
+                        <input type="hidden" name="platform" value="expensify-classic" />
+                    {% endif %}
+                    <label class="search-input-wrapper lhn-search-input-wrapper" for="lhn-search-input">
+                        <input type="text" id="lhn-search-input" name="q" class="search-input" required autocomplete="off" />
+                        <span class="search-label">Search for something...</span>
+                    </label>
+                </form>
+            {% endunless %}
+            {% if page.url contains "/search" %}
+                <div id="back-button" class="icon-with-link">
+                    <img src="/assets/images/back-left.svg" class="base-icon"></img>
+                    <div class="link">Back</div>
+                </div>
+            {% elsif page.url == "/" or page.url contains "/hubs/" %}
                 {% include lhn-template.html %}
             {% else %}
                 <div id="back-button" class="icon-with-link">

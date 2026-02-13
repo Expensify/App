@@ -511,6 +511,7 @@ function StepOne({isEditing, onNext, onMove, formValues}: CustomSubPageProps) {
 ```ts
 import useSubPage from '@hooks/useSubPage';
 import type {SubPageProps} from '@hooks/useSubPage/types';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InteractiveStepSubPageHeader from '@components/InteractiveStepSubPageHeader';
 
 type CustomSubPageProps = SubPageProps & {
@@ -533,6 +534,7 @@ function MyFlowContent() {
         lastPageIndex,
         moveTo,
         resetToPage,
+        isRedirecting,
     } = useSubPage<CustomSubPageProps>({
         pages,
         startFrom: 0,
@@ -556,6 +558,10 @@ function MyFlowContent() {
 
         prevPage();
     };
+
+    if (isRedirecting) {
+        return <FullScreenLoadingIndicator />;
+    }
 
     return (
         <ScreenWrapper>

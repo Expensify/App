@@ -184,6 +184,12 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 }
                 enablePolicyTravel(policyID, isEnabled);
             },
+            onPress: () => {
+                if (!policyID) {
+                    return;
+                }
+                Navigation.navigate(ROUTES.WORKSPACE_TRAVEL.getRoute(policyID));
+            },
         },
         {
             icon: illustrations.HandCard,
@@ -258,27 +264,25 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         },
     });
 
-    if (isBetaEnabled(CONST.BETAS.TIME_TRACKING)) {
-        spendItems.push({
-            icon: illustrations.Clock,
-            titleTranslationKey: 'workspace.moreFeatures.timeTracking.title',
-            subtitleTranslationKey: 'workspace.moreFeatures.timeTracking.subtitle',
-            isActive: isTimeTrackingEnabled(policy),
-            pendingAction: policy?.pendingFields?.isTimeTrackingEnabled,
-            action: (isEnabled: boolean) => {
-                if (!policyID) {
-                    return;
-                }
-                enablePolicyTimeTracking(policyID, isEnabled);
-            },
-            onPress: () => {
-                if (!policyID) {
-                    return;
-                }
-                Navigation.navigate(ROUTES.WORKSPACE_TIME_TRACKING.getRoute(policyID));
-            },
-        });
-    }
+    spendItems.push({
+        icon: illustrations.Clock,
+        titleTranslationKey: 'workspace.moreFeatures.timeTracking.title',
+        subtitleTranslationKey: 'workspace.moreFeatures.timeTracking.subtitle',
+        isActive: isTimeTrackingEnabled(policy),
+        pendingAction: policy?.pendingFields?.isTimeTrackingEnabled,
+        action: (isEnabled: boolean) => {
+            if (!policyID) {
+                return;
+            }
+            enablePolicyTimeTracking(policyID, isEnabled);
+        },
+        onPress: () => {
+            if (!policyID) {
+                return;
+            }
+            Navigation.navigate(ROUTES.WORKSPACE_TIME_TRACKING.getRoute(policyID));
+        },
+    });
 
     const manageItems: Item[] = [
         {
@@ -317,7 +321,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
                     return;
                 }
-                enablePolicyRules(policyID, isEnabled);
+                enablePolicyRules(policyID, isEnabled, undefined, policyData);
             },
             onPress: () => {
                 if (!policyID) {
