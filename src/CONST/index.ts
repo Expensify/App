@@ -436,6 +436,30 @@ const CONST = {
 
     MULTIFACTOR_AUTHENTICATION: MULTIFACTOR_AUTHENTICATION_VALUES,
 
+    /** WebAuthn/Passkey credential type */
+    PASSKEY_CREDENTIAL_TYPE: 'public-key',
+
+    /**
+     * WebAuthn AuthenticatorTransport values.
+     * Describes how the client communicates with a particular authenticator
+     * to perform a WebAuthn credential registration or authentication ceremony.
+     * @see https://www.w3.org/TR/webauthn-3/#enum-transport
+     */
+    PASSKEY_TRANSPORT: {
+        /** Authenticator can be contacted over removable USB */
+        USB: 'usb',
+        /** Authenticator can be contacted over Near Field Communication (NFC) */
+        NFC: 'nfc',
+        /** Authenticator can be contacted over Bluetooth Low Energy (BLE) */
+        BLE: 'ble',
+        /** Authenticator can be contacted over ISO/IEC 7816 smart card with contacts */
+        SMART_CARD: 'smart-card',
+        /** Authenticator can be contacted using a combination of data-transport and proximity mechanisms (e.g. desktop auth via smartphone) */
+        HYBRID: 'hybrid',
+        /** Authenticator is a platform authenticator contacted via client device-specific transport (not removable) */
+        INTERNAL: 'internal',
+    },
+
     DESKTOP_SHORTCUT_ACCELERATOR: {
         PASTE_AND_MATCH_STYLE: 'Option+Shift+CmdOrCtrl+V',
         PASTE_AS_PLAIN_TEXT: 'CmdOrCtrl+Shift+V',
@@ -753,6 +777,7 @@ const CONST = {
         ODOMETER_EXPENSES: 'odometerExpenses',
         NEW_DOT_HOME: 'newDotHome',
         SINGLE_USE_AND_EXPIRE_BY_CARDS: 'singleUseAndExpireByCards',
+        PAY_INVOICE_VIA_EXPENSIFY: 'payInvoiceViaExpensify',
         PERSONAL_CARD_IMPORT: 'personalCardImport',
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
     },
@@ -1139,12 +1164,14 @@ const CONST = {
         REQUEST_MANUAL: 'requestManual',
         REQUEST_SCAN: 'requestScan',
         REQUEST_DISTANCE: 'requestDistance',
+        REQUEST_TIME: 'requestTime',
         PER_DIEM: 'perDiem',
         SPLIT_MANUAL: 'splitManual',
         SPLIT_SCAN: 'splitScan',
         SPLIT_DISTANCE: 'splitDistance',
         TRACK_MANUAL: 'trackManual',
         TRACK_SCAN: 'trackScan',
+        TRACK_PER_DIEM: 'trackPerDiem',
         TRACK_DISTANCE: 'trackDistance',
         ASSIGN_TASK: 'assignTask',
         SEND_MONEY: 'sendMoney',
@@ -1749,6 +1776,7 @@ const CONST = {
         SPAN_ON_LAYOUT_SKELETON_REPORTS: 'ManualOnLayoutSkeletonReports',
         SPAN_NAVIGATE_TO_INBOX_TAB: 'ManualNavigateToInboxTab',
         SPAN_OD_ND_TRANSITION: 'ManualOdNdTransition',
+        SPAN_OD_ND_TRANSITION_LOGGED_OUT: 'ManualOdNdTransitionLoggedOut',
         SPAN_OPEN_SEARCH_ROUTER: 'ManualOpenSearchRouter',
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
         SPAN_SEND_MESSAGE: 'ManualSendMessage',
@@ -1790,6 +1818,9 @@ const CONST = {
         ATTRIBUTE_ROUTE_TO: 'route_to',
         ATTRIBUTE_MIN_DURATION: 'min_duration',
         ATTRIBUTE_FINISHED_MANUALLY: 'finished_manually',
+        ATTRIBUTE_SKELETON_PREFIX: 'skeleton.',
+        // Event names
+        EVENT_SKELETON_ATTRIBUTES_UPDATE: 'skeleton_attributes_updated',
         CONFIG: {
             SKELETON_MIN_DURATION: 10_000,
             MEMORY_TRACKING_INTERVAL: 2 * 60 * 1000,
@@ -1860,7 +1891,6 @@ const CONST = {
         STATE: {
             CURRENT: 'current',
             DRAFT: 'draft',
-            SPLIT_DRAFT: 'splitDraft',
             BACKUP: 'backup',
         },
         LIABILITY_TYPE: {
@@ -2972,8 +3002,6 @@ const CONST = {
         QUANTITY_MAX_LENGTH: 12,
         // This is the transactionID used when going through the create expense flow so that it mimics a real transaction (like the edit flow)
         OPTIMISTIC_TRANSACTION_ID: '1',
-        // This is the transactionID used when going through the distance split expense flow so that it mimics a draft transaction
-        OPTIMISTIC_DISTANCE_SPLIT_TRANSACTION_ID: '2',
         // Note: These payment types are used when building IOU reportAction message values in the server and should
         // not be changed.
         LOCATION_PERMISSION_PROMPT_THRESHOLD_DAYS: 7,
@@ -8416,6 +8444,9 @@ const CONST = {
         ONBOARDING: {
             INTERESTED_FEATURES_ITEM: 'Onboarding-InterestedFeaturesItem',
         },
+        REPORT_HEADER_SKELETON: {
+            GO_BACK: 'ReportHeaderSkeleton-GoBack',
+        },
         TWO_FACTOR_AUTH: {
             RESEND_CODE: 'TwoFactorAuth-ResendCode',
             SWITCH_BETWEEN_METHODS: 'TwoFactorAuth-SwitchBetweenMethods',
@@ -8436,6 +8467,9 @@ const CONST = {
         MEMBERS: {
             SECONDARY_ACTIONS: {
                 SETTINGS: 'settings',
+            },
+            BULK_ACTION_TYPES: {
+                CLOSE_ACCOUNT: 'closeAccount',
             },
         },
     },

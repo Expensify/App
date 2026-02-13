@@ -22,6 +22,7 @@ import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
+import usePermissions from './usePermissions';
 import usePolicy from './usePolicy';
 import useThemeStyles from './useThemeStyles';
 
@@ -67,6 +68,8 @@ function useBulkPayOptions({
     const policy = usePolicy(selectedPolicyID);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`, {canBeMissing: true});
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`, {canBeMissing: true});
+    const {isBetaEnabled} = usePermissions();
+    const isPayInvoiceViaExpensifyBetaEnabled = isBetaEnabled(CONST.BETAS.PAY_INVOICE_VIA_EXPENSIFY);
     const isIOUReport = isIOUReportUtil(selectedReportID);
     const isExpenseReport = isExpenseReportUtil(selectedReportID);
     const isInvoiceReport = isInvoiceReportUtil(selectedReportID);
@@ -142,7 +145,7 @@ function useBulkPayOptions({
         if (canUseWallet) {
             if (personalBankAccountList.length && canUsePersonalBankAccount) {
                 bulkPayButtonOptions.push({
-                    text: translate('iou.settleWallet', {formattedAmount: ''}),
+                    text: translate('iou.settleWallet', ''),
                     key: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
                     icon: icons.Wallet,
                 });
@@ -159,7 +162,7 @@ function useBulkPayOptions({
             for (const activePolicy of activeAdminPolicies) {
                 const policyName = activePolicy.name;
                 bulkPayButtonOptions.push({
-                    text: translate('iou.payWithPolicy', {policyName: truncate(policyName, {length: CONST.ADDITIONAL_ALLOWED_CHARACTERS}), formattedAmount: ''}),
+                    text: translate('iou.payWithPolicy', truncate(policyName, {length: CONST.ADDITIONAL_ALLOWED_CHARACTERS}), ''),
                     icon: icons.Building,
                     key: activePolicy.id,
                     shouldUpdateSelectedIndex: false,
@@ -172,7 +175,7 @@ function useBulkPayOptions({
         }
 
         if (isInvoiceReport) {
-            const isCurrencySupported = isCurrencySupportedForGlobalReimbursement(currency as CurrencyType);
+            const showPayViaExpensifyOptions = isPayInvoiceViaExpensifyBetaEnabled && isCurrencySupportedForGlobalReimbursement(currency as CurrencyType);
             const getInvoicesOptions = (payAsBusiness: boolean) => {
                 const addBankAccountItem = {
                     text: translate('bankAccount.addBankAccount'),
@@ -183,10 +186,10 @@ function useBulkPayOptions({
                     },
                 };
                 return [
-                    ...(isCurrencySupported ? getPaymentSubItems(payAsBusiness) : []),
-                    ...(isCurrencySupported ? [addBankAccountItem] : []),
+                    ...(showPayViaExpensifyOptions ? getPaymentSubItems(payAsBusiness) : []),
+                    ...(showPayViaExpensifyOptions ? [addBankAccountItem] : []),
                     {
-                        text: translate('iou.payElsewhere', {formattedAmount: ''}),
+                        text: translate('iou.payElsewhere', ''),
                         icon: icons.Cash,
                         key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                         additionalData: {
@@ -198,13 +201,13 @@ function useBulkPayOptions({
 
             if (isIndividualInvoiceRoomUtil(chatReport)) {
                 bulkPayButtonOptions.push({
-                    text: translate('iou.settlePersonal', {formattedAmount}),
+                    text: translate('iou.settlePersonal', formattedAmount),
                     icon: icons.User,
                     backButtonText: translate('iou.individual'),
                     subMenuItems: getInvoicesOptions(false),
                 });
                 bulkPayButtonOptions.push({
-                    text: translate('iou.settleBusiness', {formattedAmount}),
+                    text: translate('iou.settleBusiness', formattedAmount),
                     icon: icons.Building,
                     backButtonText: translate('iou.business'),
                     subMenuItems: getInvoicesOptions(true),
