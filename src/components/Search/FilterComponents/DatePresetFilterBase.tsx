@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {Ref} from 'react';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
 import MenuItem from '@components/MenuItem';
@@ -10,7 +10,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
-import {isSearchDatePreset} from '@libs/SearchQueryUtils';
+import {getRangeBoundariesFromFormValue, getRangeQueryValue, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import RangeDatePicker from './RangeDatePicker';
@@ -27,8 +27,8 @@ type DatePresetFilterBaseHandle = {
     /** Sets the date value of the selected date modifier to the ephemeral date value (the selected date in calendar) and returns the updated values */
     setDateValueOfSelectedDateModifier: () => SearchDateValues;
 
-    /** Clears the date value of the selected date modifier */
-    clearDateValueOfSelectedDateModifier: () => void;
+    /** Clears the date value of the selected date modifier and returns the updated values */
+    clearDateValueOfSelectedDateModifier: () => SearchDateValues;
 
     /** Resets date values to the provided defaults */
     resetDateValuesToDefault: () => void;
@@ -96,13 +96,13 @@ function DatePresetFilterBase({
     const shouldShowHorizontalRule = !!presets?.length;
 
     const [dateValues, setDateValues] = useState<SearchDateValues>(defaultDateValues);
+    const dateValuesRef = useRef<SearchDateValues>(defaultDateValues);
     const updateDateValues = useCallback(
         (updater: SearchDateValues | ((prevDateValues: SearchDateValues) => SearchDateValues)) => {
-            setDateValues((prevDateValues) => {
-                const nextDateValues = typeof updater === 'function' ? updater(prevDateValues) : updater;
-                onDateValuesChange?.(nextDateValues);
-                return nextDateValues;
-            });
+            const nextDateValues = typeof updater === 'function' ? updater(dateValuesRef.current) : updater;
+            dateValuesRef.current = nextDateValues;
+            setDateValues(nextDateValues);
+            onDateValuesChange?.(nextDateValues);
         },
         [onDateValuesChange],
     );
@@ -111,93 +111,34 @@ function DatePresetFilterBase({
         if (isSearchAdvancedFiltersFormLoading) {
             return;
         }
+        if (dateValuesRef.current === defaultDateValues) {
+            return;
+        }
+        dateValuesRef.current = defaultDateValues;
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setDateValues(defaultDateValues);
-    }, [isSearchAdvancedFiltersFormLoading, defaultDateValues]);
+        onDateValuesChange?.(defaultDateValues);
+    }, [isSearchAdvancedFiltersFormLoading, defaultDateValues, onDateValuesChange]);
 
     const setDateValue = useCallback(
         (dateModifier: SearchDateModifier, value: string | undefined) => {
             updateDateValues((prevDateValues) => {
-                // Preset values clear all other filters
-                if (dateModifier === CONST.SEARCH.DATE_MODIFIERS.ON && isSearchDatePreset(value)) {
-                    return {
-                        [CONST.SEARCH.DATE_MODIFIERS.ON]: value,
-                        [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: undefined,
-                        [CONST.SEARCH.DATE_MODIFIERS.AFTER]: undefined,
-                        [CONST.SEARCH.DATE_MODIFIERS.RANGE]: undefined,
-                    };
-                }
-
-                // If a preset was set, clear it when setting any other modifier
-                if (dateModifier !== CONST.SEARCH.DATE_MODIFIERS.ON && isSearchDatePreset(prevDateValues[CONST.SEARCH.DATE_MODIFIERS.ON])) {
-                    return {
-                        ...prevDateValues,
-                        [dateModifier]: value,
-                        [CONST.SEARCH.DATE_MODIFIERS.ON]: undefined,
-                    };
-                }
-
-                // Setting RANGE: clear ON only (AFTER and BEFORE are set separately)
-                if (dateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
-                    return {
-                        ...prevDateValues,
-                        [CONST.SEARCH.DATE_MODIFIERS.ON]: undefined,
-                        [CONST.SEARCH.DATE_MODIFIERS.RANGE]: value,
-                    };
-                }
-
-                // Setting ON, AFTER, or BEFORE individually
-                if (dateModifier === CONST.SEARCH.DATE_MODIFIERS.ON || dateModifier === CONST.SEARCH.DATE_MODIFIERS.AFTER || dateModifier === CONST.SEARCH.DATE_MODIFIERS.BEFORE) {
-                    const isInRangeMode = selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE;
-
-                    if (isInRangeMode) {
-                        // In Range mode: building the range, clear ON, keep RANGE flag
-                        return {
-                            ...prevDateValues,
-                            [dateModifier]: value,
-                            [CONST.SEARCH.DATE_MODIFIERS.ON]: undefined,
-                        };
-                    }
-
-                    // Not in Range mode: clear RANGE and handle individual filters
-                    if (dateModifier === CONST.SEARCH.DATE_MODIFIERS.ON && !!prevDateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE]) {
-                        // ON overrides everything including any Range values
-                        return {
-                            [CONST.SEARCH.DATE_MODIFIERS.ON]: value,
-                            [CONST.SEARCH.DATE_MODIFIERS.AFTER]: undefined,
-                            [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: undefined,
-                            [CONST.SEARCH.DATE_MODIFIERS.RANGE]: undefined,
-                        };
-                    }
-
-                    // Otherwise: Just clear RANGE flag, keep all other values
-                    return {
-                        ...prevDateValues,
-                        [dateModifier]: value,
-                        [CONST.SEARCH.DATE_MODIFIERS.RANGE]: undefined,
-                    };
-                }
-
                 return {...prevDateValues, [dateModifier]: value};
             });
         },
-        [updateDateValues, selectedDateModifier],
+        [updateDateValues],
     );
 
     const dateDisplayValues = useMemo<SearchDateValues>(() => {
         const dateOn = dateValues[CONST.SEARCH.DATE_MODIFIERS.ON];
         const dateAfter = dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER];
         const dateBefore = dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE];
-        // Treat as Range mode ONLY if explicitly set via RANGE flag
-        const isRangeMode = !!dateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE];
-
         return {
             // dateOn could be a preset e.g. Last month which should not be displayed as the On field
             [CONST.SEARCH.DATE_MODIFIERS.ON]: isSearchDatePreset(dateOn) ? undefined : dateOn,
-            // Show After/Before on their items only when NOT in Range mode
-            [CONST.SEARCH.DATE_MODIFIERS.AFTER]: isRangeMode ? undefined : dateAfter,
-            [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: isRangeMode ? undefined : dateBefore,
-            // Show Range only when RANGE flag is set and both dates exist
-            [CONST.SEARCH.DATE_MODIFIERS.RANGE]: isRangeMode && dateAfter && dateBefore ? 'range' : undefined,
+            [CONST.SEARCH.DATE_MODIFIERS.AFTER]: dateAfter,
+            [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: dateBefore,
+            [CONST.SEARCH.DATE_MODIFIERS.RANGE]: dateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE] ? 'range' : undefined,
         };
     }, [dateValues]);
 
@@ -208,7 +149,7 @@ function DatePresetFilterBase({
         [getInitialEphemeralDateValue],
     );
 
-    // Separate ephemeral state for Range mode to avoid showing individual AFTER/BEFORE values
+    // Separate ephemeral state for Range mode calendar selections.
     const [rangeEphemeralValues, setRangeEphemeralValues] = useState<{from?: string; to?: string}>({});
 
     const selectDateModifier = useCallback(
@@ -217,130 +158,107 @@ function DatePresetFilterBase({
 
             // When entering Range mode
             if (dateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
-                if (dateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE]) {
-                    // Load existing Range values from saved state
-                    setRangeEphemeralValues({
-                        from: dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER],
-                        to: dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
-                    });
-                } else {
-                    // Start fresh with empty range values
-                    setRangeEphemeralValues({});
-                }
+                const currentDateValues = dateValuesRef.current;
+                const rangeBoundaries = getRangeBoundariesFromFormValue(
+                    currentDateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE],
+                    currentDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER],
+                    currentDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
+                );
+                setRangeEphemeralValues({
+                    from: rangeBoundaries.from,
+                    to: rangeBoundaries.to,
+                });
             }
 
             onSelectDateModifier(dateModifier);
         },
-        [resetEphemeralDateValue, onSelectDateModifier, dateValues],
+        [resetEphemeralDateValue, onSelectDateModifier],
     );
 
     useImperativeHandle(
         ref,
         () => ({
             getDateValues() {
-                return dateValues;
+                return dateValuesRef.current;
             },
 
             resetDateValuesToDefault() {
+                dateValuesRef.current = defaultDateValues;
                 updateDateValues(defaultDateValues);
             },
 
             clearDateValues() {
-                updateDateValues({
+                const clearedValues = {
                     [CONST.SEARCH.DATE_MODIFIERS.ON]: undefined,
                     [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: undefined,
                     [CONST.SEARCH.DATE_MODIFIERS.AFTER]: undefined,
                     [CONST.SEARCH.DATE_MODIFIERS.RANGE]: undefined,
-                });
+                };
+                dateValuesRef.current = clearedValues;
+                updateDateValues(clearedValues);
             },
 
             setDateValueOfSelectedDateModifier() {
                 if (!selectedDateModifier) {
-                    return dateValues;
+                    return dateValuesRef.current;
                 }
 
-                // For Range, mark as Range mode (values are already set via setDateValue)
+                const currentDateValues = dateValuesRef.current;
+                // For Range, mark as Range mode without altering ON/AFTER/BEFORE values.
                 if (selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
-                    const updatedValues = {...dateValues, [CONST.SEARCH.DATE_MODIFIERS.RANGE]: 'range'};
-                    setDateValue(CONST.SEARCH.DATE_MODIFIERS.RANGE, 'range');
+                    const rangeValue = getRangeQueryValue(rangeEphemeralValues.from, rangeEphemeralValues.to) || undefined;
+                    const updatedValues = {...currentDateValues, [CONST.SEARCH.DATE_MODIFIERS.RANGE]: rangeValue};
+                    dateValuesRef.current = updatedValues;
+                    setDateValue(CONST.SEARCH.DATE_MODIFIERS.RANGE, rangeValue);
                     return updatedValues;
                 }
 
-                // Compute the new values synchronously based on setDateValue logic
-                let updatedValues: SearchDateValues;
-
-                // Preset values clear all other filters
-                if (selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.ON && isSearchDatePreset(ephemeralDateValue)) {
-                    updatedValues = {
-                        [CONST.SEARCH.DATE_MODIFIERS.ON]: ephemeralDateValue,
-                        [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: undefined,
-                        [CONST.SEARCH.DATE_MODIFIERS.AFTER]: undefined,
-                        [CONST.SEARCH.DATE_MODIFIERS.RANGE]: undefined,
-                    };
-                } else if (selectedDateModifier !== CONST.SEARCH.DATE_MODIFIERS.ON && isSearchDatePreset(dateValues[CONST.SEARCH.DATE_MODIFIERS.ON])) {
-                    updatedValues = {
-                        ...dateValues,
-                        [selectedDateModifier]: ephemeralDateValue,
-                        [CONST.SEARCH.DATE_MODIFIERS.ON]: undefined,
-                    };
-                } else if (
-                    selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.ON ||
-                    selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.AFTER ||
-                    selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.BEFORE
-                ) {
-                    // Setting ON, AFTER, or BEFORE individually
-                    const hadRange = !!dateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE];
-
-                    if (selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.ON && hadRange) {
-                        // ON overrides everything including any Range values
-                        updatedValues = {
-                            [CONST.SEARCH.DATE_MODIFIERS.ON]: ephemeralDateValue,
-                            [CONST.SEARCH.DATE_MODIFIERS.AFTER]: undefined,
-                            [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: undefined,
-                            [CONST.SEARCH.DATE_MODIFIERS.RANGE]: undefined,
-                        };
-                    } else {
-                        // AFTER and BEFORE: Just clear RANGE flag, keep all other values
-                        updatedValues = {
-                            ...dateValues,
-                            [selectedDateModifier]: ephemeralDateValue,
-                            [CONST.SEARCH.DATE_MODIFIERS.RANGE]: undefined,
-                        };
-                    }
-                } else {
-                    updatedValues = {...dateValues, [selectedDateModifier]: ephemeralDateValue};
-                }
-
-                // Update state asynchronously
+                const updatedValues = {...currentDateValues, [selectedDateModifier]: ephemeralDateValue};
+                dateValuesRef.current = updatedValues;
                 setDateValue(selectedDateModifier, ephemeralDateValue);
-
-                // Return the computed values immediately
                 return updatedValues;
             },
 
             clearDateValueOfSelectedDateModifier() {
                 if (!selectedDateModifier) {
-                    return;
+                    return dateValuesRef.current;
                 }
 
-                // For Range, clear Range flag and both After and Before values
+                const currentDateValues = dateValuesRef.current;
+                // Range flag is independent metadata and should not clear ON/AFTER/BEFORE values.
                 if (selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
+                    const updatedValues = {...currentDateValues, [CONST.SEARCH.DATE_MODIFIERS.RANGE]: undefined};
+                    dateValuesRef.current = updatedValues;
+                    setRangeEphemeralValues({});
                     setDateValue(CONST.SEARCH.DATE_MODIFIERS.RANGE, undefined);
-                    setDateValue(CONST.SEARCH.DATE_MODIFIERS.AFTER, undefined);
-                    setDateValue(CONST.SEARCH.DATE_MODIFIERS.BEFORE, undefined);
-                    return;
+                    return updatedValues;
                 }
 
+                const updatedValues = {...currentDateValues, [selectedDateModifier]: undefined};
+                dateValuesRef.current = updatedValues;
                 setDateValue(selectedDateModifier, undefined);
+                return updatedValues;
             },
         }),
-        [selectedDateModifier, dateValues, defaultDateValues, ephemeralDateValue, setDateValue, updateDateValues],
+        [selectedDateModifier, defaultDateValues, ephemeralDateValue, rangeEphemeralValues.from, rangeEphemeralValues.to, setDateValue, updateDateValues],
     );
 
-    const rangeFromValue = dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER];
-    const rangeToValue = dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE];
-    const rangeDescription =
-        dateDisplayValues[CONST.SEARCH.DATE_MODIFIERS.RANGE] && rangeFromValue && rangeToValue ? DateUtils.getFormattedDateRangeForSearch(rangeFromValue, rangeToValue, true) : undefined;
+    const rangeBoundaries = getRangeBoundariesFromFormValue(
+        dateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE],
+        dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER],
+        dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
+    );
+    const rangeFromValue = rangeBoundaries.from;
+    const rangeToValue = rangeBoundaries.to;
+    let rangeDescription: string | undefined;
+    if (dateDisplayValues[CONST.SEARCH.DATE_MODIFIERS.RANGE]) {
+        if (rangeFromValue && rangeToValue) {
+            rangeDescription = DateUtils.getFormattedDateRangeForSearch(rangeFromValue, rangeToValue, true);
+        } else {
+            const singleBoundary = rangeFromValue ?? rangeToValue;
+            rangeDescription = singleBoundary ? DateUtils.formatToReadableString(singleBoundary) : undefined;
+        }
+    }
 
     if (!selectedDateModifier) {
         return (
@@ -402,12 +320,18 @@ function DatePresetFilterBase({
                 fromValue={rangeEphemeralValues.from}
                 toValue={rangeEphemeralValues.to}
                 onFromSelected={(date) => {
-                    setRangeEphemeralValues((prev) => ({...prev, from: date}));
-                    setDateValue(CONST.SEARCH.DATE_MODIFIERS.AFTER, date);
+                    setRangeEphemeralValues((prev) => {
+                        const nextValues = {...prev, from: date};
+                        setDateValue(CONST.SEARCH.DATE_MODIFIERS.RANGE, getRangeQueryValue(nextValues.from, nextValues.to) || undefined);
+                        return nextValues;
+                    });
                 }}
                 onToSelected={(date) => {
-                    setRangeEphemeralValues((prev) => ({...prev, to: date}));
-                    setDateValue(CONST.SEARCH.DATE_MODIFIERS.BEFORE, date);
+                    setRangeEphemeralValues((prev) => {
+                        const nextValues = {...prev, to: date};
+                        setDateValue(CONST.SEARCH.DATE_MODIFIERS.RANGE, getRangeQueryValue(nextValues.from, nextValues.to) || undefined);
+                        return nextValues;
+                    });
                 }}
                 shouldShowError={shouldShowRangeErrorInPicker ? shouldShowRangeError : false}
                 forceVertical={forceVerticalCalendars}

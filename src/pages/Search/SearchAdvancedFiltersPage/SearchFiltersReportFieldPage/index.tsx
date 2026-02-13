@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {isSearchDatePreset} from '@libs/SearchQueryUtils';
+import {getRangeBoundariesFromFormValue, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -45,21 +45,31 @@ function SearchFiltersReportFieldPage() {
                 const onValue = advancedFiltersForm?.[`${CONST.SEARCH.REPORT_FIELD.ON_PREFIX}${suffix}`];
                 const afterValue = advancedFiltersForm?.[`${CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX}${suffix}`];
                 const beforeValue = advancedFiltersForm?.[`${CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX}${suffix}`];
+                const rangeValue = advancedFiltersForm?.[`${CONST.SEARCH.REPORT_FIELD.RANGE_PREFIX}${suffix}`];
 
                 if (onValue) {
                     dateValues.push(isSearchDatePreset(onValue) ? translate(`search.filters.date.presets.${onValue}`) : translate('search.filters.date.on', onValue));
                 }
 
-                // Show as range if both after and before exist and no "on" value
-                if (afterValue && beforeValue && !onValue) {
-                    dateValues.push(`${translate('common.range')}: ${DateUtils.getFormattedDateRangeForSearch(afterValue, beforeValue, true)}`);
-                } else {
-                    if (afterValue) {
-                        dateValues.push(translate('search.filters.date.after', afterValue));
-                    }
+                if (afterValue) {
+                    dateValues.push(translate('search.filters.date.after', afterValue));
+                }
 
-                    if (beforeValue) {
-                        dateValues.push(translate('search.filters.date.before', beforeValue));
+                if (beforeValue) {
+                    dateValues.push(translate('search.filters.date.before', beforeValue));
+                }
+
+                if (rangeValue) {
+                    const rangeBoundaries = getRangeBoundariesFromFormValue(rangeValue, afterValue, beforeValue);
+                    const singleBoundary = rangeBoundaries.from ?? rangeBoundaries.to;
+                    let rangeDisplay = '';
+                    if (rangeBoundaries.from && rangeBoundaries.to) {
+                        rangeDisplay = DateUtils.getFormattedDateRangeForSearch(rangeBoundaries.from, rangeBoundaries.to, true);
+                    } else if (singleBoundary) {
+                        rangeDisplay = DateUtils.formatToReadableString(singleBoundary);
+                    }
+                    if (rangeDisplay) {
+                        dateValues.push(`${translate('common.range')}: ${rangeDisplay}`);
                     }
                 }
 

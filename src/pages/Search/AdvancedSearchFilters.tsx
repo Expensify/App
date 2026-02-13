@@ -10,7 +10,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScrollView from '@components/ScrollView';
-import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchDatePreset, SearchFilterKey} from '@components/Search/types';
+import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterKey} from '@components/Search/types';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
@@ -36,6 +36,7 @@ import {
     buildQueryStringFromFilterFormValues,
     buildSearchQueryJSON,
     getCurrentSearchQueryJSON,
+    getRangeBoundariesFromFormValue,
     isCannedSearchQuery,
     isSearchDatePreset,
     sortOptionsWithEmptyValue,
@@ -337,25 +338,36 @@ function getFilterDisplayTitle(
         const keyOn = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.ON}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.ON}`;
         const keyAfter = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.AFTER}`;
         const keyBefore = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.BEFORE}`;
+        const keyRange = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.RANGE}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.RANGE}`;
         const dateOn = filters[keyOn];
         const dateAfter = filters[keyAfter];
         const dateBefore = filters[keyBefore];
+        const dateRange = filters[keyRange];
         const dateValue = [];
 
         if (dateOn) {
             dateValue.push(isSearchDatePreset(dateOn) ? translate(`search.filters.date.presets.${dateOn}`) : translate('search.filters.date.on', dateOn));
         }
 
-        // Show as range if both after and before exist and no "on" value
-        if (dateAfter && dateBefore && !dateOn) {
-            dateValue.push(`${translate('common.range')}: ${DateUtils.getFormattedDateRangeForSearch(dateAfter, dateBefore, true)}`);
-        } else {
-            if (dateAfter) {
-                dateValue.push(translate('search.filters.date.after', dateAfter));
-            }
+        if (dateAfter) {
+            dateValue.push(translate('search.filters.date.after', dateAfter));
+        }
 
-            if (dateBefore) {
-                dateValue.push(translate('search.filters.date.before', dateBefore));
+        if (dateBefore) {
+            dateValue.push(translate('search.filters.date.before', dateBefore));
+        }
+
+        if (dateRange) {
+            const rangeBoundaries = getRangeBoundariesFromFormValue(dateRange, dateAfter, dateBefore);
+            const singleBoundary = rangeBoundaries.from ?? rangeBoundaries.to;
+            let rangeDisplay = '';
+            if (rangeBoundaries.from && rangeBoundaries.to) {
+                rangeDisplay = DateUtils.getFormattedDateRangeForSearch(rangeBoundaries.from, rangeBoundaries.to, true);
+            } else if (singleBoundary) {
+                rangeDisplay = DateUtils.formatToReadableString(singleBoundary);
+            }
+            if (rangeDisplay) {
+                dateValue.push(`${translate('common.range')}: ${rangeDisplay}`);
             }
         }
 
@@ -393,73 +405,80 @@ function getFilterDisplayTitle(
 
     if (key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
         const values: string[] = [];
-        const dateFieldPairs: Record<string, {after?: string; before?: string; on?: string}> = {};
+        const reportFieldRangePrefix = CONST.SEARCH.REPORT_FIELD.RANGE_PREFIX;
+        const reportFieldValues: Record<string, {text?: string; on?: string; after?: string; before?: string; range?: string}> = {};
 
-        // First pass: collect all date field values
         for (const [fieldKey, fieldValue] of Object.entries(filters)) {
-            if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.NOT_PREFIX) || !fieldValue || !fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
+            if (!fieldValue || fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.NOT_PREFIX) || !fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
                 continue;
             }
 
-            const fieldName = fieldKey
+            const suffix = fieldKey
+                .replace(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX, '')
                 .replace(CONST.SEARCH.REPORT_FIELD.ON_PREFIX, '')
                 .replace(CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX, '')
                 .replace(CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX, '')
-                .replace(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX, '')
+                .replace(reportFieldRangePrefix, '');
+
+            if (!suffix) {
+                continue;
+            }
+
+            if (!reportFieldValues[suffix]) {
+                reportFieldValues[suffix] = {};
+            }
+
+            if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX)) {
+                reportFieldValues[suffix].text = fieldValue as string;
+            } else if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.ON_PREFIX)) {
+                reportFieldValues[suffix].on = fieldValue as string;
+            } else if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX)) {
+                reportFieldValues[suffix].after = fieldValue as string;
+            } else if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX)) {
+                reportFieldValues[suffix].before = fieldValue as string;
+            } else if (fieldKey.startsWith(reportFieldRangePrefix)) {
+                reportFieldValues[suffix].range = fieldValue as string;
+            }
+        }
+
+        for (const [suffix, fieldDateValues] of Object.entries(reportFieldValues)) {
+            const fieldName = suffix
                 .split('-')
                 .map((word, index) => (index === 0 ? word.charAt(0).toUpperCase() + word.slice(1) : word))
                 .join(' ');
 
-            if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.ON_PREFIX)) {
-                if (!dateFieldPairs[fieldName]) {
-                    dateFieldPairs[fieldName] = {};
-                }
-                dateFieldPairs[fieldName].on = fieldValue as string;
-                const dateString = isSearchDatePreset(fieldValue as string)
-                    ? translate(`search.filters.date.presets.${fieldValue as SearchDatePreset}` as TranslationPaths)
-                    : translate('search.filters.date.on', fieldValue as string);
-
-                values.push(translate('search.filters.reportField', fieldName, dateString.toLowerCase()));
-            } else if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX)) {
-                if (!dateFieldPairs[fieldName]) {
-                    dateFieldPairs[fieldName] = {};
-                }
-                dateFieldPairs[fieldName].after = fieldValue as string;
-                const dateString = translate('search.filters.date.after', fieldValue as string);
-                values.push(translate('search.filters.reportField', fieldName, dateString.toLowerCase()));
-            } else if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX)) {
-                if (!dateFieldPairs[fieldName]) {
-                    dateFieldPairs[fieldName] = {};
-                }
-                dateFieldPairs[fieldName].before = fieldValue as string;
-                const dateString = translate('search.filters.date.before', fieldValue as string);
-                values.push(translate('search.filters.reportField', fieldName, dateString.toLowerCase()));
-            } else if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX)) {
-                const valueString = translate('search.filters.reportField', fieldName, fieldValue as string);
-                values.push(valueString);
-            }
-        }
-
-        // Second pass: format date fields
-        for (const [fieldName, dateValues] of Object.entries(dateFieldPairs)) {
-            if (dateValues.on) {
-                const dateString = isSearchDatePreset(dateValues.on) ? translate(`search.filters.date.presets.${dateValues.on}`) : translate('search.filters.date.on', dateValues.on);
-                values.push(translate('search.filters.reportField', fieldName, dateString.toLowerCase()));
+            if (fieldDateValues.text) {
+                values.push(translate('search.filters.reportField', fieldName, fieldDateValues.text));
             }
 
-            // Show as range if both after and before exist and no "on" value
-            if (dateValues.after && dateValues.before && !dateValues.on) {
-                const rangeString = `${translate('common.range')}: ${DateUtils.getFormattedDateRangeForSearch(dateValues.after, dateValues.before, true)}`;
-                values.push(translate('search.filters.reportField', fieldName, rangeString.toLowerCase()));
-            } else {
-                if (dateValues.after) {
-                    const dateString = translate('search.filters.date.after', dateValues.after).toLowerCase();
-                    values.push(translate('search.filters.reportField', fieldName, dateString));
-                }
+            if (fieldDateValues.on) {
+                const onString = isSearchDatePreset(fieldDateValues.on)
+                    ? translate(`search.filters.date.presets.${fieldDateValues.on}`)
+                    : translate('search.filters.date.on', fieldDateValues.on);
+                values.push(translate('search.filters.reportField', fieldName, onString.toLowerCase()));
+            }
 
-                if (dateValues.before) {
-                    const dateString = translate('search.filters.date.before', dateValues.before).toLowerCase();
-                    values.push(translate('search.filters.reportField', fieldName, dateString));
+            if (fieldDateValues.after) {
+                const afterString = translate('search.filters.date.after', fieldDateValues.after).toLowerCase();
+                values.push(translate('search.filters.reportField', fieldName, afterString));
+            }
+
+            if (fieldDateValues.before) {
+                const beforeString = translate('search.filters.date.before', fieldDateValues.before).toLowerCase();
+                values.push(translate('search.filters.reportField', fieldName, beforeString));
+            }
+
+            if (fieldDateValues.range) {
+                const rangeBoundaries = getRangeBoundariesFromFormValue(fieldDateValues.range, fieldDateValues.after, fieldDateValues.before);
+                const singleBoundary = rangeBoundaries.from ?? rangeBoundaries.to;
+                let rangeDisplay = '';
+                if (rangeBoundaries.from && rangeBoundaries.to) {
+                    rangeDisplay = DateUtils.getFormattedDateRangeForSearch(rangeBoundaries.from, rangeBoundaries.to, true);
+                } else if (singleBoundary) {
+                    rangeDisplay = DateUtils.formatToReadableString(singleBoundary);
+                }
+                if (rangeDisplay) {
+                    values.push(translate('search.filters.reportField', fieldName, `${translate('common.range')}: ${rangeDisplay}`.toLowerCase()));
                 }
             }
         }

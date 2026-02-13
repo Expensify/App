@@ -96,6 +96,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Report, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SearchPageNarrow from './SearchPageNarrow';
 import SearchPageWide from './SearchPageWide';
 
@@ -144,7 +145,9 @@ function SearchPage({route}: SearchPageProps) {
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [, searchAdvancedFiltersFormMetadata] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
     const {accountID} = useCurrentUserPersonalDetails();
+    const isSearchAdvancedFiltersFormLoading = isLoadingOnyxValue(searchAdvancedFiltersFormMetadata);
 
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
@@ -242,8 +245,11 @@ function SearchPage({route}: SearchPageProps) {
 
     // Sync the advanced filters form with the current query when it changes
     useEffect(() => {
+        if (isSearchAdvancedFiltersFormLoading) {
+            return;
+        }
         updateAdvancedFilters(formValues, true);
-    }, [formValues]);
+    }, [formValues, isSearchAdvancedFiltersFormLoading]);
 
     useConfirmReadyToOpenApp();
 
