@@ -7,6 +7,7 @@ import type {
     OpenPublicProfilePageParams,
     SetPersonalDetailsAndRevealExpensifyCardParams,
     SetPersonalDetailsAndShipExpensifyCardsParams,
+    SetPersonalDetailsAndShipExpensifyCardsWithPINParams,
     UpdateAutomaticTimezoneParams,
     UpdateDateOfBirthParams,
     UpdateDisplayNameParams,
@@ -541,6 +542,51 @@ function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeo
     });
 }
 
+function updatePersonalDetailsAndShipExpensifyCardsWithPIN(
+    values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>,
+    validateCode: string,
+    countryCode: number,
+    pin: string,
+    signedChallenge?: string,
+) {
+    const parameters: SetPersonalDetailsAndShipExpensifyCardsWithPINParams = {
+        legalFirstName: values.legalFirstName?.trim() ?? '',
+        legalLastName: values.legalLastName?.trim() ?? '',
+        phoneNumber: LoginUtils.appendCountryCode(values.phoneNumber?.trim() ?? '', countryCode),
+        addressCity: values.city.trim(),
+        addressStreet: values.addressLine1?.trim() ?? '',
+        addressStreet2: values.addressLine2?.trim() ?? '',
+        addressZip: values.zipPostCode?.trim().toUpperCase() ?? '',
+        addressCountry: values.country,
+        addressState: values.state.trim(),
+        dob: values.dob,
+        validateCode,
+        pin,
+        signedChallenge,
+    };
+
+    API.write(WRITE_COMMANDS.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS_WITH_PIN, parameters, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                value: {
+                    isLoading: true,
+                },
+            },
+        ],
+        finallyData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                value: {
+                    isLoading: false,
+                },
+            },
+        ],
+    });
+}
+
 function setPersonalDetailsAndRevealExpensifyCard(
     values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>,
     validateCode: string,
@@ -656,6 +702,7 @@ export {
     updatePronouns,
     updateSelectedTimezone,
     updatePersonalDetailsAndShipExpensifyCards,
+    updatePersonalDetailsAndShipExpensifyCardsWithPIN,
     setPersonalDetailsAndRevealExpensifyCard,
     clearPersonalDetailsErrors,
 };

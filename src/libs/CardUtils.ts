@@ -111,6 +111,19 @@ function isExpensifyCard(card?: Card) {
 }
 
 /**
+ * Checks if the card is a UK/EU Expensify card (supports PIN management features).
+ * UK/EU cards have feedCountry set to 'GB' which indicates the UK/EU card program.
+ * @param card - The card to check.
+ * @returns boolean
+ */
+function isExpensifyCardUkEuSupported(card?: Card): boolean {
+    if (!card) {
+        return false;
+    }
+    return card.nameValuePairs?.feedCountry === CONST.EXPENSIFY_CARD.PROGRAM.UK_EU;
+}
+
+/**
  * @param card
  * @returns string in format %<bank> - <lastFourPAN || Not Activated>%.
  */
@@ -1104,6 +1117,7 @@ export {
     getAssignedCardSortKey,
     getDefaultExpensifyCardLimitType,
     isExpensifyCard,
+    isExpensifyCardUkEuSupported,
     getDomainCards,
     formatCardExpiration,
     getMonthFromExpirationDateString,

@@ -3,6 +3,7 @@ import type {MultifactorAuthenticationScenarioConfigRecord} from '@components/Mu
 import CONST from '@src/CONST';
 import BiometricsTest from './BiometricsTest';
 import {customConfig} from './DefaultUserInterface';
+import SetPinOrderCard from './SetPinOrderCard';
 
 /**
  * Payload types for multifactor authentication scenarios.
@@ -22,6 +23,7 @@ type Payloads = EmptyObject;
  */
 const Configs = {
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST]: customConfig(BiometricsTest),
+    [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PIN_ORDER_CARD]: customConfig(SetPinOrderCard),
 } as const satisfies MultifactorAuthenticationScenarioConfigRecord;
 
 export default Configs;

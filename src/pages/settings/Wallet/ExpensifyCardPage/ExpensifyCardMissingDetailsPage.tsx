@@ -30,6 +30,7 @@ function ExpensifyCardMissingDetailsPage({
             draftValues={draftValues}
             headerTitle={translate('cardPage.cardDetails.revealDetails')}
             onComplete={handleComplete}
+            cardID={cardID}
         />
     );
 }

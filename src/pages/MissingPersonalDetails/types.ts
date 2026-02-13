@@ -4,6 +4,9 @@ import type {PersonalDetailsForm} from '@src/types/form';
 type CustomSubPageProps = SubPageProps & {
     /** User's personal details values */
     personalDetailsValues: PersonalDetailsForm;
+
+    /** Whether this is a UK/EU card (requires PIN) */
+    isUKEUCard?: boolean;
 };
 
 type CountryZipRegex = {

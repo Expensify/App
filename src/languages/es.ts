@@ -2033,6 +2033,16 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${amount} para ${merchant} - ${date}`,
         },
+        setYourPin: 'Establece tu PIN',
+        confirmYourPin: 'Confirma tu PIN',
+        enterFourDigitPin: 'Ingresa un PIN de 4 dígitos para tu tarjeta.',
+        reenterPinToConfirm: 'Vuelve a ingresar tu PIN para confirmar.',
+        pinMustBeFourDigits: 'El PIN debe tener exactamente 4 dígitos.',
+        invalidPin: 'Por favor, elige un PIN más seguro.',
+        pinMismatch: 'Los PINs no coinciden. Por favor, inténtalo de nuevo.',
+        revealPin: 'Mostrar PIN',
+        hidePin: 'Ocultar PIN',
+        pin: 'PIN',
     },
     workflowsPage: {
         workflowTitle: 'Gasto',

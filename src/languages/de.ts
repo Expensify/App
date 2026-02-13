@@ -2243,6 +2243,16 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${amount} für ${merchant} – ${date}`,
         },
+        setYourPin: 'Set your PIN',
+        confirmYourPin: 'Confirm your PIN',
+        enterFourDigitPin: 'Enter a 4-digit PIN for your card.',
+        reenterPinToConfirm: 'Re-enter your PIN to confirm.',
+        pinMustBeFourDigits: 'PIN must be exactly 4 digits.',
+        invalidPin: 'Please choose a more secure PIN.',
+        pinMismatch: 'PINs do not match. Please try again.',
+        revealPin: 'Reveal PIN',
+        hidePin: 'Hide PIN',
+        pin: 'PIN',
     },
     workflowsPage: {
         workflowTitle: 'Ausgaben',
