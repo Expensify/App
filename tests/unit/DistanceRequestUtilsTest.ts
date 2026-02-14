@@ -15,7 +15,7 @@ const FAKE_POLICY: Policy = {
     customUnits: {
         C9031B6F4725D: {
             attributes: {
-                taxEnabled: false,
+                taxEnabled: true,
                 unit: 'mi',
             },
             customUnitID: 'C9031B6F4725D',
@@ -50,6 +50,18 @@ const FAKE_POLICY: Policy = {
                     enabled: true,
                     attributes: {},
                     subRates: [],
+                    pendingFields: {},
+                },
+                EB515052039A4: {
+                    currency: 'USD',
+                    customUnitRateID: 'EB515052039A4',
+                    enabled: true,
+                    name: 'Default Rate',
+                    rate: 72.5,
+                    subRates: [],
+                    attributes: {
+                        taxRateExternalID: 'id_TAX_RATE_1',
+                    },
                     pendingFields: {},
                 },
             },
@@ -176,6 +188,13 @@ describe('DistanceRequestUtils', () => {
                 true,
             );
             expect(result).toBe('0.00 mi @ $0.67 / mi');
+        });
+    });
+
+    describe('getTaxableAmount', () => {
+        it('should return 0 if tax recliamable percentage is undefined', () => {
+            const result = DistanceRequestUtils.getTaxableAmount(FAKE_POLICY, 'EB515052039A4', 1000);
+            expect(result).toBe(0);
         });
     });
 });
