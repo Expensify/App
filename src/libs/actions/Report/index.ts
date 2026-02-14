@@ -5982,7 +5982,7 @@ function buildOptimisticChangePolicyData(
     const isInstantSubmitEnabledLocal = isInstantSubmitEnabled(policy);
     const isSubmitAndCloseLocal = isSubmitAndClose(policy);
     const arePaymentsDisabled = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
-    if (isProcessingReport(report) && isInstantSubmitEnabledLocal && isSubmitAndCloseLocal && arePaymentsDisabled) {
+    if (isOpenOrSubmitted && isInstantSubmitEnabledLocal && isSubmitAndCloseLocal && arePaymentsDisabled) {
         newStatusNum = CONST.REPORT.STATUS_NUM.CLOSED;
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
