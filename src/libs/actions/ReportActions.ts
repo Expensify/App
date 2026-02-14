@@ -1,12 +1,12 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import deleteReport from '@libs/actions/Report/DeleteReport';
 import {getLinkedTransactionID, getReportAction, getReportActionMessage, isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
 import {getOriginalReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
-import {deleteReport} from './Report';
 
 type IgnoreDirection = 'parent' | 'child';
 
