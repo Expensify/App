@@ -5,6 +5,7 @@
  */
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
+import {setModalVisibility} from '@libs/actions/Modal';
 import {setActiveClients} from '@userActions/ActiveClients';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Init, IsClientTheLeader, IsReady} from './types';
@@ -96,6 +97,7 @@ const init: Init = () => {
     beforeunloadListenerAdded = true;
     window.addEventListener('beforeunload', () => {
         cleanUpClientId();
+        setModalVisibility(false);
     });
 };
 

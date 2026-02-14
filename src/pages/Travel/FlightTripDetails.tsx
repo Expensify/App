@@ -25,7 +25,7 @@ type FlightTripDetailsProps = {
 function FlightTripDetails({reservation, prevReservation, personalDetails}: FlightTripDetailsProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate, preferredLocale} = useLocalize();
+    const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Hourglass']);
 
     const cabinClassMapping: Record<string, string> = {
@@ -36,8 +36,8 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
         FIRST: translate('travel.flightDetails.cabinClasses.first'),
     };
 
-    const startDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date), preferredLocale);
-    const endDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date), preferredLocale);
+    const startDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date));
+    const endDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date));
 
     const prevFlightEndDate = prevReservation?.end.date;
     const layover = prevFlightEndDate && DateUtils.getFormattedDurationBetweenDates(translate, new Date(prevFlightEndDate), new Date(reservation.start.date));
@@ -100,14 +100,15 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
             />
 
             <View style={[styles.flexRow, styles.flexWrap]}>
-                {!!reservation.route?.number && (
+                {!!reservation.seatNumber && (
                     <View style={styles.w50}>
                         <MenuItemWithTopDescription
                             description={translate('travel.flightDetails.seat')}
-                            title={reservation.route?.number}
+                            title={reservation.seatNumber}
                             interactive={false}
-                            copyValue={reservation.route?.number}
-                            copyable={!!reservation.route?.number?.length}
+                            copyValue={reservation.seatNumber}
+                            copyable={!!reservation.seatNumber?.length}
+                            pressableTestID={CONST.FLIGHT_SEAT_TEST_ID}
                         />
                     </View>
                 )}

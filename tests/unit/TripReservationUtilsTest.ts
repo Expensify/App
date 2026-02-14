@@ -178,7 +178,7 @@ const airPnrDirect: Pnr = {
                                 legIdx: 0,
                                 flightIdx: 0,
                                 amount: 0,
-                                number: 0,
+                                number: '14C',
                             },
                         ],
                         itinerary: {
@@ -2276,6 +2276,26 @@ describe('TripReservationUtils', () => {
             // This check will fail if the values are not sorted correctly in getAirReservations
             expect(result.at(0)?.reservation.legId).toBe(0);
             expect(result.at(1)?.reservation.legId).toBe(1);
+        });
+
+        it('should correctly extract the seat number from the seats array', () => {
+            const result = getAirReservations(airReservationPnrData, airReservationTravelers);
+
+            // The first leg has a seat assigned ("12A")
+            expect(result.at(0)?.reservation.seatNumber).toBe('12A');
+
+            // The second leg has no seat assigned (empty string)
+            expect(result.at(1)?.reservation.seatNumber).toBe('');
+        });
+
+        it('should not serialize the entire seat object as the seat number', () => {
+            const result = getAirReservations(airReservationPnrData, airReservationTravelers);
+
+            // Verify the seat number is just the value, not a JSON object
+            const seatNumber = result.at(0)?.reservation.seatNumber;
+            expect(seatNumber).not.toContain('{');
+            expect(seatNumber).not.toContain('amount');
+            expect(seatNumber).not.toContain('legIdx');
         });
     });
     describe('getReservationsFromTripReport', () => {

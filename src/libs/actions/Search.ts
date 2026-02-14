@@ -1,3 +1,4 @@
+import cloneDeep from 'lodash/cloneDeep';
 import isEmpty from 'lodash/isEmpty';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -6,7 +7,7 @@ import type {FormOnyxValues} from '@components/Form/types';
 import type {ContinueActionParams, PaymentMethod, PaymentMethodType} from '@components/KYCWall/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import type {BankAccountMenuItem, PaymentData, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
+import type {BankAccountMenuItem, PaymentData, SearchQueryJSON, SelectedReports, SelectedTransactionInfo, SelectedTransactions} from '@components/Search/types';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 import * as API from '@libs/API';
 import {waitForWrites} from '@libs/API';
@@ -16,6 +17,7 @@ import {getCommandURL} from '@libs/ApiUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
+import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
@@ -29,6 +31,7 @@ import {
     buildOptimisticExportIntegrationAction,
     buildOptimisticIOUReportAction,
     generateReportID,
+    getReportOrDraftReport,
     getReportTransactions,
     hasHeldExpenses,
     isExpenseReport,
@@ -46,17 +49,29 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
+import type {
+    BankAccountList,
+    Beta,
+    ExportTemplate,
+    LastPaymentMethod,
+    LastPaymentMethodType,
+    Policy,
+    Report,
+    ReportAction,
+    ReportActions,
+    Transaction,
+    TransactionViolations,
+} from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type Nullable from '@src/types/utils/Nullable';
 import SafeString from '@src/utils/SafeString';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
+import {getReportPreviewAction, prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU';
 import type {RejectMoneyRequestData} from './IOU';
-import {prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU';
 import {isCurrencySupportedForGlobalReimbursement} from './Policy/Policy';
-import {setOptimisticTransactionThread} from './Report';
+import {deleteAppReport, setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
 
 type OnyxSearchResponse = {
@@ -126,7 +141,7 @@ function handleActionButtonPress({
                 onDelegateAccessRestricted?.();
                 return;
             }
-            if (hasDynamicExternalWorkflow(snapshotPolicy)) {
+            if (hasDynamicExternalWorkflow(snapshotPolicy) && !isDEWBetaEnabled) {
                 onDEWModalOpen?.();
                 return;
             }
@@ -377,6 +392,28 @@ function openSearchPage({includePartiallySetupBankAccounts}: OpenSearchPageParam
     API.read(READ_COMMANDS.OPEN_SEARCH_PAGE, {includePartiallySetupBankAccounts});
 }
 
+let shouldPreventSearchAPI = false;
+function handlePreventSearchAPI(hash: number | undefined) {
+    if (typeof hash === 'undefined') {
+        return {};
+    }
+    const {optimisticData, finallyData} = getOnyxLoadingData(hash, undefined, undefined, false, true);
+    return {
+        enableSearchAPIPrevention: () => {
+            shouldPreventSearchAPI = true;
+            if (optimisticData) {
+                Onyx.update(optimisticData);
+            }
+        },
+        disableSearchAPIPrevention: () => {
+            shouldPreventSearchAPI = false;
+            if (finallyData) {
+                Onyx.update(finallyData);
+            }
+        },
+    };
+}
+
 function search({
     queryJSON,
     searchKey,
@@ -394,20 +431,23 @@ function search({
     isOffline?: boolean;
     isLoading: boolean;
 }) {
-    if (isLoading) {
+    if (isLoading || shouldPreventSearchAPI) {
         return;
     }
 
     const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline, true);
-    const {flatFilters, ...queryJSONWithoutFlatFilters} = queryJSON;
+    const {flatFilters, limit, ...queryJSONWithoutFlatFilters} = queryJSON;
     const query = {
         ...queryJSONWithoutFlatFilters,
         searchKey,
         offset,
         filters: queryJSONWithoutFlatFilters.filters ?? null,
         shouldCalculateTotals,
+        // Backend expects 'maximumResults' instead of 'limit'
+        ...(limit !== undefined && {maximumResults: limit}),
     };
     const jsonQuery = JSON.stringify(query);
+
     saveLastSearchParams({
         queryJSON,
         offset,
@@ -522,9 +562,24 @@ function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: 
     ];
 
     const report = (reportList.at(0) ?? {}) as Report;
+    const policyForReport = policy.at(0);
+    const submitToAccountID = getSubmitToAccountID(policyForReport, report);
+    const managerAccountIDParam = submitToAccountID ?? report?.managerID;
+    Log.info('[submitMoneyRequestOnSearch] Submitting report with approval chain diagnostic', false, {
+        reportID: report.reportID,
+        reportOwnerAccountID: report.ownerAccountID,
+        reportExistingManagerID: report.managerID,
+        getSubmitToAccountIDResult: submitToAccountID,
+        managerAccountIDSentToAPI: managerAccountIDParam,
+        hasPolicyData: !!policyForReport,
+        policyID: policyForReport?.id,
+        policyApprovalMode: policyForReport?.approvalMode,
+        policyOwner: policyForReport?.owner,
+        policyApprover: policyForReport?.approver,
+    });
     const parameters: SubmitReportParams = {
         reportID: report.reportID,
-        managerAccountID: getSubmitToAccountID(policy.at(0), report) ?? report?.managerID,
+        managerAccountID: managerAccountIDParam,
         reportActionID: rand64(),
     };
 
@@ -538,7 +593,15 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], curre
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
             key: ONYXKEYS.COLLECTION.REPORT_METADATA,
-            value: Object.fromEntries(reportIDList.map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {isActionLoading: true}])),
+            value: Object.fromEntries(
+                reportIDList.map((reportID) => [
+                    `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                    {
+                        isActionLoading: true,
+                        pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE,
+                    },
+                ]),
+            ),
         },
     ];
 
@@ -546,7 +609,15 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], curre
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
             key: ONYXKEYS.COLLECTION.REPORT_METADATA,
-            value: Object.fromEntries(reportIDList.map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {isActionLoading: false}])),
+            value: Object.fromEntries(
+                reportIDList.map((reportID) => [
+                    `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                    {
+                        isActionLoading: false,
+                        pendingExpenseAction: null,
+                    },
+                ]),
+            ),
         },
     ];
 
@@ -566,7 +637,15 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], curre
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
             key: ONYXKEYS.COLLECTION.REPORT_METADATA,
-            value: Object.fromEntries(reportIDList.map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {isActionLoading: false}])),
+            value: Object.fromEntries(
+                reportIDList.map((reportID) => [
+                    `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                    {
+                        isActionLoading: false,
+                        pendingExpenseAction: null,
+                    },
+                ]),
+            ),
         },
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
@@ -726,44 +805,142 @@ function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
 }
 
-function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
-    const {optimisticData: loadingOptimisticData, finallyData} = getOnyxLoadingData(hash);
+function bulkDeleteReports(
+    reports: OnyxCollection<Report>,
+    selfDMReport: OnyxEntry<Report>,
+    hash: number,
+    selectedTransactions: Record<string, SelectedTransactionInfo>,
+    currentUserEmailParam: string,
+    currentUserAccountIDParam: number,
+    reportTransactions: Record<string, Transaction>,
+    transactionsViolations: Record<string, TransactionViolations>,
+    bankAccountList: OnyxEntry<BankAccountList>,
+    transactions?: OnyxCollection<Transaction>,
+) {
+    const transactionIDList: string[] = [];
+    const reportIDList: string[] = [];
 
-    for (const transactionID of transactionIDList) {
-        const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            ...(loadingOptimisticData ?? []),
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
-                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                value: {
-                    data: {
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
-                    },
-                },
-            },
-        ];
+    for (const key of Object.keys(selectedTransactions)) {
+        const selectedItem = selectedTransactions[key];
+        if (selectedItem.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === selectedItem.reportID) {
+            reportIDList.push(selectedItem.reportID);
+        } else {
+            transactionIDList.push(key);
+        }
+    }
 
-        const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
-                value: {
-                    data: {
-                        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {pendingAction: null},
-                    },
-                },
-            },
-        ];
+    if (transactionIDList.length > 0) {
+        deleteMoneyRequestOnSearch(hash, transactionIDList, transactions);
+    }
 
-        API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList: [transactionID]}, {optimisticData, failureData, finallyData});
+    if (reportIDList.length > 0) {
+        for (const reportID of reportIDList) {
+            const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+            deleteAppReport(report, selfDMReport, currentUserEmailParam, currentUserAccountIDParam, reportTransactions, transactionsViolations, bankAccountList);
+        }
     }
 }
 
-function rejectMoneyRequestInBulk(reportID: string, comment: string, policy: OnyxEntry<Policy>, transactionIDs: string[], hash?: number) {
+function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[], transactions?: OnyxCollection<Transaction>) {
+    const {optimisticData: loadingOptimisticData, finallyData} = getOnyxLoadingData(hash);
+
+    const optimisticData: OnyxUpdate[] = [...(loadingOptimisticData ?? [])];
+    const failureData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [];
+
+    let pendingDeleteTransactionsCount = transactionIDList.length;
+
+    for (const transactionID of transactionIDList) {
+        if (transactions) {
+            const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+
+            if (transaction) {
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                    value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                });
+
+                failureData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                    value: {pendingAction: null},
+                });
+
+                const shouldDeleteIOUReport = getReportTransactions(transaction?.reportID).length === transactionIDList.length && pendingDeleteTransactionsCount === 1;
+                pendingDeleteTransactionsCount -= 1;
+
+                if (shouldDeleteIOUReport) {
+                    const iouReport = getReportOrDraftReport(transaction.reportID);
+                    const reportPreviewAction = getReportPreviewAction(iouReport?.chatReportID, iouReport?.reportID);
+
+                    if (reportPreviewAction?.reportActionID) {
+                        const updatedReportPreviewAction: Partial<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> = cloneDeep(reportPreviewAction ?? {});
+                        updatedReportPreviewAction.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
+                        optimisticData.push({
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.chatReportID}`,
+                            value: {[reportPreviewAction.reportActionID]: updatedReportPreviewAction},
+                        });
+
+                        successData.push({
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.chatReportID}`,
+                            value: {
+                                [reportPreviewAction.reportActionID]: {
+                                    pendingAction: null,
+                                    errors: null,
+                                },
+                            },
+                        });
+
+                        failureData.push({
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.chatReportID}`,
+                            value: {
+                                [reportPreviewAction.reportActionID]: {
+                                    ...reportPreviewAction,
+                                    pendingAction: null,
+                                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericDeleteFailureMessage'),
+                                },
+                            },
+                        });
+                    }
+
+                    optimisticData.push({
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`,
+                        value: {
+                            reportID: null,
+                            pendingFields: {
+                                preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                            },
+                        },
+                    });
+
+                    successData.push({
+                        onyxMethod: Onyx.METHOD.SET,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`,
+                        value: null,
+                    });
+                }
+            }
+        }
+    }
+
+    API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, failureData, successData, finallyData});
+}
+
+function rejectMoneyRequestInBulk(
+    reportID: string,
+    comment: string,
+    policy: OnyxEntry<Policy>,
+    transactionIDs: string[],
+    currentUserAccountIDParam: number,
+    betas: OnyxEntry<Beta[]>,
+    hash?: number,
+) {
     const optimisticData: Array<RejectMoneyRequestData['optimisticData'][number] | OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
     const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
     const successData: RejectMoneyRequestData['successData'] = [];
@@ -781,7 +958,7 @@ function rejectMoneyRequestInBulk(reportID: string, comment: string, policy: Ony
         }
     > = {};
     for (const transactionID of transactionIDs) {
-        const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, undefined, true);
+        const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, betas, undefined, true);
         if (data) {
             optimisticData.push(...data.optimisticData);
             successData.push(...data.successData);
@@ -811,6 +988,8 @@ function rejectMoneyRequestsOnSearch(
     comment: string,
     allPolicies: OnyxCollection<Policy>,
     allReports: OnyxCollection<Report>,
+    currentUserAccountIDParam: number,
+    betas: OnyxEntry<Beta[]>,
 ) {
     const transactionIDs = Object.keys(selectedTransactions);
 
@@ -843,12 +1022,12 @@ function rejectMoneyRequestsOnSearch(
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const isPolicyDelayedSubmissionEnabled = policy ? isDelayedSubmissionEnabled(policy) : false;
         if (isPolicyDelayedSubmissionEnabled && areAllExpensesSelected) {
-            rejectMoneyRequestInBulk(reportID, comment, policy, selectedTransactionIDs, hash);
+            rejectMoneyRequestInBulk(reportID, comment, policy, selectedTransactionIDs, currentUserAccountIDParam, betas, hash);
         } else {
             // Share a single destination ID across all rejections from the same source report
             const sharedRejectedToReportID = generateReportID();
             for (const transactionID of selectedTransactionIDs) {
-                rejectMoneyRequest(transactionID, reportID, comment, policy, {sharedRejectedToReportID});
+                rejectMoneyRequest(transactionID, reportID, comment, policy, currentUserAccountIDParam, betas, {sharedRejectedToReportID});
             }
         }
         if (isSingleReport && areAllExpensesSelected && !isPolicyDelayedSubmissionEnabled) {
@@ -1142,9 +1321,9 @@ function handleBulkPayItemSelected(params: {
         showDelegateNoAccessModal,
         confirmPayment,
     } = params;
-    const {paymentType, selectedPolicy, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, latestBankItems);
-    // Policy id is also a last payment method so we shouldn't early return here for that case.
-    if (!isValidBulkPayOption(item) && !selectedPolicy) {
+    const {paymentType, policyFromPaymentMethod, policyFromContext, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, latestBankItems, policy?.id);
+    // Early return if item is not a valid payment method and not a policy-based payment option
+    if (!isValidBulkPayOption(item) && !policyFromPaymentMethod) {
         return;
     }
 
@@ -1168,12 +1347,12 @@ function handleBulkPayItemSelected(params: {
         return;
     }
 
-    if (!!selectedPolicy || shouldSelectPaymentMethod) {
+    if ((!!policyFromPaymentMethod || shouldSelectPaymentMethod) && item.key !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
         triggerKYCFlow({
             event: undefined,
             iouPaymentType: paymentType,
             paymentMethod: item.key as PaymentMethod,
-            policy: selectedPolicy,
+            policy: policyFromPaymentMethod ?? policyFromContext,
         });
 
         if (paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
@@ -1298,6 +1477,7 @@ export {
     search,
     deleteMoneyRequestOnSearch,
     holdMoneyRequestOnSearch,
+    bulkDeleteReports,
     unholdMoneyRequestOnSearch,
     rejectMoneyRequestsOnSearch,
     exportSearchItemsToCSV,
@@ -1324,5 +1504,6 @@ export {
     getTotalFormattedAmount,
     setOptimisticDataForTransactionThreadPreview,
     getPayMoneyOnSearchInvoiceParams,
+    handlePreventSearchAPI,
 };
 export type {TransactionPreviewData};

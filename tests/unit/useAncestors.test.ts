@@ -1,4 +1,4 @@
-import {renderHook} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import useAncestors from '@hooks/useAncestors';
 import DateUtils from '@libs/DateUtils';
@@ -52,7 +52,12 @@ describe('useAncestors', () => {
         return waitForBatchedUpdates();
     });
 
-    afterAll(Onyx.clear);
+    afterEach(async () => {
+        await act(async () => {
+            await Onyx.clear();
+        });
+        jest.clearAllMocks();
+    });
 
     test('returns correct ancestor reports and actions', () => {
         let reportNum = 8;

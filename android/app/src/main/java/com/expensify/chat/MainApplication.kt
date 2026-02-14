@@ -74,11 +74,6 @@ class MainApplication : MultiDexApplication(), ReactApplication {
         val sharedI18nUtilInstance = I18nUtil.instance
         sharedI18nUtilInstance.allowRTL(applicationContext, false)
 
-        // Start the "js_load" custom performance tracing metric. This timer is stopped by a native
-        // module in the JS so we can measure total time starting in the native layer and ending in
-        // the JS layer.
-        StartupTimer.start()
-
         // Increase SQLite DB write size
         try {
             val field = CursorWindow::class.java.getDeclaredField("sCursorWindowSize")

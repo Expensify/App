@@ -3,7 +3,7 @@ import React, {useContext, useEffect, useMemo, useRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {Keyboard, PanResponder, View} from 'react-native';
 import {PickerAvoidingView} from 'react-native-picker-select';
-import {useInputBlurContext} from '@components/InputBlurContext';
+import {useInputBlurActions, useInputBlurState} from '@components/InputBlurContext';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import ModalContext from '@components/Modal/ModalContext';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
@@ -116,7 +116,8 @@ function ScreenWrapperContainer({
     const styles = useThemeStyles();
     const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
     const minHeight = shouldEnableMinHeight && !isSafari() ? initialHeight : undefined;
-    const {isBlurred, setIsBlurred} = useInputBlurContext();
+    const {isBlurred} = useInputBlurState();
+    const {setIsBlurred} = useInputBlurActions();
     const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && isMobileWebKit());
 
     const isUsingEdgeToEdgeMode = enableEdgeToEdgeBottomSafeAreaPadding !== undefined;

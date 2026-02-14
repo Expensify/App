@@ -2,9 +2,10 @@ import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
-import ConfirmModal from '@components/ConfirmModal';
 import FixedFooter from '@components/FixedFooter';
 import ScrollView from '@components/ScrollView';
+import type {BaseTwoFactorAuthFormRef} from '@components/TwoFactorAuthForm/types';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -13,8 +14,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import TwoFactorAuthForm from './TwoFactorAuthForm';
-import type {BaseTwoFactorAuthFormRef} from './TwoFactorAuthForm/types';
+import ToggleTwoFactorAuthForm from './ToggleTwoFactorAuthForm';
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
 function DisablePage() {
@@ -39,6 +39,29 @@ function DisablePage() {
         Navigation.goBack();
     }, []);
 
+    const {showConfirmModal} = useConfirmModal();
+    const showTwoFactorAuthRequireModal = useCallback(() => {
+        return showConfirmModal({
+            title: translate('twoFactorAuth.twoFactorAuthCannotDisable'),
+            prompt: translate('twoFactorAuth.twoFactorAuthRequired'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
+    }, [translate, showConfirmModal]);
+
+    useEffect(() => {
+        if (isEmpty(account?.errorFields?.requiresTwoFactorAuth ?? {})) {
+            return;
+        }
+
+        const handleTwoFactorAuthError = async () => {
+            await showTwoFactorAuthRequireModal();
+            closeModal();
+        };
+
+        handleTwoFactorAuthError();
+    }, [account?.errorFields?.requiresTwoFactorAuth, showTwoFactorAuthRequireModal, closeModal]);
+
     return (
         <TwoFactorAuthWrapper
             stepName={CONST.TWO_FACTOR_AUTH_STEPS.DISABLE}
@@ -49,8 +72,8 @@ function DisablePage() {
                 keyboardShouldPersistTaps="handled"
             >
                 <View style={[styles.mh5, styles.mb4, styles.mt3]}>
-                    <TwoFactorAuthForm
-                        innerRef={formRef}
+                    <ToggleTwoFactorAuthForm
+                        ref={formRef}
                         validateInsteadOfDisable={false}
                     />
                 </View>
@@ -69,16 +92,6 @@ function DisablePage() {
                     }}
                 />
             </FixedFooter>
-            <ConfirmModal
-                title={translate('twoFactorAuth.twoFactorAuthCannotDisable')}
-                prompt={translate('twoFactorAuth.twoFactorAuthRequired')}
-                confirmText={translate('common.buttonConfirm')}
-                onConfirm={closeModal}
-                shouldShowCancelButton={false}
-                onBackdropPress={closeModal}
-                onCancel={closeModal}
-                isVisible={!isEmpty(account?.errorFields?.requiresTwoFactorAuth ?? {})}
-            />
         </TwoFactorAuthWrapper>
     );
 }

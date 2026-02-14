@@ -9,8 +9,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getOriginalReportID} from '@libs/ReportUtils';
-import ReportActionItem from '@pages/home/report/ReportActionItem';
-import ReportActionItemContext from '@pages/home/report/ReportActionItemContext';
+import ReportActionItem from '@pages/inbox/report/ReportActionItem';
+import ReportActionItemContext from '@pages/inbox/report/ReportActionItemContext';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
@@ -43,7 +43,7 @@ function DuplicateTransactionItem({transaction, index, allReports, policies, onP
         return IOUTransactionID === transaction?.transactionID;
     });
 
-    const originalReportID = getOriginalReportID(report?.reportID, action);
+    const originalReportID = getOriginalReportID(report?.reportID, action, reportActions);
 
     const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {
         canBeMissing: true,

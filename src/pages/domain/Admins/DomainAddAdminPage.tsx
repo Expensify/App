@@ -1,14 +1,12 @@
 import {adminAccountIDsSelector, domainEmailSelector} from '@selectors/Domain';
 import {Str} from 'expensify-common';
 import React, {useEffect, useRef, useState} from 'react';
-import type {SectionListData} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-// eslint-disable-next-line no-restricted-imports
-import SelectionList from '@components/SelectionListWithSections';
-import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
-import type {Section} from '@components/SelectionListWithSections/types';
+import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
+import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchSelector from '@hooks/useSearchSelector';
@@ -27,7 +25,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type Sections = SectionListData<OptionData, Section<OptionData>>;
+type Sections = Section<OptionData>;
 
 type DomainAddAdminProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.ADD_ADMIN>;
 
@@ -53,7 +51,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
     const didInvite = useRef<boolean>(false);
 
     const domainName = domainEmail ? Str.extractEmailDomain(domainEmail) : undefined;
-    const {searchTerm, setSearchTerm, availableOptions, toggleSelection, areOptionsInitialized, onListEndReached} = useSearchSelector({
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, toggleSelection, areOptionsInitialized, onListEndReached} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
         includeRecentReports: false,
@@ -64,8 +62,8 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
     });
 
     useEffect(() => {
-        searchInServer(searchTerm);
-    }, [searchTerm]);
+        searchInServer(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
 
     const inviteUser = () => {
         if (didInvite.current || !currentlySelectedUser || !currentlySelectedUser.accountID || !currentlySelectedUser.login || !domainName) {
@@ -87,6 +85,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
             sections.push({
                 title: undefined,
                 data: [currentlySelectedUser],
+                sectionIndex: 0,
             });
         }
 
@@ -94,6 +93,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
             sections.push({
                 title: translate('common.contacts'),
                 data: filteredOptions,
+                sectionIndex: 1,
             });
         }
 
@@ -101,6 +101,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
             sections.push({
                 title: undefined,
                 data: [availableOptions.userToInvite],
+                sectionIndex: 2,
             });
         }
     }
@@ -109,12 +110,32 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
         <FormAlertWithSubmitButton
             isDisabled={!currentlySelectedUser}
             isAlertVisible={false}
-            buttonText={translate('domain.admins.invite')}
+            buttonText={translate('common.invite')}
             onSubmit={inviteUser}
             containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
             enabledWhenOffline
         />
     );
+
+    const headerMessage = () => {
+        const searchValue = debouncedSearchTerm.trim().toLowerCase();
+        if (!availableOptions.userToInvite && CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]) {
+            return translate('messages.errorMessageInvalidEmail');
+        }
+
+        const searchedUserPersonalDetails = availableOptions.personalDetails.find(({login}) => login?.toLowerCase() === searchValue);
+        if (!availableOptions.userToInvite && searchedUserPersonalDetails?.accountID && adminIDs?.includes(searchedUserPersonalDetails.accountID)) {
+            return translate('messages.userIsAlreadyAnAdmin', {login: searchValue, name: domainName ?? ''});
+        }
+        return getHeaderMessage(filteredOptions.length > 0 || !!currentlySelectedUser, !!availableOptions.userToInvite, searchValue, countryCode, false);
+    };
+
+    const textInputOptions = {
+        label: translate('selectionList.nameEmailOrPhoneNumber'),
+        value: searchTerm,
+        onChangeText: setSearchTerm,
+        headerMessage: headerMessage(),
+    };
 
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
@@ -129,28 +150,22 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
                     title={translate('domain.admins.addAdmin')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.DOMAIN_ADMINS.getRoute(domainAccountID))}
                 />
-                <SelectionList
+                <SelectionListWithSections
                     sections={sections}
-                    headerMessage={getHeaderMessage(
-                        filteredOptions.length > 0 || !!currentlySelectedUser,
-                        !!availableOptions.userToInvite,
-                        searchTerm.trim().toLowerCase(),
-                        countryCode,
-                        false,
-                    )}
                     ListItem={InviteMemberListItem}
-                    textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-                    textInputValue={searchTerm}
-                    onChangeText={(value) => setSearchTerm(value)}
-                    onSelectRow={(option: OptionData) => toggleSelection(option)}
-                    onConfirm={inviteUser}
-                    showScrollIndicator
+                    onSelectRow={toggleSelection}
+                    textInputOptions={textInputOptions}
+                    confirmButtonOptions={{
+                        onConfirm: inviteUser,
+                    }}
                     showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     footerContent={footerContent}
                     isLoadingNewOptions={!!isSearchingForReports}
-                    addBottomSafeAreaPadding
                     onEndReached={onListEndReached}
+                    addBottomSafeAreaPadding
+                    shouldShowTextInput
+                    disableMaintainingScrollPosition
                 />
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>

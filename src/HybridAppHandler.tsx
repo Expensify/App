@@ -1,4 +1,4 @@
-import {useCallback, useContext, useEffect} from 'react';
+import {useCallback, useEffect} from 'react';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
 import useOnyx from './hooks/useOnyx';
@@ -8,11 +8,12 @@ import {setupNewDotAfterTransitionFromOldDot} from './libs/actions/Session';
 import Log from './libs/Log';
 import {endSpan, startSpan} from './libs/telemetry/activeSpans';
 import ONYXKEYS from './ONYXKEYS';
-import SplashScreenStateContext from './SplashScreenStateContext';
+import {useSplashScreenActions, useSplashScreenState} from './SplashScreenStateContext';
 import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
 
 function HybridAppHandler() {
-    const {splashScreenState, setSplashScreenState} = useContext(SplashScreenStateContext);
+    const {splashScreenState} = useSplashScreenState();
+    const {setSplashScreenState} = useSplashScreenActions();
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
     const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
 
@@ -25,9 +26,12 @@ function HybridAppHandler() {
                     return;
                 }
 
-                endSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION);
-
-                setSplashScreenState(loggedOutFromOldDot ? CONST.BOOT_SPLASH_STATE.HIDDEN : CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
+                if (loggedOutFromOldDot) {
+                    setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN);
+                    endSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_LOGGED_OUT);
+                } else {
+                    setSplashScreenState(CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
+                }
             });
         },
         [setSplashScreenState, splashScreenState, tryNewDot],
@@ -45,7 +49,13 @@ function HybridAppHandler() {
                 return;
             }
 
-            if (hybridAppSettings.hybridApp.pressedTryNewExpensify) {
+            if (hybridAppSettings.hybridApp.loggedOutFromOldDot) {
+                startSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_LOGGED_OUT, {
+                    name: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_LOGGED_OUT,
+                    op: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_LOGGED_OUT,
+                    startTime: hybridAppSettings.hybridApp.transitionStartTimestamp,
+                });
+            } else if (hybridAppSettings.hybridApp.pressedTryNewExpensify) {
                 startSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION, {
                     name: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION,
                     op: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION,

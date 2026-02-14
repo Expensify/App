@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import AutoUpdateTime from '@components/AutoUpdateTime';
@@ -78,14 +78,9 @@ function ProfilePage({route}: ProfilePageProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bug', 'Pencil', 'Phone']);
     const accountID = Number(route.params?.accountID ?? CONST.DEFAULT_NUMBER_ID);
     const isCurrentUser = currentUserAccountID === accountID;
-    const reportKey = useMemo(() => {
-        const reportID = isCurrentUser ? findSelfDMReportID() : getChatByParticipants(currentUserAccountID ? [accountID, currentUserAccountID] : [], reports)?.reportID;
+    const reportID = isCurrentUser ? findSelfDMReportID() : getChatByParticipants(currentUserAccountID ? [accountID, currentUserAccountID] : [], reports)?.reportID;
+    const reportKey = isAnonymousUserSession() || !reportID ? (`${ONYXKEYS.COLLECTION.REPORT}0` as const) : (`${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const);
 
-        if (isAnonymousUserSession() || !reportID) {
-            return `${ONYXKEYS.COLLECTION.REPORT}0` as const;
-        }
-        return `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
-    }, [accountID, isCurrentUser, reports, currentUserAccountID]);
     const [report] = useOnyx(reportKey, {canBeMissing: true});
 
     const styles = useThemeStyles();
@@ -94,24 +89,24 @@ function ProfilePage({route}: ProfilePageProps) {
     const isValidAccountID = isValidAccountRoute(accountID);
     const loginParams = route.params?.login;
 
-    const details = useMemo((): OnyxEntry<PersonalDetails> => {
-        // Check if we have the personal details already in Onyx
-        if (personalDetails?.[accountID]) {
-            return personalDetails?.[accountID] ?? undefined;
-        }
+    let details: OnyxEntry<PersonalDetails>;
+    // Check if we have the personal details already in Onyx
+    if (personalDetails?.[accountID]) {
+        details = personalDetails?.[accountID] ?? undefined;
+    } else if (!loginParams) {
         // Check if we have the login param
-        if (!loginParams) {
-            return isValidAccountID ? undefined : {accountID: 0};
-        }
+        details = isValidAccountID ? undefined : {accountID: 0};
+    } else {
         // Look up the personal details by login
         const foundDetails = Object.values(personalDetails ?? {}).find((personalDetail) => personalDetail?.login === loginParams?.toLowerCase());
         if (foundDetails) {
-            return foundDetails;
+            details = foundDetails;
+        } else {
+            // If we don't have the personal details in Onyx, we can create an optimistic account
+            const optimisticAccountID = generateAccountID(loginParams);
+            details = {accountID: optimisticAccountID, login: loginParams, displayName: loginParams};
         }
-        // If we don't have the personal details in Onyx, we can create an optimistic account
-        const optimisticAccountID = generateAccountID(loginParams);
-        return {accountID: optimisticAccountID, login: loginParams, displayName: loginParams};
-    }, [personalDetails, accountID, loginParams, isValidAccountID]);
+    }
 
     const displayName = formatPhoneNumber(getDisplayNameOrDefault(details, undefined, undefined, isCurrentUser, translate('common.you').toLowerCase()));
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -160,18 +155,15 @@ function ProfilePage({route}: ProfilePageProps) {
         }
     }, [accountID, loginParams, isConcierge]);
 
-    const promotedActions = useMemo(() => {
-        const result: PromotedAction[] = [];
-        if (report) {
-            result.push(PromotedActions.pin(report));
-        }
+    const promotedActions: PromotedAction[] = [];
+    if (report) {
+        promotedActions.push(PromotedActions.pin(report));
+    }
 
-        // If it's a self DM, we only want to show the Message button if the self DM report exists because we don't want to optimistically create a report for self DM
-        if ((!isCurrentUser || report) && !isAnonymousUserSession()) {
-            result.push(PromotedActions.message({reportID: report?.reportID, accountID, login: loginParams, currentUserAccountID}));
-        }
-        return result;
-    }, [accountID, isCurrentUser, loginParams, report, currentUserAccountID]);
+    // If it's a self DM, we only want to show the Message button if the self DM report exists because we don't want to optimistically create a report for self DM
+    if ((!isCurrentUser || report) && !isAnonymousUserSession()) {
+        promotedActions.push(PromotedActions.message({reportID: report?.reportID, accountID, login: loginParams, currentUserAccountID}));
+    }
 
     return (
         <ScreenWrapper testID="ProfilePage">

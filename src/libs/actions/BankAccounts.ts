@@ -393,7 +393,7 @@ function deletePaymentBankAccount(bankAccountID: number, personalPolicyID: strin
     const bankAccountFailureData = {
         ...bankAccount,
         errors: getMicroSecondOnyxErrorWithTranslationKey('bankAccount.error.deletePaymentBankAccount'),
-        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        pendingAction: null,
     };
 
     const onyxData: OnyxData<typeof ONYXKEYS.BANK_ACCOUNT_LIST | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD> = {
@@ -1013,7 +1013,13 @@ function clearReimbursementAccountSendReminderForCorpaySignerInformation() {
  * @param localCurrentStep - last step on device
  * @param policyID - policy ID
  */
-function openReimbursementAccountPage(stepToOpen: ReimbursementAccountStep, subStep: ReimbursementAccountSubStep, localCurrentStep: ReimbursementAccountStep, policyID: string) {
+function openReimbursementAccountPage(
+    stepToOpen: ReimbursementAccountStep,
+    subStep: ReimbursementAccountSubStep,
+    localCurrentStep: ReimbursementAccountStep,
+    policyID: string,
+    shouldPreserveDraft?: boolean,
+) {
     const onyxData: OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT> = {
         optimisticData: [
             {
@@ -1049,6 +1055,7 @@ function openReimbursementAccountPage(stepToOpen: ReimbursementAccountStep, subS
         subStep,
         localCurrentStep,
         policyID,
+        shouldPreserveDraft,
     };
 
     return API.read(READ_COMMANDS.OPEN_REIMBURSEMENT_ACCOUNT_PAGE, parameters, onyxData);

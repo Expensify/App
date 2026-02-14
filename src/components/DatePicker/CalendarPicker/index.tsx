@@ -1,6 +1,6 @@
 import {addMonths, endOfDay, endOfMonth, format, getYear, isSameDay, parseISO, setDate, setYear, startOfDay, startOfMonth, subMonths} from 'date-fns';
 import {Str} from 'expensify-common';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -61,7 +61,7 @@ function CalendarPicker({
     const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const themeStyles = useThemeStyles();
-    const {translate, preferredLocale} = useLocalize();
+    const {translate} = useLocalize();
     const pressableRef = useRef<View>(null);
     const [currentDateView, setCurrentDateView] = useState(() => getInitialCurrentDateView(value, minDate, maxDate));
     const [isYearPickerVisible, setIsYearPickerVisible] = useState(false);
@@ -69,7 +69,7 @@ function CalendarPicker({
 
     const currentMonthView = currentDateView.getMonth();
     const currentYearView = currentDateView.getFullYear();
-    const calendarDaysMatrix = generateMonthMatrix(currentYearView, currentMonthView, preferredLocale);
+    const calendarDaysMatrix = generateMonthMatrix(currentYearView, currentMonthView);
     const initialHeight = (calendarDaysMatrix?.length || CONST.MAX_CALENDAR_PICKER_ROWS) * CONST.CALENDAR_PICKER_DAY_HEIGHT;
     const heightValue = useSharedValue(initialHeight);
 
@@ -105,9 +105,7 @@ function CalendarPicker({
      */
     const onDayPressed = (day: number) => {
         setCurrentDateView((prev) => {
-            // convert to UTC to avoid timezone issues
-            const date = new Date(Date.UTC(prev.getFullYear(), prev.getMonth(), prev.getDate()));
-            const newCurrentDateView = setDate(date, day);
+            const newCurrentDateView = setDate(new Date(prev), day);
             onSelected?.(format(new Date(newCurrentDateView), CONST.DATE.FNS_FORMAT_STRING));
             return newCurrentDateView;
         });
@@ -152,8 +150,8 @@ function CalendarPicker({
         });
     };
 
-    const monthNames = DateUtils.getMonthNames(preferredLocale).map((month) => Str.UCFirst(month));
-    const daysOfWeek = DateUtils.getDaysOfWeek(preferredLocale).map((day) => day.toUpperCase());
+    const monthNames = DateUtils.getMonthNames().map((month) => Str.UCFirst(month));
+    const daysOfWeek = DateUtils.getDaysOfWeek().map((day) => day.toUpperCase());
     const hasAvailableDatesNextMonth = startOfDay(new Date(maxDate)) > endOfMonth(new Date(currentDateView));
     const hasAvailableDatesPrevMonth = endOfDay(new Date(minDate)) < startOfMonth(new Date(currentDateView));
 
@@ -178,6 +176,8 @@ function CalendarPicker({
     const webOnlyMarginStyle = isSmallScreenWidth ? {} : styles.mh1;
     const calendarContainerStyle = isSmallScreenWidth ? [webOnlyMarginStyle, themeStyles.calendarBodyContainer] : [webOnlyMarginStyle, animatedStyle];
 
+    const getAccessibilityState = useCallback((isSelected: boolean) => ({selected: isSelected}), []);
+
     return (
         <View style={[themeStyles.pb4]}>
             <View
@@ -195,12 +195,13 @@ function CalendarPicker({
                     hoverDimmingValue={1}
                     disabled={years.length <= 1}
                     testID="currentYearButton"
-                    accessibilityLabel={translate('common.currentYear')}
+                    accessibilityLabel={`${currentYearView}, ${translate('common.currentYear')}`}
+                    role={CONST.ROLE.BUTTON}
+                    sentryLabel={CONST.SENTRY_LABEL.CALENDAR_PICKER.YEAR_PICKER}
                 >
                     <Text
                         style={themeStyles.sidebarLinkTextBold}
                         testID="currentYearText"
-                        accessibilityLabel={translate('common.currentYear')}
                     >
                         {currentYearView}
                     </Text>
@@ -210,7 +211,7 @@ function CalendarPicker({
                     <Text
                         style={themeStyles.sidebarLinkTextBold}
                         testID="currentMonthText"
-                        accessibilityLabel={translate('common.currentMonth')}
+                        accessibilityLabel={`${monthNames.at(currentMonthView)}, ${translate('common.currentMonth')}`}
                     >
                         {monthNames.at(currentMonthView)}
                     </Text>
@@ -221,6 +222,8 @@ function CalendarPicker({
                         onPress={moveToPrevMonth}
                         hoverDimmingValue={1}
                         accessibilityLabel={translate('common.previous')}
+                        role={CONST.ROLE.BUTTON}
+                        sentryLabel={CONST.SENTRY_LABEL.CALENDAR_PICKER.PREV_MONTH}
                     >
                         <ArrowIcon
                             disabled={!hasAvailableDatesPrevMonth}
@@ -234,6 +237,8 @@ function CalendarPicker({
                         onPress={moveToNextMonth}
                         hoverDimmingValue={1}
                         accessibilityLabel={translate('common.next')}
+                        role={CONST.ROLE.BUTTON}
+                        sentryLabel={CONST.SENTRY_LABEL.CALENDAR_PICKER.NEXT_MONTH}
                     >
                         <ArrowIcon disabled={!hasAvailableDatesNextMonth} />
                     </PressableWithFeedback>
@@ -271,16 +276,23 @@ function CalendarPicker({
                                 onDayPressed(day);
                             };
                             const key = `${index}_day-${day}`;
+                            const fullDate = day ? new Date(currentYearView, currentMonthView, day) : null;
+                            const accessibilityDateLabel = fullDate ? DateUtils.formatToLongDateWithWeekday(fullDate) : '';
                             return (
                                 <PressableWithoutFeedback
                                     key={key}
                                     disabled={isDisabled}
                                     onPress={handleOnPress}
                                     style={themeStyles.calendarDayRoot}
-                                    accessibilityLabel={day?.toString() ?? ''}
+                                    accessibilityLabel={accessibilityDateLabel}
+                                    accessibilityHint=""
+                                    accessibilityState={getAccessibilityState(isSelected)}
+                                    aria-selected={isSelected}
                                     tabIndex={day ? 0 : -1}
                                     accessible={!!day}
                                     dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                    role={CONST.ROLE.BUTTON}
+                                    sentryLabel={CONST.SENTRY_LABEL.CALENDAR_PICKER.DAY}
                                 >
                                     {({hovered, pressed}) => (
                                         <DayComponent

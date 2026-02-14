@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   prep:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     outputs:
       APP_VERSION: ${{ steps.getAppVersion.outputs.VERSION }}
       TAG: ${{ steps.getTagName.outputs.TAG }}
@@ -84,7 +84,7 @@ jobs:
   android:
     name: Build and deploy Android HybridApp
     needs: prep
-    runs-on: ubuntu-latest-xl
+    runs-on: blacksmith-16vcpu-ubuntu-2404
     env:
       SHOULD_BUILD_APP: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
     steps:
@@ -298,7 +298,7 @@ jobs:
     needs: prep
     runs-on: macos-15-xlarge
     env:
-      DEVELOPER_DIR: /Applications/Xcode_26.0.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
       SHOULD_BUILD_APP: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
     steps:
       - name: Checkout
@@ -471,7 +471,7 @@ jobs:
   web:
     name: Build and deploy Web
     needs: prep
-    runs-on: ubuntu-latest-xl
+    runs-on: blacksmith-16vcpu-ubuntu-2404
     steps:
       - name: Checkout
         # v4
@@ -559,7 +559,7 @@ jobs:
 
   postSlackMessageOnFailure:
     name: Post a Slack message when any platform fails to build or deploy
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     if: ${{ failure() }}
     needs: [android, ios, web]
     steps:
@@ -573,7 +573,7 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
   checkDeploymentSuccess:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     outputs:
       IS_AT_LEAST_ONE_PLATFORM_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAtLeastOnePlatform.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED }}
       IS_ALL_PLATFORMS_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAllPlatforms.outputs.IS_ALL_PLATFORMS_DEPLOYED }}
@@ -606,7 +606,7 @@ jobs:
           echo "IS_ALL_PLATFORMS_DEPLOYED is $isAllPlatformsDeployed"
 
   createRelease:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
     needs: [prep, checkDeploymentSuccess]
     steps:
@@ -627,19 +627,38 @@ jobs:
             echo "Release ${{ needs.prep.outputs.TAG }} already exists, skipping creating it again."
           else
             echo "Release ${{ needs.prep.outputs.TAG }} does not exist, creating it now."
-            gh release create "${{ needs.prep.outputs.TAG }}" ${{ github.ref == 'refs/heads/staging' && '--prerelease' || '' }} \
-              --repo "${{ github.repository }}" \
-              --title "${{ needs.prep.outputs.TAG }}" \
-              ${{ github.ref == 'refs/heads/production' && format('--notes-start-tag {0}', steps.get_last_prod_version.outputs.LAST_PROD_VERSION) || '' }} \
-              --generate-notes \
-              --verify-tag \
-              --target "${{ github.ref }}"
+            readonly CREATE_MAX_RETRIES=5
+            for ((i = 0; i <= CREATE_MAX_RETRIES; i++)); do
+              if gh release create "${{ needs.prep.outputs.TAG }}" ${{ github.ref == 'refs/heads/staging' && '--prerelease' || '' }} \
+                --repo "${{ github.repository }}" \
+                --title "${{ needs.prep.outputs.TAG }}" \
+                ${{ github.ref == 'refs/heads/production' && format('--notes-start-tag {0}', steps.get_last_prod_version.outputs.LAST_PROD_VERSION) || '' }} \
+                --generate-notes \
+                --verify-tag \
+                --target "${{ github.ref }}"; then
+                break
+              fi
+              if [[ $i -lt $CREATE_MAX_RETRIES ]]; then
+                echo "Failed to create release. Retrying in 3 seconds... ($((CREATE_MAX_RETRIES - i)) attempts left)"
+                sleep 3
+              else
+                echo "Failed to create release after $((CREATE_MAX_RETRIES + 1)) attempts"
+                exit 1
+              fi
+            done
 
-            RETRIES=0
-            readonly MAX_RETRIES=10
-            until [[ $(gh release view "${{ needs.prep.outputs.TAG }}" --repo "${{ github.repository }}") || $RETRIES -ge $MAX_RETRIES ]]; do
-              echo "Release ${{ needs.prep.outputs.TAG }} not yet visible after creation. Retrying... ($((MAX_RETRIES - RETRIES++)) attempts left)"
-              sleep 1
+            readonly VIEW_MAX_RETRIES=10
+            for ((i = 0; i <= VIEW_MAX_RETRIES; i++)); do
+              if gh release view "${{ needs.prep.outputs.TAG }}" --repo "${{ github.repository }}" &> /dev/null; then
+                break
+              fi
+              if [[ $i -lt $VIEW_MAX_RETRIES ]]; then
+                echo "Release ${{ needs.prep.outputs.TAG }} not yet visible after creation. Retrying... ($((VIEW_MAX_RETRIES - i)) attempts left)"
+                sleep 1
+              else
+                echo "Release ${{ needs.prep.outputs.TAG }} never became visible after $((VIEW_MAX_RETRIES + 1)) checks"
+                exit 1
+              fi
             done
           fi
         env:
@@ -715,7 +734,7 @@ jobs:
 
   postSlackMessageOnSuccess:
     name: Post a Slack message when all platforms deploy successfully
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED) }}
     needs: [prep, android, ios, web, checkDeploymentSuccess, createRelease]
     steps:

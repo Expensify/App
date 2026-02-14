@@ -87,6 +87,7 @@ const renderMoneyRequestConfirmationListFooter = (transaction: Transaction) => {
         isCategoryRequired: false,
         isDistanceRequest: false,
         isManualDistanceRequest: false,
+        isGPSDistanceRequest: false,
         isPerDiemRequest: false,
         isMerchantEmpty: false,
         isMerchantRequired: false,

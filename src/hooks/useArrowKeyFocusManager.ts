@@ -9,6 +9,7 @@ type Config = {
     onFocusedIndexChange?: (index: number) => void;
     initialFocusedIndex?: number;
     disabledIndexes?: readonly number[];
+    captureOnInputs?: boolean;
     shouldExcludeTextAreaNodes?: boolean;
     isActive?: boolean;
     itemsPerRow?: number;
@@ -46,6 +47,7 @@ export default function useArrowKeyFocusManager({
     // The "disabledIndexes" array needs to be stable to prevent the "useCallback" hook from being recreated unnecessarily.
     // Hence the use of CONST.EMPTY_ARRAY.
     disabledIndexes = CONST.EMPTY_ARRAY,
+    captureOnInputs = true,
     shouldExcludeTextAreaNodes = true,
     isActive,
     itemsPerRow,
@@ -63,16 +65,18 @@ export default function useArrowKeyFocusManager({
         () => ({
             excludedNodes: shouldExcludeTextAreaNodes ? ['TEXTAREA'] : [],
             isActive,
+            captureOnInputs,
         }),
-        [isActive, shouldExcludeTextAreaNodes],
+        [captureOnInputs, isActive, shouldExcludeTextAreaNodes],
     );
 
     const horizontalArrowConfig = useMemo(
         () => ({
             excludedNodes: shouldExcludeTextAreaNodes ? ['TEXTAREA'] : [],
             isActive: isActive && allowHorizontalArrowKeys,
+            captureOnInputs,
         }),
-        [isActive, shouldExcludeTextAreaNodes, allowHorizontalArrowKeys],
+        [allowHorizontalArrowKeys, captureOnInputs, isActive, shouldExcludeTextAreaNodes],
     );
 
     useEffect(() => {

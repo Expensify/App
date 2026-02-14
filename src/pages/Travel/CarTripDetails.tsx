@@ -19,14 +19,14 @@ type CarTripDetailsProps = {
 function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const styles = useThemeStyles();
-    const {translate, preferredLocale} = useLocalize();
+    const {translate} = useLocalize();
 
-    const pickUpDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date), preferredLocale);
-    const dropOffDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date), preferredLocale);
+    const pickUpDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date));
+    const dropOffDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date));
 
     let cancellationText = reservation.cancellationPolicy;
     if (reservation.cancellationDeadline) {
-        cancellationText = `${translate('travel.carDetails.cancellationUntil')} ${DateUtils.getFormattedCancellationDate(new Date(reservation.cancellationDeadline), preferredLocale)}`;
+        cancellationText = `${translate('travel.carDetails.cancellationUntil')} ${DateUtils.getFormattedCancellationDate(new Date(reservation.cancellationDeadline))}`;
     }
 
     if (reservation.cancellationPolicy === null && reservation.cancellationDeadline === null) {

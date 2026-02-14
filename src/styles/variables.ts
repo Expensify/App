@@ -104,6 +104,8 @@ export default {
     sideBarWidth: 375,
     sidePanelWidth: 375,
     receiptPaneRHPMaxWidth: 465,
+    homePageLeftColumnMaxWidth: 680,
+    homePageRightColumnMaxWidth: 488,
     superWideRHPMaxWidth: 1260,
     minScanTooltipWidth: 320,
     uploadViewMargin: 20,
@@ -181,6 +183,7 @@ export default {
     signInLogoWidthPill: 132,
     tabSelectorButtonHeight: 40,
     tabSelectorButtonPadding: 12,
+    tabSelectorScrollMarginInline: 20,
     lhnLogoWidth: 95.09,
     lhnLogoHeight: 22.33,
     signInLogoWidthLargeScreenPill: 162,
@@ -324,6 +327,9 @@ export default {
     errorPageIconWidth: 116,
     errorPageIconHeight: 168,
 
+    companyCardsPageNotFoundIconWidth: 97,
+    companyCardsPageNotFoundIconHeight: 140,
+
     h20: 20,
     h28: 28,
     h36: 36,
@@ -394,9 +400,7 @@ export default {
     reportSearchHeaderMaxWidth: 700,
 
     // Split expense tabs
-    splitExpenseAmountMobileWidth: 82,
-    splitExpensePercentageWidth: 42,
-    splitExpensePercentageMobileWidth: 62,
+    splitExpensePercentageWidth: 66,
 
     // Multifactor Authentication illustrations size
     openPadlockWidth: 140,
