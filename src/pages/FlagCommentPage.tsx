@@ -60,7 +60,8 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
     if (isChatThread(report) && reportAction?.reportActionID === parentReportAction?.reportActionID) {
         reportID = parentReport?.reportID;
     }
-    const originalReportID = getOriginalReportID(reportID, reportAction);
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canBeMissing: true});
+    const originalReportID = getOriginalReportID(reportID, reportAction, reportActions);
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {canBeMissing: true});
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});

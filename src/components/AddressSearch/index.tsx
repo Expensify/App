@@ -419,7 +419,7 @@ function AddressSearch({
                                 }
                                 onBlur?.();
                             },
-                            autoComplete: 'off',
+                            autoComplete: CONST.AUTO_COMPLETE_VARIANTS.OFF,
                             onInputChange: (text: string) => {
                                 setSearchValue(text);
                                 setIsTyping(true);
