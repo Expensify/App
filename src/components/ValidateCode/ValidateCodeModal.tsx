@@ -38,6 +38,7 @@ function ValidateCodeModal({code, accountID}: ValidateCodeModalProps) {
         <FullPageNotFoundView
             testID="validate-code-not-found"
             shouldShow={!isValidValidateCode(code)}
+            shouldForceFullScreen={!isValidValidateCode(code)}
             shouldShowBackButton={shouldUseNarrowLayout}
             onLinkPress={() => {
                 Navigation.goBack();
