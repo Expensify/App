@@ -4,6 +4,11 @@ import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {translateLocal} from '../utils/TestHelper';
 
+const customUnitRateIDWithTaxReclaimablePercentage = 'FG515011039A4';
+const rateWithTaxReclaimablePercentage = 100;
+const distance = 1000;
+const taxClaimablePercentage = 0.5;
+const unit: Unit = CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
 const FAKE_POLICY: Policy = {
     id: 'CEEEDB0EC660F71A',
     name: 'Test',
@@ -16,7 +21,7 @@ const FAKE_POLICY: Policy = {
         C9031B6F4725D: {
             attributes: {
                 taxEnabled: true,
-                unit: 'mi',
+                unit,
             },
             customUnitID: 'C9031B6F4725D',
             defaultCategory: '',
@@ -61,6 +66,19 @@ const FAKE_POLICY: Policy = {
                     subRates: [],
                     attributes: {
                         taxRateExternalID: 'id_TAX_RATE_1',
+                    },
+                    pendingFields: {},
+                },
+                [customUnitRateIDWithTaxReclaimablePercentage]: {
+                    currency: 'USD',
+                    customUnitRateID: `${customUnitRateIDWithTaxReclaimablePercentage}`,
+                    enabled: true,
+                    name: 'Default Rate',
+                    rate: rateWithTaxReclaimablePercentage,
+                    subRates: [],
+                    attributes: {
+                        taxRateExternalID: 'id_TAX_RATE_1',
+                        taxClaimablePercentage,
                     },
                     pendingFields: {},
                 },
@@ -192,9 +210,15 @@ describe('DistanceRequestUtils', () => {
     });
 
     describe('getTaxableAmount', () => {
-        it('should return 0 if tax recliamable percentage is undefined', () => {
+        it('should return 0 if tax reclaimable percentage is undefined', () => {
             const result = DistanceRequestUtils.getTaxableAmount(FAKE_POLICY, 'EB515052039A4', 1000);
             expect(result).toBe(0);
+        });
+
+        it('should return taxable amount that is greater than 0 if tax reclaimable percentage is greater than 0', () => {
+            const result = DistanceRequestUtils.getTaxableAmount(FAKE_POLICY, customUnitRateIDWithTaxReclaimablePercentage, distance);
+            const expectedTaxableAmount = taxClaimablePercentage * DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rateWithTaxReclaimablePercentage);
+            expect(result).toEqual(expectedTaxableAmount);
         });
     });
 });
