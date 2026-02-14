@@ -54,6 +54,7 @@ function BaseOnboardingWorkspaceCurrency({route, shouldUseNativeStyles}: BaseOnb
         >
             <HeaderWithBackButton
                 progressBarPercentage={100}
+                stepCounter={{step: 5, total: 5}}
                 onBackButtonPress={goBack}
                 shouldDisplayHelpButton={false}
             />

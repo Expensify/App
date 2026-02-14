@@ -242,6 +242,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
             <HeaderWithBackButton
                 shouldShowBackButton={!isVsb}
                 progressBarPercentage={80}
+                stepCounter={{step: 4, total: 5}}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_EMPLOYEES.getRoute())}
                 shouldDisplayHelpButton={false}
             />

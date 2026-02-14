@@ -216,6 +216,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         >
             <HeaderWithBackButton
                 progressBarPercentage={100}
+                stepCounter={{step: 5, total: 5}}
                 shouldShowBackButton={false}
                 shouldDisplayHelpButton={false}
             />

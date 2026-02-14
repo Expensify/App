@@ -124,6 +124,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
         >
             <HeaderWithBackButton
                 progressBarPercentage={100}
+                stepCounter={{step: 5, total: 5}}
                 shouldDisplayHelpButton={false}
             />
             <View style={[styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>

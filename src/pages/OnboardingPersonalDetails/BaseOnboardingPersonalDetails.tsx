@@ -192,6 +192,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             <HeaderWithBackButton
                 shouldShowBackButton={!isPrivateDomainAndHasAccessiblePolicies}
                 progressBarPercentage={isPrivateDomainAndHasAccessiblePolicies ? 20 : 80}
+                stepCounter={{step: isPrivateDomainAndHasAccessiblePolicies ? 1 : 3, total: 5}}
                 onBackButtonPress={() => {
                     // Based on the `handleSubmit` function to reverse where to return
                     if (isPrivateDomainAndHasAccessiblePolicies) {

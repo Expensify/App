@@ -138,6 +138,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                     shouldShowBackButton={false}
                     iconFill={theme.iconColorfulBackground}
                     progressBarPercentage={isPrivateDomainAndHasAccessiblePolicies ? 60 : 20}
+                    stepCounter={{step: 2, total: 5}}
                     shouldDisplayHelpButton={false}
                 />
             </View>
