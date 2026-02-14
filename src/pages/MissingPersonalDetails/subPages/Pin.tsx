@@ -2,7 +2,6 @@ import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
-import type {FormInputErrors} from '@components/Form/types';
 import MagicCodeInput from '@components/MagicCodeInput';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -41,31 +40,27 @@ function Pin({onNext}: CustomSubPageProps) {
         [isConfirmStep],
     );
 
-    const validatePin = useCallback((): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> => {
-        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> = {};
+    const validatePin = useCallback((): string => {
         const pinToValidate = isConfirmStep ? confirmPin : enteredPin;
 
         if (pinToValidate.length !== CONST.EXPENSIFY_CARD.PIN.LENGTH) {
-            setError(translate('cardPage.pinMustBeFourDigits'));
-            return errors;
-        }
-
-        if (!isValidPin(pinToValidate)) {
-            setError(translate('cardPage.invalidPin'));
-            return errors;
+            return translate('cardPage.pinMustBeFourDigits');
         }
 
         if (isConfirmStep && confirmPin !== enteredPin) {
-            setError(translate('cardPage.pinMismatch'));
-            return errors;
+            return translate('cardPage.pinMismatch');
         }
 
-        return errors;
+        if (!isValidPin(pinToValidate)) {
+            return translate('cardPage.invalidPin');
+        }
+        return '';
     }, [isConfirmStep, confirmPin, enteredPin, translate]);
 
     const handleSubmit = useCallback(() => {
-        const errors = validatePin();
-        if (Object.keys(errors).length > 0) {
+        const validationError = validatePin();
+        if (validationError) {
+            setError(validationError);
             return;
         }
 
@@ -114,16 +109,18 @@ function Pin({onNext}: CustomSubPageProps) {
                         onFulfill={handleSubmit}
                         hasError={!!error}
                         autoFocus
+                        secureTextEntry={isPinHidden}
                     />
                     {!!error && <Text style={[styles.formError, styles.mt2]}>{error}</Text>}
                 </View>
 
-                <Button
-                    text={isPinHidden ? translate('cardPage.revealPin') : translate('cardPage.hidePin')}
-                    onPress={togglePinVisibility}
-                    style={[styles.mb4]}
-                    medium
-                />
+                <View style={[styles.flexRow, styles.justifyContentCenter, styles.mb4, styles.alignItemsCenter, styles.w100]}>
+                    <Button
+                        text={isPinHidden ? translate('cardPage.revealPin') : translate('cardPage.hidePin')}
+                        onPress={togglePinVisibility}
+                        medium
+                    />
+                </View>
             </View>
         </FormProvider>
     );

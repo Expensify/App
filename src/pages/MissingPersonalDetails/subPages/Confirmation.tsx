@@ -1,14 +1,12 @@
 import React, {useMemo} from 'react';
 import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
 import useLocalize from '@hooks/useLocalize';
-import {usePin} from '@pages/MissingPersonalDetails/PinContext';
 import type {CustomSubPageProps} from '@pages/MissingPersonalDetails/types';
 import CONST from '@src/CONST';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 
 function Confirmation({personalDetailsValues: values, onNext, onMove, isEditing, isUKEUCard = false}: CustomSubPageProps) {
     const {translate} = useLocalize();
-    const pinContext = usePin();
 
     // Get specific page indexes based on card type
     const pageIndexes = isUKEUCard ? CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING_WITH_PIN : CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING;
@@ -57,7 +55,7 @@ function Confirmation({personalDetailsValues: values, onNext, onMove, isEditing,
         ];
 
         // Add PIN row for UK/EU cards
-        if (isUKEUCard && pinContext?.isVerified) {
+        if (isUKEUCard) {
             baseItems.push({
                 description: translate('common.pin'),
                 title: '••••',
@@ -69,7 +67,7 @@ function Confirmation({personalDetailsValues: values, onNext, onMove, isEditing,
         }
 
         return baseItems;
-    }, [translate, values, onMove, legalNameIndex, dateOfBirthIndex, addressIndex, phoneNumberIndex, pinIndex, isUKEUCard, pinContext?.isVerified]);
+    }, [translate, values, onMove, legalNameIndex, dateOfBirthIndex, addressIndex, phoneNumberIndex, pinIndex, isUKEUCard]);
 
     return (
         <ConfirmationStep
