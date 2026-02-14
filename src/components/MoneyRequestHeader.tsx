@@ -52,6 +52,7 @@ import {
     isExpensifyCardTransaction,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
+    isPerDiemRequest,
     isScanning,
     removeSettledAndApprovedTransactions,
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
@@ -131,7 +132,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const [rejectModalAction, setRejectModalAction] = useState<ValueOf<
         typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT
     > | null>(null);
-    const [duplicateDistanceErrorModalVisible, setDuplicateDistanceErrorModalVisible] = useState(false);
+    const [rateErrorModalVisible, setRateErrorModalVisible] = useState(false);
+    const [duplicatePerDiemErrorModalVisible, setDuplicatePerDiemErrorModalVisible] = useState(false);
     const [isDuplicateActive, temporarilyDisableDuplicateAction] = useThrottledButtonState();
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION, {canBeMissing: true});
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
@@ -144,6 +146,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const {login: currentUserLogin, email, accountID} = useCurrentUserPersonalDetails();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
+    const isPerDiemRequestOnNonDefaultWorkspace = isPerDiemRequest(transaction) && defaultExpensePolicy?.id !== policy?.id;
     const isOnHold = isOnHoldTransactionUtils(transaction);
     const isDuplicate = isDuplicateTransactionUtils(transaction, email ?? '', accountID, report, policy, transactionViolations);
     const reportID = report?.reportID;
@@ -432,7 +435,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             icon: expensifyIcons.ArrowSplit,
             value: CONST.REPORT.SECONDARY_ACTIONS.SPLIT,
             onSelected: () => {
-                initSplitExpense(allTransactions, allReports, transaction, policy);
+                initSplitExpense(allTransactions, allReports, transaction);
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MERGE]: {
@@ -454,7 +457,12 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             value: CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE,
             onSelected: () => {
                 if (hasCustomUnitOutOfPolicyViolation) {
-                    setDuplicateDistanceErrorModalVisible(true);
+                    setRateErrorModalVisible(true);
+                    return;
+                }
+
+                if (isPerDiemRequestOnNonDefaultWorkspace) {
+                    setDuplicatePerDiemErrorModalVisible(true);
                     return;
                 }
 
@@ -466,7 +474,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
 
                 duplicateTransaction([transaction]);
             },
-            shouldCloseModalOnSelect: hasCustomUnitOutOfPolicyViolation,
+            shouldCloseModalOnSelect: hasCustomUnitOutOfPolicyViolation || isPerDiemRequestOnNonDefaultWorkspace,
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS,
@@ -630,11 +638,20 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             />
             <ConfirmModal
                 title={translate('common.duplicateExpense')}
-                isVisible={duplicateDistanceErrorModalVisible}
-                onConfirm={() => setDuplicateDistanceErrorModalVisible(false)}
-                onCancel={() => setDuplicateDistanceErrorModalVisible(false)}
+                isVisible={rateErrorModalVisible}
+                onConfirm={() => setRateErrorModalVisible(false)}
+                onCancel={() => setRateErrorModalVisible(false)}
                 confirmText={translate('common.buttonConfirm')}
-                prompt={translate('iou.correctDistanceRateError')}
+                prompt={translate('iou.correctRateError')}
+                shouldShowCancelButton={false}
+            />
+            <ConfirmModal
+                title={translate('common.duplicateExpense')}
+                isVisible={duplicatePerDiemErrorModalVisible}
+                onConfirm={() => setDuplicatePerDiemErrorModalVisible(false)}
+                onCancel={() => setDuplicatePerDiemErrorModalVisible(false)}
+                confirmText={translate('common.buttonConfirm')}
+                prompt={translate('iou.duplicateNonDefaultWorkspacePerDiemError')}
                 shouldShowCancelButton={false}
             />
             {!!rejectModalAction && (

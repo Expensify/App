@@ -687,7 +687,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         onSelectRow={navigateToCategorySettings}
                         onTurnOnSelectionMode={(item) => item && toggleCategory(item)}
                         onSelectAll={filteredCategoryList.length > 0 ? toggleAllCategories : undefined}
-                        style={{listHeaderWrapperStyle: [styles.ph9, styles.pv3, styles.pb5]}}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         turnOnSelectionModeOnLongPress={isSmallScreenWidth}
                         shouldUseDefaultRightHandSideCheckmark={false}

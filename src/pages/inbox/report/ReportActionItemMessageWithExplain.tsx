@@ -1,9 +1,11 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import RenderHTML from '@components/RenderHTML';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import {openLink} from '@libs/actions/Link';
 import {explain} from '@libs/actions/Report';
 import {hasReasoning} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
@@ -31,27 +33,28 @@ type ReportActionItemMessageWithExplainProps = {
 function ReportActionItemMessageWithExplain({message, action, childReport, originalReport}: ReportActionItemMessageWithExplainProps) {
     const {translate} = useLocalize();
     const personalDetail = useCurrentUserPersonalDetails();
+    const {environmentURL} = useEnvironment();
 
     const actionHasReasoning = hasReasoning(action);
     const computedMessage = actionHasReasoning ? `${message}${translate('iou.AskToExplain')}` : message;
 
-    const handleExplainLinkPress = useCallback(
-        (event: GestureResponderEvent | KeyboardEvent, href: string) => {
-            if (!href.endsWith(CONST.CONCIERGE_EXPLAIN_LINK_PATH)) {
-                return;
-            }
-
+    const handleLinkPress = (event: GestureResponderEvent | KeyboardEvent, href: string) => {
+        // Handle the special "Explain" link
+        if (href.endsWith(CONST.CONCIERGE_EXPLAIN_LINK_PATH)) {
             explain(childReport, originalReport, action, translate, personalDetail.accountID, personalDetail?.timezone);
-        },
-        [childReport, originalReport, action, translate, personalDetail?.timezone, personalDetail.accountID],
-    );
+            return;
+        }
+
+        // For all other links, use the default link handler
+        openLink(href, environmentURL);
+    };
 
     return (
         <ReportActionItemBasicMessage>
             <RenderHTML
                 html={`<comment><muted-text>${computedMessage}</muted-text></comment>`}
                 isSelectable={false}
-                onLinkPress={handleExplainLinkPress}
+                onLinkPress={handleLinkPress}
             />
         </ReportActionItemBasicMessage>
     );

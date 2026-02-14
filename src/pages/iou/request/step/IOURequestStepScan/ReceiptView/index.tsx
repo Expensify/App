@@ -123,6 +123,7 @@ function ReceiptView({route}: ReceiptViewProps) {
                     onPress={handleDeleteReceiptPress}
                     innerStyles={styles.bgTransparent}
                     large
+                    sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.RECEIPT_DELETE_BUTTON}
                 />
             </HeaderWithBackButton>
             <AttachmentCarouselView

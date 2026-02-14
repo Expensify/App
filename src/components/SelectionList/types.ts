@@ -182,6 +182,9 @@ type SelectionListStyle = {
     /** Styles for the list */
     listStyle?: StyleProp<ViewStyle>;
 
+    /** Styles for the content container of the list (scrolls with content) */
+    contentContainerStyle?: StyleProp<ViewStyle>;
+
     /** Styles for the list container */
     containerStyle?: StyleProp<ViewStyle>;
 
@@ -237,6 +240,9 @@ type TextInputOptions = {
 
     /** Whether the text input autofocus should be disabled */
     disableAutoFocus?: boolean;
+
+    /** Whether the text input auto correct should be disabled */
+    disableAutoCorrect?: boolean;
 
     /** Styles for the text input */
     style?: {

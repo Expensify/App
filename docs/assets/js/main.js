@@ -76,6 +76,7 @@ function injectFooterCopyright() {
 }
 
 const SEARCH_API_URL = 'https://www.expensify.com/api/SearchHelpsite';
+const ASK_AI_API_URL = 'https://www.expensify.com/api/AskHelpsiteAI';
 
 function getTitleFromURL(url) {
     return url.split('/').pop().replace(/-/g, ' ');
@@ -100,6 +101,8 @@ function searchPageQuery(query) {
 
     resultsContainer.innerHTML = '';
     resultsContainer.appendChild(cloneTemplate('search-loading-template'));
+
+    askHelpsiteAI(query);
 
     const formData = new FormData();
     formData.append('command', 'SearchHelpsite');
@@ -139,10 +142,72 @@ function searchPageQuery(query) {
         });
 }
 
-function clearSearchPage() {
+function clearSearchInput() {
     const input = document.getElementById('search-page-input');
     input.value = '';
     input.focus();
+}
+
+let aiAbortController = null;
+
+function askHelpsiteAI(query) {
+    const aiContainer = document.getElementById('ai-answer-container');
+    if (!aiContainer) {
+        return;
+    }
+
+    if (aiAbortController) {
+        aiAbortController.abort();
+    }
+    aiAbortController = new AbortController();
+
+    aiContainer.innerHTML = '';
+    aiContainer.appendChild(cloneTemplate('ai-thinking-template'));
+
+    const formData = new FormData();
+    formData.append('command', 'AskHelpsiteAI');
+    formData.append('query', query.trim());
+
+    const platform = new URLSearchParams(window.location.search).get('platform');
+    if (platform) {
+        formData.append('platform', platform);
+    }
+
+    fetch(ASK_AI_API_URL, {method: 'POST', body: formData, signal: aiAbortController.signal})
+        .then((response) => response.json())
+        .then((data) => {
+            const answer = data.answer || '';
+            if (!answer) {
+                aiContainer.innerHTML = '';
+                return;
+            }
+
+            const template = cloneTemplate('ai-response-template');
+            const content = template.querySelector('.ai-content');
+            content.innerHTML = answer;
+
+            const showMoreButton = template.querySelector('.ai-show-more');
+            aiContainer.innerHTML = '';
+            aiContainer.appendChild(template);
+
+            // Show "Show more" button if content overflows
+            const renderedContent = aiContainer.querySelector('.ai-content');
+            if (renderedContent.scrollHeight > renderedContent.clientHeight) {
+                renderedContent.classList.add('has-overflow');
+                showMoreButton.classList.remove('hidden');
+                showMoreButton.addEventListener('click', () => {
+                    renderedContent.classList.toggle('expanded');
+                    showMoreButton.firstChild.textContent = renderedContent.classList.contains('expanded') ? 'Show less ' : 'Show more ';
+                });
+            }
+        })
+        .catch((error) => {
+            if (error.name === 'AbortError') {
+                return;
+            }
+            aiContainer.innerHTML = '';
+            aiContainer.appendChild(cloneTemplate('ai-error-template'));
+        });
 }
 
 function initSearchPage() {
@@ -176,7 +241,7 @@ function initSearchPage() {
         }
     });
 
-    document.getElementById('search-page-clear').addEventListener('click', clearSearchPage);
+    document.getElementById('search-page-clear').addEventListener('click', clearSearchInput);
 }
 
 const FIXED_HEADER_HEIGHT = 80;
