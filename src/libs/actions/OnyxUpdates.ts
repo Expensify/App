@@ -5,6 +5,7 @@ import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import Performance from '@libs/Performance';
 import PusherUtils from '@libs/PusherUtils';
+import {trackExpenseApiError} from '@libs/telemetry/trackExpenseCreationError';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnyOnyxUpdatesFromServer, OnyxUpdateEvent, OnyxUpdatesFromServer, Request} from '@src/types/onyx';
@@ -55,6 +56,14 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(request: Request<TKey>, res
                     Log.info('[OnyxUpdateManager] Received 460 status code, not applying failure data');
                     return Promise.resolve();
                 }
+
+                trackExpenseApiError({
+                    command: request.command,
+                    jsonCode: response.jsonCode ?? 0,
+                    message: response.message,
+                    requestData: request.data,
+                });
+
                 return updateHandler(request.failureData);
             }
             return Promise.resolve();

@@ -39,7 +39,7 @@ import useSelfDMReport from '@hooks/useSelfDMReport';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
-import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, searchInServer} from '@libs/actions/Report';
+import {deleteAppReport, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, searchInServer} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
     bulkDeleteReports,
@@ -163,6 +163,7 @@ function SearchPage({route}: SearchPageProps) {
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
 
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q, route.params.rawQuery), [route.params.q, route.params.rawQuery]);
+    const isExpenseReportType = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const activeAdminPolicies = getActiveAdminWorkspaces(policies, currentUserPersonalDetails?.accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -515,24 +516,39 @@ function SearchPage({route}: SearchPageProps) {
             }
             // Translations copy for delete modal depends on amount of selected items,
             // We need to wait for modal to fully disappear before clearing them to avoid translation flicker between singular vs plural
+            const validTransactions = Object.fromEntries(Object.entries(allTransactions ?? {}).filter((entry): entry is [string, Transaction] => entry[1] !== undefined));
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
-                const reportTransactions = allTransactions ? Object.fromEntries(Object.entries(allTransactions).filter((entry): entry is [string, Transaction] => !!entry[1])) : {};
-                const transactionsViolations = allTransactionViolations
-                    ? Object.fromEntries(Object.entries(allTransactionViolations).filter((entry): entry is [string, TransactionViolations] => !!entry[1]))
-                    : {};
-                bulkDeleteReports(
-                    allReports,
-                    selfDMReport,
-                    hash,
-                    selectedTransactions,
-                    currentUserPersonalDetails.email ?? '',
-                    accountID,
-                    reportTransactions,
-                    transactionsViolations,
-                    bankAccountList,
-                    transactions,
-                );
+                if (isExpenseReportType) {
+                    for (const reportID of selectedReportIDs) {
+                        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                        deleteAppReport(
+                            report,
+                            selfDMReport,
+                            currentUserPersonalDetails?.email ?? '',
+                            currentUserPersonalDetails?.accountID,
+                            validTransactions,
+                            allTransactionViolations,
+                            bankAccountList,
+                        );
+                    }
+                } else {
+                    const transactionsViolations = allTransactionViolations
+                        ? Object.fromEntries(Object.entries(allTransactionViolations).filter((entry): entry is [string, TransactionViolations] => !!entry[1]))
+                        : {};
+                    bulkDeleteReports(
+                        allReports,
+                        selfDMReport,
+                        hash,
+                        selectedTransactions,
+                        currentUserPersonalDetails.email ?? '',
+                        accountID,
+                        validTransactions,
+                        transactionsViolations,
+                        bankAccountList,
+                        transactions,
+                    );
+                }
                 clearSelectedTransactions();
             });
         });
@@ -546,12 +562,15 @@ function SearchPage({route}: SearchPageProps) {
         allTransactionViolations,
         accountID,
         selectedTransactions,
-        currentUserPersonalDetails.email,
         bankAccountList,
         clearSelectedTransactions,
         transactions,
         allReports,
         selfDMReport,
+        currentUserPersonalDetails?.email,
+        currentUserPersonalDetails?.accountID,
+        isExpenseReportType,
+        selectedReportIDs,
     ]);
 
     const onBulkPaySelected = useCallback(

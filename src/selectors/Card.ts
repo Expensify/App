@@ -103,8 +103,10 @@ const timeSensitiveCardsSelector = (cards: OnyxEntry<CardList>): TimeSensitiveCa
             continue;
         }
 
-        // Check for fraud on any Expensify card (physical or virtual)
-        if (isCardWithPotentialFraud(card)) {
+        // Check for fraud on any Expensify card (physical or virtual).
+        // Only include cards that have complete possibleFraud data with a valid fraudAlertReportID,
+        // since without these the ReviewCardFraud widget cannot render anything meaningful.
+        if (isCardWithPotentialFraud(card) && card.nameValuePairs?.possibleFraud?.fraudAlertReportID) {
             result.cardsWithFraud.push(card);
         }
 

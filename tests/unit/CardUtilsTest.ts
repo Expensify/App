@@ -853,7 +853,8 @@ describe('CardUtils', () => {
                         [CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE]: {pending: false},
                         // Gray-zone feed without assigned cards — filtered
                         [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_FILE_DOWNLOAD]: {pending: false},
-                        // Gray-zone feed (capitalonecards) without assigned cards — filtered
+                        // Gray-zone feed without assigned cards — filtered
+                        // cspell:disable-next-line
                         ['capitalonecards' as CompanyCardFeed]: {pending: false},
                     },
                     oAuthAccountDetails: {
@@ -893,6 +894,7 @@ describe('CardUtils', () => {
 
             // Gray-zone feeds without assigned cards — filtered
             expect(feedKeys).not.toContain(CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_FILE_DOWNLOAD);
+            // cspell:disable-next-line
             expect(feedKeys).not.toContain('capitalonecards');
         });
 
@@ -975,8 +977,10 @@ describe('CardUtils', () => {
             expect(Object.keys(companyFeeds)).toContain(feed);
         });
 
+        // cspell:disable-next-line
         it('Should filter out capitalonecards when it has no assigned cards', () => {
             const domainID = 12345;
+            // cspell:disable-next-line
             const feedName = 'capitalonecards' as CompanyCardFeed;
             const cardFeeds: CardFeeds = {
                 settings: {
@@ -989,8 +993,10 @@ describe('CardUtils', () => {
             expect(Object.keys(companyFeeds)).not.toContain(feedName);
         });
 
+        // cspell:disable-next-line
         it('Should keep capitalonecards when it has assigned cards', () => {
             const domainID = 12345;
+            // cspell:disable-next-line
             const feedName = 'capitalonecards' as CompanyCardFeed;
             const cardFeeds: CardFeeds = {
                 settings: {
