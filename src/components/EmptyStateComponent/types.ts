@@ -2,12 +2,11 @@ import type {ImageStyle} from 'expo-image';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type MediaTypes = ValueOf<typeof CONST.EMPTY_STATE_MEDIA>;
-type HeaderMedia = string | IconAsset | DotLottieAnimation;
+type HeaderMedia = string | IconAsset;
 type EmptyStateButton = {
     buttonText?: string;
     buttonAction?: () => void;
@@ -34,7 +33,6 @@ type SharedProps<TMediaType> = {
     headerStyles?: StyleProp<ViewStyle>;
     headerMediaType: TMediaType;
     headerContentStyles?: StyleProp<ViewStyle & ImageStyle>;
-    lottieWebViewStyles?: React.CSSProperties | undefined;
     minModalHeight?: number;
     subtitleText?: React.ReactNode;
 };
@@ -45,9 +43,8 @@ type MediaType<THeaderMedia, TMediaType extends MediaTypes> = SharedProps<TMedia
 
 type VideoProps = MediaType<string, 'video'>;
 type IllustrationProps = MediaType<IconAsset, 'illustration'>;
-type AnimationProps = MediaType<DotLottieAnimation, 'animation'>;
 
-type EmptyStateComponentProps = VideoProps | IllustrationProps | AnimationProps;
+type EmptyStateComponentProps = VideoProps | IllustrationProps;
 type GenericEmptyStateComponentProps = SharedProps<MediaTypes> & {headerMedia: HeaderMedia};
 
 type VideoLoadedEventType = {

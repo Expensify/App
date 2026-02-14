@@ -6,14 +6,12 @@ import BookTravelButton from '@components/BookTravelButton';
 import Button from '@components/Button';
 import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
-import LottieAnimations from '@components/LottieAnimations';
 import ScrollView from '@components/ScrollView';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 
 type ManageTripsProps = {
@@ -26,7 +24,7 @@ function ManageTrips({policyID}: ManageTripsProps) {
     const {translate} = useLocalize();
     const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false);
 
-    const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'TravelAlerts']);
+    const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'TravelAlerts', 'EmptyStateTravel'] as const);
 
     const tripsFeatures: FeatureListItem[] = [
         {
@@ -66,9 +64,8 @@ function ManageTrips({policyID}: ManageTripsProps) {
                         menuItems={tripsFeatures}
                         title={translate('travel.title')}
                         subtitle={translate('travel.subtitle')}
-                        illustration={LottieAnimations.TripsEmptyState}
+                        illustration={illustrations.EmptyStateTravel}
                         illustrationStyle={[styles.mv4]}
-                        illustrationBackgroundColor={colors.blue600}
                         titleStyles={styles.textHeadlineH1}
                         contentPaddingOnLargeScreens={styles.p5}
                         footer={

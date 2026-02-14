@@ -3,8 +3,7 @@ import {View} from 'react-native';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
-import LottieAnimations from '@components/LottieAnimations';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,6 +24,7 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {canBeMissing: true});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['FolderWithPapersAndWatch'] as const);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location']);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const reportId = report.reportID;
@@ -85,12 +85,11 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
             <EmptyStateComponent
                 cardStyles={[styles.appBG]}
                 cardContentStyles={[styles.pt5, styles.pb0]}
-                headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-                headerMedia={LottieAnimations.GenericEmptyState}
+                headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
+                headerMedia={illustrations.FolderWithPapersAndWatch}
                 title={translate('search.moneyRequestReport.emptyStateTitle')}
                 headerStyles={[styles.emptyStateMoneyRequestReport]}
-                lottieWebViewStyles={styles.emptyStateFolderWebStyles}
-                headerContentStyles={styles.emptyStateFolderWebStyles}
+                headerContentStyles={[styles.emptyStateFolderStaticIllustration]}
                 minModalHeight={minModalHeight}
                 buttons={
                     canAddTransactionToReport

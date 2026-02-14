@@ -10,7 +10,7 @@ const useGenericEmptyStateIllustration: UseGenericEmptyStateIllustration = () =>
     return {
         headerMediaType: CONST.EMPTY_STATE_MEDIA.ILLUSTRATION,
         headerMedia: illustrations.FolderWithPapersAndWatch,
-        headerContentStyles: [styles.emptyStateFolderWebStyles, styles.emptyStateFolderStaticIllustration],
+        headerContentStyles: [styles.emptyStateFolderStaticIllustration],
     };
 };
 

@@ -5,7 +5,6 @@ import {StyleSheet, View} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import ImageSVG from '@components/ImageSVG';
-import Lottie from '@components/Lottie';
 import Text from '@components/Text';
 import VideoPlayer from '@components/VideoPlayer';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -30,7 +29,6 @@ function EmptyStateComponent({
     cardStyles,
     cardContentStyles,
     headerContentStyles,
-    lottieWebViewStyles,
     minModalHeight = 400,
     subtitleText,
 }: EmptyStateComponentProps) {
@@ -63,16 +61,6 @@ function EmptyStateComponent({
                         isLooping
                     />
                 );
-            case CONST.EMPTY_STATE_MEDIA.ANIMATION:
-                return (
-                    <Lottie
-                        source={headerMedia}
-                        autoPlay
-                        loop
-                        style={headerContentStyles}
-                        webStyle={lottieWebViewStyles}
-                    />
-                );
             case CONST.EMPTY_STATE_MEDIA.ILLUSTRATION:
                 return (
                     <ImageSVG
@@ -83,7 +71,7 @@ function EmptyStateComponent({
             default:
                 return null;
         }
-    }, [headerMedia, headerMediaType, headerContentStyles, videoAspectRatio, lottieWebViewStyles]);
+    }, [headerMedia, headerMediaType, headerContentStyles, videoAspectRatio]);
 
     return (
         <View style={[{minHeight: minModalHeight}, styles.flexGrow1, styles.flexShrink0, containerStyles]}>

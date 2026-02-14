@@ -10,7 +10,6 @@ import BookTravelButton from '@components/BookTravelButton';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import type {EmptyStateButton, HeaderMedia, MediaTypes} from '@components/EmptyStateComponent/types';
 import type {FeatureListItem} from '@components/FeatureList';
-import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
@@ -28,8 +27,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {startMoneyRequest} from '@libs/actions/IOU';
 import {openOldDotLink} from '@libs/actions/Link';
@@ -77,7 +74,6 @@ type EmptySearchViewItem = {
     title: string;
     subtitle?: string;
     headerContentStyles: Array<Pick<ViewStyle, 'width' | 'height'>>;
-    lottieWebViewStyles?: React.CSSProperties | undefined;
     buttons?: EmptyStateButton[];
     headerStyles?: ViewStyle;
     titleStyles?: TextStyle;
@@ -148,12 +144,10 @@ function EmptySearchViewContent({
     searchMenuCreateReportConfirmationModal,
     queryJSON,
 }: EmptySearchViewContentProps) {
-    const theme = useTheme();
-    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'TravelAlerts']);
+    const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'TravelAlerts', 'EmptyStateTravel'] as const);
 
     const tripsFeatures: FeatureListItem[] = [
         {
@@ -362,13 +356,12 @@ function EmptySearchViewContent({
         switch (type) {
             case CONST.SEARCH.DATA_TYPES.TRIP:
                 content = {
-                    headerMediaType: CONST.EMPTY_STATE_MEDIA.ANIMATION,
-                    headerMedia: LottieAnimations.TripsEmptyState,
-                    headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.travelBG)],
+                    headerMediaType: CONST.EMPTY_STATE_MEDIA.ILLUSTRATION,
+                    headerMedia: illustrations.EmptyStateTravel,
+                    headerContentStyles: [styles.tripEmptyStateLottieWebView],
                     title: translate('travel.title'),
                     titleStyles: {...styles.textAlignLeft},
                     children: tripViewChildren,
-                    lottieWebViewStyles: {backgroundColor: theme.travelBG, ...styles.emptyStateFolderWebStyles, ...styles.tripEmptyStateLottieWebView},
                 };
                 break;
             case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
@@ -533,7 +526,6 @@ function EmptySearchViewContent({
                     subtitle={content.subtitle}
                     buttons={content.buttons}
                     headerContentStyles={[styles.h100, styles.w100, ...content.headerContentStyles] as Array<ViewStyle & ImageStyle>}
-                    lottieWebViewStyles={content.lottieWebViewStyles}
                 >
                     {content.children}
                 </GenericEmptyStateComponent>

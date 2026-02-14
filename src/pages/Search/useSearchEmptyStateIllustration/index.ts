@@ -16,7 +16,7 @@ const useSearchEmptyStateIllustration: UseSearchEmptyStateIllustration = () => {
         folder: {
             headerMediaType: CONST.EMPTY_STATE_MEDIA.ILLUSTRATION,
             headerMedia: illustrations.FolderWithPapersAndWatch,
-            headerContentStyles: [styles.emptyStateFolderWebStyles, styles.emptyStateFolderStaticIllustration],
+            headerContentStyles: [styles.emptyStateFolderStaticIllustration],
         },
     };
 };
