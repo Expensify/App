@@ -2264,12 +2264,17 @@ function getValidOptions(
     // This prevents the issue of seeing the selected option twice if you have them as a recent chat and select them
     if (!includeSelectedOptions) {
         for (const option of selectedOptions) {
-            if (!option.login) {
+            if (option.login) {
+                // Prevent re-inviting already selected users
+                loginsToExclude[option.login] = true;
+                loginsToExcludeFromSuggestions[option.login] = true;
                 continue;
             }
-            // Prevent re-inviting already selected users
-            loginsToExclude[option.login] = true;
-            loginsToExcludeFromSuggestions[option.login] = true;
+
+            if (option.reportID) {
+                loginsToExclude[option.reportID] = true;
+                loginsToExcludeFromSuggestions[option.reportID] = true;
+            }
         }
     }
     const {includeP2P = true, shouldBoldTitleByDefault = true, includeDomainEmail = false, shouldShowGBR = false, ...getValidReportsConfig} = config;
@@ -2775,19 +2780,24 @@ function formatSectionsFromSearchTerm(
     // We show the selected participants at the top of the list when there is no search term or maximum number of participants has already been selected
     // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
     // This clears up space on mobile views, where if you create a group with 4+ people you can't see the selected participants and the search results at the same time
+    const selectedOptionsMapper = (participant: Participant) => {
+        const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
+        const isIOUInvoiceRoom = participant.accountID === CONST.DEFAULT_NUMBER_ID && !!participant.reportID && 'iouType' in participant && participant.iouType === 'invoice';
+        if (participant.isSelfDM || isIOUInvoiceRoom) {
+            const privateIsArchived = allReportNameValuePairsOnyxConnect?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`]?.private_isArchived;
+            return getReportOption(participant, privateIsArchived, undefined, currentUserAccountID, personalDetails, reportAttributesDerived);
+        }
+        return isReportPolicyExpenseChat
+            ? getPolicyExpenseReportOption(participant, currentUserAccountID, personalDetails, reportAttributesDerived)
+            : getParticipantsOption(participant, personalDetails);
+    };
+
     if (searchTerm === '') {
         return {
             section: {
                 title: undefined,
                 sectionIndex: 0,
-                data: shouldGetOptionDetails
-                    ? selectedOptions.map((participant) => {
-                          const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
-                          return isReportPolicyExpenseChat
-                              ? getPolicyExpenseReportOption(participant, currentUserAccountID, personalDetails, reportAttributesDerived)
-                              : getParticipantsOption(participant, personalDetails);
-                      })
-                    : selectedOptions,
+                data: shouldGetOptionDetails ? selectedOptions.map(selectedOptionsMapper) : selectedOptions,
             },
         };
     }
@@ -2797,7 +2807,20 @@ function formatSectionsFromSearchTerm(
     // This will add them to the list of options, deduping them if they already exist in the other lists
     const selectedParticipantsWithoutDetails = selectedOptions.filter((participant) => {
         const accountID = participant.accountID ?? null;
-        const isPartOfSearchTerm = getPersonalDetailSearchTerms(participant, currentUserAccountID).join(' ').toLowerCase().includes(cleanSearchTerm);
+        let currentParticipant = participant;
+        if (currentParticipant.isSelfDM) {
+            currentParticipant = {...currentParticipant, accountID: currentUserAccountID};
+        }
+        const isPartOfSearchTerm = getPersonalDetailSearchTerms(
+            {
+                ...currentParticipant,
+                login: currentParticipant.login ?? personalDetails[currentParticipant.accountID ?? CONST.DEFAULT_NUMBER_ID]?.login,
+            },
+            currentUserAccountID,
+        )
+            .join(' ')
+            .toLowerCase()
+            .includes(cleanSearchTerm);
         const isReportInRecentReports = filteredRecentReports.some((report) => report.accountID === accountID) || filteredWorkspaceChats.some((report) => report.accountID === accountID);
         const isReportInPersonalDetails = filteredPersonalDetails.some((personalDetail) => personalDetail.accountID === accountID);
 
@@ -2808,14 +2831,7 @@ function formatSectionsFromSearchTerm(
         section: {
             title: undefined,
             sectionIndex: 0,
-            data: shouldGetOptionDetails
-                ? selectedParticipantsWithoutDetails.map((participant) => {
-                      const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
-                      return isReportPolicyExpenseChat
-                          ? getPolicyExpenseReportOption(participant, currentUserAccountID, personalDetails, reportAttributesDerived)
-                          : getParticipantsOption(participant, personalDetails);
-                  })
-                : selectedParticipantsWithoutDetails,
+            data: shouldGetOptionDetails ? selectedParticipantsWithoutDetails.map(selectedOptionsMapper) : selectedParticipantsWithoutDetails,
         },
     };
 }
@@ -2837,7 +2853,7 @@ function getPersonalDetailSearchTerms(item: Partial<SearchOptionData>, currentUs
     if (item.accountID === currentUserAccountID) {
         return getCurrentUserSearchTerms(item);
     }
-    return [item.participantsList?.[0]?.displayName ?? item.displayName ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? ''];
+    return [item.participantsList?.[0]?.displayName ?? item.displayName ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? '', item.text ?? ''];
 }
 
 function getCurrentUserSearchTerms(item: Partial<SearchOptionData>) {

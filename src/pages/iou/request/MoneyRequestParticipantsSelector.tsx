@@ -218,26 +218,27 @@ function MoneyRequestParticipantsSelector({
         [isIOUSplit, iouType, onParticipantsAdded],
     );
 
-    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, onListEndReached, contactState} = useSearchSelector({
-        selectionMode: isIOUSplit ? CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI : CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
-        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
-        includeUserToInvite: !isCategorizeOrShareAction && !isPerDiemRequest,
-        excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-        includeRecentReports: true,
-        maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-        getValidOptionsConfig,
-        shouldInitialize: didScreenTransitionEnd,
-        enablePhoneContacts: isNative,
-        contactOptions: contacts,
-        initialSelected: participants as OptionData[],
-        onSelectionChange: handleSelectionChange,
-        onSingleSelect: (option: OptionData) => {
-            if (isIOUSplit) {
-                return;
-            }
-            addSingleParticipant(option);
-        },
-    });
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, setSelectedOptions, toggleSelection, areOptionsInitialized, onListEndReached, contactState} =
+        useSearchSelector({
+            selectionMode: isIOUSplit ? CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI : CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
+            searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+            includeUserToInvite: !isCategorizeOrShareAction && !isPerDiemRequest,
+            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+            includeRecentReports: true,
+            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+            getValidOptionsConfig,
+            shouldInitialize: didScreenTransitionEnd,
+            enablePhoneContacts: isNative,
+            contactOptions: contacts,
+            initialSelected: participants as OptionData[],
+            onSelectionChange: handleSelectionChange,
+            onSingleSelect: (option: OptionData) => {
+                if (isIOUSplit) {
+                    return;
+                }
+                addSingleParticipant(option);
+            },
+        });
 
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
 
@@ -414,9 +415,15 @@ function MoneyRequestParticipantsSelector({
                 return;
             }
 
+            // If the selected option is self DM, we need to recall onParticipantsAdded to handle navigation correctly
+            if (!option && selectedOptions.length === 1 && selectedOptions.at(0)?.isSelfDM) {
+                onParticipantsAdded(selectedOptions.map((selectedOption) => sanitizedSelectedParticipant(selectedOption, iouType)));
+                return;
+            }
+
             onFinish(CONST.IOU.TYPE.SPLIT);
         },
-        [shouldShowSplitBillErrorMessage, onFinish, addSingleParticipant, selectedOptions.length],
+        [shouldShowSplitBillErrorMessage, onFinish, addSingleParticipant, onParticipantsAdded, selectedOptions, iouType],
     );
 
     const showLoadingPlaceholder = useMemo(() => !areOptionsInitialized || !didScreenTransitionEnd, [areOptionsInitialized, didScreenTransitionEnd]);
@@ -512,9 +519,11 @@ function MoneyRequestParticipantsSelector({
                 return;
             }
 
+            const reportID = option.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
+            setSelectedOptions([{...option, isSelected: true, reportID, keyForList: reportID}]);
             addSingleParticipant(option);
         },
-        [isIOUSplit, addParticipantToSelection, addSingleParticipant],
+        [isIOUSplit, addParticipantToSelection, addSingleParticipant, setSelectedOptions],
     );
 
     const importContactsButtonComponent = useMemo(() => {
