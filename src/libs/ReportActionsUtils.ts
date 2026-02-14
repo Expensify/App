@@ -3,7 +3,7 @@ import {format} from 'date-fns';
 import {fastMerge, Str} from 'expensify-common';
 import clone from 'lodash/clone';
 import isEmpty from 'lodash/isEmpty';
-import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
@@ -45,7 +45,6 @@ import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForCurrentContext';
 import Parser from './Parser';
 import {arePersonalDetailsMissing, createPersonalDetailsLookupByAccountID, getEffectiveDisplayName, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
-import {getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils} from './PolicyUtils';
 import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowupListFromHtml';
 import type {getReportName, OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
@@ -1397,7 +1396,7 @@ function getFirstVisibleReportActionID(sortedReportActions: ReportAction[] = [],
 /**
  * @returns The latest report action in the `onyxData` or `null` if one couldn't be found
  */
-function getLatestReportActionFromOnyxData(onyxData: OnyxUpdate[] | null): NonNullable<OnyxEntry<ReportAction>> | null {
+function getLatestReportActionFromOnyxData<TKey extends OnyxKey>(onyxData: Array<OnyxUpdate<TKey>> | null): NonNullable<OnyxEntry<ReportAction>> | null {
     const reportActionUpdate = onyxData?.find((onyxUpdate) => onyxUpdate.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS));
 
     if (!reportActionUpdate) {
@@ -1870,9 +1869,9 @@ function getMessageOfOldDotReportAction(translate: LocalizedTranslate, oldDotAct
             if (errorMessage.includes(CONST.ERROR.INTEGRATION_MESSAGE_INVALID_CREDENTIALS)) {
                 const translateErrorMessage = translate('report.actions.error.invalidCredentials');
                 const translateLinkText = translate('report.connectionSettings');
-                return translate('report.actions.type.integrationsMessage', {errorMessage: translateErrorMessage, label, linkText: translateLinkText, linkURL});
+                return translate('report.actions.type.integrationsMessage', translateErrorMessage, label, translateLinkText, linkURL);
             }
-            return translate('report.actions.type.integrationsMessage', {errorMessage, label, linkText, linkURL});
+            return translate('report.actions.type.integrationsMessage', errorMessage, label, linkText, linkURL);
         }
         case CONST.REPORT.ACTIONS.TYPE.MANAGER_ATTACH_RECEIPT:
             return translate('report.actions.type.managerAttachReceipt');
@@ -2461,7 +2460,7 @@ function getPolicyChangeLogAddEmployeeMessage(translate: LocalizedTranslate, rep
 
     const originalMessage = getOriginalMessage(reportAction);
     const email = originalMessage?.email ?? '';
-    const role = translate('workspace.common.roleName', {role: originalMessage?.role ?? ''}).toLowerCase();
+    const role = translate('workspace.common.roleName', originalMessage?.role ?? '').toLowerCase();
     const formattedEmail = formatPhoneNumber(email);
     return translate('report.actions.type.addEmployee', formattedEmail, role);
 }
@@ -2488,8 +2487,8 @@ function buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(translate: Localiz
         });
     }
 
-    const newRole = translate('workspace.common.roleName', {role: stringNewValue}).toLowerCase();
-    const oldRole = translate('workspace.common.roleName', {role: stringOldValue}).toLowerCase();
+    const newRole = translate('workspace.common.roleName', stringNewValue).toLowerCase();
+    const oldRole = translate('workspace.common.roleName', stringOldValue).toLowerCase();
     return translate('report.actions.type.updateRole', {email, newRole, currentRole: oldRole});
 }
 
@@ -2529,7 +2528,7 @@ function getPolicyChangeLogEmployeeLeftMessage(translate: LocalizedTranslate, re
     }
     const nameOrEmail = useName && !!personalDetails?.firstName ? `${personalDetails?.firstName}:` : (originalMessage?.email ?? '');
     const formattedNameOrEmail = formatPhoneNumber(nameOrEmail);
-    return translate('report.actions.type.leftWorkspace', {nameOrEmail: formattedNameOrEmail});
+    return translate('report.actions.type.leftWorkspace', formattedNameOrEmail);
 }
 
 function isPolicyChangeLogDeleteMemberMessage(
@@ -3493,7 +3492,7 @@ function getPolicyChangeLogDeleteMemberMessage(translate: LocalizedTranslate, re
     }
     const originalMessage = getOriginalMessage(reportAction);
     const email = formatPhoneNumber(originalMessage?.email ?? '');
-    const role = translate('workspace.common.roleName', {role: originalMessage?.role ?? ''}).toLowerCase();
+    const role = translate('workspace.common.roleName', originalMessage?.role ?? '').toLowerCase();
     return translate('report.actions.type.removeMember', email, role);
 }
 
@@ -3606,7 +3605,7 @@ function getActionableCardFraudAlertMessage(
 function getDemotedFromWorkspaceMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEMOTED_FROM_WORKSPACE>>) {
     const originalMessage = getOriginalMessage(reportAction);
     const policyName = originalMessage?.policyName ?? translate('workspace.common.workspace');
-    const oldRole = translate('workspace.common.roleName', {role: originalMessage?.oldRole}).toLowerCase();
+    const oldRole = translate('workspace.common.roleName', originalMessage?.oldRole).toLowerCase();
     return translate('workspaceActions.demotedFromWorkspace', policyName, oldRole);
 }
 
@@ -3939,7 +3938,7 @@ function getDynamicExternalWorkflowRoutedMessage(
     action: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED>>,
     translate: LocaleContextProps['translate'],
 ) {
-    return translate('iou.routedDueToDEW', {to: getOriginalMessage(action)?.to ?? ''});
+    return translate('iou.routedDueToDEW', getOriginalMessage(action)?.to ?? '');
 }
 
 function getSettlementAccountLockedMessage(translate: LocalizedTranslate, action: OnyxEntry<ReportAction>): string {
@@ -3978,10 +3977,7 @@ function shouldShowActivateCard(actionName?: ReportActionName, card?: Card, priv
     return (actionName === CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED || actionName === CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED) && isCardPendingActivate(card) && !missingDetails;
 }
 
-function getJoinRequestMessage(translate: LocalizedTranslate, reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>) {
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(getOriginalMessage(reportAction)?.policyID);
+function getJoinRequestMessage(translate: LocalizedTranslate, policy: OnyxEntry<Policy>, reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>) {
     const userDetail = getPersonalDetailByEmail(getOriginalMessage(reportAction)?.email ?? '');
     const userName = userDetail?.firstName ? `${userDetail.displayName} (${userDetail.login})` : (userDetail?.login ?? getOriginalMessage(reportAction)?.email);
     return translate('workspace.inviteMessage.joinRequest', {user: userName ?? '', workspaceName: policy?.name ?? ''});
@@ -3997,6 +3993,7 @@ function isCardActive(card?: Card): boolean {
 function getCardIssuedMessage({
     reportAction,
     shouldRenderHTML = false,
+    shouldNavigateToCardDetails = false,
     policyID = '-1',
     expensifyCard,
     companyCard,
@@ -4004,6 +4001,7 @@ function getCardIssuedMessage({
 }: {
     reportAction: OnyxEntry<ReportAction>;
     shouldRenderHTML?: boolean;
+    shouldNavigateToCardDetails?: boolean;
     policyID?: string;
     expensifyCard?: Card;
     companyCard?: Card;
@@ -4013,11 +4011,8 @@ function getCardIssuedMessage({
 
     const assigneeAccountID = cardIssuedActionOriginalMessage?.assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const cardID = cardIssuedActionOriginalMessage?.cardID ?? CONST.DEFAULT_NUMBER_ID;
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const isPolicyAdmin = isPolicyAdminPolicyUtils(getPolicy(policyID));
     const assignee = shouldRenderHTML ? `<mention-user accountID="${assigneeAccountID}"/>` : Parser.htmlToText(`<mention-user accountID="${assigneeAccountID}"/>`);
-    const navigateRoute = isPolicyAdmin ? ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, String(cardID)) : ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(String(cardID));
+    const navigateRoute = shouldNavigateToCardDetails ? ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, String(cardID)) : ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(String(cardID));
     const isExpensifyCardActive = isCardActive(expensifyCard);
     const expensifyCardLink = (expensifyCardLinkText: string) =>
         shouldRenderHTML && isExpensifyCardActive ? `<a href='${environmentURL}/${navigateRoute}'>${expensifyCardLinkText}</a>` : expensifyCardLinkText;
@@ -4034,13 +4029,13 @@ function getCardIssuedMessage({
             return translate('workspace.expensifyCard.issuedCard', assignee);
         }
         case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL:
-            return translate('workspace.expensifyCard.issuedCardVirtual', {assignee, link: expensifyCardLink(translate('workspace.expensifyCard.card'))});
+            return translate('workspace.expensifyCard.issuedCardVirtual', assignee, expensifyCardLink(translate('workspace.expensifyCard.card')));
         case CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED:
             return translate('workspace.companyCards.assignedCard', assignee, companyCardLink);
         case CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS:
             return translate('workspace.expensifyCard.issuedCardNoShippingDetails', assignee);
         case CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED_VIRTUAL:
-            return translate('workspace.expensifyCard.replacedVirtualCard', {assignee, link: expensifyCardLink(translate('workspace.expensifyCard.replacementCard'))});
+            return translate('workspace.expensifyCard.replacedVirtualCard', assignee, expensifyCardLink(translate('workspace.expensifyCard.replacementCard')));
         case CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED:
             return translate('workspace.expensifyCard.replacedCard', assignee);
         default:
@@ -4114,11 +4109,7 @@ function getIntegrationSyncFailedMessage(translate: LocalizedTranslate, action: 
 
     const param = encodeURIComponent(`{"policyID": "${policyID}"}`);
     const workspaceAccountingLink = shouldShowOldDotLink ? `${oldDotEnvironmentURL}/policy?param=${param}#connections` : `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`;
-    return translate('report.actions.type.integrationSyncFailed', {
-        label,
-        errorMessage,
-        workspaceAccountingLink,
-    });
+    return translate('report.actions.type.integrationSyncFailed', label, errorMessage, workspaceAccountingLink);
 }
 
 function getCompanyCardConnectionBrokenMessage(translate: LocalizedTranslate, action: OnyxEntry<ReportAction>): string {

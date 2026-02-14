@@ -732,6 +732,7 @@ function getUpdatedTransaction({
                 translateLocal,
                 (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
                 getCurrencySymbol,
+                isManualDistanceRequest(transaction),
             );
 
             updatedTransaction.amount = updatedAmount;
@@ -780,6 +781,7 @@ function getUpdatedTransaction({
                 translateLocal,
                 (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
                 getCurrencySymbol,
+                isManualDistanceRequest(transaction),
             );
 
             updatedTransaction.amount = updatedAmount;
@@ -864,6 +866,7 @@ function getUpdatedTransaction({
             translateLocal,
             (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
             getCurrencySymbol,
+            isManualDistanceRequest(transaction),
         );
 
         updatedTransaction.modifiedAmount = amount;
@@ -1133,6 +1136,7 @@ function getMerchant(transaction: OnyxInputOrEntry<Transaction>, policyParam: On
                 translateLocal,
                 (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
                 getCurrencySymbol,
+                isManualDistanceRequest(transaction),
             );
         }
     }
@@ -1160,13 +1164,15 @@ function getReportOwnerAsAttendee(transaction: OnyxInputOrEntry<Transaction>, cu
 
     if (creatorAccountID) {
         const [creatorDetails] = getPersonalDetailsByIDs({accountIDs: [creatorAccountID], currentUserAccountID: currentUserPersonalDetails?.accountID});
-        const creatorEmail = creatorDetails?.login ?? '';
-        const creatorDisplayName = creatorDetails?.displayName ?? creatorEmail;
 
-        if (creatorEmail) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        const creatorLogin = creatorDetails?.login || creatorDetails?.displayName || '';
+        const creatorDisplayName = creatorDetails?.displayName ?? creatorLogin;
+
+        if (creatorLogin) {
             return {
-                email: creatorEmail,
-                login: creatorEmail,
+                email: creatorLogin,
+                login: creatorLogin,
                 displayName: creatorDisplayName,
                 accountID: creatorAccountID,
                 text: creatorDisplayName,
@@ -1364,7 +1370,7 @@ function isFromCreditCardImport(transaction: OnyxEntry<Transaction>): boolean {
         return true;
     }
 
-    if (transaction?.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD) {
+    if (transaction?.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD) {
         return false;
     }
 
@@ -1770,9 +1776,13 @@ function getWaypointIndex(key: string): number {
 /**
  * Filters the waypoints which are valid and returns those
  */
-function getValidWaypoints(waypoints: WaypointCollection | undefined, reArrangeIndexes = false): WaypointCollection {
+function getValidWaypoints(waypoints: WaypointCollection | undefined, reArrangeIndexes = false, areWaypointsForGpsDistanceRequest = false): WaypointCollection {
     if (!waypoints) {
         return {};
+    }
+
+    if (areWaypointsForGpsDistanceRequest) {
+        return waypoints;
     }
 
     const sortedIndexes = Object.keys(waypoints)
@@ -2030,14 +2040,13 @@ function hasWarningTypeViolation(
 /**
  * Calculates tax amount from the given expense amount and tax percentage
  */
-function calculateTaxAmount(percentage: string | undefined, amount: number, currency: string) {
+function calculateTaxAmount(percentage: string | undefined, amount: number, decimals: number) {
     if (!percentage) {
         return 0;
     }
 
     const divisor = Number(percentage.slice(0, -1)) / 100 + 1;
     const taxAmount = (amount - amount / divisor) / 100;
-    const decimals = getCurrencyDecimals(currency);
     return parseFloat(taxAmount.toFixed(decimals));
 }
 
@@ -2327,11 +2336,12 @@ function removeSettledAndApprovedTransactions(transactions: Array<OnyxEntry<Tran
  */
 
 function compareDuplicateTransactionFields(
-    reviewingTransaction?: OnyxEntry<Transaction>,
-    duplicates?: Array<OnyxEntry<Transaction>>,
-    report?: OnyxEntry<Report>,
-    selectedTransactionID?: string,
-    policyCategories?: PolicyCategories,
+    reviewingTransaction: OnyxEntry<Transaction>,
+    duplicates: Array<OnyxEntry<Transaction>> | undefined,
+    report: OnyxEntry<Report>,
+    selectedTransactionID: string | undefined,
+    policy: OnyxEntry<Policy>,
+    policyCategories: OnyxEntry<PolicyCategories>,
 ): {keep: Partial<ReviewDuplicates>; change: FieldsToChange} {
     const reportID = report?.reportID;
     const reviewingTransactionID = reviewingTransaction?.transactionID;
@@ -2408,9 +2418,6 @@ function compareDuplicateTransactionFields(
             const keys = fieldsToCompare[fieldName];
             const firstTransaction = transactions.at(0);
             const isFirstTransactionCommentEmptyObject = typeof firstTransaction?.comment === 'object' && firstTransaction?.comment?.comment === '';
-            // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const policy = getPolicy(report?.policyID);
 
             const areAllFieldsEqualForKey = areAllFieldsEqual(transactions, (item) => keys.map((key) => SafeString(item?.[key])).join('|'));
             if (fieldName === 'description') {
@@ -2540,7 +2547,7 @@ function getCategoryTaxCodeAndAmount(category: string, transaction: OnyxEntry<Tr
     let categoryTaxAmount;
 
     if (categoryTaxPercentage) {
-        categoryTaxAmount = convertToBackendAmount(calculateTaxAmount(categoryTaxPercentage, getAmount(transaction), getCurrency(transaction)));
+        categoryTaxAmount = convertToBackendAmount(calculateTaxAmount(categoryTaxPercentage, getAmount(transaction), getCurrencyDecimals(getCurrency(transaction))));
     }
 
     return {categoryTaxCode, categoryTaxAmount};
@@ -2841,6 +2848,7 @@ export {
     shouldShowExpenseBreakdown,
     isTimeRequest,
     getExpenseTypeTranslationKey,
+    isDistanceTypeRequest,
 };
 
 export type {TransactionChanges};

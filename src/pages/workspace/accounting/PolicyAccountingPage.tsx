@@ -356,7 +356,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         } else if (!isConnectionVerified) {
             connectionMessage = translate('workspace.accounting.notSync');
         } else {
-            connectionMessage = translate('workspace.accounting.lastSync', {relativeDate: datetimeToRelative});
+            connectionMessage = translate('workspace.accounting.lastSync', datetimeToRelative);
         }
 
         const configurationOptions = [
@@ -559,7 +559,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     shouldShowBackButton={shouldUseNarrowLayout}
                     icon={illustrations.Accounting}
                     shouldUseHeadlineHeader
-                    onBackButtonPress={Navigation.popToSidebar}
+                    onBackButtonPress={Navigation.goBack}
                 />
                 <ScrollView
                     contentContainerStyle={styles.pt3}

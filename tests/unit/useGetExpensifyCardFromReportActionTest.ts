@@ -36,7 +36,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
         lastUpdated: '2023-01-01T00:00:00.000Z',
         fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
         state: CONST.EXPENSIFY_CARD.STATE.OPEN,
-        bank: 'Test Bank',
+        bank: 'Expensify Card',
     };
 
     const createMockReportAction = (cardID = 123): ReportAction => ({

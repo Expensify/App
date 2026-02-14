@@ -406,6 +406,7 @@ function BasePopoverMenu({
                     iconRight={item.rightIcon}
                     shouldDimIconRight={item.shouldDimIconRight ?? shouldDimIconRight}
                     shouldShowRightIcon={!!item.rightIcon}
+                    brickRoadIndicator={item.brickRoadIndicator}
                     onFocus={() => {
                         if (!shouldUpdateFocusedIndex) {
                             return;

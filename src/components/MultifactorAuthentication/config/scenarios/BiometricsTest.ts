@@ -21,5 +21,11 @@ export default {
         outOfTime: {
             headerTitle: 'multifactorAuthentication.biometricsTest.biometricsTest',
         },
+        noEligibleMethods: {
+            headerTitle: 'multifactorAuthentication.biometricsTest.biometricsTest',
+        },
+        unsupportedDevice: {
+            headerTitle: 'multifactorAuthentication.biometricsTest.biometricsTest',
+        },
     },
 } as const satisfies MultifactorAuthenticationScenarioCustomConfig;
