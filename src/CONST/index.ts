@@ -8099,7 +8099,6 @@ const CONST = {
     },
 
     SENTRY_LABEL: {
-        ACCOUNT_SWITCHER: 'AccountSwitcher',
         NAVIGATION_TAB_BAR: {
             EXPENSIFY_LOGO: 'NavigationTabBar-ExpensifyLogo',
             INBOX: 'NavigationTabBar-Inbox',

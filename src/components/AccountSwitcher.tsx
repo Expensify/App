@@ -196,7 +196,6 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                     ref={buttonRef}
                     interactive={canSwitchAccounts}
                     pressDimmingValue={canSwitchAccounts ? undefined : 1}
-                    sentryLabel={CONST.SENTRY_LABEL.ACCOUNT_SWITCHER}
                     wrapperStyle={[styles.flexGrow1, styles.flex1, styles.mnw0, styles.justifyContentCenter]}
                     sentryLabel={CONST.SENTRY_LABEL.ACCOUNT_SWITCHER.SHOW_ACCOUNTS}
                 >
