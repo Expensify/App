@@ -96,9 +96,6 @@ function HeaderWithBackButton({
                             style={styles.headerProgressBar}
                             role={CONST.ROLE.PROGRESSBAR}
                             accessibilityLabel={translate('common.progressBarLabel')}
-                            aria-valuemin={0}
-                            aria-valuemax={100}
-                            aria-valuenow={progressBarPercentage}
                             aria-valuetext={stepCounter ? translate('stepCounter', stepCounter) : undefined}
                         >
                             <View style={[{width: `${progressBarPercentage}%`}, styles.headerProgressBarFill]} />
