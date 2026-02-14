@@ -120,6 +120,7 @@ function isExpensifyCardUkEuSupported(card?: Card): boolean {
     if (!card) {
         return false;
     }
+    return true;
     return card.nameValuePairs?.feedCountry === CONST.EXPENSIFY_CARD.PROGRAM.UK_EU;
 }
 

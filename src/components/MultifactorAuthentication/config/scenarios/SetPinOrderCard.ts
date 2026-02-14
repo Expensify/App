@@ -1,5 +1,5 @@
 import type {MultifactorAuthenticationScenarioCustomConfig} from '@components/MultifactorAuthentication/config/types';
-import {troubleshootMultifactorAuthentication} from '@userActions/MultifactorAuthentication';
+import {updatePersonalDetailsAndShipExpensifyCardsWithPIN} from '@libs/actions/PersonalDetails';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
@@ -9,7 +9,7 @@ import SCREENS from '@src/SCREENS';
  */
 export default {
     allowedAuthenticationMethods: [CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS],
-    action: troubleshootMultifactorAuthentication,
+    action: updatePersonalDetailsAndShipExpensifyCardsWithPIN,
     screen: SCREENS.MULTIFACTOR_AUTHENTICATION.SET_PIN_ORDER_CARD,
     pure: true,
     OUTCOMES: {

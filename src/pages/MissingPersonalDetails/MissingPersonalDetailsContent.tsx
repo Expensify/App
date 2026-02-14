@@ -1,11 +1,13 @@
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
+import React, {useMemo} from 'react';
+import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubPageHeader from '@components/InteractiveStepSubPageHeader';
+import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -55,6 +57,8 @@ const confirmPage = {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.CONFIRM,
 
 function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, headerTitle, onComplete, cardID}: MissingPersonalDetailsContentProps) {
     const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
+    const {executeScenario} = useMultifactorAuthentication();
     const {translate} = useLocalize();
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const card = cardList?.[Number(cardID)];
@@ -75,12 +79,27 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
 
     const startFrom = useMemo(() => findPageIndex<CustomSubPageProps>(formPages, getInitialSubPage(values)), [formPages, values]);
 
-    const handleFinishStep = useCallback(() => {
+    const handleFinishStep = () => {
         if (!values) {
             return;
         }
-        onComplete();
-    }, [onComplete, values]);
+        if (isUKEUCard) {
+            if (isOffline) {
+                return;
+            }
+
+            // The reason for using it, despite it being deprecated: https://github.com/Expensify/App/pull/79473/files#r2745847379
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(() =>
+                executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PIN_ORDER_CARD, {
+                    ...values,
+                    pin: '1231',
+                }),
+            );
+        } else {
+            onComplete();
+        }
+    };
 
     const {CurrentPage, isEditing, currentPageName, pageIndex, prevPage, nextPage, moveTo, isRedirecting} = useSubPage<CustomSubPageProps>({
         pages: formPages,
