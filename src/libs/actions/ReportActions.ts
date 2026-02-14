@@ -1,12 +1,12 @@
-import type { OnyxCollection } from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import deleteReport from './Report/DeleteReport';
-import { getLinkedTransactionID, getReportAction, getReportActionMessage, isCreatedTaskReportAction } from '@libs/ReportActionsUtils';
-import { getOriginalReportID } from '@libs/ReportUtils';
+import {getLinkedTransactionID, getReportAction, getReportActionMessage, isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
+import {getOriginalReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
+import deleteReport from './Report/DeleteReport';
 
 type IgnoreDirection = 'parent' | 'child';
 
@@ -105,7 +105,7 @@ function clearAllRelatedReportActionErrors(reportID: string | undefined, reportA
     }
 }
 
-export type { IgnoreDirection };
+export type {IgnoreDirection};
 export {
     // eslint-disable-next-line import/prefer-default-export
     clearAllRelatedReportActionErrors,
