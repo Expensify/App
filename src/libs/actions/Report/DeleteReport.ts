@@ -1,10 +1,10 @@
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
+import type { OnyxCollection } from 'react-native-onyx';
 import Log from '@libs/Log';
-import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import CONST from '@src/CONST';
+import { getOriginalMessage, isMoneyRequestAction } from '@libs/ReportActionsUtils';
+import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type { Report, ReportAction, ReportActions } from '@src/types/onyx';
 
 // We use connectWithoutView because deleteReport doesn't affect the UI rendering
 // and this avoids unnecessary re-rendering because we recursively delete the report and its children
