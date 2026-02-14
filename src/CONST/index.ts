@@ -8453,6 +8453,7 @@ const CONST = {
             SUBMIT_BUTTON: 'Form-SubmitButton',
         },
         ONBOARDING: {
+            ACCOUNTING_ITEM: 'Onboarding-AccountingItem',
             INTERESTED_FEATURES_ITEM: 'Onboarding-InterestedFeaturesItem',
         },
         REPORT_HEADER_SKELETON: {
