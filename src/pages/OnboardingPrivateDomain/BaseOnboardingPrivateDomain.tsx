@@ -84,7 +84,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
             <HeaderWithBackButton
                 shouldShowBackButton
                 progressBarPercentage={40}
-                stepCounter={{step: 2, total: 5}}
+                stepCounter={{step: CONST.ONBOARDING_STEP.PRIVATE_DOMAIN, total: CONST.ONBOARDING_STEP.TOTAL}}
                 onBackButtonPress={handleBackButtonPress}
                 shouldDisplayHelpButton={false}
             />

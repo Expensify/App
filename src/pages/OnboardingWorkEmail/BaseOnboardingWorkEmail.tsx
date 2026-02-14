@@ -149,7 +149,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         >
             <HeaderWithBackButton
                 progressBarPercentage={10}
-                stepCounter={{step: 1, total: 5}}
+                stepCounter={{step: CONST.ONBOARDING_STEP.WORK_EMAIL, total: CONST.ONBOARDING_STEP.TOTAL}}
                 shouldShowBackButton={false}
                 shouldDisplayHelpButton={false}
             />

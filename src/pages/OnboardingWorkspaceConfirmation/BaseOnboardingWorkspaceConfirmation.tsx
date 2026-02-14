@@ -134,7 +134,7 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboar
         >
             <HeaderWithBackButton
                 progressBarPercentage={100}
-                stepCounter={{step: 5, total: 5}}
+                stepCounter={{step: CONST.ONBOARDING_STEP.FINAL, total: CONST.ONBOARDING_STEP.TOTAL}}
                 shouldDisplayHelpButton={false}
             />
             <FormProvider

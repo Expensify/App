@@ -163,7 +163,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             <HeaderWithBackButton
                 shouldShowBackButton
                 progressBarPercentage={60}
-                stepCounter={{step: 3, total: 5}}
+                stepCounter={{step: CONST.ONBOARDING_STEP.WORKSPACES, total: CONST.ONBOARDING_STEP.TOTAL}}
                 onBackButtonPress={handleBackButtonPress}
                 shouldDisplayHelpButton={false}
             />

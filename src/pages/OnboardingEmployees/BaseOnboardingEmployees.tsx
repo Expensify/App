@@ -80,7 +80,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
             <HeaderWithBackButton
                 shouldShowBackButton
                 progressBarPercentage={onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? 80 : 90}
-                stepCounter={{step: 3, total: 5}}
+                stepCounter={{step: CONST.ONBOARDING_STEP.EMPLOYEES, total: CONST.ONBOARDING_STEP.TOTAL}}
                 onBackButtonPress={() => {
                     Navigation.goBack(ROUTES.ONBOARDING_PURPOSE.getRoute());
                 }}

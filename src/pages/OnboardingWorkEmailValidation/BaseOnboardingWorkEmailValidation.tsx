@@ -88,7 +88,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
             <HeaderWithBackButton
                 shouldShowBackButton={!onboardingValues?.isMergingAccountBlocked}
                 progressBarPercentage={15}
-                stepCounter={{step: 1, total: 5}}
+                stepCounter={{step: CONST.ONBOARDING_STEP.WORK_EMAIL, total: CONST.ONBOARDING_STEP.TOTAL}}
                 onBackButtonPress={() => {
                     updateOnboardingValuesAndNavigation(onboardingValues);
                 }}

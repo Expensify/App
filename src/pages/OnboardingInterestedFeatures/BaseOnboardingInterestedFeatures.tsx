@@ -369,7 +369,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
             <HeaderWithBackButton
                 shouldShowBackButton
                 progressBarPercentage={90}
-                stepCounter={{step: 5, total: 5}}
+                stepCounter={{step: CONST.ONBOARDING_STEP.FINAL, total: CONST.ONBOARDING_STEP.TOTAL}}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_ACCOUNTING.getRoute())}
                 shouldDisplayHelpButton={false}
             />
