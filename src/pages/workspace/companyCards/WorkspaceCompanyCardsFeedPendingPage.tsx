@@ -23,7 +23,7 @@ function WorkspaceCompanyCardsFeedPendingPage() {
                 containerStyles={styles.mt5}
                 headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
                 headerMedia={CompanyCardsPendingState}
-                headerStyles={[styles.emptyStateCardIllustrationContainer]}
+                headerStyles={styles.emptyStateCardIllustrationContainer}
                 headerContentStyles={styles.pendingStateCardIllustration}
                 title={translate('workspace.moreFeatures.companyCards.pendingFeedTitle')}
             >

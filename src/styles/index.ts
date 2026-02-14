@@ -5286,14 +5286,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         emptyStateContent: {
             width: '100%',
-            alignItems: 'center',
-        },
-
-        emptyStateHeaderContainer: {
-            maxWidth: 400,
-            width: '100%',
-            alignSelf: 'center',
-            marginBottom: 24,
         },
 
         emptyStateFolderWithPaperIconSize: {
@@ -5658,6 +5650,9 @@ const staticStyles = (theme: ThemeColors) =>
             position: 'absolute',
             left: 0,
             right: 0,
+        },
+        emptyStateHeader: {
+            marginBottom: 24,
         },
         sidePanelOverlay: {
             ...positioning.pFixed,

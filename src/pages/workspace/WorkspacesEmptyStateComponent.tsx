@@ -21,7 +21,7 @@ function WorkspacesEmptyStateComponent() {
             title={translate('workspace.emptyWorkspace.title')}
             subtitle={translate('workspace.emptyWorkspace.subtitle')}
             titleStyles={styles.pt2}
-            headerStyles={[styles.emptyStateCardIllustrationContainer]}
+            headerStyles={styles.emptyStateCardIllustrationContainer}
             buttons={
                 isRestrictedPolicyCreation
                     ? []

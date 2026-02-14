@@ -42,16 +42,7 @@ function EmptyCardView({isBankAccountVerified, policyID, buttons}: EmptyCardView
                 <EmptyStateComponent
                     headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
                     headerMedia={isBankAccountVerified ? lazyIllustrations.EmptyCardState : lazyIllustrations.CompanyCardsPendingState}
-                    headerStyles={
-                        isBankAccountVerified
-                            ? [
-                                  {
-                                      overflow: 'hidden',
-                                  },
-                                  shouldUseNarrowLayout && {maxHeight: 280},
-                              ]
-                            : [styles.emptyStateCardIllustrationContainer]
-                    }
+                    headerStyles={isBankAccountVerified ? [{overflow: 'hidden'}, shouldUseNarrowLayout && {maxHeight: 280}] : styles.emptyStateCardIllustrationContainer}
                     title={translate(`workspace.expensifyCard.${isBankAccountVerified ? 'issueAndManageCards' : 'verificationInProgress'}`)}
                     subtitle={translate(`workspace.expensifyCard.${isBankAccountVerified ? 'getStartedIssuing' : 'verifyingTheDetails'}`)}
                     headerContentStyles={isBankAccountVerified ? null : styles.pendingStateCardIllustration}

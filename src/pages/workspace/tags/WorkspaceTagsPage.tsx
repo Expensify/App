@@ -6,7 +6,7 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import DecisionModal from '@components/DecisionModal';
 import EmployeesSeeTagsAsText from '@components/EmployeesSeeTagsAsText';
-import EmptyStateComponent from '@components/EmptyStateComponent';
+import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -101,6 +101,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentConnectionName(policy);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Gear', 'Table', 'Download', 'Plus', 'Trashcan', 'Close', 'Trashcan', 'Checkmark']);
+    const genericIllustration = useGenericEmptyStateIllustration();
 
     const [policyTagLists, isMultiLevelTags, hasDependentTags, hasIndependentTags] = useMemo(
         () => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags), hasDependentTagsPolicyUtils(policy, policyTags), hasIndependentTagsPolicyUtils(policy, policyTags)],
@@ -114,7 +115,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     }, [policyID]);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT;
     const illustrations = useMemoizedLazyIllustrations(['Tag']);
-    const {headerMediaType, headerMedia, headerContentStyles, lottieWebViewStyles} = useGenericEmptyStateIllustration();
 
     const tagsList = useMemo(() => {
         if (isMultiLevelTags) {
@@ -862,14 +862,12 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     )}
                     {!hasVisibleTags && !isLoading && (
                         <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
-                            <EmptyStateComponent
-                                headerMediaType={headerMediaType}
-                                headerMedia={headerMedia}
-                                headerContentStyles={headerContentStyles}
-                                lottieWebViewStyles={lottieWebViewStyles}
+                            <GenericEmptyStateComponent
+                                // eslint-disable-next-line react/jsx-props-no-spreading
+                                {...genericIllustration}
                                 title={translate('workspace.tags.emptyTags.title')}
                                 subtitleText={subtitleText}
-                                headerStyles={[styles.emptyStateCardIllustrationContainer]}
+                                headerStyles={styles.emptyStateCardIllustrationContainer}
                                 buttons={
                                     !hasAccountingConnections
                                         ? [

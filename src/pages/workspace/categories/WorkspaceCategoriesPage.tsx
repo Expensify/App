@@ -6,7 +6,7 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
-import EmptyStateComponent from '@components/EmptyStateComponent';
+import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -92,7 +92,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
     const icons = useMemoizedLazyExpensifyIcons(['Download', 'Gear', 'Table']);
     const illustrations = useMemoizedLazyIllustrations(['FolderOpen']);
-    const {headerMediaType, headerMedia, headerContentStyles, lottieWebViewStyles} = useGenericEmptyStateIllustration();
+    const genericIllustration = useGenericEmptyStateIllustration();
 
     const {
         taskReport: setupCategoryTaskReport,
@@ -702,14 +702,12 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 )}
                 {!hasVisibleCategories && !isLoading && inputValue.length === 0 && (
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
-                        <EmptyStateComponent
-                            headerMediaType={headerMediaType}
-                            headerMedia={headerMedia}
-                            headerContentStyles={headerContentStyles}
-                            lottieWebViewStyles={lottieWebViewStyles}
+                        <GenericEmptyStateComponent
+                            // eslint-disable-next-line react/jsx-props-no-spreading
+                            {...genericIllustration}
                             title={translate('workspace.categories.emptyCategories.title')}
                             subtitleText={subtitleText}
-                            headerStyles={[styles.emptyStateCardIllustrationContainer]}
+                            headerStyles={styles.emptyStateCardIllustrationContainer}
                             buttons={
                                 !policyHasAccountingConnections
                                     ? [

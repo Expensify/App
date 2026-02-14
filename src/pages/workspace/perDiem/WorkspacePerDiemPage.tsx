@@ -6,7 +6,7 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
-import EmptyStateComponent from '@components/EmptyStateComponent';
+import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -128,8 +128,8 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: false});
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const illustrations = useMemoizedLazyIllustrations(['PerDiem']);
-    const {headerMediaType, headerMedia, headerContentStyles, lottieWebViewStyles} = useGenericEmptyStateIllustration();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Gear', 'Table', 'Download', 'Trashcan']);
+    const genericIllustration = useGenericEmptyStateIllustration();
 
     const [customUnit, allRatesArray, allSubRates] = useMemo(() => {
         const customUnits = getPerDiemCustomUnit(policy);
@@ -482,14 +482,12 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                 )}
                 {!hasVisibleSubRates && !isLoading && (
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
-                        <EmptyStateComponent
-                            headerMediaType={headerMediaType}
-                            headerMedia={headerMedia}
-                            headerContentStyles={headerContentStyles}
-                            lottieWebViewStyles={lottieWebViewStyles}
+                        <GenericEmptyStateComponent
+                            // eslint-disable-next-line react/jsx-props-no-spreading
+                            {...genericIllustration}
                             title={translate('workspace.perDiem.emptyList.title')}
                             subtitle={translate('workspace.perDiem.emptyList.subtitle')}
-                            headerStyles={[styles.emptyStateCardIllustrationContainer]}
+                            headerStyles={styles.emptyStateCardIllustrationContainer}
                             buttons={[
                                 {
                                     buttonText: translate('spreadsheet.importSpreadsheet'),

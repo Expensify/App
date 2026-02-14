@@ -89,9 +89,7 @@ function EmptyStateComponent({
         <View style={[{minHeight: minModalHeight}, styles.flexGrow1, styles.flexShrink0, containerStyles]}>
             <View style={styles.emptyStateForeground}>
                 <View style={[styles.emptyStateContent, cardStyles]}>
-                    <View style={[styles.emptyStateHeaderContainer, styles.emptyStateHeaderPosition(headerMediaType === CONST.EMPTY_STATE_MEDIA.ILLUSTRATION), headerStyles]}>
-                        {HeaderComponent}
-                    </View>
+                    <View style={[styles.emptyStateHeader, styles.emptyStateHeaderPosition(headerMediaType === CONST.EMPTY_STATE_MEDIA.ILLUSTRATION), headerStyles]}>{HeaderComponent}</View>
                     <View style={[shouldUseNarrowLayout ? [styles.ph5, styles.pb5] : [styles.ph8, styles.pb8], cardContentStyles]}>
                         <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.mb2, titleStyles]}>{title}</Text>
                         {subtitleText ??
@@ -105,7 +103,7 @@ function EmptyStateComponent({
                             ))}
                         {children}
                         {!isEmpty(buttons) && (
-                            <View style={[styles.gap2, styles.mt5, styles.flexRow, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                            <View style={[styles.gap2, styles.mt5, styles.flexRow, styles.justifyContentCenter]}>
                                 {buttons?.map(({buttonText, buttonAction, success, icon, isDisabled, style, dropDownOptions}) =>
                                     dropDownOptions ? (
                                         <ButtonWithDropdownMenu
