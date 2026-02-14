@@ -289,7 +289,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
     const buttonRowSpacing = selectedDateModifier ? styles.mt4 : styles.mt2;
 
     return (
-        <View style={[topPaddingStyle, styles.pb4, styles.flexGrow1, {maxHeight: maxPopupHeight}]}>
+        <View style={[topPaddingStyle, styles.flexGrow1, {maxHeight: maxPopupHeight}]}>
             {!selectedDateModifier && <Text style={[styles.textLabel, styles.ph5, styles.pb3]}>{label}</Text>}
             <ScrollView
                 ref={scrollViewRef}
