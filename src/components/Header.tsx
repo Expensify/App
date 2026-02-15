@@ -43,8 +43,8 @@ function Header({title = '', subtitle = '', textStyles = [], style, containerSty
         if (!isInsideDialog || typeof title !== 'string' || !title) {
             return;
         }
-        pushLabel(title);
-        return () => popLabel();
+        const id = pushLabel(title);
+        return () => popLabel(id);
     }, [isInsideDialog, title, pushLabel, popLabel]);
 
     const renderedSubtitle = useMemo(
