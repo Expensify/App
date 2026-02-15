@@ -258,7 +258,7 @@ function ScreenWrapper({
                 // Use a function to find the last matching title element (topmost in the stack),
                 // since stacked RHP screens keep previous screens mounted with duplicate nativeIDs.
                 initialFocus: (): HTMLElement | false => {
-                    const elements = document.querySelectorAll<HTMLElement>('[id="rhp-dialog-title"]');
+                    const elements = document.querySelectorAll<HTMLElement>(`[id="${CONST.RHP_DIALOG_TITLE_NATIVE_ID}"]`);
                     return elements[elements.length - 1] ?? false;
                 },
                 setReturnFocus: (nodeFocusedBeforeActivation) => nodeFocusedBeforeActivation,

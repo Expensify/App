@@ -3,6 +3,7 @@ import React, {useEffect, useMemo} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {Linking, View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import {useDialogLabel} from './DialogLabelContext';
 import EnvironmentBadge from './EnvironmentBadge';
 import Text from './Text';
@@ -88,7 +89,7 @@ function Header({title = '', subtitle = '', textStyles = [], style, containerSty
                           <Text
                               numberOfLines={numberOfTitleLines}
                               style={[styles.headerText, styles.textLarge, styles.lineHeightXLarge, textStyles]}
-                              nativeID={isInsideDialog ? 'rhp-dialog-title' : undefined}
+                              nativeID={isInsideDialog ? CONST.RHP_DIALOG_TITLE_NATIVE_ID : undefined}
                               tabIndex={isInsideDialog ? -1 : undefined}
                           >
                               {title}
