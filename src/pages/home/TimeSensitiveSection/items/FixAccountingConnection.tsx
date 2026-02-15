@@ -14,13 +14,19 @@ type FixAccountingConnectionProps = {
 
     /** The policy ID associated with this connection */
     policyID: string;
+
+    /** The policy name associated with this connection */
+    policyName: string;
 };
 
-function FixAccountingConnection({connectionName, policyID}: FixAccountingConnectionProps) {
+function FixAccountingConnection({connectionName, policyID, policyName}: FixAccountingConnectionProps) {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Connect']);
 
     const integrationName = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName];
+    const subtitle = policyName
+        ? translate('homePage.timeSensitiveSection.fixAccountingConnection.subtitle', {policyName})
+        : translate('homePage.timeSensitiveSection.fixAccountingConnection.defaultSubtitle');
 
     return (
         <BaseWidgetItem
@@ -28,7 +34,7 @@ function FixAccountingConnection({connectionName, policyID}: FixAccountingConnec
             iconBackgroundColor={colors.tangerine100}
             iconFill={colors.tangerine500}
             title={translate('homePage.timeSensitiveSection.fixAccountingConnection.title', {integrationName})}
-            subtitle={translate('homePage.timeSensitiveSection.fixAccountingConnection.subtitle')}
+            subtitle={subtitle}
             ctaText={translate('homePage.timeSensitiveSection.ctaFix')}
             onCtaPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID))}
             buttonProps={{danger: true}}

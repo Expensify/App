@@ -104,7 +104,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
 
         return (
             <View style={[styles.chatItemMessage, style]}>
-                <Text>{translate('signerInfoStep.isConnecting', {bankAccountLastFour, currency})}</Text>
+                <Text>{translate('signerInfoStep.isConnecting', bankAccountLastFour, currency)}</Text>
                 <Button
                     style={[styles.mt2, styles.alignSelfStart]}
                     success
