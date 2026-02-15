@@ -368,16 +368,16 @@ function getFilterDisplayTitle(
         const equalTo = filters[equalToKey];
 
         if (equalTo) {
-            return translate('search.filters.amount.equalTo', {amount: convertToDisplayStringWithoutCurrency(Number(equalTo))});
+            return translate('search.filters.amount.equalTo', convertToDisplayStringWithoutCurrency(Number(equalTo)));
         }
         if (lessThan && greaterThan) {
             return translate('search.filters.amount.between', convertToDisplayStringWithoutCurrency(Number(greaterThan)), convertToDisplayStringWithoutCurrency(Number(lessThan)));
         }
         if (lessThan) {
-            return translate('search.filters.amount.lessThan', {amount: convertToDisplayStringWithoutCurrency(Number(lessThan))});
+            return translate('search.filters.amount.lessThan', convertToDisplayStringWithoutCurrency(Number(lessThan)));
         }
         if (greaterThan) {
-            return translate('search.filters.amount.greaterThan', {amount: convertToDisplayStringWithoutCurrency(Number(greaterThan))});
+            return translate('search.filters.amount.greaterThan', convertToDisplayStringWithoutCurrency(Number(greaterThan)));
         }
         // Will never happen
         return;
@@ -407,21 +407,21 @@ function getFilterDisplayTitle(
                     ? translate(`search.filters.date.presets.${fieldValue as SearchDatePreset}`)
                     : translate('search.filters.date.on', fieldValue as string);
 
-                values.push(translate('search.filters.reportField', {name: fieldName, value: dateString.toLowerCase()}));
+                values.push(translate('search.filters.reportField', fieldName, dateString.toLowerCase()));
             }
 
             if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX)) {
                 const dateString = translate('search.filters.date.after', fieldValue as string).toLowerCase();
-                values.push(translate('search.filters.reportField', {name: fieldName, value: dateString.toLowerCase()}));
+                values.push(translate('search.filters.reportField', fieldName, dateString.toLowerCase()));
             }
 
             if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX)) {
                 const dateString = translate('search.filters.date.before', fieldValue as string).toLowerCase();
-                values.push(translate('search.filters.reportField', {name: fieldName, value: dateString.toLowerCase()}));
+                values.push(translate('search.filters.reportField', fieldName, dateString.toLowerCase()));
             }
 
             if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX)) {
-                const valueString = translate('search.filters.reportField', {name: fieldName, value: fieldValue as string});
+                const valueString = translate('search.filters.reportField', fieldName, fieldValue as string);
                 values.push(valueString);
             }
         }

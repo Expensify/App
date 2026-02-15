@@ -66,7 +66,6 @@ import ParticipantLocalTime from '@pages/inbox/report/ParticipantLocalTime';
 import ReportTypingIndicator from '@pages/inbox/report/ReportTypingIndicator';
 import {hideEmojiPicker, isActive as isActiveEmojiPickerAction, isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
 import {addAttachmentWithComment, setIsComposerFullSize} from '@userActions/Report';
-import Timing from '@userActions/Timing';
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -159,6 +158,7 @@ function ReportActionCompose({
     const [initialModalState] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
     const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, {canBeMissing: true});
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
 
     const shouldFocusComposerOnScreenFocus = shouldFocusInputOnScreenFocus || !!draftComment;
 
@@ -198,7 +198,7 @@ function ReportActionCompose({
     const icons = useMemoizedLazyExpensifyIcons(['MessageInABottle']);
 
     const suggestionsRef = useRef<SuggestionsRef>(null);
-    const composerRef = useRef<ComposerRef | undefined>(undefined);
+    const composerRef = useRef<ComposerRef | null>(null);
     const reportParticipantIDs = useMemo(
         () =>
             Object.keys(report?.participants ?? {})
@@ -250,11 +250,11 @@ function ReportActionCompose({
     const shouldDisplayDualDropZone = useMemo(() => {
         const parentReport = getParentReport(report);
         const isSettledOrApproved = isSettled(report) || isSettled(parentReport) || isReportApproved({report}) || isReportApproved({report: parentReport});
-        const hasMoneyRequestOptions = !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs, isReportArchived, isRestrictedToPreferredPolicy).length;
+        const hasMoneyRequestOptions = !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs, betas, isReportArchived, isRestrictedToPreferredPolicy).length;
         const canModifyReceipt = shouldAddOrReplaceReceipt && !isSettledOrApproved;
         const isRoomOrGroupChat = isChatRoom(report) || isGroupChat(report);
         return !isRoomOrGroupChat && (canModifyReceipt || hasMoneyRequestOptions) && !isInvoiceReport(report);
-    }, [shouldAddOrReplaceReceipt, report, reportParticipantIDs, policy, isReportArchived, isRestrictedToPreferredPolicy]);
+    }, [shouldAddOrReplaceReceipt, report, reportParticipantIDs, policy, isReportArchived, isRestrictedToPreferredPolicy, betas]);
 
     // Placeholder to display in the chat input.
     const inputPlaceholder = useMemo(() => {
@@ -311,12 +311,14 @@ function ReportActionCompose({
 
     const addAttachment = useCallback((file: FileObject | FileObject[]) => {
         attachmentFileRef.current = file;
-        const clear = composerRef.current?.clear;
-        if (!clear) {
-            throw new Error('The composerRef.clear function is not set yet. This should never happen, and indicates a developer error.');
+
+        const clearWorklet = composerRef.current?.clearWorklet;
+
+        if (!clearWorklet) {
+            throw new Error('The composerRef.clearWorklet function is not set yet. This should never happen, and indicates a developer error.');
         }
 
-        scheduleOnUI(clear);
+        scheduleOnUI(clearWorklet);
     }, []);
 
     /**
@@ -355,7 +357,6 @@ function ReportActionCompose({
                 attachmentFileRef.current = null;
             } else {
                 Performance.markStart(CONST.TIMING.SEND_MESSAGE, {message: newCommentTrimmed});
-                Timing.start(CONST.TIMING.SEND_MESSAGE);
                 startSpan(CONST.TELEMETRY.SPAN_SEND_MESSAGE, {
                     name: 'send-message',
                     op: CONST.TELEMETRY.SPAN_SEND_MESSAGE,
@@ -367,7 +368,18 @@ function ReportActionCompose({
                 onSubmit(newCommentTrimmed);
             }
         },
-        [isConciergeChat, kickoffWaitingIndicator, transactionThreadReport, report, reportID, ancestors, personalDetail.timezone, onSubmit, isInSidePanel],
+        [
+            isConciergeChat,
+            kickoffWaitingIndicator,
+            transactionThreadReport,
+            report,
+            reportID,
+            ancestors,
+            currentUserPersonalDetails.accountID,
+            personalDetail.timezone,
+            isInSidePanel,
+            onSubmit,
+        ],
     );
 
     const onTriggerAttachmentPicker = useCallback(() => {
@@ -445,28 +457,28 @@ function ReportActionCompose({
 
     // Note: using JS refs is not well supported in reanimated, thus we need to store the function in a shared value
     // useSharedValue on web doesn't support functions, so we need to wrap it in an object.
-    const composerRefShared = useSharedValue<{
-        clear: (() => void) | undefined;
-    }>({clear: undefined});
+    const composerRefShared = useSharedValue<Partial<ComposerRef>>({});
 
     const handleSendMessage = useCallback(() => {
         if (isSendDisabled || !debouncedValidate.flush()) {
             return;
         }
 
+        composerRef.current?.resetHeight();
+        if (isComposerFullSize) {
+            setIsComposerFullSize(reportID, false);
+        }
+
         scheduleOnUI(() => {
-            'worklet';
+            const {clearWorklet} = composerRefShared.get();
 
-            const {clear: clearComposer} = composerRefShared.get();
-
-            if (!clearComposer) {
-                throw new Error('The composerRefShared.clear function is not set yet. This should never happen, and indicates a developer error.');
+            if (!clearWorklet) {
+                throw new Error('The composerRef.clearWorklet function is not set yet. This should never happen, and indicates a developer error.');
             }
 
-            // This will cause onCleared to be triggered where we actually send the message
-            clearComposer?.();
+            clearWorklet?.();
         });
-    }, [isSendDisabled, debouncedValidate, composerRefShared]);
+    }, [isSendDisabled, debouncedValidate, isComposerFullSize, reportID, composerRefShared]);
 
     onSubmitAction = handleSendMessage;
 
@@ -577,9 +589,9 @@ function ReportActionCompose({
                         />
                         <ComposerWithSuggestions
                             ref={(ref) => {
-                                composerRef.current = ref ?? undefined;
+                                composerRef.current = ref;
                                 composerRefShared.set({
-                                    clear: ref?.clear,
+                                    clearWorklet: ref?.clearWorklet,
                                 });
                             }}
                             suggestionsRef={suggestionsRef}
@@ -596,10 +608,10 @@ function ReportActionCompose({
                             isComposerFullSize={isComposerFullSize}
                             setIsFullComposerAvailable={setIsFullComposerAvailable}
                             onPasteFile={(files) => validateAttachments({files})}
-                            onCleared={submitForm}
+                            onClear={submitForm}
                             disabled={isBlockedFromConcierge || isEmojiPickerVisible()}
                             setIsCommentEmpty={setIsCommentEmpty}
-                            handleSendMessage={handleSendMessage}
+                            onEnterKeyPress={handleSendMessage}
                             shouldShowComposeInput={shouldShowComposeInput}
                             onFocus={onFocus}
                             onBlur={onBlur}
