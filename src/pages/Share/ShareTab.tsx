@@ -2,7 +2,7 @@ import type {Ref} from 'react';
 import React, {useEffect, useImperativeHandle, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import {useOptionsList} from '@components/OptionListContextProvider';
+import useFilteredOptions from '@hooks/useFilteredOptions';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
@@ -61,8 +61,12 @@ function ShareTab({ref}: ShareTabProps) {
         focus: selectionListRef.current?.focusTextInput,
     }));
 
-    const {options, areOptionsInitialized} = useOptionsList();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
+    const {options: listOptions, isLoading} = useFilteredOptions({
+        enabled: didScreenTransitionEnd,
+        betas: betas ?? [],
+    });
+    const areOptionsInitialized = !isLoading;
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
 
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
@@ -73,7 +77,7 @@ function ShareTab({ref}: ShareTabProps) {
             return defaultListOptions;
         }
         return getSearchOptions({
-            options,
+            options: listOptions ?? {reports: [], personalDetails: []},
             draftComments,
             nvpDismissedProductTraining,
             betas: betas ?? [],
@@ -89,7 +93,7 @@ function ShareTab({ref}: ShareTabProps) {
             policyCollection: allPolicies,
             personalDetails,
         });
-    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, textInputValue, countryCode, loginList, currentUserAccountID, currentUserEmail, personalDetails]);
+    }, [areOptionsInitialized, listOptions, draftComments, nvpDismissedProductTraining, betas, textInputValue, countryCode, loginList, currentUserAccountID, currentUserEmail, allPolicies, personalDetails]);
 
     const recentReportsOptions = useMemo(() => {
         if (textInputValue.trim() === '') {
