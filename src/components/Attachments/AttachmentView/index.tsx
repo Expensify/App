@@ -26,7 +26,7 @@ import {add as addCachedPDFPaths} from '@libs/actions/CachedPDFPaths';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {getFileResolution, isHighResolutionImage} from '@libs/fileDownload/FileUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {hasEReceipt, hasReceiptSource, isDistanceRequest, isManualDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
+import {hasEReceipt, hasReceiptSource, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
 import type {ColorValue} from '@styles/utils/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -257,7 +257,7 @@ function AttachmentView({
         );
     }
 
-    if (isDistanceRequest(transaction) && !isManualDistanceRequest(transaction) && transaction) {
+    if (isDistanceRequest(transaction) && !isManualDistanceRequest(transaction) && !isOdometerDistanceRequest(transaction) && transaction) {
         // Distance eReceipts are now generated as a PDF, but to keep it backwards compatible we still show the old eReceipt view for image receipts
         const isImageReceiptSource = checkIsFileImage(source, file?.name);
         if (!hasReceiptSource(transaction) || isImageReceiptSource) {

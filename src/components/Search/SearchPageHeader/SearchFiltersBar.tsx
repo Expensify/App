@@ -1,4 +1,5 @@
 import {isUserValidatedSelector} from '@selectors/Account';
+import {feedKeysWithAssignedCardsSelector} from '@selectors/Card';
 import {emailSelector} from '@selectors/Session';
 import React, {useCallback, useContext, useMemo, useRef} from 'react';
 import type {ReactNode} from 'react';
@@ -45,6 +46,7 @@ import {getActiveAdminWorkspaces} from '@libs/PolicyUtils';
 import {isExpenseReport} from '@libs/ReportUtils';
 import {buildQueryStringFromFilterFormValues, getQueryWithUpdatedValues, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import {
+    filterValidHasValues,
     getDatePresets,
     getFeedOptions,
     getGroupByOptions,
@@ -119,6 +121,7 @@ function SearchFiltersBar({
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [hasMultipleOutputCurrency] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasMultipleOutputCurrenciesSelector, canBeMissing: true});
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
+    const [feedKeysWithCards] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {selector: feedKeysWithAssignedCardsSelector, canBeMissing: true});
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter', 'Columns']);
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
@@ -208,10 +211,10 @@ function SearchFiltersBar({
 
     const [feedOptions, feed] = useMemo(() => {
         const feedFilterValues = flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED)?.filters?.map((filter) => filter.value);
-        const options = getFeedOptions(allFeeds, nonPersonalAndWorkspaceCards, translate);
+        const options = getFeedOptions(allFeeds, nonPersonalAndWorkspaceCards, translate, feedKeysWithCards);
         const value = feedFilterValues ? options.filter((option) => feedFilterValues.includes(option.value)) : [];
         return [options, value];
-    }, [flatFilters, allFeeds, nonPersonalAndWorkspaceCards, translate]);
+    }, [flatFilters, allFeeds, nonPersonalAndWorkspaceCards, translate, feedKeysWithCards]);
 
     const [statusOptions, status] = useMemo(() => {
         const options = type ? getStatusOptions(translate, type.value) : [];
@@ -308,8 +311,10 @@ function SearchFiltersBar({
 
             // If the type has changed, reset the status so we dont have an invalid status selected
             if (updatedFilterFormValues.type !== searchAdvancedFiltersForm.type) {
-                updatedFilterFormValues.status = CONST.SEARCH.STATUS.EXPENSE.ALL;
                 updatedFilterFormValues.columns = [];
+                updatedFilterFormValues.status = CONST.SEARCH.STATUS.EXPENSE.ALL;
+                // Filter out invalid "has" values for the new type
+                updatedFilterFormValues.has = filterValidHasValues(updatedFilterFormValues.has, updatedFilterFormValues.type, translate);
             }
 
             if (updatedFilterFormValues.groupBy !== searchAdvancedFiltersForm.groupBy) {
@@ -335,7 +340,7 @@ function SearchFiltersBar({
                 Navigation.setParams({q: queryString, rawQuery: undefined});
             });
         },
-        [searchAdvancedFiltersForm, queryJSON.sortBy, queryJSON.sortOrder, queryJSON.limit],
+        [searchAdvancedFiltersForm, queryJSON.sortBy, queryJSON.sortOrder, queryJSON.limit, translate],
     );
 
     const openAdvancedFilters = useCallback(() => {

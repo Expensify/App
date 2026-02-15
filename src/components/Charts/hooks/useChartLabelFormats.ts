@@ -1,5 +1,6 @@
 import {useCallback} from 'react';
 import type {ChartDataPoint, YAxisUnitPosition} from '@components/Charts/types';
+import useLocalize from '@hooks/useLocalize';
 import {LABEL_ROTATIONS} from './useChartLabelLayout';
 
 type UseChartLabelFormatsProps = {
@@ -12,9 +13,11 @@ type UseChartLabelFormatsProps = {
 };
 
 export default function useChartLabelFormats({data, yAxisUnit, yAxisUnitPosition = 'left', labelSkipInterval = 1, labelRotation = 0, truncatedLabels}: UseChartLabelFormatsProps) {
+    const {numberFormat} = useLocalize();
+
     const formatYAxisLabel = useCallback(
         (value: number) => {
-            const formatted = value.toLocaleString();
+            const formatted = numberFormat(value);
             if (!yAxisUnit) {
                 return formatted;
             }
@@ -22,7 +25,7 @@ export default function useChartLabelFormats({data, yAxisUnit, yAxisUnitPosition
             const separator = yAxisUnit.length > 1 ? ' ' : '';
             return yAxisUnitPosition === 'left' ? `${yAxisUnit}${separator}${formatted}` : `${formatted}${separator}${yAxisUnit}`;
         },
-        [yAxisUnit, yAxisUnitPosition],
+        [yAxisUnit, yAxisUnitPosition, numberFormat],
     );
 
     const formatXAxisLabel = useCallback(

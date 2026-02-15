@@ -1,9 +1,8 @@
-import type {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import CONST from '@src/CONST';
-import type ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 
-const createUpdate = (lastUpdateID: number, successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [], previousUpdateID?: number): OnyxUpdatesFromServer => ({
+const createUpdate = <TKey extends OnyxKey>(lastUpdateID: number, successData: Array<OnyxUpdate<TKey>> = [], previousUpdateID?: number): OnyxUpdatesFromServer<TKey> => ({
     type: CONST.ONYX_UPDATE_TYPES.HTTPS,
     lastUpdateID,
     previousUpdateID: previousUpdateID ?? lastUpdateID - 1,
@@ -23,7 +22,7 @@ const createUpdate = (lastUpdateID: number, successData: Array<OnyxUpdate<typeof
     },
 });
 
-const createPendingUpdate = (lastUpdateID: number): OnyxUpdatesFromServer => ({
+const createPendingUpdate = (lastUpdateID: number): OnyxUpdatesFromServer<never> => ({
     type: CONST.ONYX_UPDATE_TYPES.AIRSHIP,
     lastUpdateID,
     shouldFetchPendingUpdates: true,

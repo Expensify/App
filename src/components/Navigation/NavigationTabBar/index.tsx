@@ -221,6 +221,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                 name: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB,
                 op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB,
             });
+            parentSpan?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_ROUTE_FROM, selectedTab ?? '');
 
             startSpan(CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS, {
                 name: CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS,

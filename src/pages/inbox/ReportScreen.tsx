@@ -216,7 +216,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                 !isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                 'openOnAdminRoom' in route.params && !!route.params.openOnAdminRoom,
                 undefined,
-                undefined,
                 archivedReportsIdSet,
             )?.reportID;
 

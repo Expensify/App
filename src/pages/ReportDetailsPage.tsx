@@ -1,6 +1,5 @@
 import {StackActions} from '@react-navigation/native';
 import reportsSelector from '@selectors/Attributes';
-import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -50,7 +49,7 @@ import type {ReportDetailsNavigatorParamList, RightModalNavigatorParamList} from
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
-import {isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil, shouldShowPolicy} from '@libs/PolicyUtils';
+import {isPaidGroupPolicy, isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getOneTransactionThreadReportID, getOriginalMessage, getTrackExpenseActionableWhisper, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getReportName as getReportNameFromReportNameUtils} from '@libs/ReportNameUtils';
 import {
@@ -176,6 +175,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
 
     const {reportActions} = usePaginatedReportActions(report.reportID);
+    const [reportActionsForOriginalReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canBeMissing: true});
 
     const {removeTransaction} = useSearchContext();
 
@@ -440,7 +440,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         }
 
         if (isTrackExpenseReport && !isDeletedParentAction) {
-            const actionReportID = getOriginalReportID(report.reportID, parentReportAction);
+            const actionReportID = getOriginalReportID(report.reportID, parentReportAction, reportActionsForOriginalReportID);
             const whisperAction = getTrackExpenseActionableWhisper(iouTransactionID, moneyRequestReport?.reportID);
             const actionableWhisperReportActionID = whisperAction?.reportActionID;
             items.push({
@@ -622,6 +622,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         allTransactionDrafts,
         activePolicy,
         parentReport,
+        reportActionsForOriginalReportID,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
@@ -822,7 +823,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const fieldKey = getReportFieldKey(titleField?.fieldID);
     const isFieldDisabled = isReportFieldDisabled(report, titleField, policy);
 
-    const shouldShowTitleField = caseID !== CASES.MONEY_REQUEST && !isFieldDisabled && isAdminOwnerApproverOrReportOwner(report, policy);
+    const shouldShowEditableTitleField =
+        caseID !== CASES.MONEY_REQUEST && !isFieldDisabled && isAdminOwnerApproverOrReportOwner(report, policy) && isExpenseReport && isPaidGroupPolicy(policy);
 
     const nameSectionFurtherDetailsContent = (
         <ParentNavigationSubtitle
@@ -835,7 +837,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         />
     );
 
-    const nameSectionTitleField = !!titleField && (
+    const nameSectionTitleField = (
         <OfflineWithFeedback
             pendingAction={report.pendingFields?.reportName}
             errors={report.errorFields?.reportName ?? null}
@@ -850,7 +852,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     title={reportName}
                     titleStyle={styles.newKansasLarge}
                     shouldCheckActionAllowedOnPress={false}
-                    description={Str.UCFirst(titleField.name)}
+                    description={translate('task.title')}
                     onPress={() => {
                         let policyID = report.policyID;
 
@@ -858,7 +860,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             policyID = '';
                         }
 
-                        Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, policyID, titleField.fieldID, backTo));
+                        Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, policyID, CONST.REPORT_FIELD_TITLE_FIELD_ID, backTo));
                     }}
                     furtherDetailsComponent={nameSectionFurtherDetailsContent}
                 />
@@ -899,28 +901,28 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             removeTransaction(iouTransactionID);
         }
     }, [
-        ancestors,
         caseID,
         requestParentReportAction,
+        iouTransactionID,
         report,
+        parentReport,
         isReportArchived,
         currentUserPersonalDetails.accountID,
-        iouTransactionID,
+        hasOutstandingChildTask,
+        parentReportAction,
+        ancestors,
+        moneyRequestReport,
+        iouReport,
+        chatIOUReport,
         duplicateTransactions,
         duplicateTransactionViolations,
         isSingleTransactionView,
-        moneyRequestReport,
-        removeTransaction,
-        allTransactionViolations,
         isMoneyRequestReportArchived,
-        iouReport,
-        chatIOUReport,
+        isChatIOUReportArchived,
+        allTransactionViolations,
         deleteTransactions,
         currentSearchHash,
-        isChatIOUReportArchived,
-        hasOutstandingChildTask,
-        parentReportAction,
-        parentReport,
+        removeTransaction,
     ]);
 
     // Where to navigate back to after deleting the transaction and its report.
@@ -1021,10 +1023,9 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     <View style={[styles.reportDetailsTitleContainer, styles.pb0]}>
                         {renderedAvatar}
-                        {isExpenseReport && (!shouldShowTitleField || !titleField) && nameSectionExpenseIOU}
+                        {isExpenseReport && !shouldShowEditableTitleField && nameSectionExpenseIOU}
                     </View>
-
-                    {isExpenseReport && shouldShowTitleField && titleField && nameSectionTitleField}
+                    {isExpenseReport && shouldShowEditableTitleField && nameSectionTitleField}
 
                     {!isExpenseReport && nameSectionGroupWorkspace}
 
