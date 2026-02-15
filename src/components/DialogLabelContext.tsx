@@ -6,6 +6,7 @@ type DialogLabelContextType = {
     labelText: string | undefined;
     pushLabel: (text: string) => number;
     popLabel: (id: number) => void;
+    updateLabel: (id: number, text: string) => void;
     isInsideDialog: boolean;
 };
 
@@ -13,6 +14,7 @@ const DialogLabelContext = createContext<DialogLabelContextType>({
     labelText: undefined,
     pushLabel: () => -1,
     popLabel: () => {},
+    updateLabel: () => {},
     isInsideDialog: false,
 });
 
@@ -28,8 +30,11 @@ function DialogLabelProvider({children}: {children: React.ReactNode}) {
     const popLabel = useCallback((id: number) => {
         setLabelStack((prev) => prev.filter((entry) => entry.id !== id));
     }, []);
+    const updateLabel = useCallback((id: number, text: string) => {
+        setLabelStack((prev) => prev.map((entry) => (entry.id === id ? {...entry, text} : entry)));
+    }, []);
     const labelText = labelStack.at(-1)?.text;
-    const value = useMemo(() => ({labelText, pushLabel, popLabel, isInsideDialog: true}), [labelText, pushLabel, popLabel]);
+    const value = useMemo(() => ({labelText, pushLabel, popLabel, updateLabel, isInsideDialog: true}), [labelText, pushLabel, popLabel, updateLabel]);
     return <DialogLabelContext.Provider value={value}>{children}</DialogLabelContext.Provider>;
 }
 

@@ -1,5 +1,5 @@
 import type {ReactNode} from 'react';
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {Linking, View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,15 +37,30 @@ type HeaderProps = {
 
 function Header({title = '', subtitle = '', textStyles = [], style, containerStyles = [], shouldShowEnvironmentBadge = false, subTitleLink = '', numberOfTitleLines = 2}: HeaderProps) {
     const styles = useThemeStyles();
-    const {isInsideDialog, pushLabel, popLabel} = useDialogLabel();
+    const {isInsideDialog, pushLabel, popLabel, updateLabel} = useDialogLabel();
+    const labelIdRef = useRef<number | undefined>(undefined);
 
     useEffect(() => {
         if (!isInsideDialog || typeof title !== 'string' || !title) {
             return;
         }
-        const id = pushLabel(title);
-        return () => popLabel(id);
-    }, [isInsideDialog, title, pushLabel, popLabel]);
+        if (labelIdRef.current === undefined) {
+            labelIdRef.current = pushLabel(title);
+        } else {
+            updateLabel(labelIdRef.current, title);
+        }
+    }, [isInsideDialog, title, pushLabel, updateLabel]);
+
+    useEffect(
+        () => () => {
+            if (labelIdRef.current === undefined) {
+                return;
+            }
+            popLabel(labelIdRef.current);
+            labelIdRef.current = undefined;
+        },
+        [popLabel],
+    );
 
     const renderedSubtitle = useMemo(
         () => (
