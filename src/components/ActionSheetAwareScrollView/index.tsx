@@ -2,10 +2,10 @@
 // On all other platforms, the action sheet is implemented using the Animated.ScrollView
 import React from 'react';
 import Reanimated from 'react-native-reanimated';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {Actions, ActionSheetAwareScrollViewProvider, useActionSheetAwareScrollViewActions, useActionSheetAwareScrollViewState} from './ActionSheetAwareScrollViewContext';
 import type {ActionSheetAwareScrollViewProps, RenderActionSheetAwareScrollViewComponent} from './types';
 import useActionSheetAwareScrollViewRef from './useActionSheetAwareScrollViewRef';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 function ActionSheetAwareScrollView({children, ref, ...restProps}: ActionSheetAwareScrollViewProps) {
     const {onRef} = useActionSheetAwareScrollViewRef(ref);
