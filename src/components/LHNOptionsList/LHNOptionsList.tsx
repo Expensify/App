@@ -253,7 +253,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 const actionsArray = getSortedReportActions(Object.values(itemReportActions));
                 const reportActionsForDisplay = actionsArray.filter(
                     (reportAction) =>
-                        shouldReportActionBeVisibleAsLastAction(reportAction, canUserPerformWriteAction, itemPolicy) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
+                        shouldReportActionBeVisibleAsLastAction(reportAction, canUserPerformWriteAction, itemPolicy?.areCategoriesEnabled) &&
+                        reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
                 );
                 lastAction = reportActionsForDisplay.at(-1);
             }
