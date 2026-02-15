@@ -47,7 +47,7 @@ function NetSuiteImportAddCustomSegmentContent({policy, draftValues}: NetSuiteIm
     const values = useMemo(() => getSubstepValues(draftValues), [draftValues]);
     const startFrom = useMemo(() => getCustomSegmentInitialSubstep(values), [values]);
     const handleFinishStep = useCallback(() => {
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             const updatedCustomSegments = customSegments.concat([
                 {
@@ -108,7 +108,7 @@ function NetSuiteImportAddCustomSegmentContent({policy, draftValues}: NetSuiteIm
 
     return (
         <ConnectionLayout
-            displayName={NetSuiteImportAddCustomSegmentContent.displayName}
+            displayName="NetSuiteImportAddCustomSegmentContent"
             headerTitle={`workspace.netsuite.import.importCustomFields.customSegments.${customSegmentType ? `addForm.${customSegmentType}AddTitle` : 'addText'}` as TranslationPaths}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
@@ -144,7 +144,5 @@ function NetSuiteImportAddCustomSegmentContent({policy, draftValues}: NetSuiteIm
         </ConnectionLayout>
     );
 }
-
-NetSuiteImportAddCustomSegmentContent.displayName = 'NetSuiteImportAddCustomSegmentContent';
 
 export default NetSuiteImportAddCustomSegmentContent;

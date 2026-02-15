@@ -1,9 +1,15 @@
 # Every PR gets a review from an internal Expensify engineer
 * @Expensify/pullerbear
 
+# PRs that touch the front end source code, get an additional review from the product-pr team
+src/ @Expensify/product-pr @Expensify/pullerbear
+
 # PRs that touch the front end style or assets, get an additional review from the Design team
-src/styles/ @Expensify/design @Expensify/pullerbear
-assets/ @Expensify/design @Expensify/pullerbear
+src/styles/ @Expensify/design @Expensify/product-pr @Expensify/pullerbear
+assets/ @Expensify/design @Expensify/product-pr @Expensify/pullerbear
 
 # Philosophy docs are in their early stages and need to be reviewed by Tim to ensure they have consistent formatting and organization
 contributingGuides/philosophies/ @tgolen
+
+# Help docs get a review from Steph Elliott 
+docs/articles/ @stephanieelliott

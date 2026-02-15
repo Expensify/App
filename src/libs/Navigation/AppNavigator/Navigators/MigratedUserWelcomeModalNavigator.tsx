@@ -23,6 +23,4 @@ function MigratedUserWelcomeModalNavigator() {
     );
 }
 
-MigratedUserWelcomeModalNavigator.displayName = 'MigratedUserWelcomeModalNavigator';
-
 export default MigratedUserWelcomeModalNavigator;

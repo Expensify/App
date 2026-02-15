@@ -1,4 +1,4 @@
-import type {Meta, StoryFn} from '@storybook/react';
+import type {Meta, StoryFn} from '@storybook/react-webpack5';
 import React, {useState} from 'react';
 import type {ComponentType} from 'react';
 import {View} from 'react-native';
@@ -14,8 +14,8 @@ import StateSelector from '@components/StateSelector';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import NetworkConnection from '@libs/NetworkConnection';
-import * as ValidationUtils from '@libs/ValidationUtils';
-import * as FormActions from '@userActions/FormActions';
+import {isRequiredFulfilled} from '@libs/ValidationUtils';
+import {clearErrors, setDraftValues, setErrors, setIsLoading} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 import {defaultStyles} from '@src/styles';
@@ -67,13 +67,13 @@ const story: Meta<typeof FormProvider> = {
 function Template(props: FormProviderProps & FormProviderOnyxProps) {
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
     NetworkConnection.setOfflineStatus(false);
-    FormActions.setIsLoading(props.formID, !!props.formState?.isLoading);
-    FormActions.setDraftValues(props.formID, props.draftValues);
+    setIsLoading(props.formID, !!props.formState?.isLoading);
+    setDraftValues(props.formID, props.draftValues);
 
     if (props.formState?.error) {
-        FormActions.setErrors(props.formID, {error: props.formState.error as string});
+        setErrors(props.formID, {error: props.formState.error as string});
     } else {
-        FormActions.clearErrors(props.formID);
+        clearErrors(props.formID);
     }
 
     return (
@@ -181,13 +181,13 @@ function WithNativeEventHandler(props: FormProviderProps & FormProviderOnyxProps
 
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
     NetworkConnection.setOfflineStatus(false);
-    FormActions.setIsLoading(props.formID, !!props.formState?.isLoading);
-    FormActions.setDraftValues(props.formID, props.draftValues);
+    setIsLoading(props.formID, !!props.formState?.isLoading);
+    setDraftValues(props.formID, props.draftValues);
 
     if (props.formState?.error) {
-        FormActions.setErrors(props.formID, {error: props.formState.error as string});
+        setErrors(props.formID, {error: props.formState.error as string});
     } else {
-        FormActions.clearErrors(props.formID);
+        clearErrors(props.formID);
     }
 
     return (
@@ -219,28 +219,28 @@ const defaultArgs = {
     submitButtonText: 'Submit',
     validate: (values: StorybookFormValues) => {
         const errors: StorybookFormErrors = {};
-        if (!ValidationUtils.isRequiredFulfilled(values.routingNumber)) {
+        if (!isRequiredFulfilled(values.routingNumber)) {
             errors.routingNumber = 'Please enter a routing number';
         }
-        if (!ValidationUtils.isRequiredFulfilled(values.accountNumber)) {
+        if (!isRequiredFulfilled(values.accountNumber)) {
             errors.accountNumber = 'Please enter an account number';
         }
-        if (!ValidationUtils.isRequiredFulfilled(values.street)) {
+        if (!isRequiredFulfilled(values.street)) {
             errors.street = 'Please enter an address';
         }
-        if (!ValidationUtils.isRequiredFulfilled(values.dob)) {
+        if (!isRequiredFulfilled(values.dob)) {
             errors.dob = 'Please enter your date of birth';
         }
-        if (!ValidationUtils.isRequiredFulfilled(values.pickFruit)) {
+        if (!isRequiredFulfilled(values.pickFruit)) {
             errors.pickFruit = 'Please select a fruit';
         }
-        if (!ValidationUtils.isRequiredFulfilled(values.pickAnotherFruit)) {
+        if (!isRequiredFulfilled(values.pickAnotherFruit)) {
             errors.pickAnotherFruit = 'Please select a fruit';
         }
-        if (!ValidationUtils.isRequiredFulfilled(values.state)) {
+        if (!isRequiredFulfilled(values.state)) {
             errors.state = 'Please select a state';
         }
-        if (!ValidationUtils.isRequiredFulfilled(values.checkbox)) {
+        if (!isRequiredFulfilled(values.checkbox)) {
             errors.checkbox = 'You must accept the Terms of Service to continue';
         }
         return errors;
@@ -248,7 +248,7 @@ const defaultArgs = {
     onSubmit: (values: StorybookFormValues) => {
         setTimeout(() => {
             alert(`Form submitted!\n\nInput values: ${JSON.stringify(values, null, 4)}`);
-            FormActions.setIsLoading(STORYBOOK_FORM_ID, false);
+            setIsLoading(STORYBOOK_FORM_ID, false);
         }, 1000);
     },
     formState: {

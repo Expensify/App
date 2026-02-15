@@ -5,11 +5,11 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import {ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
-import {translateLocal} from '@libs/Localize';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import WorkspaceTagsPage from '@pages/workspace/tags/WorkspaceTagsPage';
@@ -22,23 +22,23 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 TestHelper.setupGlobalFetchMock();
 
-jest.unmock('react-native-reanimated');
-
 const Stack = createPlatformStackNavigator<WorkspaceSplitNavigatorParamList>();
 
 const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.TAGS, initialParams: WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.TAGS]) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
-                <NavigationContainer>
-                    <Stack.Navigator initialRouteName={initialRouteName}>
-                        <Stack.Screen
-                            name={SCREENS.WORKSPACE.TAGS}
-                            component={WorkspaceTagsPage}
-                            initialParams={initialParams}
-                        />
-                    </Stack.Navigator>
-                </NavigationContainer>
+                <ModalProvider>
+                    <NavigationContainer>
+                        <Stack.Navigator initialRouteName={initialRouteName}>
+                            <Stack.Screen
+                                name={SCREENS.WORKSPACE.TAGS}
+                                component={WorkspaceTagsPage}
+                                initialParams={initialParams}
+                            />
+                        </Stack.Navigator>
+                    </NavigationContainer>
+                </ModalProvider>
             </PortalProvider>
         </ComposeProviders>,
     );
@@ -123,7 +123,7 @@ describe('WorkspaceTags', () => {
 
         // Wait for the "Select" option to appear
         await waitFor(() => {
-            expect(screen.getByText(translateLocal('common.select'))).toBeOnTheScreen();
+            expect(screen.getByText(TestHelper.translateLocal('common.select'))).toBeOnTheScreen();
         });
 
         unmount();
@@ -164,11 +164,11 @@ describe('WorkspaceTags', () => {
         fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${FIRST_TAG}`));
         fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${SECOND_TAG}`));
 
-        const dropdownMenuButtonTestID = `${WorkspaceTagsPage.displayName}-header-dropdown-menu-button`;
+        const dropdownMenuButtonTestID = 'WorkspaceTagsPage-header-dropdown-menu-button';
 
         fireEvent.press(screen.getByTestId(dropdownMenuButtonTestID));
         await waitFor(() => {
-            expect(screen.getByText(translateLocal('workspace.tags.disableTags'))).toBeOnTheScreen();
+            expect(screen.getByText(TestHelper.translateLocal('workspace.tags.disableTags'))).toBeOnTheScreen();
         });
 
         const disableMenuItem = screen.getByTestId('PopoverMenuItem-Disable tags');
@@ -176,7 +176,7 @@ describe('WorkspaceTags', () => {
         fireEvent.press(disableMenuItem, mockEvent);
 
         await waitFor(() => {
-            expect(screen.getByText(translateLocal('workspace.tags.cannotDeleteOrDisableAllTags.title'))).toBeOnTheScreen();
+            expect(screen.getByText(TestHelper.translateLocal('workspace.tags.cannotDeleteOrDisableAllTags.title'))).toBeOnTheScreen();
         });
 
         unmount();

@@ -1,7 +1,7 @@
 ---
 name: helpdot-inline-reviewer
 description: Reviews HelpDot documentation files and creates inline comments for specific rule violations and issues.
-tools: Glob, Grep, Read, WebFetch, Bash, Edit, MultiEdit, Write, TodoWrite, WebSearch, BashOutput, KillBash, mcp__github_inline_comment__create_inline_comment
+tools: Glob, Grep, Read, TodoWrite, Bash, BashOutput, KillBash, mcp__github_inline_comment__create_inline_comment
 model: inherit
 ---
 
@@ -52,9 +52,28 @@ keywords: [feature name, related terms, navigation path, etc.]
 
 ## Instructions
 
-1. **Read each changed file carefully** using the Read tool
-2. **For each violation found, immediately create an inline comment** using the available GitHub inline comment tool
-3. **Required parameters for each inline comment:**
+1. **First, get the list of changed files:**
+   - Use `gh pr diff` to see what actually changed in the PR
+   - Focus ONLY on documentation files (*.md, *.csv, etc.)
+
+2. **For analyzing changed files:**
+   - **Use a hybrid approach** because different violations require different analysis methods:
+     - **Grep is suitable for pattern-based violations only:**
+       - Terminology violations ("policy" → "workspace", "user" → "member")
+       - Button label violations ("Save" → "Confirm", "Continue" → "Next")
+       - Missing YAML frontmatter markers (`---`)
+     - **Full file reading is required for semantic violations:**
+       - Readability issues (clarity, flow, scannability, reading level)
+       - AI Readiness issues (vague headings, unclear references, logical structure)
+       - Proper hierarchy and document structure
+   - **Reading strategy:**
+     - Most documentation files are small (<1000 lines) - read them in full
+     - For files >1000 lines: Read in overlapping chunks using offset/limit to maintain context
+     - **Never rely on grep alone** - semantic violations require understanding context, not just pattern matching
+
+3. **For each violation found, immediately create an inline comment** using the available GitHub inline comment tool
+
+4. **Required parameters for each inline comment:**
    - `path`: Full file path (e.g., "docs/articles/new-expensify/chat/Create-a-New-Chat.md")
    - `line`: Line number where the issue occurs
    - `body`: Concise description of the violation and fix
@@ -63,9 +82,20 @@ keywords: [feature name, related terms, navigation path, etc.]
 For each violation, call the tool like this:
 ```
 mcp__github_inline_comment__create_inline_comment:
-  path: "docs/articles/new-expensify/chat/Create-a-New-Chat.md"
+  path: 'docs/articles/new-expensify/chat/Create-a-New-Chat.md'
   line: 9
-  body: "**Terminology violation**: Use 'workspace' instead of 'policy' to match Expensify standards."
+  body: '**Terminology violation**: Use "workspace" instead of "policy" to match Expensify standards.'
+```
+
+**IMPORTANT**: When using the Bash tool, always use **single quotes** (not double quotes) around content arguments.
+
+Example:
+```bash
+# Good
+gh pr comment --body 'Use "workspace" instead of "policy"'
+
+# Bad
+gh pr comment --body "Use "workspace" instead of "policy""
 ```
 
 ## Comment Format

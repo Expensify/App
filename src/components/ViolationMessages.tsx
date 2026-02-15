@@ -3,18 +3,28 @@ import {View} from 'react-native';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import ViolationsUtils from '@libs/Violations/ViolationsUtils';
+import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
 import type {TransactionViolation} from '@src/types/onyx';
 import Text from './Text';
 
-type ViolationMessagesProps = {violations: TransactionViolation[]; isLast?: boolean; containerStyle?: StyleProp<ViewStyle>; textStyle?: StyleProp<TextStyle>; canEdit: boolean};
+type ViolationMessagesProps = {
+    violations: TransactionViolation[];
+    isLast?: boolean;
+    containerStyle?: StyleProp<ViewStyle>;
+    textStyle?: StyleProp<TextStyle>;
+    canEdit: boolean;
+    companyCardPageURL?: string;
+};
 
-export default function ViolationMessages({violations, isLast, containerStyle, textStyle, canEdit}: ViolationMessagesProps) {
+export default function ViolationMessages({violations, isLast, containerStyle, textStyle, canEdit, companyCardPageURL}: ViolationMessagesProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
+    const filteredViolations = useMemo(() => filterReceiptViolations(violations), [violations]);
+
     const violationMessages = useMemo(
-        () => violations.map((violation) => [violation.name, ViolationsUtils.getViolationTranslation(violation, translate, canEdit)]),
-        [canEdit, translate, violations],
+        () => filteredViolations.map((violation) => [violation.name, ViolationsUtils.getViolationTranslation(violation, translate, canEdit, undefined, companyCardPageURL)]),
+        [canEdit, translate, filteredViolations, companyCardPageURL],
     );
 
     return (

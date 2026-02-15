@@ -2,7 +2,7 @@ import type {ComponentType} from 'react';
 import React from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
-import type {CurrentUserPersonalDetails} from './CurrentUserPersonalDetailsProvider';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 
 type HOCProps = {
     currentUserPersonalDetails: CurrentUserPersonalDetails;

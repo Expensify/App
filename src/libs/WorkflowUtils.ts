@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import lodashMapKeys from 'lodash/mapKeys';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -10,6 +11,8 @@ import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
+import {isBankAccountPartiallySetup} from './BankAccountUtils';
+import {convertToDisplayString} from './CurrencyUtils';
 import {getDefaultApprover} from './PolicyUtils';
 
 const INITIAL_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
@@ -20,6 +23,7 @@ const INITIAL_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
     isDefault: false,
     action: CONST.APPROVAL_WORKFLOW.ACTION.CREATE,
     originalApprovers: [],
+    isInitialFlow: true,
 };
 
 type GetApproversParams = {
@@ -52,12 +56,15 @@ function calculateApprovers({employees, firstEmail, personalDetailsByEmail}: Get
         }
 
         const isCircularReference = currentApproverEmails.has(nextEmail);
+        const employee = employees[nextEmail];
         approvers.push({
             email: nextEmail,
-            forwardsTo: employees[nextEmail].forwardsTo,
+            forwardsTo: employee.forwardsTo,
             avatar: personalDetailsByEmail[nextEmail]?.avatar,
             displayName: personalDetailsByEmail[nextEmail]?.displayName ?? nextEmail,
             isCircularReference,
+            approvalLimit: employee.approvalLimit,
+            overLimitForwardsTo: employee.overLimitForwardsTo,
         });
 
         // If we've already seen this approver, break to prevent infinite loop
@@ -109,10 +116,10 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
     const personalDetailsByEmail = lodashMapKeys(personalDetails, (value, key) => value?.login ?? key);
 
     // Add each employee to the appropriate workflow
-    Object.values(employees).forEach((employee) => {
+    for (const employee of Object.values(employees)) {
         const {email, submitsTo, pendingAction} = employee;
         if (!email || !submitsTo || !employees[submitsTo]) {
-            return;
+            continue;
         }
 
         const member: Member = {
@@ -125,22 +132,32 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
         if (!approvalWorkflows[submitsTo]) {
             const approvers = calculateApprovers({employees, firstEmail: submitsTo, personalDetailsByEmail});
             if (submitsTo !== firstApprover) {
-                approvers.forEach((approver) => usedApproverEmails.add(approver.email));
+                for (const approver of approvers) {
+                    usedApproverEmails.add(approver.email);
+                }
             }
+
+            // Only set ADD/UPDATE pending actions on the workflow, not DELETE
+            // When a member is being deleted from the workspace, their DELETE pending action
+            // should not affect the workflow's display state
+            const workflowPendingAction = pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? pendingAction : undefined;
 
             approvalWorkflows[submitsTo] = {
                 members: [],
                 approvers,
                 isDefault: defaultApprover === submitsTo,
-                pendingAction,
+                pendingAction: workflowPendingAction,
             };
         }
 
         approvalWorkflows[submitsTo].members.push(member);
-        if (pendingAction) {
+        // Only propagate ADD/UPDATE pending actions to the workflow, not DELETE
+        // When a member is being deleted from the workspace, their DELETE pending action
+        // should not affect the workflow's display state (e.g., strikethrough styling)
+        if (pendingAction && pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             approvalWorkflows[submitsTo].pendingAction = pendingAction;
         }
-    });
+    }
 
     // Sort the workflows by the first approver's name (default workflow has priority)
     const sortedApprovalWorkflows = Object.values(approvalWorkflows).sort((a, b) => {
@@ -250,33 +267,44 @@ function convertApprovalWorkflowToPolicyEmployees({
 
     const pendingAction = type === CONST.APPROVAL_WORKFLOW.TYPE.CREATE ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
 
-    approvalWorkflow.approvers.forEach((approver, index) => {
+    for (const [index, approver] of approvalWorkflow.approvers.entries()) {
         const nextApprover = approvalWorkflow.approvers.at(index + 1);
         const forwardsTo = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? '' : (nextApprover?.email ?? '');
+        const approvalLimit = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? null : approver.approvalLimit;
+        const overLimitForwardsTo = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? '' : (approver.overLimitForwardsTo ?? '');
 
-        // For every approver, we check if the forwardsTo field has changed.
-        // If it has, we update the employee list with the new forwardsTo value.
-        if (previousEmployeeList[approver.email]?.forwardsTo === forwardsTo) {
-            return;
+        // For every approver, we check if the forwardsTo, approvalLimit, or overLimitForwardsTo fields have changed.
+        const previousEmployee = previousEmployeeList[approver.email];
+        const forwardsToChanged = previousEmployee?.forwardsTo !== forwardsTo;
+        const approvalLimitChanged = previousEmployee?.approvalLimit !== approvalLimit;
+        const overLimitForwardsToChanged = previousEmployee?.overLimitForwardsTo !== overLimitForwardsTo;
+
+        if (!forwardsToChanged && !approvalLimitChanged && !overLimitForwardsToChanged) {
+            continue;
         }
 
+        const previousPendingAction = previousEmployee?.pendingAction;
         updatedEmployeeList[approver.email] = {
             email: approver.email,
             forwardsTo,
-            pendingAction,
+            ...(approvalLimitChanged ? {approvalLimit} : {}),
+            ...(overLimitForwardsToChanged ? {overLimitForwardsTo} : {}),
+            pendingAction: previousPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? previousPendingAction : pendingAction,
             pendingFields: {
-                forwardsTo: pendingAction,
+                ...(forwardsToChanged ? {forwardsTo: pendingAction} : {}),
+                ...(approvalLimitChanged ? {approvalLimit: pendingAction} : {}),
+                ...(overLimitForwardsToChanged ? {overLimitForwardsTo: pendingAction} : {}),
             },
         };
-    });
+    }
 
-    approvalWorkflow.members.forEach(({email}) => {
+    for (const {email} of approvalWorkflow.members) {
         const submitsTo = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? '' : (firstApprover.email ?? '');
 
         // For every member, we check if the submitsTo field has changed.
         // If it has, we update the employee list with the new submitsTo value.
         if (previousEmployeeList[email]?.submitsTo === submitsTo) {
-            return;
+            continue;
         }
 
         updatedEmployeeList[email] = {
@@ -287,27 +315,31 @@ function convertApprovalWorkflowToPolicyEmployees({
                 submitsTo: pendingAction,
             },
         };
-    });
+    }
 
     // For each member to remove, we update the employee list with submitsTo set to ''
     // which will set the submitsTo field to the default approver email on backend.
-    membersToRemove?.forEach(({email}) => {
-        updatedEmployeeList[email] = {
-            ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
-            submitsTo: defaultApprover,
-            pendingAction,
-        };
-    });
+    if (membersToRemove) {
+        for (const {email} of membersToRemove) {
+            updatedEmployeeList[email] = {
+                ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
+                submitsTo: defaultApprover,
+                pendingAction,
+            };
+        }
+    }
 
     // For each approver to remove, we update the employee list with forwardsTo set to ''
     // which will reset the forwardsTo on the backend.
-    approversToRemove?.forEach(({email}) => {
-        updatedEmployeeList[email] = {
-            ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
-            forwardsTo: '',
-            pendingAction,
-        };
-    });
+    if (approversToRemove) {
+        for (const {email} of approversToRemove) {
+            updatedEmployeeList[email] = {
+                ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
+                forwardsTo: '',
+                pendingAction,
+            };
+        }
+    }
 
     return updatedEmployeeList;
 }
@@ -341,6 +373,18 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
                     ],
                 };
             }
+
+            const hasOverLimitToRemovedApprover = workflow.approvers.some((item) => item.overLimitForwardsTo === removedApproverEmail);
+            if (hasOverLimitToRemovedApprover) {
+                const approversWithClearedOverLimit = workflow.approvers.map((item) =>
+                    item.overLimitForwardsTo === removedApproverEmail ? {...item, overLimitForwardsTo: '', approvalLimit: null} : item,
+                );
+                return {
+                    ...workflow,
+                    approvers: approversWithClearedOverLimit,
+                };
+            }
+
             return workflow;
         }
 
@@ -393,15 +437,28 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
             const updateApproversHasOwner = updateApprovers.some((approver) => approver.email === ownerEmail);
 
             // If the owner is already in the approvers list, return the workflow with the updated approvers
+            // but still clear overLimitForwardsTo if it points to the removed member
             if (updateApproversHasOwner) {
+                const approversWithClearedOverLimit = updateApprovers.map((item) =>
+                    item.overLimitForwardsTo === removedApproverEmail ? {...item, overLimitForwardsTo: '', approvalLimit: null} : item,
+                );
                 return {
                     ...workflow,
-                    approvers: updateApprovers,
+                    approvers: approversWithClearedOverLimit,
                 };
             }
 
-            // Update forwardsTo if necessary and prepare the new approver object
-            const updatedApprovers = updateApprovers.flatMap((item) => (item.forwardsTo === removedApproverEmail ? {...item, forwardsTo: ownerEmail} : item));
+            // Update forwardsTo and overLimitForwardsTo if necessary and prepare the new approver object
+            const updatedApprovers = updateApprovers.flatMap((item) => {
+                let updatedItem = item;
+                if (item.forwardsTo === removedApproverEmail) {
+                    updatedItem = {...updatedItem, forwardsTo: ownerEmail};
+                }
+                if (item.overLimitForwardsTo === removedApproverEmail) {
+                    updatedItem = {...updatedItem, overLimitForwardsTo: '', approvalLimit: null};
+                }
+                return updatedItem;
+            });
 
             const newApprover = {
                 email: ownerEmail ?? '',
@@ -417,6 +474,18 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
             };
         }
 
+        // For any other workflow, check if any approver has overLimitForwardsTo pointing to the removed member
+        const hasOverLimitToRemovedApprover = workflow.approvers.some((item) => item.overLimitForwardsTo === removedApproverEmail);
+        if (hasOverLimitToRemovedApprover) {
+            const approversWithClearedOverLimit = workflow.approvers.map((item) =>
+                item.overLimitForwardsTo === removedApproverEmail ? {...item, overLimitForwardsTo: '', approvalLimit: null} : item,
+            );
+            return {
+                ...workflow,
+                approvers: approversWithClearedOverLimit,
+            };
+        }
+
         // Return the unchanged workflow in other cases
         return workflow;
     });
@@ -425,13 +494,67 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
 /**
  * Get eligible business bank accounts for the workspace reimbursement workflow
  */
-function getEligibleExistingBusinessBankAccounts(bankAccountList: BankAccountList | undefined, policyCurrency: string | undefined) {
+function getEligibleExistingBusinessBankAccounts(bankAccountList: BankAccountList | undefined, policyCurrency: string | undefined, shouldIncludePartiallySetup?: boolean) {
     if (!bankAccountList || policyCurrency === undefined) {
         return [];
     }
 
     return Object.values(bankAccountList).filter((account) => {
-        return account.bankCurrency === policyCurrency && account.accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN && account.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS;
+        return (
+            account.bankCurrency === policyCurrency &&
+            (account.accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN || (shouldIncludePartiallySetup && isBankAccountPartiallySetup(account.accountData?.state))) &&
+            account.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS
+        );
+    });
+}
+
+type GetApprovalLimitDescriptionParams = {
+    approver: Approver | undefined;
+    currency: string;
+    translate: LocaleContextProps['translate'];
+    personalDetailsByEmail: PersonalDetailsList | undefined;
+};
+
+/**
+ * Get the approval limit description for an approver (e.g., "Reports above $1,000 forward to John Doe")
+ */
+function getApprovalLimitDescription({approver, currency, translate, personalDetailsByEmail}: GetApprovalLimitDescriptionParams): string | undefined {
+    if (approver?.approvalLimit == null || !approver?.overLimitForwardsTo) {
+        return undefined;
+    }
+
+    const formattedAmount = convertToDisplayString(approver.approvalLimit, currency);
+    const overLimitApproverDetails = personalDetailsByEmail?.[approver.overLimitForwardsTo];
+    const approverDisplayName = Str.removeSMSDomain(overLimitApproverDetails?.displayName ?? approver.overLimitForwardsTo);
+
+    return translate('workflowsApprovalLimitPage.forwardLimitDescription', {
+        approvalLimit: formattedAmount,
+        approverName: approverDisplayName,
+    });
+}
+
+/**
+ * Returns business bank accounts that are:
+ * - It has the same currency as the policy (`bankCurrency === policy.outputCurrency`),
+ * - Its state is `OPEN`
+ * - Its type is `BUSINESS`,
+ * - It's linked to the policy's ACH account.
+ *
+ * @param bankAccountList - list of bank accounts
+ * @param policy - given policy
+ */
+function getOpenConnectedToPolicyBusinessBankAccounts(bankAccountList: BankAccountList | undefined, policy: OnyxEntry<Policy> | undefined) {
+    if (!bankAccountList || policy === undefined) {
+        return [];
+    }
+
+    return Object.values(bankAccountList).filter((account) => {
+        return (
+            account.bankCurrency === policy?.outputCurrency &&
+            account.accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN &&
+            account.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
+            account?.accountData?.bankAccountID === policy?.achAccount?.bankAccountID
+        );
     });
 }
 
@@ -439,7 +562,9 @@ export {
     calculateApprovers,
     convertPolicyEmployeesToApprovalWorkflows,
     convertApprovalWorkflowToPolicyEmployees,
+    getApprovalLimitDescription,
     getEligibleExistingBusinessBankAccounts,
+    getOpenConnectedToPolicyBusinessBankAccounts,
     INITIAL_APPROVAL_WORKFLOW,
     updateWorkflowDataOnApproverRemoval,
 };

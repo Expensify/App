@@ -3,10 +3,10 @@ import React, {useCallback, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -37,6 +37,7 @@ function pickTravelerPersonalDetails(personalDetails: OnyxEntry<PersonalDetailsL
 type TripDetailsPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.TRIP_DETAILS>;
 
 function TripDetailsPage({route}: TripDetailsPageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'Plane', 'Bed', 'CarWithKey', 'Train', 'Luggage', 'Pencil', 'Phone']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -52,14 +53,14 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`, {canBeMissing: true});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`, {canBeMissing: true});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID ?? reportID}`, {canBeMissing: true});
 
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.reportID);
     // If pnr is not passed and transaction is present, we want to use transaction to get the trip reservations as the provided sequenceIndex now refers to the position of trip reservation in transaction's reservation list
     const tripReservations = getReservationsFromTripReport(!Number(pnr) && transaction ? undefined : parentReport, transaction ? [transaction] : []);
 
-    const {reservation, prevReservation, reservationType, reservationIcon} = getReservationDetailsFromSequence(tripReservations, Number(sequenceIndex));
+    const {reservation, prevReservation, reservationType, reservationIcon} = getReservationDetailsFromSequence(icons, tripReservations, Number(sequenceIndex));
     const travelerPersonalDetailsSelector = useCallback((personalDetails: OnyxEntry<PersonalDetailsList>) => pickTravelerPersonalDetails(personalDetails, reservation), [reservation]);
 
     const [travelerPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: travelerPersonalDetailsSelector, canBeMissing: true}, [travelerPersonalDetailsSelector]);
@@ -69,7 +70,7 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
             includeSafeAreaPaddingBottom
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
-            testID={TripDetailsPage.displayName}
+            testID="TripDetailsPage"
             shouldShowOfflineIndicatorInWideScreen
         >
             <FullPageNotFoundView
@@ -113,8 +114,8 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
                     )}
                     <MenuItem
                         title={translate('travel.modifyTrip')}
-                        icon={Expensicons.Pencil}
-                        iconRight={Expensicons.NewWindow}
+                        icon={icons.Pencil}
+                        iconRight={icons.NewWindow}
                         shouldShowRightIcon
                         onPress={() => {
                             setIsModifyTripLoading(true);
@@ -128,8 +129,8 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
                     />
                     <MenuItem
                         title={translate('travel.tripSupport')}
-                        icon={Expensicons.Phone}
-                        iconRight={Expensicons.NewWindow}
+                        icon={icons.Phone}
+                        iconRight={icons.NewWindow}
                         shouldShowRightIcon
                         onPress={() => {
                             setIsTripSupportLoading(true);
@@ -145,7 +146,5 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
         </ScreenWrapper>
     );
 }
-
-TripDetailsPage.displayName = 'TripDetailsPage';
 
 export default TripDetailsPage;

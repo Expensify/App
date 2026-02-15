@@ -63,9 +63,12 @@ function setAuthenticationData(identity: string, sessionID: string): void {
     });
 }
 
-function setAttribute(key: string, value: string, shouldHash?: boolean) {
+function setAttribute(key: string, value: string, shouldHash?: boolean, persist?: boolean) {
     fpInstancePromise.then((fp) => {
-        const options = shouldHash ? {encryption: 'sha1'} : undefined;
+        const options: {persist?: boolean; encryption?: string} = {persist: persist === true};
+        if (shouldHash) {
+            options.encryption = 'sha1';
+        }
         fp?.setAttribute?.(key, value, options);
     });
 }

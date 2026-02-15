@@ -21,6 +21,7 @@ const CreditCardsNew = 'CreditCardsNew';
 const CreditCardsNewGreen = 'CreditCardsNewGreen';
 const InvoiceBlue = 'InvoiceBlue';
 const LaptopWithSecondScreenAndHourglass = 'LaptopWithSecondScreenAndHourglass';
+const RunningTurtle = 'RunningTurtle';
 const LockOpen = 'LockOpen';
 const Luggage = 'Luggage';
 const MoneyIntoWallet = 'MoneyIntoWallet';
@@ -29,6 +30,7 @@ const ConciergeBubble = 'ConciergeBubble';
 const TreasureChest = 'TreasureChest';
 const ThumbsUpStars = 'ThumbsUpStars';
 const Hands = 'Hands';
+const Hand = 'Hand';
 const SmartScan = 'SmartScan';
 const Hourglass = 'Hourglass';
 const CommentBubbles = 'CommentBubbles';
@@ -54,8 +56,12 @@ const TeachersUnite = 'TeachersUnite';
 const Abacus = 'Abacus';
 const Binoculars = 'Binoculars';
 const CompanyCard = 'CompanyCard';
+const ReceiptStack = 'ReceiptStack';
 const ReceiptUpload = 'ReceiptUpload';
 const ExpensifyCardIllustration = 'ExpensifyCardIllustration';
+const ExpensifyCardImage = 'ExpensifyCardImage';
+const MultiScan = 'MultiScan';
+const Shutter = 'Shutter';
 const SplitBill = 'SplitBill';
 const PiggyBank = 'PiggyBank';
 const Pillow = 'Pillow';
@@ -134,6 +140,7 @@ export {
     CreditCardsNewGreen,
     InvoiceBlue,
     LaptopWithSecondScreenAndHourglass,
+    RunningTurtle,
     LockOpen,
     Luggage,
     MoneyIntoWallet,
@@ -142,6 +149,7 @@ export {
     TreasureChest,
     ThumbsUpStars,
     Hands,
+    Hand,
     SmartScan,
     Hourglass,
     CommentBubbles,
@@ -167,8 +175,12 @@ export {
     Abacus,
     Binoculars,
     CompanyCard,
+    ReceiptStack,
     ReceiptUpload,
     ExpensifyCardIllustration,
+    ExpensifyCardImage,
+    MultiScan,
+    Shutter,
     SplitBill,
     PiggyBank,
     Pillow,

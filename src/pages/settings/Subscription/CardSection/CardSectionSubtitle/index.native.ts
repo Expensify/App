@@ -8,7 +8,7 @@ type GetSectionSubtitleProps = {
 
 function getSectionSubtitle({translate, hasDefaultCard, nextPaymentDate}: GetSectionSubtitleProps): string {
     if (hasDefaultCard && nextPaymentDate) {
-        return translate('subscription.cardSection.cardNextPayment', {nextPaymentDate});
+        return translate('subscription.cardSection.cardNextPayment', nextPaymentDate);
     }
 
     return translate('subscription.mobileReducedFunctionalityMessage');

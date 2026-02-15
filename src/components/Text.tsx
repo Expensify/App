@@ -82,7 +82,5 @@ function Text({color, fontSize = variables.fontSizeNormal, textAlign = 'left', c
     );
 }
 
-Text.displayName = 'Text';
-
 export default Text;
 export type {TextProps};

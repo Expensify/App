@@ -7,11 +7,9 @@ function SearchFiltersAmountPage() {
         <SearchFiltersAmountBase
             filterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}
             title="iou.amount"
-            testID={SearchFiltersAmountPage.displayName}
+            testID="SearchFiltersAmountPage"
         />
     );
 }
-
-SearchFiltersAmountPage.displayName = 'SearchFiltersAmountPage';
 
 export default SearchFiltersAmountPage;

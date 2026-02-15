@@ -67,7 +67,7 @@ function SearchBooleanFilterBasePage({booleanKey, titleKey}: SearchBooleanFilter
 
     return (
         <ScreenWrapper
-            testID={SearchBooleanFilterBasePage.displayName}
+            testID="SearchBooleanFilterBasePage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
@@ -96,7 +96,5 @@ function SearchBooleanFilterBasePage({booleanKey, titleKey}: SearchBooleanFilter
         </ScreenWrapper>
     );
 }
-
-SearchBooleanFilterBasePage.displayName = 'SearchBooleanFilterBasePage';
 
 export default SearchBooleanFilterBasePage;

@@ -37,12 +37,7 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
             icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
             iconType: CONST.ICON_TYPE_WORKSPACE,
             shouldShowRightIcon: true,
-            description: date
-                ? translate('workspace.common.lastSyncDate', {
-                      connectionName: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.intacct,
-                      formattedDate: date,
-                  })
-                : translate('workspace.accounting.intacct'),
+            description: date ? translate('workspace.common.lastSyncDate', CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.intacct, date) : translate('workspace.accounting.intacct'),
             onPress: () => {
                 copyExistingPolicyConnection(policy.id, policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT);
                 Navigation.dismissModal();
@@ -54,7 +49,7 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
-            testID={ExistingConnectionsPage.displayName}
+            testID="ExistingConnectionsPage"
         >
             <HeaderWithBackButton
                 title={translate('workspace.common.connectTo', {connectionName: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT})}
@@ -79,7 +74,5 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
         </ScreenWrapper>
     );
 }
-
-ExistingConnectionsPage.displayName = 'ExistingConnectionsPage';
 
 export default ExistingConnectionsPage;

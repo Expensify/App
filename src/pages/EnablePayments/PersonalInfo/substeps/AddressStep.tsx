@@ -1,9 +1,10 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import CommonAddressStep from '@components/SubStepForms/AddressStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useWalletAdditionalDetailsStepFormSubmit from '@hooks/useWalletAdditionalDetailsStepFormSubmit';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
 
@@ -21,14 +22,17 @@ const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.STREET, PERSONAL_INFO_STEP_KEY.CITY,
 function AddressStep({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
 
-    const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
+    const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {canBeMissing: true});
 
-    const defaultValues = {
-        street: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.STREET] ?? '',
-        city: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.CITY] ?? '',
-        state: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.STATE] ?? '',
-        zipCode: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.ZIP_CODE] ?? '',
-    };
+    const defaultValues = useMemo(
+        () => ({
+            street: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.STREET] ?? '',
+            city: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.CITY] ?? '',
+            state: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.STATE] ?? '',
+            zipCode: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.ZIP_CODE] ?? '',
+        }),
+        [walletAdditionalDetails],
+    );
 
     const handleSubmit = useWalletAdditionalDetailsStepFormSubmit({
         fieldIds: STEP_FIELDS,
@@ -48,10 +52,11 @@ function AddressStep({onNext, onMove, isEditing}: SubStepProps) {
             stepFields={STEP_FIELDS}
             inputFieldsIDs={INPUT_KEYS}
             defaultValues={defaultValues}
+            shouldShowHelpLinks
+            shouldShowPatriotActLink
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
         />
     );
 }
-
-AddressStep.displayName = 'AddressStep';
 
 export default AddressStep;

@@ -11,7 +11,6 @@
         "paths": {
             "@assets/*": ["../assets/*"],
             "@components/*": ["../src/components/*"],
-            "@desktop/*": ["../desktop/*"],
             "@github/*": ["../.github/*"],
             "@hooks/*": ["../src/hooks/*"],
             "@libs/*": ["../src/libs/*"],

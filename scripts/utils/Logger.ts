@@ -8,10 +8,10 @@ const COLOR_BOLD = '\x1b[1m';
 const EMOJIS = {
     // One column emojis need to be rendered with an extra space after to align with two column emojis
     INFO: '▶️ ',
+    WARN: '⚠️ ',
 
     // Two column emojis can be rendered as-is
     SUCCESS: '✅',
-    WARN: '⚠️',
     ERROR: '🔴',
 };
 

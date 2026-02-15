@@ -1,8 +1,9 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {Section as SelectionListSection} from '@components/SelectionList/SelectionListWithSections/types';
 import type {OptionData} from '@libs/ReportUtils';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type {IOUAction} from '@src/CONST';
-import type {Beta, PersonalDetails, Report, ReportActions, TransactionViolation} from '@src/types/onyx';
+import type {Beta, Login, PersonalDetails, PersonalDetailsList, Report, ReportActions, TransactionViolation} from '@src/types/onyx';
 import type {Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 /**
@@ -43,6 +44,7 @@ type SearchOptionData = Pick<
     | 'avatar'
     | 'phoneNumber'
     | 'searchText'
+    | 'timezone'
 
     // State properties
     | 'isSelected'
@@ -67,6 +69,7 @@ type SearchOptionData = Pick<
     | 'isChatRoom'
     | 'isInvoiceRoom'
     | 'isDefaultRoom'
+    | 'isDM'
 
     // Status properties
     | 'private_isArchived'
@@ -89,6 +92,10 @@ type OptionList = {
 };
 
 type Option = Partial<OptionData>;
+
+type OptionWithKey = Option & {
+    keyForList: string;
+};
 
 /**
  * A narrowed version of `Option` is used when we have a guarantee that given values exist.
@@ -151,6 +158,11 @@ type GetValidReportsConfig = {
     isPerDiemRequest?: boolean;
     showRBR?: boolean;
     shouldShowGBR?: boolean;
+    isRestrictedToPreferredPolicy?: boolean;
+    preferredPolicyID?: string;
+    shouldUnreadBeBold?: boolean;
+    shouldAlwaysIncludeDM?: boolean;
+    personalDetails?: OnyxEntry<PersonalDetailsList>;
 } & GetValidOptionsSharedConfig;
 
 type IsValidReportsConfig = Pick<
@@ -170,16 +182,16 @@ type IsValidReportsConfig = Pick<
     | 'includeDomainEmail'
     | 'loginsToExclude'
     | 'excludeNonAdminWorkspaces'
->;
-
-type GetValidReportsReturnTypeCombined = {
-    selfDMOption: SearchOptionData | undefined;
-    workspaceOptions: SearchOptionData[];
-    recentReports: SearchOptionData[];
+    | 'isRestrictedToPreferredPolicy'
+    | 'preferredPolicyID'
+    | 'shouldAlwaysIncludeDM'
+> & {
+    currentUserAccountID: number;
 };
 
 type GetOptionsConfig = {
     excludeLogins?: Record<string, boolean>;
+    excludeFromSuggestionsOnly?: Record<string, boolean>;
     includeCurrentUser?: boolean;
     includeRecentReports?: boolean;
     includeSelectedOptions?: boolean;
@@ -187,13 +199,17 @@ type GetOptionsConfig = {
     excludeHiddenThreads?: boolean;
     canShowManagerMcTest?: boolean;
     searchString?: string;
+    searchInputValue?: string;
     maxElements?: number;
     maxRecentReportElements?: number;
     includeUserToInvite?: boolean;
+    shouldAcceptName?: boolean;
 } & GetValidReportsConfig;
 
 type GetUserToInviteConfig = {
     searchValue: string | undefined;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+    searchInputValue?: string;
     loginsToExclude?: Record<string, boolean>;
     reportActions?: ReportActions;
     firstName?: string;
@@ -203,6 +219,10 @@ type GetUserToInviteConfig = {
     avatar?: AvatarSource;
     shouldAcceptName?: boolean;
     optionsToExclude?: GetOptionsConfig['selectedOptions'];
+    countryCode?: number;
+    loginList: OnyxEntry<Login>;
+    currentUserEmail: string;
+    currentUserAccountID: number;
 } & Pick<GetOptionsConfig, 'selectedOptions' | 'showChatPreviewLine'>;
 
 type MemberForList = {
@@ -219,8 +239,10 @@ type MemberForList = {
 };
 
 type SectionForSearchTerm = {
-    section: Section;
+    section: SelectionListSection<OptionWithKey>;
 };
+
+type SelectionListSections = Array<SelectionListSection<OptionWithKey>>;
 
 type Options = {
     recentReports: SearchOptionData[];
@@ -240,7 +262,7 @@ type PreviewConfig = {
     isSelected?: boolean;
 };
 
-type FilterUserToInviteConfig = Pick<GetUserToInviteConfig, 'selectedOptions' | 'shouldAcceptName'> & {
+type FilterUserToInviteConfig = Pick<GetUserToInviteConfig, 'selectedOptions' | 'shouldAcceptName' | 'searchInputValue'> & {
     canInviteUser?: boolean;
     excludeLogins?: Record<string, boolean>;
 };
@@ -271,9 +293,9 @@ export type {
     GetUserToInviteConfig,
     GetValidOptionsSharedConfig,
     GetValidReportsConfig,
-    GetValidReportsReturnTypeCombined,
     MemberForList,
     Option,
+    OptionWithKey,
     OptionList,
     OptionTree,
     Options,
@@ -286,6 +308,7 @@ export type {
     SearchOptionData,
     Section,
     SectionBase,
+    SelectionListSections,
     SectionForSearchTerm,
     IsValidReportsConfig,
 };

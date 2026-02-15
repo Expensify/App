@@ -1,9 +1,19 @@
 import OpenAI from 'openai';
-import type {ChatCompletionMessageParam, ChatModel} from 'openai/resources';
 import type {MessageContent, TextContentBlock} from 'openai/resources/beta/threads';
+import type {ResponseCreateParamsNonStreaming} from 'openai/resources/responses/responses';
 import type {AssistantResponse} from '@github/actions/javascript/proposalPoliceComment/proposalPoliceComment';
 import sanitizeJSONStringValues from '@github/libs/sanitizeJSONStringValues';
 import retryWithBackoff from '@scripts/utils/retryWithBackoff';
+
+type ResponsesModel = ResponseCreateParamsNonStreaming['model'];
+
+/**
+ * Result from creating a response via the Responses API.
+ */
+type ResponseResult = {
+    text: string;
+    responseID: string;
+};
 
 class OpenAIUtils {
     /**
@@ -46,29 +56,41 @@ class OpenAIUtils {
     }
 
     /**
-     * Prompt the Chat Completions API.
+     * Prompt the Responses API with optional prompt caching.
      */
-    public async promptChatCompletions({userPrompt, systemPrompt = '', model = 'gpt-4o'}: {userPrompt: string; systemPrompt?: string; model?: ChatModel}): Promise<string> {
-        const messages: ChatCompletionMessageParam[] = [{role: 'user', content: userPrompt}];
-        if (systemPrompt) {
-            messages.unshift({role: 'system', content: systemPrompt});
-        }
-
+    public async promptResponses({
+        input,
+        instructions,
+        promptCacheKey,
+        model = 'gpt-5.1',
+    }: {
+        input: string;
+        instructions?: string;
+        promptCacheKey?: string;
+        model?: ResponsesModel;
+    }): Promise<ResponseResult> {
         const response = await retryWithBackoff(
             () =>
-                this.client.chat.completions.create({
+                this.client.responses.create({
                     model,
-                    messages,
-                    temperature: 0.3,
+                    input,
+                    instructions,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    prompt_cache_key: promptCacheKey,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    prompt_cache_retention: '24h',
                 }),
             {isRetryable: (err) => OpenAIUtils.isRetryableError(err)},
         );
 
-        const result = response.choices.at(0)?.message?.content?.trim();
+        const result = response.output_text?.trim();
         if (!result) {
-            throw new Error('Error getting chat completion response from OpenAI');
+            throw new Error('Error getting response from OpenAI Responses API');
         }
-        return result;
+        return {
+            text: result,
+            responseID: response.id,
+        };
     }
 
     /**
@@ -78,7 +100,7 @@ class OpenAIUtils {
         // 1. Create a thread
         const thread = await retryWithBackoff(
             () =>
-                // eslint-disable-next-line deprecation/deprecation
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 this.client.beta.threads.create({
                     messages: [{role: OpenAIUtils.USER, content: userMessage}],
                 }),
@@ -88,7 +110,7 @@ class OpenAIUtils {
         // 2. Create a run on the thread
         let run = await retryWithBackoff(
             () =>
-                // eslint-disable-next-line deprecation/deprecation
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 this.client.beta.threads.runs.create(thread.id, {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     assistant_id: assistantID,
@@ -100,7 +122,7 @@ class OpenAIUtils {
         let response = '';
         let count = 0;
         while (!response && count < OpenAIUtils.MAX_POLL_COUNT) {
-            // eslint-disable-next-line @typescript-eslint/naming-convention, deprecation/deprecation
+            // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-deprecated
             run = await this.client.beta.threads.runs.retrieve(run.id, {thread_id: thread.id});
             if (run.status !== OpenAIUtils.OPENAI_RUN_COMPLETED) {
                 count++;
@@ -110,7 +132,7 @@ class OpenAIUtils {
                 continue;
             }
 
-            // eslint-disable-next-line deprecation/deprecation
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             for await (const message of this.client.beta.threads.messages.list(thread.id)) {
                 if (message.role !== OpenAIUtils.ASSISTANT) {
                     continue;
@@ -135,9 +157,20 @@ class OpenAIUtils {
     private static isRetryableError(error: unknown): boolean {
         // Handle known/predictable API errors
         if (error instanceof OpenAI.APIError) {
-            // Only retry 429 (rate limit) or 5xx errors
             const status = error.status as number;
-            return !!status && (status === 429 || status >= 500);
+
+            // Retry 429 (rate limit) or 5xx errors
+            if (status === 429 || status >= 500) {
+                return true;
+            }
+
+            // Retry conversation_locked errors (another process is still operating on this conversation)
+            // This can happen when a previous request is still being processed by OpenAI
+            if ('code' in error && error.code === 'conversation_locked') {
+                return true;
+            }
+
+            return false;
         }
 
         // Handle random/unpredictable network errors
@@ -160,6 +193,9 @@ class OpenAIUtils {
         return false;
     }
 
+    /**
+     * @deprecated Use promptResponses instead. This method exists only for backwards compatibility with proposalPoliceComment.
+     */
     public parseAssistantResponse<T extends AssistantResponse>(response: string): T | null {
         const sanitized = sanitizeJSONStringValues(response);
         let parsed: T;

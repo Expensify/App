@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import EReceiptBackground from '@assets/images/eReceipt_background.svg';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -12,7 +13,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {Transaction} from '@src/types/onyx';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
 import PendingMapView from './MapView/PendingMapView';
 import ReceiptImage from './ReceiptImage';
@@ -30,6 +30,7 @@ type DistanceEReceiptProps = {
 function DistanceEReceipt({transaction, hoverPreview = false}: DistanceEReceiptProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark']);
     const thumbnail = hasReceipt(transaction) ? getThumbnailAndImageURIs(transaction).thumbnail : null;
     const {amount: transactionAmount, currency: transactionCurrency, merchant: transactionMerchant, created: transactionDate} = getTransactionDetails(transaction) ?? {};
     const formattedTransactionAmount = convertToDisplayString(transactionAmount, transactionCurrency);
@@ -55,6 +56,8 @@ function DistanceEReceipt({transaction, hoverPreview = false}: DistanceEReceiptP
                         src={EReceiptBackground}
                         style={styles.eReceiptBackground}
                         pointerEvents="none"
+                        // Temporary solution only, since other cache policies are causing memory leaks on iOS
+                        cachePolicy="none"
                     />
 
                     <View style={[styles.moneyRequestViewImage, styles.mh0, styles.mt0, styles.mb5, styles.borderNone]}>
@@ -101,7 +104,9 @@ function DistanceEReceipt({transaction, hoverPreview = false}: DistanceEReceiptP
                         <Icon
                             width={86}
                             height={19.25}
-                            src={Expensicons.ExpensifyWordmark}
+                            src={icons.ExpensifyWordmark}
+                            // Temporary solution only, since other cache policies are causing memory leaks on iOS
+                            cachePolicy="none"
                         />
 
                         <Text style={styles.eReceiptGuaranteed}>{translate('eReceipt.guaranteed')}</Text>
@@ -111,7 +116,5 @@ function DistanceEReceipt({transaction, hoverPreview = false}: DistanceEReceiptP
         </View>
     );
 }
-
-DistanceEReceipt.displayName = 'DistanceEReceipt';
 
 export default DistanceEReceipt;

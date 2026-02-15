@@ -7,6 +7,7 @@ import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccoun
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SafeString from '@src/utils/SafeString';
 
 const {FIRST_NAME, LAST_NAME} = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 const BENEFICIAL_OWNER_PREFIX = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.PREFIX;
@@ -22,8 +23,8 @@ function LegalNameUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifiedID
     const lastNameInputID = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${LAST_NAME}` as keyof FormOnyxValues;
     const stepFields = [firstNameInputID, lastNameInputID];
     const defaultValues = {
-        firstName: String(reimbursementAccountDraft?.[firstNameInputID] ?? ''),
-        lastName: String(reimbursementAccountDraft?.[lastNameInputID] ?? ''),
+        firstName: SafeString(reimbursementAccountDraft?.[firstNameInputID]),
+        lastName: SafeString(reimbursementAccountDraft?.[lastNameInputID]),
     };
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
@@ -47,7 +48,5 @@ function LegalNameUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifiedID
         />
     );
 }
-
-LegalNameUBO.displayName = 'LegalNameUBO';
 
 export default LegalNameUBO;

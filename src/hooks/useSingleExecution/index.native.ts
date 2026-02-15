@@ -10,7 +10,6 @@ export default function useSingleExecution() {
     const [isExecuting, setIsExecuting] = useState(false);
     const isExecutingRef = useRef<boolean | undefined>(undefined);
 
-    // eslint-disable-next-line react-compiler/react-compiler
     isExecutingRef.current = isExecuting;
 
     const singleExecution = useCallback(
@@ -24,7 +23,7 @@ export default function useSingleExecution() {
                 isExecutingRef.current = true;
 
                 const execution = action(...params);
-                // eslint-disable-next-line deprecation/deprecation
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     if (!(execution instanceof Promise)) {
                         setIsExecuting(false);

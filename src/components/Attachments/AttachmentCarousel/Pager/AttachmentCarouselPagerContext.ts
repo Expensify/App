@@ -3,10 +3,10 @@ import {createContext} from 'react';
 import type {GestureType} from 'react-native-gesture-handler';
 import type PagerView from 'react-native-pager-view';
 import type {SharedValue} from 'react-native-reanimated';
-import type {AttachmentSource} from '@components/Attachments/types';
+import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 
 /** The pager items array is used within the pager to render and navigate between the images */
-type AttachmentCarouselPagerItems = {
+type AttachmentCarouselPagerItems = Pick<Attachment, 'attachmentID'> & {
     /** The source of the image is used to identify each attachment/page in the pager */
     source: AttachmentSource;
 
@@ -37,7 +37,7 @@ type AttachmentCarouselPagerContextValue = {
     isScrollEnabled: SharedValue<boolean>;
 
     /** Function to call after a tap event */
-    onTap?: () => void;
+    onTap?: (shouldShowArrows?: boolean) => void;
 
     /** Function to call when the scale changes */
     onScaleChanged?: (scale: number) => void;

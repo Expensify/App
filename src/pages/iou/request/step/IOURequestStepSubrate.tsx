@@ -3,25 +3,25 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import ConfirmModal from '@components/ConfirmModal';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
-import type BaseModalProps from '@components/Modal/types';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import ValuePicker from '@components/ValuePicker';
+import useConfirmModal from '@hooks/useConfirmModal';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import usePolicy from '@hooks/usePolicy';
+import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
-import {addSubrate, removeSubrate, updateSubrate} from '@userActions/IOU';
+import {addSubrate, getIOURequestPolicyID, removeSubrate, updateSubrate} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -30,6 +30,7 @@ import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Subrate} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import SafeString from '@src/utils/SafeString';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
@@ -67,13 +68,21 @@ function IOURequestStepSubrate({
     report,
 }: IOURequestStepSubrateProps) {
     const styles = useThemeStyles();
-    const policy = usePolicy(report?.policyID);
+    const iouPolicyID = getIOURequestPolicyID(transaction, report);
+    const {policy} = usePolicyForTransaction({
+        transaction,
+        reportPolicyID: iouPolicyID,
+        action,
+        iouType,
+        isPerDiemRequest: true,
+    });
+
     const customUnit = getPerDiemCustomUnit(policy);
-    const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
-    const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
     const navigation = useNavigation();
     const isFocused = navigation.isFocused();
     const {translate} = useLocalize();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
+    const {showConfirmModal} = useConfirmModal();
     const textInputRef = useRef<AnimatedTextInputRef>(null);
     const parsedIndex = parseInt(pageIndex, 10);
     const selectedDestination = transaction?.comment?.customUnit?.customUnitRateID;
@@ -87,7 +96,7 @@ function IOURequestStepSubrate({
 
     const onChangeQuantity = useCallback((newValue: string) => {
         // replace all characters that are not spaces or digits
-        let validQuantity = newValue.replace(/[^0-9]/g, '');
+        let validQuantity = newValue.replaceAll(/[^0-9]/g, '');
         validQuantity = validQuantity.match(/(?:\d *){1,12}/)?.[0] ?? '';
         setQuantityValue(validQuantity);
     }, []);
@@ -113,7 +122,7 @@ function IOURequestStepSubrate({
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_SUBRATE_FORM>): Partial<Record<string, TranslationPaths>> => {
         const errors = {};
-        const quantityVal = String(values[`quantity${pageIndex}`] ?? '');
+        const quantityVal = SafeString(values[`quantity${pageIndex}`]);
         const subrateVal = values[`subrate${pageIndex}`] ?? '';
         const quantityInt = parseInt(quantityVal, 10);
         if (subrateVal === '' || !validOptions.some(({value}) => value === subrateVal)) {
@@ -131,12 +140,13 @@ function IOURequestStepSubrate({
     };
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_SUBRATE_FORM>) => {
-        const quantityVal = String(values[`quantity${pageIndex}`] ?? '');
-        const subrateVal = String(values[`subrate${pageIndex}`] ?? '');
+        const quantityVal = SafeString(values[`quantity${pageIndex}`]);
+        const subrateVal = SafeString(values[`subrate${pageIndex}`]);
         const quantityInt = parseInt(quantityVal, 10);
         const selectedSubrate = allPossibleSubrates.find(({id}) => id === subrateVal);
         const name = selectedSubrate?.name ?? '';
         const rate = selectedSubrate?.rate ?? 0;
+        const transactionReportID = transaction?.participants?.at(0)?.reportID ?? transaction?.reportID ?? reportID;
 
         if (parsedIndex === filledSubrateCount) {
             addSubrate(transaction, pageIndex, quantityInt, subrateVal, name, rate);
@@ -147,22 +157,35 @@ function IOURequestStepSubrate({
         if (backTo) {
             goBack();
         } else {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, transactionReportID));
         }
     };
 
     const deleteSubrateAndHideModal = () => {
         removeSubrate(transaction, pageIndex);
-        setRestoreFocusType(CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE);
-        setIsDeleteStopModalOpen(false);
         goBack();
+    };
+
+    const handleDeleteSubrate = async () => {
+        const result = await showConfirmModal({
+            title: translate('iou.deleteSubrate'),
+            prompt: translate('iou.deleteSubrateConfirmation'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            shouldEnableNewFocusManagement: true,
+            danger: true,
+        });
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+        deleteSubrateAndHideModal();
     };
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.SUBMIT]: translate('iou.createExpense'),
-        [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', {name: ''}),
-        [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', {name: ''}),
+        [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', ''),
+        [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', ''),
         [CONST.IOU.TYPE.SPLIT]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.SPLIT_EXPENSE]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.TRACK]: translate('iou.createExpense'),
@@ -185,28 +208,14 @@ function IOURequestStepSubrate({
                     shouldSetModalVisibility={false}
                     threeDotsMenuItems={[
                         {
-                            icon: Expensicons.Trashcan,
+                            icon: expensifyIcons.Trashcan,
                             text: translate('iou.deleteSubrate'),
                             onSelected: () => {
-                                setRestoreFocusType(undefined);
-                                setIsDeleteStopModalOpen(true);
+                                handleDeleteSubrate();
                             },
                             shouldCallAfterModalHide: true,
                         },
                     ]}
-                />
-                <ConfirmModal
-                    title={translate('iou.deleteSubrate')}
-                    isVisible={isDeleteStopModalOpen}
-                    onConfirm={deleteSubrateAndHideModal}
-                    onCancel={() => setIsDeleteStopModalOpen(false)}
-                    shouldSetModalVisibility={false}
-                    prompt={translate('iou.deleteSubrateConfirmation')}
-                    confirmText={translate('common.delete')}
-                    cancelText={translate('common.cancel')}
-                    shouldEnableNewFocusManagement
-                    danger
-                    restoreFocusType={restoreFocusType}
                 />
                 <FormProvider
                     style={[styles.flexGrow1, styles.mh5]}
@@ -229,7 +238,7 @@ function IOURequestStepSubrate({
                             items={validOptions}
                             onValueChange={(value) => {
                                 setSubrateValue(value as string);
-                                // eslint-disable-next-line deprecation/deprecation
+                                // eslint-disable-next-line @typescript-eslint/no-deprecated
                                 InteractionManager.runAfterInteractions(() => {
                                     textInputRef.current?.focus();
                                 });

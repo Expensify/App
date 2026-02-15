@@ -4,7 +4,7 @@
 
 - [CheatSheet](#cheatsheet)
   - [1.1 `props.children`](#children-prop)
-  - [1.2 `forwardRef`](#forwardRef)
+  - [1.2 Refs as Props](#references)
   - [1.3 Style Props](#style-props)
   - [1.4 Animated styles](#animated-style)
   - [1.5 Render Prop](#render-prop)
@@ -40,22 +40,25 @@
   }
   ```
 
-<a name="forwardRef"></a><a name="1.2"></a>
+<a name="references"></a><a name="1.2"></a>
 
-- [1.2](#forwardRef) **`forwardRef`**
+- [1.2](#references) **Refs as Props**
 
-  ```ts
+  In React 19, `forwardRef` is deprecated and no longer necessary. Simply pass `ref` as a prop instead.
+
+  ```tsx
   // CustomTextInput.tsx
 
-  import { forwardRef, useRef, ReactNode, ForwardedRef } from "react";
+  import type { Ref, ReactNode } from "react";
   import { TextInput, View } from "react-native";
 
   export type CustomTextInputProps = {
     label: string;
     children?: ReactNode;
+    ref?: Ref<TextInput>; // Note: prop must be named "ref" explicitly
   };
 
-  function CustomTextInput(props: CustomTextInputProps, ref: ForwardedRef<TextInput>) {
+  function CustomTextInput({ ref, ...props }: CustomTextInputProps) {
     return (
       <View>
         <TextInput ref={ref} />
@@ -64,14 +67,41 @@
     );
   };
 
-  export default forwardRef(CustomTextInput);
+  export default CustomTextInput;
 
   // ParentComponent.tsx
+
+  import { useRef } from "react";
+  import { TextInput } from "react-native";
 
   function ParentComponent() {
     const ref = useRef<TextInput>();
     return <CustomTextInput ref={ref} label="Press me" />;
   }
+  ```
+
+  For imperative handles, now you can also just pass `ref` as a prop:
+
+  ```tsx
+  import { useImperativeHandle } from "react";
+
+  type CustomInputProps = {
+    ref?: React.Ref<CustomHandle>; // Note: prop must be named "ref" explicitly
+  };
+
+  type CustomHandle = {
+    focus: () => void;
+  };
+
+  function CustomInput({ ref, ...props }: CustomInputProps) {
+    useImperativeHandle(ref, () => ({
+      focus: () => {/* implementation */}
+    }));
+
+    return <TextInput {...props} />;
+  }
+
+  export default CustomInput;
   ```
 
 <a name="style-props"></a><a name="1.3"></a>

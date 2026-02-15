@@ -16,9 +16,6 @@ inputs:
     ANDROID:
         description: "Android job result ('success', 'failure', 'cancelled', or 'skipped')"
         required: false
-    DESKTOP:
-        description: "Desktop job result ('success', 'failure', 'cancelled', or 'skipped')"
-        required: false
     IOS:
         description: "iOS job result ('success', 'failure', 'cancelled', or 'skipped')"
         required: false
@@ -27,9 +24,6 @@ inputs:
         required: false
     ANDROID_LINK:
         description: "Link for the Android build"
-        required: false
-    DESKTOP_LINK:
-        description: "Link for the desktop build"
         required: false
     IOS_LINK:
         description: "Link for the iOS build"

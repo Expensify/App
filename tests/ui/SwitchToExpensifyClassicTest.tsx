@@ -1,7 +1,6 @@
 import * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import {translateLocal} from '@libs/Localize';
 import App from '@src/App';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
@@ -21,7 +20,7 @@ TestHelper.setupApp();
 TestHelper.setupGlobalFetchMock();
 
 function navigateToSetting() {
-    const hintText = translateLocal('sidebarScreen.buttonMySettings');
+    const hintText = TestHelper.translateLocal('sidebarScreen.buttonMySettings');
     const mySettingButton = screen.queryByAccessibilityHint(hintText);
     if (mySettingButton) {
         fireEvent(mySettingButton, 'press');
@@ -30,7 +29,7 @@ function navigateToSetting() {
 }
 
 function navigateToExpensifyClassicFlow() {
-    const hintText = translateLocal('exitSurvey.goToExpensifyClassic');
+    const hintText = TestHelper.translateLocal('exitSurvey.goToExpensifyClassic');
     const switchToExpensifyClassicBtn = screen.queryByAccessibilityHint(hintText);
     if (switchToExpensifyClassicBtn) {
         fireEvent(switchToExpensifyClassicBtn, 'press');
@@ -43,7 +42,7 @@ function signInAppAndEnterTestFlow(dismissedValue?: boolean): Promise<void> {
     return waitForBatchedUpdatesWithAct()
         .then(async () => {
             await waitForBatchedUpdatesWithAct();
-            const hintText = translateLocal('loginForm.loginForm');
+            const hintText = TestHelper.translateLocal('loginForm.loginForm');
             const loginForm = screen.queryAllByLabelText(hintText);
             expect(loginForm).toHaveLength(1);
 
@@ -75,7 +74,7 @@ describe('Switch to Expensify Classic flow', () => {
 
     test('Should navigate to exit survey reason page', () => {
         signInAppAndEnterTestFlow(true).then(() => {
-            expect(screen.getAllByText(translateLocal('exitSurvey.reasonPage.subtitle')).at(0)).toBeOnTheScreen();
+            expect(screen.getAllByText(TestHelper.translateLocal('exitSurvey.reasonPage.subtitle')).at(0)).toBeOnTheScreen();
         });
     });
 });

@@ -14,7 +14,13 @@ Keyboard.addListener('keyboardDidShow', () => {
     isVisible = true;
 });
 
-const dismiss = (): Promise<void> => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const subscribeKeyboardVisibilityChange = (cb: (isVisible: boolean) => void) => {
+    return () => {};
+};
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const dismiss = (shouldSkipSafari?: boolean): Promise<void> => {
     return new Promise((resolve) => {
         if (!isVisible) {
             resolve();
@@ -39,7 +45,7 @@ const dismissKeyboardAndExecute = (cb: () => void): Promise<void> => {
     });
 };
 
-const utils = {dismiss, dismissKeyboardAndExecute};
+const utils = {dismiss, dismissKeyboardAndExecute, subscribeKeyboardVisibilityChange};
 
 export type {SimplifiedKeyboardEvent};
 export default utils;

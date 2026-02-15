@@ -94,6 +94,8 @@ const lightTheme = {
     tooltipSupportingText: colors.productDark800,
     tooltipPrimaryText: colors.productDark900,
     trialBannerBackgroundColor: colors.green100,
+    widgetIconBG: colors.green100,
+    widgetIconFill: colors.green500,
     skeletonLHNIn: colors.productLight400,
     skeletonLHNOut: colors.productLight600,
     QRLogo: colors.green400,
@@ -113,6 +115,10 @@ const lightTheme = {
     // The screen name (see SCREENS.ts) is the name of the screen as far as react-navigation is concerned, and the linkingConfig maps screen names to URLs
     PAGE_THEMES: {
         [SCREENS.HOME]: {
+            backgroundColor: colors.productLight100,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
+        },
+        [SCREENS.INBOX]: {
             backgroundColor: colors.productLight100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
@@ -136,6 +142,10 @@ const lightTheme = {
             backgroundColor: colors.productLight100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
+        [SCREENS.SETTINGS.RULES.ROOT]: {
+            backgroundColor: colors.productLight100,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
+        },
         [SCREENS.SETTINGS.PROFILE.STATUS]: {
             backgroundColor: colors.productLight100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
@@ -155,6 +165,29 @@ const lightTheme = {
         [SCREENS.RIGHT_MODAL.SIGN_IN]: {
             backgroundColor: colors.productDark200,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+        },
+    },
+
+    reportStatusBadge: {
+        draft: {
+            backgroundColor: colors.blue200,
+            textColor: colors.blue700,
+        },
+        outstanding: {
+            backgroundColor: colors.tangerine200,
+            textColor: colors.tangerine700,
+        },
+        approved: {
+            backgroundColor: colors.ice200,
+            textColor: colors.ice700,
+        },
+        paid: {
+            backgroundColor: colors.green200,
+            textColor: colors.green700,
+        },
+        closed: {
+            backgroundColor: colors.pink200,
+            textColor: colors.pink700,
         },
     },
 

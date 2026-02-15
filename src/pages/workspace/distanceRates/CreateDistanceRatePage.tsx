@@ -46,7 +46,10 @@ function CreateDistanceRatePage({
 
     const FullPageBlockingView = !customUnitID ? FullPageOfflineBlockingView : View;
 
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => validateRateValue(values, toLocaleDigit), [toLocaleDigit]);
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => validateRateValue(values, toLocaleDigit, translate),
+        [toLocaleDigit, translate],
+    );
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => {
         // A blocking view is shown when customUnitID is undefined, so this function should never be called
@@ -65,7 +68,7 @@ function CreateDistanceRatePage({
         createPolicyDistanceRate(policyID, customUnitID, newRate);
         if (isDistanceRateUpgrade) {
             setMoneyRequestDistanceRate(transactionID, customUnitRateID, policy, true);
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+            Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID), {compareParams: false});
             return;
         }
         Navigation.goBack();
@@ -80,7 +83,7 @@ function CreateDistanceRatePage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={CreateDistanceRatePage.displayName}
+                testID="CreateDistanceRatePage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton title={isDistanceRateUpgrade ? translate('common.rate') : translate('workspace.distanceRates.addRate')} />
@@ -111,7 +114,5 @@ function CreateDistanceRatePage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-CreateDistanceRatePage.displayName = 'CreateDistanceRatePage';
 
 export default CreateDistanceRatePage;

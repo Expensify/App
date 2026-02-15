@@ -31,6 +31,14 @@ export default {
         margin: 20,
     },
 
+    mn5: {
+        margin: -20,
+    },
+
+    mn6: {
+        margin: -24,
+    },
+
     mhAuto: {
         marginHorizontal: 'auto',
     },
@@ -45,6 +53,10 @@ export default {
 
     mh2: {
         marginHorizontal: 8,
+    },
+
+    mh2half: {
+        marginHorizontal: 10,
     },
 
     mh3: {
@@ -123,6 +135,10 @@ export default {
         marginVertical: -48,
     },
 
+    mrAuto: {
+        marginRight: 'auto',
+    },
+
     mr0: {
         marginRight: 0,
     },
@@ -147,12 +163,32 @@ export default {
         marginRight: 20,
     },
 
+    mr6: {
+        marginRight: 24,
+    },
+
+    mr7: {
+        marginRight: 28,
+    },
+
     mr8: {
         marginRight: 32,
     },
 
+    mr10: {
+        marginRight: 40,
+    },
+
+    mrn1: {
+        marginRight: -4,
+    },
+
     mrn2: {
         marginRight: -8,
+    },
+
+    mrn3: {
+        marginRight: -12,
     },
 
     mrn5: {
@@ -169,6 +205,10 @@ export default {
 
     ml0: {
         marginLeft: 0,
+    },
+
+    mlHalf: {
+        marginLeft: 2,
     },
 
     ml1: {
@@ -221,6 +261,10 @@ export default {
 
     ml11: {
         marginLeft: 44,
+    },
+
+    ml13: {
+        marginLeft: 52,
     },
 
     ml18: {
@@ -327,6 +371,10 @@ export default {
         marginBottom: 0,
     },
 
+    mbHalf: {
+        marginBottom: 2,
+    },
+
     mb1: {
         marginBottom: 4,
     },
@@ -423,6 +471,10 @@ export default {
         padding: 12,
     },
 
+    p3Half: {
+        padding: 14,
+    },
+
     p4: {
         padding: 16,
     },
@@ -485,6 +537,10 @@ export default {
 
     pv6: {
         paddingVertical: 24,
+    },
+
+    pv8: {
+        paddingVertical: 32,
     },
 
     pv10: {
@@ -551,6 +607,10 @@ export default {
         paddingRight: 0,
     },
 
+    pr0half: {
+        paddingRight: 2,
+    },
+
     pr1: {
         paddingRight: 4,
     },
@@ -561,6 +621,10 @@ export default {
 
     pr3: {
         paddingRight: 12,
+    },
+
+    pr3half: {
+        paddingRight: 14,
     },
 
     pr4: {
@@ -583,12 +647,24 @@ export default {
         paddingRight: 40,
     },
 
+    pr11: {
+        paddingRight: 44,
+    },
+
     pr15: {
         paddingRight: 60,
     },
 
+    pr16: {
+        paddingRight: 64,
+    },
+
     pl0: {
         paddingLeft: 0,
+    },
+
+    pl0half: {
+        paddingLeft: 2,
     },
 
     pl1: {
@@ -783,8 +859,20 @@ export default {
         minHeight: 20,
     },
 
+    minHeight6: {
+        minHeight: 24,
+    },
+
+    minHeight7: {
+        minHeight: 28,
+    },
+
     minHeight22: {
         minHeight: 88,
+    },
+
+    minHeight32: {
+        minHeight: 128,
     },
 
     minHeight65: {

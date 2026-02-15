@@ -1,27 +1,31 @@
 import React, {memo} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAvatarErrors, updatePolicyRoomAvatar} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {isUserCreatedPolicyRoom} from '@libs/ReportUtils';
-import {isDefaultAvatar} from '@libs/UserUtils';
+import {isDefaultAvatar} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Report} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
 import AvatarWithImagePicker from './AvatarWithImagePicker';
-import * as Expensicons from './Icon/Expensicons';
 import PressableWithoutFocus from './Pressable/PressableWithoutFocus';
 import Text from './Text';
 
 type RoomHeaderAvatarsProps = {
     icons: Icon[];
     report: Report;
+    policy: OnyxEntry<Policy>;
+    participants: number[];
+    currentUserAccountID: number;
 };
 
-function RoomHeaderAvatars({icons, report}: RoomHeaderAvatarsProps) {
+function RoomHeaderAvatars({icons, report, policy, participants, currentUserAccountID}: RoomHeaderAvatarsProps) {
     const navigateToAvatarPage = (icon: Icon) => {
         if (icon.type === CONST.ICON_TYPE_WORKSPACE && icon.id) {
             Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report?.reportID, icon.id.toString()));
@@ -33,9 +37,10 @@ function RoomHeaderAvatars({icons, report}: RoomHeaderAvatarsProps) {
         }
     };
 
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera', 'FallbackAvatar', 'ImageCropSquareMask']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const isPolicyRoom = isUserCreatedPolicyRoom(report);
+    const canEditRoomAvatar = isUserCreatedPolicyRoom(report) && participants.includes(currentUserAccountID) && !!policy && policy.role !== CONST.POLICY.ROLE.AUDITOR;
 
     if (!icons.length) {
         return null;
@@ -48,26 +53,27 @@ function RoomHeaderAvatars({icons, report}: RoomHeaderAvatarsProps) {
             return;
         }
 
-        if (isPolicyRoom) {
+        if (canEditRoomAvatar) {
             return (
                 <AvatarWithImagePicker
-                    source={report.avatarUrl ?? icon.source}
+                    source={icon.source || report.avatarUrl}
                     avatarID={icon.id}
                     isUsingDefaultAvatar={!report.avatarUrl || isDefaultAvatar(icon.source)}
                     size={CONST.AVATAR_SIZE.X_LARGE}
                     avatarStyle={[styles.avatarXLarge, styles.alignSelfCenter]}
                     onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID))}
-                    onImageRemoved={() => updatePolicyRoomAvatar(report.reportID)}
-                    onImageSelected={(file) => updatePolicyRoomAvatar(report.reportID, file)}
-                    editIcon={Expensicons.Camera}
+                    onImageRemoved={() => updatePolicyRoomAvatar(report.reportID, currentUserAccountID, report.avatarUrl)}
+                    onImageSelected={(file) => updatePolicyRoomAvatar(report.reportID, currentUserAccountID, report.avatarUrl, file)}
+                    editIcon={expensifyIcons.Camera}
                     editIconStyle={styles.smallEditIconAccount}
                     pendingAction={report.pendingFields?.avatar}
                     errors={report.errorFields?.avatar ?? null}
                     errorRowStyles={styles.mt6}
                     onErrorClose={() => clearAvatarErrors(report.reportID)}
-                    style={[styles.w100, styles.mb3, styles.alignItemsStart, styles.sectionMenuItemTopDescription]}
+                    style={[styles.mb3, styles.w100, styles.alignItemsCenter]}
                     type={icon.type}
-                    editorMaskImage={Expensicons.ImageCropSquareMask}
+                    editorMaskImage={expensifyIcons.ImageCropSquareMask}
+                    name={icon.name}
                 />
             );
         }
@@ -78,7 +84,7 @@ function RoomHeaderAvatars({icons, report}: RoomHeaderAvatarsProps) {
                 onPress={() => navigateToAvatarPage(icon)}
                 accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel={icon.name ?? ''}
-                disabled={icon.source === Expensicons.FallbackAvatar}
+                disabled={icon.source === expensifyIcons.FallbackAvatar}
             >
                 <Avatar
                     source={icon.source}
@@ -115,7 +121,7 @@ function RoomHeaderAvatars({icons, report}: RoomHeaderAvatarsProps) {
                             onPress={() => navigateToAvatarPage(icon)}
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={icon.name ?? ''}
-                            disabled={icon.source === Expensicons.FallbackAvatar}
+                            disabled={icon.source === expensifyIcons.FallbackAvatar}
                         >
                             <Avatar
                                 source={icon.source}
@@ -148,7 +154,5 @@ function RoomHeaderAvatars({icons, report}: RoomHeaderAvatarsProps) {
         </View>
     );
 }
-
-RoomHeaderAvatars.displayName = 'RoomHeaderAvatars';
 
 export default memo(RoomHeaderAvatars);

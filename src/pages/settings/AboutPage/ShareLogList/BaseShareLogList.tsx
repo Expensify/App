@@ -1,96 +1,74 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {useBetas} from '@components/OnyxListItemProvider';
-import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import UserListItem from '@components/SelectionListWithSections/UserListItem';
-import useDebouncedState from '@hooks/useDebouncedState';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
+import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useSearchSelector from '@hooks/useSearchSelector';
 import {searchInServer} from '@libs/actions/Report';
 import {appendTimeToFileName} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {filterAndOrderOptions, getHeaderMessage, getShareLogOptions} from '@libs/OptionsListUtils';
+import {getHeaderMessage} from '@libs/OptionsListUtils';
+import type {SearchOptionData} from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
+import KeyboardUtils from '@src/utils/keyboard';
 import type {BaseShareLogListProps} from './types';
 
+type Sections = Array<Section<SearchOptionData>>;
+
 function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
-    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const betas = useBetas();
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-    const {options, areOptionsInitialized} = useOptionsList();
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
-    const defaultOptions = useMemo(() => {
-        if (!areOptionsInitialized) {
-            return {
-                recentReports: [],
-                personalDetails: [],
-                userToInvite: null,
-                currentUserOption: null,
-                headerMessage: '',
-            };
-        }
-        const shareLogOptions = getShareLogOptions(options, betas ?? []);
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized} = useSearchSelector({
+        selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
+        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_LOG,
+        includeUserToInvite: false,
+    });
 
-        const header = getHeaderMessage((shareLogOptions.recentReports.length || 0) + (shareLogOptions.personalDetails.length || 0) !== 0, !!shareLogOptions.userToInvite, '');
-
-        return {
-            ...shareLogOptions,
-            headerMessage: header,
-        };
-    }, [areOptionsInitialized, options, betas]);
-
-    const searchOptions = useMemo(() => {
-        if (debouncedSearchValue.trim() === '') {
-            return defaultOptions;
-        }
-
-        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchValue, countryCode, {
-            preferChatRoomsOverThreads: true,
-            sortByReportTypeInSearch: true,
-        });
-
-        const headerMessage = getHeaderMessage(
-            (filteredOptions.recentReports?.length || 0) + (filteredOptions.personalDetails?.length || 0) !== 0,
-            !!filteredOptions.userToInvite,
-            debouncedSearchValue.trim(),
-        );
-
-        return {...filteredOptions, headerMessage};
-    }, [debouncedSearchValue, defaultOptions, countryCode]);
-
-    const sections = useMemo(() => {
-        const sectionsList = [];
-
-        sectionsList.push({
-            title: translate('common.recents'),
-            data: searchOptions.recentReports,
-            shouldShow: searchOptions.recentReports?.length > 0,
-        });
-
-        sectionsList.push({
-            title: translate('common.contacts'),
-            data: searchOptions.personalDetails,
-            shouldShow: searchOptions.personalDetails?.length > 0,
-        });
-
-        if (searchOptions.userToInvite) {
-            sectionsList.push({
-                data: [searchOptions.userToInvite],
-                shouldShow: true,
+    const sections: Sections = [];
+    if (areOptionsInitialized) {
+        if (availableOptions.recentReports.length > 0) {
+            sections.push({
+                title: translate('common.recents'),
+                data: availableOptions.recentReports,
+                sectionIndex: 0,
             });
         }
 
-        return sectionsList;
-    }, [searchOptions?.personalDetails, searchOptions?.recentReports, searchOptions?.userToInvite, translate]);
+        if (availableOptions.personalDetails.length > 0) {
+            sections.push({
+                title: translate('common.contacts'),
+                data: availableOptions.personalDetails,
+                sectionIndex: 1,
+            });
+        }
+
+        if (availableOptions.userToInvite) {
+            sections.push({
+                title: undefined,
+                data: [availableOptions.userToInvite],
+                sectionIndex: 2,
+            });
+        }
+    }
+
+    const headerMessage = areOptionsInitialized
+        ? getHeaderMessage(
+              (availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0,
+              !!availableOptions.userToInvite,
+              debouncedSearchTerm.trim(),
+              countryCode,
+          )
+        : '';
 
     const attachLogToReport = (option: Report) => {
         if (!option.reportID) {
@@ -98,16 +76,26 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
         }
         const filename = appendTimeToFileName('logs.txt');
 
-        onAttachLogToReport(option.reportID, filename);
+        KeyboardUtils.dismiss().then(() => {
+            onAttachLogToReport(option.reportID, filename);
+        });
     };
 
     useEffect(() => {
-        searchInServer(debouncedSearchValue);
-    }, [debouncedSearchValue]);
+        searchInServer(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
+
+    const textInputOptions = {
+        value: searchTerm,
+        label: translate('selectionList.nameEmailOrPhoneNumber'),
+        hint: isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '',
+        onChangeText: setSearchTerm,
+        headerMessage,
+    };
 
     return (
         <ScreenWrapper
-            testID={BaseShareLogList.displayName}
+            testID="BaseShareLogList"
             includeSafeAreaPaddingBottom={false}
         >
             {({didScreenTransitionEnd}) => (
@@ -116,16 +104,14 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
                         title={translate('initialSettingsPage.debugConsole.shareLog')}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONSOLE.getRoute())}
                     />
-                    <SelectionList
+                    <SelectionListWithSections
                         ListItem={UserListItem}
-                        sections={didScreenTransitionEnd ? sections : CONST.EMPTY_ARRAY}
+                        sections={sections}
                         onSelectRow={attachLogToReport}
                         shouldSingleExecuteRowSelect
-                        onChangeText={setSearchValue}
-                        textInputValue={searchValue}
-                        headerMessage={searchOptions.headerMessage}
-                        textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-                        textInputHint={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
+                        shouldShowTextInput
+                        disableMaintainingScrollPosition
+                        textInputOptions={textInputOptions}
                         showLoadingPlaceholder={!didScreenTransitionEnd}
                         isLoadingNewOptions={!!isSearchingForReports}
                     />
@@ -134,7 +120,5 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
         </ScreenWrapper>
     );
 }
-
-BaseShareLogList.displayName = 'ShareLogPage';
 
 export default BaseShareLogList;

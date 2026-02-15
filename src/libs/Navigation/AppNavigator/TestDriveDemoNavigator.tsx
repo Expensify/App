@@ -24,6 +24,4 @@ function TestDriveDemoNavigator() {
     );
 }
 
-TestDriveDemoNavigator.displayName = 'TestDriveDemoNavigator';
-
 export default TestDriveDemoNavigator;

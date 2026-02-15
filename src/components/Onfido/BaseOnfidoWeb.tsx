@@ -1,6 +1,5 @@
 import {Onfido as OnfidoSDK} from 'onfido-sdk-ui';
-import React, {forwardRef, useEffect} from 'react';
-import type {ForwardedRef} from 'react';
+import React, {useEffect} from 'react';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -12,7 +11,7 @@ import CONST from '@src/CONST';
 import {EXTENDED_LOCALES} from '@src/CONST/LOCALES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import './index.css';
-import type {OnfidoElement, OnfidoProps} from './types';
+import type {OnfidoProps} from './types';
 
 type InitializeOnfidoProps = OnfidoProps &
     Pick<LocaleContextProps, 'translate' | 'preferredLocale'> & {
@@ -137,7 +136,7 @@ function logOnFidoEvent(event: OnfidoEvent) {
     Log.hmmm('Receiving Onfido analytic event', event.detail);
 }
 
-function Onfido({sdkToken, onSuccess, onError, onUserExit}: OnfidoProps, ref: ForwardedRef<OnfidoElement>) {
+function Onfido({sdkToken, onSuccess, onError, onUserExit, ref}: OnfidoProps) {
     const {preferredLocale, translate} = useLocalize();
     const theme = useTheme();
 
@@ -155,7 +154,7 @@ function Onfido({sdkToken, onSuccess, onError, onUserExit}: OnfidoProps, ref: Fo
         window.addEventListener('userAnalyticsEvent', logOnFidoEvent);
         return () => window.removeEventListener('userAnalyticsEvent', logOnFidoEvent);
         // Onfido should be initialized only once on mount
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (
@@ -166,6 +165,4 @@ function Onfido({sdkToken, onSuccess, onError, onUserExit}: OnfidoProps, ref: Fo
     );
 }
 
-Onfido.displayName = 'Onfido';
-
-export default forwardRef(Onfido);
+export default Onfido;

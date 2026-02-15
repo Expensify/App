@@ -8,13 +8,14 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-type TextInputClearButtonProps = {
+type TextInputClearButtonProps = WithSentryLabel & {
     style?: StyleProp<ViewStyle>;
     onPressButton: () => void;
 };
 
-function TextInputClearButton({style, onPressButton}: TextInputClearButtonProps) {
+function TextInputClearButton({style, onPressButton, sentryLabel}: TextInputClearButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -28,6 +29,8 @@ function TextInputClearButton({style, onPressButton}: TextInputClearButtonProps)
                     e.preventDefault();
                 }}
                 onPress={onPressButton}
+                shouldUseAutoHitSlop
+                sentryLabel={sentryLabel}
             >
                 <Icon
                     src={Expensicons.Clear}
@@ -39,7 +42,5 @@ function TextInputClearButton({style, onPressButton}: TextInputClearButtonProps)
         </Tooltip>
     );
 }
-
-TextInputClearButton.displayName = 'TextInputClearButton';
 
 export default TextInputClearButton;

@@ -8,6 +8,10 @@
     {
       "appearance" : "dark",
       "value" : "automatic"
+    },
+    {
+      "appearance" : "tinted",
+      "value" : "automatic"
     }
   ],
   "groups" : [

@@ -7,6 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
 import useTransactionsByID from '@hooks/useTransactionsByID';
 import {setReviewDuplicatesKey} from '@libs/actions/Transaction';
+import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
@@ -20,7 +21,8 @@ import ReviewFields from './ReviewFields';
 function ReviewCategory() {
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.CATEGORY>>();
     const {translate} = useLocalize();
-    const transactionID = getTransactionID(route.params.threadReportID);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`, {canBeMissing: true});
+    const transactionID = getTransactionID(report);
     const [reviewDuplicates] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES, {canBeMissing: true});
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, {
@@ -32,9 +34,10 @@ function ReviewCategory() {
     );
     const [allDuplicates] = useTransactionsByID(allDuplicateIDs);
     const [reviewDuplicatesReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reviewDuplicates?.reportID)}`, {canBeMissing: true});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reviewDuplicatesReport?.policyID)}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(reviewDuplicatesReport?.policyID)}`, {canBeMissing: true});
 
-    const compareResult = compareDuplicateTransactionFields(transaction, allDuplicates, reviewDuplicates?.reportID, undefined, policyCategories);
+    const compareResult = compareDuplicateTransactionFields(transaction, allDuplicates, reviewDuplicatesReport, undefined, policy, policyCategories);
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
     const {currentScreenIndex, goBack, navigateToNextScreen} = useReviewDuplicatesNavigation(
         Object.keys(compareResult.change ?? {}),
@@ -48,7 +51,7 @@ function ReviewCategory() {
                 !category
                     ? {text: translate('violations.none'), value: ''}
                     : {
-                          text: category,
+                          text: getDecodedCategoryName(category),
                           value: category,
                       },
             ),
@@ -63,7 +66,7 @@ function ReviewCategory() {
     };
 
     return (
-        <ScreenWrapper testID={ReviewCategory.displayName}>
+        <ScreenWrapper testID="ReviewCategory">
             <HeaderWithBackButton
                 title={translate('iou.reviewDuplicates')}
                 onBackButtonPress={goBack}
@@ -78,7 +81,5 @@ function ReviewCategory() {
         </ScreenWrapper>
     );
 }
-
-ReviewCategory.displayName = 'ReviewCategory';
 
 export default ReviewCategory;

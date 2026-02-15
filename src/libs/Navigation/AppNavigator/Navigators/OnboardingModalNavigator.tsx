@@ -182,6 +182,4 @@ function OnboardingModalNavigator() {
     );
 }
 
-OnboardingModalNavigator.displayName = 'OnboardingModalNavigator';
-
 export default OnboardingModalNavigator;

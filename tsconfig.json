@@ -2,8 +2,6 @@
     "$schema": "https://json.schemastore.org/tsconfig",
     "extends": "expo/tsconfig.base",
     "compilerOptions": {
-        "module": "commonjs",
-        "moduleResolution": "node",
         "types": ["react-native", "react-native-web", "jest", "node"],
         "lib": ["DOM", "DOM.Iterable", "ESNext"],
         "isolatedModules": true,
@@ -14,7 +12,6 @@
         "paths": {
             "@assets/*": ["./assets/*"],
             "@components/*": ["./src/components/*"],
-            "@desktop/*": ["./desktop/*"],
             "@github/*": ["./.github/*"],
             "@hooks/*": ["./src/hooks/*"],
             "@libs/*": ["./src/libs/*"],
@@ -28,9 +25,14 @@
             "@selectors/*": ["./src/selectors/*"]
         }
     },
+    "ts-node": {
+        "compilerOptions": {
+            "module": "commonjs",
+            "moduleResolution": "node"
+        }
+    },
     "include": [
         "src",
-        "desktop",
         "web",
         "website",
         "docs",
@@ -42,6 +44,7 @@
         "__mocks__",
         ".github/**/*",
         ".storybook/**/*",
+        ".claude/**/*",
         "scripts",
         "modules",
         "**/*.nitro/*.ts",

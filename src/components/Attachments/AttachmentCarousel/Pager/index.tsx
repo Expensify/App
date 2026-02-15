@@ -48,12 +48,12 @@ type AttachmentCarouselPagerProps = {
 
     /** Callback for attachment errors */
     onAttachmentError?: (source: AttachmentSource) => void;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<AttachmentCarouselPagerHandle>;
 };
 
-function AttachmentCarouselPager(
-    {items, activeAttachmentID, initialPage, setShouldShowArrows, onPageSelected, onSwipeDown, reportID, onAttachmentError}: AttachmentCarouselPagerProps,
-    ref: ForwardedRef<AttachmentCarouselPagerHandle>,
-) {
+function AttachmentCarouselPager({items, activeAttachmentID, initialPage, setShouldShowArrows, onPageSelected, onSwipeDown, reportID, onAttachmentError, ref}: AttachmentCarouselPagerProps) {
     const {handleTap, handleScaleChange, isScrollEnabled} = useCarouselContextEvents(setShouldShowArrows);
     const styles = useThemeStyles();
     const pagerRef = useRef<PagerView>(null);
@@ -77,7 +77,7 @@ function AttachmentCarouselPager(
 
     /** The `pagerItems` object that passed down to the context. Later used to detect current page, whether it's a single image gallery etc. */
     const pagerItems = useMemo(
-        () => items.map((item, index) => ({source: item.source, previewSource: item.previewSource, index, isActive: index === activePageIndex})),
+        () => items.map((item, index) => ({source: item.source, previewSource: item.previewSource, index, isActive: index === activePageIndex, attachmentID: item.attachmentID})),
         [activePageIndex, items],
     );
 
@@ -151,7 +151,6 @@ function AttachmentCarouselPager(
         </AttachmentCarouselPagerContext.Provider>
     );
 }
-AttachmentCarouselPager.displayName = 'AttachmentCarouselPager';
 
-export default React.forwardRef(AttachmentCarouselPager);
+export default AttachmentCarouselPager;
 export type {AttachmentCarouselPagerHandle};

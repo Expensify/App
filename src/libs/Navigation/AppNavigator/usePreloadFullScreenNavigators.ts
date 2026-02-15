@@ -24,8 +24,8 @@ import {getPreservedNavigatorState} from './createSplitNavigator/usePreserveNavi
 // This timing is used to call the preload function after a tab change, when the initial tab screen has already been rendered.
 const TIMING_TO_CALL_PRELOAD = 1000;
 
-// Currently, only the Account and Workspaces tabs are preloaded. The remaining tabs will be supported soon.
-const TABS_TO_PRELOAD = [NAVIGATION_TABS.SETTINGS, NAVIGATION_TABS.WORKSPACES];
+// Currently the Inbox, Workspaces and Account tabs are preloaded, while Search is not preloaded due to its potential complexity.
+const TABS_TO_PRELOAD = [NAVIGATION_TABS.INBOX, NAVIGATION_TABS.WORKSPACES, NAVIGATION_TABS.SETTINGS];
 
 function preloadWorkspacesTab(navigation: PlatformStackNavigationProp<AuthScreensParamList>) {
     const state = getWorkspacesTabStateFromSessionStorage() ?? navigation.getState();
@@ -61,7 +61,11 @@ function preloadAccountTab(navigation: PlatformStackNavigationProp<AuthScreensPa
 }
 
 function preloadInboxTab(navigation: PlatformStackNavigationProp<AuthScreensParamList>) {
-    navigation.preload(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {screen: SCREENS.HOME});
+    navigation.preload(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {screen: SCREENS.INBOX});
+}
+
+function preloadHomeTab(navigation: PlatformStackNavigationProp<AuthScreensParamList>) {
+    navigation.preload(SCREENS.HOME);
 }
 
 function preloadTab(tabName: string, navigation: PlatformStackNavigationProp<AuthScreensParamList>, subscriptionPlan: ValueOf<typeof CONST.POLICY.TYPE> | null) {
@@ -75,8 +79,11 @@ function preloadTab(tabName: string, navigation: PlatformStackNavigationProp<Aut
         case NAVIGATION_TABS.SETTINGS:
             preloadAccountTab(navigation, subscriptionPlan);
             return;
-        case NAVIGATION_TABS.HOME:
+        case NAVIGATION_TABS.INBOX:
             preloadInboxTab(navigation);
+            return;
+        case NAVIGATION_TABS.HOME:
+            preloadHomeTab(navigation);
             return;
         default:
             return undefined;
@@ -99,7 +106,8 @@ function usePreloadFullScreenNavigators() {
     const navigation = useNavigation<PlatformStackNavigationProp<AuthScreensParamList>>();
     const route = useRoute();
     const state = navigation.getState();
-    const preloadedRoutes = useMemo(() => state.preloadedRoutes, [state]);
+    // The fallback is used to prevent crashing from the UI test
+    const preloadedRoutes = useMemo(() => state.preloadedRoutes ?? [], [state.preloadedRoutes]);
     const subscriptionPlan = useSubscriptionPlan();
     const isAuthenticated = useIsAuthenticated();
     const hasPreloadedRef = useRef(false);
@@ -126,13 +134,22 @@ function usePreloadFullScreenNavigators() {
             }
             hasPreloadedRef.current = true;
             setTimeout(() => {
-                TABS_TO_PRELOAD.filter((tabName) => {
+                for (const tabName of TABS_TO_PRELOAD) {
+                    // Don't preload the current tab
                     const isCurrentTab = TAB_TO_FULLSCREEN[tabName].includes(route.name as FullScreenName);
+                    if (isCurrentTab) {
+                        continue;
+                    }
+
+                    // Don't preload tabs that are already preloaded
                     const isRouteAlreadyPreloaded = preloadedRoutes.some((preloadedRoute) => TAB_TO_FULLSCREEN[tabName].includes(preloadedRoute.name as FullScreenName));
-                    return !isCurrentTab && !isRouteAlreadyPreloaded;
-                }).forEach((tabName) => {
+                    if (isRouteAlreadyPreloaded) {
+                        continue;
+                    }
+
+                    // Preload everything else
                     preloadTab(tabName, navigation, subscriptionPlan);
-                });
+                }
             }, TIMING_TO_CALL_PRELOAD);
         }, [isAuthenticated, isSingleNewDotEntry, route.name, preloadedRoutes, navigation, subscriptionPlan]),
     );

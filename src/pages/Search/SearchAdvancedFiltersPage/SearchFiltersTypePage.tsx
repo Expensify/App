@@ -12,7 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {getTypeOptions} from '@libs/SearchUIUtils';
+import {filterValidHasValues, getTypeOptions} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -27,12 +27,12 @@ function SearchFiltersTypePage() {
     const [selectedItem, setSelectedItem] = useState(searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE);
 
     const listData: Array<ListItem<SearchDataTypes>> = useMemo(() => {
-        return getTypeOptions(allPolicies, session?.email).map((typeOption) => ({
+        return getTypeOptions(translate, allPolicies, session?.email).map((typeOption) => ({
             text: typeOption.text,
             keyForList: typeOption.value,
             isSelected: selectedItem === typeOption.value,
         }));
-    }, [allPolicies, selectedItem, session?.email]);
+    }, [translate, allPolicies, selectedItem, session?.email]);
 
     const updateSelectedItem = useCallback((type: ListItem<SearchDataTypes>) => {
         setSelectedItem(type?.keyForList ?? CONST.SEARCH.DATA_TYPES.EXPENSE);
@@ -44,20 +44,22 @@ function SearchFiltersTypePage() {
 
     const applyChanges = useCallback(() => {
         const hasTypeChanged = selectedItem !== searchAdvancedFiltersForm?.type;
+        const filteredHasValues = filterValidHasValues(searchAdvancedFiltersForm?.has, selectedItem, translate) ?? [];
         const updatedFilters = {
             type: selectedItem,
             ...(hasTypeChanged && {
                 groupBy: null,
                 status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                has: filteredHasValues,
             }),
         };
         updateAdvancedFilters(updatedFilters);
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
-    }, [searchAdvancedFiltersForm?.type, selectedItem]);
+    }, [searchAdvancedFiltersForm?.has, searchAdvancedFiltersForm?.type, selectedItem, translate]);
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersTypePage.displayName}
+            testID="SearchFiltersTypePage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight
@@ -85,7 +87,5 @@ function SearchFiltersTypePage() {
         </ScreenWrapper>
     );
 }
-
-SearchFiltersTypePage.displayName = 'SearchFiltersTypePage';
 
 export default SearchFiltersTypePage;

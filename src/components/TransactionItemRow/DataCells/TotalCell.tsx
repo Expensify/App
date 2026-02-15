@@ -27,5 +27,4 @@ function TotalCell({shouldShowTooltip, transactionItem}: TransactionDataCellProp
     );
 }
 
-TotalCell.displayName = 'TotalCell';
 export default TotalCell;

@@ -50,6 +50,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     const theme = useTheme();
     const {translate} = useLocalize();
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
     const [isVisible, setVisible] = useState(false);
     const [anchorPosition, setAnchorPosition] = useState({top: 0, left: 0});
     const anchorRef = useRef(null);
@@ -88,7 +89,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     const requestLimitIncrease = () => {
         requestExpensifyCardLimitIncrease(cardSettings?.paymentBankAccountID);
         setVisible(false);
-        navigateToConciergeChat();
+        navigateToConciergeChat(conciergeReportID, false);
     };
 
     const isCurrentBalanceType = type === CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE;
@@ -136,7 +137,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
                     )}
                 </View>
             </View>
-            {isSettleDateTextDisplayed && <Text style={[styles.mutedNormalTextLabel, styles.mt1]}>{translate('workspace.expensifyCard.balanceWillBeSettledOn', {settlementDate})}</Text>}
+            {isSettleDateTextDisplayed && <Text style={[styles.mutedNormalTextLabel, styles.mt1]}>{translate('workspace.expensifyCard.balanceWillBeSettledOn', settlementDate)}</Text>}
             <Popover
                 onClose={() => setVisible(false)}
                 isVisible={isVisible}

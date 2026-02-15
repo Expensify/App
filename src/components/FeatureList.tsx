@@ -24,6 +24,9 @@ type FeatureListProps = {
     /** The text to display in the subtitle of the section */
     subtitle?: string;
 
+    /** The component to display custom subtitle */
+    renderSubtitle?: () => ReactNode;
+
     /** Text of the call to action button */
     ctaText?: string;
 
@@ -76,6 +79,7 @@ function FeatureList({
     contentPaddingOnLargeScreens,
     footer,
     isButtonDisabled = false,
+    renderSubtitle,
 }: FeatureListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -92,6 +96,7 @@ function FeatureList({
             titleStyles={titleStyles}
             illustrationContainerStyle={illustrationContainerStyle}
             contentPaddingOnLargeScreens={contentPaddingOnLargeScreens}
+            renderSubtitle={renderSubtitle}
         >
             <View style={styles.flex1}>
                 <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.rowGap4, styles.pv4, styles.pl1]}>
@@ -130,8 +135,6 @@ function FeatureList({
         </Section>
     );
 }
-
-FeatureList.displayName = 'FeatureList';
 
 export default FeatureList;
 export type {FeatureListItem};

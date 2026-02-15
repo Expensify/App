@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,7 +26,6 @@ import FormProvider from './Form/FormProvider';
 import InputWrapper from './Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from './Form/types';
 import HeaderWithBackButton from './HeaderWithBackButton';
-import * as Expensicons from './Icon/Expensicons';
 import ScrollView from './ScrollView';
 import Text from './Text';
 import TextInput from './TextInput';
@@ -55,6 +55,7 @@ type WorkspaceConfirmationFormProps = {
 };
 
 function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButtonPress = () => Navigation.goBack(), addBottomSafeAreaPadding = true}: WorkspaceConfirmationFormProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Camera', 'ImageCropSquareMask']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -69,7 +70,7 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
             } else if ([...name].length > CONST.TITLE_CHARACTER_LIMIT) {
                 // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
                 // code units.
-                addErrorMessage(errors, 'name', translate('common.error.characterLimitExceedCounter', {length: [...name].length, limit: CONST.TITLE_CHARACTER_LIMIT}));
+                addErrorMessage(errors, 'name', translate('common.error.characterLimitExceedCounter', [...name].length, CONST.TITLE_CHARACTER_LIMIT));
             }
 
             if (!isRequiredFulfilled(values[INPUT_IDS.CURRENCY])) {
@@ -129,7 +130,6 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                 </View>
                 <AvatarWithImagePicker
                     isUsingDefaultAvatar={!stashedLocalAvatarImage}
-                    // eslint-disable-next-line react-compiler/react-compiler
                     avatarID={policyID}
                     source={stashedLocalAvatarImage}
                     onImageSelected={(image) => {
@@ -142,13 +142,12 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                     }}
                     size={CONST.AVATAR_SIZE.X_LARGE}
                     avatarStyle={[styles.avatarXLarge, styles.alignSelfCenter]}
-                    shouldDisableViewPhoto
-                    editIcon={Expensicons.Camera}
+                    editIcon={icons.Camera}
                     editIconStyle={styles.smallEditIconAccount}
                     type={CONST.ICON_TYPE_WORKSPACE}
                     style={[styles.w100, styles.alignItemsCenter, styles.mv4, styles.mb6, styles.alignSelfCenter, styles.ph5]}
                     DefaultAvatar={DefaultAvatar}
-                    editorMaskImage={Expensicons.ImageCropSquareMask}
+                    editorMaskImage={icons.ImageCropSquareMask}
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM}
@@ -203,8 +202,6 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
         </>
     );
 }
-
-WorkspaceConfirmationForm.displayName = 'WorkspaceConfirmationForm';
 
 export default WorkspaceConfirmationForm;
 

@@ -67,8 +67,10 @@ function DebugReportPage({
         },
         [reportAttributesSelector],
     );
+    const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, {canBeMissing: true});
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {canBeMissing: true});
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
     const transactionID = DebugUtils.getTransactionID(report, reportActions);
     const isReportArchived = useReportIsArchived(reportID);
 
@@ -102,6 +104,7 @@ function DebugReportPage({
             hasRBR,
             isReportArchived,
             isInFocusMode: priorityMode === CONST.PRIORITY_MODE.GSD,
+            draftComment,
         });
 
         return [
@@ -147,7 +150,7 @@ function DebugReportPage({
                         : undefined,
             },
         ];
-    }, [report, transactionViolations, reportID, isReportArchived, chatReport, reportActions, transactions, reportAttributes?.reportErrors, betas, priorityMode, translate]);
+    }, [report, transactionViolations, reportID, isReportArchived, chatReport, reportActions, transactions, reportAttributes?.reportErrors, betas, priorityMode, draftComment, translate]);
 
     const DebugDetailsTab = useCallback(
         () => (
@@ -158,7 +161,7 @@ function DebugReportPage({
                     Debug.setDebugData(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, data);
                 }}
                 onDelete={() => {
-                    navigateToConciergeChatAndDeleteReport(reportID, true, true);
+                    navigateToConciergeChatAndDeleteReport(reportID, conciergeReportID, true, true);
                 }}
                 validate={DebugUtils.validateReportDraftProperty}
             >
@@ -252,7 +255,7 @@ function DebugReportPage({
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
             shouldEnableMinHeight={canUseTouchScreen()}
-            testID={DebugReportPage.displayName}
+            testID="DebugReportPage"
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
@@ -269,7 +272,5 @@ function DebugReportPage({
         </ScreenWrapper>
     );
 }
-
-DebugReportPage.displayName = 'DebugReportPage';
 
 export default DebugReportPage;

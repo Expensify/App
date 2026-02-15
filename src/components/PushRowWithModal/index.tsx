@@ -101,6 +101,4 @@ function PushRowWithModal({
     );
 }
 
-PushRowWithModal.displayName = 'PushRowWithModal';
-
 export default PushRowWithModal;

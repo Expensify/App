@@ -2,9 +2,9 @@ import React, {useMemo, useRef} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import type {ListItem} from '@components/SelectionList/ListItem/types';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import {setLocale} from '@userActions/App';
@@ -20,9 +20,12 @@ function LanguagePage() {
     const isOptionSelected = useRef(false);
 
     const locales = useMemo(() => {
-        return SORTED_LOCALES.map((locale) => ({
+        const sortedLocales = preferredLocale ? [preferredLocale, ...SORTED_LOCALES.filter((locale) => locale !== preferredLocale)] : SORTED_LOCALES;
+
+        return sortedLocales.map((locale) => ({
             value: locale,
             text: LOCALE_TO_LANGUAGE_STRING[locale],
+            accessibilityLabel: LOCALE_TO_LANGUAGE_STRING[locale],
             keyForList: locale,
             isSelected: preferredLocale === locale,
         }));
@@ -41,7 +44,7 @@ function LanguagePage() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={LanguagePage.displayName}
+            testID="LanguagePage"
         >
             <HeaderWithBackButton
                 title={translate('languagePage.language')}
@@ -49,17 +52,15 @@ function LanguagePage() {
             />
             <FullPageOfflineBlockingView>
                 <SelectionList
-                    sections={[{data: locales}]}
+                    data={locales}
                     ListItem={RadioListItem}
                     onSelectRow={updateLanguage}
                     shouldSingleExecuteRowSelect
-                    initiallyFocusedOptionKey={locales.find((locale) => locale.isSelected)?.keyForList}
+                    initiallyFocusedItemKey={locales.find((locale) => locale.isSelected)?.keyForList}
                 />
             </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );
 }
-
-LanguagePage.displayName = 'LanguagePage';
 
 export default LanguagePage;

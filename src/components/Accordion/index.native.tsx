@@ -76,6 +76,4 @@ function Accordion({isExpanded, children, duration = 300, isToggleTriggered, sty
     );
 }
 
-Accordion.displayName = 'Accordion';
-
 export default Accordion;

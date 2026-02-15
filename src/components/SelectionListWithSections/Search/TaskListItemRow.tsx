@@ -9,8 +9,11 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import {useSession} from '@components/OnyxListItemProvider';
 import type {TaskListItemType} from '@components/SelectionListWithSections/types';
 import TextWithTooltip from '@components/TextWithTooltip';
+import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useParentReport from '@hooks/useParentReport';
+import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -20,6 +23,7 @@ import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import {canActionTask, completeTask} from '@libs/actions/Task';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type {Report} from '@src/types/onyx';
 import AvatarWithTextCell from './AvatarWithTextCell';
 import DateCell from './DateCell';
 import UserInfoCell from './UserInfoCell';
@@ -72,7 +76,9 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
     const {translate} = useLocalize();
     const parentReport = useParentReport(taskItem?.report?.reportID);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
-    const isTaskActionable = canActionTask(taskItem.report, session?.accountID, parentReport, isParentReportArchived);
+    const hasOutstandingChildTask = useHasOutstandingChildTask(taskItem.report);
+    const parentReportAction = useParentReportAction(taskItem.report);
+    const isTaskActionable = canActionTask(taskItem.report, parentReportAction, session?.accountID, parentReport, isParentReportArchived);
     const isTaskCompleted = taskItem.statusNum === CONST.REPORT.STATUS_NUM.APPROVED && taskItem.stateNum === CONST.REPORT.STATE_NUM.APPROVED;
 
     if (isTaskCompleted) {
@@ -106,13 +112,14 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
             style={[styles.w100]}
             isDisabled={!isTaskActionable}
             onPress={callFunctionIfActionIsAllowed(() => {
-                completeTask(taskItem, taskItem.reportID);
+                completeTask(taskItem as Report, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, taskItem.reportID);
             })}
         />
     );
 }
 
 function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRightLong']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -136,7 +143,7 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
 
                         {shouldDisplayCompactArrowIcon && (
                             <Icon
-                                src={Expensicons.ArrowRightLong}
+                                src={icons.ArrowRightLong}
                                 width={variables.iconSizeXXSmall}
                                 height={variables.iconSizeXXSmall}
                                 fill={theme.icon}
@@ -187,7 +194,7 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
                         )}
 
                         <DateCell
-                            created={item.created}
+                            date={item.created}
                             showTooltip={showTooltip}
                             isLargeScreenWidth={isLargeScreenWidth}
                         />
@@ -202,7 +209,7 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, item.shouldShowYear)]}>
                     <DateCell
-                        created={item.created}
+                        date={item.created}
                         showTooltip={showTooltip}
                         isLargeScreenWidth
                     />
@@ -252,7 +259,5 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
         </View>
     );
 }
-
-TaskListItemRow.displayName = 'TaskListItemRow';
 
 export default TaskListItemRow;
