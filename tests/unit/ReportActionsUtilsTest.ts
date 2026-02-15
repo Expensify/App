@@ -1529,6 +1529,12 @@ describe('ReportActionsUtils', () => {
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
             expect(actual).toBe(true);
         });
+
+        it("should return false for concierge categorize suggestion whisper message when the policy's category feature is disabled", () => {
+            const reportAction: ReportAction = {...createRandomReportAction(123), actionName: CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS};
+            const result = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, false);
+            expect(result).toBe(false);
+        });
     });
 
     describe('getPolicyChangeLogUpdateEmployee', () => {
