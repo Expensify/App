@@ -2,6 +2,7 @@ import type {Meta, StoryFn} from '@storybook/react-webpack5';
 import React, {useState} from 'react';
 import MagicCodeInput from '@components/MagicCodeInput';
 import type {MagicCodeInputProps} from '@components/MagicCodeInput';
+import CONST from '@src/CONST';
 
 type MagicCodeInputStory = StoryFn<typeof MagicCodeInput>;
 
@@ -34,13 +35,13 @@ const AutoFocus: MagicCodeInputStory = Template.bind({});
 AutoFocus.args = {
     name: 'AutoFocus',
     autoFocus: true,
-    autoComplete: 'one-time-code',
+    autoComplete: CONST.AUTO_COMPLETE_VARIANTS.ONE_TIME_CODE,
 };
 
 const SubmitOnComplete: MagicCodeInputStory = Template.bind({});
 SubmitOnComplete.args = {
     name: 'SubmitOnComplete',
-    autoComplete: 'one-time-code',
+    autoComplete: CONST.AUTO_COMPLETE_VARIANTS.ONE_TIME_CODE,
     shouldSubmitOnComplete: true,
     onFulfill: () => console.debug('Submitted!'),
 };

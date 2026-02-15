@@ -32,7 +32,7 @@ import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWo
 import {
     getAllCardsForWorkspace,
     getCardFeedIcon,
-    getCompanyCardFeedWithDomainID,
+    getCardFeedWithDomainID,
     getCompanyFeeds,
     getPlaidInstitutionIconUrl,
     isExpensifyCardFullySetUp,
@@ -58,7 +58,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeed, Card as MemberCard, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+import type {CompanyCardFeed, CompanyCardFeedWithDomainID, Card as MemberCard, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 
 type WorkspacePolicyOnyxProps = {
     /** Personal details of all users */
@@ -253,7 +253,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         Navigation.navigate(
             ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(
                 policyID,
-                getCompanyCardFeedWithDomainID(card.bank as CompanyCardFeed, card.fundID),
+                getCardFeedWithDomainID(card.bank, card.fundID) as CompanyCardFeedWithDomainID,
                 card.cardID.toString(),
                 Navigation.getActiveRoute(),
             ),
@@ -339,7 +339,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             />
                             <MenuItemWithTopDescription
                                 disabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
-                                title={translate(`workspace.common.roleName`, {role: member?.role})}
+                                title={translate(`workspace.common.roleName`, member?.role)}
                                 description={translate('common.role')}
                                 shouldShowRightIcon
                                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.getRoute(policyID, accountID))}

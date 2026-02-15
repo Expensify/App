@@ -5,6 +5,8 @@ import SignInGradient from '@assets/images/home-fade-gradient--mobile.svg';
 import Hoverable from '@components/Hoverable';
 import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
+import type {LinkProps, PressProps} from '@components/TextLink';
+import TextLink from '@components/TextLink';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -16,10 +18,13 @@ import Socials from '@pages/signin/Socials';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import FooterRow from './FooterRow';
-import type {FooterColumnRow, SignInPageLayoutProps} from './types';
+import type {SignInPageLayoutProps} from './types';
 
 type FooterProps = Pick<SignInPageLayoutProps, 'navigateFocus'>;
+
+type FooterColumnRow = (LinkProps | PressProps) & {
+    translationPath: TranslationPaths;
+};
 
 type FooterColumnData = {
     translationPath: TranslationPaths;
@@ -173,25 +178,27 @@ function Footer({navigateFocus}: FooterProps) {
                             >
                                 <Text style={[styles.textHeadline, styles.footerTitle]}>{translate(column.translationPath)}</Text>
                                 <View style={[styles.footerRow]}>
-                                    {column.rows.map((row) => (
-                                        <Hoverable key={row.translationPath}>
-                                            {(hovered) =>
-                                                row.onPress ? (
-                                                    <FooterRow
-                                                        onPress={row.onPress}
-                                                        translationPath={row.translationPath}
-                                                        text={translate(row.translationPath)}
-                                                        style={getTextLinkStyle(hovered)}
-                                                    />
-                                                ) : (
-                                                    <FooterRow
-                                                        href={row.href}
-                                                        translationPath={row.translationPath}
-                                                        text={translate(row.translationPath)}
-                                                        style={getTextLinkStyle(hovered)}
-                                                    />
-                                                )
-                                            }
+                                    {column.rows.map(({href, onPress, translationPath}) => (
+                                        <Hoverable key={translationPath}>
+                                            {(hovered) => (
+                                                <View>
+                                                    {onPress ? (
+                                                        <TextLink
+                                                            style={getTextLinkStyle(hovered)}
+                                                            onPress={onPress}
+                                                        >
+                                                            {translate(translationPath)}
+                                                        </TextLink>
+                                                    ) : (
+                                                        <TextLink
+                                                            style={getTextLinkStyle(hovered)}
+                                                            href={href}
+                                                        >
+                                                            {translate(translationPath)}
+                                                        </TextLink>
+                                                    )}
+                                                </View>
+                                            )}
                                         </Hoverable>
                                     ))}
                                     {i === 2 && (
