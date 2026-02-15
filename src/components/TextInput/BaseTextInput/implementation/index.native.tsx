@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
-import {AccessibilityInfo, StyleSheet, View} from 'react-native';
+import {AccessibilityInfo, Platform, StyleSheet, View} from 'react-native';
 import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Checkbox from '@components/Checkbox';
@@ -25,7 +25,6 @@ import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Accessibility from '@libs/Accessibility';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -111,7 +110,6 @@ function BaseTextInput({
     const [isPrefixCharacterPaddingCalculated, setIsPrefixCharacterPaddingCalculated] = useState(() => !prefixCharacter);
     const labelScale = useSharedValue<number>(initialActiveLabel ? styleConst.ACTIVE_LABEL_SCALE : styleConst.INACTIVE_LABEL_SCALE);
     const labelTranslateY = useSharedValue<number>(initialActiveLabel ? styleConst.ACTIVE_LABEL_TRANSLATE_Y : styleConst.INACTIVE_LABEL_TRANSLATE_Y);
-    const isScreenReaderEnabled = Accessibility.useScreenReaderStatus();
     const input = useRef<TextInput | null>(null);
     const isLabelActive = useRef(initialActiveLabel);
     const lastAnnouncedErrorTextRef = useRef('');
@@ -231,7 +229,7 @@ function BaseTextInput({
     }, [value]);
 
     useEffect(() => {
-        if (!isFocused || !isScreenReaderEnabled) {
+        if (!isFocused) {
             return;
         }
 
@@ -246,8 +244,12 @@ function BaseTextInput({
         }
 
         lastAnnouncedErrorTextRef.current = trimmedErrorText;
+        if (Platform.OS === CONST.PLATFORM.IOS) {
+            AccessibilityInfo.announceForAccessibilityWithOptions(trimmedErrorText, {queue: true});
+            return;
+        }
         AccessibilityInfo.announceForAccessibility(trimmedErrorText);
-    }, [errorText, isFocused, isScreenReaderEnabled]);
+    }, [errorText, isFocused]);
 
     /**
      * Set Value & activateLabel
