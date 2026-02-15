@@ -168,7 +168,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const [firstRender, setFirstRender] = useState(true);
     const isSkippingOpenReport = useRef(false);
     const flatListRef = useRef<FlatList>(null);
-    const createOneTransactionThreadReportRef = useRef<() => void>(() => {});
     const hasCreatedLegacyThreadRef = useRef(false);
     const {isBetaEnabled} = usePermissions();
     const {isOffline} = useNetwork();
@@ -582,10 +581,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     }, [reportMetadata.isOptimisticReport, report, isOffline, isLoadingApp, introSelected, isOnboardingCompleted, isInviteOnboardingComplete, reportIDFromRoute, reportActionIDFromRoute]);
 
     useEffect(() => {
-        createOneTransactionThreadReportRef.current = createOneTransactionThreadReport;
-    }, [createOneTransactionThreadReport]);
-
-    useEffect(() => {
         if (!isAnonymousUser) {
             return;
         }
@@ -597,7 +592,8 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             return;
         }
 
-        createOneTransactionThreadReportRef.current();
+        createOneTransactionThreadReport();
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to run this useEffect when createOneTransactionThreadReport changes
     }, [reportMetadata.hasOnceLoadedReportActions, reportMetadata?.isOptimisticReport, transactionThreadReport?.reportID, transactionThreadReportID]);
 
     useEffect(() => {
