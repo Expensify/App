@@ -117,6 +117,12 @@ function BaseVideoPlayer({
     const videoPlayerElementRef = useRef<View | HTMLDivElement | null>(null);
     const sharedVideoPlayerParentRef = useRef<View | HTMLDivElement | null>(null);
     const isReadyForDisplayRef = useRef(false);
+    const savedCurrentTimeRef = useRef(0);
+    const shouldUseSharedVideoElementRef = useRef(shouldUseSharedVideoElement);
+    // This needs to be updated synchronously during render (not in an effect) so that
+    // cleanup functions of useLayoutEffect always read the latest value.
+    // eslint-disable-next-line react-hooks/refs
+    shouldUseSharedVideoElementRef.current = shouldUseSharedVideoElement;
     const canUseTouchScreen = canUseTouchScreenLib();
     const isCurrentlyURLSet = currentlyPlayingURL === url;
     const isUploading = CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => url.startsWith(prefix));
@@ -278,6 +284,13 @@ function BaseVideoPlayer({
     });
 
     useEffect(() => {
+        if (currentTime <= 0) {
+            return;
+        }
+        savedCurrentTimeRef.current = currentTime;
+    }, [currentTime]);
+
+    useEffect(() => {
         if (!videoPlayerRef.current.duration) {
             return;
         }
@@ -297,7 +310,11 @@ function BaseVideoPlayer({
     // ref url: https://reactjs.org/blog/2020/08/10/react-v17-rc.html#effect-cleanup-timing
     useLayoutEffect(
         () => () => {
-            if (shouldUseSharedVideoElement || videoPlayerRef.current !== currentVideoPlayerRef.current) {
+            // Use ref to read the latest value of shouldUseSharedVideoElement, preventing
+            // destructive cleanup when this value changes during viewport resize.
+            // Without the ref, the cleanup captures the stale (old) closure value and
+            // incorrectly destroys the player when transitioning between shared/non-shared modes.
+            if (shouldUseSharedVideoElementRef.current || videoPlayerRef.current !== currentVideoPlayerRef.current) {
                 return;
             }
             if (currentVideoPlayerRef.current) {
@@ -306,7 +323,8 @@ function BaseVideoPlayer({
                 currentVideoPlayerRef.current = null;
             }
         },
-        [currentVideoPlayerRef, mountedVideoPlayersRef, shouldUseSharedVideoElement, url],
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [currentVideoPlayerRef, mountedVideoPlayersRef, url],
     );
 
     useEffect(() => {
@@ -328,13 +346,16 @@ function BaseVideoPlayer({
 
     useEffect(
         () => () => {
-            if (shouldUseSharedVideoElement || !isCurrentlyURLSetRef.current) {
+            // Use ref to read the latest value of shouldUseSharedVideoElement, preventing
+            // premature URL clearing when this value changes during viewport resize.
+            if (shouldUseSharedVideoElementRef.current || !isCurrentlyURLSetRef.current) {
                 return;
             }
 
             setCurrentlyPlayingURL(null);
         },
-        [setCurrentlyPlayingURL, shouldUseSharedVideoElement],
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [setCurrentlyPlayingURL],
     );
 
     // update shared video elements
@@ -390,6 +411,11 @@ function BaseVideoPlayer({
             } else {
                 newParentRef.appendChild(sharedElement as HTMLDivElement);
             }
+        }
+        // Restore the playback position after moving the video element in the DOM.
+        // Moving elements can reset currentTime to 0 in some browsers/video implementations.
+        if (videoPlayerRef.current && savedCurrentTimeRef.current > 0 && videoPlayerRef.current.currentTime === 0) {
+            videoPlayerRef.current.currentTime = savedCurrentTimeRef.current;
         }
         return () => {
             if (!originalParent || !('appendChild' in originalParent)) {
