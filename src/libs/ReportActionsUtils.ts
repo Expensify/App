@@ -1079,7 +1079,7 @@ function isResolvedConciergeDescriptionOptions(reportAction: OnyxEntry<ReportAct
  * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
  * and supported type, it's not deleted and also not closed.
  */
-function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key: string | number, canUserPerformWriteAction?: boolean, areCategoriesEnabled?: boolean): boolean {
+function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key: string | number, canUserPerformWriteAction?: boolean, arePolicyCategoriesEnabled?: boolean): boolean {
     if (!reportAction) {
         return false;
     }
@@ -1152,7 +1152,7 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         return false;
     }
 
-    if (isConciergeCategoryOptions(reportAction) && areCategoriesEnabled !== undefined && !areCategoriesEnabled) {
+    if (isConciergeCategoryOptions(reportAction) && arePolicyCategoriesEnabled !== undefined && !arePolicyCategoriesEnabled) {
         return false;
     }
 
