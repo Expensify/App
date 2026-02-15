@@ -389,7 +389,6 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                         turnOnSelectionModeOnLongPress={isCurrentUserGroupChatAdmin}
                         shouldSingleExecuteRowSelect={!isCurrentUserGroupChatAdmin}
                         onTurnOnSelectionMode={(item) => item && toggleUser(item)}
-                        style={{listHeaderWrapperStyle: [styles.ph9, styles.mt3]}}
                         onSelectAll={() => toggleAllUsers(participants)}
                         onCheckboxPress={toggleUser}
                         shouldShowTextInput={shouldShowTextInput}
