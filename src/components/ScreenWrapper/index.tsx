@@ -8,6 +8,7 @@ import type {EdgeInsets} from 'react-native-safe-area-context';
 import CustomDevMenu from '@components/CustomDevMenu';
 import FocusTrapForScreen from '@components/FocusTrap/FocusTrapForScreen';
 import type FocusTrapForScreenProps from '@components/FocusTrap/FocusTrapForScreen/FocusTrapProps';
+import {useDialogLabel} from '@components/DialogLabelContext';
 import {useInitialURLState} from '@components/InitialURLContextProvider';
 import withNavigationFallback from '@components/withNavigationFallback';
 import useEnvironment from '@hooks/useEnvironment';
@@ -245,6 +246,26 @@ function ScreenWrapper({
         }, [navigation]),
     );
 
+    const {isInsideDialog} = useDialogLabel();
+    const effectiveFocusTrapSettings = useMemo(() => {
+        if (!isInsideDialog) {
+            return focusTrapSettings;
+        }
+        return {
+            ...focusTrapSettings,
+            focusTrapOptions: {
+                ...focusTrapSettings?.focusTrapOptions,
+                // Use a function to find the last matching title element (topmost in the stack),
+                // since stacked RHP screens keep previous screens mounted with duplicate nativeIDs.
+                initialFocus: (): HTMLElement | false => {
+                    const elements = document.querySelectorAll<HTMLElement>('[id="rhp-dialog-title"]');
+                    return elements[elements.length - 1] ?? false;
+                },
+                setReturnFocus: (nodeFocusedBeforeActivation) => nodeFocusedBeforeActivation,
+            },
+        };
+    }, [isInsideDialog, focusTrapSettings]);
+
     const ChildrenContent = useMemo(() => {
         return (
             // If props.children is a function, call it to provide the insets to the children.
@@ -253,7 +274,7 @@ function ScreenWrapper({
     }, [children, insets, safeAreaPaddingBottomStyle, didScreenTransitionEnd]);
 
     return (
-        <FocusTrapForScreen focusTrapSettings={focusTrapSettings}>
+        <FocusTrapForScreen focusTrapSettings={effectiveFocusTrapSettings}>
             <ScreenWrapperContainer
                 ref={ref}
                 style={[styles.flex1, style]}

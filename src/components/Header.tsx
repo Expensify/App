@@ -1,8 +1,9 @@
 import type {ReactNode} from 'react';
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {Linking, View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {useDialogLabel} from './DialogLabelContext';
 import EnvironmentBadge from './EnvironmentBadge';
 import Text from './Text';
 import TextLink from './TextLink';
@@ -35,6 +36,16 @@ type HeaderProps = {
 
 function Header({title = '', subtitle = '', textStyles = [], style, containerStyles = [], shouldShowEnvironmentBadge = false, subTitleLink = '', numberOfTitleLines = 2}: HeaderProps) {
     const styles = useThemeStyles();
+    const {isInsideDialog, pushLabel, popLabel} = useDialogLabel();
+
+    useEffect(() => {
+        if (!isInsideDialog || typeof title !== 'string' || !title) {
+            return;
+        }
+        pushLabel(title);
+        return () => popLabel();
+    }, [isInsideDialog, title, pushLabel, popLabel]);
+
     const renderedSubtitle = useMemo(
         () => (
             <>
@@ -77,6 +88,8 @@ function Header({title = '', subtitle = '', textStyles = [], style, containerSty
                           <Text
                               numberOfLines={numberOfTitleLines}
                               style={[styles.headerText, styles.textLarge, styles.lineHeightXLarge, textStyles]}
+                              nativeID={isInsideDialog ? 'rhp-dialog-title' : undefined}
+                              tabIndex={isInsideDialog ? -1 : undefined}
                           >
                               {title}
                           </Text>

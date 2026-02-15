@@ -5617,6 +5617,8 @@ const CONST = {
         NAVIGATION: 'navigation',
         /** Use for Tooltips */
         TOOLTIP: 'tooltip',
+        /** Use for dialog/modal elements */
+        DIALOG: 'dialog',
     },
     TRANSLATION_KEYS: {
         ATTACHMENT: 'common.attachment',
