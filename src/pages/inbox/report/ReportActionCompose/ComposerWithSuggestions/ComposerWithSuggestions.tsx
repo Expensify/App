@@ -918,7 +918,7 @@ function ComposerWithSuggestions({
                 getCurrentText,
                 clearWorklet,
                 resetHeight,
-            }) as unknown as ComposerWithSuggestionsRef,
+            }) as ComposerWithSuggestionsRef,
         [focus, replaceSelectionWithText, clearWorklet, resetHeight, getCurrentText],
     );
 
