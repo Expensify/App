@@ -844,7 +844,6 @@ function createPolicyCategory({
 
 function importPolicyCategories(policyID: string, categories: PolicyCategory[], existingCategories?: OnyxEntry<PolicyCategories>) {
     const policyCategories = existingCategories ?? {};
-    const hasExistingCategories = Object.keys(policyCategories).length > 0;
     const seenNames = new Set<string>();
 
     const {added, updated} = categories.reduce(
@@ -854,11 +853,6 @@ function importPolicyCategories(policyID: string, categories: PolicyCategory[], 
                 return acc;
             }
             seenNames.add(name);
-
-            if (!hasExistingCategories) {
-                acc.added++;
-                return acc;
-            }
 
             const existing = policyCategories[name];
             if (!existing) {
