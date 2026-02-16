@@ -708,6 +708,8 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
     onDEWModalOpen?: () => void;
     /** Whether the DEW beta flag is enabled */
     isDEWBetaEnabled?: boolean;
+    /** When incremented, collapse this group (e.g. when returning from expense RHP so user re-expands to see updated row) */
+    collapseExpandedGroupsTrigger?: number;
 };
 
 type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<

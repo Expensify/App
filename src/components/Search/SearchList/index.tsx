@@ -138,6 +138,9 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** Whether all transactions have been loaded from snapshots in group-by views */
     hasLoadedAllTransactions?: boolean;
 
+    /** When set, group list items collapse so user must click header row again to see updated expense list (e.g. after closing RHP) */
+    collapseExpandedGroupsTrigger?: number;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<SearchListHandle>;
 };
@@ -224,6 +227,7 @@ function SearchList({
     isDEWBetaEnabled,
     selectedTransactions,
     hasLoadedAllTransactions,
+    collapseExpandedGroupsTrigger,
     ref,
 }: SearchListProps) {
     const styles = useThemeStyles();
@@ -494,6 +498,7 @@ function SearchList({
                         customCardNames={customCardNames}
                         onFocus={onFocus}
                         newTransactionID={newTransactionID}
+                        collapseExpandedGroupsTrigger={'transactions' in item ? collapseExpandedGroupsTrigger : undefined}
                     />
                 </Animated.View>
             );
@@ -526,6 +531,7 @@ function SearchList({
             onDEWModalOpen,
             isDEWBetaEnabled,
             customCardNames,
+            collapseExpandedGroupsTrigger,
         ],
     );
 
