@@ -348,6 +348,27 @@ To generate these unique keys, use `Str.guid()`.
 
 An example of this can be seen in the [ACHContractStep](https://github.com/Expensify/App/blob/f2973f88cfc0d36c0dbe285201d3ed5e12f29d87/src/pages/ReimbursementAccount/ACHContractStep.js), where each key is stored in an array in state, and IdentityForms are dynamically rendered based on which keys are present in the array.
 
+### Keyboard Dismissal on Submit
+
+By default, `FormProvider` waits for the keyboard to fully dismiss before calling `onSubmit`. This is controlled by the `shouldDismissKeyboardBeforeSubmit` prop (defaults to `true`).
+
+On Android, this can cause visual glitches ([example issue](https://github.com/Expensify/App/issues/72507)) when the form's `onSubmit` triggers navigation (e.g. `Navigation.goBack()`), because `KeyboardAvoidingView` removes its keyboard offset before the screen finishes unmounting — making the submit button appear to float briefly.
+
+To fix this, pass `shouldDismissKeyboardBeforeSubmit={false}` so that `onSubmit` fires immediately while the keyboard animates down in parallel:
+
+```jsx
+<FormProvider
+    formID="myForm"
+    onSubmit={onSubmit}
+    shouldDismissKeyboardBeforeSubmit={false}
+>
+    {/* form inputs */}
+</FormProvider>
+```
+
+> [!NOTE]
+> Only use `shouldDismissKeyboardBeforeSubmit={false}` on screens where `onSubmit` triggers navigation - for forms that stay on-screen after submission, keep the default (`true`) to avoid layout jumps.
+
 ### Safe Area Padding
 
 Any `FormProvider.tsx` that has a button at the bottom. If the `<FormProvider>` is inside a `<ScreenWrapper>`, the bottom safe area inset is handled automatically (`includeSafeAreaPaddingBottom` needs to be set to `true`, but its the default).
