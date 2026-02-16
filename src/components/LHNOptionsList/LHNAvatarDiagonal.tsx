@@ -45,7 +45,7 @@ function LHNAvatarDiagonal({primaryIcon, secondaryIcon, size, secondaryAvatarBac
         },
     };
 
-    let avatarSize = CONST.AVATAR_SIZE.SMALLER;
+    let avatarSize: ValueOf<typeof CONST.AVATAR_SIZE> = CONST.AVATAR_SIZE.SMALLER;
     if (useMidSubscriptSize) {
         avatarSize = CONST.AVATAR_SIZE.MID_SUBSCRIPT;
     } else if (size === CONST.AVATAR_SIZE.LARGE) {
