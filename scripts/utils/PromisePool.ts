@@ -24,10 +24,9 @@ class PromisePool<T> {
         }
         const p = task();
         this.executing.add(p);
-        p.finally(() => {
+        return p.finally(() => {
             this.executing.delete(p);
         });
-        return p;
     }
 }
 

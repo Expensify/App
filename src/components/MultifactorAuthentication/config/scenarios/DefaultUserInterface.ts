@@ -1,9 +1,20 @@
 import type {MultifactorAuthenticationDefaultUIConfig, MultifactorAuthenticationScenarioCustomConfig} from '@components/MultifactorAuthentication/config/types';
 import NoEligibleMethodsDescription from '@components/MultifactorAuthentication/NoEligibleMethodsDescription';
+import UnsupportedDeviceDescription from '@components/MultifactorAuthentication/UnsupportedDeviceDescription';
+import type {MultifactorAuthenticationCallbackInput, MultifactorAuthenticationCallbackResponse} from '@libs/MultifactorAuthentication/Biometrics/types';
 // Spacing utilities are needed for icon padding configuration in outcomes defaults
 // eslint-disable-next-line no-restricted-imports
 import spacing from '@styles/utils/spacing';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
+
+/**
+ * Default callback that returns SHOW_OUTCOME_SCREEN.
+ * Scenarios can override this with their own callback to handle custom navigation logic.
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const defaultCallback = (isSuccessful: boolean, callbackInput: MultifactorAuthenticationCallbackInput): Promise<MultifactorAuthenticationCallbackResponse> =>
+    Promise.resolve(CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN);
 
 /**
  * Default UI configuration for all multifactor authentication scenarios with modals and outcomes.
@@ -47,6 +58,16 @@ const DEFAULT_CONFIG = {
             description: 'multifactorAuthentication.biometricsTest.youCouldNotBeAuthenticated',
             customDescription: NoEligibleMethodsDescription,
         },
+        unsupportedDevice: {
+            illustration: 'HumptyDumpty',
+            iconWidth: variables.humptyDumptyWidth,
+            iconHeight: variables.humptyDumptyHeight,
+            padding: spacing.p0,
+            headerTitle: 'multifactorAuthentication.biometricsTest.biometricsAuthentication',
+            title: 'multifactorAuthentication.unsupportedDevice.unsupportedDevice',
+            description: 'multifactorAuthentication.biometricsTest.youCouldNotBeAuthenticated',
+            customDescription: UnsupportedDeviceDescription,
+        },
     },
     MODALS: {
         cancelConfirmation: {
@@ -56,7 +77,7 @@ const DEFAULT_CONFIG = {
             cancelButtonText: 'common.cancel',
         },
     },
-    nativePromptTitle: 'multifactorAuthentication.letsVerifyItsYou',
+    callback: defaultCallback,
 } as const satisfies MultifactorAuthenticationDefaultUIConfig;
 
 /**
@@ -90,6 +111,10 @@ function customConfig<const T extends MultifactorAuthenticationScenarioCustomCon
         noEligibleMethods: {
             ...DEFAULT_CONFIG.OUTCOMES.noEligibleMethods,
             ...config.OUTCOMES?.noEligibleMethods,
+        },
+        unsupportedDevice: {
+            ...DEFAULT_CONFIG.OUTCOMES.unsupportedDevice,
+            ...config.OUTCOMES?.unsupportedDevice,
         },
     } as const;
 

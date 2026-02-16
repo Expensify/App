@@ -190,6 +190,7 @@ function TransactionListItem<TItem extends ListItem>({
                 hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, item.isSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 id={item.keyForList ?? ''}
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM}
                 style={[
                     pressableStyle,
                     isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
@@ -205,6 +206,7 @@ function TransactionListItem<TItem extends ListItem>({
                                 handleActionButtonPress={handleActionButtonPress}
                                 shouldShowUserInfo={!!transactionItem?.from}
                                 isInMobileSelectionMode={shouldUseNarrowLayout && !!canSelectMultiple}
+                                isDisabledItem={!!isDisabled}
                             />
                         )}
                         <TransactionItemRow
@@ -217,6 +219,7 @@ function TransactionListItem<TItem extends ListItem>({
                             columns={columns}
                             isActionLoading={isLoading ?? isActionLoading}
                             isSelected={!!transactionItem.isSelected}
+                            isDisabled={!!isDisabled}
                             dateColumnSize={dateColumnSize}
                             submittedColumnSize={submittedColumnSize}
                             approvedColumnSize={approvedColumnSize}
@@ -225,6 +228,7 @@ function TransactionListItem<TItem extends ListItem>({
                             amountColumnSize={amountColumnSize}
                             taxAmountColumnSize={taxAmountColumnSize}
                             shouldShowCheckbox={!!canSelectMultiple}
+                            checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM_CHECKBOX}
                             style={[styles.p3, styles.pv2, shouldUseNarrowLayout ? styles.pt2 : {}]}
                             violations={transactionViolations}
                             onArrowRightPress={() => onSelectRow(item, transactionPreviewData)}

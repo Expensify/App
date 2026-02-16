@@ -20,8 +20,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportActions} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-type ExportWithDropdownMenuProps = {
+type ExportWithDropdownMenuProps = WithSentryLabel & {
     report: OnyxEntry<Report>;
 
     reportActions: OnyxEntry<ReportActions>;
@@ -31,9 +32,6 @@ type ExportWithDropdownMenuProps = {
     dropdownAnchorAlignment?: AnchorAlignment;
 
     wrapperStyle?: StyleProp<ViewStyle>;
-
-    /** Label for Sentry tracking */
-    sentryLabel?: string;
 };
 
 function ExportWithDropdownMenu({

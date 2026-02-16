@@ -8,7 +8,8 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isRequiredFulfilled, isValidInputLength} from '@libs/ValidationUtils';
+import {isInvalidMerchantValue, isRequiredFulfilled, isValidInputLength} from '@libs/ValidationUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 
@@ -21,9 +22,22 @@ type TextBaseProps<TFormID extends OnyxFormKey> = {
     characterLimit?: number;
     formID: TFormID;
     onSubmit: (values: FormOnyxValues<TFormID>) => void;
+
+    /** Whether to use markdown input type */
+    isMarkdownEnabled?: boolean;
 };
 
-function TextBase<TFormID extends OnyxFormKey>({fieldID, hint, isRequired, title, label, onSubmit, formID, characterLimit = CONST.MERCHANT_NAME_MAX_BYTES}: TextBaseProps<TFormID>) {
+function TextBase<TFormID extends OnyxFormKey>({
+    fieldID,
+    hint,
+    isRequired,
+    title,
+    label,
+    onSubmit,
+    formID,
+    characterLimit = CONST.MERCHANT_NAME_MAX_BYTES,
+    isMarkdownEnabled = false,
+}: TextBaseProps<TFormID>) {
     const {translate} = useLocalize();
     const [form] = useOnyx(formID, {canBeMissing: true});
     const styles = useThemeStyles();
@@ -48,6 +62,10 @@ function TextBase<TFormID extends OnyxFormKey>({fieldID, hint, isRequired, title
 
             if (!isValid) {
                 (errors as Record<string, string>)[fieldID] = translate('common.error.characterLimitExceedCounter', byteLength, characterLimit);
+            } else if (fieldID === CONST.EXPENSE_RULES.FIELDS.RENAME_MERCHANT || fieldID === CONST.MERCHANT_RULES.FIELDS.MERCHANT) {
+                if (isInvalidMerchantValue(trimmedValue)) {
+                    (errors as Record<string, string>)[fieldID] = translate('iou.error.invalidMerchant');
+                }
             }
         }
 
@@ -62,6 +80,7 @@ function TextBase<TFormID extends OnyxFormKey>({fieldID, hint, isRequired, title
             onSubmit={onSubmit}
             submitButtonText={translate('common.save')}
             enabledWhenOffline
+            shouldUseStrictHtmlTagValidation
         >
             <View style={styles.mb5}>
                 <InputWrapper
@@ -74,6 +93,9 @@ function TextBase<TFormID extends OnyxFormKey>({fieldID, hint, isRequired, title
                     accessibilityLabel={title}
                     role={CONST.ROLE.PRESENTATION}
                     ref={inputCallbackRef}
+                    type={isMarkdownEnabled ? 'markdown' : undefined}
+                    autoGrowHeight={isMarkdownEnabled}
+                    maxAutoGrowHeight={isMarkdownEnabled ? variables.textInputAutoGrowMaxHeight : undefined}
                 />
             </View>
         </FormProvider>

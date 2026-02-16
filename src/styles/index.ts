@@ -931,19 +931,12 @@ const staticStyles = (theme: ThemeColors) =>
         actionableItemButton: {
             paddingTop: 8,
             paddingBottom: 8,
-            backgroundColor: 'transparent',
-            borderWidth: 1,
-            borderColor: theme.border,
             alignItems: 'flex-start',
             borderRadius: variables.componentBorderRadiusMedium,
         },
 
         actionableItemButtonBackgroundHovered: {
             borderColor: theme.buttonPressedBG,
-        },
-
-        actionableItemButtonHovered: {
-            borderWidth: 1,
         },
 
         hoveredComponentBG: {
@@ -1655,6 +1648,7 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: 999,
             alignItems: 'center',
             justifyContent: 'center',
+            boxShadow: theme.shadow,
         },
 
         floatingSecondaryActionButton: {
@@ -1669,16 +1663,10 @@ const staticStyles = (theme: ThemeColors) =>
         floatingActionButtonSmall: {
             width: variables.componentSizeNormal,
             height: variables.componentSizeNormal,
+            boxShadow: 'none',
         },
 
         floatingCameraButton: {
-            position: 'absolute',
-            top: -variables.componentSizeLarge - 16,
-            right: 16,
-            zIndex: 10,
-        },
-
-        floatingCameraButtonAboveFab: {
             position: 'absolute',
             // floatingActionButton top property value (componentSizeLarge + 16) +
             // + floatingCameraButton height (componentSizeLarge) + gap (12) = 2 * componentSizeLarge + 28
@@ -1695,15 +1683,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         floatingGpsButton: {
-            position: 'absolute',
-            // floatingCameraButton top property value (componentSizeLarge + 16) +
-            // + floatingGpsButton height (componentSizeLarge) + gap (12) = 2 * componentSizeLarge + 28
-            top: 2 * -variables.componentSizeLarge - 28,
-            right: 16,
-            zIndex: 10,
-        },
-
-        floatingGpsButtonAboveFab: {
             position: 'absolute',
             // floatingActionButton top property value (componentSizeLarge + 16) +
             // + floatingCameraButton height (componentSizeLarge) + gap (12) + floatingGpsButton height (componentSizeLarge) + gap (12) = 3 * variables.componentSizeLarge + 40
@@ -2158,9 +2137,14 @@ const staticStyles = (theme: ThemeColors) =>
                 ...(Platform.OS === 'android' && {
                     height: undefined,
                     lineHeight: undefined,
-                    alignSelf: 'stretch',
                     flexGrow: 1,
                     flexShrink: 1,
+                }),
+
+                // On iOS, negative margin adjusts frame position for correct VoiceOver focus order. See #77499.
+                ...(Platform.OS === 'ios' && {
+                    marginTop: -5,
+                    paddingTop: 5,
                 }),
             },
             0,
@@ -2979,6 +2963,10 @@ const staticStyles = (theme: ThemeColors) =>
             alignSelf: 'flex-start',
         },
 
+        transactionsCarouselGap: {
+            width: variables.spacing2,
+        },
+
         attachmentCarouselContainer: {
             height: '100%',
             width: '100%',
@@ -3687,9 +3675,54 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
+        widgetItemButton: {
+            minWidth: 68,
+        },
+
+        widgetItemSubtitle: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeLabel,
+            lineHeight: 16,
+            color: theme.textSupporting,
+        },
+
+        widgetItemTitle: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.fontSizeNormalHeight,
+            color: theme.text,
+        },
+
+        forYouEmptyStateContainer: {
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginTop: 20,
+            marginBottom: 52,
+        },
+
+        forYouEmptyStateTitle: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.fontSizeNormalHeight,
+            marginTop: 20,
+            textAlign: 'center',
+            color: theme.text,
+        },
+
+        forYouEmptyStateSubtitle: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeLabel,
+            lineHeight: 16,
+            marginTop: 2,
+            textAlign: 'center',
+            color: theme.textSupporting,
+        },
+
         homePageContentContainer: {
             flexGrow: 1,
-            padding: 20,
+            paddingTop: 0,
+            paddingHorizontal: 20,
+            paddingBottom: 20,
         },
 
         cardSectionIllustration: {
@@ -4224,12 +4257,17 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
             justifyContent: 'center',
             borderRadius: variables.buttonBorderRadius,
+            scrollMarginInline: variables.tabSelectorScrollMarginInline,
         },
 
         tabSelector: {
             flexDirection: 'row',
             paddingHorizontal: 20,
             paddingBottom: 12,
+        },
+
+        scrollableTabSelector: {
+            flexGrow: 0,
         },
 
         dualColorOverscrollSpacer: {
@@ -4680,6 +4718,12 @@ const staticStyles = (theme: ThemeColors) =>
             borderWidth: 2,
             borderRadius: 2,
             backgroundColor: theme.componentBG,
+        },
+
+        baseListHeaderWrapperStyle: {
+            ...spacing.ph9,
+            ...spacing.pv3,
+            ...spacing.pb5,
         },
 
         selectionListStickyHeader: {
@@ -5148,14 +5192,9 @@ const staticStyles = (theme: ThemeColors) =>
             height: 220,
         },
 
-        uberConfirmationIllustrationContainer: {
-            width: 260,
-            height: 172,
-        },
-
-        gpsWebIllustrationContainer: {
-            width: 286,
-            height: 188,
+        toddInCarIllustrationContainer: {
+            width: 256,
+            height: 144,
         },
 
         emptyStateCardIllustrationContainer: {
@@ -5728,10 +5767,61 @@ const staticStyles = (theme: ThemeColors) =>
         paymentMethodErrorRow: {
             paddingHorizontal: variables.iconSizeMenuItem + variables.iconSizeNormal / 2,
         },
+        chartHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: variables.componentBorderRadius,
+            marginBottom: variables.sectionMargin,
+        },
+        chartTitle: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.fontSizeNormalHeight,
+            color: theme.text,
+        },
+        chartTooltipWrapper: {
+            alignItems: 'center',
+        },
+        chartTooltipBox: {
+            backgroundColor: theme.heading,
+            borderRadius: variables.componentBorderRadiusSmall,
+            paddingVertical: 4,
+            paddingHorizontal: 8,
+        },
+        chartTooltipText: {
+            color: theme.textReversed,
+            fontSize: variables.fontSizeSmall,
+            lineHeight: variables.lineHeightSmall,
+            whiteSpace: 'nowrap',
+        },
+        chartTooltipPointer: {
+            width: 0,
+            height: 0,
+            backgroundColor: theme.transparent,
+            borderStyle: 'solid',
+        },
+        barChartContainer: {
+            borderRadius: variables.componentBorderRadiusLarge,
+        },
+        barChartChartContainer: {
+            minHeight: 250,
+        },
+        lineChartContainer: {
+            borderRadius: variables.componentBorderRadiusLarge,
+            paddingTop: variables.qrShareHorizontalPadding,
+            paddingHorizontal: variables.qrShareHorizontalPadding,
+        },
+        lineChartChartContainer: {
+            minHeight: 250,
+        },
         discoverSectionImage: {
             width: '100%',
             height: undefined,
             aspectRatio: 2.2,
+        },
+        dateIconSize: {
+            width: variables.iconSizeExtraLarge,
+            height: variables.iconSizeExtraLarge,
         },
     }) satisfies StaticStyles;
 
@@ -6025,6 +6115,11 @@ const dynamicStyles = (theme: ThemeColors) =>
             maxWidth: shouldUseNarrowLayout ? '100%' : 300,
         }),
 
+        getForYouSectionContainerStyle: (shouldUseNarrowLayout: boolean): ViewStyle => ({
+            flexDirection: 'column',
+            marginBottom: shouldUseNarrowLayout ? 8 : 20,
+        }),
+
         getSelectionListPopoverHeight: (itemCount: number, windowHeight: number, isSearchable: boolean) => {
             const SEARCHBAR_HEIGHT = isSearchable ? 52 : 0;
             const SEARCHBAR_PADDING = isSearchable ? 12 : 0;
@@ -6236,6 +6331,25 @@ const plainStyles = (theme: ThemeColors) =>
                 color,
             }) satisfies TextStyle,
 
+        getWidgetContainerHeaderStyle: (shouldUseNarrowLayout: boolean) =>
+            ({
+                flexDirection: 'row',
+                alignItems: 'flex-start',
+                marginBottom: 20,
+                marginHorizontal: shouldUseNarrowLayout ? 20 : 32,
+                marginTop: shouldUseNarrowLayout ? 20 : 32,
+            }) satisfies ViewStyle,
+
+        getWidgetItemIconContainerStyle: (backgroundColor: string) =>
+            ({
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: variables.componentBorderRadiusNormal,
+                width: variables.componentSizeNormal,
+                height: variables.componentSizeNormal,
+                backgroundColor,
+            }) satisfies ViewStyle,
+
         homePageMainLayout: (shouldUseNarrowLayout: boolean) =>
             ({
                 flexDirection: shouldUseNarrowLayout ? 'column' : 'row',
@@ -6246,10 +6360,10 @@ const plainStyles = (theme: ThemeColors) =>
         homePageLeftColumn: (shouldUseNarrowLayout: boolean) =>
             shouldUseNarrowLayout
                 ? ({width: '100%', flexDirection: 'column', gap: 20} satisfies ViewStyle)
-                : ({flex: 2, flexBasis: '66.666%', maxWidth: variables.homePageLeftColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle),
+                : ({flex: 7, flexBasis: '58.333%', maxWidth: variables.homePageLeftColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle),
 
         homePageRightColumn: (shouldUseNarrowLayout: boolean) =>
-            shouldUseNarrowLayout ? ({width: '100%'} satisfies ViewStyle) : ({flex: 1, flexBasis: '33.333%', maxWidth: variables.homePageRightColumnMaxWidth} satisfies ViewStyle),
+            shouldUseNarrowLayout ? ({width: '100%'} satisfies ViewStyle) : ({flex: 5, flexBasis: '41.667%', maxWidth: variables.homePageRightColumnMaxWidth} satisfies ViewStyle),
     }) satisfies Styles;
 
 const styles = (theme: ThemeColors) =>

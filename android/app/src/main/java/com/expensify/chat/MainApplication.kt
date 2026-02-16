@@ -42,7 +42,7 @@ class MainApplication : MultiDexApplication(), ReactApplication {
             add(NavBarManagerPackage())
         }
 
-        override fun getJSMainModuleName() = "index"
+        override fun getJSMainModuleName() = ".expo/.virtual-metro-entry"
 
         override val isNewArchEnabled: Boolean
             get() = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED
@@ -73,11 +73,6 @@ class MainApplication : MultiDexApplication(), ReactApplication {
         // Force the app to LTR mode.
         val sharedI18nUtilInstance = I18nUtil.instance
         sharedI18nUtilInstance.allowRTL(applicationContext, false)
-
-        // Start the "js_load" custom performance tracing metric. This timer is stopped by a native
-        // module in the JS so we can measure total time starting in the native layer and ending in
-        // the JS layer.
-        StartupTimer.start()
 
         // Increase SQLite DB write size
         try {

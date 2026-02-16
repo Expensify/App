@@ -27,6 +27,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
             CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
+            CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
             CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT,
@@ -223,7 +224,7 @@ function useAdvancedSearchFilters() {
 
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: emailSelector});
 
-    const {sections: workspaces} = useWorkspaceList({
+    const {sections: workspaces, shouldShowSearchInput: shouldShowWorkspaceSearchInput} = useWorkspaceList({
         policies,
         currentUserLogin,
         shouldShowPendingDeletePolicy: false,
@@ -253,6 +254,7 @@ function useAdvancedSearchFilters() {
     const shouldDisplayTaxFilter = shouldDisplayFilter(Object.keys(taxRates).length, areTaxEnabled);
     const shouldDisplayWorkspaceFilter = workspaces.some((section) => section.data.length > 1);
     const shouldDisplayGroupCurrencyFilter = !!searchAdvancedFilters.groupBy;
+    const shouldDisplayViewFilter = !!searchAdvancedFilters.groupBy;
     const shouldDisplayReportFieldFilter = Object.values(policies).some((policy): policy is NonNullable<Policy> => {
         return Object.values(policy?.fieldList ?? {}).some((val) => val.type !== CONST.POLICY.DEFAULT_FIELD_LIST_TYPE);
     });
@@ -265,6 +267,8 @@ function useAdvancedSearchFilters() {
 
     return {
         currentType,
+        workspaces,
+        shouldShowWorkspaceSearchInput,
         typeFiltersKeys: typeFiltersKeys[currentType]
             .map((section) =>
                 section
@@ -285,6 +289,9 @@ function useAdvancedSearchFilters() {
                             return;
                         }
                         if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY && !shouldDisplayGroupCurrencyFilter) {
+                            return;
+                        }
+                        if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW && !shouldDisplayViewFilter) {
                             return;
                         }
                         if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE && !shouldDisplayAttendeeFilter) {

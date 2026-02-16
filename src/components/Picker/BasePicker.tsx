@@ -12,6 +12,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useScrollContext from '@hooks/useScrollContext';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isMobile} from '@libs/Browser';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import CONST from '@src/CONST';
 import type {BasePickerProps} from './types';
@@ -26,6 +27,7 @@ function BasePicker<TPickerValue>({
     onInputChange,
     icon,
     label = '',
+    accessibilityLabel,
     isDisabled = false,
     errorText = '',
     hintText = '',
@@ -159,6 +161,9 @@ function BasePicker<TPickerValue>({
 
     const hasError = !!errorText;
 
+    // Disable Tab focus on mobile to prevent soft keyboard navigation jumping to picker (#25759)
+    const pickerTabIndex = isMobile() ? -1 : 0;
+
     if (isDisabled && shouldShowOnlyTextWhenDisabled) {
         return (
             <View>
@@ -207,12 +212,13 @@ function BasePicker<TPickerValue>({
                     }}
                     pickerProps={{
                         ref: picker,
-                        tabIndex: -1,
+                        tabIndex: pickerTabIndex,
                         onFocus: enableHighlight,
                         onBlur: () => {
                             disableHighlight();
                             onBlur();
                         },
+                        accessibilityLabel,
                         ...additionalPickerEvents(enableHighlight, (inputValue, index) => {
                             onValueChange(inputValue, index);
                             disableHighlight();

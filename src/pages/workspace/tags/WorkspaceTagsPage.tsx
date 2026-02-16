@@ -6,6 +6,7 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
+import EmployeesSeeTagsAsText from '@components/EmployeesSeeTagsAsText';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
@@ -58,6 +59,7 @@ import {
     getTagLists,
     hasAccountingConnections as hasAccountingConnectionsPolicyUtils,
     hasDependentTags as hasDependentTagsPolicyUtils,
+    hasIndependentTags as hasIndependentTagsPolicyUtils,
     isControlPolicy,
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
     shouldShowSyncError,
@@ -103,8 +105,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const currentConnectionName = getCurrentConnectionName(policy);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Gear', 'Table', 'Download', 'Plus', 'Trashcan', 'Close', 'Trashcan', 'Checkmark']);
 
-    const [policyTagLists, isMultiLevelTags, hasDependentTags] = useMemo(
-        () => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags), hasDependentTagsPolicyUtils(policy, policyTags)],
+    const [policyTagLists, isMultiLevelTags, hasDependentTags, hasIndependentTags] = useMemo(
+        () => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags), hasDependentTagsPolicyUtils(policy, policyTags), hasIndependentTagsPolicyUtils(policy, policyTags)],
         [policy, policyTags],
     );
 
@@ -672,34 +674,49 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
 
+    const getHeaderSubtitle = () => {
+        if (!hasSyncError && isConnectionVerified && currentConnectionName) {
+            return (
+                <ImportedFromAccountingSoftware
+                    policyID={policyID}
+                    currentConnectionName={currentConnectionName}
+                    connectedIntegration={connectedIntegration}
+                    translatedText={translate('workspace.tags.importedFromAccountingSoftware')}
+                    customTagName={policyTagLists.at(0)?.name ?? ''}
+                    shouldShow={!hasDependentTags && !hasIndependentTags}
+                />
+            );
+        }
+
+        if (!hasDependentTags && !hasIndependentTags && !!policyTagLists.at(0)?.name) {
+            return (
+                <Text style={[styles.textNormal, styles.colorMuted]}>
+                    <EmployeesSeeTagsAsText customTagName={policyTagLists.at(0)?.name ?? ''} />
+                </Text>
+            );
+        }
+
+        return (
+            <View style={[styles.renderHTML]}>
+                <RenderHTML
+                    html={
+                        hasDependentTags
+                            ? translate(
+                                  'workspace.tags.subtitleWithDependentTags',
+                                  isQuickSettingsFlow
+                                      ? `${environmentURL}/${ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))}`
+                                      : `${environmentURL}/${ROUTES.WORKSPACE_TAGS_IMPORT_OPTIONS.getRoute(policyID)}`,
+                              )
+                            : `<muted-text>${translate('workspace.tags.subtitle')}</muted-text>`
+                    }
+                />
+            </View>
+        );
+    };
+
     const headerContent = (
         <>
-            <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : undefined]}>
-                {!hasSyncError && isConnectionVerified && currentConnectionName ? (
-                    <ImportedFromAccountingSoftware
-                        policyID={policyID}
-                        currentConnectionName={currentConnectionName}
-                        connectedIntegration={connectedIntegration}
-                        translatedText={translate('workspace.tags.importedFromAccountingSoftware')}
-                    />
-                ) : (
-                    <Text style={[styles.textNormal, styles.colorMuted]}>
-                        {translate('workspace.tags.subtitle')}
-                        {hasDependentTags && (
-                            <View style={[styles.renderHTML]}>
-                                <RenderHTML
-                                    html={translate(
-                                        'workspace.tags.dependentMultiLevelTagsSubtitle',
-                                        isQuickSettingsFlow
-                                            ? `${environmentURL}/${ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))}`
-                                            : `${environmentURL}/${ROUTES.WORKSPACE_TAGS_IMPORT_OPTIONS.getRoute(policyID)}`,
-                                    )}
-                                />
-                            </View>
-                        )}
-                    </Text>
-                )}
-            </View>
+            <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : undefined]}>{getHeaderSubtitle()}</View>
             {tagList.length > CONST.SEARCH_ITEM_LIMIT && (
                 <SearchBar
                     label={translate('workspace.tags.findTag')}
@@ -753,7 +770,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                 return;
                             }
 
-                            Navigation.popToSidebar();
+                            Navigation.goBack();
                         }}
                     >
                         {!shouldUseNarrowLayout && getHeaderButtons()}
@@ -776,7 +793,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             onSelectAll={filteredTagList.length > 0 ? toggleAllTags : undefined}
                             customListHeader={filteredTagList.length > 0 ? getCustomListHeader() : undefined}
                             onDismissError={(item) => !hasDependentTags && clearPolicyTagErrors({policyID, tagName: item.value, tagListIndex: 0, policyTags})}
-                            style={{listHeaderWrapperStyle: [styles.ph9, styles.pv3, styles.pb5]}}
                             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                             onTurnOnSelectionMode={(item) => item && toggleTag(item)}
                             turnOnSelectionModeOnLongPress={!hasDependentTags}
