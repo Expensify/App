@@ -500,7 +500,7 @@ function ReportActionItemMessageEdit({
                             isGroupPolicyReport={isGroupPolicyReport}
                             shouldCalculateCaretPosition
                             onScroll={onSaveScrollAndHideSuggestionMenu}
-                            testID="composer"
+                            testID={CONST.COMPOSER.NATIVE_ID}
                         />
                     </View>
 

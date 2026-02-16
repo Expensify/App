@@ -1074,7 +1074,7 @@ function ComposerWithSuggestions({
                     isComposerFullSize={isComposerFullSize}
                     onContentSizeChange={handleContentSizeChange}
                     value={value}
-                    testID="composer"
+                    testID={CONST.COMPOSER.NATIVE_ID}
                     shouldCalculateCaretPosition
                     onLayout={onLayout}
                     onScroll={hideSuggestionMenu}
