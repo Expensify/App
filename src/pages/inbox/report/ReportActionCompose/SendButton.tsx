@@ -23,7 +23,7 @@ type SendButtonProps = {
     onSend: () => void;
 };
 
-function SendButton({isDisabled: isDisabledProp, onSend, isEditing = false}: SendButtonProps) {
+function SendButton({isDisabled: isDisabledProp = false, isEditing = false, onSend}: SendButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -33,13 +33,14 @@ function SendButton({isDisabled: isDisabledProp, onSend, isEditing = false}: Sen
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const Tap = Gesture.Tap()
+        .enabled(!isDisabledProp)
         .onEnd(() => {
             onSend();
         })
         .runOnJS(true)
         .withTestId(CONST.COMPOSER.SEND_BUTTON_TEST_ID);
 
-    const label = isEditing ? translate('common.saveChanges') : translate('common.send');
+    const label = translate(isEditing ? 'common.saveChanges' : 'common.send');
     const sentryLabel = isEditing ? CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_MESSAGE_EDIT_SAVE_BUTTON : CONST.SENTRY_LABEL.REPORT.SEND_BUTTON;
 
     return (
@@ -65,14 +66,15 @@ function SendButton({isDisabled: isDisabledProp, onSend, isEditing = false}: Sen
                         <PressableWithFeedback
                             style={({pressed, isDisabled}) => [
                                 styles.chatItemSubmitButton,
-                                isDisabledProp || pressed || isDisabled ? undefined : styles.buttonSuccess,
-                                isDisabledProp ? styles.cursorDisabled : undefined,
+                                pressed || isDisabled ? undefined : styles.buttonSuccess,
+                                isDisabled ? styles.cursorDisabled : undefined,
                             ]}
                             // Since the parent View has accessible, we need to set accessible to false here to avoid duplicate accessibility elements.
                             // On Android when TalkBack is enabled, only the parent element should be accessible, otherwise the button will not work.
                             accessible={false}
                             focusable={false}
                             sentryLabel={sentryLabel}
+                            disabled={isDisabledProp}
                         >
                             {({pressed}) => (
                                 <Icon
