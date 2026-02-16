@@ -79,21 +79,6 @@ function SendButton({isDisabled: isDisabledProp, onSend, isEditing = false}: Sen
                         </PressableWithFeedback>
                     </Tooltip>
                 </View>
-
-                {/* <View style={styles.alignSelfEnd}>
-                            <PressableWithFeedback
-                                onPress={publishDraft}
-                                hoverDimmingValue={1}
-                                pressDimmingValue={0.2}
-                                // Keep focus on the composer when send button is clicked.
-                                onMouseDown={(e) => e.preventDefault()}
-                            >
-                                <Icon
-                                    src={icons.Checkmark}
-                                    fill={hasExceededMaxCommentLength ? theme.icon : theme.textLight}
-                                />
-                            </PressableWithFeedback>
-                    </View> */}
             </GestureDetector>
         </View>
     );
