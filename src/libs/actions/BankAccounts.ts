@@ -1061,7 +1061,7 @@ function openReimbursementAccountPage(
         localCurrentStep,
         policyID,
         shouldPreserveDraft,
-        includeKYBStep: true,
+        includeUploadKYBSetupStep: true,
     };
 
     return API.read(READ_COMMANDS.OPEN_REIMBURSEMENT_ACCOUNT_PAGE, parameters, onyxData);
@@ -1118,6 +1118,7 @@ function acceptACHContractForBankAccount(bankAccountID: number, params: ACHContr
             ...params,
             bankAccountID,
             policyID,
+            includeUploadKYBSetupStep: true,
         },
         onyxData,
     );
@@ -1156,7 +1157,7 @@ function verifyIdentityForBankAccount(bankAccountID: number, onfidoData: OnfidoD
 }
 
 function uploadUserKYBDocs(parameters: UploadUserKYBDocsParams) {
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,

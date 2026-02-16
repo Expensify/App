@@ -9,7 +9,7 @@ type OpenReimbursementAccountPageParams = {
     localCurrentStep: ReimbursementAccountStep;
     policyID: string;
     shouldPreserveDraft?: boolean;
-    includeKYBStep: boolean;
+    includeUploadKYBSetupStep: boolean;
 };
 
 export default OpenReimbursementAccountPageParams;
