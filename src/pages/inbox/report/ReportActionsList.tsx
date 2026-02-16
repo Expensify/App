@@ -203,9 +203,6 @@ function ReportActionsList({
     const isMoneyRequestOrInvoiceReport = useMemo(() => isMoneyRequestReport(report) || isInvoiceReport(report), [report]);
     const shouldFocusToTopOnMount = useMemo(() => isTransactionThreadReport || isMoneyRequestOrInvoiceReport, [isMoneyRequestOrInvoiceReport, isTransactionThreadReport]);
     const topReportAction = sortedVisibleReportActions.at(-1);
-    const shouldRenderTopReportActionOutsideOfInvertedList =
-        (isTransactionThreadReport || isMoneyRequestOrInvoiceReport) && topReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
-    const visibleReportActionsForInvertedList = shouldRenderTopReportActionOutsideOfInvertedList ? sortedVisibleReportActions.slice(0, -1) : sortedVisibleReportActions;
     const [shouldScrollToEndAfterLayout, setShouldScrollToEndAfterLayout] = useState(shouldFocusToTopOnMount && !reportActionID);
     const isAnonymousUser = useIsAnonymousUser();
 
@@ -693,7 +690,6 @@ function ReportActionsList({
             const transactionID = isMoneyRequestAction(reportAction) && getOriginalMessage(reportAction)?.IOUTransactionID;
             const transaction = transactionID ? transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] : undefined;
             const actionLinkedTransactionRouteError = transaction?.errorFields?.route ?? undefined;
-            const messageTabOrder = visibleReportActionsForInvertedList.length - 1 - index;
 
             return (
                 <ReportActionsListItemRenderer
@@ -731,7 +727,6 @@ function ReportActionsList({
                     isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                     reportNameValuePairsOrigin={reportNameValuePairs?.origin}
                     reportNameValuePairsOriginalID={reportNameValuePairs?.originalID}
-                    messageTabOrder={messageTabOrder}
                 />
             );
         },
@@ -761,7 +756,6 @@ function ReportActionsList({
             isReportArchived,
             reportNameValuePairs?.origin,
             reportNameValuePairs?.originalID,
-            visibleReportActionsForInvertedList.length,
             reportActionsFromOnyx,
         ],
     );
@@ -811,7 +805,14 @@ function ReportActionsList({
         );
     }, [canShowHeader, retryLoadNewerChatsError]);
 
-    const shouldShowSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+    const shouldShowSkeleton = useMemo(
+        () => (isOffline || !reportMetadata?.hasOnceLoadedReportActions) && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED),
+        [isOffline, reportMetadata?.hasOnceLoadedReportActions, sortedVisibleReportActions],
+    );
+
+    // While reportActions are loading, use the last reportAction as a fallback
+    // since it’s available before the rest finish loading.
+    const reportActionsToRender = useMemo(() => (shouldShowSkeleton ? sortedVisibleReportActions.slice(0, 1) : sortedVisibleReportActions), [shouldShowSkeleton, sortedVisibleReportActions]);
 
     const listFooterComponent = useMemo(() => {
         if (!shouldShowSkeleton) {
@@ -860,18 +861,13 @@ function ReportActionsList({
                 style={[styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
                 fsClass={reportActionsListFSClass}
             >
-                {shouldRenderTopReportActionOutsideOfInvertedList && topReportAction ? (
-                    <View style={[styles.overflowScroll, styles.overflowXHidden]}>
-                        {renderItem({item: topReportAction, index: sortedVisibleReportActions.length - 1} as ListRenderItemInfo<OnyxTypes.ReportAction>)}
-                    </View>
-                ) : undefined}
-                {shouldScrollToEndAfterLayout && topReportAction && !shouldRenderTopReportActionOutsideOfInvertedList ? renderTopReportActions() : undefined}
+                {shouldScrollToEndAfterLayout && topReportAction ? renderTopReportActions() : undefined}
                 <InvertedFlatList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                     ref={reportScrollManager.ref}
                     testID="report-actions-list"
                     style={styles.overscrollBehaviorContain}
-                    data={visibleReportActionsForInvertedList}
+                    data={reportActionsToRender}
                     renderItem={renderItem}
                     renderScrollComponent={renderActionSheetAwareScrollView}
                     contentContainerStyle={[styles.chatContentScrollView, shouldFocusToTopOnMount ? styles.justifyContentEnd : undefined]}

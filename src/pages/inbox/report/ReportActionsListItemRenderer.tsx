@@ -103,9 +103,6 @@ type ReportActionsListItemRendererProps = {
 
     /** Report name value pairs originalID */
     reportNameValuePairsOriginalID?: string;
-
-    /** Deterministic tab-order index for message rows in expense detail view */
-    messageTabOrder?: number;
 };
 
 function ReportActionsListItemRenderer({
@@ -141,7 +138,6 @@ function ReportActionsListItemRenderer({
     isReportArchived = false,
     reportNameValuePairsOrigin,
     reportNameValuePairsOriginalID,
-    messageTabOrder,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
@@ -274,7 +270,6 @@ function ReportActionsListItemRenderer({
             isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
             reportNameValuePairsOrigin={reportNameValuePairsOrigin}
             reportNameValuePairsOriginalID={reportNameValuePairsOriginalID}
-            messageTabOrder={messageTabOrder}
         />
     );
 }

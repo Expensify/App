@@ -16,11 +16,10 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import DateUtils from '@libs/DateUtils';
-import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getDelegateAccountIDFromReportAction, getManagerOnVacation, getOriginalMessage, getReportActionMessage, getSubmittedTo, getVacationer} from '@libs/ReportActionsUtils';
-import {isExpenseReport, isInvoiceReport, isMoneyRequestReport, isOptimisticPersonalDetail} from '@libs/ReportUtils';
+import {isOptimisticPersonalDetail} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -142,9 +141,6 @@ function ReportActionItemSingle({
     const shouldDisableDetailPage =
         CONST.RESTRICTED_ACCOUNT_IDS.includes(details.accountID ?? CONST.DEFAULT_NUMBER_ID) ||
         (!details.isWorkspaceActor && isOptimisticPersonalDetail(action?.delegateAccountID ? Number(action.delegateAccountID) : (details.accountID ?? CONST.DEFAULT_NUMBER_ID)));
-    const shouldDisableNestedTabStops =
-        getPlatform() === CONST.PLATFORM.WEB &&
-        (isExpenseReport(potentialIOUReport ?? report) || isMoneyRequestReport(potentialIOUReport ?? report) || isInvoiceReport(potentialIOUReport ?? report));
 
     const getBackgroundColor = () => {
         if (isActive) {
@@ -172,7 +168,6 @@ function ReportActionItemSingle({
                 disabled={shouldDisableDetailPage}
                 accessibilityLabel={details.actorHint}
                 role={CONST.ROLE.BUTTON}
-                tabIndex={shouldDisableNestedTabStops ? -1 : undefined}
                 sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_SINGLE_AVATAR_BUTTON}
             >
                 <OfflineWithFeedback pendingAction={details.pendingFields?.avatar ?? undefined}>
@@ -203,7 +198,6 @@ function ReportActionItemSingle({
                             disabled={shouldDisableDetailPage}
                             accessibilityLabel={details.actorHint}
                             role={CONST.ROLE.BUTTON}
-                            tabIndex={shouldDisableNestedTabStops ? -1 : undefined}
                             sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_SINGLE_ACTOR_BUTTON}
                         >
                             {personArray?.map((fragment, index) => (
