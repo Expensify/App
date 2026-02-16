@@ -26,7 +26,16 @@ import FS from '@libs/Fullstory';
 import {shouldOptionShowTooltip, shouldUseBoldText} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import {isAdminRoom, isChatUsedForOnboarding as isChatUsedForOnboardingReportUtils, isConciergeChatReport, isGroupChat, isOneOnOneChat, isSystemChat} from '@libs/ReportUtils';
+import {
+    isAdminRoom,
+    isChatThread,
+    isChatUsedForOnboarding as isChatUsedForOnboardingReportUtils,
+    isConciergeChatReport,
+    isGroupChat,
+    isOneOnOneChat,
+    isSystemChat,
+    isTripRoom,
+} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
@@ -269,7 +278,7 @@ function OptionRowLHN({
                                             {!!optionItem.icons?.length && !!firstIcon && (
                                                 <LHNAvatar
                                                     icons={optionItem.icons}
-                                                    shouldShowSubscript={!!optionItem.shouldShowSubscript}
+                                                    shouldShowSubscript={!!optionItem.shouldShowSubscript && !(isChatThread(report) && !isTripRoom(report))}
                                                     size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                                     subscriptAvatarBorderColor={hovered && !isOptionFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
                                                     useMidSubscriptSize={isInFocusMode}
