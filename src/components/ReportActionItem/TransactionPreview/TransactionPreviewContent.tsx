@@ -89,13 +89,14 @@ function TransactionPreviewContent({
     const transactionPreviewCommonArguments = useMemo(
         () => ({
             iouReport: report,
+            policy,
             transaction,
             action,
             isBillSplit,
             violations,
             transactionDetails,
         }),
-        [action, report, isBillSplit, transaction, transactionDetails, violations],
+        [action, report, policy, isBillSplit, transaction, transactionDetails, violations],
     );
 
     const conditionals = useMemo(
@@ -151,7 +152,7 @@ function TransactionPreviewContent({
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const isApproved = isReportApproved({report});
     const pendingAction = action?.pendingAction;
-    const isIOUSettled = !pendingAction && isSettled(report?.reportID);
+    const isIOUSettled = !pendingAction && isSettled(report);
     const isSettlementOrApprovalPartial = !!report?.pendingFields?.partial;
     const isTransactionScanning = isScanning(transaction);
     const displayAmount = isDeleted ? displayDeleteAmountText : displayAmountText;

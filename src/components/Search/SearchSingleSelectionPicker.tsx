@@ -128,6 +128,7 @@ function SearchSingleSelectionPicker({
             textInputOptions={textInputOptions}
             footerContent={shouldAutoSave ? undefined : footerContent}
             showLoadingPlaceholder={!noResultsFound}
+            disableMaintainingScrollPosition
             shouldUpdateFocusedIndex
             shouldStopPropagation
         />

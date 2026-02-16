@@ -2,7 +2,7 @@ import {format, isValid, parse} from 'date-fns';
 import {deepEqual} from 'fast-equals';
 import lodashDeepClone from 'lodash/cloneDeep';
 import lodashSet from 'lodash/set';
-import type {OnyxCollection, OnyxEntry, OnyxKey} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {Coordinate} from '@components/MapView/MapViewTypes';
@@ -19,7 +19,6 @@ import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import Permissions from '@libs/Permissions';
 import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {
     getCommaSeparatedTagNameWithSanitizedColons,
@@ -46,14 +45,14 @@ import {
     isSettled,
     isThread,
 } from '@libs/ReportUtils';
-import type {IOURequestType} from '@userActions/IOU';
+import {isInvalidMerchantValue} from '@libs/ValidationUtils';
+import type {IOURequestType, UpdateMoneyRequestDataKeys} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
-    Beta,
     CardList,
     OnyxInputOrEntry,
     Policy,
@@ -131,12 +130,6 @@ type BuildOptimisticTransactionParams = {
     transactionParams: TransactionParams;
     isDemoTransactionParam?: boolean;
 };
-
-let allBetas: OnyxEntry<Beta[]>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.BETAS,
-    callback: (value) => (allBetas = value),
-});
 
 let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
 Onyx.connect({
@@ -592,12 +585,9 @@ function isDemoTransaction(transaction: OnyxInputOrEntry<Transaction>): boolean 
 
 function isMerchantMissing(transaction: OnyxEntry<Transaction>) {
     if (transaction?.modifiedMerchant && transaction.modifiedMerchant !== '') {
-        return transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction.modifiedMerchant === CONST.TRANSACTION.DEFAULT_MERCHANT;
+        return isInvalidMerchantValue(transaction.modifiedMerchant);
     }
-    const isMerchantEmpty =
-        transaction?.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction?.merchant === CONST.TRANSACTION.DEFAULT_MERCHANT || transaction?.merchant === '';
-
-    return isMerchantEmpty;
+    return isInvalidMerchantValue(transaction?.merchant);
 }
 
 /**
@@ -621,24 +611,14 @@ function isPartialMerchant(merchant: string): boolean {
 }
 
 function isAmountMissing(transaction: OnyxEntry<Transaction>) {
-    if (Permissions.isBetaEnabled(CONST.BETAS.ZERO_EXPENSES, allBetas)) {
-        return transaction?.amount === undefined && (!transaction?.modifiedAmount === undefined || transaction?.modifiedAmount === '');
-    }
-    return (transaction?.amount === 0 || transaction?.amount === undefined) && (!transaction?.modifiedAmount || transaction?.modifiedAmount === 0 || transaction?.modifiedAmount === '');
+    return transaction?.amount === undefined && (transaction?.modifiedAmount === undefined || transaction?.modifiedAmount === '');
 }
 
 function hasValidModifiedAmount(transaction: OnyxEntry<Transaction> | null): boolean {
     if (!transaction) {
         return false;
     }
-    if (Permissions.isBetaEnabled(CONST.BETAS.ZERO_EXPENSES, allBetas)) {
-        return transaction?.modifiedAmount !== undefined && transaction?.modifiedAmount !== null && transaction?.modifiedAmount !== '';
-    }
-    return transaction?.modifiedAmount !== undefined && transaction?.modifiedAmount !== null && transaction?.modifiedAmount !== '' && transaction?.modifiedAmount !== 0;
-}
-
-function isPartial(transaction: OnyxEntry<Transaction>): boolean {
-    return isPartialMerchant(getMerchant(transaction)) && isAmountMissing(transaction);
+    return transaction?.modifiedAmount !== undefined && transaction?.modifiedAmount !== null && transaction?.modifiedAmount !== '';
 }
 
 function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
@@ -650,10 +630,7 @@ function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
 
 function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>, transactionReport: OnyxEntry<Report>): boolean {
     const isFromExpenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE;
-    if (Permissions.isBetaEnabled(CONST.BETAS.ZERO_EXPENSES, allBetas)) {
-        return (isFromExpenseReport && isMerchantMissing(transaction)) || isCreatedMissing(transaction);
-    }
-    return (isFromExpenseReport && isMerchantMissing(transaction)) || isAmountMissing(transaction) || isCreatedMissing(transaction);
+    return (isFromExpenseReport && isMerchantMissing(transaction)) || isCreatedMissing(transaction);
 }
 
 function getClearedPendingFields(transactionChanges: TransactionChanges) {
@@ -755,6 +732,7 @@ function getUpdatedTransaction({
                 translateLocal,
                 (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
                 getCurrencySymbol,
+                isManualDistanceRequest(transaction),
             );
 
             updatedTransaction.amount = updatedAmount;
@@ -803,6 +781,7 @@ function getUpdatedTransaction({
                 translateLocal,
                 (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
                 getCurrencySymbol,
+                isManualDistanceRequest(transaction),
             );
 
             updatedTransaction.amount = updatedAmount;
@@ -887,6 +866,7 @@ function getUpdatedTransaction({
             translateLocal,
             (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
             getCurrencySymbol,
+            isManualDistanceRequest(transaction),
         );
 
         updatedTransaction.modifiedAmount = amount;
@@ -1156,6 +1136,7 @@ function getMerchant(transaction: OnyxInputOrEntry<Transaction>, policyParam: On
                 translateLocal,
                 (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
                 getCurrencySymbol,
+                isManualDistanceRequest(transaction),
             );
         }
     }
@@ -1183,13 +1164,15 @@ function getReportOwnerAsAttendee(transaction: OnyxInputOrEntry<Transaction>, cu
 
     if (creatorAccountID) {
         const [creatorDetails] = getPersonalDetailsByIDs({accountIDs: [creatorAccountID], currentUserAccountID: currentUserPersonalDetails?.accountID});
-        const creatorEmail = creatorDetails?.login ?? '';
-        const creatorDisplayName = creatorDetails?.displayName ?? creatorEmail;
 
-        if (creatorEmail) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        const creatorLogin = creatorDetails?.login || creatorDetails?.displayName || '';
+        const creatorDisplayName = creatorDetails?.displayName ?? creatorLogin;
+
+        if (creatorLogin) {
             return {
-                email: creatorEmail,
-                login: creatorEmail,
+                email: creatorLogin,
+                login: creatorLogin,
                 displayName: creatorDisplayName,
                 accountID: creatorAccountID,
                 text: creatorDisplayName,
@@ -1387,7 +1370,7 @@ function isFromCreditCardImport(transaction: OnyxEntry<Transaction>): boolean {
         return true;
     }
 
-    if (transaction?.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD) {
+    if (transaction?.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD) {
         return false;
     }
 
@@ -1531,10 +1514,6 @@ function getTransactionViolations(
         transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID]?.filter(
             (violation) => !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy),
         ) ?? [];
-
-    if (!CONST.IS_ATTENDEES_REQUIRED_ENABLED) {
-        return violations.filter((violation) => violation.name !== CONST.VIOLATIONS.MISSING_ATTENDEES);
-    }
 
     return violations;
 }
@@ -1797,9 +1776,13 @@ function getWaypointIndex(key: string): number {
 /**
  * Filters the waypoints which are valid and returns those
  */
-function getValidWaypoints(waypoints: WaypointCollection | undefined, reArrangeIndexes = false): WaypointCollection {
+function getValidWaypoints(waypoints: WaypointCollection | undefined, reArrangeIndexes = false, areWaypointsForGpsDistanceRequest = false): WaypointCollection {
     if (!waypoints) {
         return {};
+    }
+
+    if (areWaypointsForGpsDistanceRequest) {
+        return waypoints;
     }
 
     const sortedIndexes = Object.keys(waypoints)
@@ -1972,8 +1955,7 @@ function hasViolation(
         (violation) =>
             violation.type === CONST.VIOLATION_TYPES.VIOLATION &&
             (showInReview === undefined || showInReview === (violation.showInReview ?? false)) &&
-            !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy) &&
-            (CONST.IS_ATTENDEES_REQUIRED_ENABLED || violation.name !== CONST.VIOLATIONS.MISSING_ATTENDEES),
+            !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy),
     );
 }
 
@@ -2058,14 +2040,13 @@ function hasWarningTypeViolation(
 /**
  * Calculates tax amount from the given expense amount and tax percentage
  */
-function calculateTaxAmount(percentage: string | undefined, amount: number, currency: string) {
+function calculateTaxAmount(percentage: string | undefined, amount: number, decimals: number) {
     if (!percentage) {
         return 0;
     }
 
     const divisor = Number(percentage.slice(0, -1)) / 100 + 1;
     const taxAmount = (amount - amount / divisor) / 100;
-    const decimals = getCurrencyDecimals(currency);
     return parseFloat(taxAmount.toFixed(decimals));
 }
 
@@ -2261,7 +2242,7 @@ function getValidDuplicateTransactionIDs(transactionID: string, transactionColle
  *
  */
 function removeTransactionFromDuplicateTransactionViolation(
-    onyxData: OnyxData<OnyxKey>,
+    onyxData: OnyxData<UpdateMoneyRequestDataKeys>,
     transactionID: string,
     transactions: OnyxCollection<Transaction>,
     transactionViolations: OnyxCollection<TransactionViolations>,
@@ -2355,11 +2336,12 @@ function removeSettledAndApprovedTransactions(transactions: Array<OnyxEntry<Tran
  */
 
 function compareDuplicateTransactionFields(
-    reviewingTransaction?: OnyxEntry<Transaction>,
-    duplicates?: Array<OnyxEntry<Transaction>>,
-    report?: OnyxEntry<Report>,
-    selectedTransactionID?: string,
-    policyCategories?: PolicyCategories,
+    reviewingTransaction: OnyxEntry<Transaction>,
+    duplicates: Array<OnyxEntry<Transaction>> | undefined,
+    report: OnyxEntry<Report>,
+    selectedTransactionID: string | undefined,
+    policy: OnyxEntry<Policy>,
+    policyCategories: OnyxEntry<PolicyCategories>,
 ): {keep: Partial<ReviewDuplicates>; change: FieldsToChange} {
     const reportID = report?.reportID;
     const reviewingTransactionID = reviewingTransaction?.transactionID;
@@ -2436,9 +2418,6 @@ function compareDuplicateTransactionFields(
             const keys = fieldsToCompare[fieldName];
             const firstTransaction = transactions.at(0);
             const isFirstTransactionCommentEmptyObject = typeof firstTransaction?.comment === 'object' && firstTransaction?.comment?.comment === '';
-            // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const policy = getPolicy(report?.policyID);
 
             const areAllFieldsEqualForKey = areAllFieldsEqual(transactions, (item) => keys.map((key) => SafeString(item?.[key])).join('|'));
             if (fieldName === 'description') {
@@ -2568,7 +2547,7 @@ function getCategoryTaxCodeAndAmount(category: string, transaction: OnyxEntry<Tr
     let categoryTaxAmount;
 
     if (categoryTaxPercentage) {
-        categoryTaxAmount = convertToBackendAmount(calculateTaxAmount(categoryTaxPercentage, getAmount(transaction), getCurrency(transaction)));
+        categoryTaxAmount = convertToBackendAmount(calculateTaxAmount(categoryTaxPercentage, getAmount(transaction), getCurrencyDecimals(getCurrency(transaction))));
     }
 
     return {categoryTaxCode, categoryTaxAmount};
@@ -2592,6 +2571,13 @@ function getAllSortedTransactions(iouReportID?: string): Array<OnyxEntry<Transac
 }
 
 function isExpenseSplit(transaction: OnyxEntry<Transaction>, originalTransaction?: OnyxEntry<Transaction>): boolean {
+    const isAddedToReport = !!transaction?.reportID && transaction.reportID !== CONST.REPORT.SPLIT_REPORT_ID && transaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID;
+    if (isAddedToReport) {
+        const report = getReportOrDraftReport(transaction.reportID);
+        if (report && report.type !== CONST.REPORT.TYPE.EXPENSE) {
+            return false;
+        }
+    }
     if (!originalTransaction) {
         return !!transaction?.comment?.originalTransactionID && transaction?.comment?.source === 'split';
     }
@@ -2792,7 +2778,6 @@ export {
     isAmountMissing,
     isMerchantMissing,
     isPartialMerchant,
-    isPartial,
     isCreatedMissing,
     areRequiredFieldsEmpty,
     hasMissingSmartscanFields,
@@ -2863,6 +2848,7 @@ export {
     shouldShowExpenseBreakdown,
     isTimeRequest,
     getExpenseTypeTranslationKey,
+    isDistanceTypeRequest,
 };
 
 export type {TransactionChanges};

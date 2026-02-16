@@ -175,8 +175,6 @@ type PopoverMenuProps = Partial<ModalAnimationProps> & {
     /** Used to locate the component in the tests */
     testID?: string;
 
-    /** Whether to handle navigation back */
-    shouldHandleNavigationBack?: boolean;
     /** Badge style to be shown near the right end. */
     badgeStyle?: StyleProp<ViewStyle>;
 };
@@ -297,7 +295,6 @@ function BasePopoverMenu({
     shouldAvoidSafariException = false,
     shouldMaintainFocusAfterSubItemSelect: shouldPreserveFocusOnSubItems = true,
     testID,
-    shouldHandleNavigationBack = false,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -404,6 +401,7 @@ function BasePopoverMenu({
                     shouldCheckActionAllowedOnPress={false}
                     iconRight={item.rightIcon}
                     shouldShowRightIcon={!!item.rightIcon}
+                    brickRoadIndicator={item.brickRoadIndicator}
                     onFocus={() => {
                         if (!shouldUpdateFocusedIndex) {
                             return;
@@ -599,7 +597,6 @@ function BasePopoverMenu({
             innerContainerStyle={{...styles.pv0, ...innerContainerStyle}}
             shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
             testID={testID}
-            shouldHandleNavigationBack={shouldHandleNavigationBack}
         >
             <FocusTrapForModal
                 active={isVisible}

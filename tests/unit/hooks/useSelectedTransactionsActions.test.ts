@@ -4,8 +4,8 @@ import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {SelectedTransactions} from '@components/Search/types';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
-import {initSplitExpense} from '@libs/actions/IOU';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
+import {initSplitExpense} from '@libs/actions/IOU/Split';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {exportReportToCSV} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
@@ -29,7 +29,7 @@ jest.mock('@libs/actions/Search', () => ({
     getExportTemplates: jest.fn(() => []),
 }));
 
-jest.mock('@libs/actions/IOU', () => ({
+jest.mock('@libs/actions/IOU/Split', () => ({
     initSplitExpense: jest.fn(),
 }));
 
@@ -571,12 +571,15 @@ describe('useSelectedTransactionsActions', () => {
             }),
         );
 
+        // Wait specifically for the MOVE option to appear, not just any options.
+        // The EXPORT option appears immediately, but MOVE depends on selectedTransactionsList
+        // which requires the Onyx transaction data to be fully loaded.
         await waitFor(() => {
-            expect(result.current.options.length).toBeGreaterThan(0);
+            const moveOption = result.current.options.find((option) => option.value === 'MOVE');
+            expect(moveOption).toBeDefined();
         });
 
         const moveOption = result.current.options.find((option) => option.value === 'MOVE');
-        expect(moveOption).toBeDefined();
         expect(moveOption?.text).toBe('iou.moveExpenses');
     });
 
@@ -626,12 +629,15 @@ describe('useSelectedTransactionsActions', () => {
             }),
         );
 
+        // Wait specifically for the SPLIT option to appear, not just any options.
+        // The EXPORT option appears immediately, but SPLIT depends on selectedTransactionsList
+        // which requires the Onyx transaction data to be fully loaded.
         await waitFor(() => {
-            expect(result.current.options.length).toBeGreaterThan(0);
+            const splitOption = result.current.options.find((option) => option.value === 'SPLIT');
+            expect(splitOption).toBeDefined();
         });
 
         const splitOption = result.current.options.find((option) => option.value === 'SPLIT');
-        expect(splitOption).toBeDefined();
         expect(splitOption?.text).toBe('iou.split');
 
         splitOption?.onSelected?.();
@@ -670,12 +676,15 @@ describe('useSelectedTransactionsActions', () => {
             }),
         );
 
+        // Wait specifically for the MERGE option to appear, not just any options.
+        // The EXPORT option appears immediately, but MERGE depends on selectedTransactionsList
+        // which requires the Onyx transaction data to be fully loaded.
         await waitFor(() => {
-            expect(result.current.options.length).toBeGreaterThan(0);
+            const mergeOption = result.current.options.find((option) => option.value === 'MERGE');
+            expect(mergeOption).toBeDefined();
         });
 
         const mergeOption = result.current.options.find((option) => option.value === 'MERGE');
-        expect(mergeOption).toBeDefined();
         expect(mergeOption?.text).toBe('common.merge');
 
         mergeOption?.onSelected?.();
