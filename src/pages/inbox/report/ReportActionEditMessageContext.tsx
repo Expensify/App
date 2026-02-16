@@ -1,7 +1,6 @@
 import React, {createContext, useCallback, useContext, useEffect, useRef, useState} from 'react';
 import type {TextSelection} from '@components/Composer/types';
 import useOnyx from '@hooks/useOnyx';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
