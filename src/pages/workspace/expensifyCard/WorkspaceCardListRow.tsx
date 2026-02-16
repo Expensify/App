@@ -8,10 +8,12 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
+import type {CardLimitType} from '@src/types/onyx/Card';
 
 type WorkspacesListRowProps = {
     /** The last four digits of the card */
@@ -34,9 +36,12 @@ type WorkspacesListRowProps = {
 
     /** Whether the list item is hovered */
     isHovered?: boolean;
+
+    /** Card limit type */
+    limitType: CardLimitType | undefined;
 };
 
-function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, isVirtual, isHovered}: WorkspacesListRowProps) {
+function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, isVirtual, isHovered, limitType}: WorkspacesListRowProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -69,12 +74,22 @@ function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, i
                 </View>
             </View>
             {!shouldUseNarrowLayout && (
-                <View style={[styles.flexRow, styles.gap2, styles.flex1, styles.alignItemsCenter, styles.justifyContentStart]}>
+                <View style={[styles.flexRow, styles.gap2, styles.flex2, styles.alignItemsCenter, styles.justifyContentStart]}>
                     <Text
                         numberOfLines={1}
                         style={[styles.textNormalThemeText, styles.lh16]}
                     >
                         {cardType}
+                    </Text>
+                </View>
+            )}
+            {!shouldUseNarrowLayout && (
+                <View style={[styles.flexRow, styles.gap2, styles.flex2, styles.alignItemsCenter, styles.justifyContentStart]}>
+                    <Text
+                        numberOfLines={1}
+                        style={[styles.textNormalThemeText, styles.lh16]}
+                    >
+                        {translate(getTranslationKeyForLimitType(limitType))}
                     </Text>
                 </View>
             )}

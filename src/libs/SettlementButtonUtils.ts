@@ -98,19 +98,19 @@ const useSettlementButtonPaymentMethods = (hasActivatedWallet: boolean, translat
     const paymentMethods = useMemo(() => {
         return {
             [CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]: {
-                text: hasActivatedWallet ? translate('iou.settleWallet', {formattedAmount: ''}) : translate('iou.settlePersonal', {formattedAmount: ''}),
+                text: hasActivatedWallet ? translate('iou.settleWallet', '') : translate('iou.settlePersonal', ''),
                 icon: icons.User,
                 value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
                 key: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
             },
             [CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]: {
-                text: translate('iou.settleBusiness', {formattedAmount: ''}),
+                text: translate('iou.settleBusiness', ''),
                 icon: icons.Building,
                 value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
                 key: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
             },
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
-                text: translate('iou.payElsewhere', {formattedAmount: ''}),
+                text: translate('iou.payElsewhere', ''),
                 icon: icons.CheckCircle,
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 shouldUpdateSelectedIndex: false,

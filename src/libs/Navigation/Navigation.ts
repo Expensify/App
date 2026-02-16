@@ -24,7 +24,6 @@ import ROUTES from '@src/ROUTES';
 import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
 import type {Account, SidePanel} from '@src/types/onyx';
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
-import getSearchTopmostReportParams from './getSearchTopmostReportParams';
 import originalCloseRHPFlow from './helpers/closeRHPFlow';
 import getStateFromPath from './helpers/getStateFromPath';
 import getTopmostReportParams from './helpers/getTopmostReportParams';
@@ -174,11 +173,6 @@ function canNavigate(methodName: string, params: CanNavigateParams = {}): boolea
 const getTopmostReportId = (state = navigationRef.getState()) => getTopmostReportParams(state)?.reportID;
 
 /**
- * Extracts from the topmost report its id which also include the RHP report and search money request report.
- */
-const getSearchTopmostReportId = (state = navigationRef.getRootState()) => getSearchTopmostReportParams(state)?.reportID;
-
-/**
  * Extracts from the topmost report its action id.
  */
 const getTopmostReportActionId = (state = navigationRef.getState()) => getTopmostReportParams(state)?.reportActionID;
@@ -311,7 +305,9 @@ function navigate(route: Route, options?: LinkToOptions) {
             });
         }
     }
-    linkTo(navigationRef.current, route, options);
+
+    const targetRoute = route.startsWith(CONST.SAML_REDIRECT_URL) ? ROUTES.HOME : route;
+    linkTo(navigationRef.current, targetRoute, options);
     closeSidePanelOnNarrowScreen();
 }
 /**
@@ -455,6 +451,11 @@ function goBack(backToRoute?: Route, options?: GoBackOptions) {
 
     if (backToRoute) {
         goUp(backToRoute, options);
+        return;
+    }
+
+    if (shouldPopToSidebar) {
+        popToSidebar();
         return;
     }
 
@@ -751,19 +752,6 @@ const dismissModalWithReport = ({reportID, reportActionID, referrer, backTo}: Re
     });
 };
 
-/**
- * Returns to the first screen in the stack, dismissing all the others, only if the global variable shouldPopToSidebar is set to true.
- */
-function popToTop() {
-    if (!shouldPopToSidebar) {
-        goBack();
-        return;
-    }
-
-    shouldPopToSidebar = false;
-    navigationRef.current?.dispatch(StackActions.popToTop());
-}
-
 function popRootToTop() {
     const rootState = navigationRef.getRootState();
     navigationRef.current?.dispatch({...StackActions.popToTop(), target: rootState.key});
@@ -932,7 +920,6 @@ export default {
     goBackToHome,
     closeRHPFlow,
     setNavigationActionToMicrotaskQueue,
-    popToTop,
     popRootToTop,
     pop,
     removeScreenFromNavigationState,
@@ -947,7 +934,6 @@ export default {
     dismissToPreviousRHP,
     dismissToSuperWideRHP,
     getTopmostSearchReportID,
-    getSearchTopmostReportId,
     getTopmostSuperWideRHPReportParams,
     getTopmostSuperWideRHPReportID,
     getTopmostSearchReportRouteParams,

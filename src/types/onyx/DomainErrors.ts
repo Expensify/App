@@ -38,6 +38,11 @@ type DomainErrors = {
      * Errors for the domain itself
      */
     errors: OnyxCommon.Errors;
+
+    /**
+     * Errors related to the 2FA toggle
+     */
+    setTwoFactorAuthRequiredError?: OnyxCommon.Errors;
 };
 
 export default DomainErrors;
