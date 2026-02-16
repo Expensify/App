@@ -10,9 +10,6 @@ import {
     getIcons,
     getIconsForParticipants,
     getIOUReportActionDisplayMessage,
-    // Will be fixed in https://github.com/Expensify/App/issues/76852
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    getReportName,
     getReportPreviewMessage,
     getReportRecipientAccountIDs,
     getTransactionDetails,
@@ -26,6 +23,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report, ReportAction, ReportTransactionsAndViolationsDerivedValue} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
+import {computeReportName} from '@libs/ReportNameUtils';
 import {chatReportR14932 as chatReport} from '../../__mocks__/reportData/reports';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
@@ -152,12 +150,11 @@ describe('ReportUtils', () => {
 
     test('[ReportUtils] getReportName on 1k participants', async () => {
         const report = {...createRandomReport(1, undefined), participantAccountIDs};
-        const policy = createRandomPolicy(1);
+        const reports = getMockedReports(1000);
+        const policies = getMockedPolicies(1000);
 
         await waitForBatchedUpdates();
-        // Will be fixed in https://github.com/Expensify/App/issues/76852
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        await measureFunction(() => getReportName(report, policy));
+        await measureFunction(() => computeReportName(report, reports, policies, undefined, undefined, personalDetails));
     });
 
     test('[ReportUtils] canShowReportRecipientLocalTime on 1k participants', async () => {

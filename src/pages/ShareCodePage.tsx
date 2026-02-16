@@ -23,6 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
 import type {BackToParams} from '@libs/Navigation/types';
+import {getReportName} from '@libs/ReportNameUtils';
 import {
     getChatRoomSubtitle,
     getDefaultWorkspaceAvatar,
@@ -31,7 +32,6 @@ import {
     getParticipantsAccountIDsForDisplay,
     getPolicyName,
     getReportForHeader,
-    getReportName,
     isExpenseReport,
     isMoneyRequestReport,
 } from '@libs/ReportUtils';
