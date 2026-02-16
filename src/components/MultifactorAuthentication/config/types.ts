@@ -10,6 +10,7 @@ import type {
     MultifactorAuthenticationActionParams,
     MultifactorAuthenticationKeyInfo,
     MultifactorAuthenticationReason,
+    MultifactorAuthenticationScenarioCallback,
 } from '@libs/MultifactorAuthentication/Biometrics/types';
 import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -138,8 +139,11 @@ type MultifactorAuthenticationOutcomeSuffixes<T extends MultifactorAuthenticatio
  * Response from a multifactor authentication scenario action.
  */
 type MultifactorAuthenticationScenarioResponse = {
-    httpCode: number;
+    httpCode: number | undefined;
     reason: MultifactorAuthenticationReason;
+
+    /** Optional response body containing scenario-specific data (e.g., {pin: number} for PIN reveal) */
+    body?: Record<string, unknown>;
 };
 
 /**
@@ -168,6 +172,14 @@ type MultifactorAuthenticationScenarioConfig<T extends Record<string, unknown> =
      * so the absence of payload will be tolerated at the run-time.
      */
     pure?: true;
+
+    /**
+     * Callback function that is invoked after the API call completes (success or failure).
+     * The callback receives the success status and input containing HTTP code, message, and response body.
+     * Returns a MultifactorAuthenticationCallbackResponse value that determines the post-callback behavior
+     * (e.g., whether to show the outcome screen or let the callback handle navigation).
+     */
+    callback?: MultifactorAuthenticationScenarioCallback;
 } & MultifactorAuthenticationUI;
 
 /**
@@ -181,7 +193,7 @@ type MultifactorAuthenticationScenarioCustomConfig<T extends Record<string, unkn
 /**
  * Default UI configuration shared across scenarios.
  */
-type MultifactorAuthenticationDefaultUIConfig = Pick<MultifactorAuthenticationScenarioConfig<never>, 'MODALS' | 'OUTCOMES'>;
+type MultifactorAuthenticationDefaultUIConfig = Pick<MultifactorAuthenticationScenarioConfig<never>, 'MODALS' | 'OUTCOMES' | 'callback'>;
 
 /**
  * Record mapping all scenarios to their configurations.

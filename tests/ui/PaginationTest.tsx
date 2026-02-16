@@ -88,7 +88,7 @@ function triggerListLayout(reportID?: string) {
 function getReportActions(reportID?: string) {
     const report = getReportScreen(reportID);
     return [
-        ...within(report).queryAllByLabelText(TestHelper.translateLocal('accessibilityHints.chatMessage')),
+        ...within(report).queryAllByAccessibilityHint(TestHelper.translateLocal('accessibilityHints.chatMessage')),
         // Created action has a different accessibility label.
         ...within(report).queryAllByLabelText(TestHelper.translateLocal('accessibilityHints.chatWelcomeMessage')),
     ];

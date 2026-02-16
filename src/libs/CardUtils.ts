@@ -1,3 +1,4 @@
+import type {FeedKeysWithAssignedCards} from '@selectors/Card';
 import {fromUnixTime, isBefore} from 'date-fns';
 import groupBy from 'lodash/groupBy';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -303,10 +304,13 @@ function isMatchingCard(card: Card, encryptedCardNumber: string, cardName: strin
         return false;
     }
 
-    // Normalize both strings to remove special characters (®, ™, ©, etc.)
-    // This handles differences between OAuth provider card names and stored card names
-    const normalize = (str: string) => str.replaceAll(/[^\w\s-]/g, '').trim();
-    return normalize(card.cardName) === normalize(cardName);
+    return normalizeCardName(card.cardName) === normalizeCardName(cardName);
+}
+
+// Normalize both strings to remove special characters (®, ™, ©, etc.)
+// This handles differences between OAuth provider card names and stored card names
+function normalizeCardName(cardName: string): string {
+    return cardName.replaceAll(/[^\w\s-]/g, '').trim();
 }
 
 function getMCardNumberString(cardNumber: string): string {
@@ -448,7 +452,7 @@ function getCardFeedIcon(cardFeed: CardFeedWithNumber | CardFeedWithDomainID | u
 /**
  * Verify if the feed is a custom feed. Those are also referred to as commercial feeds.
  */
-function isCustomFeed(feed: CardFeedWithNumber | CardFeedWithDomainID | undefined): boolean {
+function isCustomFeed(feed: string | undefined): boolean {
     if (!feed) {
         return false;
     }
@@ -465,13 +469,69 @@ function isCSVFeedOrExpensifyCard(feedKey: string): boolean {
     return lowerFeedKey.startsWith('csv') || lowerFeedKey.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV) || feedKey === CONST.EXPENSIFY_CARD.BANK;
 }
 
-function getOriginalCompanyFeeds(cardFeeds: OnyxEntry<CardFeeds>): CompanyFeeds {
+/**
+ * Checks if a feed is a direct feed (OAuth or Plaid based).
+ * Mirrors the backend's Card::isOAuthBank and Card::isPlaidBank logic.
+ */
+function isDirectFeed(feed: string | undefined): boolean {
+    if (!feed) {
+        return false;
+    }
+    const lowerFeed = feed.toLowerCase();
+    return lowerFeed.startsWith('oauth') || lowerFeed.startsWith('plaid');
+}
+
+/**
+ * Checks whether a feed has any assigned cards using a precomputed lightweight map.
+ * This is used as a validity signal: direct feeds use it as a fallback when oAuthAccountDetails is missing,
+ * and "gray zone" feeds (neither commercial nor direct) use it as the sole visibility criterion.
+ * The feedKeysWithCards map is produced by feedKeysWithAssignedCardsSelector in selectors/Card.ts.
+ */
+function feedHasCards(feedName: string, domainID: number, feedKeysWithCards: FeedKeysWithAssignedCards | undefined): boolean {
+    if (!feedKeysWithCards || !domainID) {
+        return false;
+    }
+
+    return feedKeysWithCards[`${domainID}_${feedName}`] === true;
+}
+
+/**
+ * Returns company feeds from cardFeeds, filtering out pending/deleted feeds, Expensify Card, stale direct feeds,
+ * and "gray zone" feeds with no assigned cards.
+ *
+ * Feed visibility rules (when feedKeysWithCards is provided):
+ * - Commercial feeds (isCustomFeed): always shown
+ * - Direct feeds (isDirectFeed): shown if they have oAuthAccountDetails OR assigned cards
+ * - Gray zone feeds (everything else): shown only if they have assigned cards
+ */
+function getOriginalCompanyFeeds(cardFeeds: OnyxEntry<CardFeeds>, feedKeysWithCards?: FeedKeysWithAssignedCards, domainID?: number): CompanyFeeds {
+    const oAuthAccountDetails = cardFeeds?.settings?.oAuthAccountDetails;
+    const resolvedDomainID = domainID ?? CONST.DEFAULT_NUMBER_ID;
     return Object.fromEntries(
         Object.entries(cardFeeds?.settings?.companyCards ?? {}).filter(([key, value]) => {
             if (value?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || value?.pending) {
                 return false;
             }
-            return key !== CONST.EXPENSIFY_CARD.BANK;
+            if (key === CONST.EXPENSIFY_CARD.BANK) {
+                return false;
+            }
+
+            // When we don't have card data, we can't make informed filtering decisions - show all feeds.
+            if (!feedKeysWithCards) {
+                return true;
+            }
+
+            // A direct feed is stale if it has no oAuthAccountDetails AND no assigned cards.
+            if (isDirectFeed(key) && !oAuthAccountDetails?.[key as CompanyCardFeed] && !feedHasCards(key, resolvedDomainID, feedKeysWithCards)) {
+                return false;
+            }
+
+            // "Gray zone" feeds (not commercial AND not direct) are only shown when they have assigned cards.
+            if (!isCustomFeed(key) && !isDirectFeed(key) && !feedHasCards(key, resolvedDomainID, feedKeysWithCards)) {
+                return false;
+            }
+
+            return true;
         }),
     );
 }
@@ -1148,6 +1208,7 @@ export {
     isSmartLimitEnabled,
     lastFourNumbersFromCardName,
     isMatchingCard,
+    normalizeCardName,
     hasIssuedExpensifyCard,
     isExpensifyCardFullySetUp,
     filterAllInactiveCards,
@@ -1165,6 +1226,8 @@ export {
     getPlaidInstitutionId,
     getFeedConnectionBrokenCard,
     getCorrectStepForPlaidSelectedBank,
+    isDirectFeed,
+    feedHasCards,
     getOriginalCompanyFeeds,
     getCompanyCardFeed,
     getCardFeedWithDomainID,

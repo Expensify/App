@@ -35,7 +35,6 @@ function DebugReportActionPreview({reportAction, reportID}: DebugReportActionPre
                 policies={policies}
                 action={reportAction ?? ({} as ReportAction)}
                 report={report ?? ({} as Report)}
-                reportActions={[]}
                 parentReportAction={undefined}
                 displayAsGroup={false}
                 isMostRecentIOUReportAction={false}

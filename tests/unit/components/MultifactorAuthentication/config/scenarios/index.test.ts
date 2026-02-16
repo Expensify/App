@@ -91,4 +91,38 @@ describe('MultifactorAuthentication Scenarios Config', () => {
         expect(biometricsTestConfig.OUTCOMES.failure.illustration).toBe('HumptyDumpty');
         expect(biometricsTestConfig.OUTCOMES.outOfTime.illustration).toBe('RunOutOfTime');
     });
+
+    /**
+     * Verifies that every scenario config includes a callback function.
+     */
+    it('should have a callback function for every scenario config', () => {
+        const config = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG as MultifactorAuthenticationScenarioConfigRecord;
+
+        for (const scenarioConfig of Object.values(config)) {
+            expect(scenarioConfig).toHaveProperty('callback');
+            expect(typeof scenarioConfig.callback).toBe('function');
+        }
+    });
+
+    /**
+     * Verifies that the default callback behavior returns SHOW_OUTCOME_SCREEN.
+     * When a callback returns SHOW_OUTCOME_SCREEN, the handleCallback function
+     * will navigate to the appropriate success or failure outcome screen.
+     * This tests the default behavior for scenarios that don't override the callback.
+     */
+    it('should have default callback that returns SHOW_OUTCOME_SCREEN', async () => {
+        const config = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG as MultifactorAuthenticationScenarioConfigRecord;
+        const biometricsTestConfig = config[CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST];
+
+        // Invoke the callback with successful authentication and valid response data
+        const callbackResult = await biometricsTestConfig.callback?.(true, {
+            httpCode: 200,
+            message: CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.AUTHORIZATION_SUCCESSFUL,
+            body: {},
+        });
+
+        // Verify that the callback returns SHOW_OUTCOME_SCREEN, indicating
+        // the MFA flow should navigate to the outcome screen
+        expect(callbackResult).toBe(CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN);
+    });
 });

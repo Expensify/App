@@ -13,6 +13,10 @@ import {registerAuthenticationKey} from './index';
 type ProcessResult = {
     success: boolean;
     reason: MultifactorAuthenticationReason;
+    httpCode: number | undefined;
+
+    /** Optional response body containing scenario-specific data (e.g., {pin: number} for PIN reveal) */
+    body?: Record<string, unknown>;
 };
 
 /**
@@ -79,6 +83,7 @@ async function processRegistration(params: RegistrationParams): Promise<ProcessR
     if (!params.challenge) {
         return {
             success: false,
+            httpCode: undefined,
             reason: VALUES.REASON.CHALLENGE.CHALLENGE_MISSING,
         };
     }
@@ -98,6 +103,7 @@ async function processRegistration(params: RegistrationParams): Promise<ProcessR
     return {
         success,
         reason,
+        httpCode,
     };
 }
 
@@ -124,16 +130,19 @@ async function processScenario<T extends MultifactorAuthenticationScenario>(
     if (!params.signedChallenge) {
         return {
             success: false,
+            httpCode: undefined,
             reason: VALUES.REASON.GENERIC.SIGNATURE_MISSING,
         };
     }
 
-    const {httpCode, reason} = await currentScenario.action(params);
+    const {httpCode, reason, body} = await currentScenario.action(params);
     const success = isHttpSuccess(httpCode);
 
     return {
         success,
         reason,
+        httpCode,
+        body,
     };
 }
 
