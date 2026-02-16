@@ -1,3 +1,4 @@
+import {feedKeysWithAssignedCardsSelector} from '@selectors/Card';
 import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -11,20 +12,19 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, shouldSkipSuggestedSearchNavigation as shouldSkipSuggestedSearchNavigationForQuery} from '@libs/SearchQueryUtils';
 import type {SavedSearchMenuItem} from '@libs/SearchUIUtils';
-import {createBaseSavedSearchMenuItem, getActiveSearchItemIndex, getOverflowMenu as getOverflowMenuUtil, updateQueryStringOnSearchTypeChange} from '@libs/SearchUIUtils';
+import {createBaseSavedSearchMenuItem, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
-import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import useDeleteSavedSearch from './useDeleteSavedSearch';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import useSearchTypeMenuSections from './useSearchTypeMenuSections';
 import useSingleExecution from './useSingleExecution';
-import useStickySearchFilters from './useStickySearchFilters';
 import useSuggestedSearchDefaultNavigation from './useSuggestedSearchDefaultNavigation';
 import useTheme from './useTheme';
 import useThemeStyles from './useThemeStyles';
@@ -52,6 +52,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Basket',
         'Bookmark',
+        'CalendarSolid',
         'Checkmark',
         'Pencil',
         'Receipt',
@@ -68,6 +69,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
 
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
+    const [feedKeysWithCards] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {selector: feedKeysWithAssignedCardsSelector, canBeMissing: true});
     const flattenedMenuItems = useMemo(() => typeMenuSections.flatMap((section) => section.menuItems), [typeMenuSections]);
 
     useSuggestedSearchDefaultNavigation({
@@ -121,6 +123,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                     currentUserAccountID,
                     autoCompleteWithSpace: false,
                     translate,
+                    feedKeysWithCards,
                 });
             }
 
@@ -170,17 +173,20 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         taxRates,
         nonPersonalAndWorkspaceCards,
         allFeeds,
+        feedKeysWithCards,
         allPolicies,
         currentUserAccountID,
         translate,
     ]);
 
-    const [activeItemIndex, isExploreSectionActive] = useMemo(
-        () => getActiveSearchItemIndex(flattenedMenuItems, similarSearchHash, isSavedSearchActive, queryJSON?.type),
-        [similarSearchHash, isSavedSearchActive, flattenedMenuItems, queryJSON?.type],
-    );
+    const activeItemIndex = useMemo(() => {
+        // If we have a suggested search, then none of the menu items are active
+        if (isSavedSearchActive) {
+            return -1;
+        }
 
-    const allSearchAdvancedFilters = useStickySearchFilters(isExploreSectionActive && !shouldShowSuggestedSearchSkeleton);
+        return flattenedMenuItems.findIndex((item) => item.similarSearchHash === similarSearchHash);
+    }, [similarSearchHash, isSavedSearchActive, flattenedMenuItems]);
 
     const popoverMenuItems = useMemo(() => {
         return typeMenuSections
@@ -215,12 +221,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                             shouldCallAfterModalHide: true,
                             onSelected: singleExecution(() => {
                                 setSearchContext(false);
-                                let queryString = item.searchQuery;
-
-                                if (section.translationPath === 'common.explore' && !isEmptyObject(allSearchAdvancedFilters)) {
-                                    queryString = updateQueryStringOnSearchTypeChange(item.type, allSearchAdvancedFilters, queryJSON);
-                                }
-                                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
+                                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.searchQuery}));
                             }),
                         });
                     }
@@ -229,7 +230,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                 return sectionItems;
             })
             .flat();
-    }, [typeMenuSections, translate, styles.textSupporting, savedSearchesMenuItems, activeItemIndex, expensifyIcons, theme.border, singleExecution, allSearchAdvancedFilters, queryJSON]);
+    }, [typeMenuSections, translate, styles.textSupporting, savedSearchesMenuItems, activeItemIndex, theme.border, expensifyIcons, singleExecution]);
 
     const openMenu = useCallback(() => {
         setIsPopoverVisible(true);

@@ -215,7 +215,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                 !isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                 'openOnAdminRoom' in route.params && !!route.params.openOnAdminRoom,
                 undefined,
-                undefined,
                 archivedReportsIdSet,
             )?.reportID;
 
@@ -374,32 +373,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const {closeSidePanel} = useSidePanelActions();
 
     useEffect(() => {
-        if (
-            !isFocused ||
-            !reportIDFromRoute ||
-            report?.reportID ||
-            reportMetadata?.isLoadingInitialReportActions ||
-            reportMetadata?.isOptimisticReport ||
-            isLoadingApp ||
-            userLeavingStatus ||
-            !reportWasDeleted
-        ) {
-            return;
-        }
-
-        Navigation.goBack();
-    }, [
-        isFocused,
-        reportIDFromRoute,
-        report?.reportID,
-        reportMetadata?.isLoadingInitialReportActions,
-        reportMetadata?.isOptimisticReport,
-        isLoadingApp,
-        userLeavingStatus,
-        reportWasDeleted,
-    ]);
-
-    useEffect(() => {
         if (!prevIsFocused || isFocused) {
             return;
         }
@@ -427,10 +400,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             }
             if (backTo) {
                 Navigation.goBack(backTo as Route);
-                return;
-            }
-            if (Navigation.getShouldPopToSidebar()) {
-                Navigation.popToSidebar();
                 return;
             }
             Navigation.goBack();

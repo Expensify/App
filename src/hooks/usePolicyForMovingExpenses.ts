@@ -30,7 +30,7 @@ function isPolicyValidForMovingExpenses(policy: OnyxEntry<Policy>, login: string
     );
 }
 
-function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, expensePolicyID?: string) {
+function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, expensePolicyID?: string, isTrackDistanceRequest?: boolean, isMovingFromTrackExpense?: boolean) {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {
@@ -40,6 +40,11 @@ function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, expensePolicyID?
 
     const session = useSession();
     const login = session?.email ?? '';
+
+    // Creating a track distance request always uses the P2P custom unit, so we don't use the active policy
+    if (isTrackDistanceRequest && !isMovingFromTrackExpense) {
+        return {policyForMovingExpensesID: undefined, policyForMovingExpenses: undefined, shouldSelectPolicy: false};
+    }
 
     // Early exit optimization: only need to check if we have 0, 1, or >1 policies
     let singleUserPolicy;

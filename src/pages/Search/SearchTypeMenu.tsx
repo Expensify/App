@@ -1,4 +1,5 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
+import {feedKeysWithAssignedCardsSelector} from '@selectors/Card';
 import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useContext, useLayoutEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
@@ -20,7 +21,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useSingleExecution from '@hooks/useSingleExecution';
-import useStickySearchFilters from '@hooks/useStickySearchFilters';
 import useSuggestedSearchDefaultNavigation from '@hooks/useSuggestedSearchDefaultNavigation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setSearchContext} from '@libs/actions/Search';
@@ -28,13 +28,12 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, shouldSkipSuggestedSearchNavigation as shouldSkipSuggestedSearchNavigationForQuery} from '@libs/SearchQueryUtils';
 import type {SavedSearchMenuItem} from '@libs/SearchUIUtils';
-import {createBaseSavedSearchMenuItem, getActiveSearchItemIndex, getOverflowMenu as getOverflowMenuUtil, updateQueryStringOnSearchTypeChange} from '@libs/SearchUIUtils';
+import {createBaseSavedSearchMenuItem, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
 import SuggestedSearchSkeleton from './SuggestedSearchSkeleton';
 
@@ -63,6 +62,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Basket',
         'Bookmark',
+        'CalendarSolid',
         'Pencil',
         'Receipt',
         'ChatBubbles',
@@ -80,6 +80,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true});
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
+    const [feedKeysWithCards] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {selector: feedKeysWithAssignedCardsSelector, canBeMissing: true});
     const taxRates = getAllTaxRates(allPolicies);
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
     const {clearSelectedTransactions} = useSearchContext();
@@ -114,6 +115,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                     currentUserAccountID,
                     autoCompleteWithSpace: false,
                     translate,
+                    feedKeysWithCards,
                 });
             }
 
@@ -161,6 +163,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             taxRates,
             nonPersonalAndWorkspaceCards,
             allFeeds,
+            feedKeysWithCards,
             currentUserAccountID,
             allPolicies,
             translate,
@@ -226,12 +229,15 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         [expensifyIcons.Bookmark, styles.sectionMenuItem],
     );
 
-    const [activeItemIndex, isExploreSectionActive] = useMemo(
-        () => getActiveSearchItemIndex(flattenedMenuItems, similarSearchHash, isSavedSearchActive, queryJSON?.type),
-        [similarSearchHash, isSavedSearchActive, flattenedMenuItems, queryJSON?.type],
-    );
+    const activeItemIndex = useMemo(() => {
+        // If we have a suggested search, then none of the menu items are active
+        if (isSavedSearchActive) {
+            return -1;
+        }
 
-    const allSearchAdvancedFilters = useStickySearchFilters(isExploreSectionActive && !shouldShowSuggestedSearchSkeleton);
+        return flattenedMenuItems.findIndex((item) => item.similarSearchHash === similarSearchHash);
+    }, [similarSearchHash, isSavedSearchActive, flattenedMenuItems]);
+
     return (
         <>
             {CreateReportConfirmationModal}
@@ -263,12 +269,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                             const onPress = singleExecution(() => {
                                                 clearSelectedTransactions();
                                                 setSearchContext(false);
-                                                let queryString = item.searchQuery;
-
-                                                if (section.translationPath === 'common.explore' && !isEmptyObject(allSearchAdvancedFilters)) {
-                                                    queryString = updateQueryStringOnSearchTypeChange(item.type, allSearchAdvancedFilters, queryJSON);
-                                                }
-                                                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
+                                                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.searchQuery}));
                                             });
 
                                             return (
