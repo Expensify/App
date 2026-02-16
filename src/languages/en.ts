@@ -975,7 +975,8 @@ const translations = {
             },
             fixCompanyCardConnection: {
                 title: ({feedName}: {feedName: string}) => (feedName ? `Fix ${feedName} company card connection` : 'Fix company card connection'),
-                subtitle: 'Workspace > Company cards',
+                defaultSubtitle: 'Workspace > Company cards',
+                subtitle: ({policyName}: {policyName: string}) => `${policyName} > Company cards`,
             },
             fixAccountingConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Fix ${integrationName} connection`,
@@ -8392,6 +8393,15 @@ const translations = {
         },
         common: {
             settings: 'Settings',
+        },
+        groups: {
+            title: 'Groups',
+            memberCount: () => {
+                return {
+                    one: '1 member',
+                    other: (count: number) => `${count} members`,
+                };
+            },
         },
     },
 };
