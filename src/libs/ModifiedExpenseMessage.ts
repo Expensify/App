@@ -229,6 +229,10 @@ function getPolicyRulesModifiedMessage(translate: LocalizedTranslate, fields: Po
         if (key === 'tag') {
             return translate('iou.policyRulesModifiedFields.common', key, getCommaSeparatedTagNameWithSanitizedColons(updatedValue), isFirst);
         }
+        // The backend saves the description field as `comment` key, but we need to display it as `description` key.
+        if (key === 'comment') {
+            return translate('iou.policyRulesModifiedFields.common', 'description', Parser.htmlToMarkdown(updatedValue), isFirst);
+        }
 
         return translate('iou.policyRulesModifiedFields.common', key, updatedValue, isFirst);
     });

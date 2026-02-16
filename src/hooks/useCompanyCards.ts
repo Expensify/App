@@ -1,8 +1,9 @@
 import type {OnyxCollection, OnyxEntry, ResultMetadata} from 'react-native-onyx';
-import {getCompanyCardFeed, getCompanyFeeds, getSelectedFeed} from '@libs/CardUtils';
+import {getCompanyCardFeed, getCompanyFeeds, getSelectedFeed, normalizeCardName} from '@libs/CardUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardList} from '@src/types/onyx';
+import type Card from '@src/types/onyx/Card';
 import type {AssignableCardsList, WorkspaceCardsList} from '@src/types/onyx/Card';
 import type {CardFeedsStatusByDomainID, CombinedCardFeeds, CompanyCardFeedWithDomainID, CompanyCardFeedWithNumber, CompanyFeeds} from '@src/types/onyx/CardFeeds';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -10,6 +11,13 @@ import useCardFeeds from './useCardFeeds';
 import type {CombinedCardFeed} from './useCardFeeds';
 import useCardsList from './useCardsList';
 import useOnyx from './useOnyx';
+
+type CompanyCardEntry = {
+    cardName: string;
+    encryptedCardNumber: string;
+    isAssigned: boolean;
+    assignedCard?: Card;
+};
 
 type UseCompanyCardsProps = {
     policyID: string | undefined;
@@ -21,7 +29,7 @@ type UseCompanyCardsResult = Partial<{
     feedName: CompanyCardFeedWithDomainID;
     cardList: AssignableCardsList;
     assignedCards: CardList;
-    cardNamesToEncryptedCardNumberMapping: Record<string, string>;
+    companyCardEntries: CompanyCardEntry[];
     workspaceCardFeedsStatus: CardFeedsStatusByDomainID;
     allCardFeeds: CombinedCardFeeds;
     companyCardFeeds: CompanyFeeds;
@@ -38,6 +46,49 @@ type UseCompanyCardsResult = Partial<{
         lastSelectedFeedMetadata: ResultMetadata<OnyxEntry<CompanyCardFeedWithDomainID>>;
     };
 };
+
+/**
+ * Builds a list of card entries by starting from assignedCards (source of truth for assignments),
+ * then filling in remaining unassigned cards from accountList/cardList.
+ */
+function buildCompanyCardEntries(accountList: string[] | undefined, cardList: AssignableCardsList | undefined, assignedCards: CardList): CompanyCardEntry[] {
+    const entries: CompanyCardEntry[] = [];
+    const coveredNames = new Set<string>();
+    const coveredEncrypted = new Set<string>();
+
+    // Phase 1: Assigned cards first — these are the source of truth.
+    for (const card of Object.values(assignedCards)) {
+        if (!card?.cardName) {
+            continue;
+        }
+        const encryptedCardNumber = card.encryptedCardNumber ?? card.cardName;
+        entries.push({cardName: card.cardName, encryptedCardNumber, isAssigned: true, assignedCard: card});
+        coveredNames.add(normalizeCardName(card.cardName));
+        if (card.encryptedCardNumber) {
+            coveredEncrypted.add(card.encryptedCardNumber);
+        }
+    }
+
+    // Phase 2: Add remaining unassigned cards. cardList first so its encryptedCardNumber takes precedence.
+    for (const [name, encryptedCardNumber] of Object.entries(cardList ?? {})) {
+        if (coveredNames.has(normalizeCardName(name)) || coveredEncrypted.has(encryptedCardNumber)) {
+            continue;
+        }
+        entries.push({cardName: name, encryptedCardNumber, isAssigned: false});
+        coveredNames.add(normalizeCardName(name));
+        coveredEncrypted.add(encryptedCardNumber);
+    }
+
+    for (const name of accountList ?? []) {
+        if (coveredNames.has(normalizeCardName(name))) {
+            continue;
+        }
+        entries.push({cardName: name, encryptedCardNumber: name, isAssigned: false});
+        coveredNames.add(normalizeCardName(name));
+    }
+
+    return entries;
+}
 
 function useCompanyCards({policyID, feedName: feedNameProp}: UseCompanyCardsProps): UseCompanyCardsResult {
     // If an empty string is passed, we need to use an invalid key to avoid fetching the whole collection.
@@ -56,14 +107,7 @@ function useCompanyCards({policyID, feedName: feedNameProp}: UseCompanyCardsProp
     const selectedFeed = feedName && companyCardFeeds[feedName];
 
     const {cardList, ...assignedCards} = cardsList ?? {};
-    const cardNamesToEncryptedCardNumberMapping: Record<string, string> = {};
-
-    for (const cardName of selectedFeed?.accountList ?? []) {
-        cardNamesToEncryptedCardNumberMapping[cardName] = cardName;
-    }
-    for (const [cardName, encryptedCardNumber] of Object.entries(cardList ?? {})) {
-        cardNamesToEncryptedCardNumberMapping[cardName] = encryptedCardNumber;
-    }
+    const companyCardEntries = buildCompanyCardEntries(selectedFeed?.accountList, cardList, assignedCards);
 
     const onyxMetadata = {
         cardListMetadata,
@@ -86,7 +130,7 @@ function useCompanyCards({policyID, feedName: feedNameProp}: UseCompanyCardsProp
         companyCardFeeds,
         cardList,
         assignedCards,
-        cardNamesToEncryptedCardNumberMapping,
+        companyCardEntries,
         workspaceCardFeedsStatus,
         selectedFeed,
         bankName,
@@ -99,4 +143,4 @@ function useCompanyCards({policyID, feedName: feedNameProp}: UseCompanyCardsProp
 }
 
 export default useCompanyCards;
-export type {UseCompanyCardsResult};
+export type {CompanyCardEntry, UseCompanyCardsResult};
