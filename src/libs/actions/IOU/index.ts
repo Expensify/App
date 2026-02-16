@@ -12301,8 +12301,17 @@ function getMoneyRequestParticipantsFromReport(report: OnyxEntry<OnyxTypes.Repor
         ];
     } else if (isInvoiceRoom(chatReport)) {
         participants = [
-            {reportID: chatReport?.reportID, selected: true},
             {
+                iouType: CONST.IOU.TYPE.INVOICE,
+                accountID: 0,
+                reportID: chatReport?.reportID,
+                isPolicyExpenseChat: false,
+                selected: true,
+                policyID: chatReport?.policyID,
+                isSelfDM: false,
+            },
+            {
+                iouType: CONST.IOU.TYPE.INVOICE,
                 policyID: chatReport?.policyID,
                 isSender: true,
                 selected: false,
