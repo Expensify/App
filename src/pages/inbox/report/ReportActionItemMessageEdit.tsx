@@ -14,7 +14,6 @@ import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTrig
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePrevious from '@hooks/usePrevious';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollBlocker from '@hooks/useScrollBlocker';
@@ -27,14 +26,11 @@ import {saveReportActionDraft} from '@libs/actions/Report';
 import {isMobileChrome} from '@libs/Browser';
 import {canSkipTriggerHotkeys, insertText} from '@libs/ComposerUtils';
 import DomUtils from '@libs/DomUtils';
-import draftMessageVideoAttributeCache from '@libs/DraftMessageVideoAttributeCache';
 import {extractEmojis, getZWNJCursorOffset, insertZWNJBetweenDigitAndEmoji, replaceAndExtractEmojis} from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import type {Selection} from '@libs/focusComposerWithDelay/types';
-import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import reportActionItemEventHandler from '@libs/ReportActionItemEventHandler';
-import {getReportActionHtml, isDeletedAction} from '@libs/ReportActionsUtils';
 import setShouldShowComposeInputKeyboardAware from '@libs/setShouldShowComposeInputKeyboardAware';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -52,6 +48,7 @@ import useDebouncedCommentMaxLengthValidation from './ReportActionCompose/useDeb
 import useEditMessage from './ReportActionCompose/useEditMessage';
 import {useReportActionActiveEdit} from './ReportActionEditMessageContext';
 import shouldUseEmojiPickerSelection from './shouldUseEmojiPickerSelection';
+import useDraftMessageVideoAttributeCache from './useDraftMessageVideoAttributeCache';
 
 type ReportActionItemMessageEditProps = {
     /** All the data of the action */
@@ -108,7 +105,6 @@ function ReportActionItemMessageEdit({
     const {preferredLocale} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const prevDraftMessage = usePrevious(draftMessage);
     const suggestionsRef = useRef<SuggestionsRef>(null);
     const mobileInputScrollPosition = useRef(0);
     const cursorPositionValue = useSharedValue({x: 0, y: 0});
@@ -150,23 +146,18 @@ function ReportActionItemMessageEdit({
     const {isScrolling, startScrollBlock, endScrollBlock} = useScrollBlocker();
 
     const composerRef = useRef<ComposerRef | null>(null);
-    const isFocusedRef = useRef<boolean>(false);
     const draftRef = useRef(draft);
     const emojiPickerSelectionRef = useRef<Selection | undefined>(undefined);
     // The ref to check whether the comment saving is in progress
     const isCommentPendingSaved = useRef(false);
 
-    useEffect(() => {
-        draftMessageVideoAttributeCache.clear();
-
-        const originalMessage = Parser.htmlToMarkdown(getReportActionHtml(action), {
-            cacheVideoAttributes: (videoSource, attrs) => draftMessageVideoAttributeCache.set(videoSource, attrs),
-        });
-        if (isDeletedAction(action) || !!(action.message && draftMessage === originalMessage) || !!(prevDraftMessage === draftMessage || isCommentPendingSaved.current)) {
-            return;
-        }
-        setDraft(draftMessage);
-    }, [draftMessage, action, prevDraftMessage]);
+    useDraftMessageVideoAttributeCache({
+        draftMessage,
+        isEditing: true,
+        editingReportAction: action,
+        updateDraftMessage: setDraft,
+        isEditInProgressRef: isCommentPendingSaved,
+    });
 
     useEffect(() => {
         composerFocusKeepFocusOn(composerRef.current as HTMLElement, isFocused, modal, onyxInputFocused);
@@ -411,12 +402,11 @@ function ReportActionItemMessageEdit({
     }, [draft, debouncedCommentMaxLengthValidation]);
 
     useEffect(() => {
-        // required for keeping last state of isFocused variable
-        isFocusedRef.current = isFocused;
-
-        if (!isFocused) {
-            hideSuggestionMenu();
+        if (isFocused) {
+            return;
         }
+
+        hideSuggestionMenu();
     }, [isFocused, hideSuggestionMenu]);
 
     return (
