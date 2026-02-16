@@ -845,7 +845,10 @@ type PolicyRulesModifiedFields = {
     /** The value that the tag was changed to */
     tag?: string;
 
-    /** The value that the description was changed to */
+    /** The value that the description was changed to (backend uses "comment" key) */
+    comment?: string;
+
+    /** The value that the description was changed to (display key, mapped from "comment") */
     description?: string;
 
     /** The value that the billable status was changed to */

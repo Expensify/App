@@ -2961,6 +2961,10 @@ const staticStyles = (theme: ThemeColors) =>
             alignSelf: 'flex-start',
         },
 
+        transactionsCarouselGap: {
+            width: variables.spacing2,
+        },
+
         attachmentCarouselContainer: {
             height: '100%',
             width: '100%',
@@ -6111,8 +6115,7 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         getForYouSectionContainerStyle: (shouldUseNarrowLayout: boolean): ViewStyle => ({
             flexDirection: 'column',
-            marginBottom: shouldUseNarrowLayout ? 8 : 12,
-            paddingVertical: 12,
+            marginBottom: shouldUseNarrowLayout ? 8 : 20,
         }),
 
         getSelectionListPopoverHeight: (itemCount: number, windowHeight: number, isSearchable: boolean) => {

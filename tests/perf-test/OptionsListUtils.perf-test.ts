@@ -139,6 +139,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: MOCK_CURRENT_USER_EMAIL,
+                policyCollection: allPolicies,
                 personalDetails,
             }),
         );

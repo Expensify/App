@@ -29,6 +29,7 @@ import {
     isCurrentUserMemberOfAnyPolicy,
     isPolicyMemberWithoutPendingDelete,
     shouldShowPolicy,
+    sortPoliciesByName,
     sortWorkspacesBySelected,
 } from '@libs/PolicyUtils';
 import {isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
@@ -1983,6 +1984,44 @@ describe('PolicyUtils', () => {
         it('should return undefined when the rate is not defined on the policy', () => {
             const policy = createRandomPolicy(1);
             expect(getDefaultTimeTrackingRate(policy)).toBeUndefined();
+        });
+    });
+
+    describe('sortPoliciesByName', () => {
+        const localeCompare = (a: string, b: string) => a.localeCompare(b);
+
+        it('sorts policies alphabetically by name', () => {
+            const policies: Policy[] = [
+                {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), name: 'Charlie'},
+                {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), name: 'Alpha'},
+                {...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM), name: 'Bravo'},
+            ];
+
+            const result = sortPoliciesByName(policies, localeCompare);
+            expect(result.map((p) => p.name)).toEqual(['Alpha', 'Bravo', 'Charlie']);
+        });
+
+        it('returns empty array for empty input', () => {
+            expect(sortPoliciesByName([], localeCompare)).toEqual([]);
+        });
+
+        it('treats undefined or empty names as empty string', () => {
+            const policies: Policy[] = [
+                {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), name: 'Bravo'},
+                {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), name: ''},
+                {...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM), name: 'Alpha'},
+            ];
+
+            const result = sortPoliciesByName(policies, localeCompare);
+            expect(result.map((p) => p.name)).toEqual(['', 'Alpha', 'Bravo']);
+        });
+
+        it('returns single-element array as-is', () => {
+            const policies: Policy[] = [{...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), name: 'Only'}];
+
+            const result = sortPoliciesByName(policies, localeCompare);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.name).toBe('Only');
         });
     });
 });

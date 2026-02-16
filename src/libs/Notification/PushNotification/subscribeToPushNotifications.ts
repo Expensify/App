@@ -1,4 +1,5 @@
 import {NativeModules} from 'react-native';
+import type {OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import applyOnyxUpdatesReliably from '@libs/actions/applyOnyxUpdatesReliably';
 import Log from '@libs/Log';
@@ -12,7 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 import PushNotification from '.';
-import type {PushNotificationData} from './NotificationType';
+import type {AnyPushNotificationData, PushNotificationData} from './NotificationType';
 
 /**
  * Manage push notification subscriptions on sign-in/sign-out.
@@ -53,7 +54,7 @@ Onyx.connectWithoutView({
     },
 });
 
-function applyOnyxData({reportID, onyxData, lastUpdateID, previousUpdateID, hasPendingOnyxUpdates = false}: PushNotificationData): Promise<void> {
+function applyOnyxData<TKey extends OnyxKey>({reportID, onyxData, lastUpdateID, previousUpdateID, hasPendingOnyxUpdates = false}: PushNotificationData<TKey>): Promise<void> {
     Log.info(`[PushNotification] Applying onyx data in the ${Visibility.isVisible() ? 'foreground' : 'background'}`, false, {reportID, lastUpdateID});
 
     const logMissingOnyxDataInfo = (isDataMissing: boolean): boolean => {
@@ -66,7 +67,7 @@ function applyOnyxData({reportID, onyxData, lastUpdateID, previousUpdateID, hasP
         return true;
     };
 
-    let updates: OnyxUpdatesFromServer;
+    let updates: OnyxUpdatesFromServer<TKey>;
     if (hasPendingOnyxUpdates) {
         const isDataMissing = !lastUpdateID;
         logMissingOnyxDataInfo(isDataMissing);
@@ -110,7 +111,7 @@ function applyOnyxData({reportID, onyxData, lastUpdateID, previousUpdateID, hasP
         .then(() => NativeModules.PushNotificationBridge?.finishBackgroundProcessing());
 }
 
-function navigateToReport({reportID}: PushNotificationData): Promise<void> {
+function navigateToReport({reportID}: AnyPushNotificationData): Promise<void> {
     Log.info('[PushNotification] Navigating to report', false, {reportID});
 
     Navigation.waitForProtectedRoutes().then(() => {

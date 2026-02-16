@@ -191,6 +191,7 @@ import type {
     PolicyTagLists,
     ReportAction,
     ReportActionReactions,
+    ReportActions,
     Report as ReportType,
     Transaction,
 } from '@src/types/onyx';
@@ -247,6 +248,7 @@ type ShouldShow = (args: {
 }) => boolean;
 
 type ContextMenuActionPayload = {
+    reportActions: OnyxEntry<ReportActions>;
     reportAction: ReportAction;
     transaction?: OnyxEntry<Transaction>;
     reportID: string | undefined;
@@ -453,8 +455,8 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isDynamicWorkflowRoutedAction = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED);
             return (type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !isDynamicWorkflowRoutedAction) || (type === CONST.CONTEXT_MENU_TYPES.REPORT && !isUnreadChat);
         },
-        onPress: (closePopover, {reportAction, reportID, currentUserAccountID}) => {
-            markCommentAsUnread(reportID, reportAction, currentUserAccountID);
+        onPress: (closePopover, {reportActions, reportAction, reportID, currentUserAccountID}) => {
+            markCommentAsUnread(reportID, reportActions, reportAction, currentUserAccountID);
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
