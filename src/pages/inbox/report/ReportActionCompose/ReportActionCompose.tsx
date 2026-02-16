@@ -341,7 +341,10 @@ function ReportActionCompose({
         ComposerFocusManager.setReadyToFocus();
     }, [updateShouldShowSuggestionMenuToFalse]);
 
-    const {debouncedCommentMaxLengthValidation, exceededMaxLength, isExceedingMaxLength, isTaskTitle} = useDebouncedCommentMaxLengthValidation({reportID});
+    const {debouncedCommentMaxLengthValidation, exceededMaxLength, isExceedingMaxLength, isTaskTitle} = useDebouncedCommentMaxLengthValidation({
+        reportID,
+        isEditing: !!editingReportAction,
+    });
 
     const originalReportID = useOriginalReportID(reportID, editingReportAction);
     const {publishDraft, deleteDraft} = useEditMessage({
