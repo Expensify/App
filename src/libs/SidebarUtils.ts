@@ -118,6 +118,7 @@ import {
     isTaskAction,
     isTransactionThread,
 } from './ReportActionsUtils';
+import {getReportName} from './ReportNameUtils';
 import type {OptionData} from './ReportUtils';
 import {
     canUserPerformWriteAction as canUserPerformWriteActionUtil,
@@ -133,8 +134,6 @@ import {
     getPolicyName,
     getReportDescription,
     getReportMetadata,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    getReportName,
     getReportNotificationPreference,
     getReportParticipantsTitle,
     getReportSubtitlePrefix,

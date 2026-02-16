@@ -130,7 +130,6 @@ import {
     getIcons,
     getPersonalDetailsForAccountID,
     getPolicyName,
-    getReportName,
     getReportOrDraftReport,
     getReportStatusTranslation,
     hasAnyViolations,

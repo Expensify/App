@@ -155,7 +155,6 @@ import {
     getPolicyChangeMessage,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
-    getReportName as getReportNameDeprecated,
     getReportOrDraftReport,
     getReportPreviewMessage,
     getUnreportedTransactionMessage,
