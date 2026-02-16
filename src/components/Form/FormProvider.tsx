@@ -100,6 +100,9 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
     /** Prevents the submit button from triggering blur on mouse down. */
     shouldPreventDefaultFocusOnPressSubmit?: boolean;
 
+    /** Whether to wait for the keyboard to fully dismiss before calling `onSubmit`. When `false`, `onSubmit` fires immediately and keyboard dismissal happens in parallel. Defaults to `true`. */
+    shouldDismissKeyboardBeforeSubmit?: boolean;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<FormRef>;
 };
@@ -118,6 +121,7 @@ function FormProvider({
     shouldRenderFooterAboveSubmit = false,
     shouldUseStrictHtmlTagValidation = false,
     shouldPreventDefaultFocusOnPressSubmit = false,
+    shouldDismissKeyboardBeforeSubmit = true,
     ref,
     ...rest
 }: FormProviderProps) {
@@ -261,8 +265,13 @@ function FormProvider({
                 return;
             }
 
-            KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
-        }, [enabledWhenOffline, formState?.isLoading, inputValues, isLoading, network?.isOffline, onSubmit, onValidate, shouldTrimValues, hasServerError]),
+            if (shouldDismissKeyboardBeforeSubmit) {
+                KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
+            } else {
+                KeyboardUtils.dismiss();
+                onSubmit(trimmedStringValues);
+            }
+        }, [enabledWhenOffline, formState?.isLoading, inputValues, isLoading, network?.isOffline, onSubmit, onValidate, shouldTrimValues, hasServerError, shouldDismissKeyboardBeforeSubmit]),
         1000,
         {leading: true, trailing: false},
     );

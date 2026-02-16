@@ -199,6 +199,7 @@ function IOURequestStepDescription({
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
+                shouldDismissKeyboardBeforeSubmit={false}
             >
                 <View style={styles.mb4}>
                     <InputWrapper
