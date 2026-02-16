@@ -175,6 +175,7 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
                     shouldShowModal={false}
                     addBottomSafeAreaPadding={false}
                     disableKeyboardShortcuts
+                    alternateNumberOfSupportedLines={2}
                 />
 
                 <View style={[styles.threadDividerLine, styles.flexGrow0, styles.ml5, styles.mr5, styles.mv3]} />

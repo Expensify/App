@@ -1169,6 +1169,13 @@ function getActiveEmployeeWorkspaces(policies: OnyxCollection<Policy> | null, cu
 }
 
 /**
+ * Checks whether the current user has a policy with admin access
+ */
+function hasActiveAdminWorkspaces(currentUserLogin: string | undefined, policies?: OnyxCollection<Policy>) {
+    return getActiveAdminWorkspaces(policies ?? allPolicies, currentUserLogin).length > 0;
+}
+
+/**
  * Given a list of admin policies for the current user, checks whether any of them
  * has a Xero accounting software integration configured.
  */
@@ -1961,6 +1968,10 @@ function isPolicyTaxEnabled(policy: OnyxEntry<Policy>): boolean {
     return (policy?.tax?.trackingEnabled ?? false) || isSyncTaxEnabled;
 }
 
+function sortPoliciesByName(policies: Policy[], localeCompare: (a: string, b: string) => number): Policy[] {
+    return policies.sort((a, b) => localeCompare(a.name || '', b.name || ''));
+}
+
 export {
     canEditTaxRate,
     escapeTagName,
@@ -2031,6 +2042,7 @@ export {
     isTaxTrackingEnabled,
     shouldShowPolicy,
     getActiveAdminWorkspaces,
+    hasActiveAdminWorkspaces,
     getOwnedPaidPolicies,
     canSendInvoiceFromWorkspace,
     canSubmitPerDiemExpenseFromWorkspace,
@@ -2135,6 +2147,7 @@ export {
     getDefaultTimeTrackingRate,
     getActivePoliciesWithExpenseChatAndTimeEnabled,
     isPolicyTaxEnabled,
+    sortPoliciesByName,
 };
 
 export type {MemberEmailsToAccountIDs};
