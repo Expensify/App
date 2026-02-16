@@ -116,9 +116,10 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     // When returning from expense RHP, collapse so user must click the header row again to see the expense (with updated data).
     useEffect(() => {
-        if (collapseExpandedGroupsTrigger > 0) {
-            setIsExpanded(false);
+        if (collapseExpandedGroupsTrigger <= 0) {
+            return;
         }
+        setIsExpanded(false);
     }, [collapseExpandedGroupsTrigger]);
 
     const [isActionLoadingSet = CONST.EMPTY_SET] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
