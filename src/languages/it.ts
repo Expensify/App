@@ -5153,13 +5153,13 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                         },
                     },
                     disableModal: {
-                        title: 'Disattivare la fatturazione Viaggi?',
-                        body: 'Hotel e autonoleggi già prenotati possono essere nuovamente prenotati con carte diverse per evitare il rifiuto del servizio.',
+                        title: 'Disattivare la fatturazione viaggi?',
+                        body: 'Le prossime prenotazioni di hotel e autonoleggio potrebbero dover essere rifatte con un diverso metodo di pagamento per evitare la cancellazione.',
                         confirm: 'Disattiva',
                     },
                     outstandingBalanceModal: {
                         title: 'Impossibile disattivare la fatturazione viaggi',
-                        body: 'Non puoi disattivare la Fatturazione Centrale finché hai ancora un saldo viaggio in sospeso. Per favore, salda prima il tuo saldo.',
+                        body: 'Hai ancora un saldo di viaggio in sospeso. Paga prima il tuo saldo.',
                         confirm: 'Capito',
                     },
                     exportToPDF: 'Esporta in PDF',

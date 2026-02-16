@@ -5166,12 +5166,12 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     },
                     disableModal: {
                         title: 'Reiseabrechnung deaktivieren?',
-                        body: 'Hotels und Mietwagen, die bereits gebucht wurden, können mit anderen Karten erneut gebucht werden, um eine Leistungsverweigerung zu vermeiden.',
+                        body: 'Bevorstehende Hotel- und Mietwagenreservierungen müssen möglicherweise mit einer anderen Zahlungsmethode erneut gebucht werden, um eine Stornierung zu vermeiden.',
                         confirm: 'Ausschalten',
                     },
                     outstandingBalanceModal: {
                         title: 'Reiseabrechnung kann nicht deaktiviert werden',
-                        body: 'Sie können die zentrale Rechnungsstellung nicht deaktivieren, solange Sie noch einen offenen Reisebetrag haben. Bitte begleichen Sie zuerst Ihren Betrag.',
+                        body: 'Sie haben noch einen offenen Reisensaldo. Bitte begleichen Sie zuerst Ihren Saldo.',
                         confirm: 'Verstanden',
                     },
                     exportToPDF: 'Als PDF exportieren',

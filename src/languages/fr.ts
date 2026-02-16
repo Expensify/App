@@ -5184,13 +5184,13 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                         },
                     },
                     disableModal: {
-                        title: 'Désactiver la facturation voyage?',
-                        body: 'Les hôtels et les locations de voiture déjà réservés peuvent être réservés à nouveau avec d’autres cartes pour éviter un refus de service.',
+                        title: 'Désactiver la facturation de voyage?',
+                        body: "Les prochaines réservations d'hôtel et de location de voiture devront peut-être être réservées à nouveau avec un autre mode de paiement pour éviter une annulation.",
                         confirm: 'Désactiver',
                     },
                     outstandingBalanceModal: {
                         title: 'Impossible de désactiver la facturation Voyage',
-                        body: "Vous ne pouvez pas désactiver la facturation centrale tant qu'il vous reste un solde de voyage impayé. Veuillez d'abord régler votre solde.",
+                        body: 'Vous avez encore un solde de voyage impayé. Veuillez d’abord régler ce solde.',
                         confirm: 'Compris',
                     },
                     exportToPDF: 'Exporter en PDF',

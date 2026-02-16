@@ -5137,13 +5137,13 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                         },
                     },
                     disableModal: {
-                        title: 'Desativar Faturamento de Viagem?',
-                        body: 'Hotéis e locadoras de veículos que já foram reservados podem ser reservados novamente com cartões diferentes para evitar negativa de serviço.',
+                        title: 'Desativar faturamento de viagens?',
+                        body: 'Próximas reservas de hotel e aluguel de carro podem precisar ser refeitas com um método de pagamento diferente para evitar cancelamento.',
                         confirm: 'Desativar',
                     },
                     outstandingBalanceModal: {
                         title: 'Não é possível desativar o faturamento de viagens',
-                        body: 'Você não pode desativar a Faturação Central enquanto ainda tiver um saldo de viagem em aberto. Por favor, pague seu saldo primeiro.',
+                        body: 'Você ainda tem um saldo de viagem pendente. Pague esse saldo primeiro.',
                         confirm: 'Entendi',
                     },
                     exportToPDF: 'Exportar para PDF',

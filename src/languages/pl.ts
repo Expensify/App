@@ -5132,12 +5132,12 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     },
                     disableModal: {
                         title: 'Wyłączyć fakturowanie podróży?',
-                        body: 'Hotele i wypożyczenia samochodów, które zostały już zarezerwowane, mogą zostać ponownie zarezerwowane z użyciem innych kart, aby uniknąć odmowy świadczenia usługi.',
+                        body: 'Nadchodzące rezerwacje hoteli i wynajmu samochodów mogą wymagać ponownej rezerwacji z użyciem innej metody płatności, aby uniknąć anulowania.',
                         confirm: 'Wyłącz',
                     },
                     outstandingBalanceModal: {
                         title: 'Nie można wyłączyć fakturowania podróży',
-                        body: 'Nie możesz wyłączyć centralnego fakturowania, dopóki masz nieuregulowane saldo za podróż. Najpierw ureguluj swoje saldo.',
+                        body: 'Masz nadal zaległe saldo za podróż. Najpierw ureguluj swoje saldo.',
                         confirm: 'Rozumiem',
                     },
                     exportToPDF: 'Eksportuj do PDF',

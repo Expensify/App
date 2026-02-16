@@ -5122,12 +5122,12 @@ const translations = {
                     },
                     disableModal: {
                         title: 'Turn off Travel Invoicing?',
-                        body: 'Hotels and car rentals that have already been booked may be re-booked with different cards to avoid denial of service.',
+                        body: 'Upcoming hotel and car rental reservations may need to be re-booked with a different payment method to avoid cancellation.',
                         confirm: 'Turn off',
                     },
                     outstandingBalanceModal: {
                         title: "Can't turn off Travel Invoicing",
-                        body: "You can't turn off Central Invoicing while you still have an outstanding travel balance. Please pay your balance first.",
+                        body: 'You still have an outstanding travel balance. Please pay your balance first.',
                         confirm: 'Got it',
                     },
                     exportToPDF: 'Export to PDF',

@@ -5143,14 +5143,10 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                     },
                     disableModal: {
                         title: 'Reisfacturatie uitschakelen?',
-                        body: 'Hotels en autoverhuur die al zijn geboekt, kunnen opnieuw worden geboekt met andere kaarten om weigering van service te voorkomen.',
+                        body: 'Toekomstige hotel en autoverhuurreserveringen moeten mogelijk opnieuw worden geboekt met een andere betaalmethode om annulering te voorkomen.',
                         confirm: 'Uitschakelen',
                     },
-                    outstandingBalanceModal: {
-                        title: 'Kan Reiskostenfacturatie niet uitschakelen',
-                        body: 'Je kunt Centrale facturatie niet uitschakelen zolang je nog een openstaand reissaldo hebt. Betaal eerst je saldo.',
-                        confirm: 'Begrepen',
-                    },
+                    outstandingBalanceModal: {title: 'Kan Reiskostenfacturatie niet uitschakelen', body: 'Je hebt nog een openstaand reissaldo. Betaal eerst je saldo.', confirm: 'Begrepen'},
                     exportToPDF: 'Exporteren naar PDF',
                     exportToCSV: 'Exporteren naar CSV',
                 },
