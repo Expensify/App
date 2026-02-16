@@ -770,7 +770,8 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             fixCompanyCardConnection: {
                 title: ({feedName}: {feedName: string}) => (feedName ? `Reconectar la tarjeta corporativa de ${feedName}` : 'Reconectar la tarjeta corporativa'),
-                subtitle: 'Espacio de trabajo > Tarjetas de empresa',
+                defaultSubtitle: 'Espacio de trabajo > Tarjetas de empresa',
+                subtitle: ({policyName}: {policyName: string}) => `${policyName} > Tarjetas de empresa`,
             },
             fixAccountingConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Reconectar con ${integrationName}`,
@@ -8603,6 +8604,15 @@ ${amount} para ${merchant} - ${date}`,
         },
         common: {
             settings: 'Configuración',
+        },
+        groups: {
+            title: 'Grupos',
+            memberCount: () => {
+                return {
+                    one: '1 miembro',
+                    other: (count: number) => `${count} miembros`,
+                };
+            },
         },
     },
     gps: {

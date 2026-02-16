@@ -50,22 +50,24 @@ jobs:
 
       - name: Run Claude Code (code)
         if: steps.filter.outputs.code == 'true'
-        uses: anthropics/claude-code-action@a7e4c51380c42dd89b127f5e5f9be7b54020bc6b # v1.0.21
+        uses: anthropics/claude-code-action@ea36d6abdedc17fc2a671b36060770b208a6f8f1 # v1.0.51
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           allowed_non_write_users: "*"
           prompt: "/review-code-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ github.event.pull_request.number }}"
           claude_args: |
+            --model claude-opus-4-6
             --allowedTools "Task,Glob,Grep,Read,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(addPrReaction.sh:*),Bash(createInlineComment.sh:*)"
 
       - name: Run Claude Code (docs)
         if: steps.filter.outputs.docs == 'true'
-        uses: anthropics/claude-code-action@a7e4c51380c42dd89b127f5e5f9be7b54020bc6b # v1.0.21
+        uses: anthropics/claude-code-action@ea36d6abdedc17fc2a671b36060770b208a6f8f1 # v1.0.51
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           allowed_non_write_users: "*"
           prompt: "/review-helpdot-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ github.event.pull_request.number }}"
           claude_args: |
+            --model claude-opus-4-6
             --allowedTools "Task,Glob,Grep,Read,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),mcp__github_inline_comment__create_inline_comment"
