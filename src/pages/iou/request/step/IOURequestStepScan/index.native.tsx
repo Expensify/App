@@ -126,6 +126,7 @@ function IOURequestStepScan({
     const defaultTaxCode = getDefaultTaxCode(policy, initialTransaction);
     const transactionTaxCode = (initialTransaction?.taxCode ? initialTransaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = initialTransaction?.taxAmount ?? 0;
+    const [isAttachmentPickerActive, setIsAttachmentPickerActive] = useState(false);
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
@@ -651,6 +652,7 @@ function IOURequestStepScan({
                                         photo
                                         cameraTabIndex={1}
                                         onLayout={(e) => (viewfinderLayout.current = e.nativeEvent.layout)}
+                                        forceInactive={isAttachmentPickerActive}
                                     />
                                     <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
                                     {canUseMultiScan ? (
@@ -698,7 +700,10 @@ function IOURequestStepScan({
                 )}
                 <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
                     <AttachmentPicker
-                        onOpenPicker={() => setIsLoaderVisible(true)}
+                        onOpenPicker={() => {
+                            setIsAttachmentPickerActive(true);
+                            setIsLoaderVisible(true);
+                        }}
                         fileLimit={shouldAcceptMultipleFiles ? CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT : 1}
                         shouldValidateImage={false}
                     >
@@ -714,6 +719,7 @@ function IOURequestStepScan({
                                         onCanceled: () => setIsLoaderVisible(false),
                                         // makes sure the loader is not visible anymore e.g. when there is an error while uploading a file
                                         onClosed: () => {
+                                            setIsAttachmentPickerActive(false);
                                             setIsLoaderVisible(false);
                                         },
                                     });
