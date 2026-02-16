@@ -18,10 +18,10 @@ import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {NetSuiteCustomFieldForm} from '@src/types/form/NetSuiteCustomFieldForm';
 import type {Policy} from '@src/types/onyx';
 import {getCustomListInitialSubstep, getSubstepValues} from './customUtils';
-import ChooseCustomListStep from './substeps/ChooseCustomListStep';
-import ConfirmCustomListStep from './substeps/ConfirmCustomListStep';
-import CustomListMappingStep from './substeps/CustomListMappingStep';
-import TransactionFieldIDStep from './substeps/TransactionFieldIDStep';
+import ChooseCustomListStep from './subPages/ChooseCustomListStep';
+import ConfirmCustomListStep from './subPages/ConfirmCustomListStep';
+import CustomListMappingStep from './subPages/CustomListMappingStep';
+import TransactionFieldIDStep from './subPages/TransactionFieldIDStep';
 
 type NetSuiteImportAddCustomListContentProps = {
     policy: OnyxEntry<Policy>;

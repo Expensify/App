@@ -21,12 +21,12 @@ import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {NetSuiteCustomFieldForm} from '@src/types/form/NetSuiteCustomFieldForm';
 import type {Policy} from '@src/types/onyx';
 import {getCustomSegmentInitialSubstep, getSubstepValues} from './customUtils';
-import ChooseSegmentTypeStep from './substeps/ChooseSegmentTypeStep';
-import ConfirmCustomSegmentStep from './substeps/ConfirmCustomSegmentList';
-import CustomSegmentInternalIdStep from './substeps/CustomSegmentInternalIdStep';
-import CustomSegmentMappingStep from './substeps/CustomSegmentMappingStep';
-import CustomSegmentNameStep from './substeps/CustomSegmentNameStep';
-import CustomSegmentScriptIdStep from './substeps/CustomSegmentScriptIdStep';
+import ChooseSegmentTypeStep from './subPages/ChooseSegmentTypeStep';
+import ConfirmCustomSegmentStep from './subPages/ConfirmCustomSegmentList';
+import CustomSegmentInternalIdStep from './subPages/CustomSegmentInternalIdStep';
+import CustomSegmentMappingStep from './subPages/CustomSegmentMappingStep';
+import CustomSegmentNameStep from './subPages/CustomSegmentNameStep';
+import CustomSegmentScriptIdStep from './subPages/CustomSegmentScriptIdStep';
 
 type NetSuiteImportAddCustomSegmentContentProps = {
     policy: OnyxEntry<Policy>;
