@@ -1,14 +1,14 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -44,15 +44,14 @@ type TagSettingsPageProps =
 function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const {orderWeight, policyID, tagName, backTo, parentTagsFilter} = route.params;
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock']);
     const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const policyData = usePolicyData(policyID);
     const {policy, tags: policyTags} = policyData;
     const policyTag = getTagListByOrderWeight(policyTags, orderWeight);
     const {environmentURL} = useEnvironment();
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
-    const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = React.useState(false);
-    const [isCannotDeleteOrDisableLastTagModalVisible, setIsCannotDeleteOrDisableLastTagModalVisible] = useState(false);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock', 'Trashcan'] as const);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAG_SETTINGS;
     const tagApprover = getTagApproverRule(policy, route.params?.tagName)?.approver ?? '';
     const approver = getPersonalDetailByEmail(tagApprover);
@@ -75,15 +74,14 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
         return <NotFoundPage />;
     }
 
-    const deleteTagAndHideModal = () => {
-        deletePolicyTags(policyData, [currentPolicyTag.name]);
-        setIsDeleteTagModalOpen(false);
-        Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined);
-    };
-
     const updateWorkspaceTagEnabled = (value: boolean) => {
         if (shouldPreventDisableOrDelete) {
-            setIsCannotDeleteOrDisableLastTagModalVisible(true);
+            showConfirmModal({
+                title: translate('workspace.tags.cannotDeleteOrDisableAllTags.title'),
+                prompt: translate('workspace.tags.cannotDeleteOrDisableAllTags.description'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            });
             return;
         }
         setWorkspaceTagEnabled(policyData, {[currentPolicyTag.name]: {name: currentPolicyTag.name, enabled: value}}, policyTag.orderWeight);
@@ -148,26 +146,6 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                     shouldSetModalVisibility={false}
                     onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined)}
                 />
-                <ConfirmModal
-                    title={translate('workspace.tags.deleteTag')}
-                    isVisible={isDeleteTagModalOpen}
-                    onConfirm={deleteTagAndHideModal}
-                    onCancel={() => setIsDeleteTagModalOpen(false)}
-                    shouldSetModalVisibility={false}
-                    prompt={translate('workspace.tags.deleteTagConfirmation')}
-                    confirmText={translate('common.delete')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
-                <ConfirmModal
-                    isVisible={isCannotDeleteOrDisableLastTagModalVisible}
-                    onConfirm={() => setIsCannotDeleteOrDisableLastTagModalVisible(false)}
-                    onCancel={() => setIsCannotDeleteOrDisableLastTagModalVisible(false)}
-                    title={translate('workspace.tags.cannotDeleteOrDisableAllTags.title')}
-                    prompt={translate('workspace.tags.cannotDeleteOrDisableAllTags.description')}
-                    confirmText={translate('common.buttonConfirm')}
-                    shouldShowCancelButton={false}
-                />
 
                 <View style={styles.flexGrow1}>
                     {!hasDependentTags && (
@@ -225,9 +203,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                                 disabled={approverDisabled}
                                 helperText={
                                     approverDisabled
-                                        ? translate('workspace.rules.categoryRules.enableWorkflows', {
-                                              moreFeaturesLink: `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`,
-                                          })
+                                        ? translate('workspace.rules.categoryRules.enableWorkflows', `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`)
                                         : undefined
                                 }
                                 shouldParseHelperText
@@ -237,14 +213,32 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
 
                     {shouldShowDeleteMenuItem && (
                         <MenuItem
-                            icon={Expensicons.Trashcan}
+                            icon={expensifyIcons.Trashcan}
                             title={translate('common.delete')}
-                            onPress={() => {
+                            onPress={async () => {
                                 if (shouldPreventDisableOrDelete) {
-                                    setIsCannotDeleteOrDisableLastTagModalVisible(true);
+                                    showConfirmModal({
+                                        title: translate('workspace.tags.cannotDeleteOrDisableAllTags.title'),
+                                        prompt: translate('workspace.tags.cannotDeleteOrDisableAllTags.description'),
+                                        confirmText: translate('common.buttonConfirm'),
+                                        shouldShowCancelButton: false,
+                                    });
                                     return;
                                 }
-                                setIsDeleteTagModalOpen(true);
+                                const {action} = await showConfirmModal({
+                                    title: translate('workspace.tags.deleteTag'),
+                                    prompt: translate('workspace.tags.deleteTagConfirmation'),
+                                    confirmText: translate('common.delete'),
+                                    cancelText: translate('common.cancel'),
+                                    danger: true,
+                                });
+                                if (action === ModalActions.CONFIRM) {
+                                    if (!currentPolicyTag?.name) {
+                                        return;
+                                    }
+                                    deletePolicyTags(policyData, [currentPolicyTag.name]);
+                                    Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined);
+                                }
                             }}
                         />
                     )}

@@ -30,7 +30,6 @@ buildscript {
         classpath("com.facebook.react:react-native-gradle-plugin")
         classpath("com.google.gms:google-services:4.3.4")
         classpath("com.google.firebase:firebase-crashlytics-gradle:2.7.1")
-        classpath("com.google.firebase:perf-plugin:1.4.1")
         // Fullstory integration
         classpath ("com.fullstory:gradle-plugin-local:1.64.2")
 

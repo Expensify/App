@@ -1,3 +1,4 @@
+import {getReportActionsForReportIDs} from '@selectors/ReportAction';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -143,6 +144,24 @@ function ReportActionItemParentAction({
         [ancestors],
     );
 
+    const ancestorReportActionsSelector = useCallback(
+        (allReportActions: OnyxCollection<OnyxTypes.ReportActions>) => {
+            const reportIDs = ancestors.map((ancestor) => ancestor.report.reportID);
+            return getReportActionsForReportIDs(allReportActions, reportIDs);
+        },
+        [ancestors],
+    );
+
+    const [ancestorsReportActions] = useOnyx(
+        ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+        {
+            canBeMissing: true,
+            selector: ancestorReportActionsSelector,
+        },
+        [ancestors],
+    );
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+
     return (
         <View style={[styles.pRelative]}>
             <AnimatedEmptyStateBackground />
@@ -152,7 +171,7 @@ function ReportActionItemParentAction({
                     report?.errorFields?.createChatThread ?? (report?.errorFields?.createChat ? getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage') : null)
                 }
                 errorRowStyles={[styles.ml10, styles.mr2]}
-                onClose={() => navigateToConciergeChatAndDeleteReport(report?.reportID, undefined, true)}
+                onClose={() => navigateToConciergeChatAndDeleteReport(report?.reportID, conciergeReportID, undefined, true)}
             >
                 {ancestors.map((ancestor) => {
                     const {report: ancestorReport, reportAction: ancestorReportAction} = ancestor;
@@ -160,7 +179,11 @@ function ReportActionItemParentAction({
                     const shouldDisplayThreadDivider = !isTripPreview(ancestorReportAction);
                     const isAncestorReportArchived = isArchivedReport(ancestorsReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestorReport.reportID}`]);
 
-                    const originalReportID = getOriginalReportID(ancestorReport.reportID, ancestorReportAction);
+                    const originalReportID = getOriginalReportID(
+                        ancestorReport.reportID,
+                        ancestorReportAction,
+                        ancestorsReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReport.reportID}`],
+                    );
                     const reportDraftMessages = originalReportID ? allDraftMessages?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`] : undefined;
                     const matchingDraftMessage = reportDraftMessages?.[ancestorReportAction.reportActionID];
                     const matchingDraftMessageString = matchingDraftMessage?.message;
@@ -173,7 +196,7 @@ function ReportActionItemParentAction({
                             pendingAction={ancestorReport?.pendingFields?.addWorkspaceRoom ?? ancestorReport?.pendingFields?.createChat}
                             errors={ancestorReport?.errorFields?.addWorkspaceRoom ?? ancestorReport?.errorFields?.createChat}
                             errorRowStyles={[styles.ml10, styles.mr2]}
-                            onClose={() => navigateToConciergeChatAndDeleteReport(ancestorReport.reportID)}
+                            onClose={() => navigateToConciergeChatAndDeleteReport(ancestorReport.reportID, conciergeReportID)}
                         >
                             {shouldDisplayThreadDivider && (
                                 <ThreadDivider

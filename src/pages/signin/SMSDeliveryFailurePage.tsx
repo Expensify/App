@@ -116,7 +116,7 @@ function SMSDeliveryFailurePage() {
         <>
             <View style={[styles.mv3, styles.flexRow]}>
                 <View style={[styles.flex1]}>
-                    <Text>{translate('smsDeliveryFailurePage.smsDeliveryFailureMessage', {login})}</Text>
+                    <Text>{translate('smsDeliveryFailurePage.smsDeliveryFailureMessage', login)}</Text>
                 </View>
             </View>
             <View style={[styles.mv4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsEnd]}>

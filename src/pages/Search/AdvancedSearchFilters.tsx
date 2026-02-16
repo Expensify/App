@@ -1,5 +1,4 @@
 import {filterCardsHiddenFromSearch} from '@selectors/Card';
-import {emailSelector} from '@selectors/Session';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
@@ -14,14 +13,12 @@ import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchDatePreset, Sea
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import type {WorkspaceListItem} from '@hooks/useWorkspaceList';
-import useWorkspaceList from '@hooks/useWorkspaceList';
 import {saveSearch} from '@libs/actions/Search';
 import {createCardFeedKey, getCardFeedKey, getCardFeedNamesWithType, getWorkspaceCardFeedKey} from '@libs/CardFeedUtils';
 import {getCardDescription} from '@libs/CardUtils';
@@ -29,7 +26,7 @@ import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
 import {getAllTaxRates, getCleanedTagName} from '@libs/PolicyUtils';
-import {computeReportName} from '@libs/ReportNameUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {
     buildCannedSearchQuery,
     buildQueryStringFromFilterFormValues,
@@ -47,7 +44,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import {AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {CardList, PersonalDetailsList, Policy, Report, WorkspaceCardsList} from '@src/types/onyx';
+import type {CardList, PersonalDetailsList, Policy, Report, ReportAttributesDerivedValue, WorkspaceCardsList} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -276,7 +273,7 @@ function getFilterWorkspaceDisplayTitle(filters: SearchAdvancedFiltersForm, poli
         .join(', ');
 }
 
-function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, cards: CardList | undefined, translate: LocaleContextProps['translate']) {
+function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, policies: OnyxCollection<Policy>, cards: CardList | undefined, translate: LocaleContextProps['translate']) {
     const cardIdsFilter = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID] ?? [];
     const feedFilter = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED] ?? [];
     const workspaceCardFeeds = Object.entries(cards ?? {}).reduce<Record<string, WorkspaceCardsList>>((workspaceCardsFeed, [cardID, card]) => {
@@ -291,6 +288,7 @@ function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, 
 
     const cardFeedNamesWithType = getCardFeedNamesWithType({
         workspaceCardFeeds,
+        policies,
         translate,
     });
 
@@ -309,12 +307,12 @@ function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, 
 }
 
 function getFilterParticipantDisplayTitle(accountIDs: string[], personalDetails: PersonalDetailsList | undefined, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
-    const selectedPersonalDetails = accountIDs.map((id) => personalDetails?.[id]);
-
-    return selectedPersonalDetails
-        .map((personalDetail) => {
+    return accountIDs
+        .map((id) => {
+            const personalDetail = personalDetails?.[id];
             if (!personalDetail) {
-                return '';
+                // Name-only attendees are stored by displayName, not accountID
+                return id;
             }
 
             return createDisplayName(personalDetail.login ?? '', personalDetail, formatPhoneNumber);
@@ -367,16 +365,16 @@ function getFilterDisplayTitle(
         const equalTo = filters[equalToKey];
 
         if (equalTo) {
-            return translate('search.filters.amount.equalTo', {amount: convertToDisplayStringWithoutCurrency(Number(equalTo))});
+            return translate('search.filters.amount.equalTo', convertToDisplayStringWithoutCurrency(Number(equalTo)));
         }
         if (lessThan && greaterThan) {
             return translate('search.filters.amount.between', convertToDisplayStringWithoutCurrency(Number(greaterThan)), convertToDisplayStringWithoutCurrency(Number(lessThan)));
         }
         if (lessThan) {
-            return translate('search.filters.amount.lessThan', {amount: convertToDisplayStringWithoutCurrency(Number(lessThan))});
+            return translate('search.filters.amount.lessThan', convertToDisplayStringWithoutCurrency(Number(lessThan)));
         }
         if (greaterThan) {
-            return translate('search.filters.amount.greaterThan', {amount: convertToDisplayStringWithoutCurrency(Number(greaterThan))});
+            return translate('search.filters.amount.greaterThan', convertToDisplayStringWithoutCurrency(Number(greaterThan)));
         }
         // Will never happen
         return;
@@ -406,21 +404,21 @@ function getFilterDisplayTitle(
                     ? translate(`search.filters.date.presets.${fieldValue as SearchDatePreset}`)
                     : translate('search.filters.date.on', fieldValue as string);
 
-                values.push(translate('search.filters.reportField', {name: fieldName, value: dateString.toLowerCase()}));
+                values.push(translate('search.filters.reportField', fieldName, dateString.toLowerCase()));
             }
 
             if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX)) {
                 const dateString = translate('search.filters.date.after', fieldValue as string).toLowerCase();
-                values.push(translate('search.filters.reportField', {name: fieldName, value: dateString.toLowerCase()}));
+                values.push(translate('search.filters.reportField', fieldName, dateString.toLowerCase()));
             }
 
             if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX)) {
                 const dateString = translate('search.filters.date.before', fieldValue as string).toLowerCase();
-                values.push(translate('search.filters.reportField', {name: fieldName, value: dateString.toLowerCase()}));
+                values.push(translate('search.filters.reportField', fieldName, dateString.toLowerCase()));
             }
 
             if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX)) {
-                const valueString = translate('search.filters.reportField', {name: fieldName, value: fieldValue as string});
+                const valueString = translate('search.filters.reportField', fieldName, fieldValue as string);
                 values.push(valueString);
             }
         }
@@ -449,7 +447,7 @@ function getFilterDisplayTitle(
             .join(', ');
     }
 
-    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE) {
+    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE) {
         return filters[key];
     }
 
@@ -553,9 +551,14 @@ function getFilterExpenseDisplayTitle(filters: Partial<SearchAdvancedFiltersForm
         : undefined;
 }
 
-function getFilterInDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, _: LocaleContextProps['translate'], reports: OnyxCollection<Report> | undefined, currentUserAccountID: number) {
+function getFilterInDisplayTitle(
+    filters: Partial<SearchAdvancedFiltersForm>,
+    _: LocaleContextProps['translate'],
+    reports: OnyxCollection<Report>,
+    reportAttributes: ReportAttributesDerivedValue['reports'],
+) {
     return filters.in
-        ?.map((id) => computeReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reports, undefined, undefined, undefined, undefined, undefined, currentUserAccountID))
+        ?.map((id) => getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportAttributes))
         ?.filter(Boolean)
         ?.join(', ');
 }
@@ -570,23 +573,13 @@ function AdvancedSearchFilters() {
     const [searchAdvancedFilters = getEmptyObject<SearchAdvancedFiltersForm>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
     const [searchCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true, selector: filterCardsHiddenFromSearch});
     const personalDetails = usePersonalDetails();
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true});
 
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: emailSelector});
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const taxRates = getAllTaxRates(policies);
 
-    const {sections: workspaces} = useWorkspaceList({
-        policies,
-        currentUserLogin,
-        shouldShowPendingDeletePolicy: false,
-        selectedPolicyIDs: undefined,
-        searchTerm: '',
-        localeCompare,
-    });
-
-    const {currentType, typeFiltersKeys} = useAdvancedSearchFilters();
+    const {currentType, typeFiltersKeys, workspaces} = useAdvancedSearchFilters();
 
     const queryString = useMemo(() => {
         const currentQueryJSON = getCurrentSearchQueryJSON();
@@ -627,7 +620,7 @@ function AdvancedSearchFilters() {
             const onPress = singleExecution(waitForNavigate(() => Navigation.navigate(baseFilterConfig[key].route)));
             let filterTitle;
             if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
-                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, searchCards, translate);
+                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, policies, searchCards, translate);
             } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, taxRates);
             } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
@@ -640,7 +633,7 @@ function AdvancedSearchFilters() {
             ) {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters[key] ?? [], personalDetails, formatPhoneNumber);
             } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
-                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate, reports, currentUserAccountID);
+                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate, reports, reportAttributes?.reports ?? {});
             } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
                 const workspacesData = workspaces.flatMap((value) => value.data);
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, workspacesData);

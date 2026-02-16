@@ -20,6 +20,7 @@ import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useFilterSelectedTransactions from '@hooks/useFilterSelectedTransactions';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@hooks/useFlatListScrollKey';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useLocalize from '@hooks/useLocalize';
@@ -50,7 +51,7 @@ import {
     isCurrentActionUnread,
     isDeletedParentAction,
     isIOUActionMatchingTransactionList,
-    isReportActionVisible,
+    shouldReportActionBeVisible,
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction, chatIncludesChronosWithID, getOriginalReportID, getReportLastVisibleActionCreated, isHarvestCreatedExpenseReport, isUnread} from '@libs/ReportUtils';
@@ -161,9 +162,19 @@ function MoneyRequestReportActionsList({
     const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}`, {canBeMissing: true});
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: false});
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
 
     const transactionsWithoutPendingDelete = useMemo(() => transactions.filter((t) => !isTransactionPendingDelete(t)), [transactions]);
     const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);
+    // reportActions is passed as an array because it's sorted chronologically for FlatList rendering and pagination.
+    // However, getOriginalReportID expects the Onyx object format (keyed by reportActionID) for efficient lookups.
+    const reportActionsObject = useMemo(() => {
+        const obj: OnyxTypes.ReportActions = {};
+        for (const action of reportActions) {
+            obj[action.reportActionID] = action;
+        }
+        return obj;
+    }, [reportActions]);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], false, reportTransactionIDs);
     const firstVisibleReportActionID = useMemo(() => getFirstVisibleReportActionID(reportActions, isOffline), [reportActions, isOffline]);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
@@ -171,7 +182,6 @@ function MoneyRequestReportActionsList({
 
     const isReportArchived = useReportIsArchived(reportID);
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
-    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {canBeMissing: true});
 
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
 
@@ -184,6 +194,8 @@ function MoneyRequestReportActionsList({
     const [lastActionEventId, setLastActionEventId] = useState<string>('');
 
     const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
+
+    useFilterSelectedTransactions(transactions);
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const [isExportWithTemplateModalVisible, setIsExportWithTemplateModalVisible] = useState(false);
@@ -232,29 +244,17 @@ function MoneyRequestReportActionsList({
     const visibleReportActions = useMemo(() => {
         const filteredActions = reportActions.filter((reportAction) => {
             const isActionVisibleOnMoneyReport = isActionVisibleOnMoneyRequestReport(reportAction, shouldShowHarvestCreatedAction);
-            if (!isActionVisibleOnMoneyReport) {
-                return false;
-            }
 
-            const passesOfflineCheck = isOffline || isDeletedParentAction(reportAction) || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors;
-            if (!passesOfflineCheck) {
-                return false;
-            }
-
-            const actionReportID = reportAction.reportID ?? reportID;
-            if (!isReportActionVisible(reportAction, actionReportID, canPerformWriteAction, visibleReportActionsData)) {
-                return false;
-            }
-
-            if (!isIOUActionMatchingTransactionList(reportAction, reportTransactionIDs)) {
-                return false;
-            }
-
-            return true;
+            return (
+                isActionVisibleOnMoneyReport &&
+                (isOffline || isDeletedParentAction(reportAction) || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors) &&
+                shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canPerformWriteAction) &&
+                isIOUActionMatchingTransactionList(reportAction, reportTransactionIDs)
+            );
         });
 
         return filteredActions.toReversed();
-    }, [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs, shouldShowHarvestCreatedAction, visibleReportActionsData, reportID]);
+    }, [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs, shouldShowHarvestCreatedAction]);
 
     const reportActionSize = useRef(visibleReportActions.length);
     const lastAction = visibleReportActions.at(-1);
@@ -567,7 +567,7 @@ function MoneyRequestReportActionsList({
                 hasNextActionMadeBySameActor(visibleReportActions, index);
 
             const actionEmojiReactions = emojiReactions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportAction.reportActionID}`];
-            const originalReportID = getOriginalReportID(report.reportID, reportAction);
+            const originalReportID = getOriginalReportID(report.reportID, reportAction, reportActionsObject);
             const reportDraftMessages = draftMessage?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`];
             const matchingDraftMessage = reportDraftMessages?.[reportAction.reportActionID];
             const matchingDraftMessageString = matchingDraftMessage?.message;
@@ -606,6 +606,7 @@ function MoneyRequestReportActionsList({
         [
             visibleReportActions,
             reportActions,
+            reportActionsObject,
             parentReportAction,
             report,
             transactionThreadReport,
@@ -632,7 +633,7 @@ function MoneyRequestReportActionsList({
         setIsFloatingMessageCounterVisible(false);
 
         if (!hasNewestReportAction) {
-            openReport(report.reportID);
+            openReport(report.reportID, introSelected);
             reportScrollManager.scrollToEnd();
             return;
         }
@@ -729,6 +730,7 @@ function MoneyRequestReportActionsList({
                                 role="button"
                                 accessibilityState={{checked: isSelectAllChecked}}
                                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REQUEST_REPORT_ACTIONS_LIST_SELECT_ALL}
                             >
                                 <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
                             </PressableWithFeedback>

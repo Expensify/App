@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import OpacityView from '@components/OpacityView';
 import type {Color} from '@styles/theme/types';
@@ -42,6 +42,9 @@ type PressableWithFeedbackProps = PressableProps & {
      * This is needed for buttons that allow content to display under them.
      */
     shouldBlendOpacity?: boolean;
+
+    /** Optional callback fired on wrapper's mount and layout changes */
+    onWrapperLayout?: ((event: LayoutChangeEvent) => void) | undefined;
 };
 
 function PressableWithFeedback({
@@ -53,6 +56,7 @@ function PressableWithFeedback({
     dimAnimationDuration,
     shouldBlendOpacity,
     ref,
+    onWrapperLayout,
     ...rest
 }: PressableWithFeedbackProps) {
     const [isPressed, setIsPressed] = useState(false);
@@ -64,6 +68,7 @@ function PressableWithFeedback({
             dimmingValue={isPressed ? pressDimmingValue : hoverDimmingValue}
             dimAnimationDuration={dimAnimationDuration}
             style={wrapperStyle}
+            onLayout={onWrapperLayout}
             needsOffscreenAlphaCompositing={needsOffscreenAlphaCompositing}
         >
             <GenericPressable

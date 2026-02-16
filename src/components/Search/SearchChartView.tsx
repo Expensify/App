@@ -5,7 +5,6 @@ import Animated from 'react-native-reanimated';
 import type {
     TransactionCardGroupListItemType,
     TransactionCategoryGroupListItemType,
-    TransactionGroupListItemType,
     TransactionMemberGroupListItemType,
     TransactionMerchantGroupListItemType,
     TransactionMonthGroupListItemType,
@@ -27,19 +26,8 @@ import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUti
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import SearchBarChart from './SearchBarChart';
-import type {ChartView, SearchGroupBy, SearchQueryJSON} from './types';
-
-type GroupedItem =
-    | TransactionMemberGroupListItemType
-    | TransactionCardGroupListItemType
-    | TransactionWithdrawalIDGroupListItemType
-    | TransactionCategoryGroupListItemType
-    | TransactionMerchantGroupListItemType
-    | TransactionTagGroupListItemType
-    | TransactionMonthGroupListItemType
-    | TransactionWeekGroupListItemType
-    | TransactionYearGroupListItemType
-    | TransactionQuarterGroupListItemType;
+import SearchLineChart from './SearchLineChart';
+import type {ChartView, GroupedItem, SearchGroupBy, SearchQueryJSON} from './types';
 
 type ChartGroupByConfig = {
     titleIconName: 'Users' | 'CreditCard' | 'Send' | 'Folder' | 'Basket' | 'Tag' | 'Calendar';
@@ -125,14 +113,14 @@ type SearchChartViewProps = {
     /** The current search query JSON */
     queryJSON: SearchQueryJSON;
 
-    /** The view type (bar, etc.) */
-    view: Exclude<ChartView, 'line' | 'pie'>;
+    /** The view type (bar, line, etc.) */
+    view: Exclude<ChartView, 'pie'>;
 
     /** The groupBy parameter */
     groupBy: SearchGroupBy;
 
     /** Grouped transaction data from search results */
-    data: TransactionGroupListItemType[];
+    data: GroupedItem[];
 
     /** Whether data is loading */
     isLoading?: boolean;
@@ -144,8 +132,9 @@ type SearchChartViewProps = {
 /**
  * Map of chart view types to their corresponding chart components.
  */
-const CHART_VIEW_TO_COMPONENT: Record<Exclude<ChartView, 'line' | 'pie'>, typeof SearchBarChart> = {
+const CHART_VIEW_TO_COMPONENT: Record<Exclude<ChartView, 'pie'>, typeof SearchBarChart | typeof SearchLineChart> = {
     [CONST.SEARCH.VIEW.BAR]: SearchBarChart,
+    [CONST.SEARCH.VIEW.LINE]: SearchLineChart,
 };
 
 /**
@@ -162,9 +151,8 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, onScroll}: 
     const title = translate(`search.chartTitles.${groupBy}`);
     const ChartComponent = CHART_VIEW_TO_COMPONENT[view];
 
-    const handleBarPress = useCallback(
+    const handleItemPress = useCallback(
         (filterQuery: string) => {
-            // Build new query string from current query + filter, then parse it
             const currentQueryString = buildSearchQueryString(queryJSON);
             const newQueryJSON = buildSearchQueryJSON(`${currentQueryString} ${filterQuery}`);
 
@@ -173,20 +161,17 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, onScroll}: 
                 return;
             }
 
-            // Modify the query object directly: remove groupBy and view to show table
             newQueryJSON.groupBy = undefined;
             newQueryJSON.view = CONST.SEARCH.VIEW.TABLE;
 
-            // Build the final query string and navigate
             const newQueryString = buildSearchQueryString(newQueryJSON);
             Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: newQueryString}));
         },
         [queryJSON],
     );
 
-    // Get currency symbol and position from first data item
     const {yAxisUnit, yAxisUnitPosition} = useMemo((): {yAxisUnit: string; yAxisUnitPosition: 'left' | 'right'} => {
-        const firstItem = data.at(0) as GroupedItem | undefined;
+        const firstItem = data.at(0);
         const currency = firstItem?.currency ?? 'USD';
         const {symbol, position} = getCurrencyDisplayInfoForCharts(currency);
 
@@ -210,7 +195,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, onScroll}: 
                     titleIcon={titleIcon}
                     getLabel={getLabel}
                     getFilterQuery={getFilterQuery}
-                    onBarPress={handleBarPress}
+                    onItemPress={handleItemPress}
                     isLoading={isLoading}
                     yAxisUnit={yAxisUnit}
                     yAxisUnitPosition={yAxisUnitPosition}

@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import type {View} from 'react-native';
 import Animated, {Keyframe, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 import Button from '@components/Button';
@@ -16,7 +17,6 @@ type AnimatedSettlementButtonProps = SettlementButtonProps & {
     isApprovedAnimationRunning: boolean;
     shouldAddTopMargin?: boolean;
     canIOUBePaid: boolean;
-    sentryLabel?: string;
 };
 
 function AnimatedSettlementButton({
@@ -105,7 +105,7 @@ function AnimatedSettlementButton({
         <Animated.View style={[containerStyles, wrapperStyle, {minWidth}]}>
             {isAnimationRunning && canShow && (
                 <Animated.View
-                    ref={(el) => {
+                    ref={(el: View | null) => {
                         viewRef.current = el as HTMLElement | null;
                     }}
                     exiting={buttonAnimation}
