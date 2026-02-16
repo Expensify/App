@@ -338,6 +338,38 @@ describe('SearchQueryUtils', () => {
 
                 expect(result).not.toContain('limit:');
             });
+
+            test('quotes limit value containing spaces to prevent keyword contamination', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                    keyword: 'hi',
+                    limit: '10 90',
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                expect(result).toContain('limit:"10 90"');
+                expect(result).toEqual('sortBy:date sortOrder:desc type:expense hi limit:"10 90"');
+            });
+
+            test('limit value with spaces does not leak into keyword when round-tripped through parser', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                    keyword: 'hi',
+                    limit: '10 90',
+                };
+
+                const queryString = buildQueryStringFromFilterFormValues(filterValues);
+                const queryJSON = buildSearchQueryJSON(queryString);
+
+                // "10 90" is not a valid integer, so limit is normalized to undefined
+                expect(queryJSON?.limit).toBeUndefined();
+
+                // The keyword must NOT be contaminated with "90" from the limit value
+                const keywordFilter = queryJSON?.flatFilters.find((filter) => filter.key === 'keyword');
+                expect(keywordFilter?.filters).toHaveLength(1);
+                expect(keywordFilter?.filters.at(0)?.value).toBe('hi');
+            });
         });
 
         describe('view parameter', () => {

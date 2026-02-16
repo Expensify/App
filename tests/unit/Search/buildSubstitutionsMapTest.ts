@@ -67,6 +67,9 @@ const cardFeedsMock: OnyxCollection<OnyxTypes.CardFeeds> = {
             companyCards: {
                 [cardFeedMock]: {},
             },
+            oAuthAccountDetails: {
+                [cardFeedMock]: {accountList: ['CREDIT CARD...1234'], credentials: 'xxxxx', expiration: 1730998958},
+            },
         },
     },
 };

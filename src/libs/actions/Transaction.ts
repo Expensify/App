@@ -1,6 +1,6 @@
 import {getUnixTime} from 'date-fns';
 import lodashClone from 'lodash/clone';
-import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
@@ -117,16 +117,9 @@ type SaveWaypointProps = {
     waypoint: RecentWaypoint | null;
     isDraft?: boolean;
     recentWaypointsList?: RecentWaypoint[];
-    isSplitDraftTransaction?: boolean;
 };
 
-function saveWaypoint({transactionID, index, waypoint, isDraft = false, recentWaypointsList = [], isSplitDraftTransaction = false}: SaveWaypointProps) {
-    let key: OnyxKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
-    if (isDraft) {
-        key = `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`;
-    } else if (isSplitDraftTransaction) {
-        key = `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
-    }
+function saveWaypoint({transactionID, index, waypoint, isDraft = false, recentWaypointsList = []}: SaveWaypointProps) {
     // Saving a waypoint should completely overwrite the existing one at the given index (if any).
     // Onyx merge performs noop on undefined fields. Thus we should fallback to null so the existing fields are cleared.
     const waypointOnyxUpdate: Required<NullishDeep<RecentWaypoint>> | null = waypoint
@@ -140,7 +133,7 @@ function saveWaypoint({transactionID, index, waypoint, isDraft = false, recentWa
           }
         : null;
 
-    Onyx.merge(key, {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
             waypoints: {
                 [`waypoint${index}`]: waypointOnyxUpdate,
@@ -183,21 +176,13 @@ function saveWaypoint({transactionID, index, waypoint, isDraft = false, recentWa
     }
 }
 
-function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: string, isDraft?: boolean, splitDraftTransaction?: OnyxEntry<Transaction>): Promise<void | void[]> {
-    // Check if there's a split draft transaction for editing split expenses
-    const shouldUseSplitDraft = !isDraft && !!splitDraftTransaction;
-    const currentTransaction = shouldUseSplitDraft ? splitDraftTransaction : transaction;
-
-    if (!currentTransaction?.transactionID) {
-        return Promise.resolve();
-    }
-
+function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: string, isDraft?: boolean): Promise<void | void[]> {
     // Index comes from the route params and is a string
     const index = Number(currentIndex);
     if (index === -1) {
         return Promise.resolve();
     }
-    const existingWaypoints = currentTransaction?.comment?.waypoints ?? {};
+    const existingWaypoints = transaction?.comment?.waypoints ?? {};
     const totalWaypoints = Object.keys(existingWaypoints).length;
 
     const waypointValues = Object.values(existingWaypoints);
@@ -223,12 +208,12 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
     // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
     let newTransaction: Transaction = {
         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        ...currentTransaction,
+        ...(transaction as Transaction),
         comment: {
-            ...currentTransaction?.comment,
+            ...transaction?.comment,
             waypoints: reIndexedWaypoints,
             customUnit: {
-                ...currentTransaction?.comment?.customUnit,
+                ...transaction?.comment?.customUnit,
                 quantity: null,
             },
         },
@@ -256,28 +241,20 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
             },
         };
     }
-    if (shouldUseSplitDraft) {
-        return Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${currentTransaction?.transactionID}` as const, newTransaction);
-    }
     if (isDraft) {
-        return Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${currentTransaction?.transactionID}` as const, newTransaction);
+        return Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`, newTransaction);
     }
-    return Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${currentTransaction?.transactionID}` as const, newTransaction);
+    return Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`, newTransaction);
 }
 
 function getOnyxDataForRouteRequest(
     transactionID: string,
     transactionState: TransactionState = CONST.TRANSACTION.STATE.CURRENT,
-): OnyxData<
-    typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT | typeof ONYXKEYS.COLLECTION.TRANSACTION_BACKUP | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT
-> {
+): OnyxData<typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT | typeof ONYXKEYS.COLLECTION.TRANSACTION_BACKUP | typeof ONYXKEYS.COLLECTION.TRANSACTION> {
     let keyPrefix;
     switch (transactionState) {
         case CONST.TRANSACTION.STATE.DRAFT:
             keyPrefix = ONYXKEYS.COLLECTION.TRANSACTION_DRAFT;
-            break;
-        case CONST.TRANSACTION.STATE.SPLIT_DRAFT:
-            keyPrefix = ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT;
             break;
         case CONST.TRANSACTION.STATE.BACKUP:
             keyPrefix = ONYXKEYS.COLLECTION.TRANSACTION_BACKUP;
@@ -369,9 +346,6 @@ function getRoute(transactionID: string, waypoints: WaypointCollection, routeTyp
         case CONST.TRANSACTION.STATE.DRAFT:
             command = READ_COMMANDS.GET_ROUTE_FOR_DRAFT;
             break;
-        case CONST.TRANSACTION.STATE.SPLIT_DRAFT:
-            command = READ_COMMANDS.GET_ROUTE_FOR_SPLIT_DRAFT;
-            break;
         case CONST.TRANSACTION.STATE.CURRENT:
             command = READ_COMMANDS.GET_ROUTE;
             break;
@@ -388,10 +362,10 @@ function getRoute(transactionID: string, waypoints: WaypointCollection, routeTyp
  * Updates all waypoints stored in the transaction specified by the provided transactionID.
  *
  * @param transactionID - The ID of the transaction to be updated
- * @param waypoints - An object containing all the waypoints which will replace the existing ones.
- * @param transactionState - The state of the transaction that should be updated
+ * @param waypoints - An object containing all the waypoints
+ *                             which will replace the existing ones.
  */
-function updateWaypoints(transactionID: string, waypoints: WaypointCollection, transactionState: TransactionState = CONST.TRANSACTION.STATE.CURRENT): Promise<void | void[]> {
+function updateWaypoints(transactionID: string, waypoints: WaypointCollection, isDraft = false): Promise<void | void[]> {
     // Updating waypoints should completely overwrite the existing ones.
     // Onyx merge performs noop on undefined fields. Thus we should fallback to null so the existing fields are cleared.
     const waypointsOnyxUpdate = Object.keys(waypoints).reduce(
@@ -416,21 +390,7 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, t
         {} as Record<string, Required<NullishDeep<RecentWaypoint & Waypoint>>>,
     );
 
-    let keyPrefix;
-    switch (transactionState) {
-        case CONST.TRANSACTION.STATE.DRAFT:
-            keyPrefix = ONYXKEYS.COLLECTION.TRANSACTION_DRAFT;
-            break;
-        case CONST.TRANSACTION.STATE.SPLIT_DRAFT:
-            keyPrefix = ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT;
-            break;
-        case CONST.TRANSACTION.STATE.CURRENT:
-        default:
-            keyPrefix = ONYXKEYS.COLLECTION.TRANSACTION;
-            break;
-    }
-
-    return Onyx.merge(`${keyPrefix}${transactionID}`, {
+    return Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
             waypoints: waypointsOnyxUpdate,
             customUnit: {
@@ -439,7 +399,7 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, t
         },
         // We want to reset the amount only for draft transactions (when creating the expense).
         // When modifying an existing transaction, the amount will be updated on the actual IOU update operation.
-        ...(transactionState === CONST.TRANSACTION.STATE.DRAFT && {amount: CONST.IOU.DEFAULT_AMOUNT}),
+        ...(isDraft && {amount: CONST.IOU.DEFAULT_AMOUNT}),
         // Empty out errors when we're saving new waypoints as this indicates the user is updating their input
         errorFields: {
             route: null,

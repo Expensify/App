@@ -56,7 +56,7 @@ function SplitAmountInput({splitItem, formattedOriginalAmount, contentWidth, onS
                 onFocus={focusHandler}
                 onBlur={onInputBlur}
                 keyboardType={CONST.KEYBOARD_TYPE.NUMBERS_AND_PUNCTUATION}
-                shouldAllowNegative
+                allowNegativeInput
             />
         );
     }

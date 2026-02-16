@@ -79,8 +79,8 @@ type NumberWithSymbolFormProps = {
     /** Whether to allow flipping amount (shows flip button and enables toggle mechanism) */
     allowFlippingAmount?: boolean;
 
-    /** Whether to allow negative values in the input (without showing flip button) */
-    shouldAllowNegative?: boolean;
+    /** Whether to allow direct negative input (for split amounts where value is already negative) */
+    allowNegativeInput?: boolean;
 
     /** Whether the input is disabled or not */
     disabled?: boolean;
@@ -150,7 +150,7 @@ function NumberWithSymbolForm({
     shouldWrapInputInContainer = true,
     isNegative = false,
     allowFlippingAmount = false,
-    shouldAllowNegative = false,
+    allowNegativeInput = false,
     toggleNegative,
     clearNegative,
     ref,
@@ -160,8 +160,6 @@ function NumberWithSymbolForm({
 }: NumberWithSymbolFormProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'PlusMinus']);
 
-    // Combined flag for validation - allows negative values either through flip mechanism or direct input
-    const canAcceptNegativeValues = allowFlippingAmount || shouldAllowNegative;
     const styles = useThemeStyles();
     const {toLocaleDigit, numberFormat, translate} = useLocalize();
 
@@ -228,11 +226,13 @@ function NumberWithSymbolForm({
             const newNumberWithoutSpaces = stripSpacesFromAmount(newNumber);
             const rawFinalNumber = newNumberWithoutSpaces.includes('.') ? stripCommaFromAmount(newNumberWithoutSpaces) : replaceCommasWithPeriod(newNumberWithoutSpaces);
 
-            const finalNumber = handleNegativeAmountFlipping(rawFinalNumber, allowFlippingAmount, toggleNegative);
+            // When allowNegativeInput is true, keep negative sign as-is (for split amounts)
+            // When allowFlippingAmount is true, strip the negative sign and call toggleNegative
+            const finalNumber = allowNegativeInput ? rawFinalNumber : handleNegativeAmountFlipping(rawFinalNumber, allowFlippingAmount, toggleNegative);
 
             // Use a shallow copy of selection to trigger setSelection
             // More info: https://github.com/Expensify/App/issues/16385
-            if (!validateAmount(finalNumber, decimals, maxLength, canAcceptNegativeValues)) {
+            if (!validateAmount(finalNumber, decimals, maxLength, allowNegativeInput)) {
                 setSelection((prevSelection) => ({...prevSelection}));
                 return;
             }
@@ -252,7 +252,7 @@ function NumberWithSymbolForm({
             });
             onInputChange?.(strippedNumber);
         },
-        [decimals, maxLength, onInputChange, allowFlippingAmount, toggleNegative, canAcceptNegativeValues],
+        [decimals, maxLength, onInputChange, allowFlippingAmount, toggleNegative, allowNegativeInput],
     );
 
     /**
@@ -263,11 +263,14 @@ function NumberWithSymbolForm({
         // Remove spaces from the new number because Safari on iOS adds spaces when pasting a copied number
         // More info: https://github.com/Expensify/App/issues/16974
         const newNumberWithoutSpaces = stripSpacesFromAmount(text);
-        const replacedCommasNumber = handleNegativeAmountFlipping(replaceCommasWithPeriod(newNumberWithoutSpaces), allowFlippingAmount, toggleNegative);
+        // When allowNegativeInput is true, keep negative sign as-is
+        const replacedCommasNumber = allowNegativeInput
+            ? replaceCommasWithPeriod(newNumberWithoutSpaces)
+            : handleNegativeAmountFlipping(replaceCommasWithPeriod(newNumberWithoutSpaces), allowFlippingAmount, toggleNegative);
 
-        const withLeadingZero = addLeadingZero(replacedCommasNumber, canAcceptNegativeValues);
+        const withLeadingZero = addLeadingZero(replacedCommasNumber, allowNegativeInput);
 
-        if (!validateAmount(withLeadingZero, decimals, maxLength, canAcceptNegativeValues)) {
+        if (!validateAmount(withLeadingZero, decimals, maxLength, allowNegativeInput)) {
             setSelection((prevSelection) => ({...prevSelection}));
             return;
         }
@@ -290,7 +293,7 @@ function NumberWithSymbolForm({
     // Modifies the number to match changed decimals.
     useEffect(() => {
         // If the number supports decimals, we can return
-        if (validateAmount(currentNumber, decimals, maxLength, canAcceptNegativeValues)) {
+        if (validateAmount(currentNumber, decimals, maxLength, allowNegativeInput || allowFlippingAmount)) {
             return;
         }
 
@@ -315,14 +318,14 @@ function NumberWithSymbolForm({
                 if (currentNumber.length > 0) {
                     const selectionStart = selection.start === selection.end ? selection.start - 1 : selection.start;
                     const newNumber = `${currentNumber.substring(0, selectionStart)}${currentNumber.substring(selection.end)}`;
-                    setNewNumber(addLeadingZero(newNumber));
+                    setNewNumber(addLeadingZero(newNumber, allowNegativeInput));
                 }
                 return;
             }
-            const newNumber = addLeadingZero(`${currentNumber.substring(0, selection.start)}${key}${currentNumber.substring(selection.end)}`);
+            const newNumber = addLeadingZero(`${currentNumber.substring(0, selection.start)}${key}${currentNumber.substring(selection.end)}`, allowNegativeInput);
             setNewNumber(newNumber);
         },
-        [currentNumber, selection.start, selection.end, shouldUpdateSelection, setNewNumber],
+        [currentNumber, selection.start, selection.end, shouldUpdateSelection, setNewNumber, allowNegativeInput],
     );
 
     /**

@@ -13,6 +13,7 @@ import {initGpsDraft, resetGPSDraftDetails} from '@libs/actions/GPSDraftDetails'
 import {stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import BackgroundLocationPermissionsFlow from '@pages/iou/request/step/IOURequestStepDistanceGPS/BackgroundLocationPermissionsFlow';
 import {BACKGROUND_LOCATION_TRACKING_TASK_NAME, getBackgroundLocationTaskOptions} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import openSettings from './openSettings';
 
@@ -92,6 +93,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
                         large
                         style={[styles.w100, styles.flexShrink0]}
                         text={translate('gps.discard')}
+                        sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_DISCARD_BUTTON}
                     />
                     <Button
                         onPress={onNext}
@@ -101,6 +103,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
                         large
                         style={[styles.w100, styles.flexShrink0]}
                         text={translate('common.next')}
+                        sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_NEXT_BUTTON}
                     />
                 </View>
             ) : (
@@ -113,6 +116,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
                     large
                     style={[styles.w100, styles.mb5, styles.ph5, styles.flexShrink0]}
                     text={gpsDraftDetails?.isTracking ? translate('gps.stop') : translate('gps.start')}
+                    sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_START_STOP_BUTTON}
                 />
             )}
 

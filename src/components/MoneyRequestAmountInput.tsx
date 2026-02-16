@@ -96,8 +96,8 @@ type MoneyRequestAmountInputProps = {
     /** Whether to allow flipping amount (shows flip button and enables toggle mechanism) */
     allowFlippingAmount?: boolean;
 
-    /** Whether to allow negative values in the input (without showing flip button) */
-    shouldAllowNegative?: boolean;
+    /** Whether to allow direct negative input (for split amounts where value is already negative) */
+    allowNegativeInput?: boolean;
 
     /** The testID of the input. Used to locate this view in end-to-end tests. */
     testID?: string;
@@ -168,7 +168,7 @@ function MoneyRequestAmountInput({
     shouldWrapInputInContainer = true,
     isNegative = false,
     allowFlippingAmount = false,
-    shouldAllowNegative = false,
+    allowNegativeInput = false,
     toggleNegative,
     clearNegative,
     ref,
@@ -264,7 +264,7 @@ function MoneyRequestAmountInput({
             autoGrowExtraSpace={autoGrowExtraSpace}
             submitBehavior={submitBehavior}
             allowFlippingAmount={allowFlippingAmount}
-            shouldAllowNegative={shouldAllowNegative}
+            allowNegativeInput={allowNegativeInput}
             toggleNegative={toggleNegative}
             clearNegative={clearNegative}
             onFocus={props.onFocus}
