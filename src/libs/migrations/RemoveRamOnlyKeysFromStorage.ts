@@ -37,7 +37,7 @@ export default function () {
                     if (initialKeyStates[key]) {
                         // eslint-disable-next-line rulesdir/prefer-actions-set-data
                         Onyx.merge(key, initialKeyStates[key]).then(() => {
-                            Log.info(`[Migrate Onyx] RAM-only key: ${key} initial value resotred`);
+                            Log.info(`[Migrate Onyx] RAM-only key: ${key} initial value restored`);
                             resolve();
                         });
                     }
