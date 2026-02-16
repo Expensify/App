@@ -1,6 +1,7 @@
 import React, {createContext, useCallback, useContext, useEffect, useRef, useState} from 'react';
 import type {TextSelection} from '@components/Composer/types';
 import useOnyx from '@hooks/useOnyx';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -33,7 +34,7 @@ type ReportActionEditMessageContextProviderProps = {
 };
 
 function ReportActionEditMessageContextProvider({reportID, children}: ReportActionEditMessageContextProviderProps) {
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID ?? ''}`, {
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         canEvict: false,
         canBeMissing: true,
     });
