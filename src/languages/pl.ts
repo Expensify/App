@@ -755,6 +755,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nameEmailOrPhoneNumber: 'Imię i nazwisko, e-mail lub numer telefonu',
         findMember: 'Znajdź członka',
         searchForSomeone: 'Wyszukaj osobę',
+        userSelected: (username: string) => `Wybrano: ${username}`,
     },
     customApprovalWorkflow: {
         title: 'Niestandardowy przepływ zatwierdzania',
@@ -1512,7 +1513,7 @@ const translations: TranslationDeepObject<typeof en> = {
             ratePreview: (rate: string) => `${rate} / godzinę`,
             amountTooLargeError: 'Łączna kwota jest zbyt wysoka. Zmniejsz liczbę godzin lub obniż stawkę.',
         },
-        correctDistanceRateError: 'Napraw błąd stawki za dystans i spróbuj ponownie.',
+        correctRateError: 'Napraw błąd stawki i spróbuj ponownie.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Wyjaśnij</strong></a> &#x2728;`,
         policyRulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'oznaczył(a) wydatek jako „podlegający zwrotowi”' : 'oznaczył(a) wydatek jako „niepodlegający zwrotowi”'),
@@ -2412,7 +2413,6 @@ ${amount} dla ${merchant} - ${date}`,
     },
     expenseRulesPage: {
         title: 'Reguły wydatków',
-        subtitle: 'Te zasady będą miały zastosowanie do Twoich wydatków. Jeśli wyślesz je do przestrzeni roboczej, zasady tej przestrzeni mogą je zastąpić.',
         findRule: 'Znajdź regułę',
         emptyRules: {
             title: 'Nie utworzono żadnych reguł',
@@ -2458,6 +2458,7 @@ ${amount} dla ${merchant} - ${date}`,
             deleteSinglePrompt: 'Czy na pewno chcesz usunąć tę regułę?',
             deleteMultiplePrompt: 'Czy na pewno chcesz usunąć te reguły?',
         },
+        subtitle: 'Te zasady będą miały zastosowanie do Twoich wydatków.',
     },
     preferencesPage: {
         appSection: {
@@ -3021,10 +3022,7 @@ ${
     detailsPage: {
         localTime: 'Czas lokalny',
     },
-    newChatPage: {
-        startGroup: 'Rozpocznij grupę',
-        addToGroup: 'Dodaj do grupy',
-    },
+    newChatPage: {startGroup: 'Rozpocznij grupę', addToGroup: 'Dodaj do grupy', addUserToGroup: (username: string) => `Dodaj ${username} do grupy`},
     yearPickerPage: {
         year: 'Rok',
         selectYear: 'Wybierz rok',
@@ -5365,8 +5363,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             editTags: 'Edytuj tagi',
             findTag: 'Znajdź tag',
             subtitle: 'Tagi umożliwiają bardziej szczegółowe klasyfikowanie kosztów.',
-            dependentMultiLevelTagsSubtitle: (importSpreadsheetLink: string) =>
-                `<muted-text>Używasz <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">zależnych tagów</a>. Możesz <a href="${importSpreadsheetLink}">ponownie zaimportować arkusz kalkulacyjny</a>, aby zaktualizować swoje tagi.</muted-text>`,
+            subtitleWithDependentTags: (importSpreadsheetLink: string) =>
+                `<muted-text>Tagi umożliwiają bardziej szczegółowe klasyfikowanie kosztów. Używasz <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">zależnych tagów</a>. Możesz <a href="${importSpreadsheetLink}">ponownie zaimportować arkusz kalkulacyjny</a>, aby zaktualizować swoje tagi.</muted-text>`,
             emptyTags: {
                 title: 'Nie utworzono jeszcze żadnych tagów',
                 subtitle: 'Dodaj tag, aby śledzić projekty, lokalizacje, działy i inne.',
@@ -6450,6 +6448,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             symbols: 'Symbole',
             flags: 'Flagi',
         },
+        emojiNotSelected: 'Nie wybrano emotikony',
     },
     newRoomPage: {
         newRoom: 'Nowy pokój',

@@ -735,41 +735,49 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
 
+    const getHeaderSubtitle = () => {
+        if (!hasSyncError && isConnectionVerified && currentConnectionName) {
+            return (
+                <ImportedFromAccountingSoftware
+                    policyID={policyID}
+                    currentConnectionName={currentConnectionName}
+                    connectedIntegration={connectedIntegration}
+                    translatedText={translate('workspace.tags.importedFromAccountingSoftware')}
+                    customTagName={policyTagLists.at(0)?.name ?? ''}
+                    shouldShow={!hasDependentTags && !hasIndependentTags}
+                />
+            );
+        }
+
+        if (!hasDependentTags && !hasIndependentTags && !!policyTagLists.at(0)?.name) {
+            return (
+                <Text style={[styles.textNormal, styles.colorMuted]}>
+                    <EmployeesSeeTagsAsText customTagName={policyTagLists.at(0)?.name ?? ''} />
+                </Text>
+            );
+        }
+
+        return (
+            <View style={[styles.renderHTML]}>
+                <RenderHTML
+                    html={
+                        hasDependentTags
+                            ? translate(
+                                  'workspace.tags.subtitleWithDependentTags',
+                                  isQuickSettingsFlow
+                                      ? `${environmentURL}/${ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))}`
+                                      : `${environmentURL}/${ROUTES.WORKSPACE_TAGS_IMPORT_OPTIONS.getRoute(policyID)}`,
+                              )
+                            : `<muted-text>${translate('workspace.tags.subtitle')}</muted-text>`
+                    }
+                />
+            </View>
+        );
+    };
+
     const headerContent = (
         <>
-            <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : undefined]}>
-                {!hasSyncError && isConnectionVerified && currentConnectionName ? (
-                    <ImportedFromAccountingSoftware
-                        policyID={policyID}
-                        currentConnectionName={currentConnectionName}
-                        connectedIntegration={connectedIntegration}
-                        translatedText={translate('workspace.tags.importedFromAccountingSoftware')}
-                        customTagName={policyTagLists.at(0)?.name ?? ''}
-                        shouldShow={!hasDependentTags && !hasIndependentTags}
-                    />
-                ) : (
-                    <Text style={[styles.textNormal, styles.colorMuted]}>
-                        {!hasDependentTags && !hasIndependentTags && !!policyTagLists.at(0)?.name ? (
-                            <EmployeesSeeTagsAsText customTagName={policyTagLists.at(0)?.name ?? ''} />
-                        ) : (
-                            translate('workspace.tags.subtitle')
-                        )}
-
-                        {hasDependentTags && (
-                            <View style={[styles.renderHTML]}>
-                                <RenderHTML
-                                    html={translate(
-                                        'workspace.tags.dependentMultiLevelTagsSubtitle',
-                                        isQuickSettingsFlow
-                                            ? `${environmentURL}/${ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))}`
-                                            : `${environmentURL}/${ROUTES.WORKSPACE_TAGS_IMPORT_OPTIONS.getRoute(policyID)}`,
-                                    )}
-                                />
-                            </View>
-                        )}
-                    </Text>
-                )}
-            </View>
+            <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : undefined]}>{getHeaderSubtitle()}</View>
             {tagList.length > CONST.SEARCH_ITEM_LIMIT && (
                 <SearchBar
                     label={translate('workspace.tags.findTag')}

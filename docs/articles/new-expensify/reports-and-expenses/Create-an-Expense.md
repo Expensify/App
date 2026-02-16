@@ -1,11 +1,11 @@
 ---
 title: Create an Expense
-description: Learn how to create and submit expenses in Expensify using SmartScan, manual entry, or distance tracking.
-keywords: [New Expensify, create expense, SmartScan, manual expense, distance expense, submit expense, expense report, submit to individual, track mileage, scan receipts, group split, Expensify chat, upload receipts, multi-scan, bulk upload, submit to workspace, peer reimbursement, workspace merchant rules, auto-categorize, reimbursable, billable]
-internalScope: Audience is submitters, approvers, and admins. Covers how to create and submit expenses to a workspace or individual using SmartScan, manual entry, or distance tracking. Does not cover credit card import. 
+description: Learn how to create and submit expenses in Expensify using SmartScan, manual entry, distance tracking, or time expenses.
+keywords: [create expense, submit expense, SmartScan, manual expense, distance expense, time expense, create time expense, log time, track hours, expense report, submit to workspace, submit to individual, split expense, scan receipts, bulk upload]
+internalScope: Audience is submitters, approvers, and Workspace Admins. Covers how to create and submit expenses to a workspace or individual using SmartScan, manual entry, distance tracking, or Time expenses. Does not cover credit card import or Time Tracking
 ---
 
-You can create expenses in Expensify by scanning a receipt, entering details manually, or tracking distance. Once created, expenses can be submitted to either a workspace (for business reimbursement) or an individual (for personal repayment).
+You can create expenses in Expensify by scanning a receipt, entering details manually, tracking distance, or logging time. Once created, expenses can be submitted to either a workspace (for business reimbursement) or an individual (for personal repayment).
 
 ---
 
@@ -34,7 +34,7 @@ You can create an expense by scanning a receipt, entering details manually, or t
 4. Tap **Create expense**.
 
 **On web:**
-1. Click the green **scan** button at the bottom of your screen.
+1. Click the green **scan** button.
 2. Drag and drop the receipt file to the page or click **Choose files** to upload.
 3. Enter the workspace or recipient’s email/phone number.
 4. Add details like description, category, tags, and tax.
@@ -49,7 +49,7 @@ You can create an expense by scanning a receipt, entering details manually, or t
 
 ## How to manually create an expense
 
-1. Click the **➕ Create** button at the bottom of your screen.
+1. Click the **➕ Create** button.
 2. Select **Create Expense** then **Manual**.
 3. Enter the amount and currency, then click **Next**.
 4. Choose a workspace or an individual.
@@ -60,19 +60,39 @@ You can create an expense by scanning a receipt, entering details manually, or t
 
 ## How to create a distance expense
 
-1. From the navigation tabs, click the grey **+** button.
+To create a distance expense: 
+
+1. Click the **➕ Create** button.
 2. Select **Track distance**.
 3. Enter start and stop locations.
 4. (Optional) Add additional stops.
 5. Click **Next**.
-6. Choose the recipient and add expense details.
+6. Choose the recipient and add expense details like description, category, tags, tax, date, and set whether the expense is reimbursable.
 7. Click **Create expense**.
+
+---
+
+## How to create a time expense
+
+Use a Time expense to log billable hours instead of entering a dollar amount manually. The total amount is calculated automatically based on the number of hours and the workspace’s hourly rate.
+
+To create a time expense: 
+
+1. Click the **➕ Create** button.
+2. Select **Create expense**.
+3. Select **Time**.
+4. Enter the number of hours.
+5. Click **Next**.
+6. Choose the recipient and add expense details like description, category, tags, tax, date, and set whether the expense is reimbursable.
+7. Click **Create expense**.
+
+The total amount will be calculated automatically using the hourly rate set for the workspace.
 
 ---
 
 ## How to scan multiple receipts (mobile only)
 
-1. On mobile, tap the green camera button.
+1. On mobile, tap the green **camera** icon.
 2. Tap the lightning bolt icon in the upper-right corner.
 3. Tap the green capture button to take a photo of each receipt.
 4. Once you’ve scanned all your receipts, tap the green arrow to confirm.
@@ -82,7 +102,7 @@ You can create an expense by scanning a receipt, entering details manually, or t
 
 ## How to bulk upload multiple receipts (web only)
 
-1. On the web, go to the Reports page.
+1. On the web, go to the **Reports** page.
 2. Drag up to 30 PDF or image files (under 10MB each) into Expensify.
 3. Follow the prompts to assign workspaces, recipients, and coding.
 4. Once the expenses are ready, click **Create expenses**. 
@@ -116,7 +136,7 @@ To split an expense with multiple individuals, start a group chat including each
 
 ## How to start a group chat
 
-1. From the navigation tabs, click the **+ Create** button.
+1. Click the **➕ Create** button.
 2. Select **Start chat**.
 3. Search for the person by name, email, or phone number.
 4. Send them a message to begin the conversation.
@@ -165,7 +185,9 @@ If you're submitting to someone for the first time, their contact information wi
 
 **Chrome:**
 - Go to **Settings > Site settings > Camera > Allow** for Expensify.
-
 **Safari:**
-- Tap **aA > Website Settings > Camera > Allow**, then tap **Done** and refresh the page.
+- Tap **A > Website Settings > Camera > Allow**, then tap **Done** and refresh the page.
 
+## Can I change the hourly rate when creating a Time expense?
+
+Yes. The default hourly rate is set at the workspace level, but you can update the rate when creating a Time expense if a different rate is required.

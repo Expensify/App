@@ -754,6 +754,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nameEmailOrPhoneNumber: 'Naam, e-mail of telefoonnummer',
         findMember: 'Lid zoeken',
         searchForSomeone: 'Iemand zoeken',
+        userSelected: (username: string) => `${username} geselecteerd`,
     },
     customApprovalWorkflow: {
         title: 'Aangepaste goedkeuringsworkflow',
@@ -1513,7 +1514,7 @@ const translations: TranslationDeepObject<typeof en> = {
             ratePreview: (rate: string) => `${rate} / uur`,
             amountTooLargeError: 'Het totale bedrag is te hoog. Verlaag het aantal uren of verlaag het tarief.',
         },
-        correctDistanceRateError: 'Los het foutieve afstandstarief op en probeer het opnieuw.',
+        correctRateError: 'Herstel de koersfout en probeer het opnieuw.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Uitleggen</strong></a> &#x2728;`,
         policyRulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'heeft de uitgave gemarkeerd als „vergoedbaar”' : 'markeerde de uitgave als ‘niet-terugbetaalbaar’'),
@@ -2420,7 +2421,6 @@ ${amount} voor ${merchant} - ${date}`,
     },
     expenseRulesPage: {
         title: 'Declaratieregels',
-        subtitle: 'Deze regels zijn van toepassing op je uitgaven. Als je bij een werkruimte indient, kunnen de regels van die werkruimte deze overschrijven.',
         findRule: 'Regel zoeken',
         emptyRules: {
             title: 'Je hebt nog geen regels gemaakt',
@@ -2466,6 +2466,7 @@ ${amount} voor ${merchant} - ${date}`,
             deleteSinglePrompt: 'Weet je zeker dat je deze regel wilt verwijderen?',
             deleteMultiplePrompt: 'Weet je zeker dat je deze regels wilt verwijderen?',
         },
+        subtitle: 'Deze regels zijn van toepassing op je uitgaven.',
     },
     preferencesPage: {
         appSection: {
@@ -3029,10 +3030,7 @@ ${
     detailsPage: {
         localTime: 'Lokale tijd',
     },
-    newChatPage: {
-        startGroup: 'Groep starten',
-        addToGroup: 'Aan groep toevoegen',
-    },
+    newChatPage: {startGroup: 'Groep starten', addToGroup: 'Aan groep toevoegen', addUserToGroup: (username: string) => `${username} aan groep toevoegen`},
     yearPickerPage: {
         year: 'Jaar',
         selectYear: 'Selecteer een jaar',
@@ -5375,8 +5373,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             editTags: 'Tags bewerken',
             findTag: 'Tag zoeken',
             subtitle: 'Labels bieden meer gedetailleerde manieren om kosten te classificeren.',
-            dependentMultiLevelTagsSubtitle: (importSpreadsheetLink: string) =>
-                `<muted-text>Je gebruikt <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">afhankelijke labels</a>. Je kunt <a href="${importSpreadsheetLink}">een spreadsheet opnieuw importeren</a> om je labels bij te werken.</muted-text>`,
+            subtitleWithDependentTags: (importSpreadsheetLink: string) =>
+                `<muted-text>Labels bieden meer gedetailleerde manieren om kosten te classificeren. Je gebruikt <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">afhankelijke labels</a>. Je kunt <a href="${importSpreadsheetLink}">een spreadsheet opnieuw importeren</a> om je labels bij te werken.</muted-text>`,
             emptyTags: {
                 title: 'Je hebt nog geen labels gemaakt',
                 subtitle: 'Voeg een tag toe om projecten, locaties, afdelingen en meer bij te houden.',
@@ -6460,6 +6458,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             symbols: 'Symbolen',
             flags: 'Vlaggen',
         },
+        emojiNotSelected: 'Emoji niet geselecteerd',
     },
     newRoomPage: {
         newRoom: 'Nieuwe ruimte',

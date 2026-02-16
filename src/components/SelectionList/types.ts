@@ -182,6 +182,9 @@ type SelectionListStyle = {
     /** Styles for the list */
     listStyle?: StyleProp<ViewStyle>;
 
+    /** Styles for the content container of the list (scrolls with content) */
+    contentContainerStyle?: StyleProp<ViewStyle>;
+
     /** Styles for the list container */
     containerStyle?: StyleProp<ViewStyle>;
 

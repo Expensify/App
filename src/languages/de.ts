@@ -754,6 +754,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nameEmailOrPhoneNumber: 'Name, E-Mail-Adresse oder Telefonnummer',
         findMember: 'Mitglied finden',
         searchForSomeone: 'Nach jemandem suchen',
+        userSelected: (username: string) => `${username} ausgewählt`,
     },
     customApprovalWorkflow: {
         title: 'Benutzerdefinierter Genehmigungsworkflow',
@@ -1517,7 +1518,7 @@ const translations: TranslationDeepObject<typeof en> = {
             ratePreview: (rate: string) => `${rate} / Stunde`,
             amountTooLargeError: 'Der Gesamtbetrag ist zu hoch. Verringere die Stunden oder reduziere den Satz.',
         },
-        correctDistanceRateError: 'Behebe den Fehler beim Entfernungssatz und versuche es erneut.',
+        correctRateError: 'Behebe den Kursfehler und versuche es erneut.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Erklären</strong></a> &#x2728;`,
         policyRulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'hat die Ausgabe als „erstattungsfähig“ markiert' : 'hat die Ausgabe als „nicht erstattungsfähig“ markiert'),
@@ -2425,7 +2426,6 @@ ${amount} für ${merchant} – ${date}`,
     },
     expenseRulesPage: {
         title: 'Ausgabenregeln',
-        subtitle: 'Diese Regeln gelten für deine Ausgaben. Wenn du bei einem Workspace einreichst, können die Workspace-Regeln sie außer Kraft setzen.',
         findRule: 'Regel finden',
         emptyRules: {
             title: 'Du hast noch keine Regeln erstellt',
@@ -2471,6 +2471,7 @@ ${amount} für ${merchant} – ${date}`,
             deleteSinglePrompt: 'Sind Sie sicher, dass Sie diese Regel löschen möchten?',
             deleteMultiplePrompt: 'Möchtest du diese Regeln wirklich löschen?',
         },
+        subtitle: 'Diese Regeln gelten für deine Ausgaben.',
     },
     preferencesPage: {
         appSection: {
@@ -3039,10 +3040,7 @@ ${
     detailsPage: {
         localTime: 'Ortszeit',
     },
-    newChatPage: {
-        startGroup: 'Gruppe starten',
-        addToGroup: 'Zur Gruppe hinzufügen',
-    },
+    newChatPage: {startGroup: 'Gruppe starten', addToGroup: 'Zur Gruppe hinzufügen', addUserToGroup: (username: string) => `${username} zur Gruppe hinzufügen`},
     yearPickerPage: {
         year: 'Jahr',
         selectYear: 'Bitte ein Jahr auswählen',
@@ -5399,8 +5397,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             editTags: 'Tags bearbeiten',
             findTag: 'Tag finden',
             subtitle: 'Tags bieten detailliertere Möglichkeiten, Kosten zu klassifizieren.',
-            dependentMultiLevelTagsSubtitle: (importSpreadsheetLink: string) =>
-                `<muted-text>Sie verwenden <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">abhängige Tags</a>. Sie können <a href="${importSpreadsheetLink}">eine Tabelle erneut importieren</a>, um Ihre Tags zu aktualisieren.</muted-text>`,
+            subtitleWithDependentTags: (importSpreadsheetLink: string) =>
+                `<muted-text>Tags bieten detailliertere Möglichkeiten, Kosten zu klassifizieren. Sie verwenden <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">abhängige Tags</a>. Sie können <a href="${importSpreadsheetLink}">eine Tabelle erneut importieren</a>, um Ihre Tags zu aktualisieren.</muted-text>`,
             emptyTags: {
                 title: 'Sie haben noch keine Tags erstellt',
                 subtitle: 'Füge ein Tag hinzu, um Projekte, Standorte, Abteilungen und mehr zu verfolgen.',
@@ -6489,6 +6487,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             symbols: 'Symbole',
             flags: 'Markierungen',
         },
+        emojiNotSelected: 'Emoji nicht ausgewählt',
     },
     newRoomPage: {
         newRoom: 'Neuer Raum',
