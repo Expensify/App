@@ -1,3 +1,4 @@
+import cloneDeep from 'lodash/cloneDeep';
 import isEmpty from 'lodash/isEmpty';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -37,6 +38,7 @@ import {
     buildOptimisticExportIntegrationAction,
     buildOptimisticIOUReportAction,
     generateReportID,
+    getReportOrDraftReport,
     getReportTransactions,
     hasHeldExpenses,
     isExpenseReport,
@@ -73,8 +75,8 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type Nullable from '@src/types/utils/Nullable';
 import SafeString from '@src/utils/SafeString';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
+import {getReportPreviewAction, prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU';
 import type {RejectMoneyRequestData} from './IOU';
-import {prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU';
 import {isCurrencySupportedForGlobalReimbursement} from './Policy/Policy';
 import {deleteAppReport, setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
@@ -107,6 +109,20 @@ type HandleActionButtonPressParams = {
     isDelegateAccessRestricted?: boolean;
     onDelegateAccessRestricted?: () => void;
     personalPolicyID: string | undefined;
+};
+
+type BulkDeleteReportsParams = {
+    reports: OnyxCollection<Report>;
+    selfDMReport: OnyxEntry<Report>;
+    hash: number;
+    selectedTransactions: Record<string, SelectedTransactionInfo>;
+    currentUserEmailParam: string;
+    currentUserAccountIDParam: number;
+    reportTransactions: Record<string, Transaction>;
+    transactionsViolations: Record<string, TransactionViolations>;
+    bankAccountList: OnyxEntry<BankAccountList>;
+    deleteTransactionsOnSearch?: (hash: number, transactionIDs: string[], transactions?: OnyxCollection<Transaction>) => void;
+    transactions?: OnyxCollection<Transaction>;
 };
 
 function handleActionButtonPress({
@@ -810,16 +826,19 @@ function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
 }
 
-function bulkDeleteReports(
-    hash: number,
-    selectedTransactions: Record<string, SelectedTransactionInfo>,
-    currentUserEmailParam: string,
-    currentUserAccountIDParam: number,
-    reportTransactions: Record<string, Transaction>,
-    transactionsViolations: Record<string, TransactionViolations>,
-    bankAccountList: OnyxEntry<BankAccountList>,
-    deleteTransactionsOnSearch: (hash: number, transactionIDs: string[]) => void = deleteMoneyRequestOnSearch,
-) {
+function bulkDeleteReports({
+    reports,
+    selfDMReport,
+    hash,
+    selectedTransactions,
+    currentUserEmailParam,
+    currentUserAccountIDParam,
+    reportTransactions,
+    transactionsViolations,
+    bankAccountList,
+    deleteTransactionsOnSearch = deleteMoneyRequestOnSearch,
+    transactions,
+}: BulkDeleteReportsParams) {
     const transactionIDList: string[] = [];
     const reportIDList: string[] = [];
 
@@ -833,12 +852,13 @@ function bulkDeleteReports(
     }
 
     if (transactionIDList.length > 0) {
-        deleteTransactionsOnSearch(hash, transactionIDList);
+        deleteTransactionsOnSearch(hash, transactionIDList, transactions);
     }
 
     if (reportIDList.length > 0) {
         for (const reportID of reportIDList) {
-            deleteAppReport(reportID, currentUserEmailParam, currentUserAccountIDParam, reportTransactions, transactionsViolations, bankAccountList);
+            const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+            deleteAppReport(report, selfDMReport, currentUserEmailParam, currentUserAccountIDParam, reportTransactions, transactionsViolations, bankAccountList);
         }
     }
 }
@@ -859,41 +879,95 @@ function revertSplitTransactionOnSearch(hash: number, originalTransactionID: str
     API.write(WRITE_COMMANDS.REVERT_SPLIT_TRANSACTION, params, {optimisticData, successData: [], failureData: []});
 }
 
-function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
+function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[], transactions?: OnyxCollection<Transaction>) {
     const {optimisticData: loadingOptimisticData, finallyData} = getOnyxLoadingData(hash);
 
+    const optimisticData: OnyxUpdate[] = [...(loadingOptimisticData ?? [])];
+    const failureData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [];
+
+    let pendingDeleteTransactionsCount = transactionIDList.length;
+
     for (const transactionID of transactionIDList) {
-        const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            ...(loadingOptimisticData ?? []),
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
-                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                value: {
-                    data: {
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
-                    },
-                },
-            },
-        ];
+        if (transactions) {
+            const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
-        const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
-                value: {
-                    data: {
-                        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {pendingAction: null},
-                    },
-                },
-            },
-        ];
+            if (transaction) {
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                    value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                });
 
-        API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList: [transactionID]}, {optimisticData, failureData, finallyData});
+                failureData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                    value: {pendingAction: null},
+                });
+
+                const shouldDeleteIOUReport = getReportTransactions(transaction?.reportID).length === transactionIDList.length && pendingDeleteTransactionsCount === 1;
+                pendingDeleteTransactionsCount -= 1;
+
+                if (shouldDeleteIOUReport) {
+                    const iouReport = getReportOrDraftReport(transaction.reportID);
+                    const reportPreviewAction = getReportPreviewAction(iouReport?.chatReportID, iouReport?.reportID);
+
+                    if (reportPreviewAction?.reportActionID) {
+                        const updatedReportPreviewAction: Partial<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> = cloneDeep(reportPreviewAction ?? {});
+                        updatedReportPreviewAction.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
+                        optimisticData.push({
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.chatReportID}`,
+                            value: {[reportPreviewAction.reportActionID]: updatedReportPreviewAction},
+                        });
+
+                        successData.push({
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.chatReportID}`,
+                            value: {
+                                [reportPreviewAction.reportActionID]: {
+                                    pendingAction: null,
+                                    errors: null,
+                                },
+                            },
+                        });
+
+                        failureData.push({
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.chatReportID}`,
+                            value: {
+                                [reportPreviewAction.reportActionID]: {
+                                    ...reportPreviewAction,
+                                    pendingAction: null,
+                                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericDeleteFailureMessage'),
+                                },
+                            },
+                        });
+                    }
+
+                    optimisticData.push({
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`,
+                        value: {
+                            reportID: null,
+                            pendingFields: {
+                                preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                            },
+                        },
+                    });
+
+                    successData.push({
+                        onyxMethod: Onyx.METHOD.SET,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`,
+                        value: null,
+                    });
+                }
+            }
+        }
     }
+
+    API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, failureData, successData, finallyData});
 }
 
 function rejectMoneyRequestInBulk(

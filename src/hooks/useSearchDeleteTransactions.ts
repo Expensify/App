@@ -4,19 +4,20 @@ import {deleteMoneyRequestOnSearch, revertSplitTransactionOnSearch} from '@libs/
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 
 function useSearchDeleteTransactions() {
     const {currentSearchResults} = useSearchContext();
     const searchResultsRecord = currentSearchResults?.data as Record<string, unknown> | undefined;
 
     const deleteTransactionsOnSearch = useCallback(
-        (hash: number, transactionIDs: string[]) => {
+        (hash: number, transactionIDs: string[], transactions?: OnyxCollection<Transaction>) => {
             if (!transactionIDs.length) {
                 return;
             }
 
             if (!searchResultsRecord || Object.keys(searchResultsRecord).length === 0) {
-                deleteMoneyRequestOnSearch(hash, transactionIDs);
+                deleteMoneyRequestOnSearch(hash, transactionIDs, transactions);
                 return;
             }
 
@@ -89,7 +90,7 @@ function useSearchDeleteTransactions() {
             }
 
             if (nonSplitIDs.length > 0) {
-                deleteMoneyRequestOnSearch(hash, nonSplitIDs);
+                deleteMoneyRequestOnSearch(hash, nonSplitIDs, transactions);
             }
         },
         [searchResultsRecord],

@@ -1,7 +1,8 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {getOwnedPaidPolicies, isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import type {Policy, PolicyReportField} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 
 type PolicySelector<T> = (policy: OnyxEntry<Policy>) => T;
@@ -12,12 +13,7 @@ const activePolicySelector = (policy: OnyxEntry<Policy>) => (policy?.type !== CO
 
 const ownerPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountID: number) => getOwnedPaidPolicies(policies, currentUserAccountID);
 
-const activeAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => {
-    const adminPolicies = Object.values(policies ?? {}).filter(
-        (policy): policy is Policy => policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isPolicyAdmin(policy, currentUserAccountLogin),
-    );
-    return adminPolicies;
-};
+const activeAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => getActiveAdminWorkspaces(policies, currentUserAccountLogin);
 
 /**
  * Creates a selector that aggregates all non-formula policy report fields from all policies,
@@ -85,6 +81,15 @@ const hasMultipleOutputCurrenciesSelector = (policies: OnyxCollection<Policy>) =
     return false;
 };
 
+const groupPaidPoliciesWithExpenseChatEnabledSelector = (policies: OnyxCollection<Policy>, currentUserLogin: string | undefined) => {
+    if (isEmptyObject(policies)) {
+        return CONST.EMPTY_ARRAY;
+    }
+    return Object.values(policies ?? {}).filter(
+        (policy): policy is Policy => !!policy?.isPolicyExpenseChatEnabled && !policy?.isJoinRequestPending && isPaidGroupPolicy(policy) && shouldShowPolicy(policy, false, currentUserLogin),
+    );
+};
+
 export {
     activePolicySelector,
     createPoliciesSelector,
@@ -94,4 +99,5 @@ export {
     createPoliciesForDomainCardsSelector,
     policyTimeTrackingSelector,
     hasMultipleOutputCurrenciesSelector,
+    groupPaidPoliciesWithExpenseChatEnabledSelector,
 };

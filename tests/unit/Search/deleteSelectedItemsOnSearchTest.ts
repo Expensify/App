@@ -4,6 +4,7 @@ import type {SelectedTransactionInfo} from '@components/Search/types';
 import {bulkDeleteReports} from '@libs/actions/Search';
 import {deleteAppReport} from '@userActions/Report';
 import CONST from '@src/CONST';
+import {createRandomReport} from '../../utils/collections/reports';
 
 jest.mock('@userActions/Report', () => ({
     deleteAppReport: jest.fn(),
@@ -26,9 +27,13 @@ describe('bulkDeleteReports', () => {
     describe('Empty Report Deletion', () => {
         it('should delete empty reports when selected', () => {
             const hash = 12345;
+            const reports = {
+                report_123: createRandomReport(123, undefined),
+                report_456: createRandomReport(456, undefined),
+            };
             const selectedTransactions: Record<string, SelectedTransactionInfo> = {
-                report_123: {
-                    reportID: 'report_123',
+                123: {
+                    reportID: '123',
                     isFromOneTransactionReport: false,
                     action: CONST.SEARCH.ACTION_TYPES.VIEW,
                     isSelected: true,
@@ -43,8 +48,8 @@ describe('bulkDeleteReports', () => {
                     amount: 0,
                     currency: 'USD',
                 },
-                report_456: {
-                    reportID: 'report_456',
+                456: {
+                    reportID: '456',
                     isFromOneTransactionReport: false,
                     action: CONST.SEARCH.ACTION_TYPES.VIEW,
                     isSelected: true,
@@ -64,19 +69,33 @@ describe('bulkDeleteReports', () => {
             const currentUserEmail = '';
             const transactions = {};
             const transactionsViolations = {};
-            bulkDeleteReports(hash, selectedTransactions, currentUserEmail, 1, transactions, transactionsViolations, {});
+            bulkDeleteReports({
+                reports,
+                selfDMReport: undefined,
+                hash,
+                selectedTransactions,
+                currentUserEmailParam: currentUserEmail,
+                currentUserAccountIDParam: 1,
+                reportTransactions: transactions,
+                transactionsViolations,
+                bankAccountList: {},
+            });
 
             // Should call deleteAppReport for each empty report
             expect(deleteAppReport).toHaveBeenCalledTimes(2);
-            expect(deleteAppReport).toHaveBeenCalledWith('report_123', currentUserEmail, 1, transactions, transactionsViolations, {});
-            expect(deleteAppReport).toHaveBeenCalledWith('report_456', currentUserEmail, 1, transactions, transactionsViolations, {});
+            expect(deleteAppReport).toHaveBeenCalledWith(reports.report_123, undefined, currentUserEmail, 1, transactions, transactionsViolations, {});
+            expect(deleteAppReport).toHaveBeenCalledWith(reports.report_456, undefined, currentUserEmail, 1, transactions, transactionsViolations, {});
         });
 
         it('should handle mixed selection of empty reports and transactions', () => {
             const hash = 12345;
+            const reports = {
+                report_123: createRandomReport(123, undefined),
+                report_456: createRandomReport(456, undefined),
+            };
             const selectedTransactions: Record<string, SelectedTransactionInfo> = {
-                report_123: {
-                    reportID: 'report_123',
+                123: {
+                    reportID: '123',
                     isFromOneTransactionReport: false,
                     action: CONST.SEARCH.ACTION_TYPES.VIEW,
                     isSelected: true,
@@ -92,7 +111,7 @@ describe('bulkDeleteReports', () => {
                     currency: 'USD',
                 },
                 transaction_789: {
-                    reportID: 'report_456',
+                    reportID: '456',
                     isFromOneTransactionReport: false,
                     action: CONST.SEARCH.ACTION_TYPES.VIEW,
                     isSelected: true,
@@ -108,7 +127,7 @@ describe('bulkDeleteReports', () => {
                     currency: 'USD',
                 },
                 transaction_101: {
-                    reportID: 'report_456',
+                    reportID: '456',
                     isFromOneTransactionReport: false,
                     action: CONST.SEARCH.ACTION_TYPES.VIEW,
                     isSelected: true,
@@ -128,18 +147,28 @@ describe('bulkDeleteReports', () => {
             const currentUserEmail = '';
             const transactions = {};
             const transactionsViolations = {};
-            bulkDeleteReports(hash, selectedTransactions, currentUserEmail, 1, transactions, transactionsViolations, {});
+            bulkDeleteReports({
+                reports,
+                selfDMReport: undefined,
+                hash,
+                selectedTransactions,
+                currentUserEmailParam: currentUserEmail,
+                currentUserAccountIDParam: 1,
+                reportTransactions: transactions,
+                transactionsViolations,
+                bankAccountList: {},
+            });
 
             // Should call deleteAppReport for empty report
             expect(deleteAppReport).toHaveBeenCalledTimes(1);
-            expect(deleteAppReport).toHaveBeenCalledWith('report_123', currentUserEmail, 1, transactions, transactionsViolations, {});
+            expect(deleteAppReport).toHaveBeenCalledWith(reports.report_123, undefined, currentUserEmail, 1, transactions, transactionsViolations, {});
         });
 
         it('should not delete reports when no empty reports are selected', () => {
             const hash = 12345;
             const selectedTransactions: Record<string, SelectedTransactionInfo> = {
                 transaction_789: {
-                    reportID: 'report_456',
+                    reportID: '456',
                     isFromOneTransactionReport: false,
                     action: CONST.SEARCH.ACTION_TYPES.VIEW,
                     isSelected: true,
@@ -155,7 +184,7 @@ describe('bulkDeleteReports', () => {
                     currency: 'USD',
                 },
                 transaction_101: {
-                    reportID: 'report_456',
+                    reportID: '456',
                     isFromOneTransactionReport: false,
                     action: CONST.SEARCH.ACTION_TYPES.VIEW,
                     isSelected: true,
@@ -172,7 +201,17 @@ describe('bulkDeleteReports', () => {
                 },
             };
 
-            bulkDeleteReports(hash, selectedTransactions, '', 1, {}, {}, {});
+            bulkDeleteReports({   reports: undefined,
+                selfDMReport: undefined,
+                hash,
+                selectedTransactions,
+                currentUserEmailParam: '',
+                currentUserAccountIDParam: 1,
+                reportTransactions: {},
+                transactionsViolations: {},
+                bankAccountList: {},});
+             
+            });
 
             // Should not call deleteAppReport
             expect(deleteAppReport).not.toHaveBeenCalled();
@@ -182,7 +221,17 @@ describe('bulkDeleteReports', () => {
             const hash = 12345;
             const selectedTransactions: Record<string, SelectedTransactionInfo> = {};
 
-            bulkDeleteReports(hash, selectedTransactions, '', 1, {}, {}, {});
+            bulkDeleteReports({       reports: undefined,
+                selfDMReport: undefined,
+                hash,
+                selectedTransactions,
+                currentUserEmailParam: '',
+                currentUserAccountIDParam: 1,
+                reportTransactions: {},
+                transactionsViolations: {},
+                bankAccountList: {},});
+         
+            });
 
             // Should not call any deletion functions
             expect(deleteAppReport).not.toHaveBeenCalled();
@@ -190,9 +239,13 @@ describe('bulkDeleteReports', () => {
 
         it('should only delete reports where key matches reportID for VIEW action', () => {
             const hash = 12345;
+            const reports = {
+                report_123: createRandomReport(123, undefined),
+                report_456: createRandomReport(456, undefined),
+            };
             const selectedTransactions: Record<string, SelectedTransactionInfo> = {
-                report_123: {
-                    reportID: 'report_123',
+                123: {
+                    reportID: '123',
                     isFromOneTransactionReport: false,
                     action: CONST.SEARCH.ACTION_TYPES.VIEW,
                     isSelected: true,
@@ -208,7 +261,7 @@ describe('bulkDeleteReports', () => {
                     currency: 'USD',
                 },
                 different_key: {
-                    reportID: 'report_456',
+                    reportID: '456',
                     isFromOneTransactionReport: false,
                     action: CONST.SEARCH.ACTION_TYPES.VIEW,
                     isSelected: true,
@@ -228,12 +281,12 @@ describe('bulkDeleteReports', () => {
             const currentUserEmail = '';
             const transactions = {};
             const transactionsViolations = {};
-            bulkDeleteReports(hash, selectedTransactions, currentUserEmail, 1, transactions, transactionsViolations, {});
+            bulkDeleteReports({reports,selfDMReport: undefined, hash, selectedTransactions, currentUserEmailParam: currentUserEmail,currentUserAccountIDParam:  1, reportTransactions:transactions, transactionsViolations, bankAccountList: {}});
 
             // Should only call deleteAppReport for the first report where key === reportID
             expect(deleteAppReport).toHaveBeenCalledTimes(1);
-            expect(deleteAppReport).toHaveBeenCalledWith('report_123', currentUserEmail, 1, transactions, transactionsViolations, {});
-            expect(deleteAppReport).not.toHaveBeenCalledWith('report_456', currentUserEmail, 1, transactions, transactionsViolations);
+            expect(deleteAppReport).toHaveBeenCalledWith(reports.report_123, undefined, currentUserEmail, 1, transactions, transactionsViolations, {});
+            expect(deleteAppReport).not.toHaveBeenCalledWith(reports.report_456, undefined, currentUserEmail, 1, transactions, transactionsViolations);
         });
     });
 
@@ -275,7 +328,7 @@ describe('bulkDeleteReports', () => {
                 },
             };
 
-            bulkDeleteReports(hash, selectedTransactions, '', 1, {}, {}, {});
+            bulkDeleteReports({reports: undefined, selfDMReport:undefined, hash, selectedTransactions, currentUserEmailParam: '', currentUserAccountIDParam: 1, reportTransactions: {}, transactionsViolations:{}, bankAccountList:{}});
 
             // Should not call deleteAppReport for transactions
             expect(deleteAppReport).not.toHaveBeenCalled();

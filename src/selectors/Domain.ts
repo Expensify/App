@@ -5,7 +5,12 @@ import type {CardFeeds, Domain, DomainPendingActions, DomainSecurityGroup, Domai
 import type {SecurityGroupKey, UserSecurityGroupData} from '@src/types/onyx/Domain';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
-const domainMemberSamlSettingsSelector = (domainSettings: OnyxEntry<CardFeeds>) => domainSettings?.settings;
+type DomainSecurityGroupWithID = {
+    id: string;
+    details: DomainSecurityGroup;
+};
+
+const domainMemberSettingsSelector = (domainSettings: OnyxEntry<CardFeeds>) => domainSettings?.settings;
 
 const domainSamlSettingsStateSelector = (domain: OnyxEntry<Domain>) =>
     domain
@@ -141,8 +146,21 @@ const adminPendingActionSelector = (pendingAction: OnyxEntry<DomainPendingAction
 
 const defaultSecurityGroupIDSelector = (domain: OnyxEntry<Domain>) => domain?.domain_defaultSecurityGroupID;
 
+function groupsSelector(domain: OnyxEntry<Domain>): DomainSecurityGroupWithID[] {
+    if (!domain) {
+        return getEmptyArray<DomainSecurityGroupWithID>();
+    }
+
+    return Object.entries(domain).reduce<DomainSecurityGroupWithID[]>((acc, [key, value]) => {
+        if (key.startsWith(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX)) {
+            acc.push({id: key.replace(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, ''), details: value as DomainSecurityGroup});
+        }
+        return acc;
+    }, []);
+}
+
 export {
-    domainMemberSamlSettingsSelector,
+    domainMemberSettingsSelector,
     domainSettingsPrimaryContactSelector,
     domainSamlSettingsStateSelector,
     domainNameSelector,
@@ -156,4 +174,7 @@ export {
     selectSecurityGroupForAccount,
     memberPendingActionSelector,
     isSecurityGroupEntry,
+    groupsSelector,
 };
+
+export {type DomainSecurityGroupWithID};

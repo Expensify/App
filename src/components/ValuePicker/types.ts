@@ -43,9 +43,18 @@ type ValueSelectorModalProps = {
 
     /** Whether to add bottom safe area padding */
     addBottomSafeAreaPadding?: boolean;
+
+    /** Whether to disable keyboard shortcuts */
+    disableKeyboardShortcuts?: boolean;
+
+    /** Number of lines to show for alternate text */
+    alternateNumberOfSupportedLines?: number;
 };
 
-type ValueSelectionListProps = Pick<ValueSelectorModalProps, 'items' | 'selectedItem' | 'onItemSelected' | 'shouldShowTooltips' | 'addBottomSafeAreaPadding'>;
+type ValueSelectionListProps = Pick<
+    ValueSelectorModalProps,
+    'items' | 'selectedItem' | 'onItemSelected' | 'shouldShowTooltips' | 'addBottomSafeAreaPadding' | 'disableKeyboardShortcuts' | 'alternateNumberOfSupportedLines'
+>;
 
 type ValuePickerProps = ForwardedFSClassProps & {
     /** Item to display */
@@ -80,6 +89,12 @@ type ValuePickerProps = ForwardedFSClassProps & {
 
     /** Whether to add bottom safe area padding */
     addBottomSafeAreaPadding?: boolean;
+
+    /** Whether to disable keyboard shortcuts */
+    disableKeyboardShortcuts?: boolean;
+
+    /** Number of lines to show for alternate text */
+    alternateNumberOfSupportedLines?: number;
 };
 
 export type {ValuePickerItem, ValueSelectorModalProps, ValuePickerProps, ValueSelectionListProps};

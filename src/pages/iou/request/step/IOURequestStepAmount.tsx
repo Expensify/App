@@ -5,6 +5,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import useCurrencyList from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
@@ -30,17 +31,16 @@ import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
 import {
     getMoneyRequestParticipantsFromReport,
     requestMoney,
-    resetSplitShares,
-    setDraftSplitTransaction,
     setMoneyRequestAmount,
+    setMoneyRequestParticipants,
     setMoneyRequestParticipantsFromReport,
     setMoneyRequestTaxAmount,
     setMoneyRequestTaxRate,
-    setSplitShares,
     trackExpense,
     updateMoneyRequestAmountAndCurrency,
 } from '@userActions/IOU';
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
+import {resetSplitShares, setDraftSplitTransaction, setSplitShares} from '@userActions/IOU/Split';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -77,6 +77,7 @@ function IOURequestStepAmount({
     shouldKeepUserInput = false,
 }: IOURequestStepAmountProps) {
     const {translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyList();
     const {isBetaEnabled} = usePermissions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
@@ -121,6 +122,7 @@ function IOURequestStepAmount({
     const {amount: transactionAmount} = getTransactionDetails(currentTransaction, undefined, undefined, allowNegative, disableOppositeConversion) ?? {amount: 0};
     const {currency: originalCurrency} = getTransactionDetails(isEditing && !isEmptyObject(draftTransaction) ? draftTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
     const [selectedCurrency, setSelectedCurrency] = useState(originalCurrency);
+    const decimals = getCurrencyDecimals(selectedCurrency || CONST.CURRENCY.USD);
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
@@ -199,7 +201,7 @@ function IOURequestStepAmount({
             if (taxCode) {
                 setMoneyRequestTaxRate(transactionID, taxCode);
                 const taxPercentage = getTaxValue(policy, transaction, taxCode) ?? '';
-                const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, amountInSmallestCurrencyUnits, selectedCurrency || CONST.CURRENCY.USD));
+                const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, amountInSmallestCurrencyUnits, decimals));
                 setMoneyRequestTaxAmount(transactionID, taxAmount);
             }
         }
@@ -313,12 +315,15 @@ function IOURequestStepAmount({
 
         // Starting from global + menu means no participant context exists yet,
         // so we need to handle participant selection based on available workspace settings
+        const isReturningFromConfirmationPage = !!transaction?.participants?.length;
+        const firstParticipant = transaction?.participants?.at(0);
+        const isP2PChat = isParticipantP2P(firstParticipant, currentUserPersonalDetails.accountID);
+        const isNegativeAmount = convertToBackendAmount(Number.parseFloat(amount)) < 0;
         if (shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy)) {
             const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
             const targetReport = shouldAutoReport ? getPolicyExpenseChat(currentUserAccountIDParam, defaultExpensePolicy?.id) : selfDMReport;
             const transactionReportID = isSelfDM(targetReport) ? CONST.REPORT.UNREPORTED_REPORT_ID : targetReport?.reportID;
             const iouTypeTrackOrSubmit = transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
-            const isReturningFromConfirmationPage = !!transaction?.participants?.length;
 
             const resetToDefaultWorkspace = () => {
                 setTransactionReport(transactionID, {reportID: transactionReportID}, true);
@@ -328,10 +333,6 @@ function IOURequestStepAmount({
             };
 
             if (isReturningFromConfirmationPage) {
-                const firstParticipant = transaction?.participants?.at(0);
-                const isP2PChat = isParticipantP2P(firstParticipant);
-                const isNegativeAmount = convertToBackendAmount(Number.parseFloat(amount)) < 0;
-
                 // P2P chats don't support negative amounts, so reset to default workspace when amount is negative.
                 if (isP2PChat && isNegativeAmount) {
                     resetToDefaultWorkspace();
@@ -350,6 +351,13 @@ function IOURequestStepAmount({
             } else {
                 resetToDefaultWorkspace();
             }
+        }
+        // P2P chats don't support negative amounts, so in cases where there is no default workspace when the amount is negative, we will remove the selected transaction participants.
+        else if (iouType === CONST.IOU.TYPE.CREATE && isP2PChat && isNegativeAmount && isReturningFromConfirmationPage) {
+            setTransactionReport(transactionID, {reportID: undefined}, true);
+            setMoneyRequestParticipants(transactionID, [], true).then(() => {
+                navigateToParticipantPage(iouType, transactionID, reportID);
+            });
         } else {
             Navigation.setNavigationActionToMicrotaskQueue(() => {
                 navigateToParticipantPage(iouType, transactionID, reportID);
@@ -382,7 +390,7 @@ function IOURequestStepAmount({
         const defaultTaxCode = getDefaultTaxCode(policy, currentTransaction, selectedCurrency) ?? '';
         const taxCode = (selectedCurrency !== transactionCurrency ? defaultTaxCode : transactionTaxCode) ?? defaultTaxCode;
         const taxPercentage = getTaxValue(policy, currentTransaction, taxCode) ?? '';
-        const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, newAmount, selectedCurrency ?? CONST.CURRENCY.USD));
+        const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, newAmount, decimals));
 
         if (isSplitBill) {
             setDraftSplitTransaction(transactionID, splitDraftTransaction, {amount: newAmount, currency: selectedCurrency, taxCode, taxAmount});
@@ -469,8 +477,8 @@ function IOURequestStepAmount({
 /**
  * Check if the participant is a P2P chat
  */
-function isParticipantP2P(participant: {accountID?: number; isPolicyExpenseChat?: boolean} | undefined): boolean {
-    return !!(participant?.accountID && !participant.isPolicyExpenseChat);
+function isParticipantP2P(participant: {accountID?: number; isPolicyExpenseChat?: boolean} | undefined, currentUserAccountID?: number): boolean {
+    return !!(participant?.accountID && !participant.isPolicyExpenseChat && (!currentUserAccountID || participant?.accountID !== currentUserAccountID));
 }
 
 // eslint-disable-next-line rulesdir/no-negated-variables
