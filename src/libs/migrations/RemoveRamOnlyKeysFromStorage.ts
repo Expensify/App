@@ -18,7 +18,7 @@ export default function () {
                     Onyx.disconnect(connection);
 
                     // Skip if empty or already migrated
-                    if (value === undefined || value === null) {
+                    if (value === undefined) {
                         Log.info(`[Migrate Onyx] Skipping ${key}: No action needed`);
                         return resolve();
                     }
@@ -28,7 +28,7 @@ export default function () {
                     // If a key is converted to RAM-only, its previous value might still be in storage.
                     // We set the value of that key to null, so it's removed from storage.
                     // eslint-disable-next-line rulesdir/prefer-actions-set-data
-                    Onyx.merge(key, null).then(() => {
+                    Onyx.set(key, null).then(() => {
                         Log.info(`[Migrate Onyx] RAM-only key: ${key} removed from storage`);
                         resolve();
                     });
@@ -36,7 +36,7 @@ export default function () {
                     // Restore initial key state if necessary
                     if (initialKeyStates[key]) {
                         // eslint-disable-next-line rulesdir/prefer-actions-set-data
-                        Onyx.merge(key, initialKeyStates[key]).then(() => {
+                        Onyx.set(key, initialKeyStates[key]).then(() => {
                             Log.info(`[Migrate Onyx] RAM-only key: ${key} initial value restored`);
                             resolve();
                         });
