@@ -767,7 +767,12 @@ function MoneyRequestReportPreviewContent({
                                                                 <Badge
                                                                     text={reportStatus}
                                                                     isCondensed
-                                                                    badgeStyles={[styles.ml0, styles.mr1, styles.borderNone, StyleUtils.getBackgroundColorStyle(reportStatusColorStyle?.backgroundColor ?? theme.transparent)]}
+                                                                    badgeStyles={[
+                                                                        styles.ml0,
+                                                                        styles.mr1,
+                                                                        styles.borderNone,
+                                                                        StyleUtils.getBackgroundColorStyle(reportStatusColorStyle?.backgroundColor ?? theme.transparent),
+                                                                    ]}
                                                                     textStyles={[StyleUtils.getColorStyle((reportStatusColorStyle?.textColor ?? theme.text) as string)]}
                                                                 />
                                                             )}

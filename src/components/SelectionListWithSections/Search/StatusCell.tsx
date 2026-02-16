@@ -32,10 +32,7 @@ function StatusCell({stateNum, statusNum, isPending}: StatusCellProps) {
         [styles.ml0, styles.borderNone, StyleUtils, reportStatusColorStyle?.backgroundColor, theme.transparent],
     );
 
-    const textStyles = useMemo(
-        () => [StyleUtils.getColorStyle((reportStatusColorStyle?.textColor ?? theme.text) as string)],
-        [StyleUtils, reportStatusColorStyle?.textColor, theme.text],
-    );
+    const textStyles = useMemo(() => [StyleUtils.getColorStyle((reportStatusColorStyle?.textColor ?? theme.text) as string)], [StyleUtils, reportStatusColorStyle?.textColor, theme.text]);
 
     if (!statusText || !reportStatusColorStyle) {
         return null;

@@ -352,7 +352,6 @@ const staticStyles = (theme: ThemeColors) =>
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
         },
 
-
         textSupporting: {
             color: theme.textSupporting,
         },
