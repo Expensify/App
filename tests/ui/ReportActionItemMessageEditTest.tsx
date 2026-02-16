@@ -4,7 +4,8 @@ import Onyx from 'react-native-onyx';
 import {editReportComment} from '@libs/actions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {renderReportActionItemMessageEdit} from '../utils/ReportActionComposeUtils';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+import {pressReportActionComposeSendButton, renderReportActionItemMessageEdit} from '../utils/ReportActionComposeUtils';
 import * as TestHelper from '../utils/TestHelper';
 
 const mockEditReportComment = jest.mocked(editReportComment);
@@ -58,15 +59,16 @@ describe('ReportActionCompose Integration Tests', () => {
     describe('Message validation', () => {
         it('should edit when length is within the limit', async () => {
             renderReportActionItemMessageEdit();
-            const composer = screen.getByTestId('composer');
-            const saveChangesButton = screen.getByLabelText('common.saveChanges');
+            const composer = screen.getByTestId(CONST.COMPOSER.NATIVE_ID);
 
             // Given a message that is within the length limit
             const validMessage = 'x'.repeat(CONST.MAX_COMMENT_LENGTH);
             fireEvent.changeText(composer, validMessage);
 
+            await waitForBatchedUpdatesWithAct();
+
             // When the message is saved
-            fireEvent.press(saveChangesButton);
+            pressReportActionComposeSendButton();
 
             // Then the message should be edited
             expect(mockEditReportComment).toHaveBeenCalledTimes(1);
@@ -74,15 +76,16 @@ describe('ReportActionCompose Integration Tests', () => {
 
         it('should not edit when length exceeds the limit', async () => {
             renderReportActionItemMessageEdit();
-            const composer = screen.getByTestId('composer');
-            const saveChangesButton = screen.getByLabelText('common.saveChanges');
+            const composer = screen.getByTestId(CONST.COMPOSER.NATIVE_ID);
 
             // Given a message that is over the length limit
             const invalidMessage = 'x'.repeat(CONST.MAX_COMMENT_LENGTH + 1);
             fireEvent.changeText(composer, invalidMessage);
 
+            await waitForBatchedUpdatesWithAct();
+
             // When the message is saved
-            fireEvent.press(saveChangesButton);
+            pressReportActionComposeSendButton();
 
             // Then the message should NOT be edited
             expect(mockEditReportComment).toHaveBeenCalledTimes(0);
