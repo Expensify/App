@@ -45,6 +45,7 @@ Workspace Merchant Rules apply under the following conditions:
 - Rules are applied **when an expense is created**. They are not applied if the expense is edited later.
 - If multiple Workspace Merchant Rules match the same expense, only the **earliest-created rule applies**.
 - If a member manually sets a field when creating the expense, **that field won't be overridden by the rule**.
+- Merchant name matching is case sensitive. For example, “Uber” and “UBER” are treated as different values.
 
 ---
 
@@ -143,9 +144,10 @@ The message will explicitly say which fields were changed and that the update ha
 ## Why didn't my Workspace Merchant Rule apply?
 
 Common reasons include:
- - The merchant name didn’t match the rule criteria.
+ - The merchant name didn’t match the rule criteria. 
  - The rule is disabled.
  - Another rule matched first.
  - A field was manually set during expense creation.
  - The rule was created after the expense and wasn’t applied retroactively, unless you select "apply to existing expenses" when creating the rule.
+
 
