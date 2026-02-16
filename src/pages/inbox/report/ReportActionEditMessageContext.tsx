@@ -90,6 +90,7 @@ function ReportActionEditMessageContextProvider({reportID, children}: ReportActi
         const reportDrafts = reportActionDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`];
 
         if (!reportDrafts) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             reset();
             return;
         }
