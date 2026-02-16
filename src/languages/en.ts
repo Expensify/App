@@ -617,7 +617,6 @@ const translations = {
         week: 'Week',
         year: 'Year',
         quarter: 'Quarter',
-        locked: 'Locked',
     },
     supportalNoAccess: {
         title: 'Not so fast',

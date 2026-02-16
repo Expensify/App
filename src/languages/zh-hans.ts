@@ -593,7 +593,6 @@ const translations: TranslationDeepObject<typeof en> = {
         week: '周',
         year: '年份',
         quarter: '季度',
-        locked: '已锁定',
     },
     supportalNoAccess: {
         title: '先别急',

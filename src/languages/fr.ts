@@ -598,7 +598,6 @@ const translations: TranslationDeepObject<typeof en> = {
         week: 'Semaine',
         year: 'Année',
         quarter: 'Trimestre',
-        locked: 'Verrouillé',
     },
     supportalNoAccess: {
         title: 'Pas si vite',

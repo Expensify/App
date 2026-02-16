@@ -597,7 +597,6 @@ const translations: TranslationDeepObject<typeof en> = {
         week: '週',
         year: '年',
         quarter: '四半期',
-        locked: 'ロック済み',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
