@@ -1095,7 +1095,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 return 'Es wurden keine Kategorien hinzugefügt oder aktualisiert.';
             }
             if (added && updated) {
-                return `${added} Kategorie${added === 1 ? '' : 'n'} hinzugefügt, ${updated} Kategorie${updated === 1 ? '' : 'n'} aktualisiert.`;
+                return `${added} ${added === 1 ? 'Kategorie' : 'Kategorien'} hinzugefügt, ${updated} ${updated === 1 ? 'Kategorie' : 'Kategorien'} aktualisiert.`;
             }
             if (added) {
                 return added === 1 ? '1 Kategorie wurde hinzugefügt.' : `${added} Kategorien wurden hinzugefügt.`;

@@ -1099,7 +1099,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 return 'Aucune catégorie n’a été ajoutée ou mise à jour.';
             }
             if (added && updated) {
-                return `${added} catégorie${added === 1 ? '' : 's'} ajoutée${added === 1 ? '' : 's'}, ${updated} catégorie${updated === 1 ? '' : 's'} mise${updated === 1 ? '' : 's'} à jour.`;
+                return `${added} ${added === 1 ? 'catégorie' : 'catégories'} ajouté(s), ${updated} ${updated === 1 ? 'catégorie' : 'catégories'} mis(es) à jour.`;
             }
             if (added) {
                 return added === 1 ? '1 catégorie a été ajoutée.' : `${added} catégories ont été ajoutées.`;
