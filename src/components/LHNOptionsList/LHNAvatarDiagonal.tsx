@@ -1,3 +1,4 @@
+import React from 'react';
 import type {ColorValue} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
