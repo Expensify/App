@@ -25,7 +25,7 @@ function useSearchDeleteTransactions() {
             const nonSplitIDs: string[] = [];
 
             for (const transactionID of transactionIDs) {
-                const transaction = searchResultsRecord[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] as Transaction | undefined;
+                const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
                 const originalTransactionID = transaction?.comment?.originalTransactionID;
 
                 if (originalTransactionID && transaction?.comment?.source === CONST.IOU.TYPE.SPLIT) {
@@ -39,12 +39,12 @@ function useSearchDeleteTransactions() {
                 const deletingIDs = new Set(splitTransactionIDs);
                 const siblings: Transaction[] = [];
 
-                for (const [key, value] of Object.entries(searchResultsRecord)) {
+                for (const [key, value] of Object.entries(transactions ?? {})) {
                     if (!key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
                         continue;
                     }
 
-                    const transaction = value as Transaction | undefined;
+                    const transaction = value;
                     if (!transaction?.transactionID) {
                         continue;
                     }
