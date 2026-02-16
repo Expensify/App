@@ -1961,6 +1961,10 @@ function isPolicyTaxEnabled(policy: OnyxEntry<Policy>): boolean {
     return (policy?.tax?.trackingEnabled ?? false) || isSyncTaxEnabled;
 }
 
+function sortPoliciesByName(policies: Policy[], localeCompare: (a: string, b: string) => number): Policy[] {
+    return policies.sort((a, b) => localeCompare(a.name || '', b.name || ''));
+}
+
 export {
     canEditTaxRate,
     escapeTagName,
@@ -2135,6 +2139,7 @@ export {
     getDefaultTimeTrackingRate,
     getActivePoliciesWithExpenseChatAndTimeEnabled,
     isPolicyTaxEnabled,
+    sortPoliciesByName,
 };
 
 export type {MemberEmailsToAccountIDs};
