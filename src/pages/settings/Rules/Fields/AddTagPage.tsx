@@ -1,52 +1,62 @@
-import React from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
+import React, {useMemo} from 'react';
+import type {ValueOf} from 'type-fest';
 import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
 import useOnyx from '@hooks/useOnyx';
 import {updateDraftRule} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getCleanedTagName, getTagNamesFromTagsLists} from '@libs/PolicyUtils';
+import {getCleanedTagName, getTagLists} from '@libs/PolicyUtils';
+import {trimTag} from '@libs/TagUtils';
+import {getTagArrayFromName} from '@libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PolicyTagLists} from '@src/types/onyx';
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 type AddTagPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.RULES.EDIT_TAG>;
 
 function AddTagPage({route}: AddTagPageProps) {
+    const {hash, index: orderWeight} = route.params ?? {};
+
     const [form] = useOnyx(ONYXKEYS.FORMS.EXPENSE_RULE_FORM, {canBeMissing: true});
-    const [allPolicyTagLists = getEmptyObject<NonNullable<OnyxCollection<PolicyTagLists>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {
-        canBeMissing: true,
-    });
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [policyTags = getEmptyArray<ValueOf<PolicyTagLists>>()] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${activePolicyID}`, {canBeMissing: true, selector: getTagLists});
+    const tagList = policyTags.find((item) => item.orderWeight === orderWeight);
+    const formTags = getTagArrayFromName(form?.tag ?? '');
+    const formTag = formTags.at(orderWeight);
 
-    const selectedTagItem = form?.tag ? {name: getCleanedTagName(form.tag), value: form.tag} : undefined;
+    const tagItems = useMemo(() => {
+        const tags: Array<{name: string; value: string}> = [];
 
-    const tagItems = () => {
-        const uniqueTagNames = new Set<string>();
-
-        const tagListsUnpacked = Object.values(allPolicyTagLists ?? {}).filter((item) => !!item);
-        for (const tag of tagListsUnpacked.map(getTagNamesFromTagsLists).flat()) {
-            uniqueTagNames.add(tag);
+        for (const tag of Object.values(tagList?.tags ?? {})) {
+            if (tag.name !== formTag && !tag.enabled) {
+                continue;
+            }
+            tags.push({name: getCleanedTagName(tag.name), value: tag.name});
         }
 
-        return Array.from(uniqueTagNames).map((tagName) => ({name: getCleanedTagName(tagName), value: tagName}));
-    };
+        return tags;
+    }, [tagList?.tags, formTag]);
 
-    const hash = route.params?.hash;
+    const selectedTagItem = tagItems.find(({value}) => value === formTag);
+
     const backToRoute = hash ? ROUTES.SETTINGS_RULES_EDIT.getRoute(hash) : ROUTES.SETTINGS_RULES_ADD.getRoute();
 
     const onSave = (value?: string) => {
-        updateDraftRule({tag: value});
+        const newTags = [...formTags];
+        newTags[orderWeight] = value ?? '';
+        updateDraftRule({tag: trimTag(newTags.join(':'))});
     };
 
     return (
         <RuleSelectionBase
             titleKey="common.tag"
+            title={tagList?.name}
             testID="AddTagPage"
             selectedItem={selectedTagItem}
-            items={tagItems()}
+            items={tagItems}
             onSave={onSave}
             onBack={() => Navigation.goBack(backToRoute)}
             backToRoute={backToRoute}

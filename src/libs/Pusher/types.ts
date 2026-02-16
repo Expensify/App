@@ -3,7 +3,7 @@ import type PusherClass from 'pusher-js/with-encryption';
 import type {Channel, ChannelAuthorizerGenerator} from 'pusher-js/with-encryption';
 import type {LiteralUnion, ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type {OnyxUpdatesFromServer, ReportUserIsTyping} from '@src/types/onyx';
+import type {AnyOnyxUpdatesFromServer, ReportUserIsTyping} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type TYPE from './EventType';
 
@@ -41,7 +41,7 @@ type PusherEventMap = {
 
 type EventData<EventName extends string> = {chunk?: string; id?: string; index?: number; final?: boolean} & (EventName extends keyof PusherEventMap
     ? PusherEventMap[EventName]
-    : OnyxUpdatesFromServer);
+    : AnyOnyxUpdatesFromServer);
 
 type EventCallbackError = {type?: ValueOf<typeof CONST.ERROR>; data: {code?: number; message?: string}};
 

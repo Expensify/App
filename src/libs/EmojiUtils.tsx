@@ -1,3 +1,5 @@
+import {parseExpensiMark} from '@expensify/react-native-live-markdown';
+import type {MarkdownRange} from '@expensify/react-native-live-markdown';
 import {Str} from 'expensify-common';
 import lodashSortBy from 'lodash/sortBy';
 import React from 'react';
@@ -29,6 +31,74 @@ type TextWithEmoji = {
 const findEmojiByName = (name: string): Emoji => Emojis.emojiNameTable[name];
 
 const findEmojiByCode = (code: string): Emoji => Emojis.emojiCodeTableWithSkinTones[code];
+
+// 'code' = inline code, 'pre' = code fence content. Excludes 'codeblock' to avoid overlapping ranges.
+const CODE_RANGE_TYPES = new Set(['code', 'pre']);
+
+function getCodeRanges(text: string): MarkdownRange[] {
+    return parseExpensiMark(text).filter((range) => CODE_RANGE_TYPES.has(range.type));
+}
+
+function isPositionInsideCodeRanges(ranges: MarkdownRange[], position: number): boolean {
+    return ranges.some((range) => CODE_RANGE_TYPES.has(range.type) && position >= range.start && position < range.start + range.length);
+}
+
+function isPositionInsideCodeBlock(text: string, position: number): boolean {
+    return isPositionInsideCodeRanges(parseExpensiMark(text), position);
+}
+
+/**
+ * Get the value to insert for an emoji - returns shortcode if inside code block, otherwise emoji code.
+ */
+function getEmojiCodeForInsertion(emoji: Emoji, preferredSkinTone: number, isInsideCodeBlock: boolean): string {
+    if (isInsideCodeBlock) {
+        return `:${emoji.name}:`;
+    }
+    if (emoji.types?.at(preferredSkinTone) && preferredSkinTone !== -1) {
+        return emoji.types.at(preferredSkinTone) ?? emoji.code;
+    }
+    return emoji.code;
+}
+
+/**
+ * Revert emojis to shortcodes inside code blocks.
+ * Optionally adjusts a cursor position to account for length changes before it.
+ */
+function revertEmojisInCodeBlocks(text: string, cursorPosition?: number): {text: string; cursorPosition?: number} {
+    const codeRanges = getCodeRanges(text);
+    if (codeRanges.length === 0) {
+        return {text, cursorPosition};
+    }
+
+    // Process ranges in reverse order to preserve positions when text length changes
+    codeRanges.sort((a, b) => b.start - a.start);
+
+    let result = text;
+    let cursorShift = 0;
+    for (const range of codeRanges) {
+        const codeContent = text.slice(range.start, range.start + range.length);
+        // ALL_EMOJIS matches skin-toned variants as single units (e.g., 👍🏽 not 👍 + 🏽)
+        const emojiMatches = codeContent.match(CONST.REGEX.ALL_EMOJIS);
+        if (!emojiMatches) {
+            continue;
+        }
+
+        const revertedContent = emojiMatches.reduce((content, emojiMatch) => {
+            const emojiData = findEmojiByCode(emojiMatch);
+            return emojiData?.name ? content.replace(emojiMatch, `:${emojiData.name}:`) : content;
+        }, codeContent);
+
+        if (revertedContent !== codeContent) {
+            result = result.slice(0, range.start) + revertedContent + result.slice(range.start + range.length);
+            if (cursorPosition !== undefined && range.start + range.length <= cursorPosition) {
+                cursorShift += revertedContent.length - codeContent.length;
+            }
+        }
+    }
+
+    const adjustedCursorPosition = cursorPosition !== undefined ? cursorPosition + cursorShift : undefined;
+    return {text: result, cursorPosition: adjustedCursorPosition};
+}
 
 const sortByName = (emoji: Emoji, emojiData: RegExpMatchArray) => !emoji.name.includes(emojiData[0].toLowerCase().slice(1));
 
@@ -330,21 +400,30 @@ function replaceEmojis(text: string, preferredSkinTone: OnyxEntry<number | strin
     const emojis: Emoji[] = [];
     const emojiData = text.match(CONST.REGEX.EMOJI_NAME);
     if (!emojiData || emojiData.length === 0) {
-        return {text: newText, emojis};
+        return {text: revertEmojisInCodeBlocks(newText).text, emojis};
     }
 
-    let cursorPosition;
+    const codeBlockRanges = parseExpensiMark(text);
+    const replacements: Array<{position: number; shortcode: string; replacement: string; name: string}> = [];
+    const shortcodeSearchPositions: Record<string, number> = {};
+    const englishTrie = normalizedLocale !== CONST.LOCALES.DEFAULT ? emojisTrie[CONST.LOCALES.DEFAULT] : null;
 
     for (const emoji of emojiData) {
         const name = emoji.slice(1, -1);
+        const searchFromPosition = shortcodeSearchPositions[emoji] ?? 0;
+        const emojiPosition = text.indexOf(emoji, searchFromPosition);
+
+        if (emojiPosition !== -1) {
+            shortcodeSearchPositions[emoji] = emojiPosition + 1;
+        }
+
+        if (emojiPosition === -1 || isPositionInsideCodeRanges(codeBlockRanges, emojiPosition)) {
+            continue;
+        }
+
         let checkEmoji = trie.search(name);
-        // If the user has selected a language other than English, and the emoji doesn't exist in that language,
-        // we will check if the emoji exists in English.
-        if (normalizedLocale !== CONST.LOCALES.DEFAULT && !checkEmoji?.metaData?.code) {
-            const englishTrie = emojisTrie[CONST.LOCALES.DEFAULT];
-            if (englishTrie) {
-                checkEmoji = englishTrie.search(name);
-            }
+        if (!checkEmoji?.metaData?.code && englishTrie) {
+            checkEmoji = englishTrie.search(name);
         }
         if (checkEmoji?.metaData?.code && checkEmoji?.metaData?.name) {
             const emojiReplacement = getEmojiCodeWithSkinColor(checkEmoji.metaData as Emoji, preferredSkinTone);
@@ -353,28 +432,40 @@ function replaceEmojis(text: string, preferredSkinTone: OnyxEntry<number | strin
                 code: checkEmoji.metaData?.code,
                 types: checkEmoji.metaData.types,
             });
-
-            // Set the cursor to the end of the last replaced Emoji. Note that we position after
-            // the extra space, if we added one.
-            cursorPosition = newText.indexOf(emoji) + (emojiReplacement?.length ?? 0);
-
-            newText = newText.replace(emoji, emojiReplacement ?? '');
+            replacements.push({
+                position: emojiPosition,
+                shortcode: emoji,
+                replacement: emojiReplacement ?? '',
+                name,
+            });
         }
     }
 
-    // cursorPosition, when not undefined, points to the end of the last emoji that was replaced.
-    // In that case we want to append a space at the cursor position, but only if the next character
-    // is not already a space (to avoid double spaces).
+    // Apply replacements right-to-left to preserve positions
+    replacements.sort((a, b) => b.position - a.position);
+    for (const {position, shortcode, replacement} of replacements) {
+        newText = newText.slice(0, position) + replacement + newText.slice(position + shortcode.length);
+    }
+
+    let cursorPosition: number | undefined;
+    const firstReplacement = replacements.at(0);
+    if (firstReplacement) {
+        const offsetFromLeftReplacements = replacements.slice(1).reduce((acc, r) => acc + (r.replacement.length - r.shortcode.length), 0);
+        cursorPosition = firstReplacement.position + firstReplacement.replacement.length + offsetFromLeftReplacements;
+    }
+
+    // cursorPosition points to the end of the last replaced emoji. Append a space
+    // at the cursor position, but only if the next character is not already a space.
     if (cursorPosition && cursorPosition > 0) {
         const space = ' ';
-
         if (newText.charAt(cursorPosition) !== space) {
             newText = newText.slice(0, cursorPosition) + space + newText.slice(cursorPosition);
         }
         cursorPosition += space.length;
     }
 
-    return {text: newText, emojis, cursorPosition};
+    const reverted = revertEmojisInCodeBlocks(newText, cursorPosition);
+    return {text: reverted.text, emojis, cursorPosition: reverted.cursorPosition};
 }
 
 /**
@@ -725,4 +816,6 @@ export {
     processFrequentlyUsedEmojis,
     insertZWNJBetweenDigitAndEmoji,
     getZWNJCursorOffset,
+    isPositionInsideCodeBlock,
+    getEmojiCodeForInsertion,
 };
