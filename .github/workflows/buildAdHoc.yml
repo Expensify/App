@@ -1,0 +1,472 @@
+name: Build and deploy ad-hoc apps
+
+on:
+  workflow_call:
+    inputs:
+      APP_REF:
+        description: Git ref to checkout for building
+        type: string
+        required: true
+      APP_PR_NUMBER:
+        description: Expensify/App pull request number (empty to skip comments and web deploy)
+        type: string
+        default: ''
+      MOBILE_EXPENSIFY_REF:
+        description: Mobile-Expensify ref to checkout (empty to use submodule at HEAD)
+        type: string
+        default: ''
+      MOBILE_EXPENSIFY_PR:
+        description: Mobile-Expensify pull request number (empty to skip ME PR comments)
+        type: string
+        default: ''
+      BUILD_WEB:
+        description: Whether to build the web app
+        type: string
+        default: 'true'
+      BUILD_IOS:
+        description: Whether to build the iOS app
+        type: string
+        default: 'true'
+      BUILD_ANDROID:
+        description: Whether to build the Android app
+        type: string
+        default: 'true'
+      TRIGGER_ACTOR:
+        description: GitHub username who triggered the build
+        type: string
+        required: true
+
+jobs:
+  postGitHubCommentBuildStarted:
+    name: Post build started comment
+    if: ${{ inputs.APP_PR_NUMBER != '' || inputs.MOBILE_EXPENSIFY_PR != '' }}
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    steps:
+      - name: Add build start comment to Expensify/App PR
+        if: ${{ inputs.APP_PR_NUMBER != '' }}
+        # v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        with:
+          github-token: ${{ github.token }}
+          script: |
+              const workflowURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+              github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ inputs.APP_PR_NUMBER }},
+              body: `🚧 @${{ inputs.TRIGGER_ACTOR }} has triggered a test Expensify/App build. You can view the [workflow run here](${workflowURL}).`
+              });
+
+      - name: Add build start comment to Expensify/Mobile-Expensify PR
+        if: ${{ inputs.MOBILE_EXPENSIFY_PR != '' }}
+        # v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        with:
+          github-token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          script: |
+              const workflowURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+              github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: 'Mobile-Expensify',
+              issue_number: ${{ inputs.MOBILE_EXPENSIFY_PR }},
+              body: `🚧 @${{ inputs.TRIGGER_ACTOR }} has triggered a test Expensify/Mobile-Expensify build. You can view the [workflow run here](${workflowURL}).`
+              });
+
+  web:
+    name: Build and deploy Web
+    if: ${{ inputs.BUILD_WEB == 'true' && inputs.APP_PR_NUMBER != '' }}
+    runs-on: blacksmith-16vcpu-ubuntu-2404
+    env:
+      PULL_REQUEST_NUMBER: ${{ inputs.APP_PR_NUMBER }}
+    steps:
+      - name: Checkout
+        # v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ inputs.APP_REF }}
+
+      - name: Create .env.adhoc file based on staging
+        run: |
+          cp .env.staging .env.adhoc
+          sed -i 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
+
+      - name: Inject CI data into JS bundle
+        run: ./.github/scripts/inject-ci-data.sh PULL_REQUEST_NUMBER="$PULL_REQUEST_NUMBER"
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Configure AWS Credentials
+        # v6
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Build web for testing
+        run: npm run build-adhoc
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+
+      - name: Deploy to S3 for internal testing
+        run: aws s3 cp --recursive --acl public-read "$GITHUB_WORKSPACE"/dist s3://ad-hoc-expensify-cash/web/"$PULL_REQUEST_NUMBER"
+
+  androidHybrid:
+    name: Build Android HybridApp
+    if: ${{ inputs.BUILD_ANDROID == 'true' }}
+    runs-on: blacksmith-32vcpu-ubuntu-2404
+    env:
+      PULL_REQUEST_NUMBER: ${{ inputs.APP_PR_NUMBER }}
+    outputs:
+      ROCK_ANDROID_ADHOC_INDEX_URL: ${{ steps.set-artifact-url.outputs.ARTIFACT_URL }}
+    steps:
+      - name: Checkout
+        # v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          submodules: true
+          ref: ${{ inputs.APP_REF }}
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Checkout Mobile-Expensify to specified branch or commit
+        if: ${{ inputs.MOBILE_EXPENSIFY_REF != '' }}
+        run: |
+          cd Mobile-Expensify
+          git fetch origin ${{ inputs.MOBILE_EXPENSIFY_REF }}
+          git checkout ${{ inputs.MOBILE_EXPENSIFY_REF }}
+          echo "Building from https://github.com/Expensify/Mobile-Expensify/pull/${{ inputs.MOBILE_EXPENSIFY_PR }}"
+
+      - name: Configure MapBox SDK
+        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+
+      - name: Setup Node
+        id: setup-node
+        uses: ./.github/actions/composite/setupNode
+        with:
+          IS_HYBRID_BUILD: 'true'
+
+      - name: Run grunt build
+        run: |
+            cd Mobile-Expensify
+            npm run grunt:build:shared
+
+      - name: Create .env.adhoc file based on staging
+        run: |
+          cp .env.staging .env.adhoc
+          sed -i 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
+
+      - name: Inject CI data into JS bundle
+        run: ./.github/scripts/inject-ci-data.sh PULL_REQUEST_NUMBER="$PULL_REQUEST_NUMBER"
+
+      - name: Setup 1Password CLI and certificates
+        uses: Expensify/GitHub-Actions/setup-certificate-1p@main
+        with:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          SHOULD_LOAD_SSL_CERTIFICATES: 'false'
+
+      - name: Load files from 1Password
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        run: |
+          op read "op://${{ vars.OP_VAULT }}/upload-key.keystore/upload-key.keystore" --force --out-file ./upload-key.keystore
+          op read "op://${{ vars.OP_VAULT }}/android-fastlane-json-key.json/android-fastlane-json-key.json" --force --out-file ./android-fastlane-json-key.json
+
+          # Copy the keystore to the Android directory for Fullstory
+          cp ./upload-key.keystore Mobile-Expensify/Android
+
+      - name: Load Android upload keystore credentials from 1Password
+        id: load-credentials
+        # v3
+        uses: 1password/load-secrets-action@8d0d610af187e78a2772c2d18d627f4c52d3fbfb
+        with:
+          export-env: false
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          ANDROID_UPLOAD_KEYSTORE_PASSWORD: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_PASSWORD
+          ANDROID_UPLOAD_KEYSTORE_ALIAS: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_ALIAS
+          ANDROID_UPLOAD_KEY_PASSWORD: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEY_PASSWORD
+
+      - name: Configure AWS Credentials
+        # v6
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Rock Remote Build - Android
+        id: rock-remote-build-android
+        uses: callstackincubator/android@2177ac62cabe662aa49a2bc6f3154070705dd8f5
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          IS_HYBRID_APP: true
+        with:
+          variant: 'Adhoc'
+          sign: true
+          re-sign: true
+          ad-hoc: true
+          keystore-file: './upload-key.keystore'
+          keystore-store-file: 'upload-key.keystore'
+          keystore-store-password: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
+          keystore-key-alias: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }}
+          keystore-key-password: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
+          # Specify the path (relative to the Android source directory) where the keystore should be placed.
+          keystore-path: '../tools/buildtools/upload-key.keystore'
+          comment-bot: false
+          rock-build-extra-params: '--extra-params "-PreactNativeArchitectures=arm64-v8a,x86_64 --profile"'
+          custom-ref: ${{ inputs.APP_REF }}
+
+      - name: Upload Gradle profile report
+        if: always()
+        # v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: gradle-profile-report
+          path: Mobile-Expensify/Android/build/reports/profile/
+          if-no-files-found: ignore
+
+      - name: Set artifact URL output
+        id: set-artifact-url
+        run: echo "ARTIFACT_URL=$ARTIFACT_URL" >> "$GITHUB_OUTPUT"
+
+  iosHybrid:
+    name: Build and deploy iOS for testing
+    if: ${{ inputs.BUILD_IOS == 'true' }}
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
+      PULL_REQUEST_NUMBER: ${{ inputs.APP_PR_NUMBER }}
+    runs-on: macos-15-xlarge
+    outputs:
+      ROCK_IOS_ADHOC_INDEX_URL: ${{ steps.set-artifact-url.outputs.ARTIFACT_URL }}
+    steps:
+      - name: Checkout
+        # v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          submodules: true
+          ref: ${{ inputs.APP_REF }}
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Checkout Mobile-Expensify to specified branch or commit
+        if: ${{ inputs.MOBILE_EXPENSIFY_REF != '' }}
+        run: |
+          cd Mobile-Expensify
+          git fetch origin ${{ inputs.MOBILE_EXPENSIFY_REF }}
+          git checkout ${{ inputs.MOBILE_EXPENSIFY_REF }}
+          echo "Building from https://github.com/Expensify/Mobile-Expensify/pull/${{ inputs.MOBILE_EXPENSIFY_PR }}"
+
+      - name: Configure MapBox SDK
+        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+
+      - name: Setup Node
+        id: setup-node
+        uses: ./.github/actions/composite/setupNode
+        with:
+          IS_HYBRID_BUILD: 'true'
+
+      - name: Create .env.adhoc file based on staging
+        run: |
+          cp .env.staging .env.adhoc
+          sed -i '' 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
+
+      - name: Inject CI data into JS bundle
+        run: ./.github/scripts/inject-ci-data.sh PULL_REQUEST_NUMBER="$PULL_REQUEST_NUMBER"
+
+      - name: Setup 1Password CLI and certificates
+        uses: Expensify/GitHub-Actions/setup-certificate-1p@main
+        with:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          SHOULD_LOAD_SSL_CERTIFICATES: 'false'
+
+      - name: Load files from 1Password
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        run: |
+          op read "op://${{ vars.OP_VAULT }}/OldApp_AdHoc/OldApp_AdHoc.mobileprovision" --force --out-file ./OldApp_AdHoc.mobileprovision
+          op read "op://${{ vars.OP_VAULT }}/OldApp_AdHoc_Share_Extension/OldApp_AdHoc_Share_Extension.mobileprovision" --force --out-file ./OldApp_AdHoc_Share_Extension.mobileprovision
+          op read "op://${{ vars.OP_VAULT }}/OldApp_AdHoc_Notification_Service/OldApp_AdHoc_Notification_Service.mobileprovision" --force --out-file ./OldApp_AdHoc_Notification_Service.mobileprovision
+          op read "op://${{ vars.OP_VAULT }}/New Expensify Distribution Certificate/Certificates.p12" --force --out-file ./Certificates.p12
+
+      - name: Create ExportOptions.plist
+        run: |
+          cat > Mobile-Expensify/iOS/ExportOptions.plist << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>ad-hoc</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>com.expensify.expensifylite.adhoc</key>
+              <string>(OldApp) AdHoc</string>
+              <key>com.expensify.expensifylite.adhoc.SmartScanExtension</key>
+              <string>(OldApp) AdHoc: Share Extension</string>
+              <key>com.expensify.expensifylite.adhoc.NotificationServiceExtension</key>
+              <string>(OldApp) AdHoc: Notification Service</string>
+            </dict>
+          </dict>
+          </plist>
+          EOF
+
+      - name: Configure AWS Credentials
+        # v6
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Rock Remote Build - iOS
+        id: rock-remote-build-ios
+        uses: callstackincubator/ios@d638bd25c764655baeeced3232c692f1698cf72b
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          IS_HYBRID_APP: true
+        with:
+          destination: device
+          re-sign: true
+          ad-hoc: true
+          scheme: 'Expensify AdHoc'
+          configuration: 'AdHoc'
+          certificate-file: './Certificates.p12'
+          provisioning-profiles: |
+            [
+              {
+                "name": "(OldApp) AdHoc",
+                "file": "./OldApp_AdHoc.mobileprovision"
+              },
+              {
+                "name": "(OldApp) AdHoc: Share Extension",
+                "file": "./OldApp_AdHoc_Share_Extension.mobileprovision"
+              },
+              {
+                "name": "(OldApp) AdHoc: Notification Service",
+                "file": "./OldApp_AdHoc_Notification_Service.mobileprovision"
+              }
+            ]
+          comment-bot: false
+          custom-ref: ${{ inputs.APP_REF }}
+
+      - name: Set artifact URL output
+        id: set-artifact-url
+        run: echo "ARTIFACT_URL=$ARTIFACT_URL" >> "$GITHUB_OUTPUT"
+
+  postGithubComment:
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    if: ${{ always() && (inputs.APP_PR_NUMBER != '' || inputs.MOBILE_EXPENSIFY_PR != '') }}
+    name: Post a GitHub comment with app download links for testing
+    needs: [web, androidHybrid, iosHybrid]
+    steps:
+      - name: Checkout
+        # v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ inputs.APP_REF }}
+
+      - name: Download Artifact
+        # v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+
+      - name: Publish links to apps for download on Expensify/App PR
+        if: ${{ inputs.APP_PR_NUMBER != '' }}
+        uses: ./.github/actions/javascript/postTestBuildComment
+        with:
+          REPO: App
+          APP_PR_NUMBER: ${{ inputs.APP_PR_NUMBER }}
+          MOBILE_EXPENSIFY_PR_NUMBER: ${{ inputs.MOBILE_EXPENSIFY_PR }}
+          GITHUB_TOKEN: ${{ github.token }}
+          ANDROID: ${{ needs.androidHybrid.result }}
+          IOS: ${{ needs.iosHybrid.result }}
+          WEB: ${{ needs.web.result }}
+          ANDROID_LINK: ${{ needs.androidHybrid.outputs.ROCK_ANDROID_ADHOC_INDEX_URL }}
+          IOS_LINK: ${{ needs.iosHybrid.outputs.ROCK_IOS_ADHOC_INDEX_URL }}
+          WEB_LINK: https://${{ inputs.APP_PR_NUMBER }}.pr-testing.expensify.com
+
+      - name: Publish links to apps for download on Expensify/Mobile-Expensify PR
+        if: ${{ inputs.MOBILE_EXPENSIFY_PR != '' }}
+        uses: ./.github/actions/javascript/postTestBuildComment
+        with:
+          REPO: Mobile-Expensify
+          MOBILE_EXPENSIFY_PR_NUMBER: ${{ inputs.MOBILE_EXPENSIFY_PR }}
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          ANDROID: ${{ needs.androidHybrid.result }}
+          IOS: ${{ needs.iosHybrid.result }}
+          ANDROID_LINK: ${{ needs.androidHybrid.outputs.ROCK_ANDROID_ADHOC_INDEX_URL }}
+          IOS_LINK: ${{ needs.iosHybrid.outputs.ROCK_IOS_ADHOC_INDEX_URL }}
+
+  buildSummary:
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    if: ${{ always() && (inputs.APP_PR_NUMBER != '' || needs.androidHybrid.outputs.ROCK_ANDROID_ADHOC_INDEX_URL != '' || needs.iosHybrid.outputs.ROCK_IOS_ADHOC_INDEX_URL != '') }}
+    name: Build Summary
+    needs: [web, androidHybrid, iosHybrid]
+    steps:
+      - name: Checkout
+        # v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ inputs.APP_REF }}
+
+      - name: Get Mobile-Expensify ref
+        id: getMobileExpensifySHA
+        run: |
+          if [ -n "${{ inputs.MOBILE_EXPENSIFY_REF }}" ]; then
+            echo "SHA=${{ inputs.MOBILE_EXPENSIFY_REF }}" >> "$GITHUB_OUTPUT"
+          elif [ -d "Mobile-Expensify" ]; then
+            SUBMODULE_SHA=$(git ls-tree HEAD Mobile-Expensify | awk '{print $3}')
+            echo "SHA=$SUBMODULE_SHA" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create build summary
+        # v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const prNumber = '${{ inputs.APP_PR_NUMBER }}';
+            const webLink = prNumber && '${{ needs.web.result }}' === 'success' ? `https://${prNumber}.pr-testing.expensify.com` : '';
+            const androidLink = '${{ needs.androidHybrid.outputs.ROCK_ANDROID_ADHOC_INDEX_URL }}' || '';
+            const iosLink = '${{ needs.iosHybrid.outputs.ROCK_IOS_ADHOC_INDEX_URL }}' || '';
+            const mobileExpensifySHA = '${{ steps.getMobileExpensifySHA.outputs.SHA }}' || '';
+
+            const webStatus = webLink ? '✅ Success' : '${{ needs.web.result }}' === 'failure' ? '❌ Failed' : '⏭️ Skipped';
+            const androidStatus = androidLink ? '✅ Success' : '${{ needs.androidHybrid.result }}' === 'failure' ? '❌ Failed' : '⏭️ Skipped';
+            const iosStatus = iosLink ? '✅ Success' : '${{ needs.iosHybrid.result }}' === 'failure' ? '❌ Failed' : '⏭️ Skipped';
+
+            const summary = core.summary
+              .addTable([
+                [{data: 'Platform', header: true}, {data: 'Status', header: true}, {data: 'Download', header: true}],
+                [
+                  'Web',
+                  webStatus,
+                  webLink ? `<a href="${webLink}">${webLink}</a>` : '-'
+                ],
+                [
+                  'Android',
+                  androidStatus,
+                  androidLink ? `<a href="${androidLink}">${androidLink}</a>` : '-'
+                ],
+                [
+                  'iOS',
+                  iosStatus,
+                  iosLink ? `<a href="${iosLink}">${iosLink}</a>` : '-'
+                ],
+              ]);
+
+            if (mobileExpensifySHA) {
+              const mobileExpensifyUrl = `https://github.com/Expensify/Mobile-Expensify/commit/${mobileExpensifySHA}`;
+              const label = '${{ inputs.MOBILE_EXPENSIFY_REF }}' ? 'Mobile-Expensify SHA (Custom)' : 'Mobile-Expensify Submodule SHA';
+              summary.addRaw(`\n**${label}:** [${mobileExpensifySHA}](${mobileExpensifyUrl})`);
+            }
+
+            if (prNumber) {
+              const prUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/pull/${prNumber}`;
+              summary.addRaw(`\n**PR Link:** ${prUrl}`);
+            } else {
+              summary.addRaw(`\n**PR Link:** No PR associated with this commit.`);
+            }
+
+            summary.write();

@@ -94,8 +94,9 @@ const SCREENS = {
         SAVED_SEARCH_RENAME_RHP: 'Search_Saved_Search_Rename_RHP',
         ADVANCED_FILTERS_IN_RHP: 'Search_Advanced_Filters_In_RHP',
         TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP',
+        TRANSACTION_HOLD_REASON_SEARCH: 'Search_Transaction_Hold_Reason_Search',
         SEARCH_REJECT_REASON_RHP: 'Search_Reject_Reason_RHP',
-        TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP: 'Search_Transactions_Change_Report_RHP',
+        TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP: 'Search_Transactions_Change_Report_Search',
     },
     SETTINGS: {
         ROOT: 'Settings_Root',
@@ -111,6 +112,7 @@ const SCREENS = {
         ADD_US_BANK_ACCOUNT: 'Settings_Add_US_Bank_Account',
         ADD_US_BANK_ACCOUNT_ENTRY_POINT: 'Settings_Add_US_Bank_Account_Entry_Point',
         ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT: 'Settings_Add_Bank_Account_Select_Country_Verify_Account',
+        BANK_ACCOUNT_PURPOSE: 'Settings_Bank_Account_Purpose',
         CLOSE: 'Settings_Close',
         REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
         REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE: 'Settings_ReportCardLostOrDamaged_ConfirmMagicCode',
@@ -942,6 +944,9 @@ const SCREENS = {
         MEMBER_DETAILS: 'Member_Details',
         RESET_DOMAIN: 'Domain_Reset',
         ADD_MEMBER: 'Domain_Add_Member',
+        MEMBERS_SETTINGS: 'Members_Settings',
+        MEMBERS_SETTINGS_TWO_FACTOR_AUTH: 'Members_Settings_Two_Factor_Auth',
+        GROUPS: 'Domain_Groups',
     },
     MULTIFACTOR_AUTHENTICATION: {
         MAGIC_CODE: 'Multifactor_Authentication_Magic_Code',

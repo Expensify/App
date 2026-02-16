@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/react-native';
 import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -56,7 +56,7 @@ Onyx.connectWithoutView({
     },
 });
 
-function Authenticate(parameters: Parameters): Promise<Response | void> {
+function Authenticate<TKey extends OnyxKey>(parameters: Parameters): Promise<Response<TKey> | void> {
     const commandName = 'Authenticate';
 
     try {

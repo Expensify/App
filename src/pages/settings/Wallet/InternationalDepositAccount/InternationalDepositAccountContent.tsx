@@ -13,6 +13,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {InternationalBankAccountForm} from '@src/types/form';
 import type {BankAccountList, CorpayFields, PrivatePersonalDetails} from '@src/types/onyx';
@@ -34,6 +35,7 @@ type InternationalDepositAccountContentProps = {
     draftValues: OnyxEntry<InternationalBankAccountForm>;
     country: OnyxEntry<string>;
     isAccountLoading: boolean;
+    backTo?: Route;
 };
 
 const formSteps = [CountrySelection, BankAccountDetails, AccountType, BankInformation, AccountHolderInformation, Confirmation, Success];
@@ -49,7 +51,15 @@ function getSkippedSteps(skipAccountTypeStep: boolean, skipAccountHolderInformat
     return skippedSteps;
 }
 
-function InternationalDepositAccountContent({privatePersonalDetails, corpayFields, bankAccountList, draftValues, country, isAccountLoading}: InternationalDepositAccountContentProps) {
+function InternationalDepositAccountContent({
+    privatePersonalDetails,
+    corpayFields,
+    bankAccountList,
+    draftValues,
+    country,
+    isAccountLoading,
+    backTo,
+}: InternationalDepositAccountContentProps) {
     const {translate} = useLocalize();
 
     const fieldsMap = useMemo(() => getFieldsMap(corpayFields), [corpayFields]);
@@ -72,6 +82,10 @@ function InternationalDepositAccountContent({privatePersonalDetails, corpayField
     const topmostFullScreenRoute = useRootNavigationState((state) => state?.routes.findLast((route) => isFullScreenName(route.name)));
 
     const goBack = useCallback(() => {
+        if (backTo) {
+            Navigation.goBack(backTo);
+            return;
+        }
         switch (topmostFullScreenRoute?.name) {
             case NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR:
                 Navigation.goBack(ROUTES.SETTINGS_WALLET);
@@ -83,22 +97,16 @@ function InternationalDepositAccountContent({privatePersonalDetails, corpayField
                 Navigation.goBack();
                 break;
         }
-    }, [topmostFullScreenRoute?.name]);
+    }, [backTo, topmostFullScreenRoute?.name]);
 
     const handleFinishStep = useCallback(() => {
         clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
         goBack();
     }, [goBack]);
 
-    const {
-        componentToRender: SubStep,
-        isEditing,
-        nextScreen,
-        prevScreen,
-        screenIndex,
-        moveTo,
-        resetScreenIndex,
-    } = useSubStep<CustomSubStepProps>({bodyContent: formSteps, startFrom, onFinished: handleFinishStep, skipSteps: skippedSteps});
+    const {componentToRender: SubStep, isEditing, nextScreen, prevScreen, screenIndex, moveTo, resetScreenIndex} =
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        useSubStep<CustomSubStepProps>({bodyContent: formSteps, startFrom, onFinished: handleFinishStep, skipSteps: skippedSteps});
 
     const handleBackButtonPress = () => {
         if (isEditing) {

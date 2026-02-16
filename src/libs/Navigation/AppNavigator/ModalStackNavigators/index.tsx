@@ -74,6 +74,9 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
     [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP]: {
         animation: Animations.NONE,
     },
+    [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_SEARCH]: {
+        animation: Animations.NONE,
+    },
     [SCREENS.SEARCH.SEARCH_REJECT_REASON_RHP]: {
         animation: Animations.NONE,
     },
@@ -436,6 +439,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/settings/Wallet/InternationalDepositAccount/substeps/AccountFlowEntryPoint').default,
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/InternationalDepositAccount/CountrySelectionVerifyAccountPage').default,
+    [SCREENS.SETTINGS.BANK_ACCOUNT_PURPOSE]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/BankAccountPurposePage').default,
     [SCREENS.SETTINGS.RULES.ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/ExpenseRulesPage').default,
     [SCREENS.SETTINGS.RULES.ADD]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/AddRulePage').default,
     [SCREENS.SETTINGS.RULES.ADD_MERCHANT]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/Fields/AddMerchantPage').default,
@@ -889,6 +893,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.DOMAIN.MEMBER_DETAILS]: () => require<ReactComponentModule>('../../../../pages/domain/Members/DomainMemberDetailsPage').default,
     [SCREENS.DOMAIN.RESET_DOMAIN]: () => require<ReactComponentModule>('../../../../pages/domain/DomainResetPage').default,
     [SCREENS.DOMAIN.ADD_MEMBER]: () => require<ReactComponentModule>('../../../../pages/domain/Members/DomainAddMemberPage').default,
+    [SCREENS.DOMAIN.MEMBERS_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/domain/Members/DomainMembersSettingsPage').default,
+    [SCREENS.DOMAIN.MEMBERS_SETTINGS_TWO_FACTOR_AUTH]: () => require<ReactComponentModule>('../../../../pages/domain/Members/DomainRequireTwoFactorAuthPage').default,
 });
 
 const TwoFactorAuthenticatorStackNavigator = createModalStackNavigator<EnablePaymentsNavigatorParamList>({
@@ -961,6 +967,7 @@ const SearchReportActionsModalStackNavigator = createModalStackNavigator<SearchR
     [SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS]: () => require<ReactComponentModule>('../../../../pages/Search/SearchHoldReasonPage').default,
     [SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS]: () => require<ReactComponentModule>('../../../../pages/Search/SearchRejectReasonPage').default,
     [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchHoldReasonPage').default,
+    [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_SEARCH]: () => require<ReactComponentModule>('../../../../pages/Search/SearchHoldReasonPage').default,
     [SCREENS.SEARCH.SEARCH_REJECT_REASON_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchRejectReasonPage').default,
     [SCREENS.SEARCH.TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchTransactionsChangeReport').default,
 });

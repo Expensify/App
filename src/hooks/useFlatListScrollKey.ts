@@ -113,9 +113,7 @@ export default function useFlatListScrollKey<T>({
     const [shouldPreserveVisibleContentPosition, setShouldPreserveVisibleContentPosition] = useState(true);
     const maintainVisibleContentPosition = useMemo(() => {
         if ((!initialScrollKey && (!isInitialData || !isQueueRendering)) || !shouldPreserveVisibleContentPosition) {
-            return {
-                minIndexForVisible: null as unknown as number,
-            };
+            return undefined;
         }
 
         const config: ScrollViewProps['maintainVisibleContentPosition'] = {

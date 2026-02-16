@@ -12,6 +12,7 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -48,6 +49,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
     const [conciergeReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, {canBeMissing: true});
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const errorMessage = travelProvisioning?.errors && !travelProvisioning?.error ? getLatestErrorMessage(travelProvisioning) : '';
     const isLoading = travelProvisioning?.isLoading;
@@ -61,7 +63,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
 
         const message = translate('travel.verifyCompany.conciergeMessage', {domain: Str.extractEmailDomain(account?.primaryLogin ?? '')});
 
-        addComment(conciergeReport, conciergeReportID, [], message, CONST.DEFAULT_TIME_ZONE);
+        addComment({report: conciergeReport, notifyReportID: conciergeReportID, ancestors: [], text: message, timezoneParam: CONST.DEFAULT_TIME_ZONE, currentUserAccountID});
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
     };
 

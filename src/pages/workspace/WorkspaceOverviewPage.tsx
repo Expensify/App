@@ -1,7 +1,6 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
@@ -68,7 +67,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {ownerPoliciesSelector} from '@src/selectors/Policy';
 import {reimbursementAccountErrorSelector} from '@src/selectors/ReimbursementAccount';
-import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithPolicyProps} from './withPolicy';
 import withPolicy from './withPolicy';
@@ -178,13 +176,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const privateSubscription = usePrivateSubscription();
     const accountID = currentUserPersonalDetails?.accountID;
 
-    const selector = useCallback(
-        (policies: OnyxCollection<Policy>) => {
-            return ownerPoliciesSelector(policies, accountID);
-        },
-        [accountID],
-    );
-    const [ownerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true, selector});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const ownerPolicies = ownerPoliciesSelector(policies, accountID);
 
     const isFocused = useIsFocused();
     const isPendingDelete = isPendingDeletePolicy(policy);
@@ -246,6 +239,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         }
 
         deleteWorkspace({
+            policies,
             policyID,
             activePolicyID,
             policyName,
@@ -264,6 +258,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             goBackFromInvalidPolicy();
         }
     }, [
+        policies,
         policyID,
         policyName,
         lastAccessedWorkspacePolicyID,
@@ -341,12 +336,12 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             return;
         }
 
-        Navigation.popToSidebar();
+        Navigation.goBack();
     };
 
     const startChangeOwnershipFlow = useCallback(() => {
         clearWorkspaceOwnerChangeFlow(policyID);
-        requestWorkspaceOwnerChange(policyID, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
+        requestWorkspaceOwnerChange(policy, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
         Navigation.navigate(
             ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(
                 policyID,
@@ -355,7 +350,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                 Navigation.getActiveRoute(),
             ),
         );
-    }, [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, policyID]);
+    }, [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, policyID, policy]);
 
     const handleLeave = useCallback(() => {
         const isReimburser = policy?.achAccount?.reimburser === session?.email;
