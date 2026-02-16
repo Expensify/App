@@ -1,16 +1,11 @@
 import type * as NativeNavigation from '@react-navigation/native';
-import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
-import React from 'react';
+import {act, fireEvent, screen, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import ComposeProviders from '@components/ComposeProviders';
-import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {forceClearInput} from '@libs/ComponentUtils';
-import type {ReportActionComposeProps} from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
-import ReportActionCompose, {onSubmitAction} from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
+import {onSubmitAction} from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {renderReportActionCompose} from '../utils/ReportActionComposeUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -40,27 +35,6 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 TestHelper.setupGlobalFetchMock();
-
-const defaultReport = LHNTestUtils.getFakeReport();
-const defaultProps: ReportActionComposeProps = {
-    onSubmit: jest.fn(),
-    isComposerFullSize: false,
-    reportID: defaultReport.reportID,
-    report: defaultReport,
-};
-
-const renderReportActionCompose = (props?: Partial<ReportActionComposeProps>) => {
-    return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <ReportActionCompose
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...defaultProps}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
-            />
-        </ComposeProviders>,
-    );
-};
 
 // Helper function to simulate text selection
 const simulateSelection = (composer: ReturnType<typeof screen.getByTestId>, start: number, end: number) => {

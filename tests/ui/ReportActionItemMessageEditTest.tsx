@@ -1,16 +1,10 @@
 import type * as NativeNavigation from '@react-navigation/native';
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
+import {act, fireEvent, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import ComposeProviders from '@components/ComposeProviders';
-import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {editReportComment} from '@libs/actions/Report';
-import ReportActionItemMessageEdit from '@pages/inbox/report/ReportActionItemMessageEdit';
-import type {ReportActionItemMessageEditProps} from '@pages/inbox/report/ReportActionItemMessageEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {renderReportActionItemMessageEdit} from '../utils/ReportActionComposeUtils';
 import * as TestHelper from '../utils/TestHelper';
 
 const mockEditReportComment = jest.mocked(editReportComment);
@@ -45,29 +39,6 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 TestHelper.setupGlobalFetchMock();
-
-const defaultReport = LHNTestUtils.getFakeReport();
-const defaultProps: ReportActionItemMessageEditProps = {
-    action: LHNTestUtils.getFakeReportAction(),
-    draftMessage: '',
-    reportID: defaultReport.reportID,
-    originalReportID: defaultReport.reportID,
-    index: 0,
-    isGroupPolicyReport: false,
-};
-
-const renderReportActionItemMessageEdit = (props?: Partial<ReportActionItemMessageEditProps>) => {
-    return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <ReportActionItemMessageEdit
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...defaultProps}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
-            />
-        </ComposeProviders>,
-    );
-};
 
 describe('ReportActionCompose Integration Tests', () => {
     beforeAll(() => {
