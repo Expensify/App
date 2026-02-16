@@ -201,7 +201,8 @@ describe('bulkDeleteReports', () => {
                 },
             };
 
-            bulkDeleteReports({   reports: undefined,
+            bulkDeleteReports({
+                reports: undefined,
                 selfDMReport: undefined,
                 hash,
                 selectedTransactions,
@@ -209,8 +210,7 @@ describe('bulkDeleteReports', () => {
                 currentUserAccountIDParam: 1,
                 reportTransactions: {},
                 transactionsViolations: {},
-                bankAccountList: {},});
-             
+                bankAccountList: {},
             });
 
             // Should not call deleteAppReport
@@ -221,7 +221,8 @@ describe('bulkDeleteReports', () => {
             const hash = 12345;
             const selectedTransactions: Record<string, SelectedTransactionInfo> = {};
 
-            bulkDeleteReports({       reports: undefined,
+            bulkDeleteReports({
+                reports: undefined,
                 selfDMReport: undefined,
                 hash,
                 selectedTransactions,
@@ -229,8 +230,7 @@ describe('bulkDeleteReports', () => {
                 currentUserAccountIDParam: 1,
                 reportTransactions: {},
                 transactionsViolations: {},
-                bankAccountList: {},});
-         
+                bankAccountList: {},
             });
 
             // Should not call any deletion functions
@@ -281,7 +281,17 @@ describe('bulkDeleteReports', () => {
             const currentUserEmail = '';
             const transactions = {};
             const transactionsViolations = {};
-            bulkDeleteReports({reports,selfDMReport: undefined, hash, selectedTransactions, currentUserEmailParam: currentUserEmail,currentUserAccountIDParam:  1, reportTransactions:transactions, transactionsViolations, bankAccountList: {}});
+            bulkDeleteReports({
+                reports,
+                selfDMReport: undefined,
+                hash,
+                selectedTransactions,
+                currentUserEmailParam: currentUserEmail,
+                currentUserAccountIDParam: 1,
+                reportTransactions: transactions,
+                transactionsViolations,
+                bankAccountList: {},
+            });
 
             // Should only call deleteAppReport for the first report where key === reportID
             expect(deleteAppReport).toHaveBeenCalledTimes(1);
@@ -328,7 +338,17 @@ describe('bulkDeleteReports', () => {
                 },
             };
 
-            bulkDeleteReports({reports: undefined, selfDMReport:undefined, hash, selectedTransactions, currentUserEmailParam: '', currentUserAccountIDParam: 1, reportTransactions: {}, transactionsViolations:{}, bankAccountList:{}});
+            bulkDeleteReports({
+                reports: undefined,
+                selfDMReport: undefined,
+                hash,
+                selectedTransactions,
+                currentUserEmailParam: '',
+                currentUserAccountIDParam: 1,
+                reportTransactions: {},
+                transactionsViolations: {},
+                bankAccountList: {},
+            });
 
             // Should not call deleteAppReport for transactions
             expect(deleteAppReport).not.toHaveBeenCalled();
