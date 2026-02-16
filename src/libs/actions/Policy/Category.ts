@@ -870,11 +870,11 @@ function importPolicyCategories(policyID: string, categories: PolicyCategory[], 
 
     const parameters = {
         policyID,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         categories: JSON.stringify(
             categories.map((category) => ({
                 name: category.name,
                 enabled: category.enabled,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 'GL Code': String(category['GL Code']),
             })),
         ),
