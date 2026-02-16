@@ -1,6 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
 import type {ForwardedRef, ReactNode, RefObject} from 'react';
+import type {ValueOf} from 'type-fest';
 import React, {createRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {StyleProp, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
@@ -100,8 +101,13 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
     /** Prevents the submit button from triggering blur on mouse down. */
     shouldPreventDefaultFocusOnPressSubmit?: boolean;
 
-    /** Whether to wait for the keyboard to fully dismiss before calling `onSubmit`. When `false`, `onSubmit` fires immediately and keyboard dismissal happens in parallel. Defaults to `true`. */
-    shouldDismissKeyboardBeforeSubmit?: boolean;
+    /**
+     * Controls how keyboard dismissal interacts with form submission.
+     * - `DISMISS_THEN_SUBMIT` (default): waits for the keyboard to fully dismiss before calling `onSubmit`.
+     * - `SUBMIT_AND_DISMISS`: calls `onSubmit` immediately while dismissing the keyboard in parallel via `dismissKeyboardAndExecute`.
+     * - `SUBMIT_ONLY`: calls `onSubmit` immediately without any keyboard dismissal (navigation handles keyboard cleanup).
+     */
+    keyboardSubmitBehavior?: ValueOf<typeof CONST.KEYBOARD_SUBMIT_BEHAVIOR>;
 
     /** Reference to the outer element */
     ref?: ForwardedRef<FormRef>;
@@ -121,7 +127,7 @@ function FormProvider({
     shouldRenderFooterAboveSubmit = false,
     shouldUseStrictHtmlTagValidation = false,
     shouldPreventDefaultFocusOnPressSubmit = false,
-    shouldDismissKeyboardBeforeSubmit = true,
+    keyboardSubmitBehavior = CONST.KEYBOARD_SUBMIT_BEHAVIOR.DISMISS_THEN_SUBMIT,
     ref,
     ...rest
 }: FormProviderProps) {
@@ -265,13 +271,14 @@ function FormProvider({
                 return;
             }
 
-            if (shouldDismissKeyboardBeforeSubmit) {
+            if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.DISMISS_THEN_SUBMIT) {
                 KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
+            } else if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_AND_DISMISS) {
+                KeyboardUtils.dismissKeyboardAndExecute(() => onSubmit(trimmedStringValues));
             } else {
-                KeyboardUtils.dismiss();
                 onSubmit(trimmedStringValues);
             }
-        }, [enabledWhenOffline, formState?.isLoading, inputValues, isLoading, network?.isOffline, onSubmit, onValidate, shouldTrimValues, hasServerError, shouldDismissKeyboardBeforeSubmit]),
+        }, [enabledWhenOffline, formState?.isLoading, inputValues, isLoading, network?.isOffline, onSubmit, onValidate, shouldTrimValues, hasServerError, keyboardSubmitBehavior]),
         1000,
         {leading: true, trailing: false},
     );
