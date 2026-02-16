@@ -28,13 +28,13 @@ function StatusCell({stateNum, statusNum, isPending}: StatusCellProps) {
     const reportStatusColorStyle = useMemo(() => getReportStatusColorStyle(theme, stateNum, statusNum), [theme, stateNum, statusNum]);
 
     const badgeStyles = useMemo(
-        () => [styles.ml0, styles.alignSelfStart, styles.borderNone, StyleUtils.getBackgroundColorStyle(reportStatusColorStyle?.backgroundColor ?? theme.transparent)],
-        [styles.ml0, styles.alignSelfStart, styles.borderNone, StyleUtils, reportStatusColorStyle?.backgroundColor, theme.transparent],
+        () => [styles.ml0, styles.borderNone, StyleUtils.getBackgroundColorStyle(reportStatusColorStyle?.backgroundColor ?? theme.transparent)],
+        [styles.ml0, styles.borderNone, StyleUtils, reportStatusColorStyle?.backgroundColor, theme.transparent],
     );
 
     const textStyles = useMemo(
-        () => [styles.fontWeightNormal, StyleUtils.getColorStyle((reportStatusColorStyle?.textColor ?? theme.text) as string)],
-        [styles.fontWeightNormal, StyleUtils, reportStatusColorStyle?.textColor, theme.text],
+        () => [StyleUtils.getColorStyle((reportStatusColorStyle?.textColor ?? theme.text) as string)],
+        [StyleUtils, reportStatusColorStyle?.textColor, theme.text],
     );
 
     if (!statusText || !reportStatusColorStyle) {

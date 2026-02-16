@@ -52,7 +52,6 @@ function DomainsListRow({title, isHovered, badgeText, brickRoadIndicator, menuIt
                     <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
                         <Badge
                             text={badgeText}
-                            textStyles={styles.textStrong}
                             badgeStyles={[styles.alignSelfCenter, styles.badgeBordered]}
                         />
                     </View>

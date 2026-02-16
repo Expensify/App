@@ -768,7 +768,7 @@ function MoneyRequestReportPreviewContent({
                                                                     text={reportStatus}
                                                                     isCondensed
                                                                     badgeStyles={[styles.ml0, styles.mr1, styles.borderNone, StyleUtils.getBackgroundColorStyle(reportStatusColorStyle?.backgroundColor ?? theme.transparent)]}
-                                                                    textStyles={[styles.fontWeightNormal, StyleUtils.getColorStyle((reportStatusColorStyle?.textColor ?? theme.text) as string)]}
+                                                                    textStyles={[StyleUtils.getColorStyle((reportStatusColorStyle?.textColor ?? theme.text) as string)]}
                                                                 />
                                                             )}
                                                             {!shouldShowAccessPlaceHolder && <Text style={[styles.textLabelSupporting, styles.lh16]}>{expenseCount}</Text>}

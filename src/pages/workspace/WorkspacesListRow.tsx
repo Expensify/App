@@ -183,7 +183,6 @@ function WorkspacesListRow({
                 <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
                     <Badge
                         text={translate('workspace.common.requested')}
-                        textStyles={styles.textStrong}
                         badgeStyles={[styles.alignSelfCenter, styles.badgeBordered]}
                         icon={icons.Hourglass}
                     />
@@ -198,7 +197,6 @@ function WorkspacesListRow({
                     <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
                         <Badge
                             text={translate('common.default')}
-                            textStyles={styles.textStrong}
                             badgeStyles={[styles.alignSelfCenter, styles.badgeBordered, styles.badgeSuccess]}
                         />
                     </View>

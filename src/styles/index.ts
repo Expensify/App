@@ -352,18 +352,6 @@ const staticStyles = (theme: ThemeColors) =>
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
         },
 
-        reportStatusContainer: {
-            paddingHorizontal: 8,
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: variables.componentBorderRadiusSmall,
-            height: 16,
-        },
-
-        reportStatusText: {
-            fontSize: variables.fontSizeExtraSmall,
-            fontWeight: FontUtils.fontWeight.normal,
-        },
 
         textSupporting: {
             color: theme.textSupporting,
@@ -985,7 +973,7 @@ const staticStyles = (theme: ThemeColors) =>
         defaultBadge: {
             backgroundColor: theme.transparent,
             borderWidth: 1,
-            borderRadius: variables.componentBorderRadiusSmall,
+            borderRadius: variables.buttonBorderRadius,
             borderColor: theme.buttonHoveredBG,
             paddingHorizontal: 12,
             minHeight: 28,
@@ -1001,6 +989,7 @@ const staticStyles = (theme: ThemeColors) =>
             marginLeft: 0,
             paddingHorizontal: 8,
             minHeight: 20,
+            borderRadius: variables.componentBorderRadiusSmall,
             borderColor: colors.productDark500,
         },
 
@@ -1048,7 +1037,7 @@ const staticStyles = (theme: ThemeColors) =>
         badgeBordered: {
             backgroundColor: theme.transparent,
             borderWidth: 1,
-            borderRadius: variables.componentBorderRadiusSmall,
+            borderRadius: variables.buttonBorderRadius,
             borderColor: theme.border,
             paddingHorizontal: 12,
             minHeight: 28,
@@ -1098,7 +1087,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         condensedBadgeText: {
             fontSize: variables.fontSizeExtraSmall,
-            lineHeight: variables.lineHeightXSmall,
         },
 
         badgeText: {

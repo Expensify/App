@@ -180,7 +180,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                                             text={badgeProps.text}
                                             isCondensed
                                             badgeStyles={[styles.ml0, styles.borderNone, badgeProps.badgeStyles]}
-                                            textStyles={[styles.fontWeightNormal, badgeProps.textStyles]}
+                                            textStyles={[badgeProps.textStyles]}
                                         />
                                     )}
                                     <TextWithTooltip

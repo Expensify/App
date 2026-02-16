@@ -168,7 +168,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                     <Badge
                         text={badgeText}
                         success={isSuccess}
-                        style={[styles.ml3]}
+                        badgeStyles={styles.ml3}
                     />
                 );
             }

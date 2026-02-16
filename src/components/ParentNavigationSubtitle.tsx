@@ -193,7 +193,7 @@ function ParentNavigationSubtitle({
                     text={statusText}
                     isCondensed
                     badgeStyles={[styles.ml0, styles.mr1, styles.borderNone, StyleUtils.getBackgroundColorStyle(statusTextBackgroundColor ?? theme.transparent), statusTextContainerStyles]}
-                    textStyles={[styles.fontWeightNormal, StyleUtils.getColorStyle((statusTextColor ?? theme.text) as string)]}
+                    textStyles={[StyleUtils.getColorStyle((statusTextColor ?? theme.text) as string)]}
                 />
             )}
             <Text
