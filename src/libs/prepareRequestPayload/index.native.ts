@@ -38,23 +38,37 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
             }
 
             if (key === 'file' && initiatedOffline) {
-                const {uri: path = '', source, name, type} = value as File;
-                if (!source) {
-                    validateFormDataParameter(command, key, value);
-                    formData.append(key, value as string | Blob);
+                const files = Array.isArray(value) ? value : [value];
+                return files.reduce<Promise<void>>((chain, fileValue) => {
+                    return chain.then(() => {
+                        const {uri: path = '', source, name, type} = fileValue as File;
+                        if (!source) {
+                            validateFormDataParameter(command, key, fileValue);
+                            formData.append(key, fileValue as string | Blob);
+                            return Promise.resolve();
+                        }
 
-                    return Promise.resolve();
-                }
-                // Use the actual file name if available, otherwise fall back to extracting from path/uri
-                const fileName = name || (path ? (path.split('/').pop() ?? '') : '') || '';
-                return readFileAsync(source, fileName, () => {}, undefined, type).then((file) => {
-                    if (!file) {
-                        return;
-                    }
+                        // Use the actual file name if available, otherwise fall back to extracting from path/uri
+                        const fileName = name || (path ? (path.split('/').pop() ?? '') : '') || '';
+                        return readFileAsync(source, fileName, () => {}, undefined, type).then((file) => {
+                            if (!file) {
+                                return;
+                            }
 
-                    validateFormDataParameter(command, key, file);
-                    formData.append(key, file);
+                            validateFormDataParameter(command, key, file);
+                            formData.append(key, file);
+                        });
+                    });
+                }, Promise.resolve());
+            }
+
+            if (Array.isArray(value)) {
+                value.forEach((singleValue) => {
+                    validateFormDataParameter(command, key, singleValue);
+                    formData.append(key, singleValue as string | Blob);
                 });
+
+                return Promise.resolve();
             }
 
             validateFormDataParameter(command, key, value);

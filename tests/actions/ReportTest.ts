@@ -1493,7 +1493,7 @@ describe('actions/Report', () => {
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 0);
     });
 
-    it('should post text + attachment as first action then attachment only for remaining attachments when adding multiple attachments with a comment', async () => {
+    it('should post multiple attachments with comment in one AddTextAndAttachment request', async () => {
         global.fetch = TestHelper.getGlobalFetchMock();
         const playSoundMock = playSound as jest.MockedFunction<typeof playSound>;
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
@@ -1503,8 +1503,8 @@ describe('actions/Report', () => {
             const conn = Onyx.connect({
                 key: ONYXKEYS.PERSISTED_REQUESTS,
                 callback: (persisted) => {
-                    const relevant = (persisted ?? []).filter((r) => r?.command === WRITE_COMMANDS.ADD_ATTACHMENT || r?.command === WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT);
-                    if (relevant.length >= 3) {
+                    const relevant = (persisted ?? []).filter((r) => r?.command === WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT);
+                    if (relevant.length >= 1) {
                         Onyx.disconnect(conn);
                         resolve(relevant);
                     }
@@ -1533,11 +1533,13 @@ describe('actions/Report', () => {
 
         expect(playSoundMock).toHaveBeenCalledTimes(1);
         expect(playSoundMock).toHaveBeenCalledWith(SOUNDS.DONE);
+        expect(relevant).toHaveLength(1);
         expect(relevant.at(0)?.command).toBe(WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT);
-        expect(relevant.slice(1).every((r) => r.command === WRITE_COMMANDS.ADD_ATTACHMENT)).toBe(true);
+        expect(Array.isArray(relevant.at(0)?.data?.file)).toBe(true);
+        expect((relevant.at(0)?.data?.file as File[]).length).toBe(3);
     });
 
-    it('should create attachment only actions when adding multiple attachments without a comment', async () => {
+    it('should create one attachment-only action when adding multiple attachments without a comment', async () => {
         global.fetch = TestHelper.getGlobalFetchMock();
         const playSoundMock = playSound as jest.MockedFunction<typeof playSound>;
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
@@ -1547,8 +1549,8 @@ describe('actions/Report', () => {
             const conn = Onyx.connect({
                 key: ONYXKEYS.PERSISTED_REQUESTS,
                 callback: (persisted) => {
-                    const relevant = (persisted ?? []).filter((r) => r?.command === WRITE_COMMANDS.ADD_ATTACHMENT || r?.command === WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT);
-                    if (relevant.length >= 2) {
+                    const relevant = (persisted ?? []).filter((r) => r?.command === WRITE_COMMANDS.ADD_ATTACHMENT);
+                    if (relevant.length >= 1) {
                         Onyx.disconnect(conn);
                         resolve(relevant);
                     }
@@ -1575,9 +1577,10 @@ describe('actions/Report', () => {
 
         expect(playSoundMock).toHaveBeenCalledTimes(1);
         expect(playSoundMock).toHaveBeenCalledWith(SOUNDS.DONE);
+        expect(relevant).toHaveLength(1);
         expect(relevant.at(0)?.command).toBe(WRITE_COMMANDS.ADD_ATTACHMENT);
-        expect(relevant.slice(1).every((r) => r.command === WRITE_COMMANDS.ADD_ATTACHMENT)).toBe(true);
-        expect(relevant.some((r) => r.command === WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT)).toBe(false);
+        expect(Array.isArray(relevant.at(0)?.data?.file)).toBe(true);
+        expect((relevant.at(0)?.data?.file as File[]).length).toBe(2);
     });
 
     it('should create attachment only action & not play sound when adding attachment without a comment & shouldPlaySound not passed', async () => {

@@ -6296,20 +6296,22 @@ function getPolicyDescriptionText(policy: OnyxEntry<Policy>): string {
 
 function buildOptimisticAddCommentReportAction(
     text?: string,
-    file?: FileObject,
+    file?: FileObject | FileObject[],
     actorAccountID?: number,
     createdOffset = 0,
     reportID?: string,
     reportActionID: string = rand64(),
 ): OptimisticReportAction {
     const commentText = getParsedComment(text ?? '', {reportID});
-    const attachmentHtml = getUploadingAttachmentHtml(file);
+    const files = Array.isArray(file) ? file : file ? [file] : [];
+    const attachmentHtml = files.map((singleFile) => getUploadingAttachmentHtml(singleFile)).join('<br /><br />');
 
     const htmlForNewComment = `${commentText}${commentText && attachmentHtml ? '<br /><br />' : ''}${attachmentHtml}`;
     const textForNewComment = Parser.htmlToText(htmlForNewComment);
 
-    const isAttachmentOnly = file && !text;
-    const isAttachmentWithText = !!text && file !== undefined;
+    const hasAttachment = files.length > 0;
+    const isAttachmentOnly = hasAttachment && !text;
+    const isAttachmentWithText = !!text && hasAttachment;
     const accountID = actorAccountID ?? currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const delegateAccountDetails = getPersonalDetailByEmail(delegateEmail);
 

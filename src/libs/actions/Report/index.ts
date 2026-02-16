@@ -289,7 +289,7 @@ type AddActionsParams = {
     timezoneParam: Timezone;
     currentUserAccountID: number;
     text?: string;
-    file?: FileObject;
+    file?: FileObject | FileObject[];
     isInSidePanel?: boolean;
     pregeneratedResponseParams?: PregeneratedResponseParams;
 };
@@ -828,20 +828,8 @@ function addAttachmentWithComment({
         playSound(SOUNDS.DONE);
     };
 
-    // Single attachment
-    if (!Array.isArray(attachments)) {
-        addActions({report, notifyReportID, ancestors, timezoneParam: timezone, currentUserAccountID, text, file: attachments, isInSidePanel});
-        handlePlaySound();
-        return;
-    }
-
-    // Multiple attachments - first: combine text + first attachment as a single action
-    addActions({report, notifyReportID, ancestors, timezoneParam: timezone, currentUserAccountID, text, file: attachments?.at(0), isInSidePanel});
-
-    // Remaining: attachment-only actions (no text duplication)
-    for (let i = 1; i < attachments?.length; i += 1) {
-        addActions({report, notifyReportID, ancestors, timezoneParam: timezone, currentUserAccountID, text: '', file: attachments?.at(i), isInSidePanel});
-    }
+    // Send single or multiple attachments in one action
+    addActions({report, notifyReportID, ancestors, timezoneParam: timezone, currentUserAccountID, text, file: attachments, isInSidePanel});
 
     // Play sound once
     handlePlaySound();

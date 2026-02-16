@@ -14,6 +14,14 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data) => {
             continue;
         }
 
+        if (Array.isArray(value)) {
+            value.forEach((singleValue) => {
+                validateFormDataParameter(command, key, singleValue);
+                formData.append(key, singleValue as string | Blob);
+            });
+            continue;
+        }
+
         validateFormDataParameter(command, key, value);
         formData.append(key, value as string | Blob);
     }
