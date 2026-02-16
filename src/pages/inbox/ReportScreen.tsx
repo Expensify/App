@@ -25,7 +25,6 @@ import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
-import useHandleBrowserBack from '@hooks/useHandleBrowserBack';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -888,12 +887,17 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     }, [reportMetadata?.isLoadingInitialReportActions]);
 
     const navigateToEndOfReport = useCallback(() => {
+        // The linkTo fix ensures a history entry was created,
+        // so we can safely go back to wherever the user came from.
+        if (navigation.canGoBack()) {
+            Navigation.goBack();
+            return;
+        }
+
+        // Fallback for direct URL navigation (no previous history).
         Navigation.setParams({reportActionID: ''});
         fetchReport();
-    }, [fetchReport]);
-
-    // Handle browser back button on web when showing "not found" view for deleted linked actions
-    useHandleBrowserBack(navigateToEndOfReport, shouldShowNotFoundLinkedAction);
+    }, [navigation, fetchReport]);
 
     useEffect(() => {
         // Only handle deletion cases when there's a deleted action
