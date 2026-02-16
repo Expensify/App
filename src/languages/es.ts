@@ -561,6 +561,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nameEmailOrPhoneNumber: 'Nombre, correo electrónico o número de teléfono',
         findMember: 'Encuentra un miembro',
         searchForSomeone: 'Busca a alguien',
+        userSelected: (username: string) => `${username} seleccionado`,
     },
     customApprovalWorkflow: {
         title: 'Flujo de aprobación personalizado',
@@ -2828,6 +2829,7 @@ ${amount} para ${merchant} - ${date}`,
     newChatPage: {
         startGroup: 'Crear grupo',
         addToGroup: 'Añadir al grupo',
+        addUserToGroup: (username: string) => `Añadir ${username} al grupo`,
     },
     yearPickerPage: {
         year: 'Año',
@@ -6218,6 +6220,7 @@ ${amount} para ${merchant} - ${date}`,
         onboardingHelp: 'Ayuda de incorporación',
     },
     emojiPicker: {
+        emojiNotSelected: 'Emoji no seleccionado',
         skinTonePickerLabel: 'Elige el tono de piel por defecto',
         headers: {
             frequentlyUsed: 'Usado frecuentemente',

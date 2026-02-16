@@ -8456,6 +8456,12 @@ const CONST = {
             RESEND_CODE: 'ValidateCode-ResendCode',
             RECOVERY_CODE: 'ValidateCode-RecoveryCode',
         },
+        INTERACTIVE_STEP_SUB_HEADER: {
+            STEP_BUTTON: 'InteractiveStepSubHeader-StepButton',
+        },
+        SOCIALS: {
+            LINK: 'Socials',
+        },
     },
 
     DOMAIN: {
