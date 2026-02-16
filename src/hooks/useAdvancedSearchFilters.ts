@@ -224,7 +224,7 @@ function useAdvancedSearchFilters() {
 
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: emailSelector});
 
-    const {sections: workspaces} = useWorkspaceList({
+    const {sections: workspaces, shouldShowSearchInput: shouldShowWorkspaceSearchInput} = useWorkspaceList({
         policies,
         currentUserLogin,
         shouldShowPendingDeletePolicy: false,
@@ -267,6 +267,8 @@ function useAdvancedSearchFilters() {
 
     return {
         currentType,
+        workspaces,
+        shouldShowWorkspaceSearchInput,
         typeFiltersKeys: typeFiltersKeys[currentType]
             .map((section) =>
                 section

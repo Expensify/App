@@ -33,6 +33,9 @@ type TwoFactorAuthWrapperProps = ChildrenProps & {
 
     /** Flag to indicate if the viewport offset top should be enabled */
     shouldEnableViewportOffsetTop?: boolean;
+
+    /** Flag to indicate if max height should be enabled */
+    shouldEnableMaxHeight?: boolean;
 };
 
 function TwoFactorAuthWrapper({
@@ -42,6 +45,7 @@ function TwoFactorAuthWrapper({
     onBackButtonPress,
     shouldEnableKeyboardAvoidingView = true,
     shouldEnableViewportOffsetTop = false,
+    shouldEnableMaxHeight = true,
     children,
 }: TwoFactorAuthWrapperProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
@@ -91,7 +95,7 @@ function TwoFactorAuthWrapper({
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
             shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
-            shouldEnableMaxHeight
+            shouldEnableMaxHeight={shouldEnableMaxHeight}
             testID={stepName}
             style={shouldEnableViewportOffsetTop ? {marginTop: viewportOffsetTop} : undefined}
         >
