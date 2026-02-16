@@ -79,7 +79,7 @@ import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cl
 import ToddInCar from '@assets/images/product-illustrations/todd-in-car.svg';
 import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phones.svg';
 import WorkspaceScene from '@assets/images/product-illustrations/workspace-scene.svg';
-import ReceiptUpload from '@assets/images/receipt-upload.svg';
+import ReceiptStack from '@assets/images/receipt-upload.svg';
 import RunningTurtle from '@assets/images/running-turtle.svg';
 import Shutter from '@assets/images/shutter.svg';
 // Simple Illustrations - Bucket 3 (Common)
@@ -91,6 +91,7 @@ import Alert from '@assets/images/simple-illustrations/simple-illustration__aler
 import Members from '@assets/images/simple-illustrations/simple-illustration__approval-members.svg';
 import Approval from '@assets/images/simple-illustrations/simple-illustration__approval.svg';
 import ShareBank from '@assets/images/simple-illustrations/simple-illustration__bank-share.svg';
+import BankCoin from '@assets/images/simple-illustrations/simple-illustration__bankcoin.svg';
 import Binoculars from '@assets/images/simple-illustrations/simple-illustration__binoculars.svg';
 import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
 import Building from '@assets/images/simple-illustrations/simple-illustration__building.svg';
@@ -145,6 +146,7 @@ import RealtimeReport from '@assets/images/simple-illustrations/simple-illustrat
 import ReceiptLocationMarker from '@assets/images/simple-illustrations/simple-illustration__receipt-location-marker.svg';
 import ReceiptWrangler from '@assets/images/simple-illustrations/simple-illustration__receipt-wrangler.svg';
 import ReceiptPartners from '@assets/images/simple-illustrations/simple-illustration__receipt.svg';
+import ReceiptUpload from '@assets/images/simple-illustrations/simple-illustration__receiptupload.svg';
 import ReportReceipt from '@assets/images/simple-illustrations/simple-illustration__report-receipt.svg';
 import Rules from '@assets/images/simple-illustrations/simple-illustration__rules.svg';
 import SendMoney from '@assets/images/simple-illustrations/simple-illustration__sendmoney.svg';
@@ -164,6 +166,7 @@ import TreasureChest from '@assets/images/simple-illustrations/simple-illustrati
 import CompanyCard from '@assets/images/simple-illustrations/simple-illustration__twocards-horizontal.svg';
 import UserShield from '@assets/images/simple-illustrations/simple-illustration__user-shield.svg';
 import VirtualCard from '@assets/images/simple-illustrations/simple-illustration__virtualcard.svg';
+import WalletAlt2 from '@assets/images/simple-illustrations/simple-illustration__wallet-alt2.svg';
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
@@ -251,7 +254,7 @@ const Illustrations = {
     // Other Images
     Hand,
     PendingTravel,
-    ReceiptUpload,
+    ReceiptStack,
     RunningTurtle,
     Shutter,
     ExpensifyApprovedLogo,
@@ -260,6 +263,7 @@ const Illustrations = {
     // Simple Illustrations
     Accounting,
     Building,
+    BankCoin,
     Coins,
     CreditCardsNew,
     FolderOpen,
@@ -274,6 +278,7 @@ const Illustrations = {
     RealtimeReport,
     ReceiptPartners,
     ReceiptWrangler,
+    ReceiptUpload,
     TravelAlerts,
     ReportReceipt,
     Rules,
@@ -338,6 +343,7 @@ const Illustrations = {
     ShieldYellow,
     Clock,
     Members,
+    WalletAlt2,
     UserShield,
 
     // Multifactor Authentication Illustrations

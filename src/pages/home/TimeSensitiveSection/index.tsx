@@ -27,6 +27,9 @@ type BrokenAccountingConnection = {
     /** The policy ID associated with this connection */
     policyID: string;
 
+    /** The policy name associated with this connection */
+    policyName: string;
+
     /** The connection name that has an error */
     connectionName: PolicyConnectionName;
 };
@@ -34,6 +37,9 @@ type BrokenAccountingConnection = {
 type BrokenCompanyCardConnection = {
     /** The policy ID associated with this connection */
     policyID: string;
+
+    /** The policy name associated with this connection */
+    policyName: string;
 
     /** The card ID associated with this connection */
     cardID: string;
@@ -73,6 +79,7 @@ function TimeSensitiveSection() {
             if (hasSynchronizationErrorMessage(policy, connectionName, isSyncInProgress)) {
                 brokenAccountingConnections.push({
                     policyID: policy.id,
+                    policyName: policy.name,
                     connectionName,
                 });
             }
@@ -98,6 +105,7 @@ function TimeSensitiveSection() {
 
             brokenCompanyCardConnections.push({
                 policyID: matchingPolicy.id,
+                policyName: matchingPolicy.name,
                 cardID: String(card.cardID),
             });
         }
@@ -105,8 +113,17 @@ function TimeSensitiveSection() {
 
     const hasBrokenCompanyCards = brokenCompanyCardConnections.length > 0;
     const hasBrokenAccountingConnections = brokenAccountingConnections.length > 0;
+    // This guard must exactly match the conditions used to render each widget below.
+    // If a widget has additional conditions in the render (e.g. && !!discountInfo), those
+    // must be reflected here to avoid showing an empty "Time sensitive" section.
     const hasAnyTimeSensitiveContent =
-        shouldShowReviewCardFraud || shouldShow50off || shouldShow25off || hasBrokenCompanyCards || hasBrokenAccountingConnections || shouldShowAddShippingAddress || shouldShowActivateCard;
+        shouldShowReviewCardFraud ||
+        shouldShow50off ||
+        (shouldShow25off && !!discountInfo) ||
+        hasBrokenCompanyCards ||
+        hasBrokenAccountingConnections ||
+        shouldShowAddShippingAddress ||
+        shouldShowActivateCard;
 
     if (!hasAnyTimeSensitiveContent) {
         return null;
@@ -125,13 +142,13 @@ function TimeSensitiveSection() {
                 {/* Priority 1: Card fraud alerts */}
                 {shouldShowReviewCardFraud &&
                     cardsWithFraud.map((card) => {
-                        if (!card.message?.possibleFraud) {
+                        if (!card.nameValuePairs?.possibleFraud) {
                             return null;
                         }
                         return (
                             <ReviewCardFraud
                                 key={card.cardID}
-                                possibleFraud={card.message.possibleFraud}
+                                possibleFraud={card.nameValuePairs.possibleFraud}
                             />
                         );
                     })}
@@ -147,6 +164,7 @@ function TimeSensitiveSection() {
                             key={`card-${connection.cardID}`}
                             card={card}
                             policyID={connection.policyID}
+                            policyName={connection.policyName}
                         />
                     );
                 })}
@@ -157,6 +175,7 @@ function TimeSensitiveSection() {
                         key={`accounting-${connection.policyID}-${connection.connectionName}`}
                         connectionName={connection.connectionName}
                         policyID={connection.policyID}
+                        policyName={connection.policyName}
                     />
                 ))}
 

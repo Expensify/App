@@ -1,5 +1,5 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {getOwnedPaidPolicies, isPaidGroupPolicy, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import type {Policy, PolicyReportField} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -13,12 +13,7 @@ const activePolicySelector = (policy: OnyxEntry<Policy>) => (policy?.type !== CO
 
 const ownerPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountID: number) => getOwnedPaidPolicies(policies, currentUserAccountID);
 
-const activeAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => {
-    const adminPolicies = Object.values(policies ?? {}).filter(
-        (policy): policy is Policy => policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isPolicyAdmin(policy, currentUserAccountLogin),
-    );
-    return adminPolicies;
-};
+const activeAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => getActiveAdminWorkspaces(policies, currentUserAccountLogin);
 
 /**
  * Creates a selector that aggregates all non-formula policy report fields from all policies,

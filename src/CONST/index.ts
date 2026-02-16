@@ -777,6 +777,7 @@ const CONST = {
         ODOMETER_EXPENSES: 'odometerExpenses',
         NEW_DOT_HOME: 'newDotHome',
         SINGLE_USE_AND_EXPIRE_BY_CARDS: 'singleUseAndExpireByCards',
+        PAY_INVOICE_VIA_EXPENSIFY: 'payInvoiceViaExpensify',
         PERSONAL_CARD_IMPORT: 'personalCardImport',
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
     },
@@ -1027,6 +1028,7 @@ const CONST = {
     GOOGLE_DOC_IMAGE_LINK_MATCH: 'googleusercontent.com',
     IMAGE_BASE64_MATCH: 'base64',
     DEEPLINK_BASE_URL: 'new-expensify://',
+    SAML_REDIRECT_URL: 'expensify://open',
     PDF_VIEWER_URL: '/pdf/web/viewer.html',
     CLOUDFRONT_DOMAIN_REGEX: /^https:\/\/\w+\.cloudfront\.net/i,
     EXPENSIFY_ICON_URL: `${CLOUDFRONT_URL}/images/favicon-2019.png`,
@@ -1163,6 +1165,7 @@ const CONST = {
         REQUEST_MANUAL: 'requestManual',
         REQUEST_SCAN: 'requestScan',
         REQUEST_DISTANCE: 'requestDistance',
+        REQUEST_TIME: 'requestTime',
         PER_DIEM: 'perDiem',
         SPLIT_MANUAL: 'splitManual',
         SPLIT_SCAN: 'splitScan',
@@ -1766,6 +1769,24 @@ const CONST = {
         TAG_AUTHENTICATION_FUNCTION: 'authentication_function',
         TAG_AUTHENTICATION_ERROR_TYPE: 'authentication_error_type',
         TAG_AUTHENTICATION_JSON_CODE: 'authentication_json_code',
+        TAG_EXPENSE_ERROR_TYPE: 'expense_error_type',
+        TAG_EXPENSE_ERROR_SOURCE: 'expense_error_source',
+        EXPENSE_ERROR_TYPE: {
+            REPORT_CREATION_FAILED: 'report_creation_failed',
+            TRANSACTION_MISSING: 'transaction_missing',
+            API_ERROR: 'api_error',
+            OPEN_REPORT_FAILED: 'open_report_failed',
+        },
+        EXPENSE_ERROR_SOURCE: {
+            TRANSACTION: 'transaction',
+            REPORT_ACTION: 'report_action',
+            REPORT_CREATION: 'report_creation',
+            API_RESPONSE: 'api_response',
+        },
+        TAG_EXPENSE_IS_REQUEST_PENDING: 'expense_is_request_pending',
+        TAG_EXPENSE_HAS_RECEIPT: 'expense_has_receipt',
+        TAG_EXPENSE_COMMAND: 'expense_command',
+        TAG_EXPENSE_JSON_CODE: 'expense_json_code',
         // Span names
         SPAN_OPEN_REPORT: 'ManualOpenReport',
         SPAN_APP_STARTUP: 'ManualAppStartup',
@@ -4243,15 +4264,7 @@ const CONST = {
         LINKEDIN: 'https://www.linkedin.com/company/expensify',
     },
 
-    // These split the maximum decimal value of a signed 64-bit number (9,223,372,036,854,775,807) into parts where none of them are too big to fit into a 32-bit number, so that we can
-    // generate them each with a random number generator with only 32-bits of precision.
-    MAX_64BIT_LEFT_PART: 92233,
-    MAX_64BIT_MIDDLE_PART: 7203685,
-    MAX_64BIT_RIGHT_PART: 4775807,
     INVALID_CATEGORY_NAME: '###',
-
-    // When generating a random value to fit in 7 digits (for the `middle` or `right` parts above), this is the maximum value to multiply by Math.random().
-    MAX_INT_FOR_RANDOM_7_DIGIT_VALUE: 10000000,
     IOS_KEYBOARD_SPACE_OFFSET: -30,
 
     API_REQUEST_TYPE: {
@@ -4644,6 +4657,88 @@ const CONST = {
 
     PLAID_EXCLUDED_COUNTRIES: ['IR', 'CU', 'SY', 'UA', 'KP'] as string[],
     PLAID_SUPPORT_COUNTRIES: ['US', 'CA', 'GB', 'AT', 'BE', 'DK', 'EE', 'FI', 'FR', 'DE', 'IE', 'IT', 'LV', 'LT', 'NL', 'NO', 'PL', 'PT', 'ES', 'SE'] as string[],
+
+    BBA_SUPPORTED_COUNTRIES: [
+        'AT',
+        'AU',
+        'BE',
+        'BG',
+        'CA',
+        'CY',
+        'CZ',
+        'DE',
+        'DK',
+        'EE',
+        'ES',
+        'FI',
+        'FR',
+        'GR',
+        'HR',
+        'HU',
+        'IE',
+        'IT',
+        'LT',
+        'LU',
+        'LV',
+        'MT',
+        'NL',
+        'PL',
+        'PT',
+        'RO',
+        'SE',
+        'SI',
+        'SK',
+        'GB',
+        'US',
+    ] as string[],
+
+    BBA_COUNTRY_CURRENCY_MAP: {
+        AT: 'EUR',
+        AU: 'AUD',
+        BE: 'EUR',
+        BG: 'EUR',
+        CA: 'CAD',
+        CY: 'EUR',
+        CZ: 'EUR',
+        DE: 'EUR',
+        DK: 'EUR',
+        EE: 'EUR',
+        ES: 'EUR',
+        FI: 'EUR',
+        FR: 'EUR',
+        GR: 'EUR',
+        HR: 'EUR',
+        HU: 'EUR',
+        IE: 'EUR',
+        IT: 'EUR',
+        LT: 'EUR',
+        LU: 'EUR',
+        LV: 'EUR',
+        MT: 'EUR',
+        NL: 'EUR',
+        PL: 'EUR',
+        PT: 'EUR',
+        RO: 'EUR',
+        SE: 'EUR',
+        SI: 'EUR',
+        SK: 'EUR',
+        GB: 'GBP',
+        US: 'USD',
+    } as Record<string, string>,
+
+    // Maps actual local currencies to their respective countries (not BBA currencies)
+    // Used to determine country selection based on personal policy outputCurrency
+    // Only includes currencies used by a single country (EUR excluded as it's used by multiple countries)
+    BBA_EU_ORIGINAL_CURRENCY_COUNTRY_MAP: {
+        BGN: 'BG',
+        CZK: 'CZ',
+        DKK: 'DK',
+        GBP: 'GB',
+        HUF: 'HU',
+        PLN: 'PL',
+        RON: 'RO',
+        SEK: 'SE',
+    } as Record<string, string>,
 
     // Sources: https://github.com/Expensify/App/issues/14958#issuecomment-1442138427
     // https://github.com/Expensify/App/issues/14958#issuecomment-1456026810
@@ -8453,6 +8548,12 @@ const CONST = {
         VALIDATE_CODE: {
             RESEND_CODE: 'ValidateCode-ResendCode',
             RECOVERY_CODE: 'ValidateCode-RecoveryCode',
+        },
+        INTERACTIVE_STEP_SUB_HEADER: {
+            STEP_BUTTON: 'InteractiveStepSubHeader-StepButton',
+        },
+        SOCIALS: {
+            LINK: 'Socials',
         },
     },
 

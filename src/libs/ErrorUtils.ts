@@ -1,5 +1,5 @@
 import mapValues from 'lodash/mapValues';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
@@ -11,7 +11,7 @@ import DateUtils from './DateUtils';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translate, translateLocal} from './Localize';
 
-function getAuthenticateErrorMessage(response: Response): TranslationPaths {
+function getAuthenticateErrorMessage<TKey extends OnyxKey>(response: Response<TKey>): TranslationPaths {
     switch (response.jsonCode) {
         case CONST.JSON_CODE.UNABLE_TO_RETRY:
             return 'session.offlineMessageRetry';
