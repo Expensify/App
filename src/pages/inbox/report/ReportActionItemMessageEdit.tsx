@@ -140,7 +140,7 @@ function ReportActionItemMessageEdit({
 
     const [isFocused, setIsFocused] = useState<boolean>(false);
 
-    const {debouncedCommentMaxLengthValidation, isExceedingMaxLength} = useDebouncedCommentMaxLengthValidation({reportID, isEditing: true});
+    const {debouncedCommentMaxLengthValidation, exceededMaxLength, isExceedingMaxLength} = useDebouncedCommentMaxLengthValidation({reportID, isEditing: true});
 
     const {isScrollLayoutTriggered, raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();
 
@@ -539,7 +539,7 @@ function ReportActionItemMessageEdit({
                     />
                 </View>
             </View>
-            {isExceedingMaxLength && <ExceededCommentLength />}
+            {isExceedingMaxLength && !!exceededMaxLength && <ExceededCommentLength maxCommentLength={exceededMaxLength} />}
         </>
     );
 }
