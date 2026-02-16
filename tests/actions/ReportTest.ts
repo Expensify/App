@@ -1270,7 +1270,7 @@ describe('actions/Report', () => {
 
         await waitForBatchedUpdates();
 
-        const persistedRequests = await getOnyxValue(ONYXKEYS.PERSISTED_REQUESTS);
+        const persistedRequests = PersistedRequests.getAll();
         expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.UPDATE_COMMENT);
 
         rerender(originalReport);
@@ -1737,9 +1737,12 @@ describe('actions/Report', () => {
         });
 
         // Need the reportActionID to delete the comments
-        const newComment = (await getOnyxValue(ONYXKEYS.PERSISTED_REQUESTS))?.at(0);
+        const newComment = PersistedRequests.getAll().at(0);
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
         const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
+
+        await waitForBatchedUpdates();
+
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
         // wait for Onyx.connect execute the callback and start processing the queue
@@ -1769,7 +1772,7 @@ describe('actions/Report', () => {
             TEST_USER_ACCOUNT_ID,
         );
 
-        const persistedRequests = await getOnyxValue(ONYXKEYS.PERSISTED_REQUESTS);
+        const persistedRequests = PersistedRequests.getAll();
         expect(persistedRequests?.length).toBe(2);
         expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.ADD_EMOJI_REACTION);
         expect(persistedRequests?.at(1)?.command).toBe(WRITE_COMMANDS.REMOVE_EMOJI_REACTION);
