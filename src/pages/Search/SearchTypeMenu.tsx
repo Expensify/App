@@ -124,6 +124,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
 
             return {
                 ...baseMenuItem,
+                sentryLabel: CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_MENU_ITEM,
                 onPress: () => {
                     setSearchContext(false);
                     Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name}));
@@ -287,6 +288,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                                     focused={focused}
                                                     onPress={onPress}
                                                     shouldIconUseAutoWidthStyle
+                                                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM}
                                                 />
                                             );
                                         })}

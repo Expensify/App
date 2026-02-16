@@ -1,6 +1,5 @@
 import {useCallback} from 'react';
 import {Keyboard} from 'react-native';
-import {useSession} from '@components/OnyxListItemProvider';
 import useLocalize from '@hooks/useLocalize';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import fileDownload from '@libs/fileDownload';
@@ -16,8 +15,6 @@ type UseDownloadAttachmentProps = {
 
 function useDownloadAttachment({isAuthTokenRequired, type, draftTransactionID}: UseDownloadAttachmentProps = {}) {
     const {translate} = useLocalize();
-    const session = useSession();
-    const encryptedAuthToken = session?.encryptedAuthToken ?? '';
     /**
      * Download the currently viewed attachment.
      */
@@ -25,7 +22,7 @@ function useDownloadAttachment({isAuthTokenRequired, type, draftTransactionID}: 
         ({source, file}) => {
             let sourceURL = source;
             if (isAuthTokenRequired && typeof sourceURL === 'string') {
-                sourceURL = addEncryptedAuthTokenToURL(sourceURL, encryptedAuthToken);
+                sourceURL = addEncryptedAuthTokenToURL(sourceURL);
             }
 
             if (typeof sourceURL === 'string') {
@@ -38,7 +35,7 @@ function useDownloadAttachment({isAuthTokenRequired, type, draftTransactionID}: 
             // the attachment keyboard will show up. So, to fix it we need to dismiss the keyboard.
             Keyboard.dismiss();
         },
-        [isAuthTokenRequired, type, draftTransactionID, translate, encryptedAuthToken],
+        [isAuthTokenRequired, type, draftTransactionID, translate],
     );
 
     return downloadAttachment;

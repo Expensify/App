@@ -464,7 +464,7 @@ type ReimbursementAccountForm = ReimbursementAccountFormExtraProps &
             KYBDocumentsStepProps &
             ReimbursementAccountProps &
             NonUSDReimbursementAccountAdditionalProps
-    >;
+    > & {currency?: string};
 
 export type {
     ReimbursementAccountForm,

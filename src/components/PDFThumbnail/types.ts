@@ -7,6 +7,9 @@ type PDFThumbnailProps = {
     /** Any additional styles to apply */
     style?: StyleProp<ViewStyle>;
 
+    /** Whether the PDF thumbnail requires an authToken */
+    isAuthTokenRequired?: boolean;
+
     /** Whether the PDF thumbnail can be loaded */
     enabled?: boolean;
 

@@ -9,7 +9,6 @@ import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollV
 import ContextMenuItem from '@components/ContextMenuItem';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
-import {useSession} from '@components/OnyxListItemProvider';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
@@ -241,8 +240,6 @@ function BaseReportActionContextMenu({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
 
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
-    const session = useSession();
-    const encryptedAuthToken = session?.encryptedAuthToken ?? '';
 
     const isMoneyRequest = useMemo(() => ReportUtilsIsMoneyRequest(childReport), [childReport]);
     const isTrackExpenseReport = ReportUtilsIsTrackExpenseReport(childReport);
@@ -404,7 +401,6 @@ function BaseReportActionContextMenu({
                             showDelegateNoAccessModal,
                             currentUserAccountID: currentUserPersonalDetails?.accountID,
                             currentUserPersonalDetails,
-                            encryptedAuthToken,
                         };
 
                         if ('renderContent' in contextAction) {

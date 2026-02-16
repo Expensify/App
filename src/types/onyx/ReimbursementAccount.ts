@@ -197,6 +197,9 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
     /** Date the corpay bank account was created */
     created?: string;
 
+    /** Currency of the bank account */
+    currency?: string;
+
     /** Statuses of additional checks hinting at missing documents user still needs to upload */
     verifications?: {
         /** points towards one of external providers */

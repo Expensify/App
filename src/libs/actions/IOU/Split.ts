@@ -1226,7 +1226,7 @@ function updateSplitTransactions({
             newReportTotal: reportTotals.get(splitExpense?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)) ?? 0,
             newNonReimbursableTotal: (transactionReport?.nonReimbursableTotal ?? 0) - changesInReportTotal,
             isSplitExpense: true,
-            currentReportActionID: currentReportAction?.reportActionID,
+            currentReportActionID: !isReverseSplitOperation ? currentReportAction?.reportActionID : undefined,
             isASAPSubmitBetaEnabled,
             currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
             currentUserEmailParam: currentUserPersonalDetails?.login ?? '',

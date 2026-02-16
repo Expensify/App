@@ -6,6 +6,7 @@ import {View} from 'react-native';
 import {Document, pdfjs, Thumbnail} from 'react-pdf';
 import LoadingIndicator from '@components/LoadingIndicator';
 import useThemeStyles from '@hooks/useThemeStyles';
+import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import PDFThumbnailError from './PDFThumbnailError';
 import type PDFThumbnailProps from './types';
 
@@ -13,7 +14,7 @@ if (!pdfjs.GlobalWorkerOptions.workerSrc) {
     pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([pdfWorkerSource], {type: 'text/javascript'}));
 }
 
-function PDFThumbnail({previewSourceURL, style, enabled = true, onPassword, onLoadError, onLoadSuccess}: PDFThumbnailProps) {
+function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, enabled = true, onPassword, onLoadError, onLoadSuccess}: PDFThumbnailProps) {
     const styles = useThemeStyles();
     const [failedToLoad, setFailedToLoad] = useState(false);
 
@@ -21,7 +22,7 @@ function PDFThumbnail({previewSourceURL, style, enabled = true, onPassword, onLo
         () => (
             <Document
                 loading={<LoadingIndicator />}
-                file={previewSourceURL}
+                file={isAuthTokenRequired ? addEncryptedAuthTokenToURL(previewSourceURL) : previewSourceURL}
                 options={{
                     cMapUrl: 'cmaps/',
                     cMapPacked: true,
@@ -50,7 +51,7 @@ function PDFThumbnail({previewSourceURL, style, enabled = true, onPassword, onLo
                 </View>
             </Document>
         ),
-        [previewSourceURL, onPassword, onLoadError, onLoadSuccess],
+        [isAuthTokenRequired, previewSourceURL, onPassword, onLoadError, onLoadSuccess],
     );
 
     return (
