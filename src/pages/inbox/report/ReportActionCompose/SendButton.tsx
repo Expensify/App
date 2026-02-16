@@ -10,6 +10,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 
 type SendButtonProps = {
     /** Whether the button is disabled */
@@ -26,6 +27,8 @@ function SendButton({isDisabled: isDisabledProp, onSend, isEditing = false}: Sen
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
+
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to manage GestureDetector correctly
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -33,7 +36,8 @@ function SendButton({isDisabled: isDisabledProp, onSend, isEditing = false}: Sen
         .onEnd(() => {
             onSend();
         })
-        .runOnJS(true);
+        .runOnJS(true)
+        .withTestId(CONST.COMPOSER.SEND_BUTTON_TEST_ID);
 
     const label = isEditing ? translate('common.saveChanges') : translate('common.send');
     const sentryLabel = isEditing ? CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_MESSAGE_EDIT_SAVE_BUTTON : CONST.SENTRY_LABEL.REPORT.SEND_BUTTON;
@@ -72,7 +76,7 @@ function SendButton({isDisabled: isDisabledProp, onSend, isEditing = false}: Sen
                         >
                             {({pressed}) => (
                                 <Icon
-                                    src={Expensicons.Send}
+                                    src={isEditing ? icons.Checkmark : Expensicons.Send}
                                     fill={isDisabledProp || pressed ? theme.icon : theme.textLight}
                                 />
                             )}
