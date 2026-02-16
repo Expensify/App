@@ -57,6 +57,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 // eslint-disable-next-line no-restricted-imports
 import findNodeHandle from '@src/utils/findNodeHandle';
+import useDraftMessageVideoAttributeCache from '@pages/inbox/report/useDraftMessageVideoAttributeCache';
 
 type SyncSelection = {
     position: number;
@@ -271,6 +272,17 @@ function ComposerWithSuggestions({
         return initialValue;
     });
 
+    // The ref to check whether the comment saving is in progress
+    const isDraftPendingSaved = useRef(false);
+
+    useDraftMessageVideoAttributeCache({
+        draftMessage: value,
+        isEditing: !!editingReportActionID,
+        editingReportAction,
+        updateDraftMessage: setValue,
+        isEditInProgressRef: isDraftPendingSaved,
+    });
+
     const [selection, setSelection] = useState<TextSelection>(() => currentEditMessageSelection ?? {start: value.length, end: value.length, positionX: 0, positionY: 0});
 
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -347,9 +359,6 @@ function ComposerWithSuggestions({
         }
         RNTextInputReset.resetKeyboardInput(CONST.COMPOSER.NATIVE_ID);
     }, []);
-
-    // The ref to check whether the comment saving is in progress
-    const isDraftPendingSaved = useRef(false);
 
     /**
      * Save the draft of the comment. This debounced so that we're not ceaselessly saving your edit. Saving the draft

@@ -11,7 +11,6 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import {isActive as isEmojiPickerActive} from '@libs/actions/EmojiPickerAction';
 import {deleteReportActionDraft, editReportComment} from '@libs/actions/Report';
-import draftMessageVideoAttributeCache from '@libs/DraftMessageVideoAttributeCache';
 import focusEditAfterCancelDelete from '@libs/focusEditAfterCancelDelete';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {getOriginalReportID} from '@libs/ReportUtils';
@@ -20,6 +19,7 @@ import {useReportActionActiveEdit} from '@pages/inbox/report/ReportActionEditMes
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import KeyboardUtils from '@src/utils/keyboard';
+import {draftMessageVideoAttributeCache} from '@pages/inbox/report/useDraftMessageVideoAttributeCache';
 
 type UseEditMessageProps = {
     reportID: string | undefined;
