@@ -2721,6 +2721,9 @@ type DomainSplitNavigatorParamList = {
         domainAccountID: number;
         accountID: number;
     };
+    [SCREENS.DOMAIN.GROUPS]: {
+        domainAccountID: number;
+    };
 };
 
 type OnboardingModalNavigatorParamList = {
@@ -2812,6 +2815,7 @@ type SharedScreensParamList = {
         shouldForceLogin: string;
         domain?: Routes;
         delegatorEmail?: string;
+        isSAML?: boolean;
     };
     [SCREENS.VALIDATE_LOGIN]: {
         accountID: string;

@@ -2961,6 +2961,10 @@ const staticStyles = (theme: ThemeColors) =>
             alignSelf: 'flex-start',
         },
 
+        transactionsCarouselGap: {
+            width: variables.spacing2,
+        },
+
         attachmentCarouselContainer: {
             height: '100%',
             width: '100%',

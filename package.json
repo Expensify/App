@@ -144,6 +144,7 @@
     "expo-store-review": "~9.0.8",
     "expo-task-manager": "~14.0.9",
     "expo-video": "3.0.12",
+    "expo-web-browser": "15.0.10",
     "fast-equals": "^5.2.2",
     "focus-trap-react": "^11.0.3",
     "group-ib-fp": "file:modules/group-ib-fp",

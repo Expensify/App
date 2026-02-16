@@ -40,6 +40,9 @@ type Session = {
     /** Indicates whether the user is re-authenticating with shortLivedToken */
     isAuthenticatingWithShortLivedToken?: boolean;
 
+    /** User signed in with SAML */
+    signedInWithSAML?: boolean;
+
     /** Indicates whether the support auth token is used for re-authentication */
     isSupportAuthTokenUsed?: boolean;
 
