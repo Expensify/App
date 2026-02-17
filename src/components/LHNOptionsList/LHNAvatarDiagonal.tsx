@@ -55,6 +55,7 @@ function LHNAvatarDiagonal({primaryIcon, secondaryIcon, size, secondaryAvatarBac
         avatarSize = CONST.AVATAR_SIZE.MEDIUM_LARGE;
     }
 
+    // The cast is safe — unmapped sizes fall back to the default entry at runtime.
     const {singleAvatarStyle, secondAvatarStyles} = avatarSizeToStylesMap[size as AvatarSizeToStyles] ?? avatarSizeToStylesMap.default;
 
     return (
