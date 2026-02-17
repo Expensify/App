@@ -4010,17 +4010,17 @@ const CONST = {
 
         ATTACHMENT: {
             // Match any attachment tag inside the markdown text i.e only: <img or <video
-            ATTACHMENT_REGEX: /<video |<img /,
+            ATTACHMENT_REGEX: /<video |<img /g,
             // Extract all attachments including all atributes and values from markdown text
             ATTACHMENT: /<(img|video)[^>]*>/gi,
             // Extract attachment's source from the data's html string
             ATTACHMENT_DATA: /(data-expensify-source|data-name)="([^"]+)"/g,
             // Retrieve the attachment id value from data-attachment-id attribute
-            ATTACHMENT_ID: /data-attachment-id=(["'])(.*?)\1/,
+            ATTACHMENT_ID: /data-attachment-id=(["'])(.*?)\1/g,
             // Retrive attachment source id from attachment source url link
-            ATTACHMENT_SOURCE_ID: /chat-attachments\/(\d+)/,
+            ATTACHMENT_SOURCE_ID: /chat-attachments\/(\d+)/g,
             // Retrieve attachment source either local or remote
-            ATTACHMENT_SOURCE: /(src|data-expensify-source|data-optimistic-src)="([^"]+)"/i,
+            ATTACHMENT_SOURCE: /(src|data-expensify-source|data-optimistic-src)="([^"]+)"/gi,
         },
 
         HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,

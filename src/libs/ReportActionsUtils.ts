@@ -221,7 +221,7 @@ function getHtmlWithAttachmentID(html: string, reportActionID: string | undefine
 
     let index = 0;
     return html.replaceAll(CONST.REGEX.ATTACHMENT.ATTACHMENT, (match) => {
-        const attachmentID = match.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_ID)?.[2];
+        const attachmentID = CONST.REGEX.ATTACHMENT.ATTACHMENT_ID.exec(match)?.[2];
         if (attachmentID) {
             return match;
         }
