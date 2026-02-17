@@ -76,7 +76,6 @@ function ChatListItem<TItem extends ListItem>({
                 allReports={allReports}
                 action={reportActionItem}
                 report={report}
-                reportActions={[]}
                 onPress={() => onSelectRow(item)}
                 parentReportAction={undefined}
                 displayAsGroup={false}
