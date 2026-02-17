@@ -41,6 +41,7 @@ import {
     getYearFromExpirationDateString,
     hasIssuedExpensifyCard,
     hasOnlyOneCardToAssign,
+    isCardFrozen,
     isCSVFeedOrExpensifyCard,
     isCustomFeed as isCustomFeedCardUtils,
     isDirectFeed as isDirectFeedCardUtils,
@@ -2684,6 +2685,48 @@ describe('CardUtils', () => {
                 expect(firstCard?.cardName).toBe('Plaid Checking 0000');
                 expect(firstCard?.cardID).toBe('Plaid Checking 0000');
             });
+        });
+    });
+
+    describe('isCardFrozen', () => {
+        it('Should return true when card state is suspended and frozen property is set', () => {
+            const card = {
+                state: CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED,
+                nameValuePairs: {
+                    frozen: true,
+                },
+            } as unknown as Card;
+            expect(isCardFrozen(card)).toBe(true);
+        });
+
+        it('Should return false when card state is suspended but frozen property is missing', () => {
+            const card = {
+                state: CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED,
+                nameValuePairs: {},
+            } as unknown as Card;
+            expect(isCardFrozen(card)).toBe(false);
+        });
+
+        it('Should return false when card state is not suspended but frozen property is set', () => {
+            const card = {
+                state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                nameValuePairs: {
+                    frozen: true,
+                },
+            } as unknown as Card;
+            expect(isCardFrozen(card)).toBe(false);
+        });
+
+        it('Should return false when card is undefined', () => {
+            expect(isCardFrozen(undefined)).toBe(false);
+        });
+
+        it('Should return false when card is valid but not suspended or frozen', () => {
+            const card = {
+                state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                nameValuePairs: {},
+            } as unknown as Card;
+            expect(isCardFrozen(card)).toBe(false);
         });
     });
 

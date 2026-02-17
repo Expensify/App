@@ -5224,6 +5224,16 @@ const staticStyles = (theme: ThemeColors) =>
             height: 170,
         },
 
+        travelCCVIllustration: {
+            width: 240,
+            height: 100,
+        },
+
+        travelInvoicingIcon: {
+            backgroundColor: colors.productLight700,
+            borderRadius: variables.componentBorderRadiusNormal,
+        },
+
         successBankSharedCardIllustration: {
             width: 164,
             height: 164,
