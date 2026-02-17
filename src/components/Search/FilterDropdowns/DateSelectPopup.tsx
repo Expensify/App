@@ -253,32 +253,52 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
                         onDateValuesChange={updateTrackedDateValues}
                     />
                 </View>
-                <View style={[styles.flexRow, styles.ph5, styles.alignItemsCenter, styles.pt1]}>
-                    {shouldShowInlineRangeText && (
-                        <Text style={[styles.textLabelSupporting, styles.flex1]}>
-                            {rangeText ? (
-                                <>
-                                    {`${translate('common.range')}: `}
-                                    <Text style={[styles.textLabel]}>{rangeText}</Text>
-                                </>
-                            ) : null}
-                        </Text>
+                <View style={[styles.flexRow, styles.mh5, styles.alignItemsCenter, styles.pt1]}>
+                    {shouldShowInlineRangeText ? (
+                        <>
+                            <View style={[styles.flex1, styles.mr2]}>
+                                {!!rangeText && (
+                                    <Text style={[styles.textLabelSupporting]}>
+                                        {`${translate('common.range')}: `}
+                                        <Text style={[styles.textLabel]}>{rangeText}</Text>
+                                    </Text>
+                                )}
+                            </View>
+                            <View style={[styles.flex1, styles.ml2]}>
+                                <View style={[styles.flexRow, styles.gap2]}>
+                                    <Button
+                                        medium
+                                        style={[styles.flex1]}
+                                        text={translate('common.reset')}
+                                        onPress={resetChanges}
+                                    />
+                                    <Button
+                                        success
+                                        medium
+                                        style={[styles.flex1]}
+                                        text={translate('common.apply')}
+                                        onPress={applyChanges}
+                                    />
+                                </View>
+                            </View>
+                        </>
+                    ) : (
+                        <View style={[styles.flexRow, styles.gap2, styles.flex1]}>
+                            <Button
+                                medium
+                                style={[styles.flex1]}
+                                text={translate('common.reset')}
+                                onPress={resetChanges}
+                            />
+                            <Button
+                                success
+                                medium
+                                style={[styles.flex1]}
+                                text={translate('common.apply')}
+                                onPress={applyChanges}
+                            />
+                        </View>
                     )}
-                    <View style={[styles.flexRow, styles.gap2, shouldShowInlineRangeText ? [styles.flex1, styles.justifyContentEnd] : styles.flex1]}>
-                        <Button
-                            medium
-                            style={[styles.flex1]}
-                            text={translate('common.reset')}
-                            onPress={resetChanges}
-                        />
-                        <Button
-                            success
-                            medium
-                            style={[styles.flex1]}
-                            text={translate('common.apply')}
-                            onPress={applyChanges}
-                        />
-                    </View>
                 </View>
             </View>
         );

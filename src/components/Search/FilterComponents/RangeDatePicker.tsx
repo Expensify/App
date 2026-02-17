@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
 import type {DayProps} from '@components/DatePicker/CalendarPicker/Day';
@@ -45,6 +45,20 @@ function RangeDatePicker({fromValue, toValue, onFromSelected, onToSelected, shou
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const shouldStack = forceVertical || isSmallScreenWidth;
+    const fromMaxDate = useMemo(() => (toValue ? new Date(toValue) : CONST.CALENDAR_PICKER.MAX_DATE), [toValue]);
+    const toMinDate = useMemo(() => (fromValue ? new Date(fromValue) : CONST.CALENDAR_PICKER.MIN_DATE), [fromValue]);
+    const [fromCalendarRowsCount, setFromCalendarRowsCount] = useState(CONST.MAX_CALENDAR_PICKER_ROWS);
+    const [toCalendarRowsCount, setToCalendarRowsCount] = useState(CONST.MAX_CALENDAR_PICKER_ROWS);
+
+    const handleFromCalendarRowsCountChange = useCallback((rowCount: number) => {
+        setFromCalendarRowsCount(rowCount);
+    }, []);
+
+    const handleToCalendarRowsCountChange = useCallback((rowCount: number) => {
+        setToCalendarRowsCount(rowCount);
+    }, []);
+
+    const sharedDesktopCalendarRowCount = !shouldStack ? Math.max(fromCalendarRowsCount, toCalendarRowsCount) : undefined;
 
     return (
         <>
@@ -56,9 +70,12 @@ function RangeDatePicker({fromValue, toValue, onFromSelected, onToSelected, shou
                             value={fromValue}
                             onSelected={onFromSelected}
                             minDate={CONST.CALENDAR_PICKER.MIN_DATE}
-                            maxDate={toValue ? new Date(toValue) : CONST.CALENDAR_PICKER.MAX_DATE}
+                            maxDate={fromMaxDate}
                             DayComponent={GreenSelectedDay}
                             headerContainerStyle={styles.ph4}
+                            shouldUseFixedRowHeight={!shouldStack}
+                            fixedRowCount={sharedDesktopCalendarRowCount}
+                            onCalendarRowsCountChange={handleFromCalendarRowsCountChange}
                         />
                     </View>
                 </View>
@@ -69,10 +86,13 @@ function RangeDatePicker({fromValue, toValue, onFromSelected, onToSelected, shou
                         <CalendarPicker
                             value={toValue}
                             onSelected={onToSelected}
-                            minDate={fromValue ? new Date(fromValue) : CONST.CALENDAR_PICKER.MIN_DATE}
+                            minDate={toMinDate}
                             maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                             DayComponent={GreenSelectedDay}
                             headerContainerStyle={styles.ph4}
+                            shouldUseFixedRowHeight={!shouldStack}
+                            fixedRowCount={sharedDesktopCalendarRowCount}
+                            onCalendarRowsCountChange={handleToCalendarRowsCountChange}
                         />
                     </View>
                 </View>

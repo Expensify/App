@@ -39,6 +39,15 @@ type CalendarPickerProps = {
 
     /** Optional style override for the header container */
     headerContainerStyle?: StyleProp<ViewStyle>;
+
+    /** Keep calendar body height fixed to max row count */
+    shouldUseFixedRowHeight?: boolean;
+
+    /** Explicit row count to use when fixed row height is enabled */
+    fixedRowCount?: number;
+
+    /** Called whenever the visible month's row count changes */
+    onCalendarRowsCountChange?: (rowCount: number) => void;
 };
 
 function getInitialCurrentDateView(value: Date | string, minDate: Date, maxDate: Date) {
@@ -61,6 +70,9 @@ function CalendarPicker({
     DayComponent = Day,
     selectableDates,
     headerContainerStyle,
+    shouldUseFixedRowHeight = false,
+    fixedRowCount,
+    onCalendarRowsCountChange,
 }: CalendarPickerProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -75,7 +87,8 @@ function CalendarPicker({
     const currentMonthView = currentDateView.getMonth();
     const currentYearView = currentDateView.getFullYear();
     const calendarDaysMatrix = generateMonthMatrix(currentYearView, currentMonthView);
-    const initialHeight = (calendarDaysMatrix?.length || CONST.MAX_CALENDAR_PICKER_ROWS) * CONST.CALENDAR_PICKER_DAY_HEIGHT;
+    const calendarRowCount = calendarDaysMatrix?.length || CONST.MAX_CALENDAR_PICKER_ROWS;
+    const initialHeight = (shouldUseFixedRowHeight ? Math.max(calendarRowCount, fixedRowCount ?? calendarRowCount) : calendarRowCount) * CONST.CALENDAR_PICKER_DAY_HEIGHT;
     const heightValue = useSharedValue(initialHeight);
 
     const minYear = getYear(new Date(minDate));
@@ -166,11 +179,15 @@ function CalendarPicker({
             return;
         }
 
-        const rowCount = calendarDaysMatrix?.length || CONST.MAX_CALENDAR_PICKER_ROWS;
+        const rowCount = shouldUseFixedRowHeight ? Math.max(calendarRowCount, fixedRowCount ?? calendarRowCount) : calendarRowCount;
         const newHeight = rowCount * CONST.CALENDAR_PICKER_DAY_HEIGHT;
 
         heightValue.set(withTiming(newHeight, {duration: 50}));
-    }, [calendarDaysMatrix?.length, heightValue]);
+    }, [calendarRowCount, heightValue, shouldUseFixedRowHeight, fixedRowCount]);
+
+    useEffect(() => {
+        onCalendarRowsCountChange?.(calendarRowCount);
+    }, [calendarRowCount, onCalendarRowsCountChange]);
 
     const animatedStyle = useAnimatedStyle(() => {
         return {
