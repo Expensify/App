@@ -15,7 +15,6 @@ import type {
     TransactionYearGroupListItemType,
 } from '@components/SelectionListWithSections/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCurrencyDisplayInfoForCharts} from '@libs/CurrencyUtils';
@@ -127,6 +126,9 @@ type SearchChartViewProps = {
 
     /** Scroll handler for hiding the top bar on mobile */
     onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+
+    /** Title to be displayed on the chart */
+    title: string;
 };
 
 /**
@@ -141,14 +143,12 @@ const CHART_VIEW_TO_COMPONENT: Record<Exclude<ChartView, 'pie'>, typeof SearchBa
  * Layer 3 component - dispatches to the appropriate chart type based on view parameter
  * and handles navigation/drill-down logic
  */
-function SearchChartView({queryJSON, view, groupBy, data, isLoading, onScroll}: SearchChartViewProps) {
+function SearchChartView({queryJSON, view, groupBy, data, isLoading, onScroll, title}: SearchChartViewProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Users', 'CreditCard', 'Send', 'Folder', 'Basket', 'Tag', 'Calendar'] as const);
     const {titleIconName, getLabel, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
     const titleIcon = icons[titleIconName];
-    const title = translate(`search.chartTitles.${groupBy}`);
     const ChartComponent = CHART_VIEW_TO_COMPONENT[view];
 
     const handleItemPress = useCallback(

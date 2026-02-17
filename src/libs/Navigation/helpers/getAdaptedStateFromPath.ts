@@ -5,7 +5,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import {config} from '@libs/Navigation/linkingConfig/config';
-import {RHP_TO_DOMAIN, RHP_TO_SEARCH, RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE, RHP_TO_WORKSPACES_LIST} from '@libs/Navigation/linkingConfig/RELATIONS';
+import {RHP_TO_DOMAIN, RHP_TO_HOME, RHP_TO_SEARCH, RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE, RHP_TO_WORKSPACES_LIST} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute, RootNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import {getSearchParamFromPath} from '@src/libs/Url';
@@ -116,6 +116,13 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
         });
     }
 
+    if (RHP_TO_HOME[route.name]) {
+        return {
+            name: SCREENS.HOME,
+            path: normalizePath(ROUTES.HOME),
+        };
+    }
+
     if (RHP_TO_WORKSPACES_LIST[route.name]) {
         return {
             name: SCREENS.WORKSPACES_LIST,
@@ -216,7 +223,6 @@ function getOnboardingAdaptedState(state: PartialState<NavigationState>): Partia
 
 function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamList>>): GetAdaptedStateReturnType {
     const fullScreenRoute = state.routes.find((route) => isFullScreenName(route.name));
-    const onboardingNavigator = state.routes.find((route) => route.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR);
     const isWorkspaceSplitNavigator = fullScreenRoute?.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR;
 
     if (isWorkspaceSplitNavigator) {
@@ -242,6 +248,8 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
             }
         }
 
+        const onboardingNavigator = state.routes.find((route) => route.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR);
+
         // The onboarding flow consists of several screens. If we open any of the screens, the previous screens from that flow should be in the state.
         if (onboardingNavigator?.state) {
             const adaptedOnboardingNavigator = {
@@ -250,6 +258,12 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
             };
 
             return getRoutesWithIndex([{name: SCREENS.HOME}, adaptedOnboardingNavigator]);
+        }
+
+        const isRightModalNavigator = state.routes.find((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
+
+        if (isRightModalNavigator) {
+            return getRoutesWithIndex([{name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}, ...state.routes]);
         }
 
         const defaultFullScreenRoute = getDefaultFullScreenRoute(focusedRoute);

@@ -175,7 +175,6 @@ import type {
     ZipCodeExampleFormatParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
-
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -575,6 +574,14 @@ const translations: TranslationDeepObject<typeof en> = {
         week: 'Semana',
         year: 'Ano',
         quarter: 'Trimestre',
+        expensifyLogo: 'Logo da Expensify',
+    },
+    socials: {
+        podcast: 'Siga-nos no Podcast',
+        twitter: 'Siga-nos no Twitter',
+        instagram: 'Siga-nos no Instagram',
+        facebook: 'Siga-nos no Facebook',
+        linkedin: 'Siga-nos no LinkedIn',
     },
     supportalNoAccess: {
         title: 'Calma aí',
@@ -682,6 +689,15 @@ const translations: TranslationDeepObject<typeof en> = {
             rejectAuthentication: 'Rejeitar autenticação',
             test: 'Teste',
             biometricsAuthentication: 'Autenticação biométrica',
+            authType: {
+                unknown: 'Desconhecido',
+                none: 'Nenhum',
+                credentials: 'Credenciais',
+                biometrics: 'Biometria',
+                faceId: 'Face ID',
+                touchId: 'Touch ID',
+                opticId: 'Optic ID',
+            },
         },
         pleaseEnableInSystemSettings: {
             start: 'Ative a verificação por rosto/digital ou defina um código de acesso do dispositivo no seu',
@@ -701,7 +717,6 @@ const translations: TranslationDeepObject<typeof en> = {
             biometrics: 'Ative uma verificação rápida e segura usando seu rosto ou impressão digital. Nenhuma senha ou código é necessário.',
         },
         revoke: {
-            remove: 'Remover',
             title: 'Face/digital & passkeys',
             explanation:
                 'A verificação por rosto/digital ou por chave de acesso está ativada em um ou mais dispositivos. Revogar o acesso exigirá um código mágico para a próxima verificação em qualquer dispositivo.',
@@ -710,11 +725,13 @@ const translations: TranslationDeepObject<typeof en> = {
             noDevices: 'Você não tem nenhum dispositivo registrado para verificação por rosto/digital ou passkey. Se você registrar algum, poderá revogar esse acesso aqui.',
             dismiss: 'Entendi',
             error: 'Falha na solicitação. Tente novamente mais tarde.',
+            revoke: 'Revogar',
         },
         unsupportedDevice: {
             unsupportedDevice: 'Dispositivo não compatível',
             pleaseDownloadMobileApp: `<centered-text><muted-text> Esta ação não é compatível com seu dispositivo. Baixe o app do Expensify na <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> ou na <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> e tente novamente.</muted-text></centered-text>`,
         },
+        verificationFailed: 'Falha na verificação',
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -976,7 +993,8 @@ const translations: TranslationDeepObject<typeof en> = {
             ctaFix: 'Corrigir',
             fixCompanyCardConnection: {
                 title: ({feedName}: {feedName: string}) => (feedName ? `Corrigir conexão do cartão corporativo ${feedName}` : 'Corrigir conexão do cartão corporativo'),
-                subtitle: 'Área de trabalho > Cartões corporativos',
+                defaultSubtitle: 'Área de trabalho > Cartões corporativos',
+                subtitle: ({policyName}: {policyName: string}) => `${policyName} > Cartões corporativos`,
             },
             fixAccountingConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Corrigir conexão com ${integrationName}`,
@@ -3108,6 +3126,11 @@ ${
         toGetStarted: 'Adicione uma conta bancária para reembolsar despesas, emitir cartões Expensify, receber pagamentos de faturas e pagar contas, tudo em um só lugar.',
         plaidBodyCopy: 'Dê aos seus funcionários uma forma mais fácil de pagar — e ser reembolsados — pelas despesas da empresa.',
         checkHelpLine: 'Seu número de roteamento e número da conta podem ser encontrados em um cheque dessa conta.',
+        bankAccountPurposeTitle: 'O que você quer fazer com sua conta bancária?',
+        getReimbursed: 'Ser reembolsado',
+        getReimbursedDescription: 'Pelo empregador ou outros',
+        makePayments: 'Fazer pagamentos',
+        makePaymentsDescription: 'Pagar despesas ou emitir cartões Expensify',
         hasPhoneLoginError: (contactMethodRoute: string) =>
             `Para conectar uma conta bancária, <a href="${contactMethodRoute}">adicione um e-mail como seu login principal</a> e tente novamente. Você pode adicionar seu número de telefone como login secundário.`,
         hasBeenThrottledError: 'Ocorreu um erro ao adicionar sua conta bancária. Aguarde alguns minutos e tente novamente.',
@@ -5368,8 +5391,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             editTags: 'Editar tags',
             findTag: 'Encontrar tag',
             subtitle: 'As tags acrescentam maneiras mais detalhadas de classificar custos.',
-            subtitleWithDependentTags: (importSpreadsheetLink: string) =>
-                `<muted-text>As tags acrescentam maneiras mais detalhadas de classificar custos. Você está usando <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">tags dependentes</a>. Você pode <a href="${importSpreadsheetLink}">reimportar uma planilha</a> para atualizar suas tags.</muted-text>`,
+            dependentMultiLevelTagsSubtitle: (importSpreadsheetLink: string) =>
+                `<muted-text>Você está usando <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">tags dependentes</a>. Você pode <a href="${importSpreadsheetLink}">reimportar uma planilha</a> para atualizar suas tags.</muted-text>`,
             emptyTags: {
                 title: 'Você não criou nenhuma tag',
                 subtitle: 'Adicione uma tag para acompanhar projetos, locais, departamentos e mais.',
@@ -7402,6 +7425,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         parentNavigationSummary: ({reportName, workspaceName}: ParentNavigationSummaryParams) => `De ${reportName}${workspaceName ? `em ${workspaceName}` : ''}`,
     },
     qrCodes: {
+        qrCode: 'Código QR',
         copy: 'Copiar URL',
         copied: 'Copiado!',
     },
@@ -7994,10 +8018,19 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             security: 'O Expensify é compatível com PCI-DSS, usa criptografia em nível bancário e utiliza infraestrutura redundante para proteger seus dados.',
             learnMoreAboutSecurity: 'Saiba mais sobre nossa segurança.',
         },
+        expensifyCode: {
+            title: 'Código Expensify',
+            discountCode: 'Código de desconto',
+            enterCode: 'Insira um código Expensify para aplicar à sua assinatura.',
+            apply: 'Aplicar',
+            error: {
+                invalid: 'Este código é inválido',
+            },
+        },
         subscriptionSettings: {
             title: 'Configurações de assinatura',
-            summary: ({subscriptionType, subscriptionSize, autoRenew, autoIncrease}: SubscriptionSettingsSummaryParams) =>
-                `Tipo de assinatura: ${subscriptionType}, Tamanho da assinatura: ${subscriptionSize}, Renovação automática: ${autoRenew}, Aumento automático de assentos anuais: ${autoIncrease}`,
+            summary: ({subscriptionType, subscriptionSize, expensifyCode, autoRenew, autoIncrease}: SubscriptionSettingsSummaryParams) =>
+                `Tipo de assinatura: ${subscriptionType}, Tamanho da assinatura: ${subscriptionSize}${expensifyCode ? `, Código Expensify: ${expensifyCode}` : ''}, Renovação automática: ${autoRenew}, Aumento automático de assentos anuais: ${autoIncrease}`,
             none: 'nenhum',
             on: 'ativado',
             off: 'desligado',
@@ -8408,6 +8441,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             forceTwoFactorAuthError: 'Não foi possível alterar a exigência de autenticação em duas etapas. Tente novamente mais tarde.',
         },
         common: {settings: 'Configurações'},
+        groups: {title: 'Grupos', memberCount: () => ({one: '1 membro', other: (count: number) => `${count} membros`})},
     },
 };
 export default translations;

@@ -175,7 +175,6 @@ import type {
     ZipCodeExampleFormatParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
-
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -572,6 +571,14 @@ const translations: TranslationDeepObject<typeof en> = {
         week: '周',
         year: '年份',
         quarter: '季度',
+        expensifyLogo: 'Expensify徽标',
+    },
+    socials: {
+        podcast: '在播客上关注我们',
+        twitter: '在Twitter上关注我们',
+        instagram: '在Instagram上关注我们',
+        facebook: '在Facebook上关注我们',
+        linkedin: '在LinkedIn上关注我们',
     },
     supportalNoAccess: {
         title: '先别急',
@@ -678,6 +685,15 @@ const translations: TranslationDeepObject<typeof en> = {
             rejectAuthentication: '拒绝认证',
             test: '测试',
             biometricsAuthentication: '生物识别认证',
+            authType: {
+                unknown: '未知',
+                none: '无',
+                credentials: '凭据',
+                biometrics: '生物识别',
+                faceId: 'Face ID',
+                touchId: 'Touch ID',
+                opticId: 'Optic ID',
+            },
         },
         pleaseEnableInSystemSettings: {
             start: '请在您的设备中启用面部/指纹验证或设置设备密码',
@@ -697,7 +713,6 @@ const translations: TranslationDeepObject<typeof en> = {
             biometrics: '使用面部或指纹即可进行快速、安全的验证，无需密码或验证码。',
         },
         revoke: {
-            remove: '移除',
             title: '面容/指纹和通行密钥',
             explanation: '在一台或多台设备上已启用面容/指纹或通行密钥验证。撤销访问后，下次在任何设备上进行验证时都需要输入魔法验证码。',
             confirmationPrompt: '确定吗？下一次在任何设备上进行验证时，你都需要输入魔法码。',
@@ -705,11 +720,13 @@ const translations: TranslationDeepObject<typeof en> = {
             noDevices: '您尚未注册用于面部 / 指纹或通行密钥验证的任何设备。如果您注册了设备，之后可以在此撤销该访问权限。',
             dismiss: '明白了',
             error: '请求失败。请稍后重试。',
+            revoke: '撤销',
         },
         unsupportedDevice: {
             unsupportedDevice: '不支持的设备',
             pleaseDownloadMobileApp: `<centered-text><muted-text> 您的设备不支持此操作。请从<a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a>或<a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play 商店</a>下载 Expensify 应用，然后重试。</muted-text></centered-text>`,
         },
+        verificationFailed: '验证失败',
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -963,7 +980,8 @@ const translations: TranslationDeepObject<typeof en> = {
             ctaFix: '修复',
             fixCompanyCardConnection: {
                 title: ({feedName}: {feedName: string}) => (feedName ? `修复 ${feedName} 公司卡连接` : '修复公司卡连接'),
-                subtitle: '工作区 > 公司卡片',
+                defaultSubtitle: '工作区 > 公司卡片',
+                subtitle: ({policyName}: {policyName: string}) => `${policyName} > 公司卡片`,
             },
             fixAccountingConnection: {
                 title: ({integrationName}: {integrationName: string}) => `修复 ${integrationName} 连接`,
@@ -3068,6 +3086,11 @@ ${
         toGetStarted: '添加一个银行账户，用于报销费用、发放 Expensify 卡、收取发票款项并在同一处支付账单。',
         plaidBodyCopy: '为员工提供更便捷的方式来支付并报销公司费用。',
         checkHelpLine: '您的路由号码和账号可以在该账户的支票上找到。',
+        bankAccountPurposeTitle: '您想用您的银行账户做什么？',
+        getReimbursed: '获得报销',
+        getReimbursedDescription: '由雇主或其他人报销',
+        makePayments: '进行付款',
+        makePaymentsDescription: '支付费用或发行Expensify卡',
         hasPhoneLoginError: (contactMethodRoute: string) =>
             `要连接银行账户，请先<a href="${contactMethodRoute}">添加一个邮箱作为您的主要登录方式</a>，然后重试。您可以将手机号添加为次要登录方式。`,
         hasBeenThrottledError: '添加您的银行账户时出错。请稍等几分钟后重试。',
@@ -5270,8 +5293,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             editTags: '编辑标签',
             findTag: '查找标签',
             subtitle: '标签可用于以更细致的方式分类成本。',
-            subtitleWithDependentTags: (importSpreadsheetLink: string) =>
-                `<muted-text>标签可用于以更细致的方式分类成本。您正在使用<a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">依赖标签</a>。您可以<a href="${importSpreadsheetLink}">重新导入电子表格</a>来更新您的标签。</muted-text>`,
+            dependentMultiLevelTagsSubtitle: (importSpreadsheetLink: string) =>
+                `<muted-text>您正在使用<a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">依赖标签</a>。您可以<a href="${importSpreadsheetLink}">重新导入电子表格</a>来更新您的标签。</muted-text>`,
             emptyTags: {
                 title: '你还没有创建任何标签',
                 subtitle: '添加标签，以跟踪项目、地点、部门等。',
@@ -7256,6 +7279,7 @@ ${reportName}
         parentNavigationSummary: ({reportName, workspaceName}: ParentNavigationSummaryParams) => `来自${reportName}${workspaceName ? `在 ${workspaceName} 中` : ''}`,
     },
     qrCodes: {
+        qrCode: '二维码',
         copy: '复制 URL',
         copied: '已复制！',
     },
@@ -7831,10 +7855,19 @@ ${reportName}
             security: 'Expensify 符合 PCI-DSS 标准，使用银行级加密，并采用冗余基础设施来保护您的数据。',
             learnMoreAboutSecurity: '详细了解我们的安全措施。',
         },
+        expensifyCode: {
+            title: 'Expensify代码',
+            discountCode: '折扣代码',
+            enterCode: '输入Expensify代码以应用于您的订阅。',
+            apply: '应用',
+            error: {
+                invalid: '此代码无效',
+            },
+        },
         subscriptionSettings: {
             title: '订阅设置',
-            summary: ({subscriptionType, subscriptionSize, autoRenew, autoIncrease}: SubscriptionSettingsSummaryParams) =>
-                `订阅类型：${subscriptionType}，订阅规模：${subscriptionSize}，自动续订：${autoRenew}，年度席位自动增加：${autoIncrease}`,
+            summary: ({subscriptionType, subscriptionSize, expensifyCode, autoRenew, autoIncrease}: SubscriptionSettingsSummaryParams) =>
+                `订阅类型：${subscriptionType}，订阅规模：${subscriptionSize}${expensifyCode ? `，Expensify代码：${expensifyCode}` : ''}，自动续订：${autoRenew}，年度席位自动增加：${autoIncrease}`,
             none: '无',
             on: '开在',
             off: '关关闭',
@@ -8238,6 +8271,7 @@ ${reportName}
             forceTwoFactorAuthError: '无法更改强制启用双重身份验证设置。请稍后再试。',
         },
         common: {settings: '设置'},
+        groups: {title: '群组', memberCount: () => ({one: '1 名成员', other: (count: number) => `${count} 名成员`})},
     },
 };
 export default translations;

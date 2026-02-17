@@ -596,6 +596,14 @@ const translations = {
         week: 'Week',
         year: 'Year',
         quarter: 'Quarter',
+        expensifyLogo: 'Expensify logo',
+    },
+    socials: {
+        podcast: 'Follow us on Podcast',
+        twitter: 'Follow us on Twitter',
+        instagram: 'Follow us on Instagram',
+        facebook: 'Follow us on Facebook',
+        linkedin: 'Follow us on LinkedIn',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -703,6 +711,15 @@ const translations = {
             rejectAuthentication: 'Reject authentication',
             test: 'Test',
             biometricsAuthentication: 'Biometric authentication',
+            authType: {
+                unknown: 'Unknown',
+                none: 'None',
+                credentials: 'Credentials',
+                biometrics: 'Biometrics',
+                faceId: 'Face ID',
+                touchId: 'Touch ID',
+                opticId: 'Optic ID',
+            },
         },
         pleaseEnableInSystemSettings: {
             start: 'Please enable face/fingerprint verification or set a device passcode in your ',
@@ -710,6 +727,7 @@ const translations = {
             end: '.',
         },
         oops: 'Oops, something went wrong',
+        verificationFailed: 'Verification failed',
         looksLikeYouRanOutOfTime: 'Looks like you ran out of time! Please try again at the merchant.',
         youRanOutOfTime: 'You ran out of time',
         letsVerifyItsYou: 'Let’s verify it’s you',
@@ -722,7 +740,7 @@ const translations = {
             biometrics: 'Enable quick, secure verification using your face or fingerprint. No passwords or codes required.',
         },
         revoke: {
-            remove: 'Remove',
+            revoke: 'Revoke',
             title: 'Face/fingerprint & passkeys',
             explanation: 'Face/fingerprint or passkey verification are enabled on one or more devices. Revoking access will require a magic code for the next verification on any device.',
             confirmationPrompt: "Are you sure? You'll need a magic code for the next verification on any device.",
@@ -975,7 +993,8 @@ const translations = {
             },
             fixCompanyCardConnection: {
                 title: ({feedName}: {feedName: string}) => (feedName ? `Fix ${feedName} company card connection` : 'Fix company card connection'),
-                subtitle: 'Workspace > Company cards',
+                defaultSubtitle: 'Workspace > Company cards',
+                subtitle: ({policyName}: {policyName: string}) => `${policyName} > Company cards`,
             },
             fixAccountingConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Fix ${integrationName} connection`,
@@ -3149,6 +3168,11 @@ const translations = {
         toGetStarted: 'Add a bank account to reimburse expenses, issue Expensify Cards, collect invoice payments, and pay bills all from one place.',
         plaidBodyCopy: 'Give your employees an easier way to pay - and get paid back - for company expenses.',
         checkHelpLine: 'Your routing number and account number can be found on a check for the account.',
+        bankAccountPurposeTitle: 'What do you want to do with your bank account?',
+        getReimbursed: 'Get reimbursed',
+        getReimbursedDescription: 'By employer or others',
+        makePayments: 'Make payments',
+        makePaymentsDescription: 'Pay expenses or issue Expensify Cards',
         hasPhoneLoginError: (contactMethodRoute: string) =>
             `To connect a bank account, please <a href="${contactMethodRoute}">add an email as your primary login</a> and try again. You can add your phone number as a secondary login.`,
         hasBeenThrottledError: 'An error occurred while adding your bank account. Please wait a few minutes and try again.',
@@ -5353,8 +5377,8 @@ const translations = {
             findTag: 'Find tag',
             subtitle: 'Tags add more detailed ways to classify costs.',
             // TODO: Add a actual link to the help article https://github.com/Expensify/App/issues/63612
-            subtitleWithDependentTags: (importSpreadsheetLink: string) =>
-                `<muted-text>Tags add more detailed ways to classify costs. You are using <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">dependent tags</a>. You can <a href="${importSpreadsheetLink}">reimport a spreadsheet</a> to update your tags.</muted-text>`,
+            dependentMultiLevelTagsSubtitle: (importSpreadsheetLink: string) =>
+                `<muted-text>You are using <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">dependent tags</a>. You can <a href="${importSpreadsheetLink}">reimport a spreadsheet</a> to update your tags.</muted-text>`,
             emptyTags: {
                 title: "You haven't created any tags",
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
@@ -7386,6 +7410,7 @@ const translations = {
         parentNavigationSummary: ({reportName, workspaceName}: ParentNavigationSummaryParams) => `From ${reportName}${workspaceName ? ` in ${workspaceName}` : ''}`,
     },
     qrCodes: {
+        qrCode: 'QR code',
         copy: 'Copy URL',
         copied: 'Copied!',
     },
@@ -7979,10 +8004,19 @@ const translations = {
             security: 'Expensify is PCI-DSS compliant, uses bank-level encryption, and utilizes redundant infrastructure to protect your data.',
             learnMoreAboutSecurity: 'Learn more about our security.',
         },
+        expensifyCode: {
+            title: 'Expensify code',
+            discountCode: 'Discount code',
+            enterCode: 'Enter an Expensify code to apply to your subscription.',
+            apply: 'Apply',
+            error: {
+                invalid: 'This code is invalid',
+            },
+        },
         subscriptionSettings: {
             title: 'Subscription settings',
-            summary: ({subscriptionType, subscriptionSize, autoRenew, autoIncrease}: SubscriptionSettingsSummaryParams) =>
-                `Subscription type: ${subscriptionType}, Subscription size: ${subscriptionSize}, Auto renew: ${autoRenew}, Auto increase annual seats: ${autoIncrease}`,
+            summary: ({subscriptionType, subscriptionSize, expensifyCode, autoRenew, autoIncrease}: SubscriptionSettingsSummaryParams) =>
+                `Subscription type: ${subscriptionType}, Subscription size: ${subscriptionSize}${expensifyCode ? `, Expensify code: ${expensifyCode}` : ''}, Auto renew: ${autoRenew}, Auto increase annual seats: ${autoIncrease}`,
             none: 'none',
             on: 'on',
             off: 'off',
@@ -8392,6 +8426,15 @@ const translations = {
         },
         common: {
             settings: 'Settings',
+        },
+        groups: {
+            title: 'Groups',
+            memberCount: () => {
+                return {
+                    one: '1 member',
+                    other: (count: number) => `${count} members`,
+                };
+            },
         },
     },
 };
