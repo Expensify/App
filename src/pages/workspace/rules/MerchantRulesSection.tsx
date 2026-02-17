@@ -6,6 +6,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
@@ -14,7 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
-import {getCleanedTagName} from '@libs/PolicyUtils';
+import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {CodingRule} from '@src/types/onyx/Policy';
@@ -44,7 +45,7 @@ function getRuleDescription(rule: CodingRule, translate: ReturnType<typeof useLo
         actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.category, getDecodedCategoryName(rule.category)));
     }
     if (rule.tag) {
-        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.tag, getCleanedTagName(rule.tag)));
+        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.tag, getCommaSeparatedTagNameWithSanitizedColons(rule.tag)));
     }
     if (rule.comment) {
         const commentMarkdown = Parser.htmlToMarkdown(rule.comment);
@@ -70,6 +71,7 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
     const theme = useTheme();
     const policy = usePolicy(policyID);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
+    const {isProduction} = useEnvironment();
 
     // Hoist iterator-independent translations to avoid redundant calls in the loop
     const fieldLabels: FieldLabels = useMemo(
@@ -100,6 +102,10 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
                 return 0;
             });
     }, [codingRules]);
+
+    if (isProduction) {
+        return null;
+    }
 
     const renderTitle = () => (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>

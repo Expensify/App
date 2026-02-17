@@ -4,7 +4,7 @@ import {renderHook, waitFor} from '@testing-library/react-native';
 import {format} from 'date-fns';
 import {deepEqual} from 'fast-equals';
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry, OnyxInputValue, OnyxMultiSetInput} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxInputValue, OnyxKey, OnyxMultiSetInput} from 'react-native-onyx';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SearchQueryJSON, SearchStatus} from '@components/Search/types';
 import useOnyx from '@hooks/useOnyx';
@@ -18,6 +18,7 @@ import {
     cancelPayment,
     canIOUBePaid,
     canUnapproveIOU,
+    clearBulkEditDraftTransaction,
     convertBulkTrackedExpensesToIOU,
     createDistanceRequest,
     deleteMoneyRequest,
@@ -27,6 +28,7 @@ import {
     getReportOriginalCreationTimestamp,
     getReportPreviewAction,
     handleNavigateAfterExpenseCreate,
+    initBulkEditDraftTransaction,
     initMoneyRequest,
     markRejectViolationAsResolved,
     payMoneyRequest,
@@ -39,17 +41,13 @@ import {
     submitPerDiemExpense,
     submitReport,
     trackExpense,
+    updateBulkEditDraftTransaction,
     updateMoneyRequestAmountAndCurrency,
     updateMoneyRequestAttendees,
     updateMoneyRequestCategory,
-    updateMoneyRequestDate,
-    updateMoneyRequestDescription,
     updateMoneyRequestDistance,
-    updateMoneyRequestDistanceRate,
-    updateMoneyRequestMerchant,
     updateMoneyRequestTag,
-    updateMoneyRequestTaxAmount,
-    updateMoneyRequestTaxRate,
+    updateMultipleMoneyRequests,
 } from '@libs/actions/IOU';
 import {putOnHold} from '@libs/actions/IOU/Hold';
 import {getSendInvoiceInformation} from '@libs/actions/IOU/SendInvoice';
@@ -128,7 +126,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     dismissModalWithReport: jest.fn(),
     goBack: jest.fn(),
     getTopmostReportId: jest.fn(() => topMostReportID),
-    getSearchTopmostReportId: jest.fn(() => topMostReportID),
     setNavigationActionToMicrotaskQueue: jest.fn(),
     removeScreenByKey: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
@@ -9951,35 +9948,6 @@ describe('actions/IOU', () => {
                 });
             });
         });
-
-        it('should call notifyNewAction after updating the money request category', async () => {
-            const transactionID = '100';
-            const transactionThreadReport = {reportID: '3'} as Report;
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(22),
-                taxRates: CONST.DEFAULT_TAX,
-                rules: {},
-            };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {amount: 100, transactionID});
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}3`, transactionThreadReport);
-
-            updateMoneyRequestCategory({
-                transactionID,
-                transactionThreadReport,
-                parentReport: undefined,
-                category: 'Advertising',
-                policy: fakePolicy,
-                policyTagList: undefined,
-                policyCategories: undefined,
-                policyRecentlyUsedCategories: [],
-                currentUserAccountIDParam: 123,
-                currentUserEmailParam: 'existing@example.com',
-                isASAPSubmitBetaEnabled: false,
-                parentReportNextStep: undefined,
-            });
-
-            expect(notifyNewAction).toHaveBeenCalledTimes(1);
-        });
     });
 
     describe('should have valid parameters', () => {
@@ -10879,56 +10847,6 @@ describe('actions/IOU', () => {
             });
             expect(updatedTransaction?.modifiedAmount).toBe('');
         });
-
-        it('should call notifyNewAction after updating the money request amount and currency', async () => {
-            const fakeReport: Report = {
-                ...createRandomReport(100, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                policyID: '1',
-                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-                managerID: RORY_ACCOUNT_ID,
-            };
-            const fakeTransaction: Transaction = {
-                ...createRandomTransaction(100),
-                reportID: fakeReport.reportID,
-                amount: 100,
-                currency: CONST.CURRENCY.USD,
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
-
-            updateMoneyRequestAmountAndCurrency({
-                transactionID: fakeTransaction.transactionID,
-                transactionThreadReport: fakeReport,
-                parentReport: undefined,
-                amount: 20000,
-                currency: CONST.CURRENCY.USD,
-                taxAmount: 0,
-                taxCode: '',
-                taxValue: '',
-                policy: {
-                    id: '123',
-                    role: CONST.POLICY.ROLE.USER,
-                    type: CONST.POLICY.TYPE.TEAM,
-                    name: '',
-                    owner: '',
-                    outputCurrency: '',
-                    isPolicyExpenseChatEnabled: false,
-                },
-                policyTagList: {},
-                policyCategories: {},
-                transactions: {},
-                transactionViolations: {},
-                currentUserAccountIDParam: 123,
-                currentUserEmailParam: 'existing@example.com',
-                isASAPSubmitBetaEnabled: false,
-                parentReportNextStep: undefined,
-                policyRecentlyUsedCurrencies: [],
-            });
-
-            expect(notifyNewAction).toHaveBeenCalledTimes(1);
-        });
     });
 
     describe('updateMoneyRequestAmountAndCurrency', () => {
@@ -11007,6 +10925,391 @@ describe('actions/IOU', () => {
 
             const updatedViolations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
             expect(updatedViolations).toEqual([]);
+        });
+    });
+
+    describe('updateMultipleMoneyRequests', () => {
+        it('applies expense report sign to amount updates', () => {
+            const transactionID = 'transaction-1';
+            const transactionThreadReportID = 'thread-1';
+            const iouReportID = 'iou-1';
+            const policy = createRandomPolicy(1, CONST.POLICY.TYPE.TEAM);
+
+            const transactionThread: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: transactionThreadReportID,
+                parentReportID: iouReportID,
+                policyID: policy.id,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: iouReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`]: transactionThread,
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID,
+                reportID: iouReportID,
+                transactionThreadReportID,
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            const buildOptimisticSpy = jest.spyOn(require('@libs/ReportUtils'), 'buildOptimisticModifiedExpenseReportAction');
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            updateMultipleMoneyRequests([transactionID], {amount: 1000}, policy, reports, transactions, {});
+
+            const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
+            const updates = JSON.parse(params.updates) as {amount: number};
+            expect(updates.amount).toBe(1000);
+            expect(buildOptimisticSpy).toHaveBeenCalledWith(
+                transactionThread,
+                transaction,
+                expect.objectContaining({amount: 1000, currency: CONST.CURRENCY.USD}),
+                true,
+                policy,
+                expect.anything(),
+            );
+
+            writeSpy.mockRestore();
+            buildOptimisticSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+        });
+
+        it('skips updates when bulk edit value matches the current transaction field', () => {
+            const transactionID = 'transaction-1';
+            const transactionThreadReportID = 'thread-1';
+            const iouReportID = 'iou-1';
+            const policy = createRandomPolicy(1, CONST.POLICY.TYPE.TEAM);
+
+            const transactionThread: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: transactionThreadReportID,
+                parentReportID: iouReportID,
+                policyID: policy.id,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: iouReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`]: transactionThread,
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID,
+                reportID: iouReportID,
+                transactionThreadReportID,
+                amount: -1000,
+                currency: CONST.CURRENCY.USD,
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            updateMultipleMoneyRequests([transactionID], {amount: 1000}, policy, reports, transactions, {});
+
+            expect(writeSpy).not.toHaveBeenCalled();
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+        });
+
+        it('updates report totals across multiple transactions in the same report', () => {
+            const firstTransactionID = 'transaction-4';
+            const secondTransactionID = 'transaction-5';
+            const iouReportID = 'iou-4';
+            const policy = createRandomPolicy(4, CONST.POLICY.TYPE.TEAM);
+
+            const iouReport: Report = {
+                ...createRandomReport(4, undefined),
+                reportID: iouReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                total: -2600,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+            };
+
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransactionID}`]: {
+                    ...createRandomTransaction(4),
+                    transactionID: firstTransactionID,
+                    reportID: iouReportID,
+                    amount: -1300,
+                    currency: CONST.CURRENCY.USD,
+                },
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${secondTransactionID}`]: {
+                    ...createRandomTransaction(5),
+                    transactionID: secondTransactionID,
+                    reportID: iouReportID,
+                    amount: -1300,
+                    currency: CONST.CURRENCY.USD,
+                },
+            };
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            updateMultipleMoneyRequests([firstTransactionID, secondTransactionID], {amount: 1000}, policy, reports, transactions, {});
+
+            const getOptimisticTotal = (callIndex: number) => {
+                const onyxData = writeSpy.mock.calls.at(callIndex)?.[2] as {optimisticData: Array<{key: string; value?: {total?: number}}>};
+                const reportUpdate = onyxData.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
+                return reportUpdate?.value?.total;
+            };
+
+            expect(getOptimisticTotal(0)).toBe(-2300);
+            expect(getOptimisticTotal(1)).toBe(-2000);
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+        });
+
+        it('supports negative amount updates for expense reports', () => {
+            const transactionID = 'transaction-3';
+            const transactionThreadReportID = 'thread-3';
+            const iouReportID = 'iou-3';
+            const policy = createRandomPolicy(3, CONST.POLICY.TYPE.TEAM);
+
+            const transactionThread: Report = {
+                ...createRandomReport(3, undefined),
+                reportID: transactionThreadReportID,
+                parentReportID: iouReportID,
+                policyID: policy.id,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(4, undefined),
+                reportID: iouReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`]: transactionThread,
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(3),
+                transactionID,
+                reportID: iouReportID,
+                transactionThreadReportID,
+                // Expense reports store amounts with the opposite sign of what the UI displays.
+                amount: -1000,
+                currency: CONST.CURRENCY.USD,
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            const buildOptimisticSpy = jest.spyOn(require('@libs/ReportUtils'), 'buildOptimisticModifiedExpenseReportAction');
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            updateMultipleMoneyRequests([transactionID], {amount: -1000}, policy, reports, transactions, {});
+
+            const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
+            const updates = JSON.parse(params.updates) as {amount: number};
+            expect(updates.amount).toBe(-1000);
+            expect(buildOptimisticSpy).toHaveBeenCalledWith(
+                transactionThread,
+                transaction,
+                expect.objectContaining({amount: -1000, currency: CONST.CURRENCY.USD}),
+                true,
+                policy,
+                expect.anything(),
+            );
+
+            writeSpy.mockRestore();
+            buildOptimisticSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+        });
+
+        it('sends billable and reimbursable updates for bulk edit', () => {
+            const transactionID = 'transaction-7';
+            const transactionThreadReportID = 'thread-7';
+            const iouReportID = 'iou-7';
+            const policy = createRandomPolicy(7, CONST.POLICY.TYPE.TEAM);
+
+            const transactionThread: Report = {
+                ...createRandomReport(7, undefined),
+                reportID: transactionThreadReportID,
+                parentReportID: iouReportID,
+                policyID: policy.id,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(8, undefined),
+                reportID: iouReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`]: transactionThread,
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(7),
+                transactionID,
+                reportID: iouReportID,
+                transactionThreadReportID,
+                amount: 1000,
+                billable: false,
+                reimbursable: true,
+                currency: CONST.CURRENCY.USD,
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            updateMultipleMoneyRequests([transactionID], {billable: true, reimbursable: false}, policy, reports, transactions, {});
+
+            const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
+            const updates = JSON.parse(params.updates) as {billable: boolean; reimbursable: boolean};
+            expect(updates.billable).toBe(true);
+            expect(updates.reimbursable).toBe(false);
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+        });
+
+        it('keeps invoice amount updates positive', () => {
+            const transactionID = 'transaction-2';
+            const transactionThreadReportID = 'thread-2';
+            const iouReportID = 'iou-2';
+            const policy = createRandomPolicy(2, CONST.POLICY.TYPE.TEAM);
+
+            const transactionThread: Report = {
+                ...createRandomReport(3, undefined),
+                reportID: transactionThreadReportID,
+                parentReportID: iouReportID,
+                policyID: policy.id,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(4, undefined),
+                reportID: iouReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.INVOICE,
+            };
+
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`]: transactionThread,
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(2),
+                transactionID,
+                reportID: iouReportID,
+                transactionThreadReportID,
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            const buildOptimisticSpy = jest.spyOn(require('@libs/ReportUtils'), 'buildOptimisticModifiedExpenseReportAction');
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            updateMultipleMoneyRequests([transactionID], {amount: 1000}, policy, reports, transactions, {});
+
+            const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
+            const updates = JSON.parse(params.updates) as {amount: number};
+            expect(updates.amount).toBe(1000);
+            expect(buildOptimisticSpy).toHaveBeenCalledWith(
+                transactionThread,
+                transaction,
+                expect.objectContaining({amount: 1000, currency: CONST.CURRENCY.USD}),
+                false,
+                policy,
+                expect.anything(),
+            );
+
+            writeSpy.mockRestore();
+            buildOptimisticSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+        });
+    });
+
+    describe('bulk edit draft transaction', () => {
+        const draftKey = `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}` as OnyxKey;
+
+        it('initializes the bulk edit draft transaction', async () => {
+            await Onyx.set(draftKey, {amount: 1000});
+            await waitForBatchedUpdates();
+
+            const testTransactionIDs = ['transaction1', 'transaction2', 'transaction3'];
+            initBulkEditDraftTransaction(testTransactionIDs);
+            await waitForBatchedUpdates();
+
+            const draftTransaction = await getOnyxValue(draftKey);
+            expect(draftTransaction).toMatchObject({
+                transactionID: CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID,
+                amount: 1000,
+                selectedTransactionIDs: testTransactionIDs,
+            });
+        });
+
+        it('updates the bulk edit draft transaction', async () => {
+            await Onyx.set(draftKey, {transactionID: CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID, merchant: 'Gym'});
+            await waitForBatchedUpdates();
+
+            updateBulkEditDraftTransaction({amount: 1000});
+            await waitForBatchedUpdates();
+
+            const draftTransaction = await getOnyxValue(draftKey);
+            expect(draftTransaction).toMatchObject({
+                transactionID: CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID,
+                merchant: 'Gym',
+                amount: 1000,
+            });
+        });
+
+        it('clears the bulk edit draft transaction', async () => {
+            await Onyx.set(draftKey, {transactionID: CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID, amount: 1000});
+            await waitForBatchedUpdates();
+
+            clearBulkEditDraftTransaction();
+            await waitForBatchedUpdates();
+
+            const draftTransaction = await getOnyxValue(draftKey);
+            expect(draftTransaction).toBeUndefined();
         });
     });
 
@@ -12868,270 +13171,6 @@ describe('actions/IOU', () => {
             });
             expect(newPolicyRecentlyUsedTags[tagName].length).toBe(2);
             expect(newPolicyRecentlyUsedTags[tagName].at(0)).toBe(newTag);
-        });
-
-        it('should call notifyNewAction after updating the money request tag', async () => {
-            const policy = createRandomPolicy(100);
-            const transactionThreadReport = {reportID: '23', parentReportID: '34'} as Report;
-            const parentReport = {reportID: '34', policyID: policy.id} as Report;
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}23`, transactionThreadReport);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}34`, parentReport);
-
-            updateMoneyRequestTag({
-                transactionID: '100',
-                transactionThreadReport,
-                parentReport,
-                tag: 'new tag',
-                policy,
-                policyTagList: {},
-                policyRecentlyUsedTags: undefined,
-                policyCategories: undefined,
-                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                currentUserEmailParam: currentUserPersonalDetails.email ?? '',
-                isASAPSubmitBetaEnabled: false,
-                parentReportNextStep: undefined,
-            });
-
-            expect(notifyNewAction).toHaveBeenCalledTimes(1);
-        });
-    });
-
-    describe('updateMoneyRequestDate', () => {
-        it('should call notifyNewAction after updating the money request date', async () => {
-            const fakeReport: Report = {
-                ...createRandomReport(100, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                policyID: '1',
-            };
-            const fakeTransaction: Transaction = {
-                ...createRandomTransaction(100),
-                reportID: fakeReport.reportID,
-                amount: 100,
-                currency: CONST.CURRENCY.USD,
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
-
-            updateMoneyRequestDate({
-                transactionID: fakeTransaction.transactionID,
-                transactionThreadReport: fakeReport,
-                parentReport: undefined,
-                transactions: {},
-                transactionViolations: {},
-                value: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
-                policy: {
-                    id: '123',
-                    role: CONST.POLICY.ROLE.USER,
-                    type: CONST.POLICY.TYPE.TEAM,
-                    name: '',
-                    owner: '',
-                    outputCurrency: '',
-                    isPolicyExpenseChatEnabled: false,
-                },
-                policyTags: {},
-                policyCategories: {},
-                currentUserAccountIDParam: 123,
-                currentUserEmailParam: 'existing@example.com',
-                isASAPSubmitBetaEnabled: false,
-                parentReportNextStep: undefined,
-            });
-
-            expect(notifyNewAction).toHaveBeenCalledTimes(1);
-        });
-    });
-
-    describe('updateMoneyRequestMerchant', () => {
-        it('should call notifyNewAction after updating the money request merchant', async () => {
-            const fakeReport: Report = {
-                ...createRandomReport(100, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                policyID: '1',
-            };
-            const fakeTransaction: Transaction = {
-                ...createRandomTransaction(100),
-                reportID: fakeReport.reportID,
-                amount: 100,
-                currency: CONST.CURRENCY.USD,
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
-
-            updateMoneyRequestMerchant({
-                transactionID: fakeTransaction.transactionID,
-                transactionThreadReport: fakeReport,
-                parentReport: undefined,
-                value: 'Test Merchant',
-                policy: {
-                    id: '123',
-                    role: CONST.POLICY.ROLE.USER,
-                    type: CONST.POLICY.TYPE.TEAM,
-                    name: '',
-                    owner: '',
-                    outputCurrency: '',
-                    isPolicyExpenseChatEnabled: false,
-                },
-                policyTagList: {},
-                policyCategories: {},
-                currentUserAccountIDParam: 123,
-                currentUserEmailParam: 'existing@example.com',
-                isASAPSubmitBetaEnabled: false,
-                parentReportNextStep: undefined,
-            });
-
-            expect(notifyNewAction).toHaveBeenCalledTimes(1);
-        });
-    });
-
-    describe('updateMoneyRequestTaxRate', () => {
-        it('should call notifyNewAction after updating the money request tax rate', async () => {
-            const fakeReport: Report = {
-                ...createRandomReport(100, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                policyID: '1',
-            };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`, fakeReport);
-
-            updateMoneyRequestTaxRate({
-                transactionID: '1',
-                transactionThreadReport: fakeReport,
-                parentReport: undefined,
-                taxCode: 'id_TAX_RATE_1',
-                taxAmount: 5,
-                taxValue: '5%',
-                policy: {
-                    id: '123',
-                    role: CONST.POLICY.ROLE.USER,
-                    type: CONST.POLICY.TYPE.TEAM,
-                    name: '',
-                    owner: '',
-                    outputCurrency: '',
-                    isPolicyExpenseChatEnabled: false,
-                },
-                policyTagList: {},
-                policyCategories: {},
-                currentUserAccountIDParam: 123,
-                currentUserEmailParam: 'existing@example.com',
-                isASAPSubmitBetaEnabled: false,
-                parentReportNextStep: undefined,
-            });
-
-            expect(notifyNewAction).toHaveBeenCalledTimes(1);
-        });
-    });
-
-    describe('updateMoneyRequestDescription', () => {
-        it('should call notifyNewAction after updating the money request description', async () => {
-            const fakeReport: Report = {
-                ...createRandomReport(100, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                policyID: '1',
-            };
-            const fakeTransaction: Transaction = {
-                ...createRandomTransaction(100),
-                reportID: fakeReport.reportID,
-                amount: 100,
-                currency: CONST.CURRENCY.USD,
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
-
-            updateMoneyRequestDescription({
-                transactionID: fakeTransaction.transactionID,
-                transactionThreadReport: fakeReport,
-                parentReport: undefined,
-                comment: 'Test description',
-                policy: {
-                    id: '123',
-                    role: CONST.POLICY.ROLE.USER,
-                    type: CONST.POLICY.TYPE.TEAM,
-                    name: '',
-                    owner: '',
-                    outputCurrency: '',
-                    isPolicyExpenseChatEnabled: false,
-                },
-                policyTagList: {},
-                policyCategories: {},
-                currentUserAccountIDParam: 123,
-                currentUserEmailParam: 'existing@example.com',
-                isASAPSubmitBetaEnabled: false,
-                parentReportNextStep: undefined,
-            });
-
-            expect(notifyNewAction).toHaveBeenCalledTimes(1);
-        });
-    });
-
-    describe('updateMoneyRequestDistanceRate', () => {
-        it('should call notifyNewAction after updating the money request distance rate', async () => {
-            const fakeReport: Report = {
-                ...createRandomReport(1, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                policyID: '1',
-            };
-            const fakePolicy = createRandomPolicy(123);
-            const fakeTransaction: Transaction = {
-                ...createRandomTransaction(1),
-                reportID: fakeReport.reportID,
-                amount: 10000,
-                currency: CONST.CURRENCY.USD,
-                comment: {
-                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
-                    customUnit: {
-                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
-                        quantity: 10,
-                    },
-                },
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}123`, fakePolicy);
-
-            updateMoneyRequestDistanceRate({
-                transactionID: fakeTransaction.transactionID,
-                transactionThreadReport: fakeReport,
-                parentReport: undefined,
-                rateID: 'rate_1',
-                policy: fakePolicy,
-                policyTagList: {},
-                policyCategories: {},
-                currentUserAccountIDParam: 123,
-                currentUserEmailParam: 'existing@example.com',
-                isASAPSubmitBetaEnabled: false,
-                parentReportNextStep: undefined,
-            });
-
-            expect(notifyNewAction).toHaveBeenCalledTimes(1);
-        });
-    });
-
-    describe('updateMoneyRequestTaxAmount', () => {
-        it('should call notifyNewAction after updating the money request tax amount', async () => {
-            const fakeReport: Report = {
-                ...createRandomReport(1, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                policyID: '1',
-            };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`, fakeReport);
-
-            updateMoneyRequestTaxAmount({
-                transactionID: '1',
-                transactionThreadReport: fakeReport,
-                parentReport: undefined,
-                taxAmount: 10,
-                policy: {
-                    id: '123',
-                    role: CONST.POLICY.ROLE.USER,
-                    type: CONST.POLICY.TYPE.TEAM,
-                    name: '',
-                    owner: '',
-                    outputCurrency: '',
-                    isPolicyExpenseChatEnabled: false,
-                },
-                policyTagList: {},
-                policyCategories: {},
-                currentUserAccountIDParam: 123,
-                currentUserEmailParam: 'existing@example.com',
-                isASAPSubmitBetaEnabled: false,
-                parentReportNextStep: undefined,
-            });
-
-            expect(notifyNewAction).toHaveBeenCalledTimes(1);
         });
     });
 

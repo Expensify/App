@@ -29,9 +29,12 @@ type ReceiptPreviewsProps = {
 
     /** If the receipts preview should be shown */
     isMultiScanEnabled: boolean;
+
+    /** If a photo is currently being captured */
+    isCapturingPhoto?: boolean;
 };
 
-function ReceiptPreviews({submit, isMultiScanEnabled}: ReceiptPreviewsProps) {
+function ReceiptPreviews({submit, isMultiScanEnabled, isCapturingPhoto = false}: ReceiptPreviewsProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -133,7 +136,7 @@ function ReceiptPreviews({submit, isMultiScanEnabled}: ReceiptPreviewsProps) {
                 <SubmitButtonShadow>
                     <Button
                         large
-                        isDisabled={!optimisticTransactionsReceipts?.length}
+                        isDisabled={!optimisticTransactionsReceipts?.length || isCapturingPhoto}
                         innerStyles={[styles.singleAvatarMedium, styles.bgGreenSuccess]}
                         icon={icons.ArrowRight}
                         iconFill={theme.white}

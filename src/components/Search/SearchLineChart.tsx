@@ -1,6 +1,6 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {LineChart} from '@components/Charts';
-import type {ChartDataPoint, YAxisUnitPosition} from '@components/Charts';
+import type {ChartDataPoint, YAxisUnit, YAxisUnitPosition} from '@components/Charts';
 import {convertToFrontendAmountAsInteger} from '@libs/CurrencyUtils';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {GroupedItem} from './types';
@@ -27,42 +27,37 @@ type SearchLineChartProps = {
     /** Whether data is loading */
     isLoading?: boolean;
 
-    /** Currency symbol for Y-axis labels */
-    yAxisUnit?: string;
+    /** Currency symbol for Y-axis labels with font fallback support. */
+    yAxisUnit?: YAxisUnit;
 
     /** Position of currency symbol relative to value */
     yAxisUnitPosition?: YAxisUnitPosition;
 };
 
 function SearchLineChart({data, title, titleIcon, getLabel, getFilterQuery, onItemPress, isLoading, yAxisUnit, yAxisUnitPosition}: SearchLineChartProps) {
-    const chartData: ChartDataPoint[] = useMemo(() => {
-        return data.map((item) => {
-            const currency = item.currency ?? 'USD';
-            const totalInDisplayUnits = convertToFrontendAmountAsInteger(item.total ?? 0, currency);
+    const chartData: ChartDataPoint[] = data.map((item) => {
+        const currency = item.currency ?? 'USD';
+        const totalInDisplayUnits = convertToFrontendAmountAsInteger(item.total ?? 0, currency);
 
-            return {
-                label: getLabel(item),
-                total: totalInDisplayUnits,
-            };
-        });
-    }, [data, getLabel]);
+        return {
+            label: getLabel(item),
+            total: totalInDisplayUnits,
+        };
+    });
 
-    const handlePointPress = useCallback(
-        (dataPoint: ChartDataPoint, index: number) => {
-            if (!onItemPress) {
-                return;
-            }
+    const handlePointPress = (dataPoint: ChartDataPoint, index: number) => {
+        if (!onItemPress) {
+            return;
+        }
 
-            const item = data.at(index);
-            if (!item) {
-                return;
-            }
+        const item = data.at(index);
+        if (!item) {
+            return;
+        }
 
-            const filterQuery = getFilterQuery(item);
-            onItemPress(filterQuery);
-        },
-        [data, getFilterQuery, onItemPress],
-    );
+        const filterQuery = getFilterQuery(item);
+        onItemPress(filterQuery);
+    };
 
     return (
         <LineChart

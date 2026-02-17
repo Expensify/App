@@ -1,10 +1,11 @@
 /* eslint-disable max-lines */
 // TODO: Remove this disable once SearchUIUtils is refactored (see dedicated refactor issue)
-import {endOfMonth, format, startOfMonth, startOfYear, subMonths} from 'date-fns';
+import type {FeedKeysWithAssignedCards} from '@selectors/Card';
+import {addDays, endOfMonth, format, parse, startOfMonth, startOfYear, subDays, subMonths} from 'date-fns';
 import type {TextStyle, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {CurrencyListContextProps} from '@components/CurrencyListContextProvider';
+import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider';
 import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {MenuItemWithLink} from '@components/MenuItemList';
@@ -479,6 +480,7 @@ type GetSectionsParams = {
     isActionLoadingSet?: ReadonlySet<string>;
     isOffline?: boolean;
     cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>;
+    cardList?: OnyxTypes.CardList;
     customCardNames?: Record<number, string>;
     allTransactionViolations?: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     allReportMetadata: OnyxCollection<OnyxTypes.ReportMetadata>;
@@ -2284,6 +2286,7 @@ function getCardSections(
     translate: LocalizedTranslate,
     cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>,
     customCardNames?: Record<number, string>,
+    cardList?: OnyxTypes.CardList,
 ): [TransactionCardGroupListItemType[], number] {
     const cardSections: Record<string, TransactionCardGroupListItemType> = {};
 
@@ -2304,6 +2307,8 @@ function getCardSections(
                 continue;
             }
 
+            const card = cardList?.[cardGroup.cardID];
+
             cardSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.CARD,
                 transactions: [],
@@ -2317,6 +2322,7 @@ function getCardSections(
                             cardID: cardGroup.cardID,
                             bank: cardGroup.bank,
                             cardName: cardGroup.cardName,
+                            fundID: card?.fundID,
                             lastFourPAN: cardGroup.lastFourPAN,
                         } as OnyxTypes.Card,
                         translate,
@@ -2524,6 +2530,7 @@ function getTagSections(data: OnyxTypes.SearchResults['data'], queryJSON: Search
  */
 function getMonthSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionMonthGroupListItemType[], number] {
     const monthSections: Record<string, TransactionMonthGroupListItemType> = {};
+    const dateFilters = queryJSON?.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
     for (const key in data) {
         if (isGroupEntry(key)) {
             const monthGroup = data[key];
@@ -2532,9 +2539,8 @@ function getMonthSections(data: OnyxTypes.SearchResults['data'], queryJSON: Sear
                 continue;
             }
             let transactionsQueryJSON: SearchQueryJSON | undefined;
+            const {start: monthStart, end: monthEnd} = adjustTimeRangeToDateFilters(DateUtils.getMonthDateRange(monthGroup.year, monthGroup.month), dateFilters);
             if (queryJSON && monthGroup.year && monthGroup.month) {
-                // Create date range for the month (first day to last day of the month)
-                const {start: monthStart, end: monthEnd} = DateUtils.getMonthDateRange(monthGroup.year, monthGroup.month);
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
                 newFlatFilters.push({
                     key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
@@ -2573,6 +2579,7 @@ function getMonthSections(data: OnyxTypes.SearchResults['data'], queryJSON: Sear
  */
 function getWeekSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionWeekGroupListItemType[], number] {
     const weekSections: Record<string, TransactionWeekGroupListItemType> = {};
+    const dateFilters = queryJSON?.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
     for (const key in data) {
         if (isGroupEntry(key)) {
             const weekGroup = data[key];
@@ -2581,10 +2588,7 @@ function getWeekSections(data: OnyxTypes.SearchResults['data'], queryJSON: Searc
                 continue;
             }
             let transactionsQueryJSON: SearchQueryJSON | undefined;
-            const {start: weekStart, end: weekEnd} = adjustTimeRangeToDateFilters(
-                DateUtils.getWeekDateRange(weekGroup.week),
-                queryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE),
-            );
+            const {start: weekStart, end: weekEnd} = adjustTimeRangeToDateFilters(DateUtils.getWeekDateRange(weekGroup.week), dateFilters);
             if (queryJSON && weekGroup.week) {
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
                 newFlatFilters.push({
@@ -2620,6 +2624,7 @@ function getWeekSections(data: OnyxTypes.SearchResults['data'], queryJSON: Searc
  */
 function getYearSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionYearGroupListItemType[], number] {
     const yearSections: Record<string, TransactionYearGroupListItemType> = {};
+    const dateFilters = queryJSON?.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
     for (const key in data) {
         if (isGroupEntry(key)) {
             const yearGroup = data[key];
@@ -2628,8 +2633,7 @@ function getYearSections(data: OnyxTypes.SearchResults['data'], queryJSON: Searc
                 continue;
             }
             let transactionsQueryJSON: SearchQueryJSON | undefined;
-            const yearStart = `${yearGroup.year}-01-01`;
-            const yearEnd = `${yearGroup.year}-12-31`;
+            const {start: yearStart, end: yearEnd} = adjustTimeRangeToDateFilters(DateUtils.getYearDateRange(yearGroup.year), dateFilters);
             if (queryJSON && yearGroup.year !== undefined) {
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
                 newFlatFilters.push({
@@ -2662,6 +2666,7 @@ function getYearSections(data: OnyxTypes.SearchResults['data'], queryJSON: Searc
 
 function getQuarterSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionQuarterGroupListItemType[], number] {
     const quarterSections: Record<string, TransactionQuarterGroupListItemType> = {};
+    const dateFilters = queryJSON?.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
     for (const key in data) {
         if (isGroupEntry(key)) {
             const quarterGroup = data[key];
@@ -2670,7 +2675,7 @@ function getQuarterSections(data: OnyxTypes.SearchResults['data'], queryJSON: Se
                 continue;
             }
             let transactionsQueryJSON: SearchQueryJSON | undefined;
-            const {start: quarterStart, end: quarterEnd} = DateUtils.getQuarterDateRange(quarterGroup.year, quarterGroup.quarter);
+            const {start: quarterStart, end: quarterEnd} = adjustTimeRangeToDateFilters(DateUtils.getQuarterDateRange(quarterGroup.year, quarterGroup.quarter), dateFilters);
             if (queryJSON && quarterGroup.year !== undefined && quarterGroup.quarter !== undefined) {
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
                 newFlatFilters.push({
@@ -2743,6 +2748,7 @@ function getSections({
     customCardNames,
     allTransactionViolations,
     allReportMetadata,
+    cardList,
 }: GetSectionsParams) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getReportActionsSections(data);
@@ -2776,7 +2782,7 @@ function getSections({
             case CONST.SEARCH.GROUP_BY.FROM:
                 return getMemberSections(data, queryJSON, formatPhoneNumber);
             case CONST.SEARCH.GROUP_BY.CARD:
-                return getCardSections(data, queryJSON, translate, cardFeeds, customCardNames);
+                return getCardSections(data, queryJSON, translate, cardFeeds, customCardNames, cardList);
             case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
                 return getWithdrawalIDSections(data, queryJSON);
             case CONST.SEARCH.GROUP_BY.CATEGORY:
@@ -3859,7 +3865,7 @@ function getViewOptions(translate: LocalizedTranslate) {
     return Object.values(CONST.SEARCH.VIEW).map<SingleSelectItem<SearchView>>((value) => ({text: translate(`search.view.${value}`), value}));
 }
 
-function getGroupCurrencyOptions(currencyList: OnyxTypes.CurrencyList, getCurrencySymbol: CurrencyListContextProps['getCurrencySymbol']) {
+function getGroupCurrencyOptions(currencyList: OnyxTypes.CurrencyList, getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol']) {
     return Object.keys(currencyList).reduce(
         (options, currencyCode) => {
             if (!currencyList?.[currencyCode]?.retired) {
@@ -3872,8 +3878,13 @@ function getGroupCurrencyOptions(currencyList: OnyxTypes.CurrencyList, getCurren
     );
 }
 
-function getFeedOptions(allCardFeeds: OnyxCollection<OnyxTypes.CardFeeds>, allCards: OnyxTypes.CardList | undefined, translate: LocalizedTranslate) {
-    return Object.values(getCardFeedsForDisplay(allCardFeeds, allCards, translate)).map<SingleSelectItem<string>>((cardFeed) => ({
+function getFeedOptions(
+    allCardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
+    allCards: OnyxTypes.CardList | undefined,
+    translate: LocalizedTranslate,
+    feedKeysWithCards?: FeedKeysWithAssignedCards,
+) {
+    return Object.values(getCardFeedsForDisplay(allCardFeeds, allCards, translate, feedKeysWithCards)).map<SingleSelectItem<string>>((cardFeed) => ({
         text: cardFeed.name,
         value: cardFeed.id,
     }));
@@ -3943,57 +3954,79 @@ function isDatePreset(value: string | number | undefined): value is SearchDatePr
     return Object.values(CONST.SEARCH.DATE_PRESETS).some((datePreset) => datePreset === value);
 }
 
-function adjustTimeRangeToDateFilters(timeRange: {start: string; end: string}, dateFilter: QueryFilters[0] | undefined): {start: string; end: string} {
-    if (!dateFilter?.filters) {
+/**
+ * Adjusts a time range based on date filters, intersecting preset ranges with additional constraints.
+ * When combining date presets (e.g., `date:on=last_month`) with constraints (e.g., `date:>=2025-04-01`),
+ * takes the intersection to narrow the range rather than overwriting it.
+ *
+ * @param timeRange - The base time range to adjust (e.g., a year/month/quarter range)
+ * @param flatFilters - Optional array of date filter objects from the search query
+ * @returns Adjusted time range that respects all date filters (intersected, not overwritten)
+ */
+function adjustTimeRangeToDateFilters(timeRange: {start: string; end: string}, dateFilters: QueryFilters | undefined): {start: string; end: string} {
+    if (!dateFilters || dateFilters.length === 0) {
         return timeRange;
     }
 
+    const flattenFilters = dateFilters.flatMap((filter) => filter.filters || []);
+
     const {start: timeRangeStart, end: timeRangeEnd} = timeRange;
-    const startLimitFilter = dateFilter.filters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO);
-    const endLimitFilter = dateFilter.filters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO);
-    const equalToFilter = dateFilter.filters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+    const equalToFilter = flattenFilters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
 
     let limitsStart: string | undefined;
     let limitsEnd: string | undefined;
-
-    if (startLimitFilter?.value) {
-        const value = String(startLimitFilter.value);
-        if (isDatePreset(value)) {
-            const presetRange = getDateRangeForPreset(value);
-            limitsStart = presetRange.start || undefined;
-        } else {
-            limitsStart = value;
-        }
-    }
-
-    if (endLimitFilter?.value) {
-        const value = String(endLimitFilter.value);
-        if (isDatePreset(value)) {
-            const presetRange = getDateRangeForPreset(value);
-            limitsEnd = presetRange.end || undefined;
-        } else {
-            limitsEnd = value;
-        }
-    }
-
+    // Date presets come with the equals operator, so we need to check if the value is a date preset
     if (equalToFilter?.value) {
         const value = String(equalToFilter.value);
         if (isDatePreset(value)) {
             const presetRange = getDateRangeForPreset(value);
-            if (presetRange.start && presetRange.end) {
-                if (!limitsStart) {
-                    limitsStart = presetRange.start;
-                }
-                if (!limitsEnd) {
-                    limitsEnd = presetRange.end;
-                }
-                if (limitsStart && presetRange.start > limitsStart) {
-                    limitsStart = presetRange.start;
-                }
-                if (limitsEnd && presetRange.end < limitsEnd) {
-                    limitsEnd = presetRange.end;
-                }
-            }
+            limitsStart = presetRange.start || undefined;
+            limitsEnd = presetRange.end || undefined;
+        } else {
+            limitsStart = value;
+            limitsEnd = value;
+        }
+    }
+
+    let startLimitFilter = flattenFilters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO);
+    if (startLimitFilter?.value) {
+        const constraintStart = String(startLimitFilter.value);
+        if (limitsStart) {
+            limitsStart = limitsStart > constraintStart ? limitsStart : constraintStart;
+        } else {
+            limitsStart = constraintStart;
+        }
+    }
+
+    startLimitFilter = flattenFilters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN);
+    if (startLimitFilter?.value) {
+        const date = parse(String(startLimitFilter.value), 'yyyy-MM-dd', new Date());
+        const constraintStart = format(addDays(date, 1), 'yyyy-MM-dd');
+        if (limitsStart) {
+            limitsStart = limitsStart > constraintStart ? limitsStart : constraintStart;
+        } else {
+            limitsStart = constraintStart;
+        }
+    }
+
+    let endLimitFilter = flattenFilters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO);
+    if (endLimitFilter?.value) {
+        const constraintEnd = String(endLimitFilter.value);
+        if (limitsEnd) {
+            limitsEnd = limitsEnd < constraintEnd ? limitsEnd : constraintEnd;
+        } else {
+            limitsEnd = constraintEnd;
+        }
+    }
+
+    endLimitFilter = flattenFilters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN);
+    if (endLimitFilter?.value) {
+        const date = parse(String(endLimitFilter.value), 'yyyy-MM-dd', new Date());
+        const constraintEnd = format(subDays(date, 1), 'yyyy-MM-dd');
+        if (limitsEnd) {
+            limitsEnd = limitsEnd < constraintEnd ? limitsEnd : constraintEnd;
+        } else {
+            limitsEnd = constraintEnd;
         }
     }
 
@@ -4555,6 +4588,40 @@ function getTableMinWidth(columns: SearchColumnType[]) {
     return minWidth;
 }
 
+/**
+ * Determine policyID based on selected transactions:
+ * - If all selected transactions belong to the same policy, use that policy
+ * - Otherwise, fall back to the user's active workspace policy
+ */
+function getSearchBulkEditPolicyID(
+    selectedTransactionIDs: string[],
+    activePolicyID: string | undefined,
+    allTransactions: OnyxCollection<OnyxTypes.Transaction> | undefined,
+    allReports: OnyxCollection<OnyxTypes.Report> | undefined,
+): string | undefined {
+    if (selectedTransactionIDs.length === 0) {
+        return activePolicyID;
+    }
+
+    const policyIDs = selectedTransactionIDs.map((transactionID) => {
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        if (!transaction?.reportID) {
+            return undefined;
+        }
+        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+        return report?.policyID;
+    });
+
+    const firstPolicyID = policyIDs.at(0);
+    const allSamePolicy = policyIDs.every((policyID) => policyID === firstPolicyID);
+
+    if (allSamePolicy && firstPolicyID) {
+        return firstPolicyID;
+    }
+
+    return activePolicyID;
+}
+
 function filterValidHasValues(hasValues: string[] | undefined, type: SearchDataTypes | undefined, translate: LocalizedTranslate): string[] | undefined {
     if (!hasValues || !type) {
         return undefined;
@@ -4621,6 +4688,7 @@ function shouldShowDeleteOption(
 }
 
 export {
+    getSearchBulkEditPolicyID,
     getSuggestedSearches,
     getDefaultActionableSearchMenuItem,
     getListItem,

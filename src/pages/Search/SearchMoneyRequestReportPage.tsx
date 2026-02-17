@@ -32,7 +32,7 @@ import {
     getReportAction,
     isMoneyRequestAction,
 } from '@libs/ReportActionsUtils';
-import {isValidReportIDFromPath} from '@libs/ReportUtils';
+import {isMoneyRequestReport, isValidReportIDFromPath} from '@libs/ReportUtils';
 import {isDefaultAvatar, isLetterAvatar, isPresetAvatar} from '@libs/UserAvatarUtils';
 import Navigation from '@navigation/Navigation';
 import ReactionListWrapper from '@pages/inbox/ReactionListWrapper';
@@ -65,9 +65,31 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
     const {currentSearchResults: snapshot} = useSearchContext();
 
+    const firstRenderRef = useRef(true);
+
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
+    const prevReport = usePrevious(report);
 
     const isFocused = useIsFocused();
+
+    // Dismiss modal when the money request report is removed (e.g. deleted or merged).
+    useEffect(() => {
+        // Skip first run so we don't dismiss on mount when report may still be loading.
+        if (firstRenderRef.current) {
+            firstRenderRef.current = false;
+            return;
+        }
+
+        // Report is gone now but we had a money request report before → it was removed.
+        const isRemovalExpectedForReportType = !report && isMoneyRequestReport(prevReport);
+
+        if (isRemovalExpectedForReportType) {
+            if (!isFocused) {
+                return;
+            }
+            Navigation.dismissModal();
+        }
+    }, [report]);
 
     useEffect(() => {
         // Update last visit time when the expense super wide RHP report is focused

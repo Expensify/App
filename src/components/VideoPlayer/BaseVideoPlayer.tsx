@@ -9,7 +9,7 @@ import {View} from 'react-native';
 import {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import LoadingIndicator from '@components/LoadingIndicator';
 import Hoverable from '@components/Hoverable';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {useFullScreenContext} from '@components/VideoPlayerContexts/FullScreenContext';
@@ -513,12 +513,7 @@ function BaseVideoPlayer({
                                 )}
                             </PressableWithoutFeedback>
                             {shouldShowErrorIndicator && <VideoErrorIndicator isPreview={isPreview} />}
-                            {shouldShowLoadingIndicator && (
-                                <FullScreenLoadingIndicator
-                                    style={[styles.opacity1, styles.bgTransparent]}
-                                    shouldUseGoBackButton={false}
-                                />
-                            )}
+                            {shouldShowLoadingIndicator && <LoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
                             {shouldShowOfflineIndicator && <AttachmentOfflineIndicator isPreview={isPreview} />}
                             {controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE &&
                                 !shouldShowLoadingIndicator &&

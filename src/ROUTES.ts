@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 /**
  * NOTE!!!!
  *
@@ -5,7 +6,7 @@
  */
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {UpperCaseCharacters} from 'type-fest/source/internal';
-import type {AllMultifactorAuthenticationOutcomeType, MultifactorAuthenticationPromptType} from './components/MultifactorAuthentication/config/types';
+import type {MultifactorAuthenticationPromptType} from './components/MultifactorAuthentication/config/types';
 import type {SearchFilterKey, SearchQueryString, UserFriendlyKey} from './components/Search/types';
 import type CONST from './CONST';
 import type {IOUAction, IOUType, OdometerImageType} from './CONST';
@@ -177,6 +178,19 @@ const ROUTES = {
         },
     },
     SEARCH_REJECT_REASON_RHP: 'search/reject',
+    SEARCH_EDIT_MULTIPLE_TRANSACTIONS_RHP: 'search/edit-multiple-transactions',
+    SEARCH_EDIT_MULTIPLE_AMOUNT_RHP: 'search/edit-multiple/amount',
+    SEARCH_EDIT_MULTIPLE_DESCRIPTION_RHP: 'search/edit-multiple/description',
+    SEARCH_EDIT_MULTIPLE_MERCHANT_RHP: 'search/edit-multiple/merchant',
+    SEARCH_EDIT_MULTIPLE_DATE_RHP: 'search/edit-multiple/date',
+    SEARCH_EDIT_MULTIPLE_CATEGORY_RHP: 'search/edit-multiple/category',
+    SEARCH_EDIT_MULTIPLE_TAG_RHP: {
+        route: 'search/edit-multiple/tag/:tagListIndex',
+        getRoute: (tagListIndex = 0) => `search/edit-multiple/tag/${tagListIndex}` as const,
+    },
+    SEARCH_EDIT_MULTIPLE_BILLABLE_RHP: 'search/edit-multiple/billable',
+    SEARCH_EDIT_MULTIPLE_REIMBURSABLE_RHP: 'search/edit-multiple/reimbursable',
+    SEARCH_EDIT_MULTIPLE_TAX_RHP: 'search/edit-multiple/tax',
     MOVE_TRANSACTIONS_SEARCH_RHP: {
         route: 'search/move-transactions/search/:backTo?',
         getRoute: (backTo?: string) => {
@@ -229,9 +243,27 @@ const ROUTES = {
     BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
     BANK_ACCOUNT_WITH_STEP_TO_OPEN: {
         route: 'bank-account/:stepToOpen?',
-        getRoute: (policyID: string | undefined, stepToOpen: ReimbursementAccountStepToOpen = '', backTo?: string, subStepToOpen?: typeof CONST.BANK_ACCOUNT.STEP.COUNTRY) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the BANK_ACCOUNT_WITH_STEP_TO_OPEN route');
+        getRoute: ({
+            policyID,
+            stepToOpen = '',
+            bankAccountID,
+            backTo,
+            subStepToOpen,
+        }: {
+            policyID: string | undefined;
+            stepToOpen?: ReimbursementAccountStepToOpen;
+            bankAccountID?: number;
+            backTo?: string;
+            subStepToOpen?: typeof CONST.BANK_ACCOUNT.STEP.COUNTRY;
+        }) => {
+            if (!policyID && !bankAccountID) {
+                // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+                return getUrlWithBackToParam(`bank-account/${stepToOpen}`, backTo);
+            }
+
+            if (bankAccountID) {
+                // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+                return getUrlWithBackToParam(`bank-account/${stepToOpen}?bankAccountID=${bankAccountID}`, backTo);
             }
             // TODO this backTo comes from drilling it through bank account form screens
             // should be removed once https://github.com/Expensify/App/pull/72219 is resolved
@@ -251,12 +283,6 @@ const ROUTES = {
     BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT: {
         route: 'bank-account/connect-existing-business-bank-account',
         getRoute: (policyID: string) => `bank-account/connect-existing-business-bank-account?policyID=${policyID}` as const,
-    },
-    PUBLIC_CONSOLE_DEBUG: {
-        route: 'troubleshoot/console',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`troubleshoot/console`, backTo),
     },
     SETTINGS: 'settings',
     SETTINGS_PROFILE: {
@@ -284,6 +310,7 @@ const ROUTES = {
         getRoute: (canChangeSize: 0 | 1) => `settings/subscription/subscription-size?canChangeSize=${canChangeSize as number}` as const,
     },
     SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS: 'settings/subscription/details',
+    SETTINGS_SUBSCRIPTION_EXPENSIFY_CODE: 'settings/subscription/details/expensify-code',
     SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD: 'settings/subscription/add-payment-card',
     SETTINGS_SUBSCRIPTION_CHANGE_BILLING_CURRENCY: 'settings/subscription/change-billing-currency',
     SETTINGS_SUBSCRIPTION_CHANGE_PAYMENT_CURRENCY: 'settings/subscription/add-payment-card/change-payment-currency',
@@ -417,6 +444,7 @@ const ROUTES = {
     SETTINGS_ADD_US_BANK_ACCOUNT: 'settings/wallet/add-us-bank-account',
     SETTINGS_ADD_US_BANK_ACCOUNT_ENTRY_POINT: 'settings/wallet/add-us-bank-account/entry-point',
     SETTINGS_ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT: `settings/wallet/add-bank-account/select-country/${VERIFY_ACCOUNT}`,
+    SETTINGS_BANK_ACCOUNT_PURPOSE: 'settings/wallet/bank-account-purpose',
     SETTINGS_ENABLE_PAYMENTS: 'settings/wallet/enable-payments',
     SETTINGS_WALLET_UNSHARE_BANK_ACCOUNT: {
         route: 'settings/wallet/:bankAccountID/unshare-bank-account',
@@ -469,17 +497,19 @@ const ROUTES = {
         route: 'settings/wallet/card/:cardID/activate',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}/activate` as const,
     },
+    SETTINGS_WALLET_TRAVEL_CVV: 'settings/wallet/travel-cvv',
+    SETTINGS_WALLET_TRAVEL_CVV_VERIFY_ACCOUNT: `settings/wallet/travel-cvv/${VERIFY_ACCOUNT}`,
     SETTINGS_RULES: 'settings/rules',
     SETTINGS_RULES_ADD: {
-        route: 'settings/rules/new/:field?',
-        getRoute: (field?: ValueOf<typeof CONST.EXPENSE_RULES.FIELDS>) => {
-            return `settings/rules/new/${field ? StringUtils.camelToHyphenCase(field) : ''}` as const;
+        route: 'settings/rules/new/:field?/:index?',
+        getRoute: (field?: ValueOf<typeof CONST.EXPENSE_RULES.FIELDS>, index?: number) => {
+            return `settings/rules/new/${field ? StringUtils.camelToHyphenCase(field) : ''}${index !== undefined ? `/${index === -1 ? ':index' : index}` : ''}` as const;
         },
     },
     SETTINGS_RULES_EDIT: {
-        route: 'settings/rules/edit/:hash/:field?',
-        getRoute: (hash?: string, field?: ValueOf<typeof CONST.EXPENSE_RULES.FIELDS>) => {
-            return `settings/rules/edit/${hash ?? ':hash'}/${field ? StringUtils.camelToHyphenCase(field) : ''}` as const;
+        route: 'settings/rules/edit/:hash/:field?/:index?',
+        getRoute: (hash?: string, field?: ValueOf<typeof CONST.EXPENSE_RULES.FIELDS>, index?: number) => {
+            return `settings/rules/edit/${hash ?? ':hash'}/${field ? StringUtils.camelToHyphenCase(field) : ''}${index !== undefined ? `/${index === -1 ? ':index' : index}` : ''}` as const;
         },
     },
     SETTINGS_LEGAL_NAME: 'settings/profile/legal-name',
@@ -571,16 +601,6 @@ const ROUTES = {
     SETTINGS_STATUS_CLEAR_AFTER_TIME: 'settings/profile/status/clear-after/time',
     SETTINGS_VACATION_DELEGATE: 'settings/profile/status/vacation-delegate',
     SETTINGS_TROUBLESHOOT: 'settings/troubleshoot',
-    SETTINGS_CONSOLE: {
-        route: 'settings/troubleshoot/console',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`settings/troubleshoot/console`, backTo),
-    },
-    SETTINGS_SHARE_LOG: {
-        route: 'settings/troubleshoot/console/share-log',
-        getRoute: (source: string) => `settings/troubleshoot/console/share-log?source=${encodeURI(source)}` as const,
-    },
 
     SETTINGS_EXIT_SURVEY_REASON: 'settings/exit-survey/reason',
 
@@ -2809,8 +2829,8 @@ const ROUTES = {
         getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/category` as const,
     },
     RULES_MERCHANT_TAG: {
-        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/tag',
-        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/tag` as const,
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/tag/:orderWeight',
+        getRoute: (policyID: string, ruleID?: string, orderWeight?: number) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/tag/${orderWeight}` as const,
     },
     RULES_MERCHANT_TAX: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/tax',
@@ -3905,10 +3925,8 @@ const ROUTES = {
     MULTIFACTOR_AUTHENTICATION_MAGIC_CODE: `multifactor-authentication/magic-code`,
     MULTIFACTOR_AUTHENTICATION_BIOMETRICS_TEST: 'multifactor-authentication/scenario/biometrics-test',
 
-    MULTIFACTOR_AUTHENTICATION_OUTCOME: {
-        route: 'multifactor-authentication/outcome/:outcomeType',
-        getRoute: (outcomeType: AllMultifactorAuthenticationOutcomeType) => `multifactor-authentication/outcome/${outcomeType}` as const,
-    },
+    MULTIFACTOR_AUTHENTICATION_OUTCOME_SUCCESS: 'multifactor-authentication/outcome/success',
+    MULTIFACTOR_AUTHENTICATION_OUTCOME_FAILURE: 'multifactor-authentication/outcome/failure',
 
     MULTIFACTOR_AUTHENTICATION_PROMPT: {
         route: `multifactor-authentication/prompt/:promptType`,
@@ -3918,6 +3936,11 @@ const ROUTES = {
     MULTIFACTOR_AUTHENTICATION_NOT_FOUND: 'multifactor-authentication/not-found',
 
     MULTIFACTOR_AUTHENTICATION_REVOKE: 'multifactor-authentication/revoke',
+
+    DOMAIN_GROUPS: {
+        route: 'domain/:domainAccountID/groups',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/groups` as const,
+    },
 } as const;
 
 /**
