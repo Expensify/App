@@ -108,9 +108,13 @@ const ROUTES = {
     },
     SEARCH_COLUMNS: 'search/columns',
     SEARCH_ADVANCED_FILTERS: {
-        route: 'search/filters/:filterKey?',
-        getRoute: (filterKey?: SearchFilterKey | UserFriendlyKey) => {
-            return `search/filters/${filterKey ?? ''}` as const;
+        route: 'search/filters/:filterKey?/:subPage?',
+        getRoute: (filterKey?: SearchFilterKey | UserFriendlyKey, subPage?: string) => {
+            const baseRoute = `search/filters/${filterKey ?? ''}` as const;
+            if (!subPage || !filterKey) {
+                return baseRoute;
+            }
+            return `${baseRoute}/${encodeURIComponent(subPage)}` as const;
         },
     },
     SEARCH_REPORT: {
