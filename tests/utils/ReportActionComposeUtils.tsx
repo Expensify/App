@@ -8,6 +8,7 @@ import ReportActionCompose from '@pages/inbox/report/ReportActionCompose/ReportA
 import {ReportActionEditMessageContextProvider} from '@pages/inbox/report/ReportActionEditMessageContext';
 import type {ReportActionItemMessageEditProps} from '@pages/inbox/report/ReportActionItemMessageEdit';
 import ReportActionItemMessageEdit from '@pages/inbox/report/ReportActionItemMessageEdit';
+import {KeyboardStateProvider} from '@src/components/withKeyboardState';
 import * as LHNTestUtils from './LHNTestUtils';
 
 const defaultReport = LHNTestUtils.getFakeReport();
@@ -17,7 +18,7 @@ function ReportActionEditMessageContextProviderForReport({children}: PropsWithCh
 }
 
 function ReportScreenProviders({children}: PropsWithChildren) {
-    return <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, ReportActionEditMessageContextProviderForReport]}>{children}</ComposeProviders>;
+    return <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, KeyboardStateProvider, ReportActionEditMessageContextProviderForReport]}>{children}</ComposeProviders>;
 }
 
 const defaultReportActionComposeProps: ReportActionComposeProps = {
@@ -27,8 +28,8 @@ const defaultReportActionComposeProps: ReportActionComposeProps = {
     report: defaultReport,
 };
 
-const renderReportActionCompose = (props?: Partial<ReportActionComposeProps>) => {
-    return render(
+function ReportActionComposeWrapper(props?: Partial<ReportActionComposeProps>) {
+    return (
         <ReportScreenProviders>
             <ReportActionCompose
                 // eslint-disable-next-line react/jsx-props-no-spreading
@@ -36,8 +37,13 @@ const renderReportActionCompose = (props?: Partial<ReportActionComposeProps>) =>
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             />
-        </ReportScreenProviders>,
+        </ReportScreenProviders>
     );
+}
+
+const renderReportActionCompose = (props?: Partial<ReportActionComposeProps>) => {
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    return render(<ReportActionComposeWrapper {...props} />);
 };
 
 const defaultReportActionItemMessageEditProps: ReportActionItemMessageEditProps = {
@@ -84,4 +90,4 @@ const renderReportActionMessageEditComponents = (
     );
 };
 
-export {renderReportActionCompose, renderReportActionItemMessageEdit, renderReportActionMessageEditComponents};
+export {ReportActionComposeWrapper, renderReportActionCompose, renderReportActionItemMessageEdit, renderReportActionMessageEditComponents};
