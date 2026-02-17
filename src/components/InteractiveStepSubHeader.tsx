@@ -2,6 +2,7 @@ import type {ForwardedRef} from 'react';
 import React, {useImperativeHandle, useState} from 'react';
 import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
@@ -41,6 +42,7 @@ const MIN_AMOUNT_OF_STEPS = 2;
 
 function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected, ref}: InteractiveStepSubHeaderProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const containerWidthStyle: ViewStyle = stepNames.length < MIN_AMOUNT_FOR_EXPANDING ? styles.mnw60 : styles.mnw100;
 
     if (stepNames.length < MIN_AMOUNT_OF_STEPS) {
@@ -67,7 +69,11 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected
     const amountOfUnions = stepNames.length - 1;
 
     return (
-        <View style={[styles.interactiveStepHeaderContainer, containerWidthStyle]}>
+        <View
+            style={[styles.interactiveStepHeaderContainer, containerWidthStyle]}
+            focusable
+            accessibilityLabel={translate('stepCounter', {step: currentStep + 1, total: stepNames.length})}
+        >
             {stepNames.map((stepName, index) => {
                 const isCompletedStep = currentStep > index;
                 const isLockedStep = currentStep < index;
@@ -99,10 +105,10 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected
                             ]}
                             disabled={isLockedStep || !onStepSelected}
                             onPress={moveToStep}
-                            accessible
-                            accessibilityLabel={`${index + 1}`}
-                            aria-current={currentStep === index ? 'step' : undefined}
+                            accessible={false}
+                            aria-hidden
                             role={CONST.ROLE.BUTTON}
+                            sentryLabel={CONST.SENTRY_LABEL.INTERACTIVE_STEP_SUB_HEADER.STEP_BUTTON}
                         >
                             {isCompletedStep ? (
                                 <Icon

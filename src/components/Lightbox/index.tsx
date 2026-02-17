@@ -20,7 +20,19 @@ import CONST from '@src/CONST';
 import type {Dimensions} from '@src/types/utils/Layout';
 import NUMBER_OF_CONCURRENT_LIGHTBOXES from './numberOfConcurrentLightboxes';
 
+const FALLBACK_OFFSET = 2;
+
 const cachedImageDimensions = new Map<string, Dimensions | undefined>();
+
+function getImagePriority(isActive: boolean, isLightboxVisible: boolean) {
+    if (isActive) {
+        return CONST.IMAGE_LOADING_PRIORITY.HIGH;
+    }
+    if (isLightboxVisible) {
+        return CONST.IMAGE_LOADING_PRIORITY.NORMAL;
+    }
+    return CONST.IMAGE_LOADING_PRIORITY.LOW;
+}
 
 type LightboxProps = Pick<Attachment, 'attachmentID'> & {
     /** Whether source url requires authentication */
@@ -144,10 +156,16 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
         const indexOutOfRange = page > activePage + indexCanvasOffset || page < activePage - indexCanvasOffset;
         return !indexOutOfRange;
     }, [activePage, hasSiblingCarouselItems, page]);
+
+    // Limits fallback image rendering to only a few pages around the active page.
+    // This prevents distant carousel items from queuing unnecessary image downloads,
+    // which would starve the active image of network bandwidth.
+    const isFallbackInRange = !hasSiblingCarouselItems || Math.abs(page - activePage) <= FALLBACK_OFFSET;
+
     const [isLightboxImageLoaded, setLightboxImageLoaded] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
-    const [isFallbackVisible, setFallbackVisible] = useState(!isLightboxVisible);
+    const [isFallbackVisible, setFallbackVisible] = useState(!isLightboxVisible && isFallbackInRange);
     const [isFallbackImageLoaded, setFallbackImageLoaded] = useState(false);
     const previousUri = usePrevious(uri);
 
@@ -214,10 +232,11 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
         }
 
         // If the carousel item has become inactive and the lightbox is not continued to be rendered, we want to show the fallback image
+        // but only if the page is within the fallback range to avoid unnecessary image downloads
         if (!isActive && !isLightboxVisible) {
-            setFallbackVisible(true);
+            setFallbackVisible(isFallbackInRange);
         }
-    }, [hasSiblingCarouselItems, isActive, isFallbackVisible, isLightboxImageLoaded, isLightboxVisible]);
+    }, [hasSiblingCarouselItems, isActive, isFallbackInRange, isFallbackVisible, isLightboxImageLoaded, isLightboxVisible]);
 
     const scaleChange = useCallback(
         (scale: number) => {
@@ -227,11 +246,14 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
         [onScaleChangedContext, onScaleChangedProp],
     );
 
+    const imagePriority = getImagePriority(isActive, isLightboxVisible);
+
     const isALocalFile = isLocalFile(uri);
     const shouldShowOfflineIndicator = isOffline && !isLoading && !isALocalFile;
 
     return (
         <View
+            testID="lightbox-wrapper"
             style={[StyleSheet.absoluteFill, style]}
             onLayout={updateCanvasSize}
         >
@@ -257,6 +279,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                                     source={{uri}}
                                     style={[contentSize ?? styles.invisibleImage]}
                                     isAuthTokenRequired={isAuthTokenRequired}
+                                    priority={imagePriority}
                                     onError={onError}
                                     onLoad={(e) => {
                                         updateContentSize(e);
@@ -279,13 +302,14 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                     )}
 
                     {/* Keep rendering the image without gestures as fallback if the carousel item is not active and while the lightbox is loading the image */}
-                    {isFallbackVisible && (
+                    {isFallbackVisible && isFallbackInRange && (
                         <View style={StyleUtils.getFullscreenCenteredContentStyles()}>
                             <Image
                                 source={{uri}}
                                 resizeMode="contain"
                                 style={[fallbackSize ?? styles.invisibleImage]}
                                 isAuthTokenRequired={isAuthTokenRequired}
+                                priority={imagePriority}
                                 onLoad={(e) => {
                                     updateContentSize(e);
                                     setFallbackImageLoaded(true);

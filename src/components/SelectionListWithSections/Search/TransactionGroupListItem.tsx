@@ -534,6 +534,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                             onPress={onExpandIconPress}
                             expandButtonStyle={styles.pv4Half}
                             shouldShowToggleButton={isLargeScreenWidth}
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH.GROUP_EXPAND_TOGGLE}
                         >
                             <TransactionGroupListExpandedItem
                                 showTooltip={showTooltip}

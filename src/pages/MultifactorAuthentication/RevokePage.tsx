@@ -1,6 +1,5 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -14,12 +13,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {revokeMultifactorAuthenticationCredentials} from '@libs/actions/MultifactorAuthentication';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {hasBiometricsRegisteredSelector} from '@src/selectors/Account';
-import type {Account} from '@src/types/onyx';
+import {hasBiometricsRegisteredSelector, isAccountLoadingSelector} from '@src/selectors/Account';
 
-function getIsLoading(data: OnyxEntry<Account>) {
-    return !!data?.isLoading;
-}
 function MultifactorAuthenticationRevokePage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -27,7 +22,7 @@ function MultifactorAuthenticationRevokePage() {
     const [errorMessage, setErrorMessage] = useState<string | undefined>();
 
     const [hasDevices] = useOnyx(ONYXKEYS.ACCOUNT, {selector: hasBiometricsRegisteredSelector, canBeMissing: true});
-    const [isLoading] = useOnyx(ONYXKEYS.ACCOUNT, {selector: getIsLoading, canBeMissing: true});
+    const [isLoading] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isAccountLoadingSelector, canBeMissing: true});
 
     const onGoBackPress = () => {
         Navigation.goBack();
@@ -45,7 +40,7 @@ function MultifactorAuthenticationRevokePage() {
         const result = await revokeMultifactorAuthenticationCredentials();
 
         hideConfirmModal();
-        if (result.httpCode !== 200) {
+        if (result.httpStatusCode !== 200) {
             setErrorMessage(translate('multifactorAuthentication.revoke.error'));
         }
     };

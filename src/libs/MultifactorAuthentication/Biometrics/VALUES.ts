@@ -33,10 +33,7 @@ const REASON = {
         REVOKE_SUCCESSFUL: 'Revoked successfully',
     },
     CHALLENGE: {
-        COULD_NOT_RETRIEVE_A_CHALLENGE: 'Could not retrieve a challenge',
         CHALLENGE_MISSING: 'Challenge is missing',
-        CHALLENGE_ALREADY_SIGNED: 'Challenge is already signed',
-        CHALLENGE_RECEIVED: 'Challenge received successfully',
         CHALLENGE_SIGNED: 'Challenge signed successfully',
     },
     EXPO: {
@@ -49,14 +46,12 @@ const REASON = {
         GENERIC: 'An error occurred',
     },
     GENERIC: {
-        SIGNATURE_INVALID: 'Signature is invalid',
         SIGNATURE_MISSING: 'Signature is missing',
-        NO_ACTION_MADE_YET: 'No action has been made yet',
-        VALIDATE_CODE_MISSING: 'Validate code is missing',
         NO_ELIGIBLE_METHODS: 'No eligible methods available',
         UNSUPPORTED_DEVICE: 'Unsupported device',
         BAD_REQUEST: 'Bad request',
         LOCAL_REGISTRATION_COMPLETE: 'Local registration complete',
+        UNHANDLED_ERROR: 'An unhandled error occurred',
     },
     KEYSTORE: {
         KEY_DELETED: 'Key successfully deleted from SecureStore',
@@ -195,6 +190,7 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
         REGISTRATION: 'registration',
         AUTHENTICATION: 'authentication',
     },
+
     /**
      * One of these parameters are always present in any MFA request.
      * Validate code in the registration and signedChallenge in the authentication.
@@ -205,6 +201,7 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
     },
     API_RESPONSE_MAP,
     REASON,
+
     /**
      * Specifically meaningful values for `multifactorAuthenticationPublicKeyIDs` in the `account` Onyx key.
      * Casting `[] as string[]` is necessary to allow us to actually store the value in Onyx. Otherwise the
@@ -213,6 +210,18 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
      */
     PUBLIC_KEYS_PREVIOUSLY_BUT_NOT_CURRENTLY_REGISTERED: [] as string[],
     PUBLIC_KEYS_AUTHENTICATION_NEVER_REGISTERED: undefined,
+
+    /**
+     * Callback response values that determine what the MultifactorAuthenticationContext should do
+     * after a scenario callback is executed.
+     */
+    CALLBACK_RESPONSE: {
+        /** Skip the outcome screen - the callback handles navigation itself */
+        SKIP_OUTCOME_SCREEN: 'SKIP_OUTCOME_SCREEN',
+
+        /** Show the outcome screen - continue with normal flow */
+        SHOW_OUTCOME_SCREEN: 'SHOW_OUTCOME_SCREEN',
+    },
 } as const;
 
 export {MultifactorAuthenticationCallbacks};
