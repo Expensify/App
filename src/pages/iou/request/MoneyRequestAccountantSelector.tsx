@@ -1,4 +1,3 @@
-import reportsSelector from '@selectors/Attributes';
 import lodashPick from 'lodash/pick';
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import type {GestureResponderEvent} from 'react-native';
@@ -12,6 +11,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import memoize from '@libs/memoize';
@@ -62,7 +62,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         shouldInitialize: didScreenTransitionEnd,
     });
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
+    const reportAttributesDerived = useReportAttributes();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
@@ -186,7 +186,6 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             )
         ) {
             newSections.push({
-                title: undefined,
                 data: [chatOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
                     return isPolicyExpenseChat
@@ -276,7 +275,6 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             showLoadingPlaceholder={showLoadingPlaceholder}
             isLoadingNewOptions={!!isSearchingForReports}
             showListEmptyContent={shouldShowListEmptyContent}
-            disableMaintainingScrollPosition
         />
     );
 }

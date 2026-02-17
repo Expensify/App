@@ -5,8 +5,8 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
-import SelectionList from '@components/SelectionList/SelectionListWithSections';
 import Text from '@components/Text';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -210,7 +210,7 @@ function VacationDelegatePage() {
                     </View>
                 ) : (
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                        <SelectionList
+                        <SelectionListWithSections
                             sections={areOptionsInitialized ? sections : []}
                             ListItem={UserListItem}
                             onSelectRow={onSelectRow}
@@ -218,7 +218,6 @@ function VacationDelegatePage() {
                             showLoadingPlaceholder={!areOptionsInitialized}
                             isLoadingNewOptions={!!isSearchingForReports}
                             onEndReached={onListEndReached}
-                            disableMaintainingScrollPosition
                             shouldSingleExecuteRowSelect
                             shouldShowTextInput
                         />

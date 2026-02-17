@@ -4,7 +4,7 @@ import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
-import SelectionList from '@components/SelectionList/SelectionListWithSections';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchSelector from '@hooks/useSearchSelector';
@@ -99,7 +99,7 @@ function AddDelegatePage() {
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                    <SelectionList
+                    <SelectionListWithSections
                         sections={areOptionsInitialized ? sections : []}
                         ListItem={UserListItem}
                         onSelectRow={toggleSelection}
@@ -112,7 +112,6 @@ function AddDelegatePage() {
                         }}
                         showLoadingPlaceholder={!areOptionsInitialized}
                         isLoadingNewOptions={!!isSearchingForReports}
-                        disableMaintainingScrollPosition
                         shouldShowTextInput
                     />
                 </View>

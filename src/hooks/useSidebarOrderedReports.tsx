@@ -1,4 +1,3 @@
-import reportsSelector from '@selectors/Attributes';
 import {createPoliciesSelector} from '@selectors/Policy';
 import {deepEqual} from 'fast-equals';
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
@@ -15,6 +14,7 @@ import useDeepCompareRef from './useDeepCompareRef';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
+import useReportAttributes from './useReportAttributes';
 import useResponsiveLayout from './useResponsiveLayout';
 
 const componentsUsingHook = new Map<string, {renderDuration: number}>();
@@ -75,7 +75,7 @@ function SidebarOrderedReportsContextProvider({
     const [reportNameValuePairs, {sourceValue: reportNameValuePairsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const [reportsDrafts, {sourceValue: reportsDraftsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportsSelector, canBeMissing: true});
+    const reportAttributes = useReportAttributes();
     const [currentReportsToDisplay, setCurrentReportsToDisplay] = useState<ReportsToDisplayInLHN>({});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {accountID} = useCurrentUserPersonalDetails();

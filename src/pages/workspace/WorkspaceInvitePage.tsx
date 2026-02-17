@@ -285,7 +285,6 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                     isLoadingNewOptions={!!isSearchingForReports}
                     addBottomSafeAreaPadding
                     onEndReached={onListEndReached}
-                    disableMaintainingScrollPosition
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

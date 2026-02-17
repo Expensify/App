@@ -18,8 +18,7 @@ import {getAvailableNonPersonalPolicyCategories, getDecodedCategoryName} from '@
 import {extractRuleFromForm, getKeyForRule} from '@libs/ExpenseRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
-import {getAllTaxRatesNamesAndValues, getCleanedTagName, getTagLists} from '@libs/PolicyUtils';
-import {getTagArrayFromName} from '@libs/TransactionUtils';
+import {getAllTaxRatesNamesAndValues, getCleanedTagName, getTagNamesFromTagsLists} from '@libs/PolicyUtils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -36,8 +35,7 @@ type RulePageBaseProps = {
 };
 
 type SectionItemType = {
-    key: string;
-    description: string;
+    descriptionTranslationKey: TranslationPaths;
     required?: boolean;
     title?: string;
     onPress: () => void;
@@ -49,30 +47,16 @@ type SectionType = {
     items: Array<SectionItemType | undefined>;
 };
 
-const navigateTo = (field: ValueOf<typeof CONST.EXPENSE_RULES.FIELDS>, hash?: string, index?: number) => {
+const navigateTo = (field: ValueOf<typeof CONST.EXPENSE_RULES.FIELDS>, hash?: string) => {
     if (hash) {
-        Navigation.navigate(ROUTES.SETTINGS_RULES_EDIT.getRoute(hash, field, index));
+        Navigation.navigate(ROUTES.SETTINGS_RULES_EDIT.getRoute(hash, field));
     } else {
-        Navigation.navigate(ROUTES.SETTINGS_RULES_ADD.getRoute(field, index));
+        Navigation.navigate(ROUTES.SETTINGS_RULES_ADD.getRoute(field));
     }
 };
 
 const getErrorMessage = (translate: LocalizedTranslate, form?: ExpenseRuleForm) => {
-    const hasAtLeastOneUpdate = Object.entries(form ?? {}).some(
-        ([key, value]) =>
-            (
-                [
-                    CONST.EXPENSE_RULES.FIELDS.BILLABLE,
-                    CONST.EXPENSE_RULES.FIELDS.CATEGORY,
-                    CONST.EXPENSE_RULES.FIELDS.DESCRIPTION,
-                    CONST.EXPENSE_RULES.FIELDS.RENAME_MERCHANT,
-                    CONST.EXPENSE_RULES.FIELDS.REIMBURSABLE,
-                    CONST.EXPENSE_RULES.FIELDS.REPORT,
-                    CONST.EXPENSE_RULES.FIELDS.TAG,
-                    CONST.EXPENSE_RULES.FIELDS.TAX,
-                ] as string[]
-            ).includes(key) && !!value,
-    );
+    const hasAtLeastOneUpdate = Object.entries(form ?? {}).some(([key, value]) => key !== CONST.EXPENSE_RULES.FIELDS.MERCHANT && key !== CONST.EXPENSE_RULES.FIELDS.CREATE_REPORT && !!value);
     if (form?.merchantToMatch && hasAtLeastOneUpdate) {
         return '';
     }
@@ -83,6 +67,11 @@ const getErrorMessage = (translate: LocalizedTranslate, form?: ExpenseRuleForm) 
         return translate('expenseRulesPage.addRule.confirmErrorUpdate');
     }
     return translate('expenseRulesPage.addRule.confirmError');
+};
+
+const tagsSelector = (allPolicyTagLists: OnyxCollection<PolicyTagLists>) => {
+    const tagListsUnpacked = Object.values(allPolicyTagLists ?? {}).filter((item) => !!item);
+    return tagListsUnpacked.map(getTagNamesFromTagsLists).flat().length > 0;
 };
 
 function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
@@ -108,13 +97,10 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
         canBeMissing: true,
         selector: categoriesSelector,
     });
-
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [policyTags = getEmptyArray<ValueOf<PolicyTagLists>>()] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${activePolicyID}`, {
+    const [hasPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {
         canBeMissing: true,
-        selector: getTagLists,
+        selector: tagsSelector,
     });
-    const formTags = getTagArrayFromName(form?.tag ?? '');
 
     const [allTaxRates] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         canBeMissing: true,
@@ -147,8 +133,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
             titleTranslationKey: 'expenseRulesPage.addRule.expenseContains',
             items: [
                 {
-                    key: 'merchantToMatch',
-                    description: translate('common.merchant'),
+                    descriptionTranslationKey: 'common.merchant',
                     required: true,
                     title: form?.merchantToMatch,
                     onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.MERCHANT, hash),
@@ -159,60 +144,49 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
             titleTranslationKey: 'expenseRulesPage.addRule.applyUpdates',
             items: [
                 {
-                    key: 'merchant',
-                    description: translate('common.merchant'),
+                    descriptionTranslationKey: 'common.merchant',
                     title: form?.merchant,
                     onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.RENAME_MERCHANT, hash),
                 },
                 hasPolicyCategories
                     ? {
-                          key: 'category',
-                          description: translate('common.category'),
+                          descriptionTranslationKey: 'common.category',
                           title: form?.category ? getDecodedCategoryName(form.category) : undefined,
                           onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.CATEGORY, hash),
                       }
                     : undefined,
-                ...policyTags
-                    .filter(({orderWeight, tags}) => !!formTags.at(orderWeight) || Object.values(tags).some(({enabled}) => enabled))
-                    .map(({name, orderWeight}) => {
-                        const formTag = formTags.at(orderWeight);
-                        return {
-                            key: `tag-${name}-${orderWeight}`,
-                            description: name,
-                            title: formTag ? getCleanedTagName(formTag) : undefined,
-                            onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.TAG, hash, orderWeight),
-                        };
-                    }),
+                hasPolicyTags
+                    ? {
+                          descriptionTranslationKey: 'common.tag',
+                          title: form?.tag ? getCleanedTagName(form.tag) : undefined,
+                          onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.TAG, hash),
+                      }
+                    : undefined,
                 hasTaxRates
                     ? {
-                          key: 'tax',
-                          description: translate('common.tax'),
+                          descriptionTranslationKey: 'common.tax',
                           title: selectedTaxRate ? `${selectedTaxRate.name} (${selectedTaxRate.value})` : undefined,
                           onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.TAX, hash),
                       }
                     : undefined,
                 {
-                    key: 'description',
-                    description: translate('common.description'),
+                    descriptionTranslationKey: 'common.description',
                     title: form?.comment ? Parser.replace(form.comment) : undefined,
                     onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.DESCRIPTION, hash),
                     shouldRenderAsHTML: true,
                 },
                 {
-                    key: 'reimbursable',
-                    description: translate('common.reimbursable'),
+                    descriptionTranslationKey: 'common.reimbursable',
                     title: form?.reimbursable ? translate(form.reimbursable === 'true' ? 'common.yes' : 'common.no') : '',
                     onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.REIMBURSABLE, hash),
                 },
                 {
-                    key: 'billable',
-                    description: translate('common.billable'),
+                    descriptionTranslationKey: 'common.billable',
                     title: form?.billable ? translate(form.billable === 'true' ? 'common.yes' : 'common.no') : '',
                     onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.BILLABLE, hash),
                 },
                 {
-                    key: 'addToReport',
-                    description: translate('expenseRulesPage.addRule.addToReport'),
+                    descriptionTranslationKey: 'expenseRulesPage.addRule.addToReport',
                     title: form?.report,
                     onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.REPORT, hash),
                 },
@@ -227,6 +201,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
         >
             <ScreenWrapper
                 testID={testID}
+                shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
             >
@@ -241,8 +216,8 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                                 }
                                 return (
                                     <MenuItemWithTopDescription
-                                        key={item.key}
-                                        description={item.description}
+                                        key={item.descriptionTranslationKey}
+                                        description={translate(item.descriptionTranslationKey)}
                                         errorText={shouldShowError && item.required && !item.title ? translate('common.error.fieldRequired') : ''}
                                         onPress={item.onPress}
                                         rightLabel={item.required ? translate('common.required') : undefined}
@@ -258,9 +233,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}>
                         <ToggleSettingOptionRow
                             isActive={form?.createReport ?? false}
-                            onToggle={(isEnabled) => {
-                                updateDraftRule({createReport: isEnabled});
-                            }}
+                            onToggle={(isEnabled) => updateDraftRule({createReport: isEnabled})}
                             switchAccessibilityLabel={translate('expenseRulesPage.addRule.createReport')}
                             title={translate('expenseRulesPage.addRule.createReport')}
                             titleStyle={styles.pv2}
