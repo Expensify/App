@@ -40,14 +40,7 @@ function WorkspaceWorkflowsPayerSuccessPage({policyID, selectedPayer}: Workspace
         };
     }, [shouldShowSuccess]);
 
-    const onButtonPress = () => {
-        if (!selectedPayer || !policyID) {
-            Navigation.closeRHPFlow();
-            return;
-        }
-        setWorkspacePayer(policyID, selectedPayer);
-        Navigation.closeRHPFlow();
-    };
+    const onButtonPress = () => Navigation.closeRHPFlow();
 
     return (
         <ScrollView contentContainerStyle={styles.flexGrow1}>

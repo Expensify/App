@@ -60,9 +60,10 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const policyID = policy?.id;
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const bankAccountConnectedToWorkspace = Object.values(bankAccountList ?? {}).find((account) => account?.accountData?.additionalData?.policyID === policyID);
-    const bankAccountID = policy?.achAccount?.bankAccountID;
-    const bankAccountFromList = bankAccountID ? bankAccountList?.[bankAccountID] : undefined;
+    const policyBankAccountID = policy?.achAccount?.bankAccountID;
+    const bankAccountFromList = policyBankAccountID ? bankAccountList?.[policyBankAccountID] : undefined;
     const bankAccountInfo = bankAccountFromList ?? bankAccountConnectedToWorkspace;
+    const bankAccountID = policyBankAccountID ?? bankAccountInfo?.accountData?.bankAccountID;
     const {isOffline} = useNetwork();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
@@ -323,7 +324,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                         <RenderHTML
                             onLinkPress={() => {
                                 setShowValidationModal(false);
-                                navigateToBankAccountRoute(policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID));
+                                navigateToBankAccountRoute({policyID, backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)});
                             }}
                             html={translate('workflowsPayerPage.shareBankAccount.validationDescription', {
                                 admin: selectedPayerDetails?.displayName ?? '',
