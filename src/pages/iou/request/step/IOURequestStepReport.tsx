@@ -73,7 +73,12 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         return selectedReport?.ownerAccountID;
     }, [isUnreported, selectedReport?.ownerAccountID, iouActions, transaction?.transactionID]);
     const ownerPersonalDetails = useMemo(() => getPersonalDetailsForAccountID(ownerAccountID, personalDetails) as PersonalDetails, [personalDetails, ownerAccountID]);
-    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(isPerDiemRequest(transaction), selectedReport?.policyID);
+
+    const transactionPolicyID = transaction?.participants?.at(0)?.isPolicyExpenseChat ? transaction?.participants.at(0)?.policyID : undefined;
+    // we need to fall back to transactionPolicyID because for a new workspace there is no report created yet
+    // and if we choose this workspace as participant we want to create a new report in the chosen workspace
+    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(isPerDiemRequest(transaction), selectedReport?.policyID ?? transactionPolicyID);
+
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
@@ -128,7 +133,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         // Clear subrates, and update customUnitID if policy changed for per diem transactions
         if (policyChanged && isPerDiemTransaction) {
             setCustomUnitID(transaction.transactionID, newCustomUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
-            setCustomUnitRateID(transaction.transactionID, undefined);
+            setCustomUnitRateID(transaction.transactionID, undefined, transaction, newPolicy);
             clearSubrates(transaction.transactionID);
         }
 
@@ -271,12 +276,13 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 transactionIDs={transaction ? [transaction.transactionID] : []}
                 selectedReportID={selectedReportID}
                 selectedPolicyID={selectedPolicyID}
+                transactionPolicyID={transactionPolicyID}
                 removeFromReport={removeFromReport}
                 isEditing={isEditing}
                 isUnreported={isUnreported}
                 shouldShowNotFoundPage={shouldShowNotFoundPage}
                 isPerDiemRequest={transaction ? isPerDiemRequest(transaction) : false}
-                createReport={action === CONST.IOU.ACTION.EDIT && (policyForMovingExpensesID || shouldSelectPolicy || isPerDiemTransaction) ? createReport : undefined}
+                createReport={policyForMovingExpensesID || shouldSelectPolicy || isPerDiemTransaction ? createReport : undefined}
                 targetOwnerAccountID={ownerAccountID}
             />
         </>

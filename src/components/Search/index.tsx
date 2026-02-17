@@ -88,7 +88,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import {isActionLoadingSetSelector} from '@src/selectors/ReportMetaData';
-import type {OutstandingReportsByPolicyIDDerivedValue, Transaction} from '@src/types/onyx';
+import type {OutstandingReportsByPolicyIDDerivedValue, SaveSearch, Transaction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
@@ -293,6 +293,9 @@ function Search({
     const previousReportActions = usePrevious(reportActions);
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const searchListRef = useRef<SelectionListHandle | null>(null);
+
+    const savedSearchSelector = useCallback((searches: OnyxEntry<SaveSearch>) => searches?.[hash], [hash]);
+    const [savedSearch] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true, selector: savedSearchSelector});
 
     const handleDEWModalOpen = useCallback(() => {
         if (onDEWModalOpen) {
@@ -1009,8 +1012,10 @@ function Search({
             }
 
             if (isTransactionMonthGroupListItemType(item)) {
+                // Extract the existing date filter to check for year-to-date or other date limits
+                const existingDateFilters = queryJSON.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
+                const {start: monthStart, end: monthEnd} = adjustTimeRangeToDateFilters(DateUtils.getMonthDateRange(item.year, item.month), existingDateFilters);
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
-                const {start: monthStart, end: monthEnd} = DateUtils.getMonthDateRange(item.year, item.month);
                 newFlatFilters.push({
                     key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                     filters: [
@@ -1033,8 +1038,8 @@ function Search({
                     return;
                 }
                 // Extract the existing date filter to check for year-to-date or other date limits
-                const existingDateFilter = queryJSON.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
-                const {start: weekStart, end: weekEnd} = adjustTimeRangeToDateFilters(DateUtils.getWeekDateRange(item.week), existingDateFilter);
+                const existingDateFilters = queryJSON.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
+                const {start: weekStart, end: weekEnd} = adjustTimeRangeToDateFilters(DateUtils.getWeekDateRange(item.week), existingDateFilters);
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
                 newFlatFilters.push({
                     key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
@@ -1058,8 +1063,10 @@ function Search({
                 if (yearGroupItem.year === undefined) {
                     return;
                 }
+                // Extract the existing date filter to check for year-to-date or other date limits
+                const existingDateFilters = queryJSON.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
+                const {start: yearStart, end: yearEnd} = adjustTimeRangeToDateFilters(DateUtils.getYearDateRange(yearGroupItem.year), existingDateFilters);
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
-                const {start: yearStart, end: yearEnd} = DateUtils.getYearDateRange(yearGroupItem.year);
                 newFlatFilters.push({
                     key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                     filters: [
@@ -1082,8 +1089,13 @@ function Search({
                 if (quarterGroupItem.year === undefined || quarterGroupItem.quarter === undefined) {
                     return;
                 }
+                // Extract the existing date filter to check for year-to-date or other date limits
+                const existingDateFilters = queryJSON.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
+                const {start: quarterStart, end: quarterEnd} = adjustTimeRangeToDateFilters(
+                    DateUtils.getQuarterDateRange(quarterGroupItem.year, quarterGroupItem.quarter),
+                    existingDateFilters,
+                );
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
-                const {start: quarterStart, end: quarterEnd} = DateUtils.getQuarterDateRange(quarterGroupItem.year, quarterGroupItem.quarter);
                 newFlatFilters.push({
                     key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                     filters: [
@@ -1426,6 +1438,15 @@ function Search({
     const shouldShowChartView = (view === CONST.SEARCH.VIEW.BAR || view === CONST.SEARCH.VIEW.LINE) && !!validGroupBy;
 
     if (shouldShowChartView && isGroupedItemArray(sortedData)) {
+        let chartTitle = translate(`search.chartTitles.${validGroupBy}`);
+        if (savedSearch) {
+            if (savedSearch.name !== savedSearch.query) {
+                chartTitle = savedSearch.name;
+            }
+        } else if (searchKey && suggestedSearches[searchKey]) {
+            chartTitle = translate(suggestedSearches[searchKey].translationPath);
+        }
+
         return (
             <SearchScopeProvider>
                 <SearchChartView
@@ -1435,6 +1456,7 @@ function Search({
                     data={sortedData}
                     isLoading={shouldShowLoadingState}
                     onScroll={onSearchListScroll}
+                    title={chartTitle}
                 />
             </SearchScopeProvider>
         );

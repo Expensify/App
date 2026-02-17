@@ -264,8 +264,13 @@ AppState.addEventListener('change', (nextAppState) => {
         cancelAllSpans();
     }
     if (nextAppState.match(/inactive|background/) && appState === 'active') {
+        Log.info('App going to background', false, {previousState: appState, nextState: nextAppState});
         Log.info('Flushing logs as app is going inactive', true, {}, true);
         saveCurrentPathBeforeBackground();
+    }
+
+    if (nextAppState === 'active' && appState?.match(/inactive|background/)) {
+        Log.info('App coming to foreground', false, {previousState: appState, nextState: nextAppState});
     }
     appState = nextAppState;
 });
@@ -291,6 +296,13 @@ function getPolicyParamsForOpenOrReconnect(): Promise<PolicyParamsForOpenOrRecon
     });
 }
 
+type OnyxDataForOpenOrReconnectKeys =
+    | typeof ONYXKEYS.COLLECTION.REPORT
+    | typeof ONYXKEYS.IS_LOADING_REPORT_DATA
+    | typeof ONYXKEYS.HAS_LOADED_APP
+    | typeof ONYXKEYS.IS_LOADING_APP
+    | typeof ONYXKEYS.LAST_FULL_RECONNECT_TIME;
+
 /**
  * Returns the Onyx data that is used for both the OpenApp and ReconnectApp API commands.
  */
@@ -299,9 +311,7 @@ function getOnyxDataForOpenOrReconnect(
     isFullReconnect = false,
     shouldKeepPublicRooms = false,
     allReportsWithDraftComments?: Record<string, string | undefined>,
-): OnyxData<
-    typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.IS_LOADING_REPORT_DATA | typeof ONYXKEYS.HAS_LOADED_APP | typeof ONYXKEYS.IS_LOADING_APP | typeof ONYXKEYS.LAST_FULL_RECONNECT_TIME
-> {
+): OnyxData<OnyxDataForOpenOrReconnectKeys> {
     const result: OnyxData<
         | typeof ONYXKEYS.IS_LOADING_REPORT_DATA
         | typeof ONYXKEYS.HAS_LOADED_APP
@@ -494,7 +504,7 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
  * because it will follow patterns that are not recommended so we can be sure we're not putting the app in a unusable
  * state because of race conditions between reconnectApp and other pusher updates being applied at the same time.
  */
-function finalReconnectAppAfterActivatingReliableUpdates(): Promise<void | OnyxTypes.Response> {
+function finalReconnectAppAfterActivatingReliableUpdates(): Promise<void | OnyxTypes.Response<OnyxDataForOpenOrReconnectKeys>> {
     console.debug(`[OnyxUpdates] Executing last reconnect app with promise`);
     return getPolicyParamsForOpenOrReconnect().then((policyParams) => {
         const params: ReconnectAppParams = {...policyParams};
@@ -513,7 +523,7 @@ function finalReconnectAppAfterActivatingReliableUpdates(): Promise<void | OnyxT
  * @param [updateIDFrom] the ID of the Onyx update that we want to start fetching from
  * @param [updateIDTo] the ID of the Onyx update that we want to fetch up to
  */
-function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo: number | string = 0): Promise<void | OnyxTypes.Response> {
+function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo: number | string = 0): Promise<void | OnyxTypes.Response<OnyxDataForOpenOrReconnectKeys>> {
     console.debug(`[OnyxUpdates] Fetching missing updates updateIDFrom: ${updateIDFrom} and updateIDTo: ${updateIDTo}`);
 
     const parameters: GetMissingOnyxMessagesParams = {

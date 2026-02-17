@@ -11,8 +11,9 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-type AnimatedCollapsibleProps = {
+type AnimatedCollapsibleProps = WithSentryLabel & {
     /** Whether the component is expanded */
     isExpanded: boolean;
 
@@ -67,6 +68,7 @@ function AnimatedCollapsible({
     disabled = false,
     shouldShowToggleButton = true,
     borderBottomStyle,
+    sentryLabel,
 }: AnimatedCollapsibleProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -139,6 +141,7 @@ function AnimatedCollapsible({
                         style={[styles.p3Half, styles.justifyContentCenter, styles.alignItemsCenter, expandButtonStyle]}
                         accessibilityRole={CONST.ROLE.BUTTON}
                         accessibilityLabel={isExpanded ? CONST.ACCESSIBILITY_LABELS.COLLAPSE : CONST.ACCESSIBILITY_LABELS.EXPAND}
+                        sentryLabel={sentryLabel}
                     >
                         {({hovered}) => (
                             <Icon
