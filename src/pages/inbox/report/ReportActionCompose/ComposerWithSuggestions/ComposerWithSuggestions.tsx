@@ -289,21 +289,39 @@ function ComposerWithSuggestions({
 
     const commentRef = useRef(value);
 
+    const wasEditing = useRef(!!editingReportActionID);
     const wasEditingInComposerRef = useRef(shouldUseNarrowLayout);
     useEffect(() => {
         if (!editingReportActionID) {
+            if (wasEditing.current && shouldUseNarrowLayout) {
+                setValue('');
+            }
+
+            wasEditing.current = false;
             wasEditingInComposerRef.current = shouldUseNarrowLayout;
             return;
         }
+
+        if (wasEditing.current && !shouldUseNarrowLayout) {
+            wasEditing.current = true;
+            // When we switch from narrow to wide layout, we need to clear the composer value
+            setValue('');
+            return;
+        }
+
+        wasEditing.current = true;
 
         if (shouldUseNarrowLayout && !wasEditingInComposerRef.current) {
             wasEditingInComposerRef.current = true;
         }
 
-        if (!shouldUseNarrowLayout && wasEditingInComposerRef.current) {
-            wasEditingInComposerRef.current = false;
-            // When we switch from narrow to wide layout, we need to clear the composer value
-            setValue('');
+        if (!shouldUseNarrowLayout) {
+            if (wasEditingInComposerRef.current) {
+                wasEditingInComposerRef.current = false;
+                // When we switch from narrow to wide layout, we need to clear the composer value
+                setValue('');
+            }
+
             return;
         }
 
@@ -312,8 +330,9 @@ function ComposerWithSuggestions({
         emojisPresentBefore.current = extractEmojis(nextValue);
 
         setValue(nextValue);
+        setSelection(currentEditMessageSelection ?? {start: nextValue.length, end: nextValue.length, positionX: 0, positionY: 0});
         composerRef.current?.focus();
-    }, [draftComment, editingMessage, editingReportActionID, shouldUseNarrowLayout]);
+    }, [currentEditMessageSelection, draftComment, editingMessage, editingReportActionID, shouldUseNarrowLayout]);
 
     const {superWideRHPRouteKeys} = useWideRHPState();
     // When SearchReport is stacked above another RHP, delay autofocus until after the transition completes to avoid animation jank

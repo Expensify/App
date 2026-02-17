@@ -641,7 +641,7 @@ function ReportActionCompose({
                             onValueChange={onValueChange}
                             didHideComposerInput={didHideComposerInput}
                             forwardedFSClass={fsClass}
-                            key={editingReportActionID}
+                            // key={editingReportActionID}
                         />
                         {shouldDisplayDualDropZone && (
                             <DualDropZone
