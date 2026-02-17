@@ -66,8 +66,8 @@ function SendButton({isDisabled: isDisabledProp = false, isEditing = false, onSe
                         <PressableWithFeedback
                             style={({pressed, isDisabled}) => [
                                 styles.chatItemSubmitButton,
-                                pressed || isDisabled ? undefined : styles.buttonSuccess,
-                                isDisabled ? styles.cursorDisabled : undefined,
+                                isDisabledProp || pressed || isDisabled ? undefined : styles.buttonSuccess,
+                                isDisabledProp ? styles.cursorDisabled : undefined,
                             ]}
                             // Since the parent View has accessible, we need to set accessible to false here to avoid duplicate accessibility elements.
                             // On Android when TalkBack is enabled, only the parent element should be accessible, otherwise the button will not work.
