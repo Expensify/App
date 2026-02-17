@@ -43,7 +43,10 @@ function WorkspaceWorkflowsPayerSuccessPage({policyID, selectedPayer}: Workspace
     const onButtonPress = () => Navigation.closeRHPFlow();
 
     return (
-        <ScrollView contentContainerStyle={styles.flexGrow1}>
+        <ScrollView
+            addBottomSafeAreaPadding
+            contentContainerStyle={styles.flexGrow1}
+        >
             <ConfirmationPage
                 heading={translate('walletPage.shareBankAccountSuccess')}
                 description={translate('walletPage.shareBankAccountSuccessDescription')}
