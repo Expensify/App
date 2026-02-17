@@ -1,36 +1,11 @@
-import React, {createContext, useContext} from 'react';
-import {defaultCustomStatusBarAndBackgroundActionsContextValue, defaultCustomStatusBarAndBackgroundStateContextValue} from './default';
-import type {CustomStatusBarAndBackgroundActionsContextType, CustomStatusBarAndBackgroundStateContextType} from './types';
+import {createContext} from 'react';
 
-const CustomStatusBarAndBackgroundStateContext = createContext<CustomStatusBarAndBackgroundStateContextType>(defaultCustomStatusBarAndBackgroundStateContextValue);
-const CustomStatusBarAndBackgroundActionsContext = createContext<CustomStatusBarAndBackgroundActionsContextType>(defaultCustomStatusBarAndBackgroundActionsContextValue);
-
-type CustomStatusBarAndBackgroundProviderProps = {
-    state: CustomStatusBarAndBackgroundStateContextType;
-    actions: CustomStatusBarAndBackgroundActionsContextType;
-    children: React.ReactNode;
+type CustomStatusBarAndBackgroundContextType = {
+    isRootStatusBarEnabled: boolean;
+    setRootStatusBarEnabled: (isEnabled: boolean) => void;
 };
 
-function CustomStatusBarAndBackgroundProvider({state, actions, children}: CustomStatusBarAndBackgroundProviderProps) {
-    return (
-        <CustomStatusBarAndBackgroundStateContext.Provider value={state}>
-            <CustomStatusBarAndBackgroundActionsContext.Provider value={actions}>{children}</CustomStatusBarAndBackgroundActionsContext.Provider>
-        </CustomStatusBarAndBackgroundStateContext.Provider>
-    );
-}
+// Signin page has its separate Statusbar and ThemeProvider, so when user is on the SignInPage we need to disable the root statusbar so there is no double status bar in component stack, first in Root and other in SignInPage
+const CustomStatusBarAndBackgroundContext = createContext<CustomStatusBarAndBackgroundContextType>({isRootStatusBarEnabled: true, setRootStatusBarEnabled: () => undefined});
 
-function useCustomStatusBarAndBackgroundState(): CustomStatusBarAndBackgroundStateContextType {
-    return useContext(CustomStatusBarAndBackgroundStateContext);
-}
-
-function useCustomStatusBarAndBackgroundActions(): CustomStatusBarAndBackgroundActionsContextType {
-    return useContext(CustomStatusBarAndBackgroundActionsContext);
-}
-
-export {
-    CustomStatusBarAndBackgroundActionsContext,
-    CustomStatusBarAndBackgroundProvider,
-    CustomStatusBarAndBackgroundStateContext,
-    useCustomStatusBarAndBackgroundActions,
-    useCustomStatusBarAndBackgroundState,
-};
+export default CustomStatusBarAndBackgroundContext;

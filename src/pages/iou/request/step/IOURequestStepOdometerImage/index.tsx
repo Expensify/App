@@ -1,9 +1,9 @@
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useContext, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
-import {useDragAndDropState} from '@components/DragAndDrop/Provider';
+import {DragAndDropContext} from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';
@@ -37,7 +37,7 @@ function IOURequestStepOdometerImage({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {isDraggingOver} = useDragAndDropState();
+    const {isDraggingOver} = useContext(DragAndDropContext);
     const lazyIcons = useMemoizedLazyExpensifyIcons(['OdometerStart', 'OdometerEnd']);
     const actionValue: IOUAction = action ?? CONST.IOU.ACTION.CREATE;
     const iouTypeValue: IOUType = iouType ?? CONST.IOU.TYPE.REQUEST;

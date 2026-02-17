@@ -14,16 +14,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
 }));
 
-jest.mock('@components/DelegateNoAccessModalProvider', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const actual = jest.requireActual('@components/DelegateNoAccessModalProvider');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...actual,
-        useDelegateNoAccessState: () => ({isActingAsDelegate: false, isDelegateAccessRestricted: false}),
-        useDelegateNoAccessActions: () => ({showDelegateNoAccessModal: jest.fn()}),
-    };
-});
+jest.mock('@components/DelegateNoAccessModalProvider');
 
 jest.mock('@libs/actions/User', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

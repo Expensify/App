@@ -1,15 +1,11 @@
 import React from 'react';
-import {defaultDragAndDropActionsContextValue, defaultDragAndDropStateContextValue} from './default';
-import {DragAndDropActionsContext, DragAndDropStateContext} from './DragAndDropContext';
-import type {DragAndDropProviderProps} from './types';
+import type {DragAndDropContextParams, DragAndDropProviderProps} from './types';
+
+const DragAndDropContext = React.createContext<DragAndDropContextParams>({});
 
 function DragAndDropProvider({children}: DragAndDropProviderProps) {
-    return (
-        <DragAndDropStateContext.Provider value={defaultDragAndDropStateContextValue}>
-            <DragAndDropActionsContext.Provider value={defaultDragAndDropActionsContextValue}>{children}</DragAndDropActionsContext.Provider>
-        </DragAndDropStateContext.Provider>
-    );
+    return children;
 }
 
 export default DragAndDropProvider;
-export {useDragAndDropActions, useDragAndDropState} from './DragAndDropContext';
+export {DragAndDropContext};

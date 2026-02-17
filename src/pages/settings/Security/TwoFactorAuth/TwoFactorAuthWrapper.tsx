@@ -1,8 +1,8 @@
-import React, {useMemo} from 'react';
+import React, {useContext, useMemo} from 'react';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import {useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -49,7 +49,7 @@ function TwoFactorAuthWrapper({
     children,
 }: TwoFactorAuthWrapperProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
-    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
+    const {isDelegateAccessRestricted} = useContext(DelegateNoAccessContext);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFound = useMemo(() => {

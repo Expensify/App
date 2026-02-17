@@ -1,5 +1,5 @@
-import {useRef} from 'react';
-import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import {useContext, useRef} from 'react';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import {importPlaidAccounts} from '@libs/actions/Plaid';
 import {
     getCompanyCardFeed,
@@ -23,7 +23,7 @@ import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
 import useCardFeedErrors from './useCardFeedErrors';
 import useCardFeeds from './useCardFeeds';
 import type {CombinedCardFeed} from './useCardFeeds';
-import {useCurrencyListState} from './useCurrencyList';
+import useCurrencyList from './useCurrencyList';
 import useIsAllowedToIssueCompanyCard from './useIsAllowedToIssueCompanyCard';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
@@ -66,8 +66,7 @@ function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssig
 
     const isAllowedToIssueCompanyCard = useIsAllowedToIssueCompanyCard({policyID});
 
-    const {isActingAsDelegate} = useDelegateNoAccessState();
-    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 
     const isAssigningCardDisabled = !currentFeedData || !!currentFeedData?.pending || isSelectedFeedConnectionBroken || !isAllowedToIssueCompanyCard;
 
@@ -143,7 +142,7 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
     const {isOffline} = useNetwork();
 
     const policy = usePolicy(policyID);
-    const {currencyList} = useCurrencyListState();
+    const {currencyList} = useCurrencyList();
 
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
 

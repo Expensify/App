@@ -1,31 +1,17 @@
 import React, {useMemo, useState} from 'react';
-import {CustomStatusBarAndBackgroundProvider} from './CustomStatusBarAndBackgroundContext';
+import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackgroundContext';
 
 function CustomStatusBarAndBackgroundContextProvider({children}: React.PropsWithChildren) {
     const [isRootStatusBarEnabled, setRootStatusBarEnabled] = useState(true);
-
-    const stateValue = useMemo(
+    const value = useMemo(
         () => ({
             isRootStatusBarEnabled,
+            setRootStatusBarEnabled,
         }),
         [isRootStatusBarEnabled],
     );
 
-    const actionsValue = useMemo(
-        () => ({
-            setRootStatusBarEnabled,
-        }),
-        [],
-    );
-
-    return (
-        <CustomStatusBarAndBackgroundProvider
-            state={stateValue}
-            actions={actionsValue}
-        >
-            {children}
-        </CustomStatusBarAndBackgroundProvider>
-    );
+    return <CustomStatusBarAndBackgroundContext.Provider value={value}>{children}</CustomStatusBarAndBackgroundContext.Provider>;
 }
 
 export default CustomStatusBarAndBackgroundContextProvider;

@@ -1,6 +1,6 @@
-import React, {memo, useCallback, useEffect} from 'react';
+import React, {memo, useCallback, useContext, useEffect} from 'react';
 import type {GestureResponderEvent} from 'react-native';
-import {useAttachmentCarouselPagerActions, useAttachmentCarouselPagerState} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import PDFView from '@components/PDFView';
 import type AttachmentViewPdfProps from './types';
 
@@ -16,15 +16,14 @@ function BaseAttachmentViewPdf({
     isUsedAsChatAttachment,
     onLoadError,
 }: AttachmentViewPdfProps) {
-    const state = useAttachmentCarouselPagerState();
-    const actions = useAttachmentCarouselPagerActions();
-    const isScrollEnabled = state === null ? undefined : state.isScrollEnabled;
+    const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
+    const isScrollEnabled = attachmentCarouselPagerContext === null ? undefined : attachmentCarouselPagerContext.isScrollEnabled;
 
     useEffect(() => {
-        if (!actions) {
+        if (!attachmentCarouselPagerContext) {
             return;
         }
-        actions.onScaleChanged?.(1);
+        attachmentCarouselPagerContext.onScaleChanged?.(1);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we just want to call this function when component is mounted
     }, []);
 
@@ -40,11 +39,11 @@ function BaseAttachmentViewPdf({
             }
 
             // When a pdf is shown in a carousel, we want to disable the pager scroll when the pdf is zoomed in
-            if (state?.pagerRef && actions) {
-                actions.onScaleChanged?.(newScale);
+            if (attachmentCarouselPagerContext?.pagerRef) {
+                attachmentCarouselPagerContext.onScaleChanged?.(newScale);
             }
         },
-        [state?.pagerRef, actions, onScaleChangedProp],
+        [attachmentCarouselPagerContext, onScaleChangedProp],
     );
 
     /**
@@ -59,11 +58,11 @@ function BaseAttachmentViewPdf({
                 onPressProp(event);
             }
 
-            if (state !== null && actions && isScrollEnabled?.get()) {
-                actions.onTap?.();
+            if (attachmentCarouselPagerContext !== null && isScrollEnabled?.get()) {
+                attachmentCarouselPagerContext.onTap?.();
             }
         },
-        [state, actions, isScrollEnabled, onPressProp],
+        [attachmentCarouselPagerContext, isScrollEnabled, onPressProp],
     );
 
     return (

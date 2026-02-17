@@ -2,7 +2,7 @@ import {Str} from 'expensify-common';
 import React, {useState} from 'react';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
-import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyList';
+import useCurrencyList from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import getMatchScore from '@libs/getMatchScore';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -18,8 +18,7 @@ function CurrencySelectionList({
     excludedCurrencies = [],
     ...restProps
 }: CurrencySelectionListProps) {
-    const {currencyList} = useCurrencyListState();
-    const {getCurrencySymbol} = useCurrencyListActions();
+    const {currencyList, getCurrencySymbol} = useCurrencyList();
     const [searchValue, setSearchValue] = useState('');
     const {translate} = useLocalize();
     const getUnselectedOptions = (options: CurrencyListItem[]) => options.filter((option) => !option.isSelected);
