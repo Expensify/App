@@ -9416,23 +9416,13 @@ function reasonForReportToBeInOptionList({
         return CONST.REPORT_IN_LHN_REASONS.IS_ARCHIVED;
     }
 
-    // Hide chats between two users that haven't been commented on from the LNH
-    const isSelfDMWithVisiblePreference = isSelfDM(report) && !isHiddenForCurrentUser(report);
-    if (
-        excludeEmptyChats &&
-        isEmptyChat &&
-        isChatReport(report) &&
-        !isPolicyExpenseChat(report) &&
-        !isTripRoom(report) &&
-        !isSystemChatReport &&
-        !isSelfDMWithVisiblePreference &&
-        canHideReport
-    ) {
-        return null;
-    }
-
     if (isSelfDMReport) {
         return includeSelfDM ? CONST.REPORT_IN_LHN_REASONS.IS_SELF_DM : null;
+    }
+
+    // Hide chats between two users that haven't been commented on from the LNH
+    if (excludeEmptyChats && isEmptyChat && isChatReport(report) && !isPolicyExpenseChat(report) && !isTripRoom(report) && !isSystemChatReport && canHideReport) {
+        return null;
     }
 
     if (Str.isDomainEmail(login ?? '') && !includeDomainEmail) {
