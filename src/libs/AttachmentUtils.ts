@@ -106,5 +106,13 @@ function isLocalAttachment(url: string) {
     return new RegExp(CONST.ATTACHMENT_OR_RECEIPT_LOCAL_URL, 'i').test(url) || url.startsWith('/chat-attachments');
 }
 
-export {validateAttachmentFile, isLocalAttachment};
+/**
+ * Returns image cache file extension based from mime type
+ */
+function getImageCacheFileExtension(contentType: string) {
+    const imageCacheFileTypes = Object.keys(CONST.IMAGE_CACHE_FILE_TYPES);
+    return imageCacheFileTypes.includes(contentType);
+}
+
+export {validateAttachmentFile, isLocalAttachment, getImageCacheFileExtension};
 export type {AttachmentValidationResult};

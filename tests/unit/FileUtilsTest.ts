@@ -534,11 +534,4 @@ describe('FileUtils', () => {
             expect(result.reason).toBe('');
         });
     });
-    describe('getFileExtension', () => {
-        it('should return the correct file extension type based on the provided content-type value', () => {
-            expect(FileUtils.getFileExtension('image/jpeg')).toBe('jpg');
-            expect(FileUtils.getFileExtension('image/png')).toBe('png');
-            expect(FileUtils.getFileExtension('video/mp4')).toBe('mp4');
-        });
-    });
 });

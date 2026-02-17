@@ -94,7 +94,25 @@ import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import Pusher from '@libs/Pusher';
 import type {UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
 import * as ReportActionsFollowupUtils from '@libs/ReportActionFollowupUtils';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import {
+    getReportActionMessage,
+    getLastVisibleAction,
+    getLastVisibleMessage as getLastVisibleActionMessage,
+    isTrackExpenseAction,
+    getReportActionText,
+    isDeletedAction,
+    isWhisperAction,
+    getOneTransactionThreadReportID,
+    isThreadParentMessage,
+    didMessageMentionCurrentUser,
+    shouldReportActionBeVisible,
+    getReportActionHtml,
+    isMoneyRequestAction,
+    getOriginalMessage,
+    isWhisperActionTargetedToOthers,
+    getReportAction,
+    hasRequestFromCurrentAccount,
+} from '@libs/ReportActionsUtils';
 import {updateTitleFieldToMatchPolicy} from '@libs/ReportTitleUtils';
 import type {Ancestor, OptimisticAddCommentReportAction, OptimisticChatReport, SelfDMParameters} from '@libs/ReportUtils';
 import {
@@ -582,7 +600,7 @@ function buildOptimisticResolvedFollowups(reportAction: OnyxEntry<ReportAction>)
         return null;
     }
 
-    const message = ReportActionsUtils.getReportActionMessage(reportAction);
+    const message = getReportActionMessage(reportAction);
     if (!message) {
         return null;
     }
@@ -680,7 +698,7 @@ function addActions({report, notifyReportID, ancestors, timezoneParam, currentUs
     // Always prefer the file as the last action over text
     const lastAction = attachmentAction ?? reportCommentAction;
     const currentTime = NetworkConnection.getDBTimeWithSkew();
-    const lastComment = ReportActionsUtils.getReportActionMessage(lastAction);
+    const lastComment = getReportActionMessage(lastAction);
     const lastCommentText = formatReportLastMessageText(lastComment?.text ?? '');
 
     const optimisticReport: Partial<Report> = {
@@ -711,7 +729,7 @@ function addActions({report, notifyReportID, ancestors, timezoneParam, currentUs
 
     // Check if the last visible action is from Concierge with unresolved followups
     // If so, optimistically resolve them by adding the updated action to optimisticReportActions
-    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID);
+    const lastVisibleAction = getLastVisibleAction(reportID);
     const lastActorAccountID = lastVisibleAction?.actorAccountID;
     const lastActionReportActionID = lastVisibleAction?.reportActionID;
     const resolvedAction = buildOptimisticResolvedFollowups(lastVisibleAction);
@@ -783,7 +801,7 @@ function addActions({report, notifyReportID, ancestors, timezoneParam, currentUs
         lastMessageText: '',
         lastVisibleActionCreated: '',
     };
-    const {lastMessageText = ''} = ReportActionsUtils.getLastVisibleMessage(reportID);
+    const {lastMessageText = ''} = getLastVisibleActionMessage(reportID);
     if (lastMessageText) {
         const lastVisibleActionCreated = lastVisibleAction?.created;
         failureReport = {
@@ -1585,7 +1603,7 @@ function createTransactionThreadReport(
     transactionViolations?: TransactionViolations,
 ): OptimisticChatReport | undefined {
     // Determine if we need selfDM report (for track expenses or unreported transactions)
-    const isTrackExpense = !iouReport && ReportActionsUtils.isTrackExpenseAction(iouReportAction);
+    const isTrackExpense = !iouReport && isTrackExpenseAction(iouReportAction);
     const isUnreportedTransaction = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const selfDMReportID = isTrackExpense || isUnreportedTransaction ? findSelfDMReportID() : undefined;
 
@@ -1742,7 +1760,7 @@ function createChildReport(childReport: OnyxEntry<Report>, parentReportAction: R
     const childReportChatType = parentReport && isSelfDM(parentReport) ? undefined : parentReport?.chatType;
     const newChat = buildOptimisticChatReport({
         participantList: participantAccountIDs,
-        reportName: ReportActionsUtils.getReportActionText(parentReportAction),
+        reportName: getReportActionText(parentReportAction),
         chatType: childReportChatType,
         policyID: parentReport?.policyID ?? CONST.POLICY.OWNER_EMAIL_FAKE,
         ownerAccountID: CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
@@ -1981,11 +1999,11 @@ function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEn
     // Find the latest report actions from other users
     const latestReportActionFromOtherUsers = Object.values(reportActions ?? {}).reduce((latest: ReportAction | null, current: ReportAction) => {
         if (
-            !ReportActionsUtils.isDeletedAction(current) &&
+            !isDeletedAction(current) &&
             current.actorAccountID !== currentUserAccountID &&
             (!latest || current.created > latest.created) &&
             // Whisper action doesn't affect lastVisibleActionCreated, so skip whisper action except actionable mention whisper
-            (!ReportActionsUtils.isWhisperAction(current) || current.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER)
+            (!isWhisperAction(current) || current.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER)
         ) {
             return current;
         }
@@ -1994,7 +2012,7 @@ function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEn
 
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
-    const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report, chatReport, reportActions ?? []);
+    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? []);
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
 
     // If no action created date is provided, use the last action's from other user
@@ -2100,32 +2118,29 @@ function deleteReportComment(
     if (!reportActionID || !originalReportID || !reportID) {
         return;
     }
-    if (Array.isArray(reportAction.message) && reportAction.message.length > 0) {
-        for (const message of reportAction.message) {
-            const reportCommentText = message?.html ?? '';
+    const reportActionMessage = getReportActionMessage(reportAction);
+    const reportCommentText = reportActionMessage?.html ?? '';
 
-            const attachmentTags = [...reportCommentText.matchAll(CONST.REGEX.ATTACHMENT.ATTACHMENT)];
+    const attachmentTags = [...reportCommentText.matchAll(CONST.REGEX.ATTACHMENT.ATTACHMENT)];
 
-            const attachments = attachmentTags.flatMap((htmlTag, index) => {
-                const tag = htmlTag[0];
+    const attachments = attachmentTags.flatMap((htmlTag, index) => {
+        const tag = htmlTag[0];
 
-                const dataAttachmentID = tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_ID)?.[2]; // [2] means the exact value of the attachment id of the attachment tag
-                const attachmentID = dataAttachmentID ?? `${reportActionID}_${index + 1}`;
-                const attachment = allAttachments?.[`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`];
+        const dataAttachmentID = tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_ID)?.[2]; // [2] means the exact value of the attachment id of the attachment tag
+        const attachmentID = dataAttachmentID ?? `${reportActionID}_${index + 1}`;
+        const attachment = allAttachments?.[`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`];
 
-                return {
-                    attachmentID,
-                    localSource: attachment?.source,
-                };
-            });
+        return {
+            attachmentID,
+            localSource: attachment?.source,
+        };
+    });
 
-            for (const attachment of attachments) {
-                removeCachedAttachment({attachmentID: attachment.attachmentID, localSource: attachment.localSource});
-            }
-        }
+    for (const attachment of attachments) {
+        removeCachedAttachment({attachmentID: attachment.attachmentID, localSource: attachment.localSource});
     }
 
-    const isDeletedParentAction = ReportActionsUtils.isThreadParentMessage(reportAction, reportID);
+    const isDeletedParentAction = isThreadParentMessage(reportAction, reportID);
     const deletedMessage: Message[] = [
         {
             translationKey: '',
@@ -2155,14 +2170,12 @@ function deleteReportComment(
         ...optimisticLastReportData,
     };
 
-    const didCommentMentionCurrentUser = ReportActionsUtils.didMessageMentionCurrentUser(reportAction, currentEmail);
+    const didCommentMentionCurrentUser = didMessageMentionCurrentUser(reportAction, currentEmail);
     if (didCommentMentionCurrentUser && reportAction.created === report?.lastMentionedTime) {
         const reportActionsForReport = allReportActions?.[reportID];
         const latestMentionedReportAction = Object.values(reportActionsForReport ?? {}).find(
             (action) =>
-                action.reportActionID !== reportAction.reportActionID &&
-                ReportActionsUtils.didMessageMentionCurrentUser(action, currentEmail) &&
-                ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID),
+                action.reportActionID !== reportAction.reportActionID && didMessageMentionCurrentUser(action, currentEmail) && shouldReportActionBeVisible(action, action.reportActionID),
         );
         optimisticReport.lastMentionedTime = latestMentionedReportAction?.created ?? null;
     }
@@ -2327,7 +2340,7 @@ function editReportComment(
     // Do not autolink if someone explicitly tries to remove a link from message.
     // https://github.com/Expensify/App/issues/9090
     // https://github.com/Expensify/App/issues/13221
-    const originalCommentHTML = ReportActionsUtils.getReportActionHtml(originalReportAction);
+    const originalCommentHTML = getReportActionHtml(originalReportAction);
     const originalCommentMarkdown = Parser.htmlToMarkdown(originalCommentHTML ?? '').trim();
 
     // Skip the Edit if draft is not changed
@@ -2359,7 +2372,7 @@ function editReportComment(
 
     // Optimistically update the reportAction with the new message
     const reportActionID = originalReportAction.reportActionID;
-    const originalMessage = ReportActionsUtils.getReportActionMessage(originalReportAction);
+    const originalMessage = getReportActionMessage(originalReportAction);
     const optimisticReportActions: PartialDeep<ReportActions> = {
         [reportActionID]: {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -2384,7 +2397,7 @@ function editReportComment(
         },
     ];
 
-    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, canUserPerformWriteAction, optimisticReportActions as ReportActions);
+    const lastVisibleAction = getLastVisibleAction(originalReportID, canUserPerformWriteAction, optimisticReportActions as ReportActions);
     if (reportActionID === lastVisibleAction?.reportActionID) {
         const lastMessageText = formatReportLastMessageText(reportComment);
         const optimisticReport = {
@@ -2582,7 +2595,7 @@ function toggleSubscribeToChildReport(
         const participantAccountIDs = [...new Set([currentUserAccountID, Number(parentReportAction.actorAccountID)])];
         const newChat = buildOptimisticChatReport({
             participantList: participantAccountIDs,
-            reportName: ReportActionsUtils.getReportActionText(parentReportAction),
+            reportName: getReportActionText(parentReportAction),
             chatType: parentReport?.chatType,
             policyID: parentReport?.policyID ?? CONST.POLICY.OWNER_EMAIL_FAKE,
             ownerAccountID: CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
@@ -3437,8 +3450,8 @@ function deleteReport(reportID: string | undefined, shouldDeleteChildReports = f
     const reportActionsForReport = allReportActions?.[reportID];
 
     const transactionIDs = Object.values(reportActionsForReport ?? {})
-        .filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => ReportActionsUtils.isMoneyRequestAction(reportAction))
-        .map((reportAction) => ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID);
+        .filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => isMoneyRequestAction(reportAction))
+        .map((reportAction) => getOriginalMessage(reportAction)?.IOUTransactionID);
 
     for (const transactionID of [...new Set(transactionIDs)]) {
         onyxData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = null;
@@ -3595,7 +3608,7 @@ function shouldShowReportActionNotification(reportID: string, currentUserAccount
 
     // Due to payload size constraints, some push notifications may have their report action stripped
     // so we must double check that we were provided an action before using it in these checks.
-    if (action && ReportActionsUtils.isDeletedAction(action)) {
+    if (action && isDeletedAction(action)) {
         Log.info(`${tag} Skipping notification because the action was deleted`, false, {reportID, action});
         return false;
     }
@@ -3628,7 +3641,7 @@ function shouldShowReportActionNotification(reportID: string, currentUserAccount
     const topmostReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${topmostReportID}`];
     const topmostReportActions = allReportActions?.[`${topmostReport?.reportID}`];
     const chatTopmostReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${topmostReport?.chatReportID}`];
-    if (reportID === ReportActionsUtils.getOneTransactionThreadReportID(topmostReport, chatTopmostReport, topmostReportActions) && Visibility.isVisible() && Visibility.hasFocus()) {
+    if (reportID === getOneTransactionThreadReportID(topmostReport, chatTopmostReport, topmostReportActions) && Visibility.isVisible() && Visibility.hasFocus()) {
         Log.info(`${tag} No notification because the report is a transaction thread associated with the current one-transaction report`);
         return false;
     }
@@ -3646,7 +3659,7 @@ function shouldShowReportActionNotification(reportID: string, currentUserAccount
     }
 
     // If this is a whisper targeted to someone else, don't show it
-    if (action && ReportActionsUtils.isWhisperActionTargetedToOthers(action)) {
+    if (action && isWhisperActionTargetedToOthers(action)) {
         Log.info(`${tag} No notification because the action is whispered to someone else`, false);
         return false;
     }
@@ -3794,7 +3807,7 @@ function toggleEmojiReaction(
         return;
     }
 
-    const originalReportAction = ReportActionsUtils.getReportAction(originalReportID, reportAction.reportActionID);
+    const originalReportAction = getReportAction(originalReportID, reportAction.reportActionID);
 
     if (isEmptyObject(originalReportAction)) {
         return;
@@ -4295,7 +4308,7 @@ function optimisticReportLastData(
     isReportArchived?: boolean,
 ) {
     const lastMessageText = getLastVisibleMessage(reportID, isReportArchived, optimisticReportActions).lastMessageText ?? '';
-    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, canUserPerformWriteAction, optimisticReportActions);
+    const lastVisibleAction = getLastVisibleAction(reportID, canUserPerformWriteAction, optimisticReportActions);
     return {
         lastMessageText,
         lastVisibleActionCreated: lastVisibleAction?.created ?? '',
@@ -4306,7 +4319,7 @@ function optimisticReportLastData(
 /** Flag a comment as offensive */
 function flagComment(reportAction: OnyxEntry<ReportAction>, severity: string, originalReport: OnyxEntry<Report> | undefined, isOriginalReportArchived: boolean | undefined) {
     const originalReportID = originalReport?.reportID;
-    const message = ReportActionsUtils.getReportActionMessage(reportAction);
+    const message = getReportActionMessage(reportAction);
 
     if (!message || !reportAction) {
         return;
@@ -4748,7 +4761,7 @@ function resolveActionableMentionWhisper(
         return;
     }
 
-    const message = ReportActionsUtils.getReportActionMessage(reportAction);
+    const message = getReportActionMessage(reportAction);
     if (!message) {
         return;
     }
@@ -4906,7 +4919,7 @@ function resolveActionableReportMentionWhisper(
 
 function dismissTrackExpenseActionableWhisper(reportID: string | undefined, reportAction: OnyxEntry<ReportAction>): void {
     const isArrayMessage = Array.isArray(reportAction?.message);
-    const message = ReportActionsUtils.getReportActionMessage(reportAction);
+    const message = getReportActionMessage(reportAction);
     if (!message || !reportAction || !reportID) {
         return;
     }
@@ -5231,20 +5244,20 @@ function deleteAppReport(
     const transactionIDToReportActionAndThreadData: Record<string, TransactionThreadInfo> = {};
 
     for (const reportAction of Object.values(reportActionsForReport ?? {})) {
-        if (!ReportActionsUtils.isMoneyRequestAction(reportAction)) {
+        if (!isMoneyRequestAction(reportAction)) {
             continue;
         }
 
-        if (ReportActionsUtils.isDeletedAction(reportAction)) {
+        if (isDeletedAction(reportAction)) {
             continue;
         }
 
-        const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
+        const originalMessage = getOriginalMessage(reportAction);
         if (originalMessage?.type !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && originalMessage?.type !== CONST.IOU.REPORT_ACTION_TYPE.TRACK) {
             continue;
         }
 
-        const transactionID = ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID;
+        const transactionID = getOriginalMessage(reportAction)?.IOUTransactionID;
         const childReportID = reportAction.childReportID;
         const newReportActionID = rand64();
 
@@ -5521,7 +5534,7 @@ function moveIOUReportToPolicy(
     const isReimbursed = isReportManuallyReimbursed(iouReport);
 
     // We do not want to create negative amount expenses
-    if (!isReimbursed && ReportActionsUtils.hasRequestFromCurrentAccount(reportID, iouReport.managerID ?? CONST.DEFAULT_NUMBER_ID) && !isFromSettlementButton) {
+    if (!isReimbursed && hasRequestFromCurrentAccount(reportID, iouReport.managerID ?? CONST.DEFAULT_NUMBER_ID) && !isFromSettlementButton) {
         return;
     }
 
@@ -5580,7 +5593,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(
     const isReimbursed = isReportManuallyReimbursed(iouReport);
 
     // We only allow moving IOU report to a policy if it doesn't have requests from multiple users, as we do not want to create negative amount expenses
-    if (!isReimbursed && ReportActionsUtils.hasRequestFromCurrentAccount(reportID, iouReport.managerID ?? CONST.DEFAULT_NUMBER_ID)) {
+    if (!isReimbursed && hasRequestFromCurrentAccount(reportID, iouReport.managerID ?? CONST.DEFAULT_NUMBER_ID)) {
         return;
     }
 

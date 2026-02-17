@@ -2194,7 +2194,7 @@ const CONST = {
         HEIC: 'image/heic',
     },
 
-    MARKDOWN_ATTACHMENT_FILE_TYPES: {
+    IMAGE_CACHE_FILE_TYPES: {
         JPEG: 'image/jpeg',
         JPG: 'image/jpg',
     },

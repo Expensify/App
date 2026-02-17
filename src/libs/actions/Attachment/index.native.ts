@@ -2,8 +2,7 @@ import RNFetchBlob from 'react-native-blob-util';
 import RNFS from 'react-native-fs';
 import Onyx from 'react-native-onyx';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import {isLocalAttachment} from '@libs/AttachmentUtils';
-import {getFileExtension} from '@libs/fileDownload/FileUtils';
+import {getImageCacheFileExtension, isLocalAttachment} from '@libs/AttachmentUtils';
 import Log from '@libs/Log';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
@@ -13,7 +12,7 @@ import type {CacheAttachmentProps, GetCachedAttachmentProps, RemoveCachedAttachm
 function cacheAttachment({attachmentID, uri, mimeType}: CacheAttachmentProps) {
     const isMarkdownAttachment = !uri.startsWith('file://');
     const attachmentURL = isLocalAttachment(uri) ? addEncryptedAuthTokenToURL(tryResolveUrlFromApiRoot(uri)) : uri;
-    let fileType = getFileExtension(mimeType ?? '');
+    let fileType = getImageCacheFileExtension(mimeType ?? '');
 
     // If it's coming from direct attachment file upload, we can just simply copy the file instead of fetching it again
     if (!isMarkdownAttachment && fileType) {
@@ -44,7 +43,7 @@ function cacheAttachment({attachmentID, uri, mimeType}: CacheAttachmentProps) {
         }
 
         if (!fileType && contentType) {
-            fileType = getFileExtension(contentType);
+            fileType = getImageCacheFileExtension(contentType);
         }
 
         // If fileType is not set properly, then we need to exit
