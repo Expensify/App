@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import type {RefObject} from 'react';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -324,6 +324,7 @@ function BaseTextInput({
     // If we need some other inputMode (eg. 'decimal'), then the autocomplete bar will show, but we can do nothing about it as it's a known Chrome bug.
     const inputMode = inputProps.inputMode ?? (isMobileChrome() ? 'search' : undefined);
     const accessibilityLabel = [label, hint].filter(Boolean).join(', ');
+    const accessibilityValue = useMemo(() => ({text: value ?? ''}), [value]);
     return (
         <>
             <View
@@ -483,6 +484,7 @@ function BaseTextInput({
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}
                                 accessibilityLabel={inputProps.accessibilityLabel}
+                                accessibilityValue={accessibilityValue}
                             />
                             {!!suffixCharacter && (
                                 <View style={[styles.textInputSuffixWrapper, suffixContainerStyle]}>

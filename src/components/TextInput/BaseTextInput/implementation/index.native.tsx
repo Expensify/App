@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -287,6 +287,7 @@ function BaseTextInput({
     // Height fix is needed only for Text single line inputs
     const shouldApplyHeight = !shouldUseFullInputHeight && !isMultiline && !isMarkdownEnabled;
     const accessibilityLabel = [label, hint].filter(Boolean).join(', ');
+    const accessibilityValue = useMemo(() => ({text: value ?? ''}), [value]);
 
     return (
         <>
@@ -377,6 +378,7 @@ function BaseTextInput({
                                 // eslint-disable-next-line
                                 {...inputProps}
                                 accessibilityLabel={inputProps.accessibilityLabel ?? accessibilityLabel}
+                                accessibilityValue={accessibilityValue}
                                 autoCorrect={inputProps.secureTextEntry ? false : autoCorrect}
                                 placeholder={placeholderValue}
                                 placeholderTextColor={placeholderTextColor ?? theme.placeholderText}
