@@ -40,6 +40,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
         <ShowContextMenuContext.Consumer>
             {({anchor, report, isReportArchived, action, checkIfContextMenuActive, isDisabled, shouldDisplayContextMenu}) => (
                 <PressableWithoutFeedback
+                    // eslint-disable-next-line no-restricted-syntax
                     style={[style, (isOffline || !sourceID) && styles.cursorDefault]}
                     onPress={() => {
                         if (isDownloading || isOffline || !sourceID) {
