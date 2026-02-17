@@ -5,9 +5,11 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {OpenPolicyTravelPageParams, SetTravelInvoicingSettlementAccountParams, ToggleTravelInvoicingParams, UpdateTravelInvoicingSettlementFrequencyParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import {getCommandURL} from '@libs/ApiUtils';
+import * as ApiUtils from '@libs/ApiUtils';
+import * as Browser from '@libs/Browser';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
+import enhanceParameters from '@libs/Network/enhanceParameters';
 import {getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -315,17 +317,84 @@ function clearToggleTravelInvoicingErrors(workspaceAccountID: number) {
 }
 
 /**
- * Downloads the Travel Invoice Statement for a policy and period.
+ * Generates the Travel Invoice Statement PDF for a policy and date range.
+ * Uses Onyx to track generation state and cache the filename.
  */
-function getTravelInvoiceStatement(policyID: string, period: string, type: 'csv' | 'pdf', translate: LocalizedTranslate) {
-    const formData = new FormData();
-    formData.append('policyID', policyID);
-    formData.append('period', period);
-    formData.append('type', type);
+function getTravelInvoiceStatementPDF(policyID: string, startDate: string, endDate: string) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.TRAVEL_INVOICE_STATEMENT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.TRAVEL_INVOICE_STATEMENT,
+            value: {
+                isGenerating: true,
+            },
+        },
+    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.TRAVEL_INVOICE_STATEMENT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.TRAVEL_INVOICE_STATEMENT,
+            value: {
+                isGenerating: false,
+            },
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.TRAVEL_INVOICE_STATEMENT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.TRAVEL_INVOICE_STATEMENT,
+            value: {
+                isGenerating: false,
+            },
+        },
+    ];
 
-    const commandURL = getCommandURL({command: WRITE_COMMANDS.GET_TRAVEL_INVOICING_PAYMENTS});
-    const filename = `Travel_Statement_${period}.${type}`;
-    fileDownload(translate, commandURL, filename, '', false, formData, CONST.NETWORK.METHOD.POST);
+    API.read(
+        READ_COMMANDS.GET_TRAVEL_INVOICE_STATEMENT_PDF,
+        {policyID, startDate, endDate},
+        {
+            optimisticData,
+            successData,
+            failureData,
+        },
+    );
+}
+
+/**
+ * Exports the Travel Invoice Statement as CSV for a policy and date range.
+ * The backend returns a direct CSV file stream.
+ */
+function exportTravelInvoiceStatementCSV(policyID: string, startDate: string, endDate: string, translate: LocalizedTranslate) {
+    const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_TRAVEL_INVOICE_STATEMENT_CSV, {
+        policyID,
+        startDate,
+        endDate,
+    });
+
+    const formData = new FormData();
+    for (const [key, value] of Object.entries(finalParameters)) {
+        formData.append(key, String(value));
+    }
+
+    const commandURL = ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_TRAVEL_INVOICE_STATEMENT_CSV});
+    const filename = `Travel_Statement_${startDate}_${endDate}.csv`;
+
+    const onDownloadFailed = () => {
+        // When no data exists for the selected date range, the backend returns a JSON error.
+        // Download an empty CSV file in this case.
+        const blob = new Blob([''], {type: 'text/csv'});
+        const href = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = href;
+        link.download = filename;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        URL.revokeObjectURL(href);
+        link.parentNode?.removeChild(link);
+    };
+
+    fileDownload(translate, commandURL, filename, '', Browser.isMobileSafari(), formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
 export {
@@ -336,5 +405,6 @@ export {
     updateTravelInvoiceSettlementFrequency,
     toggleTravelInvoicing,
     clearToggleTravelInvoicingErrors,
-    getTravelInvoiceStatement,
+    getTravelInvoiceStatementPDF,
+    exportTravelInvoiceStatementCSV,
 };

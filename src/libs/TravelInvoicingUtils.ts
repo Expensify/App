@@ -1,10 +1,14 @@
 import type {OnyxEntry} from 'react-native-onyx';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList} from '@src/types/onyx';
 import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
 import type {ExpensifyCardSettingsBase} from '@src/types/onyx/ExpensifyCardSettings';
+import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
 import {getLastFourDigits} from './BankAccountUtils';
+import * as Browser from './Browser';
+import fileDownload from './fileDownload';
 
 /**
  * Gets the Travel Invoicing settings, handling both nested (TRAVEL_US) and root-level data.
@@ -155,6 +159,16 @@ function getTravelInvoicingCardSettingsKey(workspaceAccountID: number): `${typeo
     return `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`;
 }
 
+/**
+ * Downloads a cached Travel Invoice Statement PDF.
+ * Constructs a secure URL with encrypted auth token and triggers the download.
+ */
+function downloadTravelInvoiceStatementPDF(translate: LocalizedTranslate, baseURL: string, fileName: string | true, startDate: string, endDate: string): Promise<void> {
+    const downloadFileName = `Travel_Statement_${startDate}_${endDate}.pdf`;
+    const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${encodeURIComponent(fileName)}&downloadName=${encodeURIComponent(downloadFileName)}`;
+    return fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, true), downloadFileName, '', Browser.isMobileSafari());
+}
+
 export {
     getIsTravelInvoicingEnabled,
     hasTravelInvoicingSettlementAccount,
@@ -164,6 +178,7 @@ export {
     getTravelSettlementAccount,
     getTravelSettlementFrequency,
     getTravelInvoicingCardSettingsKey,
+    downloadTravelInvoiceStatementPDF,
 };
 
 export type {TravelSettlementAccountInfo};

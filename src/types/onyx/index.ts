@@ -165,6 +165,7 @@ import type ValidateUserAndGetAccessiblePolicies from './ValidateUserAndGetAcces
 import type WalletAdditionalDetails from './WalletAdditionalDetails';
 import type {WalletAdditionalQuestionDetails} from './WalletAdditionalDetails';
 import type WalletOnfido from './WalletOnfido';
+import type TravelInvoiceStatement from './TravelInvoiceStatement';
 import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
@@ -292,6 +293,7 @@ export type {
     WalletAdditionalDetails,
     WalletAdditionalQuestionDetails,
     WalletOnfido,
+    TravelInvoiceStatement,
     WalletStatement,
     WalletTerms,
     WalletTransfer,

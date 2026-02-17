@@ -383,7 +383,8 @@ export type {default as UpdateCardSettlementAccountParams} from './UpdateCardSet
 export type {default as ToggleTravelInvoicingParams} from './ToggleTravelInvoicingParams';
 export type {default as SetTravelInvoicingSettlementAccountParams} from './SetTravelInvoicingSettlementAccountParams';
 export type {default as UpdateTravelInvoicingSettlementFrequencyParams} from './UpdateTravelInvoicingSettlementFrequencyParams';
-export type {default as GetTravelInvoicingPaymentsParams} from './GetTravelInvoicingPaymentsParams';
+export type {default as GetTravelInvoiceStatementPDFParams} from './GetTravelInvoiceStatementPDFParams';
+export type {default as ExportTravelInvoiceStatementCSVParams} from './ExportTravelInvoiceStatementCSVParams';
 export type {default as SetCompanyCardFeedName} from './SetCompanyCardFeedName';
 export type {default as DeleteCompanyCardFeed} from './DeleteCompanyCardFeed';
 export type {default as SetCompanyCardTransactionLiability} from './SetCompanyCardTransactionLiability';
