@@ -1,10 +1,43 @@
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
 import {isCard, isCardHiddenFromSearch, isCardPendingActivate, isCardPendingIssue, isCardWithPotentialFraud, isExpensifyCard, isPersonalCard} from '@libs/CardUtils';
 import {filterObject} from '@libs/ObjectUtils';
 import CONST from '@src/CONST';
-import type {Card, CardList, NonPersonalAndWorkspaceCardListDerivedValue} from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Card, CardList, NonPersonalAndWorkspaceCardListDerivedValue, WorkspaceCardsList} from '@src/types/onyx';
+
+/**
+ * Lightweight map of "${domainID}_${feedName}" keys that have at least one assigned card.
+ * Used for O(1) lookup when filtering stale direct feeds, instead of passing the full WORKSPACE_CARDS_LIST collection.
+ */
+type FeedKeysWithAssignedCards = Record<string, true>;
+
+/**
+ * Selector that transforms the full WORKSPACE_CARDS_LIST collection into a lightweight map
+ * of feed keys that have assigned cards. Only re-triggers re-renders when the set of
+ * feeds-with-cards changes, not when individual card details change.
+ *
+ * Input key format: "cards_${domainID}_${feedName}" (e.g., "cards_12345_oauth.chase.com")
+ * Output key format: "${domainID}_${feedName}" (e.g., "12345_oauth.chase.com")
+ */
+const feedKeysWithAssignedCardsSelector = (allWorkspaceCards: OnyxCollection<WorkspaceCardsList>): FeedKeysWithAssignedCards => {
+    const result: FeedKeysWithAssignedCards = {};
+
+    for (const [key, cards] of Object.entries(allWorkspaceCards ?? {})) {
+        if (!cards || typeof cards !== 'object') {
+            continue;
+        }
+
+        const {cardList, ...assignedCards} = cards;
+        if (Object.keys(assignedCards).length > 0) {
+            const feedKey = key.replace(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, '');
+            result[feedKey] = true;
+        }
+    }
+
+    return result;
+};
 
 /**
  * Filter out cards that are hidden from search.
@@ -70,8 +103,10 @@ const timeSensitiveCardsSelector = (cards: OnyxEntry<CardList>): TimeSensitiveCa
             continue;
         }
 
-        // Check for fraud on any Expensify card (physical or virtual)
-        if (isCardWithPotentialFraud(card)) {
+        // Check for fraud on any Expensify card (physical or virtual).
+        // Only include cards that have complete possibleFraud data with a valid fraudAlertReportID,
+        // since without these the ReviewCardFraud widget cannot render anything meaningful.
+        if (isCardWithPotentialFraud(card) && card.nameValuePairs?.possibleFraud?.fraudAlertReportID) {
             result.cardsWithFraud.push(card);
         }
 
@@ -103,5 +138,13 @@ const areAllExpensifyCardsShipped = (cardList: OnyxEntry<CardList>): boolean =>
         .filter((card) => isCard(card) && isExpensifyCard(card))
         .every((card) => card.state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
 
-export {filterCardsHiddenFromSearch, filterOutPersonalCards, defaultExpensifyCardSelector, cardByIdSelector, timeSensitiveCardsSelector, areAllExpensifyCardsShipped};
-export type {TimeSensitiveCardsResult};
+export {
+    filterCardsHiddenFromSearch,
+    filterOutPersonalCards,
+    defaultExpensifyCardSelector,
+    cardByIdSelector,
+    timeSensitiveCardsSelector,
+    areAllExpensifyCardsShipped,
+    feedKeysWithAssignedCardsSelector,
+};
+export type {TimeSensitiveCardsResult, FeedKeysWithAssignedCards};
