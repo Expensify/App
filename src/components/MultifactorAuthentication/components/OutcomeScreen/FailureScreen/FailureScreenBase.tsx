@@ -20,8 +20,8 @@ type FailureScreenBaseProps = {
 
 function FailureScreenBase({headerTitle, illustration, iconWidth, iconHeight, title, subtitle, customSubtitle}: FailureScreenBaseProps) {
     const {translate} = useLocalize();
-    const {state} = useMultifactorAuthenticationState();
-    const resolvedHeaderTitle = headerTitle ?? state.scenario?.failureHeaderTitle ?? 'multifactorAuthentication.verificationFailed';
+    const {scenario} = useMultifactorAuthenticationState();
+    const resolvedHeaderTitle = headerTitle ?? scenario?.failureHeaderTitle ?? 'multifactorAuthentication.verificationFailed';
 
     return (
         <OutcomeScreenBase
