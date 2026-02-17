@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -15,16 +15,16 @@ import type {
     TransactionYearGroupListItemType,
 } from '@components/SelectionListWithSections/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCurrencyDisplayInfoForCharts} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import {formatToParts} from '@libs/NumberFormatUtils';
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import useLocalize from '@hooks/useLocalize';
 import SearchBarChart from './SearchBarChart';
 import SearchLineChart from './SearchLineChart';
 import type {ChartView, GroupedItem, SearchGroupBy, SearchQueryJSON} from './types';
@@ -127,6 +127,9 @@ type SearchChartViewProps = {
 
     /** Scroll handler for hiding the top bar on mobile */
     onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+
+    /** Title to be displayed on the chart */
+    title: string;
 };
 
 /**
@@ -141,45 +144,39 @@ const CHART_VIEW_TO_COMPONENT: Record<Exclude<ChartView, 'pie'>, typeof SearchBa
  * Layer 3 component - dispatches to the appropriate chart type based on view parameter
  * and handles navigation/drill-down logic
  */
-function SearchChartView({queryJSON, view, groupBy, data, isLoading, onScroll}: SearchChartViewProps) {
+function SearchChartView({queryJSON, view, groupBy, data, isLoading, onScroll, title}: SearchChartViewProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {preferredLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const icons = useMemoizedLazyExpensifyIcons(['Users', 'CreditCard', 'Send', 'Folder', 'Basket', 'Tag', 'Calendar'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Users', 'CreditCard', 'Send', 'Folder', 'Basket', 'Tag', 'Calendar']);
     const {titleIconName, getLabel, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
     const titleIcon = icons[titleIconName];
-    const title = translate(`search.chartTitles.${groupBy}`);
     const ChartComponent = CHART_VIEW_TO_COMPONENT[view];
 
-    const handleItemPress = useCallback(
-        (filterQuery: string) => {
-            const currentQueryString = buildSearchQueryString(queryJSON);
-            const newQueryJSON = buildSearchQueryJSON(`${currentQueryString} ${filterQuery}`);
+    const handleItemPress = (filterQuery: string) => {
+        const currentQueryString = buildSearchQueryString(queryJSON);
+        const newQueryJSON = buildSearchQueryJSON(`${currentQueryString} ${filterQuery}`);
 
-            if (!newQueryJSON) {
-                Log.alert('[SearchChartView] Failed to build search query JSON from filter query');
-                return;
-            }
+        if (!newQueryJSON) {
+            Log.alert('[SearchChartView] Failed to build search query JSON from filter query');
+            return;
+        }
 
-            newQueryJSON.groupBy = undefined;
-            newQueryJSON.view = CONST.SEARCH.VIEW.TABLE;
+        newQueryJSON.groupBy = undefined;
+        newQueryJSON.view = CONST.SEARCH.VIEW.TABLE;
 
-            const newQueryString = buildSearchQueryString(newQueryJSON);
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: newQueryString}));
-        },
-        [queryJSON],
-    );
+        const newQueryString = buildSearchQueryString(newQueryJSON);
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: newQueryString}));
+    };
 
-    const {yAxisUnit, yAxisUnitPosition} = useMemo((): {yAxisUnit: string; yAxisUnitPosition: 'left' | 'right'} => {
-        const firstItem = data.at(0);
-        const currency = firstItem?.currency ?? 'USD';
-        const {symbol, position} = getCurrencyDisplayInfoForCharts(currency);
-
-        return {
-            yAxisUnit: symbol,
-            yAxisUnitPosition: position,
-        };
-    }, [data]);
+    const firstItem = data.at(0);
+    const currency = firstItem?.currency ?? 'USD';
+    const parts = formatToParts(preferredLocale, 0, {style: 'currency', currency});
+    const currencyPart = parts.find((p) => p.type === 'currency');
+    const currencyIndex = parts.findIndex((p) => p.type === 'currency');
+    const integerIndex = parts.findIndex((p) => p.type === 'integer');
+    const yAxisUnit = {value: currencyPart?.value ?? currency, fallback: currency};
+    const yAxisUnitPosition = currencyIndex < integerIndex ? 'left' : 'right';
 
     return (
         <Animated.ScrollView

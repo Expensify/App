@@ -87,6 +87,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
 
     const {formatXAxisLabel, formatYAxisLabel} = useChartLabelFormats({
         data,
+        font,
         yAxisUnit,
         yAxisUnitPosition,
         labelSkipInterval,

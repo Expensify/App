@@ -2490,4 +2490,31 @@ describe('TransactionUtils', () => {
             });
         });
     });
+
+    describe('getTagArrayFromName', () => {
+        it('splits simple tag by colon', () => {
+            expect(TransactionUtils.getTagArrayFromName('tag1:tag2:tag3')).toEqual(['tag1', 'tag2', 'tag3']);
+        });
+
+        it('does not split escaped colons', () => {
+            expect(TransactionUtils.getTagArrayFromName('tag1\\:name:tag2')).toEqual(['tag1\\:name', 'tag2']);
+            expect(TransactionUtils.getTagArrayFromName('tag1\\\\:name:tag2')).toEqual(['tag1\\\\', 'name', 'tag2']);
+        });
+
+        it('handles multiple escaped colons', () => {
+            expect(TransactionUtils.getTagArrayFromName('a\\:b\\:c:d')).toEqual(['a\\:b\\:c', 'd']);
+        });
+
+        it('returns single element for tag without colons', () => {
+            expect(TransactionUtils.getTagArrayFromName('single tag')).toEqual(['single tag']);
+        });
+
+        it('returns empty strings for consecutive colons', () => {
+            expect(TransactionUtils.getTagArrayFromName('tag1::tag2')).toEqual(['tag1', '', 'tag2']);
+        });
+
+        it('returns empty string array for empty string', () => {
+            expect(TransactionUtils.getTagArrayFromName('')).toEqual(['']);
+        });
+    });
 });

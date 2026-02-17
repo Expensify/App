@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTag, PolicyTags} from '@src/types/onyx';
 import RadioListItem from './SelectionList/ListItem/RadioListItem';
-import SelectionList from './SelectionList/SelectionListWithSections';
+import SelectionListWithSections from './SelectionList/SelectionListWithSections';
 
 type TagPickerProps = {
     /** The policyID we are getting tags for */
@@ -135,7 +135,7 @@ function TagPicker({
     const listItemTitleStyles = [styles.breakAll, styles.w100];
 
     return (
-        <SelectionList
+        <SelectionListWithSections
             sections={sections}
             ListItem={RadioListItem}
             style={{

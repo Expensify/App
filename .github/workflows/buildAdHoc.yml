@@ -39,10 +39,11 @@ on:
 jobs:
   postGitHubCommentBuildStarted:
     name: Post build started comment
-    if: ${{ inputs.APP_PR_NUMBER != '' }}
+    if: ${{ inputs.APP_PR_NUMBER != '' || inputs.MOBILE_EXPENSIFY_PR != '' }}
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Add build start comment to Expensify/App PR
+        if: ${{ inputs.APP_PR_NUMBER != '' }}
         # v8
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
         with:
@@ -151,6 +152,13 @@ jobs:
           git checkout ${{ inputs.MOBILE_EXPENSIFY_REF }}
           echo "Building from https://github.com/Expensify/Mobile-Expensify/pull/${{ inputs.MOBILE_EXPENSIFY_PR }}"
 
+      - name: Compute custom build identifier
+        id: computeIdentifier
+        run: |
+          APP_SHORT_SHA=$(git rev-parse --short HEAD)
+          MOBILE_EXPENSIFY_SHORT_SHA=$(cd Mobile-Expensify && git rev-parse --short HEAD)
+          echo "IDENTIFIER=${APP_SHORT_SHA}-${MOBILE_EXPENSIFY_SHORT_SHA}" >> "$GITHUB_OUTPUT"
+
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
@@ -211,8 +219,7 @@ jobs:
 
       - name: Rock Remote Build - Android
         id: rock-remote-build-android
-        # v3
-        uses: callstackincubator/android@c04be7b6078d62620958c7420634a984a40f0bb5
+        uses: callstackincubator/android@561f4aa994a35aa9a2d7d913b562da65e5f02029
         env:
           GITHUB_TOKEN: ${{ github.token }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
@@ -231,7 +238,7 @@ jobs:
           keystore-path: '../tools/buildtools/upload-key.keystore'
           comment-bot: false
           rock-build-extra-params: '--extra-params "-PreactNativeArchitectures=arm64-v8a,x86_64 --profile"'
-          custom-ref: ${{ inputs.APP_REF }}
+          custom-identifier: ${{ steps.computeIdentifier.outputs.IDENTIFIER }}
 
       - name: Upload Gradle profile report
         if: always()
@@ -271,6 +278,13 @@ jobs:
           git fetch origin ${{ inputs.MOBILE_EXPENSIFY_REF }}
           git checkout ${{ inputs.MOBILE_EXPENSIFY_REF }}
           echo "Building from https://github.com/Expensify/Mobile-Expensify/pull/${{ inputs.MOBILE_EXPENSIFY_PR }}"
+
+      - name: Compute custom build identifier
+        id: computeIdentifier
+        run: |
+          APP_SHORT_SHA=$(git rev-parse --short HEAD)
+          MOBILE_EXPENSIFY_SHORT_SHA=$(cd Mobile-Expensify && git rev-parse --short HEAD)
+          echo "IDENTIFIER=${APP_SHORT_SHA}-${MOBILE_EXPENSIFY_SHORT_SHA}" >> "$GITHUB_OUTPUT"
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
@@ -336,8 +350,7 @@ jobs:
 
       - name: Rock Remote Build - iOS
         id: rock-remote-build-ios
-        # v3
-        uses: callstackincubator/ios@7c072d8d6acaa7cc3b038f9f6c5a81bb54da10c7
+        uses: callstackincubator/ios@dd30f7e53eee2ea6a59509793d0a30fbb5c91216
         env:
           GITHUB_TOKEN: ${{ github.token }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
@@ -365,7 +378,7 @@ jobs:
               }
             ]
           comment-bot: false
-          custom-ref: ${{ inputs.APP_REF }}
+          custom-identifier: ${{ steps.computeIdentifier.outputs.IDENTIFIER }}
 
       - name: Set artifact URL output
         id: set-artifact-url
@@ -373,7 +386,7 @@ jobs:
 
   postGithubComment:
     runs-on: blacksmith-4vcpu-ubuntu-2404
-    if: ${{ always() && inputs.APP_PR_NUMBER != '' }}
+    if: ${{ always() && (inputs.APP_PR_NUMBER != '' || inputs.MOBILE_EXPENSIFY_PR != '') }}
     name: Post a GitHub comment with app download links for testing
     needs: [web, androidHybrid, iosHybrid]
     steps:
@@ -388,6 +401,7 @@ jobs:
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
 
       - name: Publish links to apps for download on Expensify/App PR
+        if: ${{ inputs.APP_PR_NUMBER != '' }}
         uses: ./.github/actions/javascript/postTestBuildComment
         with:
           REPO: App
@@ -425,10 +439,12 @@ jobs:
         with:
           ref: ${{ inputs.APP_REF }}
 
-      - name: Get Mobile-Expensify submodule SHA
-        id: getSubmoduleSHA
+      - name: Get Mobile-Expensify ref
+        id: getMobileExpensifySHA
         run: |
-          if [ -d "Mobile-Expensify" ]; then
+          if [ -n "${{ inputs.MOBILE_EXPENSIFY_REF }}" ]; then
+            echo "SHA=${{ inputs.MOBILE_EXPENSIFY_REF }}" >> "$GITHUB_OUTPUT"
+          elif [ -d "Mobile-Expensify" ]; then
             SUBMODULE_SHA=$(git ls-tree HEAD Mobile-Expensify | awk '{print $3}')
             echo "SHA=$SUBMODULE_SHA" >> "$GITHUB_OUTPUT"
           fi
@@ -443,7 +459,7 @@ jobs:
             const webLink = prNumber && '${{ needs.web.result }}' === 'success' ? `https://${prNumber}.pr-testing.expensify.com` : '';
             const androidLink = '${{ needs.androidHybrid.outputs.ROCK_ANDROID_ADHOC_INDEX_URL }}' || '';
             const iosLink = '${{ needs.iosHybrid.outputs.ROCK_IOS_ADHOC_INDEX_URL }}' || '';
-            const submoduleSHA = '${{ steps.getSubmoduleSHA.outputs.SHA }}' || '';
+            const mobileExpensifySHA = '${{ steps.getMobileExpensifySHA.outputs.SHA }}' || '';
 
             const webStatus = webLink ? '✅ Success' : '${{ needs.web.result }}' === 'failure' ? '❌ Failed' : '⏭️ Skipped';
             const androidStatus = androidLink ? '✅ Success' : '${{ needs.androidHybrid.result }}' === 'failure' ? '❌ Failed' : '⏭️ Skipped';
@@ -469,9 +485,10 @@ jobs:
                 ],
               ]);
 
-            if (submoduleSHA) {
-              const submoduleUrl = `https://github.com/Expensify/Mobile-Expensify/commit/${submoduleSHA}`;
-              summary.addRaw(`\n**Mobile-Expensify Submodule SHA:** [${submoduleSHA}](${submoduleUrl})`);
+            if (mobileExpensifySHA) {
+              const mobileExpensifyUrl = `https://github.com/Expensify/Mobile-Expensify/commit/${mobileExpensifySHA}`;
+              const label = '${{ inputs.MOBILE_EXPENSIFY_REF }}' ? 'Mobile-Expensify SHA (Custom)' : 'Mobile-Expensify Submodule SHA';
+              summary.addRaw(`\n**${label}:** [${mobileExpensifySHA}](${mobileExpensifyUrl})`);
             }
 
             if (prNumber) {

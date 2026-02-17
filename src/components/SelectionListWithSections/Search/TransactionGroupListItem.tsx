@@ -116,6 +116,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
 
     const transactions = useMemo(() => {
         if (isExpenseReportType) {
@@ -135,6 +136,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             isActionLoadingSet,
             allReportMetadata,
             cardFeeds,
+            cardList,
         }) as [TransactionListItemType[], number];
         return sectionData.map((transactionItem) => ({
             ...transactionItem,
@@ -153,6 +155,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         bankAccountList,
         allReportMetadata,
         cardFeeds,
+        cardList,
     ]);
 
     const selectedItemsLength = useMemo(() => {
@@ -534,6 +537,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                             onPress={onExpandIconPress}
                             expandButtonStyle={styles.pv4Half}
                             shouldShowToggleButton={isLargeScreenWidth}
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH.GROUP_EXPAND_TOGGLE}
                         >
                             <TransactionGroupListExpandedItem
                                 showTooltip={showTooltip}
