@@ -2,7 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useMemo, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {StyleSheet, View} from 'react-native';
+import {Platform, StyleSheet, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Icon from '@components/Icon';
 import type {PressableRef} from '@components/Pressable/GenericPressable/types';
@@ -458,6 +458,7 @@ function Button({
             opacity,
         };
     }, [buttonStyles, shouldBlendOpacity]);
+    const isPressableDisabled = isLoading || isDisabled;
 
     return (
         <>
@@ -506,7 +507,8 @@ function Button({
                 onPressOut={onPressOut}
                 onMouseDown={onMouseDown}
                 shouldBlendOpacity={shouldBlendOpacity}
-                disabled={isLoading || isDisabled}
+                disabled={isPressableDisabled}
+                fullDisabled={Platform.OS === CONST.PLATFORM.WEB ? isPressableDisabled : undefined}
                 wrapperStyle={[
                     isDisabled && !shouldStayNormalOnDisable ? {...styles.cursorDisabled, ...styles.noSelect} : {},
                     styles.buttonContainer,
