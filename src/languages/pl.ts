@@ -175,7 +175,6 @@ import type {
     ZipCodeExampleFormatParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
-
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -576,6 +575,14 @@ const translations: TranslationDeepObject<typeof en> = {
         week: 'Tydzień',
         year: 'Rok',
         quarter: 'Kwartał',
+        expensifyLogo: 'Logo Expensify',
+    },
+    socials: {
+        podcast: 'Śledź nas na Podcast',
+        twitter: 'Śledź nas na Twitter',
+        instagram: 'Śledź nas na Instagram',
+        facebook: 'Śledź nas na Facebook',
+        linkedin: 'Śledź nas na LinkedIn',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -683,6 +690,15 @@ const translations: TranslationDeepObject<typeof en> = {
             rejectAuthentication: 'Odrzuć uwierzytelnianie',
             test: 'Test',
             biometricsAuthentication: 'Uwierzytelnianie biometryczne',
+            authType: {
+                unknown: 'Nieznany',
+                none: 'Brak',
+                credentials: 'Dane logowania',
+                biometrics: 'Biometria',
+                faceId: 'Face ID',
+                touchId: 'Touch ID',
+                opticId: 'Optic ID',
+            },
         },
         pleaseEnableInSystemSettings: {
             start: 'Włącz weryfikację twarzą/odciskiem palca lub ustaw kod blokady urządzenia w swoim',
@@ -702,7 +718,6 @@ const translations: TranslationDeepObject<typeof en> = {
             biometrics: 'Włącz szybką i bezpieczną weryfikację za pomocą twarzy lub odcisku palca. Bez haseł i kodów.',
         },
         revoke: {
-            remove: 'Usuń',
             title: 'Twarz/odcisk palca i klucze dostępu',
             explanation:
                 'Weryfikacja twarzy/odciskiem palca lub kluczem dostępu jest włączona na jednym lub kilku urządzeniach. Cofnięcie dostępu spowoduje konieczność użycia magicznego kodu przy następnej weryfikacji na dowolnym urządzeniu.',
@@ -712,11 +727,13 @@ const translations: TranslationDeepObject<typeof en> = {
                 'Nie masz zarejestrowanych żadnych urządzeń do weryfikacji twarzą/odciskiem palca ani kluczem dostępu. Jeśli jakieś zarejestrujesz, będziesz mógł/mogła cofnąć ten dostęp tutaj.',
             dismiss: 'Rozumiem',
             error: 'Żądanie nie powiodło się. Spróbuj ponownie później.',
+            revoke: 'Odwołaj',
         },
         unsupportedDevice: {
             unsupportedDevice: 'Nieobsługiwane urządzenie',
             pleaseDownloadMobileApp: `<centered-text><muted-text> Ta akcja nie jest obsługiwana na Twoim urządzeniu. Pobierz aplikację Expensify z <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> lub <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Sklepu Google Play</a> i spróbuj ponownie.</muted-text></centered-text>`,
         },
+        verificationFailed: 'Weryfikacja nie powiodła się',
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -2245,6 +2262,7 @@ ${amount} dla ${merchant} - ${date}`,
         addApprovalsTitle: 'Zatwierdzenia',
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `wydatki od ${members}, a zatwierdzającym jest ${approvers}`,
         addApprovalButton: 'Dodaj proces akceptacji',
+        findWorkflow: 'Znajdź przepływ pracy',
         addApprovalTip: 'Domyślny proces pracy ma zastosowanie do wszystkich członków, chyba że istnieje bardziej szczegółowy proces pracy.',
         approver: 'Osoba zatwierdzająca',
         addApprovalsDescription: 'Wymagaj dodatkowej akceptacji przed autoryzacją płatności.',
@@ -7405,6 +7423,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         parentNavigationSummary: ({reportName, workspaceName}: ParentNavigationSummaryParams) => `Z raportu ${reportName}${workspaceName ? `w ${workspaceName}` : ''}`,
     },
     qrCodes: {
+        qrCode: 'Kod QR',
         copy: 'Skopiuj URL',
         copied: 'Skopiowano!',
     },

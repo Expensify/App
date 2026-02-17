@@ -175,7 +175,6 @@ import type {
     ZipCodeExampleFormatParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
-
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -576,6 +575,14 @@ const translations: TranslationDeepObject<typeof en> = {
         week: '週',
         year: '年',
         quarter: '四半期',
+        expensifyLogo: 'Expensifyロゴ',
+    },
+    socials: {
+        podcast: 'ポッドキャストでフォロー',
+        twitter: 'Twitterでフォロー',
+        instagram: 'Instagramでフォロー',
+        facebook: 'Facebookでフォロー',
+        linkedin: 'LinkedInでフォロー',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -683,6 +690,15 @@ const translations: TranslationDeepObject<typeof en> = {
             rejectAuthentication: '認証を拒否',
             test: 'テスト',
             biometricsAuthentication: '生体認証',
+            authType: {
+                unknown: '不明',
+                none: 'なし',
+                credentials: '資格情報',
+                biometrics: '生体認証',
+                faceId: 'Face ID',
+                touchId: 'Touch ID',
+                opticId: 'Optic ID',
+            },
         },
         pleaseEnableInSystemSettings: {
             start: '顔認証/指紋認証を有効にするか、デバイスのパスコードを設定してください',
@@ -702,7 +718,6 @@ const translations: TranslationDeepObject<typeof en> = {
             biometrics: '顔や指紋を使って、素早く安全に認証できます。パスワードやコードは不要です。',
         },
         revoke: {
-            remove: '削除',
             title: '顔認証／指紋認証とパスキー',
             explanation: '1 つ以上のデバイスで顔／指紋またはパスキーによる認証が有効になっています。アクセスを取り消すと、次回どのデバイスで認証する場合もマジックコードが必要になります。',
             confirmationPrompt: '本当に実行しますか？次回以降、どのデバイスでも認証にはマジックコードが必要になります。',
@@ -710,11 +725,13 @@ const translations: TranslationDeepObject<typeof en> = {
             noDevices: '顔認証／指紋認証またはパスキー認証用に登録されているデバイスがありません。デバイスを登録すると、そのアクセスをここで取り消せるようになります。',
             dismiss: '了解しました',
             error: 'リクエストに失敗しました。後でもう一度お試しください。',
+            revoke: '取り消す',
         },
         unsupportedDevice: {
             unsupportedDevice: '未対応のデバイス',
             pleaseDownloadMobileApp: `<centered-text><muted-text> この操作はお使いのデバイスではサポートされていません。<a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> または <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Playストア</a> からExpensifyアプリをダウンロードして、もう一度お試しください。</muted-text></centered-text>`,
         },
+        verificationFailed: '認証に失敗しました',
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -2237,6 +2254,7 @@ ${date} の ${merchant} への ${amount}`,
         addApprovalsTitle: '承認',
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `${members} の経費で、承認者は ${approvers} です`,
         addApprovalButton: '承認ワークフローを追加',
+        findWorkflow: 'ワークフローを検索',
         addApprovalTip: 'より詳細なワークフローが存在する場合を除き、このデフォルトのワークフローがすべてのメンバーに適用されます。',
         approver: '承認者',
         addApprovalsDescription: '支払いを承認する前に、追加の承認を必須にする。',
@@ -7367,6 +7385,7 @@ ${reportName}
         parentNavigationSummary: ({reportName, workspaceName}: ParentNavigationSummaryParams) => `${reportName}${workspaceName ? `${workspaceName} の中` : ''} から`,
     },
     qrCodes: {
+        qrCode: 'QRコード',
         copy: 'URLをコピー',
         copied: 'コピーしました！',
     },

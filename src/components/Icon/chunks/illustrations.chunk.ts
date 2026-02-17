@@ -42,6 +42,7 @@ import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
 // Multifactor Authentication Illustrations
 import HumptyDumpty from '@assets/images/multifactorAuthentication/humpty-dumpty.svg';
+import MagnifyingGlassSpyMouthClosed from '@assets/images/multifactorAuthentication/magnifying-glass-spy-mouth-closed.svg';
 import OpenPadlock from '@assets/images/multifactorAuthentication/open-padlock.svg';
 import RunOutOfTime from '@assets/images/multifactorAuthentication/running-out-of-time.svg';
 import PendingTravel from '@assets/images/pending-travel.svg';
@@ -347,6 +348,7 @@ const Illustrations = {
     UserShield,
 
     // Multifactor Authentication Illustrations
+    MagnifyingGlassSpyMouthClosed,
     OpenPadlock,
     RunOutOfTime,
     HumptyDumpty,

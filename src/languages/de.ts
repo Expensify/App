@@ -175,7 +175,6 @@ import type {
     ZipCodeExampleFormatParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
-
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -576,6 +575,14 @@ const translations: TranslationDeepObject<typeof en> = {
         week: 'Woche',
         year: 'Jahr',
         quarter: 'Quartal',
+        expensifyLogo: 'Expensify-Logo',
+    },
+    socials: {
+        podcast: 'Folgen Sie uns auf Podcast',
+        twitter: 'Folgen Sie uns auf Twitter',
+        instagram: 'Folgen Sie uns auf Instagram',
+        facebook: 'Folgen Sie uns auf Facebook',
+        linkedin: 'Folgen Sie uns auf LinkedIn',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -683,6 +690,15 @@ const translations: TranslationDeepObject<typeof en> = {
             rejectAuthentication: 'Authentifizierung ablehnen',
             test: 'Test',
             biometricsAuthentication: 'Biometrische Authentifizierung',
+            authType: {
+                unknown: 'Unbekannt',
+                none: 'Keine',
+                credentials: 'Anmeldedaten',
+                biometrics: 'Biometrie',
+                faceId: 'Face ID',
+                touchId: 'Touch ID',
+                opticId: 'Optic ID',
+            },
         },
         pleaseEnableInSystemSettings: {
             start: 'Bitte aktiviere die Gesichts-/Fingerabdrucküberprüfung oder richte einen Gerätecode auf deinem Gerät ein',
@@ -702,7 +718,6 @@ const translations: TranslationDeepObject<typeof en> = {
             biometrics: 'Aktiviere eine schnelle, sichere Verifizierung mit deinem Gesicht oder Fingerabdruck. Keine Passwörter oder Codes erforderlich.',
         },
         revoke: {
-            remove: 'Entfernen',
             title: 'Gesicht/Fingerabdruck & Passkeys',
             explanation:
                 'Gesichts-/Fingerabdruck- oder Passkey-Verifizierung ist auf einem oder mehreren Geräten aktiviert. Das Widerrufen des Zugriffs erfordert für die nächste Verifizierung auf jedem Gerät einen magischen Code.',
@@ -711,11 +726,13 @@ const translations: TranslationDeepObject<typeof en> = {
             noDevices: 'Sie haben keine Geräte für die Überprüfung per Gesicht/Fingerabdruck oder Passkey registriert. Wenn Sie welche registrieren, können Sie den Zugriff hier widerrufen.',
             dismiss: 'Verstanden',
             error: 'Anfrage fehlgeschlagen. Versuche es später noch einmal.',
+            revoke: 'Widerrufen',
         },
         unsupportedDevice: {
             unsupportedDevice: 'Nicht unterstütztes Gerät',
             pleaseDownloadMobileApp: `<centered-text><muted-text> Diese Aktion wird auf deinem Gerät nicht unterstützt. Bitte lade die Expensify-App aus dem <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> oder dem <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> herunter und versuche es erneut.</muted-text></centered-text>`,
         },
+        verificationFailed: 'Überprüfung fehlgeschlagen',
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -2256,6 +2273,7 @@ ${amount} für ${merchant} – ${date}`,
         addApprovalsTitle: 'Genehmigungen',
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `Ausgaben von ${members} und die genehmigende Person ist ${approvers}`,
         addApprovalButton: 'Genehmigungsablauf hinzufügen',
+        findWorkflow: 'Workflow suchen',
         addApprovalTip: 'Dieser Standard-Workflow gilt für alle Mitglieder, sofern kein spezifischerer Workflow vorhanden ist.',
         approver: 'Genehmiger',
         addApprovalsDescription: 'Zusätzliche Genehmigung einholen, bevor eine Zahlung autorisiert wird.',
@@ -7452,6 +7470,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         parentNavigationSummary: ({reportName, workspaceName}: ParentNavigationSummaryParams) => `Von ${reportName}${workspaceName ? `in ${workspaceName}` : ''}`,
     },
     qrCodes: {
+        qrCode: 'QR-Code',
         copy: 'URL kopieren',
         copied: 'Kopiert!',
     },

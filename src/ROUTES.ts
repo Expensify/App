@@ -6,7 +6,7 @@
  */
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {UpperCaseCharacters} from 'type-fest/source/internal';
-import type {AllMultifactorAuthenticationOutcomeType, MultifactorAuthenticationPromptType} from './components/MultifactorAuthentication/config/types';
+import type {MultifactorAuthenticationPromptType} from './components/MultifactorAuthentication/config/types';
 import type {SearchFilterKey, SearchQueryString, UserFriendlyKey} from './components/Search/types';
 import type CONST from './CONST';
 import type {IOUAction, IOUType, OdometerImageType} from './CONST';
@@ -492,15 +492,15 @@ const ROUTES = {
     },
     SETTINGS_RULES: 'settings/rules',
     SETTINGS_RULES_ADD: {
-        route: 'settings/rules/new/:field?',
-        getRoute: (field?: ValueOf<typeof CONST.EXPENSE_RULES.FIELDS>) => {
-            return `settings/rules/new/${field ? StringUtils.camelToHyphenCase(field) : ''}` as const;
+        route: 'settings/rules/new/:field?/:index?',
+        getRoute: (field?: ValueOf<typeof CONST.EXPENSE_RULES.FIELDS>, index?: number) => {
+            return `settings/rules/new/${field ? StringUtils.camelToHyphenCase(field) : ''}${index !== undefined ? `/${index === -1 ? ':index' : index}` : ''}` as const;
         },
     },
     SETTINGS_RULES_EDIT: {
-        route: 'settings/rules/edit/:hash/:field?',
-        getRoute: (hash?: string, field?: ValueOf<typeof CONST.EXPENSE_RULES.FIELDS>) => {
-            return `settings/rules/edit/${hash ?? ':hash'}/${field ? StringUtils.camelToHyphenCase(field) : ''}` as const;
+        route: 'settings/rules/edit/:hash/:field?/:index?',
+        getRoute: (hash?: string, field?: ValueOf<typeof CONST.EXPENSE_RULES.FIELDS>, index?: number) => {
+            return `settings/rules/edit/${hash ?? ':hash'}/${field ? StringUtils.camelToHyphenCase(field) : ''}${index !== undefined ? `/${index === -1 ? ':index' : index}` : ''}` as const;
         },
     },
     SETTINGS_LEGAL_NAME: 'settings/profile/legal-name',
@@ -2830,8 +2830,8 @@ const ROUTES = {
         getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/category` as const,
     },
     RULES_MERCHANT_TAG: {
-        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/tag',
-        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/tag` as const,
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/tag/:orderWeight',
+        getRoute: (policyID: string, ruleID?: string, orderWeight?: number) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/tag/${orderWeight}` as const,
     },
     RULES_MERCHANT_TAX: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/tax',
@@ -3926,10 +3926,8 @@ const ROUTES = {
     MULTIFACTOR_AUTHENTICATION_MAGIC_CODE: `multifactor-authentication/magic-code`,
     MULTIFACTOR_AUTHENTICATION_BIOMETRICS_TEST: 'multifactor-authentication/scenario/biometrics-test',
 
-    MULTIFACTOR_AUTHENTICATION_OUTCOME: {
-        route: 'multifactor-authentication/outcome/:outcomeType',
-        getRoute: (outcomeType: AllMultifactorAuthenticationOutcomeType) => `multifactor-authentication/outcome/${outcomeType}` as const,
-    },
+    MULTIFACTOR_AUTHENTICATION_OUTCOME_SUCCESS: 'multifactor-authentication/outcome/success',
+    MULTIFACTOR_AUTHENTICATION_OUTCOME_FAILURE: 'multifactor-authentication/outcome/failure',
 
     MULTIFACTOR_AUTHENTICATION_PROMPT: {
         route: `multifactor-authentication/prompt/:promptType`,

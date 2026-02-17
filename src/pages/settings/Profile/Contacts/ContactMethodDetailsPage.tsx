@@ -3,7 +3,7 @@ import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} fr
 import {InteractionManager, Keyboard} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -57,7 +57,8 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const [securityGroups, securityGroupsResult] = useOnyx(ONYXKEYS.COLLECTION.SECURITY_GROUP, {canBeMissing: true});
     const [isLoadingReportData = true, isLoadingReportDataResult] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
     const [isValidateCodeFormVisible, setIsValidateCodeFormVisible] = useState(true);
-    const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const {isActingAsDelegate} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const isLoadingOnyxValues = isLoadingOnyxValue(loginListResult, sessionResult, myDomainSecurityGroupsResult, securityGroupsResult, isLoadingReportDataResult);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();

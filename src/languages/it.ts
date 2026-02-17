@@ -175,7 +175,6 @@ import type {
     ZipCodeExampleFormatParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
-
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -576,6 +575,14 @@ const translations: TranslationDeepObject<typeof en> = {
         week: 'Settimana',
         year: 'Anno',
         quarter: 'Trimestre',
+        expensifyLogo: 'Logo Expensify',
+    },
+    socials: {
+        podcast: 'Seguici su Podcast',
+        twitter: 'Seguici su Twitter',
+        instagram: 'Seguici su Instagram',
+        facebook: 'Seguici su Facebook',
+        linkedin: 'Seguici su LinkedIn',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -683,6 +690,15 @@ const translations: TranslationDeepObject<typeof en> = {
             rejectAuthentication: 'Rifiuta autenticazione',
             test: 'Test',
             biometricsAuthentication: 'Autenticazione biometrica',
+            authType: {
+                unknown: 'Sconosciuto',
+                none: 'Nessuno',
+                credentials: 'Credenziali',
+                biometrics: 'Biometria',
+                faceId: 'Face ID',
+                touchId: 'Touch ID',
+                opticId: 'Optic ID',
+            },
         },
         pleaseEnableInSystemSettings: {
             start: 'Abilita la verifica tramite volto/impronta digitale oppure imposta un codice di sblocco del dispositivo nel tuo',
@@ -702,7 +718,6 @@ const translations: TranslationDeepObject<typeof en> = {
             biometrics: 'Attiva una verifica rapida e sicura utilizzando il volto o l’impronta digitale. Nessuna password o codice richiesto.',
         },
         revoke: {
-            remove: 'Rimuovi',
             title: 'Volto/impronta digitale e passkey',
             explanation:
                 'La verifica con volto/impronta digitale o passkey è abilitata su uno o più dispositivi. La revoca dell’accesso richiederà un codice magico per la prossima verifica su qualsiasi dispositivo.',
@@ -712,11 +727,13 @@ const translations: TranslationDeepObject<typeof en> = {
                 'Non hai alcun dispositivo registrato per il riconoscimento facciale/impronta digitale o la verifica con passkey. Se ne registri uno, potrai revocare tale accesso qui.',
             dismiss: 'Ho capito',
             error: 'Richiesta non riuscita. Riprova più tardi.',
+            revoke: 'Revoca',
         },
         unsupportedDevice: {
             unsupportedDevice: 'Dispositivo non supportato',
             pleaseDownloadMobileApp: `<centered-text><muted-text> Questa azione non è supportata sul tuo dispositivo. Scarica l'app Expensify dall'<a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> o da <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> e riprova.</muted-text></centered-text>`,
         },
+        verificationFailed: 'Verifica non riuscita',
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -2250,6 +2267,7 @@ ${amount} per ${merchant} - ${date}`,
         addApprovalsTitle: 'Approvazioni',
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `spese di ${members} e l'approvatore è ${approvers}`,
         addApprovalButton: 'Aggiungi flusso di approvazione',
+        findWorkflow: 'Cerca flusso di lavoro',
         addApprovalTip: 'Questo flusso di lavoro predefinito si applica a tutti i membri, a meno che non esista un flusso di lavoro più specifico.',
         approver: 'Approvante',
         addApprovalsDescription: 'Richiedi un’approvazione aggiuntiva prima di autorizzare un pagamento.',
@@ -7438,6 +7456,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         parentNavigationSummary: ({reportName, workspaceName}: ParentNavigationSummaryParams) => `Da ${reportName}${workspaceName ? `in ${workspaceName}` : ''}`,
     },
     qrCodes: {
+        qrCode: 'Codice QR',
         copy: 'Copia URL',
         copied: 'Copiato!',
     },

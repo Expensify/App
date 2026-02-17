@@ -47,6 +47,7 @@ import {
     isExpensifyCard,
     isExpensifyCardFullySetUp,
     isMatchingCard,
+    isPersonalCard,
     lastFourNumbersFromCardName,
     maskCardNumber,
     sortCardsByCardholderName,
@@ -2110,6 +2111,7 @@ describe('CardUtils', () => {
                 cardName: '480801XXXXXX2554',
                 domainName: 'expensify-policy41314f4dc5ce25af.exfy',
                 fraud: 'none',
+                fundID: '1',
                 lastFourPAN: '2554',
                 lastUpdated: '',
                 lastScrape: '2024-11-27 11:00:53',
@@ -2135,6 +2137,64 @@ describe('CardUtils', () => {
             };
             const description = getCardDescription(card, translateLocal);
             expect(description).toBe(CONST.EXPENSIFY_CARD.BANK);
+        });
+
+        it('should return the correct card description for personal card', () => {
+            const personalCard: Card = {
+                accountID: 1,
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                cardID: 1,
+                cardName: 'Personal Visa •••• 1234',
+                domainName: '',
+                fraud: 'none',
+                lastFourPAN: '1234',
+                lastScrape: '',
+                lastUpdated: '',
+                state: 3,
+            };
+            const description = getCardDescription(personalCard, translateLocal);
+            expect(description).toBe('Personal Visa •••• 1234');
+        });
+    });
+
+    describe('PersonalCard (isPersonalCard)', () => {
+        it('should return true when card has no fundID or fundID is "0"', () => {
+            const cardWithNoFundID: Card = {
+                accountID: 1,
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                cardID: 1,
+                cardName: 'Personal Visa',
+                domainName: '',
+                fraud: 'none',
+                lastFourPAN: '1234',
+                lastScrape: '',
+                lastUpdated: '',
+                state: 3,
+            };
+            expect(isPersonalCard(cardWithNoFundID)).toBe(true);
+
+            const cardWithZeroFundID: Card = {
+                ...cardWithNoFundID,
+                fundID: '0',
+            };
+            expect(isPersonalCard(cardWithZeroFundID)).toBe(true);
+        });
+
+        it('should return true when card is CSV imported personal card (bank is PERSONAL_CARD.BANK_NAME.CSV)', () => {
+            const csvPersonalCard: Card = {
+                accountID: 1,
+                bank: CONST.PERSONAL_CARD.BANK_NAME.CSV,
+                cardID: 2,
+                cardName: 'My Imported Card',
+                domainName: '',
+                fraud: 'none',
+                fundID: '1',
+                lastFourPAN: '5678',
+                lastScrape: '',
+                lastUpdated: '',
+                state: 3,
+            };
+            expect(isPersonalCard(csvPersonalCard)).toBe(true);
         });
     });
 

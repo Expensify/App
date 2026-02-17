@@ -175,7 +175,6 @@ import type {
     ZipCodeExampleFormatParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
-
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -572,6 +571,14 @@ const translations: TranslationDeepObject<typeof en> = {
         week: '周',
         year: '年份',
         quarter: '季度',
+        expensifyLogo: 'Expensify徽标',
+    },
+    socials: {
+        podcast: '在播客上关注我们',
+        twitter: '在Twitter上关注我们',
+        instagram: '在Instagram上关注我们',
+        facebook: '在Facebook上关注我们',
+        linkedin: '在LinkedIn上关注我们',
     },
     supportalNoAccess: {
         title: '先别急',
@@ -678,6 +685,15 @@ const translations: TranslationDeepObject<typeof en> = {
             rejectAuthentication: '拒绝认证',
             test: '测试',
             biometricsAuthentication: '生物识别认证',
+            authType: {
+                unknown: '未知',
+                none: '无',
+                credentials: '凭据',
+                biometrics: '生物识别',
+                faceId: 'Face ID',
+                touchId: 'Touch ID',
+                opticId: 'Optic ID',
+            },
         },
         pleaseEnableInSystemSettings: {
             start: '请在您的设备中启用面部/指纹验证或设置设备密码',
@@ -697,7 +713,6 @@ const translations: TranslationDeepObject<typeof en> = {
             biometrics: '使用面部或指纹即可进行快速、安全的验证，无需密码或验证码。',
         },
         revoke: {
-            remove: '移除',
             title: '面容/指纹和通行密钥',
             explanation: '在一台或多台设备上已启用面容/指纹或通行密钥验证。撤销访问后，下次在任何设备上进行验证时都需要输入魔法验证码。',
             confirmationPrompt: '确定吗？下一次在任何设备上进行验证时，你都需要输入魔法码。',
@@ -705,11 +720,13 @@ const translations: TranslationDeepObject<typeof en> = {
             noDevices: '您尚未注册用于面部 / 指纹或通行密钥验证的任何设备。如果您注册了设备，之后可以在此撤销该访问权限。',
             dismiss: '明白了',
             error: '请求失败。请稍后重试。',
+            revoke: '撤销',
         },
         unsupportedDevice: {
             unsupportedDevice: '不支持的设备',
             pleaseDownloadMobileApp: `<centered-text><muted-text> 您的设备不支持此操作。请从<a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a>或<a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play 商店</a>下载 Expensify 应用，然后重试。</muted-text></centered-text>`,
         },
+        verificationFailed: '验证失败',
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -2214,6 +2231,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         addApprovalsTitle: '审批',
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `来自${members}的报销，审批人是${approvers}`,
         addApprovalButton: '添加审批工作流',
+        findWorkflow: '查找工作流',
         addApprovalTip: '除非存在更具体的工作流程，否则此默认工作流程适用于所有成员。',
         approver: '审批人',
         addApprovalsDescription: '在付款前需要额外审批。',
@@ -7262,6 +7280,7 @@ ${reportName}
         parentNavigationSummary: ({reportName, workspaceName}: ParentNavigationSummaryParams) => `来自${reportName}${workspaceName ? `在 ${workspaceName} 中` : ''}`,
     },
     qrCodes: {
+        qrCode: '二维码',
         copy: '复制 URL',
         copied: '已复制！',
     },

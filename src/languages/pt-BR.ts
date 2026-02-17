@@ -175,7 +175,6 @@ import type {
     ZipCodeExampleFormatParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
-
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -575,6 +574,14 @@ const translations: TranslationDeepObject<typeof en> = {
         week: 'Semana',
         year: 'Ano',
         quarter: 'Trimestre',
+        expensifyLogo: 'Logo da Expensify',
+    },
+    socials: {
+        podcast: 'Siga-nos no Podcast',
+        twitter: 'Siga-nos no Twitter',
+        instagram: 'Siga-nos no Instagram',
+        facebook: 'Siga-nos no Facebook',
+        linkedin: 'Siga-nos no LinkedIn',
     },
     supportalNoAccess: {
         title: 'Calma aí',
@@ -682,6 +689,15 @@ const translations: TranslationDeepObject<typeof en> = {
             rejectAuthentication: 'Rejeitar autenticação',
             test: 'Teste',
             biometricsAuthentication: 'Autenticação biométrica',
+            authType: {
+                unknown: 'Desconhecido',
+                none: 'Nenhum',
+                credentials: 'Credenciais',
+                biometrics: 'Biometria',
+                faceId: 'Face ID',
+                touchId: 'Touch ID',
+                opticId: 'Optic ID',
+            },
         },
         pleaseEnableInSystemSettings: {
             start: 'Ative a verificação por rosto/digital ou defina um código de acesso do dispositivo no seu',
@@ -701,7 +717,6 @@ const translations: TranslationDeepObject<typeof en> = {
             biometrics: 'Ative uma verificação rápida e segura usando seu rosto ou impressão digital. Nenhuma senha ou código é necessário.',
         },
         revoke: {
-            remove: 'Remover',
             title: 'Face/digital & passkeys',
             explanation:
                 'A verificação por rosto/digital ou por chave de acesso está ativada em um ou mais dispositivos. Revogar o acesso exigirá um código mágico para a próxima verificação em qualquer dispositivo.',
@@ -710,11 +725,13 @@ const translations: TranslationDeepObject<typeof en> = {
             noDevices: 'Você não tem nenhum dispositivo registrado para verificação por rosto/digital ou passkey. Se você registrar algum, poderá revogar esse acesso aqui.',
             dismiss: 'Entendi',
             error: 'Falha na solicitação. Tente novamente mais tarde.',
+            revoke: 'Revogar',
         },
         unsupportedDevice: {
             unsupportedDevice: 'Dispositivo não compatível',
             pleaseDownloadMobileApp: `<centered-text><muted-text> Esta ação não é compatível com seu dispositivo. Baixe o app do Expensify na <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> ou na <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> e tente novamente.</muted-text></centered-text>`,
         },
+        verificationFailed: 'Falha na verificação',
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -2244,6 +2261,7 @@ ${amount} para ${merchant} - ${date}`,
         addApprovalsTitle: 'Aprovações',
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `despesas de ${members}, e o aprovador é ${approvers}`,
         addApprovalButton: 'Adicionar fluxo de aprovação',
+        findWorkflow: 'Buscar fluxo de trabalho',
         addApprovalTip: 'Este fluxo de trabalho padrão se aplica a todos os membros, a menos que exista um fluxo de trabalho mais específico.',
         approver: 'Aprovador',
         addApprovalsDescription: 'Exigir aprovação adicional antes de autorizar um pagamento.',
@@ -7408,6 +7426,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         parentNavigationSummary: ({reportName, workspaceName}: ParentNavigationSummaryParams) => `De ${reportName}${workspaceName ? `em ${workspaceName}` : ''}`,
     },
     qrCodes: {
+        qrCode: 'Código QR',
         copy: 'Copiar URL',
         copied: 'Copiado!',
     },

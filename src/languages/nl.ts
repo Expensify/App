@@ -175,7 +175,6 @@ import type {
     ZipCodeExampleFormatParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
-
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -576,6 +575,14 @@ const translations: TranslationDeepObject<typeof en> = {
         week: 'Week',
         year: 'Jaar',
         quarter: 'Kwartaal',
+        expensifyLogo: 'Expensify-logo',
+    },
+    socials: {
+        podcast: 'Volg ons op Podcast',
+        twitter: 'Volg ons op Twitter',
+        instagram: 'Volg ons op Instagram',
+        facebook: 'Volg ons op Facebook',
+        linkedin: 'Volg ons op LinkedIn',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -683,6 +690,15 @@ const translations: TranslationDeepObject<typeof en> = {
             rejectAuthentication: 'Authenticatie weigeren',
             test: 'Test',
             biometricsAuthentication: 'Biometrische verificatie',
+            authType: {
+                unknown: 'Onbekend',
+                none: 'Geen',
+                credentials: 'Inloggegevens',
+                biometrics: 'Biometrie',
+                faceId: 'Face ID',
+                touchId: 'Touch ID',
+                opticId: 'Optic ID',
+            },
         },
         pleaseEnableInSystemSettings: {
             start: 'Schakel gezichts-/vingerafdrukverificatie in of stel een toesteltoegangscode in op uw',
@@ -702,7 +718,6 @@ const translations: TranslationDeepObject<typeof en> = {
             biometrics: 'Schakel snelle, veilige verificatie in met je gezicht of vingerafdruk. Geen wachtwoorden of codes nodig.',
         },
         revoke: {
-            remove: 'Verwijderen',
             title: 'Gezicht/vingerafdruk & passkeys',
             explanation:
                 'Gezichts-/vingerafdruk- of passkeys-verificatie is ingeschakeld op een of meer apparaten. Toegang intrekken betekent dat er een magische code nodig is voor de volgende verificatie op elk apparaat.',
@@ -711,11 +726,13 @@ const translations: TranslationDeepObject<typeof en> = {
             noDevices: 'Je hebt geen apparaten geregistreerd voor gezichts-/vingerafdruk- of passkey-verificatie. Als je er een registreert, kun je die toegang hier intrekken.',
             dismiss: 'Begrepen',
             error: 'Aanvraag mislukt. Probeer het later opnieuw.',
+            revoke: 'Intrekken',
         },
         unsupportedDevice: {
             unsupportedDevice: 'Niet-ondersteund apparaat',
             pleaseDownloadMobileApp: `<centered-text><muted-text> Deze actie wordt niet ondersteund op jouw apparaat. Download de Expensify-app uit de <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> of de <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> en probeer het opnieuw.</muted-text></centered-text>`,
         },
+        verificationFailed: 'Verificatie mislukt',
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -1757,7 +1774,7 @@ const translations: TranslationDeepObject<typeof en> = {
         featureRequiresValidate: 'Voor deze functie moet je je account verifiëren.',
         validateAccount: 'Valideer je account',
         helpText: ({email}: {email: string}) =>
-            `Voeg meer manieren toe om in te loggen en bonnetjes naar Expensify te sturen.<br/><br/>Voeg een e-mailadres toe om bonnetjes door te sturen naar <a href="mailto:${email}">${email}</a> of voeg een telefoonnummer toe om bonnetjes te sms’en naar 47777 (alleen voor Amerikaanse nummers).`,
+            `Voeg meer manieren toe om in te loggen en bonnetjes naar Expensify te sturen.<br/><br/>Voeg een e-mailadres toe om bonnetjes door te sturen naar <a href="mailto:${email}">${email}</a> of voeg een telefoonnummer toe om bonnetjes te sms'en naar 47777 (alleen voor Amerikaanse nummers).`,
         pleaseVerify: 'Verifieer deze contactmethode.',
         getInTouch: 'We gebruiken deze methode om contact met je op te nemen.',
         enterMagicCode: (contactMethod: string) => `Voer de magische code in die naar ${contactMethod} is verzonden. Deze zou binnen een minuut of twee moeten aankomen.`,
@@ -2251,6 +2268,7 @@ ${amount} voor ${merchant} - ${date}`,
         addApprovalsTitle: 'Goedkeuringen',
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `de uitgaven van ${members}, en de goedkeurder is ${approvers}`,
         addApprovalButton: 'Goedkeuringsworkflow toevoegen',
+        findWorkflow: 'Workflow zoeken',
         addApprovalTip: 'Deze standaardworkflow is van toepassing op alle leden, tenzij er een specifiekere workflow bestaat.',
         approver: 'Fiatteur',
         addApprovalsDescription: 'Extra goedkeuring vereisen voordat je een betaling autoriseert.',
@@ -7423,6 +7441,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         parentNavigationSummary: ({reportName, workspaceName}: ParentNavigationSummaryParams) => `Van ${reportName}${workspaceName ? `in ${workspaceName}` : ''}`,
     },
     qrCodes: {
+        qrCode: 'QR-code',
         copy: 'URL kopiëren',
         copied: 'Gekopieerd!',
     },
