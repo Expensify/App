@@ -64,7 +64,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {hasMultipleOutputCurrenciesSelector} from '@src/selectors/Policy';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import FILTER_KEYS, {AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
+import FILTER_KEYS, {AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS, VIEW_SPECIFIC_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
@@ -313,13 +313,9 @@ function SearchFiltersBar({
             if (updatedFilterFormValues.type !== searchAdvancedFiltersForm.type) {
                 updatedFilterFormValues.columns = [];
                 updatedFilterFormValues.status = CONST.SEARCH.STATUS.EXPENSE.ALL;
-                updatedFilterFormValues.from = undefined;
-                updatedFilterFormValues.to = undefined;
-                updatedFilterFormValues.action = undefined;
-                updatedFilterFormValues.payer = undefined;
-                updatedFilterFormValues.exporter = undefined;
-                updatedFilterFormValues.reimbursable = undefined;
-                updatedFilterFormValues.exportedOn = undefined;
+                for (const key of VIEW_SPECIFIC_FILTER_KEYS) {
+                    updatedFilterFormValues[key] = undefined;
+                }
                 // Filter out invalid "has" values for the new type
                 updatedFilterFormValues.has = filterValidHasValues(updatedFilterFormValues.has, updatedFilterFormValues.type, translate);
             }

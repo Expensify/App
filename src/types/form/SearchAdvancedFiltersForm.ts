@@ -27,6 +27,12 @@ const DATE_FILTER_KEYS: SearchDateFilterKeys[] = [
 
 const AMOUNT_FILTER_KEYS: SearchAmountFilterKeys[] = [CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL, CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT];
 
+/**
+ * Filter keys that are implicitly set by search views (Submit, Approve, Pay, Export)
+ * and should be cleared when the search type changes to prevent stale filters from persisting.
+ */
+const VIEW_SPECIFIC_FILTER_KEYS = ['from', 'to', 'action', 'payer', 'exporter', 'reimbursable', 'exportedOn'] as const;
+
 const FILTER_KEYS = {
     POLICY_ID: 'policyID',
     GROUP_BY: 'groupBy',
@@ -686,4 +692,4 @@ type SearchAdvancedFiltersForm = Form<
 
 export type {SearchAdvancedFiltersForm, SearchAdvancedFiltersKey};
 export default FILTER_KEYS;
-export {DATE_FILTER_KEYS, ALLOWED_TYPE_FILTERS, FILTER_KEYS, AMOUNT_FILTER_KEYS};
+export {DATE_FILTER_KEYS, ALLOWED_TYPE_FILTERS, FILTER_KEYS, AMOUNT_FILTER_KEYS, VIEW_SPECIFIC_FILTER_KEYS};

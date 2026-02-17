@@ -16,6 +16,7 @@ import {filterValidHasValues, getTypeOptions} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {VIEW_SPECIFIC_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 function SearchFiltersTypePage() {
@@ -51,13 +52,7 @@ function SearchFiltersTypePage() {
                 groupBy: null,
                 status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 has: filteredHasValues,
-                from: null,
-                to: null,
-                action: null,
-                payer: null,
-                exporter: null,
-                reimbursable: null,
-                exportedOn: null,
+                ...Object.fromEntries(VIEW_SPECIFIC_FILTER_KEYS.map((key) => [key, null])),
             }),
         };
         updateAdvancedFilters(updatedFilters);
