@@ -18,7 +18,7 @@ import {removeFromRoom} from '@libs/actions/Report';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {isUserPolicyAdmin} from '@libs/PolicyUtils';
+import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {isPolicyExpenseChat} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
@@ -52,10 +52,10 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
     const displayName = formatPhoneNumber(getDisplayNameOrDefault(details));
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
     const isSelectedMemberOwner = accountID === report.ownerAccountID;
-    const shouldDisableRemoveUser = (isPolicyExpenseChat(report) && isUserPolicyAdmin(policy, details.login)) || isSelectedMemberCurrentUser || isSelectedMemberOwner;
+    const shouldDisableRemoveUser = (isPolicyExpenseChat(report) && isPolicyAdmin(policy, details.login)) || isSelectedMemberCurrentUser || isSelectedMemberOwner;
     const removeUser = () => {
         setIsRemoveMemberConfirmModalVisible(false);
-        removeFromRoom(report?.reportID, [accountID]);
+        removeFromRoom(report, [accountID]);
         Navigation.goBack(backTo);
     };
 
@@ -107,7 +107,7 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
                             isVisible={isRemoveMemberConfirmModalVisible}
                             onConfirm={removeUser}
                             onCancel={() => setIsRemoveMemberConfirmModalVisible(false)}
-                            prompt={translate('workspace.people.removeMemberPrompt', {memberName: displayName})}
+                            prompt={translate('workspace.people.removeMemberPrompt', displayName)}
                             confirmText={translate('common.remove')}
                             cancelText={translate('common.cancel')}
                         />

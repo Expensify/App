@@ -1,4 +1,5 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
+import {feedKeysWithAssignedCardsSelector} from '@selectors/Card';
 import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useContext, useLayoutEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
@@ -61,6 +62,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Basket',
         'Bookmark',
+        'CalendarSolid',
         'Pencil',
         'Receipt',
         'ChatBubbles',
@@ -76,8 +78,9 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true});
+    const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true});
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
+    const [feedKeysWithCards] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {selector: feedKeysWithAssignedCardsSelector, canBeMissing: true});
     const taxRates = getAllTaxRates(allPolicies);
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
     const {clearSelectedTransactions} = useSearchContext();
@@ -101,7 +104,19 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             let title = item.name;
             if (title === item.query) {
                 const jsonQuery = buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
-                title = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, nonPersonalAndWorkspaceCards, allFeeds, allPolicies, currentUserAccountID);
+                title = buildUserReadableQueryString({
+                    queryJSON: jsonQuery,
+                    PersonalDetails: personalDetails,
+                    reports,
+                    taxRates,
+                    cardList: personalAndWorkspaceCards,
+                    cardFeeds: allFeeds,
+                    policies: allPolicies,
+                    currentUserAccountID,
+                    autoCompleteWithSpace: false,
+                    translate,
+                    feedKeysWithCards,
+                });
             }
 
             const isItemFocused = Number(key) === hash;
@@ -109,6 +124,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
 
             return {
                 ...baseMenuItem,
+                sentryLabel: CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_MENU_ITEM,
                 onPress: () => {
                     setSearchContext(false);
                     Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name}));
@@ -146,10 +162,12 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             personalDetails,
             reports,
             taxRates,
-            nonPersonalAndWorkspaceCards,
+            personalAndWorkspaceCards,
             allFeeds,
+            feedKeysWithCards,
             currentUserAccountID,
             allPolicies,
+            translate,
         ],
     );
 
@@ -270,6 +288,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                                     focused={focused}
                                                     onPress={onPress}
                                                     shouldIconUseAutoWidthStyle
+                                                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM}
                                                 />
                                             );
                                         })}

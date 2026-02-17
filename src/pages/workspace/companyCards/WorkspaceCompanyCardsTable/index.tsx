@@ -16,8 +16,8 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {resetFailedWorkspaceCompanyCardAssignment, resetFailedWorkspaceCompanyCardUnassignment} from '@libs/actions/CompanyCards';
-import {getDefaultCardName} from '@libs/CardUtils';
+import {resetFailedWorkspaceCompanyCardUnassignment} from '@libs/actions/CompanyCards';
+import {getDefaultCardName, getPlaidInstitutionId} from '@libs/CardUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import WorkspaceCompanyCardPageEmptyState from '@pages/workspace/companyCards/WorkspaceCompanyCardPageEmptyState';
 import WorkspaceCompanyCardsFeedAddedEmptyPage from '@pages/workspace/companyCards/WorkspaceCompanyCardsFeedAddedEmptyPage';
@@ -25,7 +25,6 @@ import WorkspaceCompanyCardsFeedPendingPage from '@pages/workspace/companyCards/
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import WorkspaceCompanyCardsTableHeaderButtons from './WorkspaceCompanyCardsTableHeaderButtons';
 import WorkspaceCompanyCardTableItem from './WorkspaceCompanyCardsTableItem';
@@ -77,28 +76,28 @@ function WorkspaceCompanyCardsTable({
     const {
         feedName,
         bankName,
-        cardList,
         assignedCards,
+        companyCardEntries,
         workspaceCardFeedsStatus,
-        cardNames,
-        cardFeedType,
         selectedFeed,
         isInitiallyLoadingFeeds,
         isNoFeed,
         isFeedPending,
         onyxMetadata: {cardListMetadata, lastSelectedFeedMetadata},
     } = companyCards;
-    const isDirectCardFeed = cardFeedType === 'directFeed';
 
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
     const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
-    const [failedCompanyCardAssignments] = useOnyx(`${ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS}${domainOrWorkspaceAccountID}_${feedName ?? ''}`, {canBeMissing: true});
 
     const hasNoAssignedCard = Object.keys(assignedCards ?? {}).length === 0;
 
     const areWorkspaceCardFeedsLoading = !!workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID]?.isLoading;
-    const workspaceCardFeedsErrors = workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID]?.errors;
+    // Synthesize error locally since Onyx discards writes to collection keys with member ID '0'.
+    const shouldShowWorkspaceFeedsLoadError = domainOrWorkspaceAccountID === CONST.DEFAULT_NUMBER_ID && isPolicyLoaded && !isOffline;
+    const workspaceCardFeedsErrors = shouldShowWorkspaceFeedsLoadError
+        ? {[CONST.COMPANY_CARDS.WORKSPACE_FEEDS_LOAD_ERROR]: translate('workspace.companyCards.error.workspaceFeedsCouldNotBeLoadedMessage')}
+        : workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID]?.errors;
 
     const selectedFeedStatus = selectedFeed?.status;
     const selectedFeedErrors = selectedFeedStatus?.errors;
@@ -117,7 +116,7 @@ function WorkspaceCompanyCardsTable({
     }
 
     const isLoadingFeed = (!feedName && isInitiallyLoadingFeeds) || !isPolicyLoaded || isLoadingOnyxValue(lastSelectedFeedMetadata) || !!selectedFeedStatus?.isLoading;
-    const isLoadingCards = cardFeedType === 'directFeed' ? selectedFeed?.accountList === undefined : isLoadingOnyxValue(cardListMetadata) || cardList === undefined;
+    const isLoadingCards = (companyCardEntries ?? []).length === 0 ? isLoadingOnyxValue(cardListMetadata) : false;
     const isLoadingPage = !isOffline && (isLoadingFeed || isLoadingOnyxValue(personalDetailsMetadata) || areWorkspaceCardFeedsLoading);
     const isLoading = isLoadingPage || isLoadingFeed;
 
@@ -154,21 +153,7 @@ function WorkspaceCompanyCardsTable({
 
     const cardsData: WorkspaceCompanyCardTableItemData[] = isLoadingCards
         ? []
-        : (cardNames?.map((cardName) => {
-              // For direct feeds cardID equals cardName, for commercial feeds it's looked up from cardList
-              const encryptedCardNumber = isDirectCardFeed ? cardName : (cardList?.[cardName] ?? '');
-              const failedCompanyCardAssignment = failedCompanyCardAssignments?.[encryptedCardNumber];
-
-              if (failedCompanyCardAssignment) {
-                  return {
-                      ...failedCompanyCardAssignment,
-                      onDismissError: () => resetFailedWorkspaceCompanyCardAssignment(domainOrWorkspaceAccountID, feedName, failedCompanyCardAssignment.encryptedCardNumber),
-                      isCardDeleted: false,
-                      isAssigned: true,
-                  };
-              }
-
-              const assignedCard = Object.values(assignedCards ?? {}).find((card: Card) => card.encryptedCardNumber === encryptedCardNumber || card.cardName === cardName);
+        : (companyCardEntries ?? []).map(({cardName, encryptedCardNumber, isAssigned, assignedCard}) => {
               const cardholder = assignedCard?.accountID ? personalDetails?.[assignedCard.accountID] : undefined;
 
               return {
@@ -176,14 +161,14 @@ function WorkspaceCompanyCardsTable({
                   encryptedCardNumber,
                   customCardName: assignedCard?.cardID && customCardNames?.[assignedCard.cardID] ? customCardNames?.[assignedCard.cardID] : getDefaultCardName(cardholder?.displayName ?? ''),
                   isCardDeleted: assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                  isAssigned: !!assignedCard,
+                  isAssigned,
                   assignedCard,
                   cardholder,
                   errors: assignedCard?.errors,
                   pendingAction: assignedCard?.pendingAction,
                   onDismissError: () => resetFailedWorkspaceCompanyCardUnassignment(domainOrWorkspaceAccountID, bankName, assignedCard?.cardID),
               };
-          }) ?? []);
+          });
 
     const keyExtractor = (item: WorkspaceCompanyCardTableItemData, index: number) => `${item.cardName}_${index}`;
 
@@ -290,7 +275,7 @@ function WorkspaceCompanyCardsTable({
             item={item}
             policyID={policyID ?? String(CONST.DEFAULT_NUMBER_ID)}
             CardFeedIcon={cardFeedIcon}
-            isPlaidCardFeed={isDirectCardFeed}
+            isPlaidCardFeed={!!getPlaidInstitutionId(feedName)}
             onAssignCard={onAssignCard}
             isAssigningCardDisabled={isAssigningCardDisabled}
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
@@ -353,6 +338,7 @@ function WorkspaceCompanyCardsTable({
             isItemInSearch={isItemInSearch}
             isItemInFilter={isItemInFilter}
             filters={filterConfig}
+            initialSortColumn="member"
             ListEmptyComponent={isLoadingCards ? <TableRowSkeleton fixedNumItems={5} /> : <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />}
             ListHeaderComponent={shouldUseNarrowTableLayout ? headerButtonsComponent : undefined}
         >

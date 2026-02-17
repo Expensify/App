@@ -79,7 +79,10 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
 
             const optionData = getSelectedOptionData(participant);
             if (optionData) {
-                acc.push(optionData);
+                acc.push({
+                    ...optionData,
+                    keyForList: optionData.keyForList ?? optionData.reportID,
+                });
             }
 
             return acc;
@@ -116,21 +119,12 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
     }, [options.reports, options.personalDetails, allPolicies, draftComments, nvpDismissedProductTraining, loginList, countryCode, personalDetails, currentUserAccountID, currentUserEmail]);
 
     const filteredOptions = useMemo(() => {
-        return filterAndOrderOptions(
-            optionsList,
-            cleanSearchTerm,
-            countryCode,
-            loginList,
-            currentUserEmail,
-
-            currentUserAccountID,
-            {
-                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-                maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-                canInviteUser: false,
-            },
-        );
-    }, [optionsList, cleanSearchTerm, countryCode, loginList, currentUserAccountID, currentUserEmail]);
+        return filterAndOrderOptions(optionsList, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, {
+            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+            canInviteUser: false,
+        });
+    }, [optionsList, cleanSearchTerm, countryCode, loginList, currentUserAccountID, currentUserEmail, personalDetails]);
 
     const listData = useMemo(() => {
         const personalDetailList = filteredOptions.personalDetails.map((participant) => ({
@@ -232,6 +226,7 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
                     style={[styles.flex1]}
                     text={translate('common.reset')}
                     onPress={resetChanges}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_USER}
                 />
                 <Button
                     success
@@ -239,6 +234,7 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
                     style={[styles.flex1]}
                     text={translate('common.apply')}
                     onPress={applyChanges}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_USER}
                 />
             </View>
         </View>

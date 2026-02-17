@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import {filterPersonalCards} from '@selectors/Card';
+import {filterOutPersonalCards} from '@selectors/Card';
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -23,16 +23,17 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 type IssueCardMessageProps = {
     action: OnyxEntry<ReportAction>;
     policyID: string | undefined;
+    shouldNavigateToCardDetails: boolean;
 };
 
-function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
+function IssueCardMessage({action, policyID, shouldNavigateToCardDetails}: IssueCardMessageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const session = useSession();
     const assigneeAccountID = (getOriginalMessage(action) as IssueNewCardOriginalMessage)?.assigneeAccountID;
     const expensifyCard = useGetExpensifyCardFromReportAction({reportAction: action, policyID});
     const isAssigneeCurrentUser = !isEmptyObject(session) && session.accountID === assigneeAccountID;
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterOutPersonalCards, canBeMissing: true});
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: false});
     const companyCard = cardList?.[(getOriginalMessage(action) as IssueNewCardOriginalMessage)?.cardID];
     const shouldShowAddMissingDetailsButton = isAssigneeCurrentUser && shouldShowAddMissingDetails(action?.actionName, privatePersonalDetails);
@@ -42,7 +43,9 @@ function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
 
     return (
         <>
-            <RenderHTML html={`<muted-text>${getCardIssuedMessage({reportAction: action, shouldRenderHTML: true, policyID, expensifyCard, companyCard, translate})}</muted-text>`} />
+            <RenderHTML
+                html={`<muted-text>${getCardIssuedMessage({reportAction: action, shouldRenderHTML: true, shouldNavigateToCardDetails, policyID, expensifyCard, companyCard, translate})}</muted-text>`}
+            />
             {shouldShowAddMissingDetailsButton && (
                 <Button
                     onPress={() => Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS.getRoute())}

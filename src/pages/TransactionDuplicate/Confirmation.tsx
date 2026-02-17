@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -58,7 +58,8 @@ function Confirmation() {
     const [allDuplicates] = useTransactionsByID(allDuplicateIDs);
     const reviewDuplicatesReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reviewDuplicates?.reportID}`];
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(reviewDuplicatesReport?.policyID)}`, {canBeMissing: true});
-    const compareResult = TransactionUtils.compareDuplicateTransactionFields(transaction, allDuplicates, reviewDuplicatesReport, undefined, policyCategories);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
+    const compareResult = TransactionUtils.compareDuplicateTransactionFields(transaction, allDuplicates, reviewDuplicatesReport, undefined, policy, policyCategories);
     const {goBack} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'confirmation', route.params.threadReportID, route.params.backTo);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newTransaction?.reportID}`, {canBeMissing: true});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newTransaction?.reportID}`, {canBeMissing: true});
@@ -69,7 +70,6 @@ function Confirmation() {
     const isSuperWideRHPDisplayed = superWideRHPRouteKeys.length > 0;
 
     const [duplicates] = useTransactionsByID(reviewDuplicates?.duplicates);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const transactionsMergeParams = useMemo(
         () => TransactionUtils.buildMergeDuplicatesParams(reviewDuplicates, duplicates ?? [], newTransaction),
         [duplicates, reviewDuplicates, newTransaction],
@@ -110,10 +110,12 @@ function Confirmation() {
 
     const doesTransactionBelongToReport = reviewDuplicates?.transactionID === transactionID || (transactionID && reviewDuplicates?.duplicates.includes(transactionID));
 
+    const isDismissingRef = useRef(false);
+
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
         isEmptyObject(report) ||
-        !ReportUtils.isValidReport(report) ||
+        (!ReportUtils.isValidReport(report) && !isDismissingRef.current) ||
         ReportUtils.isReportNotFound(report) ||
         (reviewDuplicatesResult.status === 'loaded' && (!newTransaction?.transactionID || !doesTransactionBelongToReport));
 
@@ -162,6 +164,7 @@ function Confirmation() {
                             text={translate('common.confirm')}
                             success
                             onPress={() => {
+                                isDismissingRef.current = true;
                                 if (!isReportOwner) {
                                     handleResolveDuplicates();
                                     return;

@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -17,17 +16,13 @@ import {setIsDebugModeEnabled, setShouldUseStagingServer} from '@userActions/Use
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Account} from '@src/types/onyx';
+import {hasBiometricsRegisteredSelector, isAccountLoadingSelector} from '@src/selectors/Account';
 import Button from './Button';
 import SoftKillTestToolRow from './SoftKillTestToolRow';
 import Switch from './Switch';
 import TestCrash from './TestCrash';
 import TestToolRow from './TestToolRow';
 import Text from './Text';
-
-function getHasBiometricsRegistered(data: OnyxEntry<Account>) {
-    return data?.multifactorAuthenticationPublicKeyIDs && data.multifactorAuthenticationPublicKeyIDs.length > 0;
-}
 
 function TestToolMenu() {
     const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
@@ -37,7 +32,8 @@ function TestToolMenu() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {clearLHNCache} = useSidebarOrderedReports();
-    const [hasBiometricsRegistered = false] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true, selector: getHasBiometricsRegistered});
+    const [hasBiometricsRegistered = false] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true, selector: hasBiometricsRegisteredSelector});
+    const [isAccountLoading = false] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true, selector: isAccountLoadingSelector});
 
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
@@ -123,6 +119,8 @@ function TestToolMenu() {
                             />
                             {hasBiometricsRegistered && (
                                 <Button
+                                    danger
+                                    isLoading={isAccountLoading}
                                     small
                                     text={translate('multifactorAuthentication.revoke.revoke')}
                                     onPress={() => {

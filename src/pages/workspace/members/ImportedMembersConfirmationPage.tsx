@@ -86,8 +86,8 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
         }
         setIsImporting(true);
         const membersWithRole = (importedSpreadsheetMemberData ?? []).map((member) => ({...member, role: member.role || role}));
-        importPolicyMembers(policyID, membersWithRole);
-    }, [importedSpreadsheetMemberData, newMembers, policyID, role]);
+        importPolicyMembers(policy, membersWithRole);
+    }, [importedSpreadsheetMemberData, newMembers, policy, role]);
 
     const closeImportPageAndModal = () => {
         setIsClosing(true);
@@ -168,7 +168,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
                 <View style={[styles.mb3]}>
                     <View style={[styles.mhn5, styles.mb3]}>
                         <MenuItemWithTopDescription
-                            title={translate(`workspace.common.roleName`, {role})}
+                            title={translate(`workspace.common.roleName`, role)}
                             description={translate('common.role')}
                             shouldShowRightIcon
                             onPress={() => {

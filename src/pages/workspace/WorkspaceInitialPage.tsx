@@ -12,6 +12,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
+import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -25,7 +26,6 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
-import {confirmReadyToOpenApp} from '@libs/actions/App';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {clearErrors, openPolicyInitialPage, removeWorkspace} from '@libs/actions/Policy/Policy';
@@ -40,6 +40,7 @@ import {
     isPendingDeletePolicy,
     isPolicyAdmin,
     isPolicyFeatureEnabled,
+    isTimeTrackingEnabled,
     shouldShowEmployeeListError,
     shouldShowSyncError,
     shouldShowTaxRateError,
@@ -108,6 +109,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         'Users',
         'Workflows',
         'LuggageWithLines',
+        'Clock',
     ] as const);
 
     const policy = policyDraft?.id ? policyDraft : policyProp;
@@ -130,6 +132,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const wasRendered = useRef(false);
     const prevPendingFields = usePrevious(policy?.pendingFields);
     const shouldDisplayLHB = !shouldUseNarrowLayout;
+    const isPolicyTimeTrackingEnabled = isTimeTrackingEnabled(policy);
     const policyFeatureStates = useMemo(
         () => ({
             [CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED]: policy?.areDistanceRatesEnabled,
@@ -146,6 +149,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             [CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]: policy?.arePerDiemRatesEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED]: isUberForBusinessEnabled && (policy?.receiptPartners?.enabled ?? false),
             [CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED]: policy?.isTravelEnabled,
+            [CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED]: isPolicyTimeTrackingEnabled,
         }),
         [
             policy?.areDistanceRatesEnabled,
@@ -164,6 +168,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             policy?.receiptPartners?.enabled,
             isUberForBusinessEnabled,
             policy?.isTravelEnabled,
+            isPolicyTimeTrackingEnabled,
         ],
     ) as PolicyFeatureStates;
 
@@ -341,6 +346,16 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             });
         }
 
+        if (featureStates?.[CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED]) {
+            protectedMenuItems.push({
+                translationKey: 'iou.time',
+                icon: expensifyIcons.Clock,
+                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TIME_TRACKING.getRoute(policyID)))),
+                screenName: SCREENS.WORKSPACE.TIME_TRACKING,
+                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED,
+            });
+        }
+
         if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED]) {
             const currencyCode = policy?.outputCurrency ?? CONST.CURRENCY.USD;
             protectedMenuItems.push({
@@ -397,6 +412,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         expensifyIcons.CreditCard,
         expensifyIcons.CalendarSolid,
         expensifyIcons.InvoiceGeneric,
+        expensifyIcons.Clock,
         singleExecution,
         waitForNavigate,
         featureStates,
@@ -444,9 +460,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         });
     }, [policy, isOffline, policyFeatureStates, prevPendingFields]);
 
-    useEffect(() => {
-        confirmReadyToOpenApp();
-    }, []);
+    useConfirmReadyToOpenApp();
 
     const prevPolicy = usePrevious(policy);
 

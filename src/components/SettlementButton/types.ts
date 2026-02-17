@@ -7,20 +7,13 @@ import type {ButtonSizeValue} from '@src/styles/utils/types';
 import type {Report} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 type EnablePaymentsRoute = typeof ROUTES.ENABLE_PAYMENTS | typeof ROUTES.IOU_SEND_ENABLE_PAYMENTS | typeof ROUTES.SETTINGS_ENABLE_PAYMENTS;
 
-type PaymentActionParams = {
-    paymentType?: PaymentMethodType;
-    payAsBusiness?: boolean;
-    methodID?: number;
-    paymentMethod?: PaymentMethod;
-    isSelectedTransactionAction?: boolean;
-};
-
-type SettlementButtonProps = {
+type SettlementButtonProps = WithSentryLabel & {
     /** Callback to execute when this button is pressed. Receives a single payment type argument. */
-    onPress: (params: PaymentActionParams) => void;
+    onPress: (paymentType: PaymentMethodType | undefined, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod | undefined, policyID?: string) => void;
 
     /** Callback when the payment options popover is shown */
     onPaymentOptionsShow?: () => void;
@@ -111,10 +104,6 @@ type SettlementButtonProps = {
 
     /** Whether we the report has only held expenses */
     hasOnlyHeldExpenses?: boolean;
-
-    /** Label for Sentry tracking */
-    sentryLabel?: string;
 };
 
 export default SettlementButtonProps;
-export type {PaymentActionParams};
