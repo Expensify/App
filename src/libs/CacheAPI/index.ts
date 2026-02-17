@@ -10,14 +10,14 @@ function init() {
         Log.warn('Cache API is not supported');
     }
     const keys = Object.values(CONST.CACHE_API_KEYS);
-    keys.forEach((key) => {
+    for (const key of keys) {
         caches.has(key).then((isExist) => {
             if (isExist) {
                 return;
             }
             caches.open(key);
         });
-    });
+    }
 }
 
 function put(cacheName: CacheNameType, key: string, value: Response) {
