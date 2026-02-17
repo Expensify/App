@@ -1,4 +1,4 @@
-import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
+import type {MarkdownStyle, MarkdownTextInput} from '@expensify/react-native-live-markdown';
 import mimeDb from 'mime-db';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {NativeSyntheticEvent, TextInputChangeEvent, TextInputPasteEventData} from 'react-native';
@@ -36,7 +36,7 @@ function Composer({
     ref,
     ...props
 }: ComposerProps) {
-    const textInputRef = useRef<AnimatedMarkdownTextInputRef | null>(null);
+    const textInputRef = useRef<MarkdownTextInput | null>(null);
     const textContainsOnlyEmojis = useMemo(() => containsOnlyEmojis(Parser.htmlToText(Parser.replace(value ?? ''))), [value]);
     const theme = useTheme();
     const markdownStyle = useMarkdownStyle(textContainsOnlyEmojis, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
