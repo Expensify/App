@@ -37,18 +37,18 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 // eslint-disable-next-line no-restricted-imports
 import findNodeHandle from '@src/utils/findNodeHandle';
-import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import getCursorPosition from './ReportActionCompose/getCursorPosition';
 import getScrollPosition from './ReportActionCompose/getScrollPosition';
-import MessageEditCancelButton from './ReportActionCompose/MessageEditCancelButton';
 import type {SuggestionsRef} from './ReportActionCompose/ReportActionCompose';
 import Suggestions from './ReportActionCompose/Suggestions';
+import shouldUseEmojiPickerSelection from './shouldUseEmojiPickerSelection';
 import useDebouncedCommentMaxLengthValidation from './ReportActionCompose/useDebouncedCommentMaxLengthValidation';
 import useEditMessage from './ReportActionCompose/useEditMessage';
-import {useReportActionActiveEdit} from './ReportActionEditMessageContext';
-import shouldUseEmojiPickerSelection from './shouldUseEmojiPickerSelection';
+import MessageEditCancelButton from './ReportActionCompose/MessageEditCancelButton';
+import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import SendOrSaveButton from './ReportActionCompose/SendOrSaveButton';
 import useDraftMessageVideoAttributeCache from './useDraftMessageVideoAttributeCache';
+import {useReportActionActiveEdit} from './ReportActionEditMessageContext';
 
 type ReportActionItemMessageEditProps = {
     /** All the data of the action */
@@ -135,8 +135,10 @@ function ReportActionItemMessageEdit({
     }, [currentEditMessageSelection, defaultSelection, draft.length, setSelection]);
 
     const [isFocused, setIsFocused] = useState<boolean>(false);
-
-    const {debouncedCommentMaxLengthValidation, exceededMaxLength, isExceedingMaxLength} = useDebouncedCommentMaxLengthValidation({reportID, isEditing: true});
+    const {debouncedCommentMaxLengthValidation, isExceedingMaxLength, exceededMaxLength} = useDebouncedCommentMaxLengthValidation({
+        reportID,
+        isEditing: true,
+    });
 
     const {isScrollLayoutTriggered, raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();
 
@@ -253,7 +255,7 @@ function ReportActionItemMessageEdit({
             debouncedSaveDraft(newDraft);
             isCommentPendingSaved.current = true;
         },
-        [raiseIsScrollLayoutTriggered, preferredSkinTone, preferredLocale, debouncedSaveDraft, selection?.end, setSelection],
+        [debouncedSaveDraft, preferredLocale, preferredSkinTone, raiseIsScrollLayoutTriggered, selection?.end, setSelection],
     );
 
     useEffect(() => {
