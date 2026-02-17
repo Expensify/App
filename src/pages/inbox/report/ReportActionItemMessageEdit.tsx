@@ -271,8 +271,6 @@ function ReportActionItemMessageEdit({
         composerRef,
     });
 
-    const publishDraftMessage = useCallback(() => publishDraft(draft), [publishDraft, draft]);
-
     /**
      * @param emoji
      */
@@ -335,13 +333,13 @@ function ReportActionItemMessageEdit({
             }
             if (keyEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !keyEvent.shiftKey) {
                 e.preventDefault();
-                publishDraftMessage();
+                publishDraft(draft);
             } else if (keyEvent.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey) {
                 e.preventDefault();
                 deleteDraft();
             }
         },
-        [deleteDraft, hideSuggestionMenu, isKeyboardShown, shouldUseNarrowLayout, publishDraftMessage],
+        [shouldUseNarrowLayout, isKeyboardShown, hideSuggestionMenu, publishDraft, draft, deleteDraft],
     );
 
     const measureContainer = useCallback((callback: MeasureInWindowOnSuccessCallback) => {
@@ -524,7 +522,7 @@ function ReportActionItemMessageEdit({
 
                     <SendButton
                         isDisabled={isExceedingMaxLength}
-                        onSend={publishDraftMessage}
+                        onSend={() => publishDraft(draft)}
                         isEditing
                     />
                 </View>
