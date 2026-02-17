@@ -8,9 +8,6 @@ import ReportActionCompose from '@pages/inbox/report/ReportActionCompose/ReportA
 import {ReportActionEditMessageContextProvider} from '@pages/inbox/report/ReportActionEditMessageContext';
 import type {ReportActionItemMessageEditProps} from '@pages/inbox/report/ReportActionItemMessageEdit';
 import ReportActionItemMessageEdit from '@pages/inbox/report/ReportActionItemMessageEdit';
-import {fireGestureHandler, getByGestureTestId} from 'react-native-gesture-handler/jest-utils';
-import CONST from '@src/CONST';
-import {State} from 'react-native-gesture-handler';
 import * as LHNTestUtils from './LHNTestUtils';
 
 const defaultReport = LHNTestUtils.getFakeReport();
@@ -87,15 +84,4 @@ const renderReportActionMessageEditComponents = (
     );
 };
 
-function pressReportActionComposeSendButton() {
-    const gesture = getByGestureTestId(CONST.COMPOSER.SEND_BUTTON_TEST_ID);
-
-    fireGestureHandler(gesture, [
-        {oldState: State.UNDETERMINED, state: State.BEGAN},
-        {oldState: State.BEGAN, state: State.ACTIVE},
-        {oldState: State.ACTIVE, state: State.ACTIVE},
-        {oldState: State.ACTIVE, state: State.END},
-    ]);
-}
-
-export {renderReportActionCompose, renderReportActionItemMessageEdit, renderReportActionMessageEditComponents, pressReportActionComposeSendButton};
+export {renderReportActionCompose, renderReportActionItemMessageEdit, renderReportActionMessageEditComponents};
