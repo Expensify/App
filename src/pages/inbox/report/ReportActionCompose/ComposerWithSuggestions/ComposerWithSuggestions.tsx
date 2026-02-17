@@ -373,6 +373,7 @@ function ComposerWithSuggestions({
 
             if (currentEditMessageSelection) {
                 setSelection(currentEditMessageSelection);
+                composerRef.current?.focus();
             }
         }
     }, [applyComposerValue, currentEditMessageSelection, draftComment, editingMessage, editingReportActionID, shouldUseNarrowLayout]);
