@@ -132,7 +132,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const [rejectModalAction, setRejectModalAction] = useState<ValueOf<
         typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT
     > | null>(null);
-    const [duplicateDistanceErrorModalVisible, setDuplicateDistanceErrorModalVisible] = useState(false);
+    const [rateErrorModalVisible, setRateErrorModalVisible] = useState(false);
     const [duplicatePerDiemErrorModalVisible, setDuplicatePerDiemErrorModalVisible] = useState(false);
     const [isDuplicateActive, temporarilyDisableDuplicateAction] = useThrottledButtonState();
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION, {canBeMissing: true});
@@ -452,12 +452,13 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE]: {
-            text: isDuplicateActive ? translate('common.duplicate') : translate('common.duplicated'),
-            icon: isDuplicateActive ? Expensicons.ReceiptMultiple : Expensicons.CheckmarkCircle,
+            text: isDuplicateActive ? translate('common.duplicateExpense') : translate('common.duplicated'),
+            icon: isDuplicateActive ? Expensicons.ExpenseCopy : Expensicons.Checkmark,
+            iconFill: isDuplicateActive ? undefined : theme.icon,
             value: CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE,
             onSelected: () => {
                 if (hasCustomUnitOutOfPolicyViolation) {
-                    setDuplicateDistanceErrorModalVisible(true);
+                    setRateErrorModalVisible(true);
                     return;
                 }
 
@@ -638,11 +639,11 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             />
             <ConfirmModal
                 title={translate('common.duplicateExpense')}
-                isVisible={duplicateDistanceErrorModalVisible}
-                onConfirm={() => setDuplicateDistanceErrorModalVisible(false)}
-                onCancel={() => setDuplicateDistanceErrorModalVisible(false)}
+                isVisible={rateErrorModalVisible}
+                onConfirm={() => setRateErrorModalVisible(false)}
+                onCancel={() => setRateErrorModalVisible(false)}
                 confirmText={translate('common.buttonConfirm')}
-                prompt={translate('iou.correctDistanceRateError')}
+                prompt={translate('iou.correctRateError')}
                 shouldShowCancelButton={false}
             />
             <ConfirmModal

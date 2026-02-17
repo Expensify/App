@@ -1,7 +1,7 @@
 /* eslint-disable max-lines */
 import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
 import escapeRegExp from 'lodash/escapeRegExp';
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {ReportExportType} from '@components/ButtonWithDropdownMenu/types';
@@ -16,6 +16,7 @@ import type {
     CreateWorkspaceParams,
     DeleteWorkspaceAvatarParams,
     DeleteWorkspaceParams,
+    DisablePolicyApprovalsParams,
     DisablePolicyBillableModeParams,
     DowngradeToTeamParams,
     DuplicateWorkspaceParams,
@@ -115,6 +116,7 @@ import type {
     Policy,
     PolicyCategories,
     PolicyCategory,
+    PolicyEmployee,
     Report,
     ReportAction,
     ReportActions,
@@ -828,6 +830,29 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
         ...value,
     } as OnyxEntry<Policy>;
 
+    const optimisticMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
+
+    if (approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL) {
+        for (const employeeEmail of Object.keys(policy?.employeeList ?? {})) {
+            const employee = policy?.employeeList?.[employeeEmail];
+            const updates: Partial<PolicyEmployee> = {};
+
+            if (employee?.submitsTo) {
+                updates.submitsTo = policy?.owner;
+            }
+            if (employee?.forwardsTo) {
+                updates.forwardsTo = '';
+            }
+            if (employee?.overLimitForwardsTo) {
+                updates.overLimitForwardsTo = '';
+            }
+
+            if (Object.keys(updates).length > 0) {
+                optimisticMembersState[employeeEmail] = updates;
+            }
+        }
+    }
+
     const currentUserAccountID = deprecatedSessionAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const currentUserEmail = deprecatedSessionEmail ?? '';
 
@@ -886,6 +911,7 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
             value: {
                 ...value,
                 pendingFields: {approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                employeeList: optimisticMembersState,
             },
         },
     ];
@@ -920,15 +946,23 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
         },
     ];
 
-    const params: SetWorkspaceApprovalModeParams = {
-        policyID,
-        value: JSON.stringify({
-            ...value,
-            // This property should now be set to false for all Collect policies
-            isAutoApprovalEnabled: false,
-        }),
-    };
-    API.write(WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE, params, {optimisticData, failureData, successData});
+    if (approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL) {
+        const params: DisablePolicyApprovalsParams = {
+            policyID,
+        };
+        API.write(WRITE_COMMANDS.DISABLE_POLICY_APPROVALS, params, {optimisticData, failureData, successData});
+    } else {
+        const params: SetWorkspaceApprovalModeParams = {
+            policyID,
+            value: JSON.stringify({
+                ...value,
+                // This property should now be set to false for all Collect policies
+                isAutoApprovalEnabled: false,
+            }),
+        };
+        // eslint-disable-next-line rulesdir/no-multiple-api-calls
+        API.write(WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE, params, {optimisticData, failureData, successData});
+    }
 }
 
 function setWorkspacePayer(policyID: string, reimburserEmail: string) {

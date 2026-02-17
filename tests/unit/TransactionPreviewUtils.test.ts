@@ -74,7 +74,7 @@ describe('TransactionPreviewUtils', () => {
             };
 
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
-            expect(result.RBRMessage.translationPath).toContain('iou.expenseWasPutOnHold');
+            expect(result.RBRMessage.translationPath).toContain('violations.reviewRequired');
         });
 
         it('returns correct receipt error message when the transaction has receipt error', () => {

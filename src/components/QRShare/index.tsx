@@ -36,7 +36,7 @@ function QRShare({
     const qrCodeContainerWidth = shouldUseNarrowLayout ? windowWidth : variables.sideBarWidth;
     const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark']);
 
-    const {formatPhoneNumber} = useLocalize();
+    const {formatPhoneNumber, translate} = useLocalize();
 
     const [qrCodeSize, setQrCodeSize] = useState<number>(qrCodeContainerWidth - styles.ph5.paddingHorizontal * 2 - variables.qrShareHorizontalPadding * 2);
     const svgRef = useRef<Svg | undefined>(undefined);
@@ -79,6 +79,7 @@ function QRShare({
                 size={size ?? qrCodeSize}
                 logoRatio={logoRatio}
                 logoMarginRatio={logoMarginRatio}
+                accessibilityLabel={translate('qrCodes.qrCode')}
             />
 
             {!!title && (
