@@ -76,7 +76,7 @@ import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 import type {ComposerWithSuggestionsProps, ComposerWithSuggestionsRef} from './ComposerWithSuggestions/ComposerWithSuggestions';
 import MessageEditCancelButton from './MessageEditCancelButton';
-import SendButton from './SendButton';
+import ReportActionComposeSendButton from './ReportActionComposeSendButton';
 import useAttachmentUploadValidation from './useAttachmentUploadValidation';
 import useDebouncedCommentMaxLengthValidation from './useDebouncedCommentMaxLengthValidation';
 import useEditMessage from './useEditMessage';
@@ -680,7 +680,7 @@ function ReportActionCompose({
                                 shiftVertical={emojiShiftVertical}
                             />
                         )}
-                        <SendButton
+                        <ReportActionComposeSendButton
                             isEditing={isEditingInComposer}
                             isDisabled={isSendDisabled}
                             onSend={sendMessage}

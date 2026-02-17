@@ -42,12 +42,12 @@ import getCursorPosition from './ReportActionCompose/getCursorPosition';
 import getScrollPosition from './ReportActionCompose/getScrollPosition';
 import MessageEditCancelButton from './ReportActionCompose/MessageEditCancelButton';
 import type {SuggestionsRef} from './ReportActionCompose/ReportActionCompose';
-import SendButton from './ReportActionCompose/SendButton';
 import Suggestions from './ReportActionCompose/Suggestions';
 import useDebouncedCommentMaxLengthValidation from './ReportActionCompose/useDebouncedCommentMaxLengthValidation';
 import useEditMessage from './ReportActionCompose/useEditMessage';
 import {useReportActionActiveEdit} from './ReportActionEditMessageContext';
 import shouldUseEmojiPickerSelection from './shouldUseEmojiPickerSelection';
+import SendOrSaveButton from './ReportActionCompose/SendOrSaveButton';
 import useDraftMessageVideoAttributeCache from './useDraftMessageVideoAttributeCache';
 
 type ReportActionItemMessageEditProps = {
@@ -102,7 +102,7 @@ function ReportActionItemMessageEdit({
     const StyleUtils = useStyleUtils();
     const containerRef = useRef<View>(null);
     const reportScrollManager = useReportScrollManager();
-    const {preferredLocale} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const suggestionsRef = useRef<SuggestionsRef>(null);
@@ -520,11 +520,18 @@ function ReportActionItemMessageEdit({
                         />
                     </View>
 
-                    <SendButton
-                        isDisabled={isExceedingMaxLength}
-                        onSend={() => publishDraft(draft)}
-                        isEditing
-                    />
+                    <View style={styles.alignSelfEnd}>
+                        <SendOrSaveButton
+                            isDisabled={isExceedingMaxLength}
+                            isEditing
+                            onSendOrSave={() => publishDraft(draft)}
+                            accessibilityLabel={translate('common.saveChanges')}
+                            role={CONST.ROLE.BUTTON}
+                            hoverDimmingValue={1}
+                            pressDimmingValue={0.2}
+                            onMouseDown={(e) => e.preventDefault()}
+                        />
+                    </View>
                 </View>
             </View>
             {isExceedingMaxLength && !!exceededMaxLength && <ExceededCommentLength maxCommentLength={exceededMaxLength} />}
