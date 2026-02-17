@@ -289,12 +289,20 @@ function ComposerWithSuggestions({
 
     const commentRef = useRef(value);
 
+    const wasEditingInComposerRef = useRef(shouldUseNarrowLayout);
     useEffect(() => {
         if (!editingReportActionID) {
+            wasEditingInComposerRef.current = shouldUseNarrowLayout;
             return;
         }
 
-        if (!shouldUseNarrowLayout) {
+        if (shouldUseNarrowLayout && !wasEditingInComposerRef.current) {
+            wasEditingInComposerRef.current = true;
+        }
+
+        if (!shouldUseNarrowLayout && wasEditingInComposerRef.current) {
+            wasEditingInComposerRef.current = false;
+            // When we switch from narrow to wide layout, we need to clear the composer value
             setValue('');
             return;
         }
