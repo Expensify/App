@@ -11,9 +11,9 @@ import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import RadioListItem from './SelectionList/ListItem/RadioListItem';
-import SelectionListWithSections from './SelectionList/SelectionListWithSections';
-import type {ListItem} from './SelectionList/types';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
+import type {ListItem} from '@components/SelectionList/types';
 
 type CategoryPickerProps = {
     policyID: string | undefined;

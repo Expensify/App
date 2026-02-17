@@ -138,6 +138,13 @@ type TransactionItemRowProps = {
     customCardNames?: Record<number, string>;
     reportActions?: ReportAction[];
     checkboxSentryLabel?: string;
+
+    /** Callbacks for inline cell editing (desktop only) */
+    onEditDate?: (newDate: string) => void;
+    onEditMerchant?: (newMerchant: string) => void;
+    onEditDescription?: (newDescription: string) => void;
+    onEditCategory?: (newCategory: string) => void;
+    onEditAmount?: (newAmount: number) => void;
 };
 
 function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string) {
@@ -187,6 +194,11 @@ function TransactionItemRow({
     customCardNames,
     reportActions,
     checkboxSentryLabel,
+    onEditDate,
+    onEditMerchant,
+    onEditDescription,
+    onEditCategory,
+    onEditAmount,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -196,6 +208,11 @@ function TransactionItemRow({
     const hasCategoryOrTag = !isCategoryMissing(transactionItem?.category) || !!transactionItem.tag;
     const createdAt = getTransactionCreated(transactionItem);
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
+
+    // Inline editing is desktop-only: large screen widths correspond to desktop/tablet layouts.
+    // On narrow mobile layouts isLargeScreenWidth is false, so canInlineEdit will be false and
+    // none of the editable cells will enter edit mode.
+    const canInlineEdit = isLargeScreenWidth;
 
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isSubmittedColumnWide = submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
@@ -310,7 +327,9 @@ function TransactionItemRow({
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, isDateColumnWide, false, false)]}
                 >
                     <DateCell
+                        canEdit={canInlineEdit}
                         date={createdAt}
+                        onSave={onEditDate}
                         showTooltip={shouldShowTooltip}
                         isLargeScreenWidth={!shouldUseNarrowLayout}
                     />
@@ -373,6 +392,9 @@ function TransactionItemRow({
                         transactionItem={transactionItem}
                         shouldShowTooltip={shouldShowTooltip}
                         shouldUseNarrowLayout={shouldUseNarrowLayout}
+                        canEdit={canInlineEdit && !isScanning(transactionItem)}
+                        onSave={onEditCategory}
+                        policyID={report?.policyID ?? transactionItem.report?.policyID}
                     />
                 </View>
             ),
@@ -424,6 +446,8 @@ function TransactionItemRow({
                             merchantOrDescription={merchant}
                             shouldShowTooltip={shouldShowTooltip}
                             shouldUseNarrowLayout={false}
+                            canEdit={canInlineEdit && !isScanning(transactionItem)}
+                            onSave={onEditMerchant}
                         />
                     )}
                 </View>
@@ -439,6 +463,8 @@ function TransactionItemRow({
                             shouldShowTooltip={shouldShowTooltip}
                             shouldUseNarrowLayout={false}
                             isDescription
+                            canEdit={canInlineEdit && !isScanning(transactionItem)}
+                            onSave={onEditDescription}
                         />
                     )}
                 </View>
@@ -503,7 +529,8 @@ function TransactionItemRow({
                     <TotalCell
                         transactionItem={transactionItem}
                         shouldShowTooltip={shouldShowTooltip}
-                        shouldUseNarrowLayout={shouldUseNarrowLayout}
+                        canEdit={canInlineEdit && !isScanning(transactionItem)}
+                        onSave={onEditAmount}
                     />
                 </View>
             ),
@@ -609,6 +636,12 @@ function TransactionItemRow({
             isTaxAmountColumnWide,
             isLargeScreenWidth,
             reportActions,
+            canInlineEdit,
+            onEditDate,
+            onEditMerchant,
+            onEditDescription,
+            onEditCategory,
+            onEditAmount,
         ],
     );
     const shouldRenderChatBubbleCell = useMemo(() => {
