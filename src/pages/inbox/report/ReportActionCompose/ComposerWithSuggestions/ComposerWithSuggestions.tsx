@@ -979,15 +979,30 @@ function ComposerWithSuggestions({
     useImperativeHandle(
         ref,
         () =>
-            ({
-                ...composerRef.current,
-                focus,
-                replaceSelectionWithText,
-                getCurrentText,
-                clearWorklet,
-                resetHeight,
-            }) as ComposerWithSuggestionsRef,
-        [focus, replaceSelectionWithText, clearWorklet, resetHeight, getCurrentText],
+            new Proxy(
+                {},
+                {
+                    get: (_target, prop) => {
+                        if (prop === 'focus') {
+                            return focus;
+                        }
+                        if (prop === 'replaceSelectionWithText') {
+                            return replaceSelectionWithText;
+                        }
+                        if (prop === 'getCurrentText') {
+                            return getCurrentText;
+                        }
+                        if (prop === 'clearWorklet') {
+                            return clearWorklet;
+                        }
+                        if (prop === 'resetHeight') {
+                            return resetHeight;
+                        }
+
+                        return composerRef.current?.[prop as keyof ComposerRef];
+                    },
+                },
+            ) as ComposerWithSuggestionsRef,
     );
 
     useEffect(() => {

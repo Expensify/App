@@ -1,6 +1,6 @@
-import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
+import type {MarkdownStyle, MarkdownTextInput} from '@expensify/react-native-live-markdown';
 import mimeDb from 'mime-db';
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {NativeSyntheticEvent, TextInputChangeEvent, TextInputPasteEventData} from 'react-native';
 import {StyleSheet} from 'react-native';
 import type {ComposerProps, ComposerRef} from '@components/Composer/types';
@@ -16,7 +16,6 @@ import Parser from '@libs/Parser';
 import getFileSize from '@pages/Share/getFileSize';
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
-import useComposerHandle, {getComposerHandle} from '@components/Composer/useComposerHandle';
 
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
 const excludeReportMentionStyle: Array<keyof MarkdownStyle> = ['mentionReport'];
@@ -37,7 +36,7 @@ function Composer({
     ref,
     ...props
 }: ComposerProps) {
-    const textInputRef = useRef<AnimatedMarkdownTextInputRef | null>(null);
+    const textInputRef = useRef<MarkdownTextInput | null>(null);
     const textContainsOnlyEmojis = useMemo(() => containsOnlyEmojis(Parser.htmlToText(Parser.replace(value ?? ''))), [value]);
     const theme = useTheme();
     const markdownStyle = useMarkdownStyle(textContainsOnlyEmojis, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
@@ -77,7 +76,7 @@ function Composer({
         // get a ref to the inner textInput element e.g. if we do
         // <constructor ref={el => this.textInput = el} /> this will not
         // return a ref to the component, but rather the HTML element by default
-        ref(getComposerHandle(textInputRef.current, {}));
+        ref(textInputRef.current as ComposerRef);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -110,8 +109,6 @@ function Composer({
 
     const maxHeightStyle = useMemo(() => StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize), [StyleUtils, isComposerFullSize, maxLines]);
     const composerStyle = useMemo(() => StyleSheet.flatten([style, textContainsOnlyEmojis ? styles.onlyEmojisTextLineHeight : {}]), [style, textContainsOnlyEmojis, styles]);
-
-    useComposerHandle(ref, textInputRef, {});
 
     return (
         <RNMarkdownTextInput
