@@ -7,8 +7,8 @@ import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
 import type {ExpensifyCardSettingsBase} from '@src/types/onyx/ExpensifyCardSettings';
 import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
 import {getLastFourDigits} from './BankAccountUtils';
-import * as Browser from './Browser';
 import fileDownload from './fileDownload';
+import {isMobileSafari} from './Browser';
 
 /**
  * Gets the Travel Invoicing settings, handling both nested (TRAVEL_US) and root-level data.
@@ -166,7 +166,7 @@ function getTravelInvoicingCardSettingsKey(workspaceAccountID: number): `${typeo
 function downloadTravelInvoiceStatementPDF(translate: LocalizedTranslate, baseURL: string, fileName: string | true, startDate: string, endDate: string): Promise<void> {
     const downloadFileName = `Travel_Statement_${startDate}_${endDate}.pdf`;
     const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${encodeURIComponent(fileName)}&downloadName=${encodeURIComponent(downloadFileName)}`;
-    return fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, true), downloadFileName, '', Browser.isMobileSafari());
+    return fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, true), downloadFileName, '', isMobileSafari());
 }
 
 export {
