@@ -165,7 +165,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
 
     const handleConfirm = () => {
         setShowShareModal(false);
-        if (!bankAccountID) {
+        if (!bankAccountID || !authorizedPayerEmail) {
             return;
         }
         if (!selectedPayer) {
@@ -180,7 +180,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     };
 
     const onButtonPress = () => {
-        if (!selectedPayer || !policy) {
+        if (!selectedPayer || !policy || !authorizedPayerEmail) {
             Navigation.closeRHPFlow();
             return;
         }
@@ -351,7 +351,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                                     return;
                                 }
                                 setShowErrorModal(false);
-                                navigateToAndOpenReportWithAccountIDs([currentUserPersonalDetails.accountID], policy.ownerAccountID);
+                                navigateToAndOpenReportWithAccountIDs([policy.ownerAccountID], currentUserPersonalDetails.accountID);
                             }}
                             html={translate('workflowsPayerPage.shareBankAccount.errorDescription', {
                                 admin: selectedPayerDetails?.displayName ?? '',
