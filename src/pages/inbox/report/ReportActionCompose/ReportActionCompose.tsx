@@ -478,7 +478,7 @@ function ReportActionCompose({
     // useSharedValue on web doesn't support functions, so we need to wrap it in an object.
     const composerRefShared = useSharedValue<Partial<ComposerWithSuggestionsRef>>({});
 
-    const handleSendMessage = useCallback(() => {
+    const sendMessage = useCallback(() => {
         if (isSendDisabled || !debouncedCommentMaxLengthValidation.flush()) {
             return;
         }
@@ -498,7 +498,7 @@ function ReportActionCompose({
             clearWorklet?.();
         });
     }, [isSendDisabled, debouncedCommentMaxLengthValidation, isComposerFullSize, reportID, composerRefShared]);
-    onSubmitAction = handleSendMessage;
+    onSubmitAction = sendMessage;
 
     const emojiPositionValues = useMemo(
         () => ({
@@ -633,7 +633,7 @@ function ReportActionCompose({
                             onClear={submitForm}
                             disabled={isBlockedFromConcierge || isEmojiPickerVisible()}
                             setIsCommentEmpty={setIsCommentEmpty}
-                            onEnterKeyPress={handleSendMessage}
+                            onEnterKeyPress={sendMessage}
                             shouldShowComposeInput={shouldShowComposeInput}
                             onFocus={onFocus}
                             onBlur={onBlur}
@@ -683,7 +683,7 @@ function ReportActionCompose({
                         <SendButton
                             isEditing={isEditingInComposer}
                             isDisabled={isSendDisabled}
-                            onSend={handleSendMessage}
+                            onSend={sendMessage}
                         />
                     </View>
                     {ErrorModal}
