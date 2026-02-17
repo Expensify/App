@@ -48,7 +48,6 @@ import {
     canShowReportRecipientLocalTime,
     canUserPerformWriteAction,
     chatIncludesChronosWithID,
-    getOriginalReportID,
     getReportLastVisibleActionCreated,
     isArchivedNonExpenseReport,
     isCanceledTaskReport,
@@ -74,6 +73,7 @@ import ListBoundaryLoader from './ListBoundaryLoader';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 import shouldDisplayNewMarkerOnReportAction from './shouldDisplayNewMarkerOnReportAction';
 import useReportUnreadMessageScrollTracking from './useReportUnreadMessageScrollTracking';
+import {useReportActionActiveEdit} from './ReportActionEditMessageContext';
 
 type ReportActionsListProps = {
     /** The report currently being looked at */
@@ -183,9 +183,8 @@ function ReportActionsList({
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector, canBeMissing: false});
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
-    const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}`, {canBeMissing: true});
+    const [allDraftMessages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}`, {canBeMissing: true});
     const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}`, {canBeMissing: true});
-    const [reportActionsFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canBeMissing: true});
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
@@ -679,33 +678,10 @@ function ReportActionsList({
         return isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report);
     }, [parentReportAction, report, sortedVisibleReportActions]);
 
-    const activeMobileEditActionID = useMemo(() => {
-        if (!shouldUseNarrowLayout || !draftMessage) {
-            return null;
-        }
-
-        for (const reportDrafts of Object.values(draftMessage)) {
-            if (!reportDrafts) {
-                continue;
-            }
-
-            for (const [actionID, draft] of Object.entries(reportDrafts)) {
-                if (draft?.message) {
-                    return actionID;
-                }
-            }
-        }
-
-        return null;
-    }, [shouldUseNarrowLayout, draftMessage]);
-
+    const {editingReportActionID, editingMessage} = useReportActionActiveEdit();
     const renderItem = useCallback(
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
-            const originalReportID = getOriginalReportID(report.reportID, reportAction, reportActionsFromOnyx);
-            const reportDraftMessages = draftMessage?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`];
-            const matchingDraftMessage = reportDraftMessages?.[reportAction.reportActionID];
-            const matchingDraftMessageString =
-                shouldUseNarrowLayout && activeMobileEditActionID && activeMobileEditActionID !== reportAction.reportActionID ? undefined : matchingDraftMessage?.message;
+            const draftMessage = !!editingReportActionID && editingReportActionID === reportAction.reportActionID ? (editingMessage ?? undefined) : undefined;
 
             const actionEmojiReactions = emojiReactions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportAction.reportActionID}`];
             const transactionID = isMoneyRequestAction(reportAction) && getOriginalMessage(reportAction)?.IOUTransactionID;
@@ -737,9 +713,9 @@ function ReportActionsList({
                     userWalletTierName={userWalletTierName}
                     isUserValidated={isUserValidated}
                     personalDetails={personalDetailsList}
-                    draftMessage={matchingDraftMessageString}
+                    allDraftMessages={allDraftMessages}
                     emojiReactions={actionEmojiReactions}
-                    allDraftMessages={draftMessage}
+                    draftMessage={draftMessage}
                     allEmojiReactions={emojiReactions}
                     isReportArchived={isReportArchived}
                     linkedTransactionRouteError={actionLinkedTransactionRouteError}
@@ -751,8 +727,10 @@ function ReportActionsList({
             );
         },
         [
-            draftMessage,
+            editingReportActionID,
+            editingMessage,
             emojiReactions,
+            transactions,
             allReports,
             policies,
             parentReportAction,
@@ -766,18 +744,15 @@ function ReportActionsList({
             unreadMarkerReportActionID,
             firstVisibleReportActionID,
             shouldUseThreadDividerLine,
-            transactions,
             userWalletTierName,
             isUserValidated,
             personalDetailsList,
+            allDraftMessages,
+            isReportArchived,
             userBillingFundID,
             isTryNewDotNVPDismissed,
-            isReportArchived,
-            activeMobileEditActionID,
-            shouldUseNarrowLayout,
             reportNameValuePairs?.origin,
             reportNameValuePairs?.originalID,
-            reportActionsFromOnyx,
         ],
     );
 
