@@ -290,12 +290,14 @@ function ComposerWithSuggestions({
     const commentRef = useRef(value);
 
     const wasEditing = useRef(!!editingReportActionID);
+
     const wasEditingInComposerRef = useRef(shouldUseNarrowLayout);
+    const previousEditingReportActionIDRef = useRef<string | null>(editingReportActionID ?? null);
 
     const applyComposerValue = useCallback(
-        (nextValue: string, selectionOverride?: TextSelection | null, shouldFocusComposer?: boolean) => {
-            const selectionToApply =
-                selectionOverride ?? ({start: nextValue.length, end: nextValue.length, positionX: 0, positionY: 0} satisfies TextSelection);
+        (nextValue: string, isEditingInComposer?: boolean) => {
+            const defaultSelection = {start: nextValue.length, end: nextValue.length, positionX: 0, positionY: 0} satisfies TextSelection;
+            const selectionToApply = isEditingInComposer ? (currentEditMessageSelection ?? defaultSelection) : defaultSelection;
 
             commentRef.current = nextValue;
             emojisPresentBefore.current = extractEmojis(nextValue);
@@ -303,78 +305,70 @@ function ComposerWithSuggestions({
             setValue(nextValue);
             setSelection(selectionToApply);
 
-            if (shouldFocusComposer) {
+            if (isEditingInComposer) {
                 composerRef.current?.focus();
             }
         },
-        [],
+        [currentEditMessageSelection],
     );
 
     useEffect(() => {
         const isEditing = !!editingReportActionID;
-        const isNarrowLayout = shouldUseNarrowLayout;
+        const previousEditingReportActionID = previousEditingReportActionIDRef.current;
+        const currentEditingReportActionID = editingReportActionID ?? null;
+        const didChangeEditedAction = isEditing && previousEditingReportActionID && currentEditingReportActionID && previousEditingReportActionID !== currentEditingReportActionID;
+
+        previousEditingReportActionIDRef.current = currentEditingReportActionID;
 
         if (!isEditing) {
             if (wasEditing.current && wasEditingInComposerRef.current) {
                 // Editing just ended in the composer – restore the draft comment.
                 const nextValue = draftComment ?? '';
-                applyComposerValue(nextValue, null, false);
+                applyComposerValue(nextValue, false);
             }
 
             wasEditing.current = false;
-            wasEditingInComposerRef.current = isNarrowLayout;
+            wasEditingInComposerRef.current = shouldUseNarrowLayout;
             return;
         }
 
-        const shouldEditInComposer = isNarrowLayout;
-        const wasEditingBefore = wasEditing.current;
-        const wasEditingInComposerBefore = wasEditingInComposerRef.current;
-
         // Editing just started.
-        if (!wasEditingBefore) {
+        if (!wasEditing.current) {
             wasEditing.current = true;
-            wasEditingInComposerRef.current = shouldEditInComposer;
+            wasEditingInComposerRef.current = shouldUseNarrowLayout;
 
-            if (!shouldEditInComposer) {
+            if (!shouldUseNarrowLayout) {
                 // Wide layout – another editor handles the edit, keep composer draft as-is.
                 return;
             }
 
-            const nextValue = editingMessage ?? draftComment ?? '';
-            applyComposerValue(nextValue, currentEditMessageSelection, true);
+            // In narrow layout we always show the message being edited.
+            const nextValue = editingMessage ?? '';
+            applyComposerValue(nextValue, true);
+            return;
+        }
+
+        // We are already in editing mode, but the target message changed.
+        if (didChangeEditedAction && shouldUseNarrowLayout) {
+            const nextValue = editingMessage ?? '';
+            applyComposerValue(nextValue, true);
             return;
         }
 
         // Editing is ongoing and layout toggled from wide to narrow.
-        if (shouldEditInComposer && !wasEditingInComposerBefore) {
+        if (shouldUseNarrowLayout && !wasEditingInComposerRef.current) {
             wasEditingInComposerRef.current = true;
-            const nextValue = editingMessage ?? draftComment ?? '';
-            applyComposerValue(nextValue, currentEditMessageSelection, true);
+            // We just moved from wide to narrow while editing – start editing in the composer.
+            const nextValue = editingMessage ?? '';
+            applyComposerValue(nextValue, true);
             return;
         }
 
         // Editing is ongoing and layout toggled from narrow to wide.
-        if (!shouldEditInComposer && wasEditingInComposerBefore) {
+        if (!shouldUseNarrowLayout && wasEditingInComposerRef.current) {
             wasEditingInComposerRef.current = false;
-            const nextValue = draftComment ?? '';
-            applyComposerValue(nextValue, null, false);
-            return;
-        }
-
-        // Editing is ongoing and layout did not change.
-        if (shouldEditInComposer && wasEditingInComposerBefore) {
-            const nextValue = editingMessage ?? draftComment ?? '';
-
-            if (nextValue !== commentRef.current) {
-                // We switched to editing a different message while staying in narrow layout.
-                applyComposerValue(nextValue, currentEditMessageSelection, true);
-                return;
-            }
-
-            if (currentEditMessageSelection) {
-                setSelection(currentEditMessageSelection);
-                composerRef.current?.focus();
-            }
+            const nextValue = editingMessage ?? '';
+            applyComposerValue(nextValue, false);
         }
     }, [applyComposerValue, currentEditMessageSelection, draftComment, editingMessage, editingReportActionID, shouldUseNarrowLayout]);
 
