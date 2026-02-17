@@ -2366,7 +2366,7 @@ ${amount} dla ${merchant} - ${date}`,
                 `Musisz <a href="#">zweryfikować to konto bankowe</a>. Po wykonaniu tej czynności możesz udostępnić dostęp do konta bankowego użytkownikowi ${admin}, aby uczynić go płatnikiem.`,
             errorTitle: 'Nie można zmienić płatnika',
             errorDescription: ({admin, owner}: {admin: string; owner: string}) =>
-                `${admin} nie ma dostępu do tego konta bankowego, więc nie możesz uczynić go płatnikiem. <a href="#">Porozmawiaj z ${owner}em/właścicielem, jeśli konto bankowe powinno być współdzielone.`,
+                `${admin} nie ma dostępu do tego konta bankowego, więc nie możesz uczynić go płatnikiem. <a href="#">Porozmawiaj z ${owner}</a>, jeśli konto bankowe powinno być współdzielone.`,
         },
     },
     reportFraudPage: {
