@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useContext, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -14,7 +14,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import DecisionModal from './DecisionModal';
-import {useDelegateNoAccessActions, useDelegateNoAccessState} from './DelegateNoAccessModalProvider';
+import {DelegateNoAccessContext} from './DelegateNoAccessModalProvider';
 
 type ActionHandledType = DeepValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE.PAY | typeof CONST.IOU.REPORT_ACTION_TYPE.APPROVE>;
 
@@ -83,8 +83,7 @@ function ProcessMoneyReportHoldMenu({
     const currentUserDetails = useCurrentUserPersonalDetails();
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
 
-    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
-    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const onSubmit = (full: boolean) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();

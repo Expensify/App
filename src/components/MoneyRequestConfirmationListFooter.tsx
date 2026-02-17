@@ -6,7 +6,7 @@ import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrencyList from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -290,7 +290,7 @@ function MoneyRequestConfirmationListFooter({
     const icons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'CalendarSolid']);
     const styles = useThemeStyles();
     const {translate, toLocaleDigit, localeCompare} = useLocalize();
-    const {getCurrencySymbol} = useCurrencyListActions();
+    const {getCurrencySymbol} = useCurrencyList();
     const {isOffline} = useNetwork();
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});

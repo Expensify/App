@@ -13,17 +13,15 @@ type DragAndDropProviderProps = {
 
 type SetOnDropHandlerCallback = (event: DragEvent) => void;
 
-type DragAndDropStateContextType = {
+type DragAndDropContextParams = {
     /** Whether something is dragging over a drop zone. */
-    isDraggingOver: boolean;
+    isDraggingOver?: boolean;
 
-    /** Drop zone id for the portal host. */
-    dropZoneID: string;
+    /** Execute callback when an item is dropped in the drop zone. */
+    setOnDropHandler?: (callback: SetOnDropHandlerCallback) => void;
+
+    /** Drop zone id. */
+    dropZoneID?: string;
 };
 
-type DragAndDropActionsContextType = {
-    /** Register the callback to run when an item is dropped in the drop zone. */
-    setOnDropHandler: (callback: SetOnDropHandlerCallback) => void;
-};
-
-export type {DragAndDropProviderProps, SetOnDropHandlerCallback, DragAndDropStateContextType, DragAndDropActionsContextType};
+export type {DragAndDropProviderProps, DragAndDropContextParams, SetOnDropHandlerCallback};

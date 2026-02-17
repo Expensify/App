@@ -1,2 +1,7 @@
-export {useCurrencyListState, useCurrencyListActions} from '@components/CurrencyListContextProvider';
-export type {CurrencyListStateContextType, CurrencyListActionsContextType} from '@components/CurrencyListContextProvider';
+import {useContext} from 'react';
+import type {CurrencyListContextProps} from '@components/CurrencyListContextProvider';
+import {CurrencyListContext} from '@components/CurrencyListContextProvider';
+
+export default function useCurrencyList(): CurrencyListContextProps {
+    return useContext(CurrencyListContext);
+}
