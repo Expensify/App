@@ -290,7 +290,11 @@ function ComposerWithSuggestions({
     const commentRef = useRef(value);
 
     useEffect(() => {
-        if (!shouldUseNarrowLayout || !editingReportActionID) {
+        if (!editingReportActionID) {
+            return;
+        }
+
+        if (!shouldUseNarrowLayout) {
             setValue('');
             return;
         }
@@ -388,13 +392,13 @@ function ComposerWithSuggestions({
     const debouncedSaveReportComment = useMemo(
         () =>
             lodashDebounce((selectedReportID: string, newComment: string | null) => {
-                if (shouldUseNarrowLayout) {
+                if (editingReportActionID) {
                     return;
                 }
                 saveReportDraftComment(selectedReportID, newComment);
                 isCommentPendingSaved.current = false;
             }, 1000),
-        [shouldUseNarrowLayout],
+        [editingReportActionID],
     );
 
     useEffect(() => {
@@ -529,19 +533,14 @@ function ComposerWithSuggestions({
             }
 
             commentRef.current = newCommentConverted;
-            if (shouldUseNarrowLayout) {
-                if (editingReportActionID && !didSubmitEditRef.current) {
-                    if (shouldDebounceSaveComment) {
-                        isDraftPendingSaved.current = true;
-                        debouncedSaveDraft(newCommentConverted);
-                    } else {
-                        saveReportActionDraft(reportID, {reportActionID: editingReportActionID} as OnyxTypes.ReportAction, newCommentConverted);
-                    }
+            if (!!editingReportActionID && shouldUseNarrowLayout && !didSubmitEditRef.current) {
+                if (shouldDebounceSaveComment) {
+                    isDraftPendingSaved.current = true;
+                    debouncedSaveDraft(newCommentConverted);
+                    return;
                 }
 
-                if (newCommentConverted) {
-                    debouncedBroadcastUserIsTyping(reportID, currentUserAccountID);
-                }
+                saveReportActionDraft(reportID, {reportActionID: editingReportActionID} as OnyxTypes.ReportAction, newCommentConverted);
                 return;
             }
 
@@ -550,6 +549,10 @@ function ComposerWithSuggestions({
                 debouncedSaveReportComment(reportID, newCommentConverted);
             } else {
                 saveReportDraftComment(reportID, newCommentConverted);
+            }
+
+            if (newCommentConverted) {
+                debouncedBroadcastUserIsTyping(reportID, currentUserAccountID);
             }
         },
         [
