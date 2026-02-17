@@ -1,6 +1,7 @@
-import React, {useCallback, useLayoutEffect, useRef} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {Rect} from 'react-native-svg';
+import useContainerWidth from '@hooks/useContainerWidth';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
@@ -18,15 +19,9 @@ type MergeExpensesSkeletonProps = {
 };
 
 function MergeExpensesSkeleton({fixedNumItems, speed, reasonAttributes}: MergeExpensesSkeletonProps) {
-    const containerRef = useRef<View>(null);
+    const {containerRef, containerWidth: pageWidth} = useContainerWidth(24);
     const styles = useThemeStyles();
-    const [pageWidth, setPageWidth] = React.useState(0);
     useSkeletonSpan('MergeExpensesSkeleton', reasonAttributes);
-    useLayoutEffect(() => {
-        containerRef.current?.measure((x, y, width) => {
-            setPageWidth(width - 24);
-        });
-    }, []);
 
     const skeletonItem = useCallback(() => {
         return (

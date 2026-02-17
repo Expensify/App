@@ -1,6 +1,7 @@
-import React, {useCallback, useLayoutEffect, useRef} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {Rect} from 'react-native-svg';
+import useContainerWidth from '@hooks/useContainerWidth';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
@@ -38,15 +39,9 @@ type UnreportedExpensesSkeletonProps = {
 };
 
 function UnreportedExpensesSkeleton({fixedNumberOfItems, reasonAttributes}: UnreportedExpensesSkeletonProps) {
-    const containerRef = useRef<View>(null);
+    const {containerRef, containerWidth: pageWidth} = useContainerWidth(40);
     const styles = useThemeStyles();
-    const [pageWidth, setPageWidth] = React.useState(0);
     useSkeletonSpan('UnreportedExpensesSkeleton', reasonAttributes);
-    useLayoutEffect(() => {
-        containerRef.current?.measure((x, y, width) => {
-            setPageWidth(width - 40);
-        });
-    }, []);
 
     const skeletonItem = useCallback(
         (args: {itemIndex: number}) => {

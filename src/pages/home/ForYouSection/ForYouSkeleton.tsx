@@ -1,7 +1,8 @@
-import React, {useCallback, useLayoutEffect, useRef, useState} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {Rect} from 'react-native-svg';
 import ItemListSkeletonView from '@components/Skeletons/ItemListSkeletonView';
+import useContainerWidth from '@hooks/useContainerWidth';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
@@ -22,18 +23,11 @@ function getTitleSkeletonWidth(index: number) {
 }
 
 function ForYouSkeleton() {
-    const containerRef = useRef<View>(null);
+    const {containerRef, containerWidth: pageWidth} = useContainerWidth();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [pageWidth, setPageWidth] = useState(0);
 
     useSkeletonSpan('ForYouSkeleton');
-
-    useLayoutEffect(() => {
-        containerRef.current?.measure((_x, _y, width) => {
-            setPageWidth(width);
-        });
-    }, []);
 
     const horizontalPadding = shouldUseNarrowLayout ? 20 : 32;
     const gap = 12;
