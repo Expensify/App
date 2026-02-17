@@ -45,15 +45,27 @@ Retracting a report moves it back to **Draft**, so you can add, remove, or edit 
 
 ---
 
-# How Workspace Admins can create expense reports for members in New Expensify
+## Create, submit, and reject expense reports as a Workspace Admin
 
-Workspace Admins can create a new expense report in a member’s account by **moving expenses to a new report**. This is useful for grouping unreported company card expenses, separating expenses by accounting period or moving expenses out of an existing Draft report. 
+As a Workspace Admin, you can create, submit, and reject expense reports for members within your Workspace.
 
-Admins can create reports to move: 
-- Reported or unreported **company card expenses**
-- Reported **reimbursable expenses**
+To create a new expense report, move expenses to a new report in a member’s account. This is helpful when you need to:
 
-**Note:** If an expense is already on a report, that report must be in **Draft** or **Outstanding** status before the expense can be moved.
+ - Group unreported company card expenses
+ - Separate expenses by accounting period
+ - Move expenses out of an existing Draft report
+
+You can create new reports using: 
+
+ - Reported or unreported **company card expenses**
+ - Reported **reimbursable expenses**
+
+You can also manage reports in your Workspace. If a report belongs to a Workspace where you are a Workspace Admin, you can:
+
+ - **Submit** a report on a member’s behalf
+ - **Reject** a report to request changes
+
+This helps keep reports moving forward and ensures expenses are submitted and approved on time.
 
 ---
 
