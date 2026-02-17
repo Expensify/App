@@ -21,6 +21,7 @@ import {base64ToFile} from '@libs/fileDownload/FileUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import Parser from '@libs/Parser';
 import CONST from '@src/CONST';
+import useComposerHandle from '@components/Composer/useComposerHandle';
 
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
 const excludeReportMentionStyle: Array<keyof MarkdownStyle> = ['mentionReport'];
@@ -303,6 +304,10 @@ function Composer({
             },
         } as ComposerRef;
     }, [clear]);
+
+    useComposerHandle(ref, textInputRef, {
+        clear,
+    });
 
     const handleKeyPress = useCallback(
         (e: TextInputKeyPressEvent) => {
