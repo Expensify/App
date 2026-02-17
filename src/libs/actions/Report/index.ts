@@ -630,7 +630,7 @@ function addActions({report, notifyReportID, ancestors, timezoneParam, currentUs
 
     const attachmentID = rand64();
     if (text && !file) {
-        const reportComment = buildOptimisticAddCommentReportAction(text, undefined, undefined, undefined, reportID);
+        const reportComment = buildOptimisticAddCommentReportAction({text, reportID});
         reportCommentAction = reportComment.reportAction;
         reportCommentText = reportComment.commentText;
     }
@@ -640,7 +640,7 @@ function addActions({report, notifyReportID, ancestors, timezoneParam, currentUs
         // It supports sending an attachment with an optional comment and AddComment supports adding a single text comment only.
         commandName = WRITE_COMMANDS.ADD_ATTACHMENT;
         // TODO: pass attachmentID
-        const attachment = buildOptimisticAddCommentReportAction(text, file, undefined, undefined, reportID);
+        const attachment = buildOptimisticAddCommentReportAction({text, file, reportID, attachmentID});
         attachmentAction = attachment.reportAction;
         cacheAttachment({attachmentID, uri: file.uri ?? '', mimeType: file.type});
     }
@@ -673,9 +673,9 @@ function addActions({report, notifyReportID, ancestors, timezoneParam, currentUs
         };
     });
 
-    attachments.forEach((attachment) => {
+    for (const attachment of attachments) {
         cacheAttachment({attachmentID: attachment.attachmentID, uri: attachment.uri ?? ''});
-    });
+    }
 
     // Always prefer the file as the last action over text
     const lastAction = attachmentAction ?? reportCommentAction;
@@ -2101,7 +2101,7 @@ function deleteReportComment(
         return;
     }
     if (Array.isArray(reportAction.message) && reportAction.message.length > 0) {
-        reportAction.message.forEach((message) => {
+        for (const message of reportAction.message) {
             const reportCommentText = message?.html ?? '';
 
             const attachmentTags = [...reportCommentText.matchAll(CONST.REGEX.ATTACHMENT.ATTACHMENT)];
@@ -2119,10 +2119,10 @@ function deleteReportComment(
                 };
             });
 
-            attachments.forEach((attachment) => {
+            for (const attachment of attachments) {
                 removeCachedAttachment({attachmentID: attachment.attachmentID, localSource: attachment.localSource});
-            });
-        });
+            }
+        }
     }
 
     const isDeletedParentAction = ReportActionsUtils.isThreadParentMessage(reportAction, reportID);

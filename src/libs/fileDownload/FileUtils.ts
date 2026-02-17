@@ -123,12 +123,12 @@ function isVideo(fileName: string): boolean {
 /**
  * Returns file extension based from mime type
  */
-function getFileExtension(contentType: string) {
+function getFileExtension(contentType: keyof typeof CONST.MARKDOWN_ATTACHMENT_FILE_TYPES) {
     const markdownAttachmentFileTypes = CONST.MARKDOWN_ATTACHMENT_FILE_TYPES;
-    if (!Object.keys(markdownAttachmentFileTypes).includes(contentType)) {
+    if (!!markdownAttachmentFileTypes[contentType]) {
         return;
     }
-    return markdownAttachmentFileTypes[contentType as keyof typeof markdownAttachmentFileTypes];
+    return markdownAttachmentFileTypes[contentType];
 }
 
 /**
