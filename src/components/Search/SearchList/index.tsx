@@ -144,6 +144,8 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
 
 const keyExtractor = (item: SearchListItem, index: number) => item.keyForList ?? `${index}`;
 
+const EMPTY_NEW_TRANSACTIONS: Transaction[] = [];
+
 function isTransactionGroupListItemArray(data: SearchListItem[]): data is TransactionGroupListItemType[] {
     if (data.length <= 0) {
         return false;
@@ -217,7 +219,7 @@ function SearchList({
     onLayout,
     shouldAnimate,
     isMobileSelectionModeEnabled,
-    newTransactions = [],
+    newTransactions = EMPTY_NEW_TRANSACTIONS,
     violations,
     customCardNames,
     onDEWModalOpen,
