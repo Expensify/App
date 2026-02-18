@@ -1,0 +1,22 @@
+import React, {useLayoutEffect, useState} from 'react';
+import {Freeze} from 'react-freeze';
+
+type ScreenFreezeWrapperProps = {
+    isScreenBlurred: boolean;
+    children: React.ReactNode;
+};
+
+function ScreenFreezeWrapper({isScreenBlurred, children}: ScreenFreezeWrapperProps) {
+    const [frozen, setFrozen] = useState(false);
+
+    // Decouple the Suspense render task so it won't be interrupted by React's concurrent mode
+    // and stuck in an infinite loop
+    useLayoutEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setFrozen(isScreenBlurred);
+    }, [isScreenBlurred]);
+
+    return <Freeze freeze={frozen}>{children}</Freeze>;
+}
+
+export default ScreenFreezeWrapper;
