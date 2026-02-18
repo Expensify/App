@@ -48,7 +48,6 @@ import {hasSynchronizationErrorMessage, isConnectionUnverified} from './actions/
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
 import {getCategoryApproverRule} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
-import Log from './Log';
 import Navigation from './Navigation/Navigation';
 import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
 import {formatMemberForList} from './OptionsListUtils';
@@ -1016,51 +1015,18 @@ function getManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry
     const employeeAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const employeeLogin = getLoginsByAccountIDs([employeeAccountID]).at(0) ?? '';
     const defaultApprover = getDefaultApprover(policy);
-    const approvalWorkflow = getApprovalWorkflow(policy);
 
     // For policy using the optional or basic workflow, the manager is the policy default approver.
-    if (([CONST.POLICY.APPROVAL_MODE.OPTIONAL, CONST.POLICY.APPROVAL_MODE.BASIC] as Array<ValueOf<typeof CONST.POLICY.APPROVAL_MODE>>).includes(approvalWorkflow)) {
-        const managerAccountID = getAccountIDsByLogins([defaultApprover]).at(0) ?? -1;
-        Log.info('[getManagerAccountID] Using default approver for non-advanced workflow', false, {
-            policyID: policy?.id,
-            approvalWorkflow,
-            employeeAccountID,
-            employeeLogin,
-            defaultApprover,
-            policyApprover: policy?.approver,
-            policyOwner: policy?.owner,
-            managerAccountID,
-        });
-        return managerAccountID;
+    if (([CONST.POLICY.APPROVAL_MODE.OPTIONAL, CONST.POLICY.APPROVAL_MODE.BASIC] as Array<ValueOf<typeof CONST.POLICY.APPROVAL_MODE>>).includes(getApprovalWorkflow(policy))) {
+        return getAccountIDsByLogins([defaultApprover]).at(0) ?? -1;
     }
 
     const employee = policy?.employeeList?.[employeeLogin];
     if (!employee && !defaultApprover) {
-        Log.info('[getManagerAccountID] No employee found and no default approver', false, {
-            policyID: policy?.id,
-            employeeAccountID,
-            employeeLogin,
-            employeeListKeys: Object.keys(policy?.employeeList ?? {}),
-            hasPolicy: !!policy,
-        });
         return -1;
     }
 
-    const submitsTo = employee?.submitsTo ?? defaultApprover;
-    const managerAccountID = getAccountIDsByLogins([submitsTo]).at(0) ?? -1;
-    Log.info('[getManagerAccountID] Resolved manager for advanced workflow', false, {
-        policyID: policy?.id,
-        employeeAccountID,
-        employeeLogin,
-        employeeFound: !!employee,
-        employeeSubmitsTo: employee?.submitsTo,
-        defaultApprover,
-        policyApprover: policy?.approver,
-        policyOwner: policy?.owner,
-        resolvedSubmitsTo: submitsTo,
-        managerAccountID,
-    });
-    return managerAccountID;
+    return getAccountIDsByLogins([employee?.submitsTo ?? defaultApprover]).at(0) ?? -1;
 }
 
 /**
@@ -1074,26 +1040,9 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntr
         ruleApprovers.shift();
     }
     if (ruleApprovers.length > 0 && !isSubmitAndClose(policy)) {
-        const ruleApproverAccountID = getAccountIDsByLogins([ruleApprovers.at(0) ?? '']).at(0) ?? -1;
-        Log.info('[getSubmitToAccountID] Using rule approver', false, {
-            policyID: policy?.id,
-            reportID: expenseReport?.reportID,
-            employeeLogin,
-            ruleApprovers,
-            selectedRuleApprover: ruleApprovers.at(0),
-            ruleApproverAccountID,
-        });
-        return ruleApproverAccountID;
+        return getAccountIDsByLogins([ruleApprovers.at(0) ?? '']).at(0) ?? -1;
     }
 
-    Log.info('[getSubmitToAccountID] No rule approvers, falling through to getManagerAccountID', false, {
-        policyID: policy?.id,
-        reportID: expenseReport?.reportID,
-        employeeLogin,
-        ruleApproversCount: ruleApprovers.length,
-        isSubmitAndClosePolicy: isSubmitAndClose(policy),
-        reportManagerID: expenseReport?.managerID,
-    });
     return getManagerAccountID(policy, expenseReport);
 }
 
@@ -1166,6 +1115,13 @@ function getActiveAdminWorkspaces(policies: OnyxCollection<Policy> | null, curre
 function getActiveEmployeeWorkspaces(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
     const activePolicies = getActivePolicies(policies, currentUserLogin);
     return activePolicies.filter((policy) => shouldShowPolicy(policy, isOfflineNetworkStore(), currentUserLogin) && isPolicyUser(policy, currentUserLogin));
+}
+
+/**
+ * Checks whether the current user has a policy with admin access
+ */
+function hasActiveAdminWorkspaces(currentUserLogin: string | undefined, policies?: OnyxCollection<Policy>) {
+    return getActiveAdminWorkspaces(policies ?? allPolicies, currentUserLogin).length > 0;
 }
 
 /**
@@ -2035,6 +1991,7 @@ export {
     isTaxTrackingEnabled,
     shouldShowPolicy,
     getActiveAdminWorkspaces,
+    hasActiveAdminWorkspaces,
     getOwnedPaidPolicies,
     canSendInvoiceFromWorkspace,
     canSubmitPerDiemExpenseFromWorkspace,

@@ -5,13 +5,15 @@ keywords: [New Expensify, workspace rules, expense rules, receipt requirements, 
 internalScope: Audience is Workspace Admins on the Control plan. Covers enabling and managing workspace-level rules such as expense rules, prohibited expenses, category rules, tag rules, and report rules. Does not cover personal expense rules, Workspace Merchant Rules setup details, or troubleshooting specific rule outcomes.
 ---
 
+# Workspace Rules 
+
 Workspace Rules let Admins enforce expense policies by setting custom requirements for receipts, spending limits, category behavior, auto-approvals, and more. These rules help ensure compliance and streamline the approval process.
 
 **Note:** Rules are only available on the **Control** plan. You must be a **Workspace Admin** to enable or manage them.
 
 ---
 
-# How to enable Workspace Rules
+## How to enable Workspace Rules
 
 To activate Rules for your workspace:
 
@@ -106,14 +108,14 @@ To manage them:
 
 Available options:
 
-- **Enable category** – Make it visible to members.
-- **Require description** – Force members to enter a reason when using the category.
 - **Approver** – Assign a specific approver for expenses in this category.
-- **Default tax rate** – Set a default tax percentage.
-- **Max amount** – Set a spending cap for this category.
+- **Default tax rate** – Set a default tax percentage ([Taxes](https://help.expensify.com/articles/new-expensify/workspaces/Track-Taxes) must be enabled on the workspace).
+- **Flag amounts over** - Set a spending cap for this category.
 - **Require receipts over** – Set a threshold for when receipts are required.
 - **Require itemized receipts over** – Require itemized receipts for expenses over a specific amount.
-
+- **Require fields** - Require specific fields be completed for this category. The options are:
+   - **Require description** - Force members to enter a reason when using the category.
+   - **Require attendees** - Force members to add additional attendees when using the category.
 
 ---
 

@@ -1,5 +1,4 @@
 import {useFocusEffect} from '@react-navigation/core';
-import reportsSelector from '@selectors/Attributes';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Alert, AppState, InteractionManager, StyleSheet, View} from 'react-native';
@@ -28,6 +27,7 @@ import useFilesValidation from '@hooks/useFilesValidation';
 import useIOUUtils from '@hooks/useIOUUtils';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import usePermissions from '@hooks/usePermissions';
@@ -107,7 +107,7 @@ function IOURequestStepScan({
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
+    const reportAttributesDerived = useReportAttributes();
     const lazyIllustrations = useMemoizedLazyIllustrations(['MultiScan', 'Hand', 'Shutter']);
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt', 'Gallery', 'ReceiptMultiple', 'boltSlash']);
     const platform = getPlatform(true);
@@ -126,6 +126,7 @@ function IOURequestStepScan({
     const defaultTaxCode = getDefaultTaxCode(policy, initialTransaction);
     const transactionTaxCode = (initialTransaction?.taxCode ? initialTransaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = initialTransaction?.taxAmount ?? 0;
+    const [isAttachmentPickerActive, setIsAttachmentPickerActive] = useState(false);
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
@@ -651,32 +652,33 @@ function IOURequestStepScan({
                                         photo
                                         cameraTabIndex={1}
                                         onLayout={(e) => (viewfinderLayout.current = e.nativeEvent.layout)}
+                                        forceInactive={isAttachmentPickerActive}
                                     />
                                     <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
-                                    {canUseMultiScan ? (
-                                        <View style={[styles.flashButtonContainer, styles.primaryMediumIcon, flash && styles.bgGreenSuccess, !hasFlash && styles.opacity0]}>
-                                            <PressableWithFeedback
-                                                role={CONST.ROLE.BUTTON}
-                                                accessibilityLabel={translate('receipt.flash')}
-                                                sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
-                                                disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
-                                                onPress={() => setFlash((prevFlash) => !prevFlash)}
-                                            >
-                                                <Icon
-                                                    height={16}
-                                                    width={16}
-                                                    src={lazyIcons.Bolt}
-                                                    fill={flash ? theme.white : theme.icon}
-                                                />
-                                            </PressableWithFeedback>
-                                        </View>
-                                    ) : null}
                                     <Animated.View
                                         pointerEvents="none"
                                         style={[StyleSheet.absoluteFillObject, styles.backgroundWhite, blinkStyle, styles.zIndex10]}
                                     />
                                 </View>
                             </GestureDetector>
+                            {canUseMultiScan ? (
+                                <View style={[styles.flashButtonContainer, styles.primaryMediumIcon, flash && styles.bgGreenSuccess, !hasFlash && styles.opacity0]}>
+                                    <PressableWithFeedback
+                                        role={CONST.ROLE.BUTTON}
+                                        accessibilityLabel={translate('receipt.flash')}
+                                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
+                                        disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
+                                        onPress={() => setFlash((prevFlash) => !prevFlash)}
+                                    >
+                                        <Icon
+                                            height={16}
+                                            width={16}
+                                            src={lazyIcons.Bolt}
+                                            fill={flash ? theme.white : theme.icon}
+                                        />
+                                    </PressableWithFeedback>
+                                </View>
+                            ) : null}
                         </View>
                     )}
                 </View>
@@ -698,7 +700,10 @@ function IOURequestStepScan({
                 )}
                 <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
                     <AttachmentPicker
-                        onOpenPicker={() => setIsLoaderVisible(true)}
+                        onOpenPicker={() => {
+                            setIsAttachmentPickerActive(true);
+                            setIsLoaderVisible(true);
+                        }}
                         fileLimit={shouldAcceptMultipleFiles ? CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT : 1}
                         shouldValidateImage={false}
                     >
@@ -714,6 +719,7 @@ function IOURequestStepScan({
                                         onCanceled: () => setIsLoaderVisible(false),
                                         // makes sure the loader is not visible anymore e.g. when there is an error while uploading a file
                                         onClosed: () => {
+                                            setIsAttachmentPickerActive(false);
                                             setIsLoaderVisible(false);
                                         },
                                     });
@@ -781,6 +787,7 @@ function IOURequestStepScan({
                     <ReceiptPreviews
                         isMultiScanEnabled={isMultiScanEnabled}
                         submit={submitMultiScanReceipts}
+                        isCapturingPhoto={didCapturePhoto}
                     />
                 )}
 
