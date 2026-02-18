@@ -725,6 +725,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                                 setIsDownloadFailureModalVisible(true);
                             },
                             translate,
+                            policy?.employeeList,
+                            policyOwner,
+                            currentUserLogin,
                         );
                     });
                 },
@@ -733,7 +736,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         ];
 
         return menuItems;
-    }, [isPolicyAdmin, icons.Table, icons.Download, translate, isAccountLocked, isOffline, policyID, showLockedAccountModal, showRequiresInternetModal]);
+    }, [isPolicyAdmin, icons.Table, icons.Download, translate, isAccountLocked, isOffline, policyID, showLockedAccountModal, showRequiresInternetModal, policy?.employeeList, policyOwner, currentUserLogin]);
 
     const getHeaderButtons = () => {
         if (!isPolicyAdmin) {

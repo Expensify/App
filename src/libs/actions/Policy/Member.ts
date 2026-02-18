@@ -16,19 +16,20 @@ import * as ApiUtils from '@libs/ApiUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
+import {appendTimeToFileName} from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import Parser from '@libs/Parser';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
-import {getDefaultApprover, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getDefaultApprover, isExpensifyTeam, isPolicyAdmin} from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ImportedSpreadsheetMemberData, InvitedEmailsToAccountIDs, Policy, PolicyEmployee, PolicyOwnershipChangeChecks, Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type {ImportedSpreadsheetMemberData, InvitedEmailsToAccountIDs, Policy, PolicyEmployee, PolicyEmployeeList, PolicyOwnershipChangeChecks, Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ApprovalRule} from '@src/types/onyx/Policy';
@@ -1318,7 +1319,66 @@ function declineJoinRequest(reportID: string | undefined, reportAction: OnyxEntr
     API.write(WRITE_COMMANDS.DECLINE_JOIN_REQUEST, parameters, {optimisticData, failureData, successData});
 }
 
-function downloadMembersCSV(policyID: string, onDownloadFailed: () => void, translate: LocalizedTranslate) {
+/**
+ * Escapes a CSV field value by wrapping it in quotes if it contains a comma, quote, or newline.
+ */
+function escapeCSVField(field: string): string {
+    if (field.includes(',') || field.includes('"') || field.includes('\n')) {
+        return `"${field.replaceAll('"', '""')}"`;
+    }
+    return field;
+}
+
+/**
+ * Builds a CSV string from the policy employee list, filtering out Expensify team members
+ * (unless the policy owner or current user is on an Expensify domain).
+ */
+function buildFilteredMembersCSV(employeeList: PolicyEmployeeList, policyOwner: string, currentUserLogin: string): string {
+    const csvHeaders = ['email', 'role', 'submitsTo', 'approvesTo', 'customField1', 'customField2', 'approvalLimit', 'overLimitForwardsTo'];
+    const shouldFilterExpensifyTeam = !isExpensifyTeam(policyOwner) && !isExpensifyTeam(currentUserLogin);
+    const rows: string[] = [csvHeaders.join(',')];
+
+    for (const [email, employee] of Object.entries(employeeList)) {
+        if (shouldFilterExpensifyTeam && isExpensifyTeam(email)) {
+            continue;
+        }
+
+        const row = [
+            escapeCSVField(email),
+            escapeCSVField(employee.role ?? ''),
+            escapeCSVField(employee.submitsTo ?? ''),
+            escapeCSVField(employee.forwardsTo ?? ''),
+            escapeCSVField(employee.employeeUserID ?? ''),
+            escapeCSVField(employee.employeePayrollID ?? ''),
+            escapeCSVField(employee.approvalLimit != null ? String(employee.approvalLimit) : ''),
+            escapeCSVField(employee.overLimitForwardsTo ?? ''),
+        ];
+        rows.push(row.join(','));
+    }
+
+    return rows.join('\n');
+}
+
+function downloadMembersCSV(policyID: string, onDownloadFailed: () => void, translate: LocalizedTranslate, employeeList?: PolicyEmployeeList, policyOwner?: string, currentUserLogin?: string) {
+    // When employee list data is available, build the CSV client-side to filter out Expensify team members
+    if (employeeList && policyOwner !== undefined && currentUserLogin !== undefined && typeof document !== 'undefined') {
+        const csvContent = buildFilteredMembersCSV(employeeList, policyOwner, currentUserLogin);
+        const fileName = appendTimeToFileName('Members.csv');
+        const blob = new Blob([csvContent], {type: 'text/csv'});
+        const href = URL.createObjectURL(blob);
+
+        const link = document.createElement('a');
+        link.href = href;
+        link.download = fileName;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+
+        URL.revokeObjectURL(href);
+        link.parentNode?.removeChild(link);
+        return;
+    }
+
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_MEMBERS_CSV, {
         policyID,
     });
