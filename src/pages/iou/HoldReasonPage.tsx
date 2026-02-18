@@ -1,6 +1,6 @@
 import {getReportOwnerAccountID} from '@selectors/Report';
-import React, {useCallback, useContext, useEffect} from 'react';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import React, {useCallback, useEffect} from 'react';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -41,7 +41,8 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
     const isApprover = parentReportOwnerAccountID != null && parentReportOwnerAccountID !== currentUserAccountID;
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
 
-    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();

@@ -1648,6 +1648,7 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: 999,
             alignItems: 'center',
             justifyContent: 'center',
+            boxShadow: theme.shadow,
         },
 
         floatingSecondaryActionButton: {
@@ -1662,6 +1663,7 @@ const staticStyles = (theme: ThemeColors) =>
         floatingActionButtonSmall: {
             width: variables.componentSizeNormal,
             height: variables.componentSizeNormal,
+            boxShadow: 'none',
         },
 
         floatingCameraButton: {
@@ -2959,6 +2961,10 @@ const staticStyles = (theme: ThemeColors) =>
 
         detailsPageSectionContainer: {
             alignSelf: 'flex-start',
+        },
+
+        transactionsCarouselGap: {
+            width: variables.spacing2,
         },
 
         attachmentCarouselContainer: {
@@ -5216,6 +5222,16 @@ const staticStyles = (theme: ThemeColors) =>
         travelCardIllustration: {
             width: 191,
             height: 170,
+        },
+
+        travelCCVIllustration: {
+            width: 240,
+            height: 100,
+        },
+
+        travelInvoicingIcon: {
+            backgroundColor: colors.productLight700,
+            borderRadius: variables.componentBorderRadiusNormal,
         },
 
         successBankSharedCardIllustration: {

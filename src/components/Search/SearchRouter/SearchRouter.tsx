@@ -12,10 +12,10 @@ import type {GetAdditionalSectionsCallback} from '@components/Search/SearchAutoc
 import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
 import {useSearchContext} from '@components/Search/SearchContext';
 import SearchInputSelectionWrapper from '@components/Search/SearchInputSelectionWrapper';
-import type {SearchFilterKey, SearchQueryString} from '@components/Search/types';
+import type {SearchQueryString} from '@components/Search/types';
+import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 import type {SearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
 import {isSearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
-import type {SelectionListHandle} from '@components/SelectionListWithSections/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -35,14 +35,14 @@ import Parser from '@libs/Parser';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {getAutocompleteQueryWithComma, getQueryWithoutAutocompletedPart} from '@libs/SearchAutocompleteUtils';
+import {getAutocompleteQueryWithComma, getTrimmedUserSearchQueryPreservingComma} from '@libs/SearchAutocompleteUtils';
 import {getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import {navigateToAndOpenReport, searchInServer} from '@userActions/Report';
 import {setSearchContext} from '@userActions/Search';
-import CONST, {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS} from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type Report from '@src/types/onyx/Report';
@@ -73,11 +73,11 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true});
+    const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true});
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const privateIsArchivedMap = usePrivateIsArchivedMap();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const listRef = useRef<SelectionListHandle>(null);
+    const listRef = useRef<SelectionListWithSectionsHandle>(null);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
 
     // The actual input text that the user sees
@@ -91,7 +91,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const {contextualReportID, isSearchRouterScreen} = useRootNavigationState(getContextualReportData);
 
     const getAdditionalSections: GetAdditionalSectionsCallback = useCallback(
-        ({recentReports}) => {
+        ({recentReports}, sectionIndex) => {
             if (!contextualReportID) {
                 return undefined;
             }
@@ -144,6 +144,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
             return [
                 {
+                    sectionIndex,
                     data: [
                         {
                             text: StringUtils.lineBreaksToSpaces(
@@ -230,12 +231,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     setAutocompleteSubstitutions(updatedSubstitutionsMap);
                 }
 
-                if (updatedUserQuery || textInputValue.length > 0) {
-                    listRef.current?.updateAndScrollToFocusedIndex(0);
-                } else {
-                    listRef.current?.updateAndScrollToFocusedIndex(-1);
-                }
-
                 const endTime = Date.now();
                 Log.info('[CMD_K_DEBUG] Search query change completed', false, {
                     actionId,
@@ -280,15 +275,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             setAutocompleteQueryValue('');
         },
         [autocompleteSubstitutions, onRouterClose, setTextInputValue, setShouldResetSearchQuery],
-    );
-
-    const setTextAndUpdateSelection = useCallback(
-        (text: string) => {
-            setTextInputValue(text);
-            shouldScrollRef.current = true;
-            setSelection({start: text.length, end: text.length});
-        },
-        [setSelection, setTextInputValue],
     );
 
     const onListItemPress = useCallback(
@@ -363,31 +349,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                         });
                     } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION && textInputValue) {
                         const fieldKey = item.mapKey?.includes(':') ? item.mapKey.split(':').at(0) : item.mapKey;
-                        const isNameField = fieldKey && CONTINUATION_DETECTION_SEARCH_FILTER_KEYS.includes(fieldKey as SearchFilterKey);
-
-                        let trimmedUserSearchQuery;
-                        if (isNameField && fieldKey) {
-                            const fieldPattern = `${fieldKey}:`;
-                            const keyIndex = textInputValue.toLowerCase().lastIndexOf(fieldPattern.toLowerCase());
-
-                            if (keyIndex !== -1) {
-                                const afterFieldKey = textInputValue.substring(keyIndex + fieldPattern.length);
-                                const lastCommaIndex = afterFieldKey.lastIndexOf(',');
-
-                                if (lastCommaIndex !== -1) {
-                                    trimmedUserSearchQuery = textInputValue.substring(0, keyIndex + fieldPattern.length + lastCommaIndex + 1);
-                                } else {
-                                    trimmedUserSearchQuery = textInputValue.substring(0, keyIndex + fieldPattern.length);
-                                }
-                            } else {
-                                trimmedUserSearchQuery = getQueryWithoutAutocompletedPart(textInputValue);
-                            }
-                        } else {
-                            const keyIndex = fieldKey ? textInputValue.toLowerCase().lastIndexOf(`${fieldKey}:`) : -1;
-                            trimmedUserSearchQuery =
-                                keyIndex !== -1 && fieldKey ? textInputValue.substring(0, keyIndex + fieldKey.length + 1) : getQueryWithoutAutocompletedPart(textInputValue);
-                        }
-
+                        const trimmedUserSearchQuery = getTrimmedUserSearchQueryPreservingComma(textInputValue, fieldKey);
                         const newSearchQuery = `${trimmedUserSearchQuery}${sanitizeSearchValue(item.searchQuery)}\u00A0`;
                         onSearchQueryChange(newSearchQuery, true);
                         setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
@@ -453,18 +415,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
         [autocompleteSubstitutions, onRouterClose, onSearchQueryChange, policies, reports, submitSearch, textInputValue],
     );
 
-    const updateAutocompleteSubstitutions = useCallback(
-        (item: SearchQueryItem) => {
-            if (!item.autocompleteID || !item.mapKey) {
-                return;
-            }
-
-            const substitutions = {...autocompleteSubstitutions, [item.mapKey]: item.autocompleteID};
-            setAutocompleteSubstitutions(substitutions);
-        },
-        [autocompleteSubstitutions],
-    );
-
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => {
         onRouterClose();
     });
@@ -491,7 +441,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     isFullWidth={shouldUseNarrowLayout}
                     onSearchQueryChange={onSearchQueryChange}
                     onSubmit={() => {
-                        const focusedOption = listRef.current?.getFocusedOption();
+                        const focusedOption = listRef.current?.getFocusedOption?.();
 
                         if (!focusedOption) {
                             submitSearch(textInputValue);
@@ -501,7 +451,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                         onListItemPress(focusedOption);
                     }}
                     caretHidden={shouldHideInputCaret}
-                    autocompleteListRef={listRef}
                     shouldShowOfflineMessage
                     wrapperStyle={{...styles.border, ...styles.alignItemsCenter}}
                     wrapperFocusedStyle={styles.borderColorFocus}
@@ -519,15 +468,13 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     searchQueryItem={searchQueryItem}
                     getAdditionalSections={getAdditionalSections}
                     onListItemPress={onListItemPress}
-                    setTextQuery={setTextAndUpdateSelection}
-                    updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
                     onHighlightFirstItem={updateAndScrollToFocusedIndex}
                     ref={listRef}
-                    textInputRef={textInputRef}
                     personalDetails={personalDetails}
                     reports={reports}
                     allFeeds={allFeeds}
-                    allCards={nonPersonalAndWorkspaceCards}
+                    allCards={personalAndWorkspaceCards}
+                    textInputRef={textInputRef}
                 />
             )}
             {!shouldShowList && (

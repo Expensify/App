@@ -10,7 +10,7 @@ import RenderHTML from '@components/RenderHTML';
 import Table from '@components/Table';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useCardFeeds from '@hooks/useCardFeeds';
-import useCurrencyList from '@hooks/useCurrencyList';
+import {useCurrencyListState} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -50,7 +50,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
 
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const {currencyList} = useCurrencyList();
+    const {currencyList} = useCurrencyListState();
     const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['Gear']);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);

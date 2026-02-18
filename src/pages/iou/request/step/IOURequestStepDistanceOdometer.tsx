@@ -1,4 +1,3 @@
-import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -16,39 +15,30 @@ import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
+import useReportAttributes from '@hooks/useReportAttributes';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSelfDMReport from '@hooks/useSelfDMReport';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {
-    createDistanceRequest,
-    getMoneyRequestParticipantsFromReport,
-    setCustomUnitRateID,
-    setMoneyRequestDistance,
-    setMoneyRequestMerchant,
-    setMoneyRequestOdometerReading,
-    setMoneyRequestParticipantsFromReport,
-    setMoneyRequestPendingFields,
-    trackExpense,
-    updateMoneyRequestDistance,
-} from '@libs/actions/IOU';
-import {setTransactionReport} from '@libs/actions/Transaction';
+import {setMoneyRequestDistance, setMoneyRequestOdometerReading, updateMoneyRequestDistance} from '@libs/actions/IOU';
+import {handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyRequest';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {navigateToParticipantPage, shouldUseTransactionDraft} from '@libs/IOUUtils';
+import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
+import {isArchivedReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
+import {getRateID} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {OdometerImageType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -103,7 +93,7 @@ function IOURequestStepDistanceOdometer({
     const isArchived = isArchivedReport(reportNameValuePairs);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
+    const reportAttributesDerived = useReportAttributes();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
@@ -117,6 +107,8 @@ function IOURequestStepDistanceOdometer({
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`, {canBeMissing: true});
     const personalPolicy = usePersonalPolicy();
     const defaultExpensePolicy = useDefaultExpensePolicy();
+    const selfDMReport = useSelfDMReport();
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`, {canBeMissing: true});
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
 
@@ -130,6 +122,7 @@ function IOURequestStepDistanceOdometer({
     const [shouldEnableDiscardConfirmation, setShouldEnableDiscardConfirmation] = useState(!isEditingConfirmation && !isEditing);
 
     const shouldUseDefaultExpensePolicy = useMemo(() => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy), [iouType, defaultExpensePolicy]);
+    const customUnitRateID = getRateID(transaction);
 
     const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
 
@@ -331,20 +324,6 @@ function IOURequestStepDistanceOdometer({
         [reportID, transactionID, action, iouType],
     );
 
-    // Navigate to confirmation page helper - following Manual tab pattern
-    const navigateToConfirmationPage = () => {
-        if (!transactionID || !reportID) {
-            return;
-        }
-        switch (iouType) {
-            case CONST.IOU.TYPE.REQUEST:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, backToReport));
-                break;
-            default:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToReport));
-        }
-    };
-
     const navigateBack = () => {
         if (isEditingConfirmation) {
             Navigation.goBack(confirmationRoute);
@@ -407,133 +386,45 @@ function IOURequestStepDistanceOdometer({
             return;
         }
 
-        // If a reportID exists in the report object, use it to set participants and navigate to confirmation
-        // Following Manual tab pattern
-        if (report?.reportID && !isArchived && iouType !== CONST.IOU.TYPE.CREATE) {
-            const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
-            const derivedReports = (reportAttributesDerived as ReportAttributesDerivedValue | undefined)?.reports;
-            const participants = selectedParticipants.map((participant) => {
-                const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                return participantAccountID
-                    ? getParticipantsOption(participant, personalDetails)
-                    : getReportOption(participant, reportNameValuePairs?.private_isArchived, policy, currentUserPersonalDetails.accountID, personalDetails, derivedReports);
-            });
-
-            if (shouldSkipConfirmation) {
-                setShouldEnableDiscardConfirmation(false);
-                setMoneyRequestPendingFields(transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
-                setMoneyRequestMerchant(transactionID, translate('iou.fieldPending'), false);
-
-                const participant = participants.at(0);
-                const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID({
-                    reportID: report.reportID,
-                    isPolicyExpenseChat: !!participant?.isPolicyExpenseChat,
-                    policy,
-                    lastSelectedDistanceRates,
-                });
-
-                if (iouType === CONST.IOU.TYPE.TRACK && participant) {
-                    trackExpense({
-                        report,
-                        isDraftPolicy: false,
-                        participantParams: {
-                            payeeEmail: currentUserEmailParam,
-                            payeeAccountID: currentUserAccountIDParam,
-                            participant,
-                        },
-                        policyParams: {
-                            policy,
-                        },
-                        transactionParams: {
-                            amount: 0,
-                            distance: calculatedDistance,
-                            currency: transaction?.currency ?? 'USD',
-                            created: transaction?.created ?? '',
-                            merchant: translate('iou.fieldPending'),
-                            receipt: {},
-                            billable: false,
-                            customUnitRateID,
-                            attendees: transaction?.comment?.attendees,
-                            odometerStart: start,
-                            odometerEnd: end,
-                        },
-                        isASAPSubmitBetaEnabled: false,
-                        currentUserAccountIDParam,
-                        currentUserEmailParam,
-                        introSelected,
-                        activePolicyID,
-                        quickAction,
-                        recentWaypoints,
-                        betas,
-                    });
-                    return;
-                }
-
-                createDistanceRequest({
-                    report,
-                    participants,
-                    currentUserLogin: currentUserEmailParam,
-                    currentUserAccountID: currentUserAccountIDParam,
-                    iouType,
-                    existingTransaction: transaction,
-                    transactionParams: {
-                        amount: 0,
-                        distance: calculatedDistance,
-                        comment: '',
-                        created: transaction?.created ?? '',
-                        currency: transaction?.currency ?? 'USD',
-                        merchant: translate('iou.fieldPending'),
-                        billable: !!policy?.defaultBillable,
-                        customUnitRateID,
-                        splitShares: transaction?.splitShares,
-                        attendees: transaction?.comment?.attendees,
-                        odometerStart: start,
-                        odometerEnd: end,
-                    },
-                    backToReport,
-                    isASAPSubmitBetaEnabled: false,
-                    transactionViolations,
-                    quickAction,
-                    policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                    recentWaypoints,
-                    betas,
-                });
-                return;
-            }
-
-            setMoneyRequestParticipantsFromReport(transactionID, report, currentUserPersonalDetails.accountID).then(() => {
-                navigateToConfirmationPage();
-            });
-            return;
+        if (shouldSkipConfirmation) {
+            setShouldEnableDiscardConfirmation(false);
         }
 
-        // If there was no reportID, then that means the user started this flow from the global menu
-        // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
-        if (shouldUseDefaultExpensePolicy) {
-            const activePolicyExpenseChat = getPolicyExpenseChat(currentUserAccountIDParam, defaultExpensePolicy?.id);
-            const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
-            const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
-            const rateID = DistanceRequestUtils.getCustomUnitRateID({
-                reportID: transactionReportID,
-                isPolicyExpenseChat: true,
-                policy: defaultExpensePolicy,
-                lastSelectedDistanceRates,
-            });
-            setTransactionReport(transactionID, {reportID: transactionReportID}, true);
-            setCustomUnitRateID(transactionID, rateID, transaction, policy);
-            setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat, currentUserPersonalDetails.accountID).then(() => {
-                Navigation.navigate(
-                    ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
-                        CONST.IOU.ACTION.CREATE,
-                        iouType === CONST.IOU.TYPE.CREATE ? CONST.IOU.TYPE.SUBMIT : iouType,
-                        transactionID,
-                        activePolicyExpenseChat?.reportID,
-                    ),
-                );
-            });
-        } else if (transactionID && reportID) {
-            navigateToParticipantPage(iouType, transactionID, reportID);
-        }
+        handleMoneyRequestStepDistanceNavigation({
+            iouType,
+            report,
+            policy,
+            transaction,
+            reportID,
+            transactionID,
+            reportAttributesDerived,
+            personalDetails,
+            customUnitRateID,
+            currentUserLogin: currentUserEmailParam,
+            currentUserAccountID: currentUserAccountIDParam,
+            backToReport,
+            shouldSkipConfirmation,
+            defaultExpensePolicy,
+            isArchivedExpenseReport: isArchived,
+            isAutoReporting: !!personalPolicy?.autoReporting,
+            isASAPSubmitBetaEnabled: false,
+            transactionViolations,
+            lastSelectedDistanceRates,
+            translate,
+            quickAction,
+            policyRecentlyUsedCurrencies,
+            introSelected,
+            activePolicyID,
+            privateIsArchived: reportNameValuePairs?.private_isArchived,
+            selfDMReport,
+            policyForMovingExpenses,
+            odometerStart: start,
+            odometerEnd: end,
+            odometerDistance: calculatedDistance,
+            betas,
+            unit,
+            personalOutputCurrency: personalPolicy?.outputCurrency,
+        });
     };
 
     // Handle form submission with validation
@@ -575,7 +466,7 @@ function IOURequestStepDistanceOdometer({
             <View style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween, styles.ph5, styles.pt5, styles.mb5]}>
                 <View>
                     {/* Start Reading */}
-                    <View style={[styles.mb6, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                    <View style={[styles.mb6, styles.flexRow, !isEditing && [styles.alignItemsCenter, styles.gap3]]}>
                         <View style={[styles.flex1]}>
                             <TextInput
                                 key={`start-${inputKey}`}
@@ -588,40 +479,42 @@ function IOURequestStepDistanceOdometer({
                                 inputMode={CONST.INPUT_MODE.DECIMAL}
                             />
                         </View>
-                        <PressableWithFeedback
-                            accessible={false}
-                            accessibilityRole="button"
-                            sentryLabel={CONST.SENTRY_LABEL.ODOMETER_EXPENSE.CAPTURE_IMAGE_START}
-                            onPress={() => {
-                                if (odometerStartImage) {
-                                    handleViewOdometerImage(CONST.IOU.ODOMETER_IMAGE_TYPE.START);
-                                } else {
-                                    handleCaptureImage(CONST.IOU.ODOMETER_IMAGE_TYPE.START);
-                                }
-                            }}
-                            style={[
-                                StyleUtils.getWidthAndHeightStyle(variables.inputHeight, variables.inputHeight),
-                                StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
-                                styles.overflowHidden,
-                                StyleUtils.getBackgroundColorStyle(theme.border),
-                            ]}
-                        >
-                            <ReceiptImage
-                                source={startImageSource ?? ''}
-                                shouldUseThumbnailImage
-                                thumbnailContainerStyles={styles.bgTransparent}
-                                isAuthTokenRequired
-                                fallbackIcon={GalleryPlus}
-                                fallbackIconSize={20}
-                                fallbackIconColor={theme.icon}
-                                iconSize="x-small"
-                                loadingIconSize="small"
-                                shouldUseInitialObjectPosition
-                            />
-                        </PressableWithFeedback>
+                        {!isEditing && (
+                            <PressableWithFeedback
+                                accessibilityRole="button"
+                                accessibilityLabel={translate('distance.odometer.startTitle')}
+                                sentryLabel={CONST.SENTRY_LABEL.ODOMETER_EXPENSE.CAPTURE_IMAGE_START}
+                                onPress={() => {
+                                    if (odometerStartImage) {
+                                        handleViewOdometerImage(CONST.IOU.ODOMETER_IMAGE_TYPE.START);
+                                    } else {
+                                        handleCaptureImage(CONST.IOU.ODOMETER_IMAGE_TYPE.START);
+                                    }
+                                }}
+                                style={[
+                                    StyleUtils.getWidthAndHeightStyle(variables.inputHeight, variables.inputHeight),
+                                    StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
+                                    styles.overflowHidden,
+                                    StyleUtils.getBackgroundColorStyle(theme.border),
+                                ]}
+                            >
+                                <ReceiptImage
+                                    source={startImageSource ?? ''}
+                                    shouldUseThumbnailImage
+                                    thumbnailContainerStyles={styles.bgTransparent}
+                                    isAuthTokenRequired
+                                    fallbackIcon={GalleryPlus}
+                                    fallbackIconSize={variables.iconSizeNormal}
+                                    fallbackIconColor={theme.icon}
+                                    iconSize="x-small"
+                                    loadingIconSize="small"
+                                    shouldUseInitialObjectPosition
+                                />
+                            </PressableWithFeedback>
+                        )}
                     </View>
                     {/* End Reading */}
-                    <View style={[styles.mb6, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                    <View style={[styles.mb6, styles.flexRow, !isEditing && [styles.alignItemsCenter, styles.gap3]]}>
                         <View style={[styles.flex1]}>
                             <TextInput
                                 key={`end-${inputKey}`}
@@ -634,37 +527,39 @@ function IOURequestStepDistanceOdometer({
                                 inputMode={CONST.INPUT_MODE.DECIMAL}
                             />
                         </View>
-                        <PressableWithFeedback
-                            accessible={false}
-                            accessibilityRole="button"
-                            sentryLabel={CONST.SENTRY_LABEL.ODOMETER_EXPENSE.CAPTURE_IMAGE_END}
-                            onPress={() => {
-                                if (odometerEndImage) {
-                                    handleViewOdometerImage(CONST.IOU.ODOMETER_IMAGE_TYPE.END);
-                                } else {
-                                    handleCaptureImage(CONST.IOU.ODOMETER_IMAGE_TYPE.END);
-                                }
-                            }}
-                            style={[
-                                StyleUtils.getWidthAndHeightStyle(variables.inputHeight, variables.inputHeight),
-                                StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
-                                styles.overflowHidden,
-                                StyleUtils.getBackgroundColorStyle(theme.border),
-                            ]}
-                        >
-                            <ReceiptImage
-                                source={endImageSource ?? ''}
-                                shouldUseThumbnailImage
-                                thumbnailContainerStyles={styles.bgTransparent}
-                                isAuthTokenRequired
-                                fallbackIcon={GalleryPlus}
-                                fallbackIconSize={20}
-                                fallbackIconColor={theme.icon}
-                                iconSize="x-small"
-                                loadingIconSize="small"
-                                shouldUseInitialObjectPosition
-                            />
-                        </PressableWithFeedback>
+                        {!isEditing && (
+                            <PressableWithFeedback
+                                accessibilityRole="button"
+                                accessibilityLabel={translate('distance.odometer.endTitle')}
+                                sentryLabel={CONST.SENTRY_LABEL.ODOMETER_EXPENSE.CAPTURE_IMAGE_END}
+                                onPress={() => {
+                                    if (odometerEndImage) {
+                                        handleViewOdometerImage(CONST.IOU.ODOMETER_IMAGE_TYPE.END);
+                                    } else {
+                                        handleCaptureImage(CONST.IOU.ODOMETER_IMAGE_TYPE.END);
+                                    }
+                                }}
+                                style={[
+                                    StyleUtils.getWidthAndHeightStyle(variables.inputHeight, variables.inputHeight),
+                                    StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
+                                    styles.overflowHidden,
+                                    StyleUtils.getBackgroundColorStyle(theme.border),
+                                ]}
+                            >
+                                <ReceiptImage
+                                    source={endImageSource ?? ''}
+                                    shouldUseThumbnailImage
+                                    thumbnailContainerStyles={styles.bgTransparent}
+                                    isAuthTokenRequired
+                                    fallbackIcon={GalleryPlus}
+                                    fallbackIconSize={variables.iconSizeNormal}
+                                    fallbackIconColor={theme.icon}
+                                    iconSize="x-small"
+                                    loadingIconSize="small"
+                                    shouldUseInitialObjectPosition
+                                />
+                            </PressableWithFeedback>
+                        )}
                     </View>
 
                     {/* Total Distance Display - always shown, updated live */}
