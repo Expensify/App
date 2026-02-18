@@ -65,7 +65,19 @@ const createTodosReportsAndTransactions = ({
             reportsToApprove.push(report);
         }
         if (isPrimaryPayAction(report, currentUserAccountID, login, bankAccountList, policy, reportNameValuePair)) {
-            reportsToPay.push(report);
+            const isPaidGroupPolicyReport = policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE;
+            if (isPaidGroupPolicyReport) {
+                const hasVBBA = !!policy?.achAccount?.bankAccountID && policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
+                const bankAccountID = policy?.achAccount?.bankAccountID;
+                const bankAccount = bankAccountID ? bankAccountList?.[bankAccountID] : null;
+                const hasAccessToBankAccount = login && bankAccount?.accountData?.sharees ? bankAccount.accountData.sharees.includes(login) : false;
+
+                if (hasVBBA || hasAccessToBankAccount) {
+                    reportsToPay.push(report);
+                }
+            } else {
+                reportsToPay.push(report);
+            }
         }
         if (isExportAction(report, login, policy, reportActions)) {
             reportsToExport.push(report);

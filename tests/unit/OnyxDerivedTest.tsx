@@ -750,12 +750,23 @@ describe('OnyxDerived', () => {
                     }),
                 ];
 
+                const MOCK_BANK_ACCOUNT_ID = 1;
+
                 // Create main policy (for submit, approve, pay reports)
                 const policy = createMockPolicy(POLICY_ID, {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
                     role: CONST.POLICY.ROLE.ADMIN,
                     ownerAccountID: CURRENT_USER_ACCOUNT_ID,
                     reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    achAccount: {
+                        bankAccountID: MOCK_BANK_ACCOUNT_ID,
+                        accountNumber: '1234567890',
+                        routingNumber: '1234567890',
+                        addressName: 'Test Address',
+                        bankName: 'Test Bank',
+                        reimburser: CURRENT_USER_EMAIL,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                    },
                 });
 
                 // Create policy with accounting connection (for export report)
@@ -808,6 +819,11 @@ describe('OnyxDerived', () => {
                     [ONYXKEYS.SESSION]: {
                         email: CURRENT_USER_EMAIL,
                         accountID: CURRENT_USER_ACCOUNT_ID,
+                    },
+                    [ONYXKEYS.BANK_ACCOUNT_LIST]: {
+                        [MOCK_BANK_ACCOUNT_ID]: {
+                            accountData: {sharees: [CURRENT_USER_EMAIL]},
+                        },
                     },
                     [`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`]: policy,
                     [`${ONYXKEYS.COLLECTION.POLICY}${POLICY_WITH_CONNECTION_ID}`]: policyWithConnection,
@@ -943,13 +959,16 @@ describe('OnyxDerived', () => {
             const SECONDARY_LOGIN = '+15555551234'; // Phone number as secondary login
             const PRIMARY_LOGIN = 'primary@example.com'; // Primary email
 
+            const MOCK_BANK_ACCOUNT_ID = 1;
+
             const createMockAchAccount = (reimburserLogin: string): ACHAccount => ({
                 reimburser: reimburserLogin,
-                bankAccountID: 1,
+                bankAccountID: MOCK_BANK_ACCOUNT_ID,
                 accountNumber: '1234567890',
                 routingNumber: '1234567890',
                 addressName: 'Test Address',
                 bankName: 'Test Bank',
+                state: CONST.BANK_ACCOUNT.STATE.OPEN,
             });
 
             const createPayableReport = (): Report =>
@@ -988,6 +1007,11 @@ describe('OnyxDerived', () => {
                             displayName: 'Test User',
                         },
                     },
+                    [ONYXKEYS.BANK_ACCOUNT_LIST]: {
+                        [MOCK_BANK_ACCOUNT_ID]: {
+                            accountData: {sharees: [PRIMARY_LOGIN]},
+                        },
+                    },
                     [`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`]: policy,
                     [`${ONYXKEYS.COLLECTION.REPORT}${payReport.reportID}`]: payReport,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
@@ -1018,6 +1042,11 @@ describe('OnyxDerived', () => {
                         accountID: CURRENT_USER_ACCOUNT_ID,
                     },
                     // No PERSONAL_DETAILS_LIST set - should fall back to session email
+                    [ONYXKEYS.BANK_ACCOUNT_LIST]: {
+                        [MOCK_BANK_ACCOUNT_ID]: {
+                            accountData: {sharees: [CURRENT_USER_EMAIL]},
+                        },
+                    },
                     [`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`]: policy,
                     [`${ONYXKEYS.COLLECTION.REPORT}${payReport.reportID}`]: payReport,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
