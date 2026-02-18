@@ -1,9 +1,4 @@
-import {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from '@components/MultifactorAuthentication/config';
-import type {
-    MultifactorAuthenticationProcessScenarioParameters,
-    MultifactorAuthenticationScenario,
-    MultifactorAuthenticationScenarioConfig,
-} from '@components/MultifactorAuthentication/config/types';
+import type {MultifactorAuthenticationScenarioConfig} from '@components/MultifactorAuthentication/config/types';
 import type {MarqetaAuthTypeName, MultifactorAuthenticationKeyInfo, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/Biometrics/types';
 import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
 import CONST from '@src/CONST';
@@ -13,7 +8,8 @@ import {registerAuthenticationKey} from './index';
 type ProcessResult = {
     success: boolean;
     reason: MultifactorAuthenticationReason;
-    httpCode: number | undefined;
+    message?: string;
+    httpStatusCode?: number;
 
     /** Optional response body containing scenario-specific data (e.g., {pin: number} for PIN reveal) */
     body?: Record<string, unknown>;
@@ -23,11 +19,11 @@ type ProcessResult = {
  * Determines if an HTTP response code indicates success.
  * Checks if the status code is in the 2xx range.
  *
- * @param httpCode - The HTTP status code to check
+ * @param httpStatusCode - The HTTP status code to check
  * @returns True if the code is in the 2xx range, false otherwise
  */
-function isHttpSuccess(httpCode: number | undefined): boolean {
-    return String(httpCode).startsWith('2');
+function isHttpSuccess(httpStatusCode: number | undefined): boolean {
+    return String(httpStatusCode).startsWith('2');
 }
 
 type RegistrationParams = {
@@ -83,7 +79,6 @@ async function processRegistration(params: RegistrationParams): Promise<ProcessR
     if (!params.challenge) {
         return {
             success: false,
-            httpCode: undefined,
             reason: VALUES.REASON.CHALLENGE.CHALLENGE_MISSING,
         };
     }
@@ -93,17 +88,18 @@ async function processRegistration(params: RegistrationParams): Promise<ProcessR
         challenge: params.challenge,
     });
 
-    const {httpCode, reason} = await registerAuthenticationKey({
+    const {httpStatusCode, reason, message} = await registerAuthenticationKey({
         keyInfo,
         authenticationMethod: params.authenticationMethod,
     });
 
-    const success = isHttpSuccess(httpCode);
+    const success = isHttpSuccess(httpStatusCode);
 
     return {
         success,
         reason,
-        httpCode,
+        httpStatusCode,
+        message,
     };
 }
 
@@ -112,39 +108,32 @@ async function processRegistration(params: RegistrationParams): Promise<ProcessR
  * Executes the scenario-specific action with the signed challenge
  * and additional parameters. Returns success status and reason.
  *
- * @async
- * @template T - The type of the multifactor authentication scenario
- * @param scenario - The MFA scenario to process
- * @param params - Scenario parameters including:
- *   - signedChallenge: The signed challenge response from biometric authentication
- *   - authenticationMethod: The biometric method used
- *   - Additional scenario-specific parameters (e.g., transactionID)
+ * @param action - The scenario's action function from the scenario config
+ * @param params - Action parameters including signedChallenge and authenticationMethod
  * @returns Object with success status and reason
  */
-async function processScenario<T extends MultifactorAuthenticationScenario>(
-    scenario: T,
-    params: MultifactorAuthenticationProcessScenarioParameters<T> & {authenticationMethod: MarqetaAuthTypeName},
+async function processScenarioAction(
+    action: MultifactorAuthenticationScenarioConfig['action'],
+    params: Parameters<MultifactorAuthenticationScenarioConfig['action']>[0],
 ): Promise<ProcessResult> {
-    const currentScenario = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario] as MultifactorAuthenticationScenarioConfig;
-
     if (!params.signedChallenge) {
         return {
             success: false,
-            httpCode: undefined,
             reason: VALUES.REASON.GENERIC.SIGNATURE_MISSING,
         };
     }
 
-    const {httpCode, reason, body} = await currentScenario.action(params);
-    const success = isHttpSuccess(httpCode);
+    const {httpStatusCode, reason, message, body} = await action(params);
+    const success = isHttpSuccess(httpStatusCode);
 
     return {
         success,
         reason,
-        httpCode,
+        httpStatusCode,
+        message,
         body,
     };
 }
 
-export {processRegistration, processScenario};
+export {processRegistration, processScenarioAction};
 export type {ProcessResult, RegistrationParams};

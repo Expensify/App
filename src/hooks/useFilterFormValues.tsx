@@ -8,12 +8,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
-import useCurrencyList from './useCurrencyList';
+import {useCurrencyListState} from './useCurrencyList';
 import useOnyx from './useOnyx';
 
 const useFilterFormValues = (queryJSON?: SearchQueryJSON) => {
     const personalDetails = usePersonalDetails();
-    const {currencyList} = useCurrencyList();
+    const {currencyList} = useCurrencyListState();
 
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});

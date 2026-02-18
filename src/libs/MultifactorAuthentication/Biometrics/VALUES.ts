@@ -33,10 +33,7 @@ const REASON = {
         REVOKE_SUCCESSFUL: 'Revoked successfully',
     },
     CHALLENGE: {
-        COULD_NOT_RETRIEVE_A_CHALLENGE: 'Could not retrieve a challenge',
         CHALLENGE_MISSING: 'Challenge is missing',
-        CHALLENGE_ALREADY_SIGNED: 'Challenge is already signed',
-        CHALLENGE_RECEIVED: 'Challenge received successfully',
         CHALLENGE_SIGNED: 'Challenge signed successfully',
     },
     EXPO: {
@@ -49,14 +46,12 @@ const REASON = {
         GENERIC: 'An error occurred',
     },
     GENERIC: {
-        SIGNATURE_INVALID: 'Signature is invalid',
         SIGNATURE_MISSING: 'Signature is missing',
-        NO_ACTION_MADE_YET: 'No action has been made yet',
-        VALIDATE_CODE_MISSING: 'Validate code is missing',
         NO_ELIGIBLE_METHODS: 'No eligible methods available',
         UNSUPPORTED_DEVICE: 'Unsupported device',
         BAD_REQUEST: 'Bad request',
         LOCAL_REGISTRATION_COMPLETE: 'Local registration complete',
+        UNHANDLED_ERROR: 'An unhandled error occurred',
     },
     KEYSTORE: {
         KEY_DELETED: 'Key successfully deleted from SecureStore',

@@ -1,9 +1,11 @@
 import type {ImageContentFit} from 'expo-image';
-import React, {useCallback, useContext, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import {PixelRatio, StyleSheet, View} from 'react-native';
 import {useSharedValue} from 'react-native-reanimated';
-import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+import type {SharedValue} from 'react-native-reanimated';
+import type {AttachmentCarouselPagerStateContextType} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+import {useAttachmentCarouselPagerActions, useAttachmentCarouselPagerState} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import ImageSVG from '@components/ImageSVG';
 import MultiGestureCanvas, {DEFAULT_ZOOM_RANGE} from '@components/MultiGestureCanvas';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -13,6 +15,13 @@ import variables from '@styles/variables';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {Dimensions} from '@src/types/utils/Layout';
 import IconWrapperStyles from './IconWrapperStyles';
+
+type IconCarouselPagerProps = {
+    pagerRef: AttachmentCarouselPagerStateContextType['pagerRef'];
+    isScrollEnabled: SharedValue<boolean>;
+    onTap: () => void;
+    onSwipeDown: () => void;
+};
 
 type IconProps = {
     /** The asset to render. */
@@ -97,14 +106,25 @@ function Icon({
     );
 
     const isScrollingEnabledFallback = useSharedValue(false);
-    const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
-    const {onTap, onSwipeDown, pagerRef, isScrollEnabled} = useMemo(() => {
-        if (attachmentCarouselPagerContext === null) {
-            return {pagerRef: undefined, isScrollEnabled: isScrollingEnabledFallback, onTap: () => {}, onSwipeDown: () => {}};
-        }
+    const state = useAttachmentCarouselPagerState();
+    const actions = useAttachmentCarouselPagerActions();
 
-        return {...attachmentCarouselPagerContext};
-    }, [attachmentCarouselPagerContext, isScrollingEnabledFallback]);
+    const {onTap, onSwipeDown, pagerRef, isScrollEnabled}: IconCarouselPagerProps = useMemo((): IconCarouselPagerProps => {
+        if (state === null || actions === null) {
+            return {
+                pagerRef: undefined,
+                isScrollEnabled: isScrollingEnabledFallback,
+                onTap: () => {},
+                onSwipeDown: () => {},
+            };
+        }
+        return {
+            pagerRef: state.pagerRef,
+            isScrollEnabled: state.isScrollEnabled,
+            onTap: actions.onTap ?? (() => {}),
+            onSwipeDown: actions.onSwipeDown ?? (() => {}),
+        };
+    }, [state, actions, isScrollingEnabledFallback]);
 
     if (!src) {
         return null;

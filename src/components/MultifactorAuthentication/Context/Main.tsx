@@ -2,21 +2,19 @@ import React, {createContext, useCallback, useContext, useEffect, useMemo} from 
 import type {ReactNode} from 'react';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from '@components/MultifactorAuthentication/config';
-import {getOutcomePaths} from '@components/MultifactorAuthentication/config/outcomePaths';
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioParams} from '@components/MultifactorAuthentication/config/types';
 import useNetwork from '@hooks/useNetwork';
 import {requestValidateCodeAction} from '@libs/actions/User';
 import getPlatform from '@libs/getPlatform';
-import type {ChallengeType, MultifactorAuthenticationCallbackInput, MultifactorAuthenticationReason, OutcomePaths} from '@libs/MultifactorAuthentication/Biometrics/types';
+import type {ChallengeType, MultifactorAuthenticationCallbackInput, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/Biometrics/types';
 import Navigation from '@navigation/Navigation';
 import {clearLocalMFAPublicKeyList, requestAuthorizationChallenge, requestRegistrationChallenge} from '@userActions/MultifactorAuthentication';
-import {processRegistration, processScenario} from '@userActions/MultifactorAuthentication/processing';
+import {processRegistration, processScenarioAction} from '@userActions/MultifactorAuthentication/processing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {DeviceBiometrics} from '@src/types/onyx';
-import {useMultifactorAuthenticationState} from './State';
+import {useMultifactorAuthenticationActions, useMultifactorAuthenticationState} from './State';
 import useNativeBiometrics from './useNativeBiometrics';
 import type {AuthorizeResult, RegisterResult} from './useNativeBiometrics';
 
@@ -33,7 +31,7 @@ Onyx.connectWithoutView({
     },
 });
 
-type ExecuteScenarioParams<T extends MultifactorAuthenticationScenario> = MultifactorAuthenticationScenarioParams<T> & Partial<OutcomePaths>;
+type ExecuteScenarioParams<T extends MultifactorAuthenticationScenario> = MultifactorAuthenticationScenarioParams<T>;
 
 type MultifactorAuthenticationContextValue = {
     /** Execute a multifactor authentication scenario */
@@ -67,7 +65,8 @@ function getChallengeType(challenge: unknown): ChallengeType | undefined {
 }
 
 function MultifactorAuthenticationContextProvider({children}: MultifactorAuthenticationContextProviderProps) {
-    const {state, dispatch} = useMultifactorAuthenticationState();
+    const state = useMultifactorAuthenticationState();
+    const {dispatch} = useMultifactorAuthenticationActions();
 
     const biometrics = useNativeBiometrics();
     const {isOffline} = useNetwork();
@@ -87,16 +86,15 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
      */
     const handleCallback = useCallback(
         async (isSuccessful: boolean) => {
-            const {error, scenario, scenarioResponse, outcomePaths} = state;
-            const paths = outcomePaths ?? getOutcomePaths(scenario);
+            const {error, scenario, scenarioResponse} = state;
 
             if (!scenario) {
                 return;
             }
 
-            const scenarioConfig = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario];
+            const scenarioConfig = scenario;
             const callbackInput: MultifactorAuthenticationCallbackInput = {
-                httpCode: scenarioResponse?.httpCode,
+                httpStatusCode: scenarioResponse?.httpStatusCode,
                 message: scenarioResponse?.reason ?? error?.reason,
                 body: scenarioResponse?.body,
             };
@@ -109,7 +107,12 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 return;
             }
 
-            Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME.getRoute(isSuccessful ? paths.successOutcome : paths.failureOutcome), {forceReplace: true});
+            if (isSuccessful) {
+                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME_SUCCESS, {forceReplace: true});
+            } else {
+                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME_FAILURE, {forceReplace: true});
+            }
+
             dispatch({type: 'SET_FLOW_COMPLETE', payload: true});
         },
         [dispatch, state],
@@ -160,7 +163,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
         // 2. Check if device is compatible
         if (!biometrics.doesDeviceSupportBiometrics()) {
-            const {allowedAuthenticationMethods = [] as string[]} = scenario ? MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario] : {};
+            const {allowedAuthenticationMethods = [] as string[]} = scenario;
 
             let reason: MultifactorAuthenticationReason = CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.UNSUPPORTED_DEVICE;
 
@@ -244,6 +247,8 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                         type: 'SET_ERROR',
                         payload: {
                             reason: registrationResponse.reason,
+                            httpStatusCode: registrationResponse.httpStatusCode,
+                            message: registrationResponse.message,
                         },
                     });
                     return;
@@ -290,7 +295,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
             await biometrics.authorize(
                 {
-                    scenario,
                     challenge: authorizationChallenge,
                 },
                 async (result: AuthorizeResult) => {
@@ -314,7 +318,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                     }
 
                     // Call backend with signed challenge
-                    const scenarioAPIResponse = await processScenario(scenario, {
+                    const scenarioAPIResponse = await processScenarioAction(scenario.action, {
                         signedChallenge: result.signedChallenge,
                         authenticationMethod: result.authenticationMethod.marqetaValue,
                         ...payload,
@@ -325,13 +329,23 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                             type: 'SET_ERROR',
                             payload: {
                                 reason: scenarioAPIResponse.reason,
+                                httpStatusCode: scenarioAPIResponse.httpStatusCode,
+                                message: scenarioAPIResponse.message,
                             },
                         });
                         return;
                     }
 
                     // Store the scenario response for callback invocation at outcome navigation
-                    dispatch({type: 'SET_SCENARIO_RESPONSE', payload: scenarioAPIResponse});
+                    dispatch({
+                        type: 'SET_SCENARIO_RESPONSE',
+                        payload: {
+                            httpStatusCode: scenarioAPIResponse.httpStatusCode,
+                            reason: scenarioAPIResponse.reason,
+                            message: scenarioAPIResponse.message,
+                            body: scenarioAPIResponse.body,
+                        },
+                    });
                     dispatch({type: 'SET_AUTHENTICATION_METHOD', payload: result.authenticationMethod});
                     dispatch({type: 'SET_AUTHORIZATION_COMPLETE', payload: true});
                 },
@@ -359,7 +373,15 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             return;
         }
 
-        process();
+        process().catch((error: unknown) => {
+            dispatch({
+                type: 'SET_ERROR',
+                payload: {
+                    reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.UNHANDLED_ERROR,
+                    message: error instanceof Error ? error.message : String(error),
+                },
+            });
+        });
         // We intentionally omit `process` and `state` from dependencies.
         // Including them would cause infinite re-renders since `process` is recreated on every state change.
         // Instead, we list only the specific state fields that should trigger a re-run of the MFA flow.
@@ -395,26 +417,16 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
      *
      * @template T - The type of the multifactor authentication scenario
      * @param scenario - The MFA scenario to process
-     * @param {ExecuteScenarioParams<T>} [params] - Optional parameters including:
-     *   - successOutcome: Navigation route for successful authentication (overrides default)
-     *   - failureOutcome: Navigation route for failed authentication (overrides default)
-     *   - Additional payload data to pass through the authentication flow
+     * @param {ExecuteScenarioParams<T>} [params] - Optional parameters for the scenario
      * @returns {Promise<void>} A promise that resolves when the scenario has been initialized
      */
     const executeScenario = useCallback(
         async <T extends MultifactorAuthenticationScenario>(scenario: T, params?: ExecuteScenarioParams<T>): Promise<void> => {
-            const {successOutcome, failureOutcome, ...payload} = params ?? {};
-            const paths = getOutcomePaths(scenario);
-
             dispatch({
                 type: 'INIT',
                 payload: {
                     scenario,
-                    payload: Object.keys(payload).length > 0 ? payload : undefined,
-                    outcomePaths: {
-                        successOutcome: successOutcome ?? paths.successOutcome,
-                        failureOutcome: failureOutcome ?? paths.failureOutcome,
-                    },
+                    payload: params && Object.keys(params).length > 0 ? params : undefined,
                 },
             });
         },
@@ -426,14 +438,21 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
      * Sets an error state which triggers navigation to the failure outcome.
      */
     const cancel = useCallback(() => {
-        // Set error to trigger failure navigation
+        // When the app is reopened (e.g. page refresh on web), the MFA context resets to its default state
+        // and scenario becomes undefined. Without a scenario, the state machine in process() won't run,
+        // so dispatching SET_ERROR would have no effect. In this case we dismiss the modal directly.
+        if (!state.scenario) {
+            Navigation.dismissModal();
+            return;
+        }
+
         dispatch({
             type: 'SET_ERROR',
             payload: {
                 reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.EXPO.CANCELED,
             },
         });
-    }, [dispatch]);
+    }, [dispatch, state.scenario]);
 
     const contextValue: MultifactorAuthenticationContextValue = useMemo(
         () => ({
