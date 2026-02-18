@@ -96,6 +96,16 @@ const SCREENS = {
         TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP',
         TRANSACTION_HOLD_REASON_SEARCH: 'Search_Transaction_Hold_Reason_Search',
         SEARCH_REJECT_REASON_RHP: 'Search_Reject_Reason_RHP',
+        EDIT_MULTIPLE_TRANSACTIONS_RHP: 'Search_Edit_Multiple_Transactions_RHP',
+        EDIT_MULTIPLE_AMOUNT_RHP: 'Search_Edit_Multiple_Amount_RHP',
+        EDIT_MULTIPLE_DESCRIPTION_RHP: 'Search_Edit_Multiple_Description_RHP',
+        EDIT_MULTIPLE_MERCHANT_RHP: 'Search_Edit_Multiple_Merchant_RHP',
+        EDIT_MULTIPLE_DATE_RHP: 'Search_Edit_Multiple_Date_RHP',
+        EDIT_MULTIPLE_CATEGORY_RHP: 'Search_Edit_Multiple_Category_RHP',
+        EDIT_MULTIPLE_TAG_RHP: 'Search_Edit_Multiple_Tag_RHP',
+        EDIT_MULTIPLE_BILLABLE_RHP: 'Search_Edit_Multiple_Billable_RHP',
+        EDIT_MULTIPLE_REIMBURSABLE_RHP: 'Search_Edit_Multiple_Reimbursable_RHP',
+        EDIT_MULTIPLE_TAX_RHP: 'Search_Edit_Multiple_Tax_RHP',
         TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP: 'Search_Transactions_Change_Report_Search',
     },
     SETTINGS: {
@@ -117,8 +127,6 @@ const SCREENS = {
         REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
         REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE: 'Settings_ReportCardLostOrDamaged_ConfirmMagicCode',
         TROUBLESHOOT: 'Settings_Troubleshoot',
-        CONSOLE: 'Settings_Console',
-        SHARE_LOG: 'Share_Log',
         DYNAMIC_VERIFY_ACCOUNT: 'Dynamic_Verify_Account',
 
         PROFILE: {
@@ -317,7 +325,6 @@ const SCREENS = {
         MULTIFACTOR_AUTHENTICATION: 'MultifactorAuthentication',
     },
     REPORT_CARD_ACTIVATE: 'Report_Card_Activate_Root',
-    PUBLIC_CONSOLE_DEBUG: 'Console_Debug',
     SAML_SIGN_IN: 'SAMLSignIn',
     WORKSPACE_JOIN_USER: 'WorkspaceJoinUser',
     REQUIRE_TWO_FACTOR_AUTH: 'RequireTwoFactorAuth',

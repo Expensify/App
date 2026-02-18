@@ -1449,7 +1449,7 @@ function updateSplitTransactions({
         });
         const isLastTransactionInReport = Object.values(allTransactionsList ?? {}).filter((itemTransaction) => itemTransaction?.reportID === expenseReportID).length === 1;
         if (isLastTransactionInReport) {
-            optimisticData.push({
+            onyxData.optimisticData?.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${transactionData.reportID}`,
                 value: {
@@ -1459,12 +1459,12 @@ function updateSplitTransactions({
                     },
                 },
             });
-            successData.push({
+            onyxData.successData?.push({
                 onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${transactionData.reportID}`,
                 value: null,
             });
-            failureData.push({
+            onyxData.failureData?.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${transactionData.reportID}`,
                 value: {
@@ -1473,7 +1473,7 @@ function updateSplitTransactions({
                 },
             });
             if (expenseReport?.parentReportID && expenseReport?.parentReportActionID) {
-                optimisticData.push({
+                onyxData.optimisticData?.push({
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.parentReportID}`,
                     value: {
@@ -1482,7 +1482,7 @@ function updateSplitTransactions({
                         },
                     },
                 });
-                successData.push({
+                onyxData.successData?.push({
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.parentReportID}`,
                     value: {
@@ -1491,7 +1491,7 @@ function updateSplitTransactions({
                         },
                     },
                 });
-                failureData.push({
+                onyxData.failureData?.push({
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.parentReportID}`,
                     value: {
