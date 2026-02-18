@@ -1090,5 +1090,124 @@ describe('OnyxDerived', () => {
                 expect(todos?.reportsToPay).toHaveLength(0);
             });
         });
+
+        describe('VBBA gating for pay todos on paid group policies', () => {
+            const MOCK_BANK_ACCOUNT_ID = 100;
+
+            const createPayableReport = (reportID: string): Report =>
+                createMockReport(reportID, {
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                    ownerAccountID: OTHER_USER_ACCOUNT_ID,
+                    managerID: CURRENT_USER_ACCOUNT_ID,
+                    total: -100,
+                    isWaitingOnBankAccount: false,
+                });
+
+            beforeEach(async () => {
+                await Onyx.clear();
+            });
+
+            it('excludes pay todo when approver has no VBBA and no bank account sharees access', async () => {
+                // Policy with no achAccount (no VBBA)
+                const policy = createMockPolicy(POLICY_ID, {
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                });
+
+                const payReport = createPayableReport('pay_no_vbba');
+                const transaction = createMockTransaction('trans_pay_no_vbba', 'pay_no_vbba');
+
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {
+                        email: CURRENT_USER_EMAIL,
+                        accountID: CURRENT_USER_ACCOUNT_ID,
+                    },
+                    [`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`]: policy,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${payReport.reportID}`]: payReport,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+                } as OnyxMultiSetInput);
+
+                await waitForBatchedUpdates();
+
+                const todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
+                expect(todos?.reportsToPay).toHaveLength(0);
+            });
+
+            it('includes pay todo when policy has a verified business bank account (VBBA)', async () => {
+                const policy = createMockPolicy(POLICY_ID, {
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    achAccount: {
+                        bankAccountID: MOCK_BANK_ACCOUNT_ID,
+                        accountNumber: '1234567890',
+                        routingNumber: '1234567890',
+                        addressName: 'Test Address',
+                        bankName: 'Test Bank',
+                        reimburser: CURRENT_USER_EMAIL,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                    },
+                });
+
+                const payReport = createPayableReport('pay_with_vbba');
+                const transaction = createMockTransaction('trans_pay_vbba', 'pay_with_vbba');
+
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {
+                        email: CURRENT_USER_EMAIL,
+                        accountID: CURRENT_USER_ACCOUNT_ID,
+                    },
+                    [`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`]: policy,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${payReport.reportID}`]: payReport,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+                } as OnyxMultiSetInput);
+
+                await waitForBatchedUpdates();
+
+                const todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
+                expect(todos?.reportsToPay).toHaveLength(1);
+                expect(todos?.reportsToPay.at(0)?.reportID).toBe('pay_with_vbba');
+            });
+
+            it('includes pay todo when user has bank account sharees access even without VBBA state', async () => {
+                // achAccount exists but state is not OPEN (no VBBA), however user has sharees access
+                const policy = createMockPolicy(POLICY_ID, {
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    achAccount: {
+                        bankAccountID: MOCK_BANK_ACCOUNT_ID,
+                        accountNumber: '1234567890',
+                        routingNumber: '1234567890',
+                        addressName: 'Test Address',
+                        bankName: 'Test Bank',
+                        reimburser: CURRENT_USER_EMAIL,
+                    },
+                });
+
+                const payReport = createPayableReport('pay_sharees');
+                const transaction = createMockTransaction('trans_pay_sharees', 'pay_sharees');
+
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {
+                        email: CURRENT_USER_EMAIL,
+                        accountID: CURRENT_USER_ACCOUNT_ID,
+                    },
+                    [ONYXKEYS.BANK_ACCOUNT_LIST]: {
+                        [MOCK_BANK_ACCOUNT_ID]: {
+                            accountData: {sharees: [CURRENT_USER_EMAIL]},
+                        },
+                    },
+                    [`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`]: policy,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${payReport.reportID}`]: payReport,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+                } as OnyxMultiSetInput);
+
+                await waitForBatchedUpdates();
+
+                const todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
+                expect(todos?.reportsToPay).toHaveLength(1);
+                expect(todos?.reportsToPay.at(0)?.reportID).toBe('pay_sharees');
+            });
+        });
     });
 });
