@@ -301,7 +301,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                 >
                     <View style={styles.flex1}>
                         <PressableWithFeedback
-                            accessibilityRole={CONST.ROLE.BUTTON}
+                            role={CONST.ROLE.LINK}
                             accessibilityLabel={translate('common.home')}
                             accessible
                             testID="ExpensifyLogoButton"

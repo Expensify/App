@@ -225,7 +225,7 @@ function WorkspacesListRow({
                 <PressableWithoutFeedback
                     accessible
                     accessibilityLabel={accessibilityLabel}
-                    role={CONST.ROLE.BUTTON}
+                    role={CONST.ROLE.LINK}
                     onPress={onPress}
                     style={[isWide ? styles.flexRow : styles.flexColumn, styles.flex1, isWide && styles.gap5]}
                     sentryLabel="WorkspacesListRow"
