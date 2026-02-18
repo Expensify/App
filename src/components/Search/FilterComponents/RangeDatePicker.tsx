@@ -1,23 +1,13 @@
 import React from 'react';
 import {View} from 'react-native';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
-import type {DayProps} from '@components/DatePicker/CalendarPicker/Day';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-
-/** Day component with green highlight for selected date */
-function GreenSelectedDay({disabled, selected, children}: DayProps) {
-    const themeStyles = useThemeStyles();
-    return (
-        <View style={[themeStyles.calendarDayContainer, selected ? themeStyles.buttonSuccess : {}]}>
-            <Text style={[disabled ? themeStyles.buttonOpacityDisabled : {}, selected ? themeStyles.themeTextColor : {}]}>{children}</Text>
-        </View>
-    );
-}
+import SearchDatePickerDay from './SearchDatePickerDay';
 
 type RangeDatePickerProps = {
     /** The "From" date value */
@@ -59,7 +49,7 @@ function RangeDatePicker({fromValue, toValue, onFromSelected, onToSelected, shou
                             onSelected={onFromSelected}
                             minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                             maxDate={fromMaxDate}
-                            DayComponent={GreenSelectedDay}
+                            DayComponent={SearchDatePickerDay}
                             headerContainerStyle={styles.ph4}
                         />
                     </View>
@@ -73,7 +63,7 @@ function RangeDatePicker({fromValue, toValue, onFromSelected, onToSelected, shou
                             onSelected={onToSelected}
                             minDate={toMinDate}
                             maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                            DayComponent={GreenSelectedDay}
+                            DayComponent={SearchDatePickerDay}
                             headerContainerStyle={styles.ph4}
                         />
                     </View>

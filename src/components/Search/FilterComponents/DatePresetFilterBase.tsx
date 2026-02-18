@@ -14,6 +14,7 @@ import {getRangeBoundariesFromFormValue, getRangeQueryValue, isSearchDatePreset}
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import RangeDatePicker from './RangeDatePicker';
+import SearchDatePickerDay from './SearchDatePickerDay';
 
 type SearchDateValues = Record<SearchDateModifier, string | undefined>;
 
@@ -372,6 +373,7 @@ function DatePresetFilterBase({
             onSelected={setEphemeralDateValue}
             minDate={CONST.CALENDAR_PICKER.MIN_DATE}
             maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
+            DayComponent={SearchDatePickerDay}
         />
     );
 }
