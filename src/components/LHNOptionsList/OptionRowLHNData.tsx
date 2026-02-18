@@ -114,7 +114,7 @@ function OptionRowLHNData({
         lastActorDetails,
         movedFromReport,
         movedToReport,
-        policy: policy,
+        policy,
         isReportArchived: !!reportNameValuePairs?.private_isArchived,
         policyForMovingExpensesID,
         reportMetadata: itemReportMetadata,
@@ -152,7 +152,7 @@ function OptionRowLHNData({
 
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
-        const item = SidebarUtils.getOptionData({
+        const optionItemData = SidebarUtils.getOptionData({
             report: fullReport,
             reportAttributes,
             oneTransactionThreadReport,
@@ -173,13 +173,13 @@ function OptionRowLHNData({
             currentUserAccountID,
             reportAttributesDerived,
         });
-        if (deepEqual(item, optionItemRef.current)) {
+        if (deepEqual(optionItemData, optionItemRef.current)) {
             return optionItemRef.current;
         }
 
-        optionItemRef.current = item;
+        optionItemRef.current = optionItemData;
 
-        return item;
+        return optionItemData;
         // Listen parentReportAction to update title of thread report when parentReportAction changed
         // Listen to transaction to update title of transaction report when transaction changed
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -215,6 +215,8 @@ function OptionRowLHNData({
         <OptionRowLHN
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...propsToForward}
+            shouldShowRBRorGBRTooltip={shouldShowRBRorGBRTooltip}
+            hasDraftComment={hasDraftComment}
             isOptionFocused={isReportFocused}
             optionItem={optionItem}
             report={fullReport}
