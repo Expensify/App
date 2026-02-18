@@ -34,9 +34,9 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import Button from '@components/Button';
 import CentralInvoicingLearnHow from './CentralInvoicingLearnHow';
 import CentralInvoicingSubtitleWrapper from './CentralInvoicingSubtitleWrapper';
-import Button from '@components/Button';
 
 type WorkspaceTravelInvoicingSectionProps = {
     /** The ID of the policy */
@@ -192,17 +192,17 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                     descriptionTextStyle={styles.textLabelSupportingNormal}
                     interactive={false}
                 />
-                    <View style={[styles.wFitContent]}>
-                        <Button
-                            success={false}
-                            text={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.currentTravelSpendCta')}
-                            onPress={handlePayBalance}
-                            isLoading={isPayingBalance}
-                            isDisabled={isPayingBalance || travelSpend === 0}
-                        />
-                    </View>
+                <View style={[styles.wFitContent]}>
+                    <Button
+                        success={false}
+                        text={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.currentTravelSpendCta')}
+                        onPress={handlePayBalance}
+                        isLoading={isPayingBalance}
+                        isDisabled={isPayingBalance || travelSpend === 0}
+                    />
+                </View>
             </View>
-                <MenuItemWithTopDescription
+            <MenuItemWithTopDescription
                 description={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.currentTravelLimitLabel')}
                 title={formattedLimit}
                 wrapperStyle={[styles.sectionMenuItemTopDescription]}

@@ -10,6 +10,7 @@ import WorkspaceTravelInvoicingSection from '@pages/workspace/travel/WorkspaceTr
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
+import {payTravelInvoicingSpend} from '@libs/actions/TravelInvoicing';
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -58,12 +59,15 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     },
 }));
 
-jest.mock('@libs/actions/TravelInvoicing', () => ({
-    ...jest.requireActual('@libs/actions/TravelInvoicing'),
-    payTravelInvoicingSpend: jest.fn().mockResolvedValue(undefined),
-}));
-
-import {payTravelInvoicingSpend} from '@libs/actions/TravelInvoicing';
+jest.mock('@libs/actions/TravelInvoicing', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actual = jest.requireActual('@libs/actions/TravelInvoicing');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actual,
+        payTravelInvoicingSpend: jest.fn().mockResolvedValue(undefined),
+    };
+});
 
 const mockPolicy: Policy = {
     ...createRandomPolicy(parseInt(POLICY_ID, 10) || 1),
@@ -361,7 +365,7 @@ describe('WorkspaceTravelInvoicingSection', () => {
 
             const payButton = screen.getByText('Pay balance');
             fireEvent.press(payButton);
-            
+
             expect(payTravelInvoicingSpend).not.toHaveBeenCalled();
         });
 
@@ -380,11 +384,8 @@ describe('WorkspaceTravelInvoicingSection', () => {
             await waitForBatchedUpdatesWithAct();
 
             const payButton = screen.getByText('Pay balance');
-            await act(async () => {
-                fireEvent.press(payButton);
-                await waitForBatchedUpdatesWithAct();
-            });
-            
+            fireEvent.press(payButton);
+            await waitForBatchedUpdatesWithAct();
             expect(payTravelInvoicingSpend).toHaveBeenCalledWith(WORKSPACE_ACCOUNT_ID);
         });
     });
