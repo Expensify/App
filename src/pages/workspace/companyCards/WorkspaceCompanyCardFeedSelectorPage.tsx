@@ -137,6 +137,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                             title={translate('workspace.companyCards.addCards')}
                             icon={icons.Plus}
                             onPress={onAddCardsPress}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CARD_SECTION_ADD_BUTTON}
                         />
                     }
                 />

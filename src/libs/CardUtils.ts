@@ -120,10 +120,11 @@ function getCardDescription(card: Card | undefined, translate: LocalizedTranslat
         return '';
     }
     const isPlaid = !!getPlaidInstitutionId(card.bank);
-    const bankName = isPlaid ? card?.cardName : getBankName(card.bank);
+    const isPersonal = isPersonalCard(card);
+    const bankName = isPlaid || isPersonal ? card?.cardName : getBankName(card.bank);
     const cardDescriptor = card.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED ? translate('cardTransactions.notActivated') : card.lastFourPAN;
     const humanReadableBankName = card.bank === CONST.EXPENSIFY_CARD.BANK ? CONST.EXPENSIFY_CARD.BANK : bankName;
-    return cardDescriptor && !isPlaid ? `${humanReadableBankName} - ${cardDescriptor}` : `${humanReadableBankName}`;
+    return cardDescriptor && !isPlaid && !isPersonal ? `${humanReadableBankName} - ${cardDescriptor}` : `${humanReadableBankName}`;
 }
 
 /**
@@ -304,10 +305,13 @@ function isMatchingCard(card: Card, encryptedCardNumber: string, cardName: strin
         return false;
     }
 
-    // Normalize both strings to remove special characters (®, ™, ©, etc.)
-    // This handles differences between OAuth provider card names and stored card names
-    const normalize = (str: string) => str.replaceAll(/[^\w\s-]/g, '').trim();
-    return normalize(card.cardName) === normalize(cardName);
+    return normalizeCardName(card.cardName) === normalizeCardName(cardName);
+}
+
+// Normalize both strings to remove special characters (®, ™, ©, etc.)
+// This handles differences between OAuth provider card names and stored card names
+function normalizeCardName(cardName: string): string {
+    return cardName.replaceAll(/[^\w\s-]/g, '').trim();
 }
 
 function getMCardNumberString(cardNumber: string): string {
@@ -1157,6 +1161,10 @@ function hasDisplayableAssignedCards(cardList: CardList | undefined): boolean {
     );
 }
 
+function isCardFrozen(card?: OnyxEntry<Card>): boolean {
+    return card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED && card?.nameValuePairs?.frozen != null;
+}
+
 export {
     getAssignedCardSortKey,
     getDefaultExpensifyCardLimitType,
@@ -1205,6 +1213,7 @@ export {
     isSmartLimitEnabled,
     lastFourNumbersFromCardName,
     isMatchingCard,
+    normalizeCardName,
     hasIssuedExpensifyCard,
     isExpensifyCardFullySetUp,
     filterAllInactiveCards,
@@ -1236,6 +1245,7 @@ export {
     isCardAlreadyAssigned,
     generateCardID,
     hasDisplayableAssignedCards,
+    isCardFrozen,
     isCardWithPotentialFraud,
 };
 

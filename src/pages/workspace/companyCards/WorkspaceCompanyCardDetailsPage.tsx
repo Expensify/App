@@ -197,6 +197,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             shouldShowRightIcon
                             brickRoadIndicator={card?.nameValuePairs?.errorFields?.cardTitle ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EDIT_CARD_NAME.getRoute(policyID, cardID, feedName))}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.CARD_NAME}
                         />
                     </OfflineWithFeedback>
                     {exportMenuItem?.shouldShowMenuItem ? (
@@ -216,6 +217,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                                 title={exportMenuItem.title}
                                 shouldShowRightIcon
                                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(policyID, cardID, feedName, backTo))}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.CARD_EXPORT}
                             />
                         </OfflineWithFeedback>
                     ) : null}
@@ -238,12 +240,14 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             shouldShowRightIcon
                             brickRoadIndicator={card?.errorFields?.scrapeMinDate ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EDIT_TRANSACTION_START_DATE.getRoute(policyID, cardID, feedName))}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.TRANSACTION_START_DATE}
                         />
                     </OfflineWithFeedback>
                     <MenuItem
                         icon={expensifyIcons.MoneySearch}
                         title={translate('workspace.common.viewTransactions')}
                         style={styles.mt3}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.VIEW_TRANSACTIONS}
                         onPress={() => {
                             Navigation.navigate(
                                 ROUTES.SEARCH_ROOT.getRoute({
@@ -264,6 +268,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             title={translate('workspace.moreFeatures.companyCards.updateCard')}
                             brickRoadIndicator={card?.errorFields?.lastScrape ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             onPress={updateCard}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.UPDATE_CARD}
                         />
                     </OfflineWithFeedback>
                     {shouldShowBreakConnection && (
@@ -279,6 +284,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                         title={translate('workspace.moreFeatures.companyCards.unassignCard')}
                         style={styles.mb1}
                         onPress={() => setIsUnassignModalVisible(true)}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.UNASSIGN_CARD}
                     />
                     <ConfirmModal
                         title={translate('workspace.moreFeatures.companyCards.unassignCard')}

@@ -41,12 +41,14 @@ import {
     getYearFromExpirationDateString,
     hasIssuedExpensifyCard,
     hasOnlyOneCardToAssign,
+    isCardFrozen,
     isCSVFeedOrExpensifyCard,
     isCustomFeed as isCustomFeedCardUtils,
     isDirectFeed as isDirectFeedCardUtils,
     isExpensifyCard,
     isExpensifyCardFullySetUp,
     isMatchingCard,
+    isPersonalCard,
     lastFourNumbersFromCardName,
     maskCardNumber,
     sortCardsByCardholderName,
@@ -2110,6 +2112,7 @@ describe('CardUtils', () => {
                 cardName: '480801XXXXXX2554',
                 domainName: 'expensify-policy41314f4dc5ce25af.exfy',
                 fraud: 'none',
+                fundID: '1',
                 lastFourPAN: '2554',
                 lastUpdated: '',
                 lastScrape: '2024-11-27 11:00:53',
@@ -2135,6 +2138,64 @@ describe('CardUtils', () => {
             };
             const description = getCardDescription(card, translateLocal);
             expect(description).toBe(CONST.EXPENSIFY_CARD.BANK);
+        });
+
+        it('should return the correct card description for personal card', () => {
+            const personalCard: Card = {
+                accountID: 1,
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                cardID: 1,
+                cardName: 'Personal Visa •••• 1234',
+                domainName: '',
+                fraud: 'none',
+                lastFourPAN: '1234',
+                lastScrape: '',
+                lastUpdated: '',
+                state: 3,
+            };
+            const description = getCardDescription(personalCard, translateLocal);
+            expect(description).toBe('Personal Visa •••• 1234');
+        });
+    });
+
+    describe('PersonalCard (isPersonalCard)', () => {
+        it('should return true when card has no fundID or fundID is "0"', () => {
+            const cardWithNoFundID: Card = {
+                accountID: 1,
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                cardID: 1,
+                cardName: 'Personal Visa',
+                domainName: '',
+                fraud: 'none',
+                lastFourPAN: '1234',
+                lastScrape: '',
+                lastUpdated: '',
+                state: 3,
+            };
+            expect(isPersonalCard(cardWithNoFundID)).toBe(true);
+
+            const cardWithZeroFundID: Card = {
+                ...cardWithNoFundID,
+                fundID: '0',
+            };
+            expect(isPersonalCard(cardWithZeroFundID)).toBe(true);
+        });
+
+        it('should return true when card is CSV imported personal card (bank is PERSONAL_CARD.BANK_NAME.CSV)', () => {
+            const csvPersonalCard: Card = {
+                accountID: 1,
+                bank: CONST.PERSONAL_CARD.BANK_NAME.CSV,
+                cardID: 2,
+                cardName: 'My Imported Card',
+                domainName: '',
+                fraud: 'none',
+                fundID: '1',
+                lastFourPAN: '5678',
+                lastScrape: '',
+                lastUpdated: '',
+                state: 3,
+            };
+            expect(isPersonalCard(csvPersonalCard)).toBe(true);
         });
     });
 
@@ -2624,6 +2685,48 @@ describe('CardUtils', () => {
                 expect(firstCard?.cardName).toBe('Plaid Checking 0000');
                 expect(firstCard?.cardID).toBe('Plaid Checking 0000');
             });
+        });
+    });
+
+    describe('isCardFrozen', () => {
+        it('Should return true when card state is suspended and frozen property is set', () => {
+            const card = {
+                state: CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED,
+                nameValuePairs: {
+                    frozen: true,
+                },
+            } as unknown as Card;
+            expect(isCardFrozen(card)).toBe(true);
+        });
+
+        it('Should return false when card state is suspended but frozen property is missing', () => {
+            const card = {
+                state: CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED,
+                nameValuePairs: {},
+            } as unknown as Card;
+            expect(isCardFrozen(card)).toBe(false);
+        });
+
+        it('Should return false when card state is not suspended but frozen property is set', () => {
+            const card = {
+                state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                nameValuePairs: {
+                    frozen: true,
+                },
+            } as unknown as Card;
+            expect(isCardFrozen(card)).toBe(false);
+        });
+
+        it('Should return false when card is undefined', () => {
+            expect(isCardFrozen(undefined)).toBe(false);
+        });
+
+        it('Should return false when card is valid but not suspended or frozen', () => {
+            const card = {
+                state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                nameValuePairs: {},
+            } as unknown as Card;
+            expect(isCardFrozen(card)).toBe(false);
         });
     });
 

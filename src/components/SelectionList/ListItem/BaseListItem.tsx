@@ -86,7 +86,7 @@ function BaseListItem<TItem extends ListItem>({
 
     const shouldShowRBRIndicator = (!item.isSelected || !!item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR;
 
-    const shouldShowHiddenCheckmark = shouldShowRBRIndicator && !shouldShowCheckmark;
+    const shouldShowHiddenCheckmark = shouldShowRBRIndicator && !shouldShowCheckmark && !!item.canShowSeveralIndicators;
 
     const accessibilityState =
         accessibilityRole === CONST.ROLE.CHECKBOX || accessibilityRole === CONST.ROLE.RADIO ? {checked: !!item.isSelected, selected: !!isFocused} : {selected: !!isFocused};
