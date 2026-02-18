@@ -544,9 +544,10 @@ function ReportActionCompose({
         }
 
         const files = Array.from(event.dataTransfer?.files ?? []).map((file) => {
-            // eslint-disable-next-line no-param-reassign
-            file.uri = URL.createObjectURL(file);
-            return file;
+            const fileWithUri = file;
+
+            fileWithUri.uri = URL.createObjectURL(fileWithUri);
+            return fileWithUri;
         });
 
         if (files.length === 0) {
