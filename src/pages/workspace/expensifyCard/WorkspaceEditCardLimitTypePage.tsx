@@ -275,6 +275,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
                             }}
                             shouldShowModal={false}
                             addBottomSafeAreaPadding={false}
+                            alternateNumberOfSupportedLines={2}
                         />
 
                         {!!card?.nameValuePairs?.isVirtual && isBetaEnabled(CONST.BETAS.SINGLE_USE_AND_EXPIRE_BY_CARDS) && (

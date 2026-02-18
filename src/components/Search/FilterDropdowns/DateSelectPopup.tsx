@@ -352,6 +352,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
                     style={[styles.flex1]}
                     text={translate('common.reset')}
                     onPress={resetChanges}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_DATE}
                 />
                 <Button
                     success
@@ -359,6 +360,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
                     style={[styles.flex1]}
                     text={translate('common.apply')}
                     onPress={applyChanges}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_DATE}
                 />
             </View>
         </View>

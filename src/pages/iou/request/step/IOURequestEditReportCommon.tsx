@@ -1,10 +1,8 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
-import {useOptionsList} from '@components/OptionListContextProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -19,7 +17,7 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportTransactions from '@hooks/useReportTransactions';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
-import {canAddTransaction, getPolicyName, getReportName, isIOUReport, isOpenReport, isReportOwner, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
+import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenReport, isReportOwner, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -66,9 +64,9 @@ function IOURequestEditReportCommon({
     createReport,
     isPerDiemRequest,
 }: Props) {
-    const icons = useMemoizedLazyExpensifyIcons(['Document']);
+    const icons = useMemoizedLazyExpensifyIcons(['Close', 'Document']);
     const {translate, localeCompare} = useLocalize();
-    const {options} = useOptionsList();
+    const personalDetails = usePersonalDetails();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -139,22 +137,20 @@ function IOURequestEditReportCommon({
                 return isReportPolicyAdmin || isReportManager;
             })
             .map((report) => {
-                const matchingOption = options.reports.find((option) => option.reportID === report.reportID);
+                const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
                 return {
-                    ...(matchingOption ?? report),
-                    // We are shallow copying properties from matchingOption, so if it has a brickRoadIndicator, it will display RBR.
-                    // We set it to null here to prevent showing RBR for reports https://github.com/Expensify/App/issues/65960.
                     brickRoadIndicator: null,
-                    alternateText: getPolicyName({report}) ?? matchingOption?.alternateText,
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    text: getReportName(report),
+                    alternateText: policy?.name,
+                    text: report.reportName,
                     value: report.reportID,
                     keyForList: report.reportID,
                     isSelected: report.reportID === selectedReportID,
-                    policyID: matchingOption?.policyID ?? report.policyID,
+                    policyID: report.policyID,
+                    reportID: report.reportID,
+                    icons: getIconsForExpenseReport(report, personalDetails, policy),
                 };
             });
-    }, [debouncedSearchValue, outstandingReports, selectedReportID, options.reports, localeCompare, allPolicies, currentUserPersonalDetails.accountID]);
+    }, [debouncedSearchValue, outstandingReports, selectedReportID, personalDetails, localeCompare, allPolicies, currentUserPersonalDetails.accountID]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -301,7 +297,7 @@ function IOURequestEditReportCommon({
                                 onPress={removeFromReport}
                                 title={translate('iou.removeFromReport')}
                                 description={translate('iou.moveToPersonalSpace')}
-                                icon={Expensicons.Close}
+                                icon={icons.Close}
                             />
                         )}
                         {createReportOption}

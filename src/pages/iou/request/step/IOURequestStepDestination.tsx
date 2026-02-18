@@ -8,7 +8,7 @@ import Button from '@components/Button';
 import DestinationPicker from '@components/DestinationPicker';
 import FixedFooter from '@components/FixedFooter';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type {ListItem, SelectionListHandle} from '@components/SelectionListWithSections/types';
+import type {ListItem, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -85,7 +85,7 @@ function IOURequestStepDestination({
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses']);
     const {translate} = useLocalize();
 
-    const destinationSelectionListRef = useRef<SelectionListHandle | null>(null);
+    const destinationSelectionListRef = useRef<SelectionListWithSectionsHandle | null>(null);
 
     useImperativeHandle(ref, () => ({
         focus: destinationSelectionListRef.current?.focusTextInput,
