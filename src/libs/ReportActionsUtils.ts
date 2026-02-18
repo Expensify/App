@@ -8,7 +8,6 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import usePrevious from '@hooks/usePrevious';
-import {getReportName} from './ReportNameUtils';
 // eslint-disable-next-line @dword-design/import-alias/prefer-alias
 import {doesReportContainRequestsFromMultipleUsers, getReportOrDraftReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -31,6 +30,7 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {getReportName} from './ReportNameUtils';
 import {isCardPendingActivate} from './CardUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {convertAmountToDisplayString, convertToBackendAmount, convertToDisplayString, convertToShortDisplayString} from './CurrencyUtils';

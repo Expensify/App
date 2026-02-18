@@ -27,6 +27,7 @@ import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import {getTagLists} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
+import useReportAttributes from '@hooks/useReportAttributes';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getParsedComment, getReportOrDraftReport, getTransactionDetails} from '@libs/ReportUtils';
@@ -104,8 +105,9 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
 
     const isSplitAvailable = report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, login ?? '', currentUserAccountID, currentPolicy);
 
+    const reportAttributes = useReportAttributes();
     const isCategoryRequired = !!currentPolicy?.requiresCategory;
-    const reportName = getReportName(currentReport);
+    const reportName = getReportName(currentReport, reportAttributes);
     const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, splitExpenseDraftTransactionDetails?.category, currentPolicy?.areRulesEnabled);
 
     const shouldShowTags = !!currentPolicy?.areTagsEnabled && !!(transactionTag || hasEnabledTags(policyTagLists));

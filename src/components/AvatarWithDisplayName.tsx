@@ -183,7 +183,7 @@ function AvatarWithDisplayName({
     const {translate} = useLocalize();
     const reportAttributes = useReportAttributes();
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const title = getReportName(report);
+    const title = getReportName(report, reportAttributes);
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
     const subtitle = getChatRoomSubtitle(report, true, isReportArchived);
     const parentNavigationSubtitleData = getParentNavigationSubtitle(report, isParentReportArchived, reportAttributes);

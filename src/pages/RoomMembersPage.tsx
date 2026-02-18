@@ -40,6 +40,7 @@ import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDe
 import {isPolicyAdmin, isPolicyEmployee as isPolicyEmployeeUtils} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
+import useReportAttributes from '@hooks/useReportAttributes';
 import {
     getReportForHeader,
     getReportPersonalDetailsParticipants,
@@ -81,6 +82,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     const backTo = route.params.backTo;
     const isReportArchived = useReportIsArchived(report.reportID);
     const reportForSubtitle = useMemo(() => getReportForHeader(report), [report]);
+    const reportAttributes = useReportAttributes();
 
     const {chatParticipants: participants, personalDetailsParticipants} = useMemo(
         () => getReportPersonalDetailsParticipants(report, personalDetails, reportMetadata, true),
@@ -443,7 +445,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
                 <HeaderWithBackButton
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    subtitle={StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(getReportName(reportForSubtitle)) : getReportName(reportForSubtitle))}
+                    subtitle={StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(getReportName(reportForSubtitle, reportAttributes)) : getReportName(reportForSubtitle, reportAttributes))}
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
                             setSelectedMembers([]);

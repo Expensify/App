@@ -374,7 +374,12 @@ function updateReportsToDisplayInLHN({
 /**
  * Categorizes reports into their respective LHN groups
  */
-function categorizeReportsForLHN(reportsToDisplay: ReportsToDisplayInLHN, reportsDrafts: OnyxCollection<string> | undefined, reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>) {
+function categorizeReportsForLHN(
+    reportsToDisplay: ReportsToDisplayInLHN,
+    reportsDrafts: OnyxCollection<string> | undefined,
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
+) {
     const pinnedAndGBRReports: MiniReport[] = [];
     const errorReports: MiniReport[] = [];
     const draftReports: MiniReport[] = [];
@@ -399,8 +404,7 @@ function categorizeReportsForLHN(reportsToDisplay: ReportsToDisplayInLHN, report
         }
 
         const reportID = report.reportID;
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const displayName = getReportName(report);
+        const displayName = getReportName(report, reportAttributesDerived);
         const miniReport: MiniReport = {
             reportID,
             displayName,
@@ -536,6 +540,7 @@ function sortReportsToDisplayInLHN(
     localeCompare: LocaleContextProps['localeCompare'],
     reportsDrafts: OnyxCollection<string> | undefined,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
 ): string[] {
     Performance.markStart(CONST.TIMING.GET_ORDERED_REPORT_IDS);
 
@@ -553,7 +558,7 @@ function sortReportsToDisplayInLHN(
     //      - Sorted by reportDisplayName in GSD (focus) view mode
 
     // Step 1: Categorize reports
-    const categories = categorizeReportsForLHN(reportsToDisplay, reportsDrafts, reportNameValuePairs);
+    const categories = categorizeReportsForLHN(reportsToDisplay, reportsDrafts, reportNameValuePairs, reportAttributesDerived);
 
     // Step 2: Sort each category
     const sortedCategories = sortCategorizedReports(categories, isInDefaultMode, localeCompare);
@@ -874,8 +879,7 @@ function getOptionData({
                     : translate('workspace.invite.removed');
             const users = translate(targetAccountIDsLength > 1 ? 'common.members' : 'common.member')?.toLocaleLowerCase();
             result.alternateText = formatReportLastMessageText(`${actorDisplayName ?? lastActorDisplayName}: ${verb} ${targetAccountIDsLength} ${users}`);
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const roomName = getReportName(lastActionReport) || lastActionOriginalMessage?.roomName;
+            const roomName = getReportName(lastActionReport, reportAttributesDerived) || lastActionOriginalMessage?.roomName;
             if (roomName) {
                 const preposition =
                     lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM
@@ -1077,8 +1081,19 @@ function getOptionData({
 
             if (!result.alternateText) {
                 result.alternateText = formatReportLastMessageText(
-                    getWelcomeMessage(report, policy, invoiceReceiverPolicy, participantPersonalDetailListExcludeCurrentUser, translate, localeCompare, isReportArchived).messageText ??
-                        translate('report.noActivityYet'),
+                    getWelcomeMessage(
+                        report,
+                        policy,
+                        invoiceReceiverPolicy,
+                        participantPersonalDetailListExcludeCurrentUser,
+                        translate,
+                        localeCompare,
+                        isReportArchived,
+                        '',
+                        false,
+                        '',
+                        reportAttributesDerived,
+                    ).messageText ?? translate('report.noActivityYet'),
                 );
             }
         }
@@ -1087,8 +1102,19 @@ function getOptionData({
         if (!lastMessageText) {
             lastMessageText = formatReportLastMessageText(
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                getWelcomeMessage(report, policy, invoiceReceiverPolicy, participantPersonalDetailListExcludeCurrentUser, translate, localeCompare, isReportArchived).messageText ||
-                    translate('report.noActivityYet'),
+                getWelcomeMessage(
+                    report,
+                    policy,
+                    invoiceReceiverPolicy,
+                    participantPersonalDetailListExcludeCurrentUser,
+                    translate,
+                    localeCompare,
+                    isReportArchived,
+                    '',
+                    false,
+                    '',
+                    reportAttributesDerived,
+                ).messageText || translate('report.noActivityYet'),
             );
         }
         if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID) && !isReportArchived) {
@@ -1151,6 +1177,7 @@ function getWelcomeMessage(
     reportDetailsLink = '',
     shouldShowUsePlusButtonText = false,
     additionalText = '',
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
 ): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {};
     if (isChatThread(report) || isTaskReport(report)) {
@@ -1158,7 +1185,7 @@ function getWelcomeMessage(
     }
 
     if (isChatRoom(report)) {
-        return getRoomWelcomeMessage(translate, report, invoiceReceiverPolicy, isReportArchived, reportDetailsLink);
+        return getRoomWelcomeMessage(translate, report, invoiceReceiverPolicy, isReportArchived, reportDetailsLink, reportAttributesDerived);
     }
 
     if (isPolicyExpenseChat(report)) {
@@ -1219,11 +1246,11 @@ function getRoomWelcomeMessage(
     invoiceReceiverPolicy: OnyxEntry<Policy>,
     isReportArchived = false,
     reportDetailsLink = '',
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
 ): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {};
     const workspaceName = getPolicyName({report});
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportName = getReportName(report);
+    const reportName = getReportName(report, reportAttributesDerived);
 
     if (report?.description) {
         welcomeMessage.messageHtml = getReportDescription(report);

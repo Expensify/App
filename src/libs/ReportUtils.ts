@@ -5560,8 +5560,8 @@ function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, repo
     for (const match of matches) {
         if (match[1] !== childReportID) {
             // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-            // eslint-disable-next-line @typescript-eslint/no-use-before-define, @typescript-eslint/no-deprecated
-            reportIDToName[match[1]] = getReportName(getReportOrDraftReport(match[1])) ?? '';
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
+            reportIDToName[match[1]] = getReportName(getReportOrDraftReport(match[1]), reportAttributesDerivedValue) ?? '';
         }
     }
 
@@ -6465,7 +6465,7 @@ function getMovedTransactionMessage(translate: LocalizedTranslate, action: Repor
 
     const report = fromReport ?? toReport;
 
-    const reportName = getReportName(report) ?? report?.reportName ?? '';
+    const reportName = getReportName(report, reportAttributesDerivedValue) ?? report?.reportName ?? '';
     const reportUrl = getReportURLForCurrentContext(report?.reportID);
     if (typeof fromReportID === 'undefined') {
         return translate('iou.movedTransactionTo', reportUrl, reportName);
@@ -6479,7 +6479,7 @@ function getUnreportedTransactionMessage(translate: LocalizedTranslate, action: 
 
     const fromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
 
-    const reportName = getReportName(fromReport) ?? fromReport?.reportName ?? '';
+    const reportName = getReportName(fromReport, reportAttributesDerivedValue) ?? fromReport?.reportName ?? '';
 
     let reportUrl = getReportURLForCurrentContext(fromReportID);
 

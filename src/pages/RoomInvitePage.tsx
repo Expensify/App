@@ -38,6 +38,7 @@ import type {MemberEmailsToAccountIDs} from '@libs/PolicyUtils';
 import {isPolicyEmployee as isPolicyEmployeeUtil} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
+import useReportAttributes from '@hooks/useReportAttributes';
 import type {OptionData} from '@libs/ReportUtils';
 import {isHiddenForCurrentUser, isPolicyExpenseChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -73,6 +74,7 @@ function RoomInvitePage({
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const isReportArchived = useReportIsArchived(report.reportID);
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+    const reportAttributes = useReportAttributes();
 
     const {options, areOptionsInitialized} = useOptionsList();
     const allPersonalDetails = usePersonalDetails();
@@ -200,8 +202,7 @@ function RoomInvitePage({
     const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
     const backRoute = reportID && (!isPolicyEmployee || isReportArchived ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo) : ROUTES.ROOM_MEMBERS.getRoute(reportID, backTo));
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportName = getReportName(report);
+    const reportName = getReportName(report, reportAttributes);
 
     const ancestors = useAncestors(report);
 
