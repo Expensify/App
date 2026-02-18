@@ -66,8 +66,8 @@ function SearchFiltersSkeleton({shouldAnimate = true, itemCount = 5, width = 84,
                             transform={[{translateX: 12 + index * 90}, {translateY: 10}]}
                             width={width * PILL_WIDTH_RATIO}
                             height={height * PILL_HEIGHT_RATIO}
-                            rx={4}
-                            ry={4}
+                            rx={2}
+                            ry={2}
                         />
                     ))}
                 </SkeletonViewContentLoader>

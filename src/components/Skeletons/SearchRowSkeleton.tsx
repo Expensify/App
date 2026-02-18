@@ -62,8 +62,8 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
                                 width={40}
                                 height={4}
                                 transform={[{translateX: 40}, {translateY: 20}]}
-                                rx={4}
-                                ry={4}
+                                rx={2}
+                                ry={2}
                             />
                             <Circle
                                 cx={96}
@@ -75,8 +75,8 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
                                 width={40}
                                 height={4}
                                 transform={[{translateX: 112}, {translateY: 20}]}
-                                rx={4}
-                                ry={4}
+                                rx={2}
+                                ry={2}
                             />
                             <Rect
                                 transform={[{translateX: windowWidth - 122}, {translateY: 8}]}
@@ -97,29 +97,29 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
                                 transform={[{translateX: 64}, {translateY: 53}]}
                                 width={124}
                                 height={8}
-                                rx={4}
-                                ry={4}
+                                rx={2}
+                                ry={2}
                             />
                             <Rect
                                 transform={[{translateX: 64}, {translateY: 67}]}
                                 width={60}
                                 height={8}
-                                rx={4}
-                                ry={4}
+                                rx={2}
+                                ry={2}
                             />
                             <Rect
                                 transform={[{translateX: windowWidth - 130}, {translateY: 53}]}
                                 width={80}
                                 height={8}
-                                rx={4}
-                                ry={4}
+                                rx={2}
+                                ry={2}
                             />
                             <Rect
                                 transform={[{translateX: windowWidth - 110}, {translateY: 67}]}
                                 width={60}
                                 height={8}
-                                rx={4}
-                                ry={4}
+                                rx={2}
+                                ry={2}
                             />
                         </>
                     )}
@@ -148,15 +148,15 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
                             transform={[{translateX: 60}, {translateY: 28}]}
                             width={30}
                             height={barHeight}
-                            rx={4}
-                            ry={4}
+                            rx={2}
+                            ry={2}
                         />
                         <Rect
                             transform={[{translateX: 102}, {translateY: 28}]}
                             width={longBarWidth}
                             height={barHeight}
-                            rx={4}
-                            ry={4}
+                            rx={2}
+                            ry={2}
                         />
                         {isLargeScreenWidth && (
                             <>
@@ -164,16 +164,16 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
                                     transform={[{translateX: 234}, {translateY: 28}]}
                                     width={longBarWidth}
                                     height={barHeight}
-                                    rx={4}
-                                    ry={4}
+                                    rx={2}
+                                    ry={2}
                                 />
 
                                 <Rect
                                     transform={[{translateX: 366}, {translateY: 28}]}
                                     width={60}
                                     height={barHeight}
-                                    rx={4}
-                                    ry={4}
+                                    rx={2}
+                                    ry={2}
                                 />
                             </>
                         )}
@@ -183,8 +183,8 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
                             transform={[{translateX: windowWidth - leftPaneWidth - rightButtonWidth - gapWidth - centralPanePadding - gapWidth - rightSideElementWidth}, {translateY: 28}]}
                             width={80}
                             height={barHeight}
-                            rx={4}
-                            ry={4}
+                            rx={2}
+                            ry={2}
                         />
 
                         <Rect
