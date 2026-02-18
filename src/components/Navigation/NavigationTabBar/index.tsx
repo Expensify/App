@@ -1,6 +1,5 @@
 import {findFocusedRoute, StackActions, useNavigationState} from '@react-navigation/native';
 import type {NavigationState} from '@react-navigation/native';
-import reportsSelector from '@selectors/Attributes';
 import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -16,6 +15,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
@@ -152,7 +152,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
     const lastReportRouteReportID = (lastReportRoute?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT])?.reportID;
     const [doesLastReportExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${lastReportRouteReportID}`, {canBeMissing: true, selector: doesLastReportExistSelector}, [lastReportRouteReportID]);
 
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportsSelector, canBeMissing: true});
+    const reportAttributes = useReportAttributes();
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(undefined);
@@ -319,7 +319,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                             role={CONST.ROLE.TAB}
                             accessibilityLabel={translate('common.home')}
                             style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
-                            sentryLabel="NavigationTabBar.Home"
+                            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
                         >
                             {({hovered}) => (
                                 <>
@@ -349,7 +349,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                         <PressableWithFeedback
                             onPress={navigateToChats}
                             role={CONST.ROLE.TAB}
-                            accessibilityLabel={translate('common.inbox')}
+                            accessibilityLabel={chatTabBrickRoad ? `${translate('common.inbox')}. ${translate('common.yourReviewIsRequired')}` : translate('common.inbox')}
                             accessibilityState={inboxAccessibilityState}
                             style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
                             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
@@ -424,7 +424,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                         <PressableWithFeedback
                             onPress={showWorkspaces}
                             role={CONST.ROLE.TAB}
-                            accessibilityLabel={translate('common.workspacesTabTitle')}
+                            accessibilityLabel={`${translate('common.workspacesTabTitle')}${workspacesTabIndicatorStatus ? `. ${translate('common.yourReviewIsRequired')}` : ''}`}
                             accessibilityState={workspacesAccessibilityState}
                             style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
                             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.WORKSPACES}
@@ -521,7 +521,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                 <PressableWithFeedback
                     onPress={navigateToChats}
                     role={CONST.ROLE.TAB}
-                    accessibilityLabel={translate('common.inbox')}
+                    accessibilityLabel={chatTabBrickRoad ? `${translate('common.inbox')}. ${translate('common.yourReviewIsRequired')}` : translate('common.inbox')}
                     accessibilityState={inboxAccessibilityState}
                     wrapperStyle={styles.flex1}
                     style={styles.navigationTabBarItem}
@@ -589,7 +589,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                 <PressableWithFeedback
                     onPress={showWorkspaces}
                     role={CONST.ROLE.TAB}
-                    accessibilityLabel={translate('common.workspacesTabTitle')}
+                    accessibilityLabel={`${translate('common.workspacesTabTitle')}${workspacesTabIndicatorStatus ? `. ${translate('common.yourReviewIsRequired')}` : ''}`}
                     accessibilityState={workspacesAccessibilityState}
                     wrapperStyle={styles.flex1}
                     style={styles.navigationTabBarItem}

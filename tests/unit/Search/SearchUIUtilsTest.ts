@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import {renderHook} from '@testing-library/react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -1850,6 +1851,21 @@ const transactionTagGroupListItems: TransactionTagGroupListItemType[] = [
     },
 ];
 
+const cardListMock = {
+    [cardID]: {
+        state: 1,
+        bank: 'vcf',
+        fundID: '5555',
+        lastFourPAN: '1234',
+    },
+    [cardID2]: {
+        state: 1,
+        bank: CONST.EXPENSIFY_CARD.BANK,
+        fundID: '5555',
+        lastFourPAN: '1234',
+    },
+} as unknown as OnyxTypes.CardList;
+
 const transactionMerchantGroupListItemsSorted: TransactionMerchantGroupListItemType[] = [
     {
         merchant: merchantName1,
@@ -2603,6 +2619,7 @@ describe('SearchUIUtils', () => {
                     bankAccountList: {},
                     groupBy: CONST.SEARCH.GROUP_BY.CARD,
                     cardFeeds: mockCardFeeds,
+                    cardList: cardListMock,
                     allReportMetadata: {},
                 })[0],
             ).toStrictEqual(transactionCardGroupListItems);

@@ -100,7 +100,6 @@ describe('PureReportActionItem', () => {
                                 policies={undefined}
                                 personalPolicyID={undefined}
                                 report={undefined}
-                                reportActions={[]}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
@@ -208,7 +207,7 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-            expect(screen.getByText(translateLocal('iou.submitted', {}))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.submitted'))).toBeOnTheScreen();
         });
 
         it('SUBMITTED action with memo', async () => {
@@ -218,7 +217,7 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-            expect(screen.getByText(translateLocal('iou.submitted', {memo}))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.submitted', memo))).toBeOnTheScreen();
         });
 
         it('SUBMITTED_AND_CLOSED action', async () => {
@@ -227,7 +226,7 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-            expect(screen.getByText(translateLocal('iou.submitted', {}))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.submitted'))).toBeOnTheScreen();
         });
     });
 
@@ -280,7 +279,6 @@ describe('PureReportActionItem', () => {
                                     policies={{testPolicy: dewPolicy as Policy}}
                                     policy={dewPolicy as Policy}
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
-                                    reportActions={[]}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -340,7 +338,6 @@ describe('PureReportActionItem', () => {
                                     policies={{testPolicy: basicPolicy as Policy}}
                                     policy={basicPolicy as Policy}
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
-                                    reportActions={[]}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -363,7 +360,7 @@ describe('PureReportActionItem', () => {
 
             // Then it should display the standard submitted message and not the DEW queued message
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-            expect(screen.getByText(translateLocal('iou.submitted', {}))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.submitted'))).toBeOnTheScreen();
             expect(screen.queryByText(translateLocal('iou.queuedToSubmitViaDEW'))).not.toBeOnTheScreen();
         });
     });
@@ -411,7 +408,6 @@ describe('PureReportActionItem', () => {
                                     policies={undefined}
                                     personalPolicyID={undefined}
                                     report={report}
-                                    reportActions={[]}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -477,7 +473,6 @@ describe('PureReportActionItem', () => {
                                     policies={undefined}
                                     personalPolicyID={undefined}
                                     report={report}
-                                    reportActions={[]}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -529,7 +524,6 @@ describe('PureReportActionItem', () => {
                                     policies={undefined}
                                     personalPolicyID={undefined}
                                     report={report}
-                                    reportActions={[]}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}

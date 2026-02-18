@@ -414,7 +414,12 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
         return (
             <View style={[menuItemsData.sectionStyle, styles.pb4, styles.mh3]}>
-                <Text style={styles.sectionTitle}>{translate(menuItemsData.sectionTranslationKey)}</Text>
+                <Text
+                    style={styles.sectionTitle}
+                    accessibilityRole={CONST.ROLE.HEADER}
+                >
+                    {translate(menuItemsData.sectionTranslationKey)}
+                </Text>
                 {menuItemsData.items.map((item) => {
                     const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
                     const isFocused = focusedRouteName ? focusedRouteName === item.screenName : false;
