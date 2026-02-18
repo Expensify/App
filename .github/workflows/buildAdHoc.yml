@@ -137,6 +137,13 @@ jobs:
           git checkout ${{ inputs.MOBILE_EXPENSIFY_REF }}
           echo "Building from https://github.com/Expensify/Mobile-Expensify/pull/${{ inputs.MOBILE_EXPENSIFY_PR }}"
 
+      - name: Compute custom build identifier
+        id: computeIdentifier
+        run: |
+          APP_SHORT_SHA=$(git rev-parse --short HEAD)
+          MOBILE_EXPENSIFY_SHORT_SHA=$(cd Mobile-Expensify && git rev-parse --short HEAD)
+          echo "IDENTIFIER=${APP_SHORT_SHA}-${MOBILE_EXPENSIFY_SHORT_SHA}" >> "$GITHUB_OUTPUT"
+
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
@@ -197,7 +204,7 @@ jobs:
 
       - name: Rock Remote Build - Android
         id: rock-remote-build-android
-        uses: callstackincubator/android@2177ac62cabe662aa49a2bc6f3154070705dd8f5
+        uses: callstackincubator/android@561f4aa994a35aa9a2d7d913b562da65e5f02029
         env:
           GITHUB_TOKEN: ${{ github.token }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
@@ -216,7 +223,7 @@ jobs:
           keystore-path: '../tools/buildtools/upload-key.keystore'
           comment-bot: false
           rock-build-extra-params: '--extra-params "-PreactNativeArchitectures=arm64-v8a,x86_64 --profile"'
-          custom-ref: ${{ inputs.APP_REF }}
+          custom-identifier: ${{ steps.computeIdentifier.outputs.IDENTIFIER }}
 
       - name: Upload Gradle profile report
         if: always()
@@ -256,6 +263,13 @@ jobs:
           git fetch origin ${{ inputs.MOBILE_EXPENSIFY_REF }}
           git checkout ${{ inputs.MOBILE_EXPENSIFY_REF }}
           echo "Building from https://github.com/Expensify/Mobile-Expensify/pull/${{ inputs.MOBILE_EXPENSIFY_PR }}"
+
+      - name: Compute custom build identifier
+        id: computeIdentifier
+        run: |
+          APP_SHORT_SHA=$(git rev-parse --short HEAD)
+          MOBILE_EXPENSIFY_SHORT_SHA=$(cd Mobile-Expensify && git rev-parse --short HEAD)
+          echo "IDENTIFIER=${APP_SHORT_SHA}-${MOBILE_EXPENSIFY_SHORT_SHA}" >> "$GITHUB_OUTPUT"
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
@@ -321,7 +335,7 @@ jobs:
 
       - name: Rock Remote Build - iOS
         id: rock-remote-build-ios
-        uses: callstackincubator/ios@d638bd25c764655baeeced3232c692f1698cf72b
+        uses: callstackincubator/ios@dd30f7e53eee2ea6a59509793d0a30fbb5c91216
         env:
           GITHUB_TOKEN: ${{ github.token }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
@@ -349,7 +363,7 @@ jobs:
               }
             ]
           comment-bot: false
-          custom-ref: ${{ inputs.APP_REF }}
+          custom-identifier: ${{ steps.computeIdentifier.outputs.IDENTIFIER }}
 
       - name: Set artifact URL output
         id: set-artifact-url

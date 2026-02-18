@@ -55,7 +55,6 @@ import {
     getConnectionExporters,
     getPolicyBrickRoadIndicatorStatus,
     getUberConnectionErrorDirectlyFromPolicy,
-    getUserFriendlyWorkspaceType,
     isPendingDeletePolicy,
     isPolicyAdmin,
     isPolicyAuditor,
@@ -439,17 +438,6 @@ function WorkspacesListPage() {
                 });
             }
 
-            const ownerDisplayName = personalDetails?.[item.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? '';
-            const workspaceType = item.type ? getUserFriendlyWorkspaceType(item.type, translate) : '';
-            const accessibilityLabel = [
-                `${translate('workspace.common.workspace')}: ${item.title}`,
-                isDefault ? translate('common.default') : '',
-                `${translate('workspace.common.workspaceOwner')}: ${ownerDisplayName}`,
-                `${translate('workspace.common.workspaceType')}: ${workspaceType}`,
-            ]
-                .filter(Boolean)
-                .join(', ');
-
             return (
                 <OfflineWithFeedback
                     key={`${item.title}_${index}`}
@@ -461,12 +449,12 @@ function WorkspacesListPage() {
                     shouldShowErrorMessages={item.policyID !== policyIDToDelete}
                     shouldHideOnDelete={false}
                 >
+                    {/* accessible={false} allows child elements (workspace row and 3-dot menu) to be individually focusable.
+                        onPress is handled by WorkspacesListRow to prevent double-firing on web due to event bubbling. */}
                     <PressableWithoutFeedback
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={accessibilityLabel}
+                        accessible={false}
                         style={[styles.mh5]}
                         disabled={item.disabled}
-                        onPress={item.action}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKSPACE_MENU_ITEM}
                     >
                         {({hovered}) => (
@@ -488,6 +476,7 @@ function WorkspacesListPage() {
                                 isLoadingBill={isLoadingBill}
                                 resetLoadingSpinnerIconIndex={resetLoadingSpinnerIconIndex}
                                 isHovered={hovered}
+                                onPress={item.action}
                             />
                         )}
                     </PressableWithoutFeedback>

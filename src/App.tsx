@@ -54,6 +54,7 @@ import './libs/HybridApp';
 import NavigationFocusManager from './libs/NavigationFocusManager';
 import {AttachmentModalContextProvider} from './pages/media/AttachmentModalScreen/AttachmentModalContext';
 import ExpensifyCardContextProvider from './pages/settings/Wallet/ExpensifyCardPage/ExpensifyCardContextProvider';
+import TravelCVVContextProvider from './pages/settings/Wallet/TravelCVVPage/TravelCVVContextProvider';
 import './setup/backgroundLocationTrackingTask';
 import './setup/backgroundTask';
 import './setup/fraudProtection';
@@ -142,6 +143,7 @@ function App() {
                                         ModalProvider,
                                         SidePanelContextProvider,
                                         ExpensifyCardContextProvider,
+                                        TravelCVVContextProvider,
                                         KYCWallContextProvider,
                                         WideRHPContextProvider,
                                     ]}
