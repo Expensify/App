@@ -35,6 +35,7 @@ import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotal
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openOldDotLink} from '@libs/actions/Link';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {openPublicProfilePage} from '@libs/actions/PersonalDetails';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {openSearch, setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
 import DateUtils from '@libs/DateUtils';
@@ -44,7 +45,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
-import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
+import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, getPersonalDetailsForAccountID, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     adjustTimeRangeToDateFilters,
@@ -78,6 +79,7 @@ import {
 } from '@libs/SearchUIUtils';
 import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
@@ -109,6 +111,8 @@ type SearchProps = {
     searchRequestResponseStatusCode?: number | null;
     onDEWModalOpen?: () => void;
 };
+
+const MAX_PROFILE_HYDRATION_REQUESTS_PER_RENDER = 10;
 
 function mapTransactionItemToSelectedEntry(
     item: TransactionListItemType,
@@ -267,6 +271,7 @@ function Search({
     const {accountID, email, login} = useCurrentUserPersonalDetails();
     const [isActionLoadingSet = CONST.EMPTY_SET] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
     const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA, {canBeMissing: true});
+    const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA, {canBeMissing: true});
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true, selector: columnsSelector});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
@@ -294,6 +299,7 @@ function Search({
     const previousReportActions = usePrevious(reportActions);
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const searchListRef = useRef<SelectionListHandle | null>(null);
+    const requestedProfileAccountIDsRef = useRef<Set<number>>(new Set());
 
     const savedSearchSelector = useCallback((searches: OnyxEntry<SaveSearch>) => searches?.[hash], [hash]);
     const [savedSearch] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true, selector: savedSearchSelector});
@@ -535,6 +541,52 @@ function Search({
         allReportMetadata,
         cardList,
     ]);
+
+    useEffect(() => {
+        const accountIDsToHydrate = new Set<number>();
+        const maybeQueueProfileHydration = (accountID: number | undefined) => {
+            if (!accountID || requestedProfileAccountIDsRef.current.has(accountID) || personalDetailsMetadata?.[accountID]?.isLoading) {
+                return;
+            }
+
+            if (getPersonalDetailsForAccountID(accountID)?.avatar) {
+                return;
+            }
+
+            accountIDsToHydrate.add(accountID);
+        };
+
+        filteredData.forEach((item) => {
+            if (isTransactionListItemType(item) || isTransactionReportGroupListItemType(item)) {
+                maybeQueueProfileHydration(item.from?.accountID);
+                maybeQueueProfileHydration(item.to?.accountID);
+                return;
+            }
+
+            if (isTaskListItemType(item)) {
+                maybeQueueProfileHydration(item.createdBy?.accountID);
+                maybeQueueProfileHydration(item.assignee?.accountID);
+                return;
+            }
+
+            if (!isTransactionGroupListItemType(item)) {
+                return;
+            }
+
+            item.transactions.forEach((transaction) => {
+                maybeQueueProfileHydration(transaction.from?.accountID);
+                maybeQueueProfileHydration(transaction.to?.accountID);
+            });
+        });
+
+        Array.from(accountIDsToHydrate)
+            .slice(0, MAX_PROFILE_HYDRATION_REQUESTS_PER_RENDER)
+            .forEach((accountID) => {
+                requestedProfileAccountIDsRef.current.add(accountID);
+                Log.info('[AvatarDebug][SearchHydration] Requesting public profile for missing avatar', false, {accountID});
+                openPublicProfilePage(accountID);
+            });
+    }, [filteredData, personalDetailsMetadata]);
 
     const hasLoadedAllTransactions = useMemo(() => {
         if (!validGroupBy) {
