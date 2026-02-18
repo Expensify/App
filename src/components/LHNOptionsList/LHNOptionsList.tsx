@@ -23,7 +23,6 @@ import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
-import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -46,8 +45,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
     const reportAttributes = useReportAttributes();
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
-    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: false});
-    const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: false});
@@ -253,19 +250,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             flashListRef.current.scrollToOffset({offset});
         });
     }, [getScrollOffset, route, isWeb]);
-
-    // eslint-disable-next-line rulesdir/prefer-early-return
-    useEffect(() => {
-        if (shouldShowEmptyLHN) {
-            Log.info('Woohoo! All caught up. Was rendered', false, {
-                reportActionsCount: Object.keys(reportActions ?? {}).length,
-                policyCount: Object.keys(policy ?? {}).length,
-                personalDetailsCount: Object.keys(personalDetails ?? {}).length,
-                route,
-                reportsIDsFromUseReportsCount: data.length,
-            });
-        }
-    }, [data.length, shouldShowEmptyLHN, route, reportActions, policy, personalDetails]);
 
     return (
         <View style={[style ?? styles.flex1, shouldShowEmptyLHN ? styles.emptyLHNWrapper : undefined]}>
