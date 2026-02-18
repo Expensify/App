@@ -7,13 +7,14 @@ import usePrevious from '@hooks/usePrevious';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import {getMovedReportID} from '@src/libs/ModifiedExpenseMessage';
-import type {OptionData} from '@src/libs/ReportUtils';
+import {canUserPerformWriteAction, type OptionData} from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import OptionRowLHN from './OptionRowLHN';
 import type {OptionRowLHNDataProps} from './types';
-import {getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
+import {getOneTransactionThreadReportID, getOriginalMessage, getSortedReportActionsForDisplay, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import useNetwork from '@hooks/useNetwork';
 import useReportAttributes from '@hooks/useReportAttributes';
+import {getIOUReportIDOfLastAction} from '@libs/OptionsListUtils';
 
 /*
  * This component gets the data from onyx for the actual
@@ -43,6 +44,7 @@ function OptionRowLHNData({
     const reportID = propsToForward.reportID;
     const {isOffline} = useNetwork();
 
+    const [itemPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${item?.policyID}`, {canBeMissing: true});
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${item?.chatReportID}`, {canBeMissing: true});
     const [itemReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canBeMissing: true});
     const [itemParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${item?.parentReportID}`, {canBeMissing: true});
@@ -63,24 +65,20 @@ function OptionRowLHNData({
         invoiceReceiverPolicyID = itemParentReport.invoiceReceiver.policyID;
     }
 
+    const iouReportIDOfLastAction = getIOUReportIDOfLastAction(item);
     const [itemInvoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`, {canBeMissing: true});
+    const [itemIouReportReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportIDOfLastAction}`, {canBeMissing: true});
 
-    //             const iouReportIDOfLastAction = getIOUReportIDOfLastAction(item);
-    //             const itemIouReportReportActions = iouReportIDOfLastAction ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportIDOfLastAction}`] : undefined;
+    const transactionID = isMoneyRequestAction(itemParentReportAction) ? (getOriginalMessage(itemParentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
+    const [itemTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
+    const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, {canBeMissing: true});
 
-    //             const itemPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${item?.policyID}`];
-    //             const transactionID = isMoneyRequestAction(itemParentReportAction)
-    //                 ? (getOriginalMessage(itemParentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID)
-    //                 : CONST.DEFAULT_NUMBER_ID;
-    //             const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    //             const hasDraftComment =
-    //                 !!draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] &&
-    //                 !draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`]?.match(CONST.REGEX.EMPTY_COMMENT);
+    const hasDraftComment = !!draftComment && !draftComment.match(CONST.REGEX.EMPTY_COMMENT);
 
-    //             const isReportArchived = !!itemReportNameValuePairs?.private_isArchived;
-    //             const canUserPerformWrite = canUserPerformWriteActionUtil(item, isReportArchived);
-    //             const sortedReportActions = getSortedReportActionsForDisplay(itemReportActions, canUserPerformWrite);
-    //             const lastReportAction = sortedReportActions.at(0);
+    const isReportArchived = !!itemReportNameValuePairs?.private_isArchived;
+    const canUserPerformWrite = canUserPerformWriteAction(item, isReportArchived);
+    const sortedReportActions = getSortedReportActionsForDisplay(itemReportActions, canUserPerformWrite);
+    const lastReportAction = sortedReportActions.at(0);
 
     //             // Get the transaction for the last report action
     //             const lastReportActionTransactionID = isMoneyRequestAction(lastReportAction)
