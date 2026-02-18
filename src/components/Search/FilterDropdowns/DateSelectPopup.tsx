@@ -98,24 +98,11 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
         }
 
         if (selectedDateModifier) {
-            // For Range, validate that both dates are selected
-            if (selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
-                const dateValues = searchDatePresetFilterBaseRef.current.getDateValues();
-                const rangeBoundaries = getRangeBoundariesFromFormValue(
-                    dateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE],
-                    dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER],
-                    dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
-                );
-                const hasFrom = !!rangeBoundaries.from;
-                const hasTo = !!rangeBoundaries.to;
-
-                if (!hasFrom || !hasTo) {
-                    setShouldShowRangeError(true);
-                    setTimeout(() => {
-                        scrollViewRef.current?.scrollToEnd({animated: true});
-                    }, 100);
-                    return;
-                }
+            if (!searchDatePresetFilterBaseRef.current.validate()) {
+                setTimeout(() => {
+                    scrollViewRef.current?.scrollToEnd({animated: true});
+                }, 100);
+                return;
             }
 
             // This now returns the updated values synchronously
@@ -209,6 +196,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
                         presets={presets}
                         shouldShowRangeError={shouldShowRangeError}
                         onDateValuesChange={updateTrackedDateValues}
+                        onRangeValidationErrorChange={setShouldShowRangeError}
                     />
                 </View>
                 <View style={[styles.flexRow, styles.gap2, styles.ph5]}>
@@ -251,6 +239,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
                         presets={presets}
                         shouldShowRangeError={shouldShowRangeError}
                         onDateValuesChange={updateTrackedDateValues}
+                        onRangeValidationErrorChange={setShouldShowRangeError}
                     />
                 </View>
                 <View style={[styles.flexRow, styles.mh5, styles.alignItemsCenter, styles.pt1]}>
@@ -341,6 +330,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
                     shouldShowRangeError={shouldShowRangeError}
                     shouldShowRangeErrorInPicker={false}
                     onDateValuesChange={updateTrackedDateValues}
+                    onRangeValidationErrorChange={setShouldShowRangeError}
                 />
             </ScrollView>
             {shouldShowRangeError && selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE && (

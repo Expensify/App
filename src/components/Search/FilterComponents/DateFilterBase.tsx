@@ -125,21 +125,8 @@ function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
         }
 
         if (selectedDateModifier) {
-            // For Range, validate that both dates are selected
-            if (selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
-                const dateValues = searchDatePresetFilterBaseRef.current.getDateValues();
-                const rangeBoundaries = getRangeBoundariesFromFormValue(
-                    dateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE],
-                    dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER],
-                    dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
-                );
-                const hasFrom = !!rangeBoundaries.from;
-                const hasTo = !!rangeBoundaries.to;
-
-                if (!hasFrom || !hasTo) {
-                    setShouldShowRangeError(true);
-                    return;
-                }
+            if (!searchDatePresetFilterBaseRef.current.validate()) {
+                return;
             }
 
             const updatedDateValues = searchDatePresetFilterBaseRef.current.setDateValueOfSelectedDateModifier();
@@ -209,6 +196,7 @@ function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
                     isSearchAdvancedFiltersFormLoading={isSearchAdvancedFiltersFormLoading}
                     shouldShowRangeError={shouldShowRangeError}
                     onDateValuesChange={handleDateValuesChange}
+                    onRangeValidationErrorChange={setShouldShowRangeError}
                     forceVerticalCalendars
                 />
                 {selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE && hasRangeInput && (

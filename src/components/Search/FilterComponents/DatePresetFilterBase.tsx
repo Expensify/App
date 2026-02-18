@@ -32,6 +32,9 @@ type DatePresetFilterBaseHandle = {
 
     /** Resets date values to the provided defaults */
     resetDateValuesToDefault: () => void;
+
+    /** Validates the selected date modifier input */
+    validate: () => boolean;
 };
 
 type DatePresetFilterBaseProps = {
@@ -59,6 +62,9 @@ type DatePresetFilterBaseProps = {
     /** Callback when date values change (useful for parent to track range display text) */
     onDateValuesChange?: (dateValues: SearchDateValues) => void;
 
+    /** Callback when range validation error changes */
+    onRangeValidationErrorChange?: (shouldShowRangeError: boolean) => void;
+
     /** Force vertical stacking of calendars in range picker */
     forceVerticalCalendars?: boolean;
 
@@ -85,6 +91,7 @@ function DatePresetFilterBase({
     shouldShowRangeError = false,
     shouldShowRangeErrorInPicker = true,
     onDateValuesChange,
+    onRangeValidationErrorChange,
     forceVerticalCalendars = false,
     ref,
 }: DatePresetFilterBaseProps) {
@@ -155,6 +162,7 @@ function DatePresetFilterBase({
     const selectDateModifier = useCallback(
         (dateModifier: SearchDateModifier | null) => {
             resetEphemeralDateValue(dateModifier);
+            onRangeValidationErrorChange?.(false);
 
             // When entering Range mode
             if (dateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
@@ -172,8 +180,19 @@ function DatePresetFilterBase({
 
             onSelectDateModifier(dateModifier);
         },
-        [resetEphemeralDateValue, onSelectDateModifier],
+        [resetEphemeralDateValue, onSelectDateModifier, onRangeValidationErrorChange],
     );
+
+    const validate = useCallback(() => {
+        if (selectedDateModifier !== CONST.SEARCH.DATE_MODIFIERS.RANGE) {
+            onRangeValidationErrorChange?.(false);
+            return true;
+        }
+
+        const isValid = !!(rangeEphemeralValues.from && rangeEphemeralValues.to);
+        onRangeValidationErrorChange?.(!isValid);
+        return isValid;
+    }, [onRangeValidationErrorChange, rangeEphemeralValues.from, rangeEphemeralValues.to, selectedDateModifier]);
 
     useImperativeHandle(
         ref,
@@ -185,6 +204,11 @@ function DatePresetFilterBase({
             resetDateValuesToDefault() {
                 dateValuesRef.current = defaultDateValues;
                 updateDateValues(defaultDateValues);
+                onRangeValidationErrorChange?.(false);
+            },
+
+            validate() {
+                return validate();
             },
 
             clearDateValues() {
@@ -196,6 +220,7 @@ function DatePresetFilterBase({
                 };
                 dateValuesRef.current = clearedValues;
                 updateDateValues(clearedValues);
+                onRangeValidationErrorChange?.(false);
             },
 
             setDateValueOfSelectedDateModifier() {
@@ -231,16 +256,18 @@ function DatePresetFilterBase({
                     dateValuesRef.current = updatedValues;
                     setRangeEphemeralValues({});
                     setDateValue(CONST.SEARCH.DATE_MODIFIERS.RANGE, undefined);
+                    onRangeValidationErrorChange?.(false);
                     return updatedValues;
                 }
 
                 const updatedValues = {...currentDateValues, [selectedDateModifier]: undefined};
                 dateValuesRef.current = updatedValues;
                 setDateValue(selectedDateModifier, undefined);
+                onRangeValidationErrorChange?.(false);
                 return updatedValues;
             },
         }),
-        [selectedDateModifier, defaultDateValues, ephemeralDateValue, rangeEphemeralValues.from, rangeEphemeralValues.to, setDateValue, updateDateValues],
+        [selectedDateModifier, defaultDateValues, ephemeralDateValue, rangeEphemeralValues.from, rangeEphemeralValues.to, setDateValue, updateDateValues, validate, onRangeValidationErrorChange],
     );
 
     const rangeBoundaries = getRangeBoundariesFromFormValue(
