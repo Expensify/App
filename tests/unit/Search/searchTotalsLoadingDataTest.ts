@@ -1,6 +1,6 @@
 /* eslint-disable rulesdir/no-multiple-api-calls */
 import {search} from '@libs/actions/Search';
-import * as API from '@libs/API';
+import {waitForWrites, makeRequestWithSideEffects} from '@libs/API';
 import {READ_COMMANDS} from '@libs/API/types';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
@@ -40,7 +40,7 @@ type SearchRequestData = {
 };
 
 function getMakeRequestWithSideEffectsMock() {
-    return API.makeRequestWithSideEffects as unknown as {
+    return makeRequestWithSideEffects as unknown as {
         mock: {
             calls: Array<[unknown, unknown, SearchRequestData?]>;
         };
@@ -49,7 +49,7 @@ function getMakeRequestWithSideEffectsMock() {
 }
 
 function getWaitForWritesMock() {
-    return API.waitForWrites as unknown as {
+    return waitForWrites as unknown as {
         mockResolvedValue: (value: void) => void;
     };
 }
@@ -90,7 +90,7 @@ describe('search loading totals handling', () => {
             total: null,
             currency: null,
         });
-        expect(API.waitForWrites).toHaveBeenCalledWith(READ_COMMANDS.SEARCH);
+        expect(waitForWrites).toHaveBeenCalledWith(READ_COMMANDS.SEARCH);
     });
 
     it('does not clear totals for initial load when totals are requested', async () => {
