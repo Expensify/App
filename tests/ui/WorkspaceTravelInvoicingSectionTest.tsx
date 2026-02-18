@@ -283,7 +283,7 @@ describe('WorkspaceTravelInvoicingSection', () => {
     });
 
     describe('Offline-first toggle (no loading indicator)', () => {
-        const cardSettingsKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${WORKSPACE_ACCOUNT_ID}` as OnyxKey;
+        const cardSettingsKey = getTravelInvoicingCardSettingsKey(WORKSPACE_ACCOUNT_ID);
 
         it('should NOT show loading indicator when toggle has a pending action (offline-first)', async () => {
             await act(async () => {

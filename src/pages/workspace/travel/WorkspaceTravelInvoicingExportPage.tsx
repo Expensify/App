@@ -1,5 +1,5 @@
 import {endOfMonth, format, startOfMonth} from 'date-fns';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
@@ -28,6 +28,7 @@ import addTrailingForwardSlash from '@libs/UrlUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import CONFIG from '@src/CONFIG';
 
 type WorkspaceTravelInvoicingExportPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TRAVEL_EXPORT>;
 
@@ -35,29 +36,26 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
     const {policyID} = route.params;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {environment} = useEnvironment();
+    const {environment, isDevelopment} = useEnvironment();
     const [travelInvoiceStatement] = useOnyx(ONYXKEYS.TRAVEL_INVOICE_STATEMENT, {canBeMissing: true});
 
     const isGenerating = travelInvoiceStatement?.isGenerating ?? false;
     const prevIsGenerating = usePrevious(isGenerating);
     const [isDownloading, setIsDownloading] = useState(isGenerating);
 
-    const baseURL = addTrailingForwardSlash(getOldDotURLFromEnvironment(environment));
+    const baseURL = addTrailingForwardSlash(isDevelopment ? CONFIG.EXPENSIFY.DEFAULT_API_ROOT : getOldDotURLFromEnvironment(environment));
 
     const searchDatePresetFilterBaseRef = useRef<SearchDatePresetFilterBaseHandle>(null);
     const [selectedDateModifier, setSelectedDateModifier] = useState<SearchDateModifier | null>(null);
 
     const presets: SearchDatePreset[] = [CONST.SEARCH.DATE_PRESETS.THIS_MONTH, CONST.SEARCH.DATE_PRESETS.LAST_MONTH];
 
-    const defaultDateValues = useMemo(
-        (): SearchDateValues => ({
-            // Default to This month
-            [CONST.SEARCH.DATE_MODIFIERS.ON]: CONST.SEARCH.DATE_PRESETS.THIS_MONTH,
-            [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: undefined,
-            [CONST.SEARCH.DATE_MODIFIERS.AFTER]: undefined,
-        }),
-        [],
-    );
+    const getDefaultDateValues = (): SearchDateValues => ({
+        // Default to This month
+        [CONST.SEARCH.DATE_MODIFIERS.ON]: CONST.SEARCH.DATE_PRESETS.THIS_MONTH,
+        [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: undefined,
+        [CONST.SEARCH.DATE_MODIFIERS.AFTER]: undefined,
+    });
 
     /**
      * Computes startDate and endDate in YYYY-MM-DD format from the current date selection.
@@ -132,10 +130,10 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
         }
     }, [prevIsGenerating, isGenerating, processDownload, travelInvoiceStatement, policyID, getDateRange]);
 
-    const handleDownloadCSV = useCallback(() => {
+    const handleDownloadCSV = () => {
         const {startDate, endDate} = getDateRange();
         exportTravelInvoiceStatementCSV(policyID, startDate, endDate, translate);
-    }, [getDateRange, policyID, translate]);
+    };
 
     function getComputedTitle() {
         if (selectedDateModifier) {
@@ -152,16 +150,16 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
         Navigation.goBack();
     };
 
-    const save = useCallback(() => {
+    const save = () => {
         if (!searchDatePresetFilterBaseRef.current || !selectedDateModifier) {
             return;
         }
 
         searchDatePresetFilterBaseRef.current.setDateValueOfSelectedDateModifier();
         setSelectedDateModifier(null);
-    }, [selectedDateModifier]);
+    };
 
-    const reset = useCallback(() => {
+    const reset = () => {
         if (!searchDatePresetFilterBaseRef.current) {
             return;
         }
@@ -173,9 +171,10 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
         }
 
         searchDatePresetFilterBaseRef.current.clearDateValues();
-    }, [selectedDateModifier]);
+    };
 
     const computedTitle = getComputedTitle();
+    const defaultDateValues = getDefaultDateValues();
 
     return (
         <ScreenWrapper

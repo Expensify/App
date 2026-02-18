@@ -287,7 +287,7 @@ describe('TravelInvoicingUtils', () => {
             expect(result).toBe(CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY);
         });
     });
-    
+
     describe('getTravelInvoicingCard', () => {
         it('Should return undefined when cardList is undefined', () => {
             const result = getTravelInvoicingCard(undefined);
