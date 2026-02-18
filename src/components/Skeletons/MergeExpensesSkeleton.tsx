@@ -1,6 +1,6 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {Rect} from 'react-native-svg';
+import SkeletonRect from '@components/SkeletonRect';
 import useContainerWidth from '@hooks/useContainerWidth';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -26,45 +26,35 @@ function MergeExpensesSkeleton({fixedNumItems, speed, reasonAttributes}: MergeEx
     const skeletonItem = useCallback(() => {
         return (
             <>
-                <Rect
+                <SkeletonRect
                     transform={[{translateX: 12}, {translateY: 12}]}
                     width={36}
                     height={40}
-                    rx={4}
-                    ry={4}
                 />
-                <Rect
+                <SkeletonRect
                     transform={[{translateX: 66}, {translateY: 22}]}
                     width={longBarWidth}
                     height={barHeight}
-                    rx={2}
-                    ry={2}
                 />
 
-                <Rect
+                <SkeletonRect
                     transform={[{translateX: 66}, {translateY: 36}]}
                     width={mediumBarWidth}
                     height={barHeight}
-                    rx={2}
-                    ry={2}
                 />
 
-                <Rect
+                <SkeletonRect
                     // We have to calculate this value to make sure the element is aligned to the right border.
                     transform={[{translateX: pageWidth - 12 - mediumBarWidth}, {translateY: 22}]}
                     width={mediumBarWidth}
                     height={barHeight}
-                    rx={2}
-                    ry={2}
                 />
 
-                <Rect
+                <SkeletonRect
                     // We have to calculate this value to make sure the element is aligned to the right border.
                     transform={[{translateX: pageWidth - 12 - shortBarWidth}, {translateY: 36}]}
                     width={shortBarWidth}
                     height={barHeight}
-                    rx={2}
-                    ry={2}
                 />
             </>
         );

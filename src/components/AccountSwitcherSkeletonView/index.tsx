@@ -1,7 +1,8 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {Circle, Rect} from 'react-native-svg';
+import {Circle} from 'react-native-svg';
+import SkeletonRect from '@components/SkeletonRect';
 import type {ValueOf} from 'type-fest';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -52,19 +53,15 @@ function AccountSwitcherSkeletonView({shouldAnimate = true, avatarSize = CONST.A
                     cy={avatarPlaceholderRadius}
                     r={avatarPlaceholderRadius}
                 />
-                <Rect
+                <SkeletonRect
                     transform={[{translateX: rectXTranslation}, {translateY: 6}]}
                     width="45%"
                     height="8"
-                    rx={2}
-                    ry={2}
                 />
-                <Rect
+                <SkeletonRect
                     transform={[{translateX: rectXTranslation}, {translateY: 26}]}
                     width="55%"
                     height="8"
-                    rx={2}
-                    ry={2}
                 />
             </SkeletonViewContentLoader>
         </View>

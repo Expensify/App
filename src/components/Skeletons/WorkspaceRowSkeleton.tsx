@@ -1,5 +1,5 @@
 import React from 'react';
-import {Rect} from 'react-native-svg';
+import SkeletonRect from '@components/SkeletonRect';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -37,56 +37,43 @@ function WorkspaceRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpac
             itemViewStyle={[styles.highlightBG, styles.mb2, styles.br3, styles.ml5]}
             renderSkeletonItem={() => (
                 <>
-                    <Rect
+                    <SkeletonRect
                         transform={[{translateX: 12}, {translateY: 12}]}
-                        rx={5}
-                        ry={5}
+                        borderRadius={5}
                         width={36}
                         height={40}
                     />
-                    <Rect
+                    <SkeletonRect
                         transform={[{translateX: 66}, {translateY: 22}]}
                         width={longBarWidth}
                         height={barHeight}
-                        rx={2}
-                        ry={2}
                     />
-                    <Rect
+                    <SkeletonRect
                         transform={[{translateX: 66}, {translateY: 36}]}
                         width={shortBarWidth}
                         height={barHeight}
-                        rx={2}
-                        ry={2}
                     />
                     {!shouldUseNarrowLayout && (
                         <>
-                            <Rect
+                            <SkeletonRect
                                 transform={[{translateX: 66 + partWidth}, {translateY: 22}]}
                                 width={longBarWidth}
                                 height={barHeight}
-                                rx={2}
-                                ry={2}
                             />
-                            <Rect
+                            <SkeletonRect
                                 transform={[{translateX: 66 + partWidth}, {translateY: 36}]}
                                 width={shortBarWidth}
                                 height={barHeight}
-                                rx={2}
-                                ry={2}
                             />
-                            <Rect
+                            <SkeletonRect
                                 transform={[{translateX: 66 + partWidth * 2}, {translateY: 22}]}
                                 width={longBarWidth}
                                 height={barHeight}
-                                rx={2}
-                                ry={2}
                             />
-                            <Rect
+                            <SkeletonRect
                                 transform={[{translateX: 66 + partWidth * 2}, {translateY: 36}]}
                                 width={shortBarWidth}
                                 height={barHeight}
-                                rx={2}
-                                ry={2}
                             />
                         </>
                     )}

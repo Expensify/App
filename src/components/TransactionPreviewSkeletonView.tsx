@@ -1,11 +1,11 @@
 import React from 'react';
 import {View} from 'react-native';
-import {Rect} from 'react-native-svg';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
+import SkeletonRect from './SkeletonRect';
 import SkeletonViewContentLoader from './SkeletonViewContentLoader';
 
 type TransactionPreviewSkeletonViewProps = {
@@ -32,26 +32,20 @@ function TransactionPreviewSkeletonView({transactionPreviewWidth, reasonAttribut
                 backgroundColor={theme.skeletonLHNIn}
                 foregroundColor={theme.skeletonLHNOut}
             >
-                <Rect
+                <SkeletonRect
                     transform={[{translateY: 4}]}
                     width="64"
                     height="8"
-                    rx={2}
-                    ry={2}
                 />
-                <Rect
+                <SkeletonRect
                     transform={[{translateY: 24}]}
                     width={widthOfTheLeftSkeleton}
                     height="20"
-                    rx={4}
-                    ry={4}
                 />
-                <Rect
+                <SkeletonRect
                     transform={[{translateY: 54.75}]}
                     width="80"
                     height="7"
-                    rx={2}
-                    ry={2}
                 />
             </SkeletonViewContentLoader>
             <View style={[styles.r0, styles.b0, styles.p4, styles.mtn1, styles.pAbsolute]}>
@@ -61,12 +55,10 @@ function TransactionPreviewSkeletonView({transactionPreviewWidth, reasonAttribut
                     foregroundColor={theme.skeletonLHNOut}
                     backgroundColor={theme.skeletonLHNIn}
                 >
-                    <Rect
+                    <SkeletonRect
                         transform={[{translateY: 24}]}
                         width={widthOfTheRightSkeleton}
                         height="20"
-                        rx={4}
-                        ry={4}
                     />
                 </SkeletonViewContentLoader>
             </View>

@@ -1,6 +1,6 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {Rect} from 'react-native-svg';
+import SkeletonRect from '@components/SkeletonRect';
 import useContainerWidth from '@hooks/useContainerWidth';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -47,33 +47,25 @@ function UnreportedExpensesSkeleton({fixedNumberOfItems, reasonAttributes}: Unre
         (args: {itemIndex: number}) => {
             return (
                 <>
-                    <Rect
+                    <SkeletonRect
                         transform={[{translateX: 12}, {translateY: 22}]}
                         width={20}
                         height={20}
-                        rx={4}
-                        ry={4}
                     />
-                    <Rect
+                    <SkeletonRect
                         transform={[{translateX: 44}, {translateY: 12}]}
                         width={36}
                         height={40}
-                        rx={4}
-                        ry={4}
                     />
-                    <Rect
+                    <SkeletonRect
                         transform={[{translateX: 92}, {translateY: 26}]}
                         width={getMessageSkeletonWidth(args.itemIndex)}
                         height={12}
-                        rx={4}
-                        ry={4}
                     />
-                    <Rect
+                    <SkeletonRect
                         transform={[{translateX: pageWidth - 12 - getExpenseAmountSkeletonWidth(args.itemIndex)}, {translateY: 26}]}
                         width={getExpenseAmountSkeletonWidth(args.itemIndex)}
                         height={12}
-                        rx={4}
-                        ry={4}
                     />
                 </>
             );

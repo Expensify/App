@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import {Circle, Rect} from 'react-native-svg';
+import {Circle} from 'react-native-svg';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -11,6 +11,7 @@ import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import Icon from './Icon';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
+import SkeletonRect from './SkeletonRect';
 import SkeletonViewContentLoader from './SkeletonViewContentLoader';
 
 type ReportHeaderSkeletonViewProps = {
@@ -61,19 +62,15 @@ function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () 
                         cy={height / 2}
                         r={radius}
                     />
-                    <Rect
+                    <SkeletonRect
                         transform={[{translateX: 55}, {translateY: circleTopY + 8}]}
                         width="30%"
                         height="8"
-                        rx={2}
-                        ry={2}
                     />
-                    <Rect
+                    <SkeletonRect
                         transform={[{translateX: 55}, {translateY: circleBottomY - 12}]}
                         width="40%"
                         height="8"
-                        rx={2}
-                        ry={2}
                     />
                 </SkeletonViewContentLoader>
             </View>

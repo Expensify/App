@@ -1,8 +1,8 @@
 import React from 'react';
-import {Rect} from 'react-native-svg';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+import SkeletonRect from './SkeletonRect';
 import SkeletonViewContentLoader from './SkeletonViewContentLoader';
 
 function MoneyRequestSkeletonView() {
@@ -17,29 +17,23 @@ function MoneyRequestSkeletonView() {
             backgroundColor={theme.skeletonLHNIn}
             foregroundColor={theme.skeletonLHNOut}
         >
-            <Rect
+            <SkeletonRect
                 x="16"
                 y="20"
                 width="40"
                 height="8"
-                rx={2}
-                ry={2}
             />
-            <Rect
+            <SkeletonRect
                 x="16"
                 y="46"
                 width="120"
                 height="20"
-                rx={4}
-                ry={4}
             />
-            <Rect
+            <SkeletonRect
                 x="16"
                 y="78"
                 width="80"
                 height="8"
-                rx={2}
-                ry={2}
             />
         </SkeletonViewContentLoader>
     );

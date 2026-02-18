@@ -1,5 +1,6 @@
 import React from 'react';
-import {Circle, Rect} from 'react-native-svg';
+import {Circle} from 'react-native-svg';
+import SkeletonRect from '@components/SkeletonRect';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -43,25 +44,21 @@ function CardRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEn
                         cy={32}
                         r={20}
                     />
-                    <Rect
+                    <SkeletonRect
                         transform={[{translateX: 66}, {translateY: 22}]}
                         width={longBarWidth}
                         height={barHeight}
-                        rx={2}
-                        ry={2}
                     />
 
-                    <Rect
+                    <SkeletonRect
                         transform={[{translateX: 66}, {translateY: 36}]}
                         width={shortBarWidth}
                         height={barHeight}
-                        rx={2}
-                        ry={2}
                     />
 
                     {!shouldUseNarrowLayout && (
                         <>
-                            <Rect
+                            <SkeletonRect
                                 // We have to calculate this value to make sure the element is aligned to the button on the right side.
                                 transform={[
                                     {
@@ -71,11 +68,9 @@ function CardRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEn
                                 ]}
                                 width={20}
                                 height={barHeight}
-                                rx={2}
-                                ry={2}
                             />
 
-                            <Rect
+                            <SkeletonRect
                                 // We have to calculate this value to make sure the element is aligned to the right border.
                                 transform={[
                                     {
@@ -85,8 +80,6 @@ function CardRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEn
                                 ]}
                                 width={50}
                                 height={barHeight}
-                                rx={2}
-                                ry={2}
                             />
                         </>
                     )}
