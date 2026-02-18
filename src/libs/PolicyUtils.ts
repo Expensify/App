@@ -9,6 +9,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {
+    BankAccountList,
     OnyxInputOrEntry,
     PersonalDetailsList,
     Policy,
@@ -426,15 +427,27 @@ function hasVerifiedBusinessBankAccount(policy: OnyxInputOrEntry<Policy>): boole
     return !!policy?.achAccount?.bankAccountID && policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
 }
 
-function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | undefined): boolean {
+function hasBankAccountShareeAccess(policy: OnyxInputOrEntry<Policy>, login: string | undefined, bankAccountList: OnyxEntry<BankAccountList>): boolean {
+    const bankAccountID = policy?.achAccount?.bankAccountID;
+    const bankAccount = bankAccountID ? bankAccountList?.[bankAccountID] : null;
+    return !!login && !!bankAccount?.accountData?.sharees?.includes(login);
+}
+
+/**
+ * Checks if the current user can pay for a given policy, based on VBBA status
+ * and optionally bank account sharees access.
+ *
+ * Note: This is a policy-level check used for search suggestions and sidebar visibility.
+ * For report-level pay eligibility, see isPayer() in ReportUtils.ts.
+ */
+function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | undefined, bankAccountList?: OnyxEntry<BankAccountList>): boolean {
     if (!policy) {
         return false;
     }
 
     const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
     const isReimburser = policy.reimburser === currentUserLogin;
-
-    if (!hasVerifiedBusinessBankAccount(policy)) {
+    if (!hasVerifiedBusinessBankAccount(policy) && !hasBankAccountShareeAccess(policy, currentUserLogin, bankAccountList)) {
         return false;
     }
 
@@ -2067,6 +2080,7 @@ export {
     getTagNamesFromTagsLists,
     getTagApproverRule,
     getDomainNameForPolicy,
+    hasBankAccountShareeAccess,
     hasVerifiedBusinessBankAccount,
     hasUnsupportedIntegration,
     hasSupportedOnlyOnOldDotIntegration,

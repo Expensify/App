@@ -159,6 +159,7 @@ import {
     getPolicyRole,
     getRuleApprovers,
     getSubmitToAccountID,
+    hasBankAccountShareeAccess,
     hasDependentTags as hasDependentTagsPolicyUtils,
     isExpensifyTeam,
     isInstantSubmitEnabled,
@@ -2775,12 +2776,7 @@ function isPayer(
             // If user is the reimburser, or a policy admin with access to the business bank account via sharees, they can pay.
             const isReimburser = currentUserEmailParam === policy?.achAccount?.reimburser;
 
-            // Check if the current user has access to the bank account via sharees
-            const bankAccountID = policy?.achAccount?.bankAccountID;
-            const bankAccount = bankAccountID ? bankAccountList?.[bankAccountID] : null;
-            const hasAccessToBankAccount = currentUserEmailParam && bankAccount?.accountData?.sharees ? bankAccount.accountData.sharees.includes(currentUserEmailParam) : false;
-
-            return isReimburser || (isAdmin && hasAccessToBankAccount);
+            return isReimburser || (isAdmin && hasBankAccountShareeAccess(policy, currentUserEmailParam, bankAccountList));
         }
         if (reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL || onlyShowPayElsewhere) {
             return isAdmin;
