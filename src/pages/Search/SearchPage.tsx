@@ -89,6 +89,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Report, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SearchPageNarrow from './SearchPageNarrow';
 import SearchPageWide from './SearchPageWide';
 
@@ -182,9 +183,13 @@ function SearchPage({route}: SearchPageProps) {
         ],
         [selectedTransactions],
     );
-    const selectedReportIDs = Object.values(selectedReports)
-        .map((report) => report.reportID)
-        .filter((reportID) => reportID !== undefined);
+    const selectedReportIDs = useMemo(
+        () =>
+            Object.values(selectedReports)
+                .map((report) => report.reportID)
+                .filter((reportID) => reportID !== undefined),
+        [selectedReports],
+    );
     const isCurrencySupportedBulkWallet = isCurrencySupportWalletBulkPay(selectedReports, selectedTransactions);
 
     // Collate a list of policyIDs from the selected transactions
@@ -388,6 +393,8 @@ function SearchPage({route}: SearchPageProps) {
         showConfirmModal,
         translate,
         selectedTransactionsKeys,
+        selectedTransactionReportIDs,
+        selectedReportIDs,
         status,
         hash,
         selectedReports,
