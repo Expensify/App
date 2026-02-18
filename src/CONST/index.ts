@@ -7931,6 +7931,7 @@ const CONST = {
         HAS_EMPLOYEE_CARD_FEED_ERRORS: 'hasEmployeeCardFeedErrors',
         HAS_POLICY_ADMIN_CARD_FEED_ERRORS: 'hasPolicyAdminCardFeedErrors',
         HAS_DOMAIN_ERRORS: 'hasDomainErrors',
+        HAS_LOCKED_BANK_ACCOUNT: 'hasLockedBankAccount',
     },
 
     DEBUG: {
