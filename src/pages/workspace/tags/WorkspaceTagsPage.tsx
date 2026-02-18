@@ -864,7 +864,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             shouldSingleExecuteRowSelect={!canSelectMultiple}
                             shouldUseDefaultRightHandSideCheckmark={false}
                             customListHeaderContent={headerContent}
-                            showListEmptyContent={false}
+                            shouldShowListEmptyContent={false}
                             showScrollIndicator={false}
                             onCheckboxPress={toggleTag}
                             isSelected={isTagSelected}

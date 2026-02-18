@@ -152,7 +152,7 @@ function SearchFiltersCardPage() {
                             shouldPreventDefaultFocusOnSelectRow={false}
                             shouldShowTextInput={shouldShowSearchInput}
                             textInputOptions={textInputOptions}
-                            showLoadingPlaceholder={
+                            shouldShowLoadingPlaceholder={
                                 isLoadingOnyxValue(userCardListMetadata, workspaceCardFeedsMetadata, searchAdvancedFiltersFormMetadata, policiesMetadata) || !didScreenTransitionEnd
                             }
                             shouldStopPropagation
