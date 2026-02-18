@@ -29,7 +29,17 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ImportedSpreadsheetMemberData, InvitedEmailsToAccountIDs, Policy, PolicyEmployee, PolicyEmployeeList, PolicyOwnershipChangeChecks, Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type {
+    ImportedSpreadsheetMemberData,
+    InvitedEmailsToAccountIDs,
+    Policy,
+    PolicyEmployee,
+    PolicyEmployeeList,
+    PolicyOwnershipChangeChecks,
+    Report,
+    ReportAction,
+    ReportActions,
+} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ApprovalRule} from '@src/types/onyx/Policy';
@@ -1359,7 +1369,14 @@ function buildFilteredMembersCSV(employeeList: PolicyEmployeeList, policyOwner: 
     return rows.join('\n');
 }
 
-function downloadMembersCSV(policyID: string, onDownloadFailed: () => void, translate: LocalizedTranslate, employeeList?: PolicyEmployeeList, policyOwner?: string, currentUserLogin?: string) {
+function downloadMembersCSV(
+    policyID: string,
+    onDownloadFailed: () => void,
+    translate: LocalizedTranslate,
+    employeeList?: PolicyEmployeeList,
+    policyOwner?: string,
+    currentUserLogin?: string,
+) {
     // When employee list data is available, build the CSV client-side to filter out Expensify team members
     if (employeeList && policyOwner !== undefined && currentUserLogin !== undefined && typeof document !== 'undefined') {
         const csvContent = buildFilteredMembersCSV(employeeList, policyOwner, currentUserLogin);
