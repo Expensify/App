@@ -154,34 +154,32 @@ function Composer({
 
             event.preventDefault();
 
-            const TEXT_HTML = 'text/html';
-
-            const clipboardDataHtml = event.clipboardData?.getData(TEXT_HTML) ?? '';
+            const files: Array<FileObject | undefined> = [];
 
             // If paste contains files, then trigger file management
             if (event.clipboardData?.files.length && event.clipboardData.files.length > 0) {
                 // Prevent the default so we do not post the file name into the text box
-                const files = Array.from(event.clipboardData.files) as FileObject[];
-                onPasteFile(files);
-                return true;
+                files.push(...(Array.from(event.clipboardData.files) as FileObject[]));
             }
 
             // If paste contains base64 image
+
+            const clipboardDataHtml = event.clipboardData?.getData(CONST.SHARE_FILE_MIMETYPE.HTML) ?? '';
             if (clipboardDataHtml?.includes(CONST.IMAGE_BASE64_MATCH)) {
                 const domparser = new DOMParser();
                 const pastedHTML = clipboardDataHtml;
-                const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML)?.images;
+                const embeddedImages = domparser.parseFromString(pastedHTML, CONST.SHARE_FILE_MIMETYPE.HTML)?.images;
 
-                const files = Array.from(embeddedImages).map((image) => base64ToFile(image.src, 'image.png')) as FileObject[];
-                onPasteFile(files);
-                return true;
+                if (embeddedImages.length > 0) {
+                    files.push(...(Array.from(embeddedImages).map((image) => base64ToFile(image.src, 'image.png')) as FileObject[]));
+                }
             }
 
             // If paste contains image from Google Workspaces ex: Sheets, Docs, Slide, etc
             if (clipboardDataHtml?.includes(CONST.GOOGLE_DOC_IMAGE_LINK_MATCH)) {
                 const domparser = new DOMParser();
                 const pastedHTML = clipboardDataHtml;
-                const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML).images;
+                const embeddedImages = domparser.parseFromString(pastedHTML, CONST.SHARE_FILE_MIMETYPE.HTML).images;
 
                 const filePromises = Array.from(embeddedImages).map((image) => {
                     if (image.src.includes(CONST.GOOGLE_DOC_IMAGE_LINK_MATCH)) {
@@ -196,13 +194,17 @@ function Composer({
                 });
 
                 Promise.all(filePromises)
-                    .then((files) => {
-                        const validFiles = files.filter((file) => file !== undefined);
-                        onPasteFile(validFiles);
+                    .then((f) => {
+                        files.push(...f);
                     })
                     .catch((error) => {
                         Log.warn('Pasted files could not be validated', {error});
                     });
+            }
+
+            const validFiles = files.filter((file) => file !== undefined);
+            if (validFiles.length > 0) {
+                onPasteFile(validFiles);
                 return true;
             }
 

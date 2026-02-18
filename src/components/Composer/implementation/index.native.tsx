@@ -109,13 +109,16 @@ function Composer({
                     .finally(() => file);
             });
 
+            let files: FileObject[] = [];
             Promise.all(filePromises)
-                .then((files) => {
-                    const validFiles = files.filter((file) => file !== undefined);
-                    onPasteFile(validFiles);
+                .then((f) => {
+                    files = f.filter((file) => file !== undefined);
                 })
                 .catch((error) => {
                     Log.warn('Pasted files could not be validated', {error});
+                })
+                .finally(() => {
+                    onPasteFile(files);
                 });
         },
         [onPasteFile],
