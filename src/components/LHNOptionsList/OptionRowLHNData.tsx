@@ -80,13 +80,14 @@ function OptionRowLHNData({
     const sortedReportActions = getSortedReportActionsForDisplay(itemReportActions, canUserPerformWrite);
     const lastReportAction = sortedReportActions.at(0);
 
-    //             // Get the transaction for the last report action
-    //             const lastReportActionTransactionID = isMoneyRequestAction(lastReportAction)
-    //                 ? (getOriginalMessage(lastReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID)
-    //                 : CONST.DEFAULT_NUMBER_ID;
-    //             const lastReportActionTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${lastReportActionTransactionID}`];
+    // Get the transaction for the last report action
+    const lastReportActionTransactionID = isMoneyRequestAction(lastReportAction)
+        ? (getOriginalMessage(lastReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID)
+        : CONST.DEFAULT_NUMBER_ID;
 
-    //             // SidebarUtils.getOptionData in OptionRowLHNData does not get re-evaluated when the linked task report changes, so we have the lastMessageTextFromReport evaluation logic here
+    const [lastReportActionTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${lastReportActionTransactionID}`, {canBeMissing: true});
+
+    // SidebarUtils.getOptionData in OptionRowLHNData does not get re-evaluated when the linked task report changes, so we have the lastMessageTextFromReport evaluation logic here
     //             let lastActorDetails: Partial<PersonalDetails> | null = item?.lastActorAccountID && personalDetails?.[item.lastActorAccountID] ? personalDetails[item.lastActorAccountID] : null;
     //             if (!lastActorDetails && lastReportAction) {
     //                 const lastActorDisplayName = lastReportAction?.person?.[0]?.text;
@@ -133,6 +134,8 @@ function OptionRowLHNData({
     //                 lastActionReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${lastActionOriginalMessage?.reportID}`];
     //             }
 
+    // =====================
+    // START OLD CODE
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const isReportFocused = isOptionFocused && currentReportIDValue === reportID;
     const optionItemRef = useRef<OptionData | undefined>(undefined);
