@@ -252,7 +252,7 @@ const translations: TranslationDeepObject<typeof en> = {
         lastName: '姓',
         scanning: 'スキャン中',
         analyzing: '分析中…',
-        thinking: '考え中...',
+        thinking: 'Concierge が考えています...',
         addCardTermsOfService: 'Expensify 利用規約',
         perPerson: '1人あたり',
         phone: '電話',

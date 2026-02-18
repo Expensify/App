@@ -252,7 +252,7 @@ const translations = {
         lastName: 'Last name',
         scanning: 'Scanning',
         analyzing: 'Analyzing...',
-        thinking: 'Thinking...',
+        thinking: 'Concierge is thinking...',
         addCardTermsOfService: 'Expensify Terms of Service',
         perPerson: 'per person',
         phone: 'Phone',

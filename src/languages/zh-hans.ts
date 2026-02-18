@@ -251,7 +251,7 @@ const translations: TranslationDeepObject<typeof en> = {
         lastName: '姓氏',
         scanning: '正在扫描',
         analyzing: '正在分析…',
-        thinking: '思考中...',
+        thinking: 'Concierge 正在思考...',
         addCardTermsOfService: 'Expensify 服务条款',
         perPerson: '每人',
         phone: '电话',

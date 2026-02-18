@@ -164,14 +164,16 @@ function ConciergeThinkingMessage({report, action, reasoningHistory, statusLabel
                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
                         <Animated.Text style={[styles.chatItemMessage, styles.colorMuted, statusLabelAnimatedStyle]}>{statusLabel}</Animated.Text>
 
-                        <View style={styles.ml2}>
-                            <Icon
-                                src={isExpanded ? icons.DownArrow : icons.UpArrow}
-                                fill={theme.icon}
-                                width={variables.iconSizeXXSmall}
-                                height={variables.iconSizeXXSmall}
-                            />
-                        </View>
+                        {!!historyLength && (
+                            <View style={styles.ml2}>
+                                <Icon
+                                    src={isExpanded ? icons.DownArrow : icons.UpArrow}
+                                    fill={theme.icon}
+                                    width={variables.iconSizeXXSmall}
+                                    height={variables.iconSizeXXSmall}
+                                />
+                            </View>
+                        )}
                     </View>
                 </PressableWithoutFeedback>
 
@@ -189,13 +191,12 @@ function ConciergeThinkingMessage({report, action, reasoningHistory, statusLabel
                         >
                             <View style={[styles.mt4, styles.borderLeft, styles.pl4, styles.ml1, {borderLeftWidth: 2}]}>
                                 {reasoningHistory?.map((entry, index) => {
-                                    const reasoning = Parser.replace(entry.reasoning).replaceAll(/\*(.*?)\*/g, '<strong>$1</strong>');
                                     return (
                                         <View
                                             key={`reasoning-${entry.timestamp}-${entry.loopCount}`}
                                             style={[index < historyLength - 1 ? styles.mb4 : styles.mb0]}
                                         >
-                                            <RenderHTML html={`<comment><muted-text>${reasoning}</muted-text></comment>`} />
+                                            <RenderHTML html={`<comment><muted-text>${Parser.replace(entry.reasoning)}</muted-text></comment>`} />
                                         </View>
                                     );
                                 })}
