@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import {Rect} from 'react-native-svg';
+import SkeletonRect from '@components/SkeletonRect';
 import ItemListSkeletonView from '@components/Skeletons/ItemListSkeletonView';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -55,16 +55,13 @@ function SuggestedSearchSkeleton() {
 
         return (
             <>
-                <Rect
-                    rx={icon.r}
-                    ry={icon.r}
+                <SkeletonRect
+                    borderRadius={icon.r}
                     width={icon.w}
                     height={icon.h}
                     transform={[{translateX: icon.xVal}, {translateY: icon.yVal}]}
                 />
-                <Rect
-                    rx={2}
-                    ry={2}
+                <SkeletonRect
                     width={label.w}
                     height={label.h}
                     transform={[{translateX: label.xVal}, {translateY: label.yVal}]}
@@ -84,9 +81,7 @@ function SuggestedSearchSkeleton() {
                 foregroundColor={theme.skeletonLHNOut}
                 style={[styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
             >
-                <Rect
-                    rx={2}
-                    ry={2}
+                <SkeletonRect
                     width={LHN.header.w}
                     height={LHN.header.h}
                     transform={[{translateX: LHN.header.xVal}, {translateY: LHN.header.yVal}]}

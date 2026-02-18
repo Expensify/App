@@ -1,6 +1,6 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {Rect} from 'react-native-svg';
+import SkeletonRect from '@components/SkeletonRect';
 import ItemListSkeletonView from '@components/Skeletons/ItemListSkeletonView';
 import useContainerWidth from '@hooks/useContainerWidth';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -45,29 +45,25 @@ function ForYouSkeleton() {
 
             return (
                 <>
-                    <Rect
+                    <SkeletonRect
                         x={iconX}
                         y={iconY}
                         width={40}
                         height={40}
-                        rx={8}
-                        ry={8}
+                        borderRadius={8}
                     />
-                    <Rect
+                    <SkeletonRect
                         x={titleX}
                         y={26}
                         width={titleWidth}
                         height={12}
-                        rx={4}
-                        ry={4}
                     />
-                    <Rect
+                    <SkeletonRect
                         x={buttonX}
                         y={buttonY}
                         width={buttonWidth}
                         height={buttonHeight}
-                        rx={14}
-                        ry={14}
+                        borderRadius={14}
                     />
                 </>
             );
