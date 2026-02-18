@@ -2036,7 +2036,7 @@ function createAndOpenSearchTransactionThread(
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getReportActionsSections(data: OnyxTypes.SearchResults['data']): [ReportActionListItemType[], number] {
+function getReportActionsSections(data: OnyxTypes.SearchResults['data'], currentAccountID: number): [ReportActionListItemType[], number] {
     const reportActionItems: ReportActionListItemType[] = [];
 
     const dataKeys = Object.keys(data);
@@ -2083,7 +2083,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): [Repor
                         reportNameValuePairsFromData,
                         data.personalDetailsList,
                         reportActionsFromData,
-                        undefined,
+                        currentAccountID,
                         reportNameValuePairs?.private_isArchived,
                     ),
                     formattedFrom: from?.displayName ?? from?.login ?? '',
@@ -2834,7 +2834,7 @@ function getSections({
     allReportMetadata,
 }: GetSectionsParams) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
-        return getReportActionsSections(data);
+        return getReportActionsSections(data, currentAccountID);
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
         return getTaskSections(data, formatPhoneNumber, archivedReportsIDList);
