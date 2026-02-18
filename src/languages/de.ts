@@ -576,6 +576,14 @@ const translations: TranslationDeepObject<typeof en> = {
         week: 'Woche',
         year: 'Jahr',
         quarter: 'Quartal',
+        expensifyLogo: 'Expensify-Logo',
+    },
+    socials: {
+        podcast: 'Folgen Sie uns auf Podcast',
+        twitter: 'Folgen Sie uns auf Twitter',
+        instagram: 'Folgen Sie uns auf Instagram',
+        facebook: 'Folgen Sie uns auf Facebook',
+        linkedin: 'Folgen Sie uns auf LinkedIn',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -683,6 +691,15 @@ const translations: TranslationDeepObject<typeof en> = {
             rejectAuthentication: 'Authentifizierung ablehnen',
             test: 'Test',
             biometricsAuthentication: 'Biometrische Authentifizierung',
+            authType: {
+                unknown: 'Unbekannt',
+                none: 'Keine',
+                credentials: 'Anmeldedaten',
+                biometrics: 'Biometrie',
+                faceId: 'Face ID',
+                touchId: 'Touch ID',
+                opticId: 'Optic ID',
+            },
         },
         pleaseEnableInSystemSettings: {
             start: 'Bitte aktiviere die Gesichts-/Fingerabdrucküberprüfung oder richte einen Gerätecode auf deinem Gerät ein',
@@ -702,7 +719,6 @@ const translations: TranslationDeepObject<typeof en> = {
             biometrics: 'Aktiviere eine schnelle, sichere Verifizierung mit deinem Gesicht oder Fingerabdruck. Keine Passwörter oder Codes erforderlich.',
         },
         revoke: {
-            remove: 'Entfernen',
             title: 'Gesicht/Fingerabdruck & Passkeys',
             explanation:
                 'Gesichts-/Fingerabdruck- oder Passkey-Verifizierung ist auf einem oder mehreren Geräten aktiviert. Das Widerrufen des Zugriffs erfordert für die nächste Verifizierung auf jedem Gerät einen magischen Code.',
@@ -711,11 +727,13 @@ const translations: TranslationDeepObject<typeof en> = {
             noDevices: 'Sie haben keine Geräte für die Überprüfung per Gesicht/Fingerabdruck oder Passkey registriert. Wenn Sie welche registrieren, können Sie den Zugriff hier widerrufen.',
             dismiss: 'Verstanden',
             error: 'Anfrage fehlgeschlagen. Versuche es später noch einmal.',
+            revoke: 'Widerrufen',
         },
         unsupportedDevice: {
             unsupportedDevice: 'Nicht unterstütztes Gerät',
             pleaseDownloadMobileApp: `<centered-text><muted-text> Diese Aktion wird auf deinem Gerät nicht unterstützt. Bitte lade die Expensify-App aus dem <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> oder dem <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> herunter und versuche es erneut.</muted-text></centered-text>`,
         },
+        verificationFailed: 'Überprüfung fehlgeschlagen',
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -1608,30 +1626,30 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Warte darauf, dass <strong>du</strong> Auslagen hinzufügst.`;
+                        return `Warten darauf, dass <strong>du</strong> Ausgaben hinzufügst.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `Warten auf <strong>${actor}</strong>, um Ausgaben hinzuzufügen.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Warte darauf, dass ein Admin Ausgaben hinzufügt.`;
+                        return `Warten auf eine*n Admin, der Ausgaben hinzufügt.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Warte darauf, dass <strong>du</strong> Ausgaben einreichst.`;
+                        return `Warte darauf, dass <strong>du</strong> Spesen einreichst.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Warten auf <strong>${actor}</strong>, um Spesen einzureichen.`;
+                        return `Warten darauf, dass <strong>${actor}</strong> Spesen einreicht.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Warten darauf, dass eine Verwaltungsperson Spesen einreicht.`;
+                        return `Warten darauf, dass ein Admin Spesen einreicht.`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `Keine weiteren Maßnahmen erforderlich!`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `Keine weiteren Schritte erforderlich!`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Warte darauf, dass <strong>du</strong> ein Bankkonto hinzufügst.`;
+                        return `Warten darauf, dass <strong>du</strong> ein Bankkonto hinzufügst.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Warten darauf, dass <strong>${actor}</strong> ein Bankkonto hinzufügt.`;
+                        return `Warten auf <strong>${actor}</strong>, um ein Bankkonto hinzuzufügen.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `Warten auf eine:n Admin, um ein Bankkonto hinzuzufügen.`;
                 }
@@ -1639,15 +1657,15 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: ({actor, actorType, eta, etaType}: NextStepParams) => {
                 let formattedETA = '';
                 if (eta) {
-                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `am ${eta}` : ` ${eta}`;
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` am ${eta}. eines jeden Monats` : ` ${eta}`;
                 }
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Es wird darauf gewartet, dass <strong>deine</strong> Ausgaben automatisch eingereicht werden${formattedETA}.`;
+                        return `Warte, bis <strong>deine</strong> Ausgaben automatisch eingereicht werden${formattedETA}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Warte darauf, dass sich die Spesen von <strong>${actor}</strong> automatisch einreichen${formattedETA}.`;
+                        return `Warten, bis die Ausgaben von <strong>${actor}</strong> automatisch eingereicht werden${formattedETA}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Warten darauf, dass die Ausgaben eines Admins automatisch eingereicht werden${formattedETA}.`;
+                        return `Warten, bis die Spesen eines Admins automatisch eingereicht werden${formattedETA}.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: ({actor, actorType}: NextStepParams) => {
@@ -1655,7 +1673,7 @@ const translations: TranslationDeepObject<typeof en> = {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Warten auf <strong>dich</strong>, um die Probleme zu beheben.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Warten auf <strong>${actor}</strong>, um die Probleme zu beheben.`;
+                        return `Warte darauf, dass <strong>${actor}</strong> die Probleme behebt.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `Warten auf eine*n Admin, um die Probleme zu beheben.`;
                 }
@@ -1663,11 +1681,11 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Warte darauf, dass <strong>du</strong> Spesen freigibst.`;
+                        return `Warte darauf, dass <strong>du</strong> Spesen genehmigst.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `Warten auf die Genehmigung der Ausgaben durch <strong>${actor}</strong>.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Warten auf die Genehmigung der Ausgaben durch eine*n Admin.`;
+                        return `Warte darauf, dass eine Admin-Person Spesen genehmigt.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
@@ -1677,38 +1695,38 @@ const translations: TranslationDeepObject<typeof en> = {
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `Warten auf <strong>${actor}</strong>, um diesen Bericht zu exportieren.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Es wird darauf gewartet, dass ein Admin diesen Bericht exportiert.`;
+                        return `Warten auf eine*n Admin, um diesen Bericht zu exportieren.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Wartet auf <strong>dich</strong>, um Spesen zu bezahlen.`;
+                        return `Warte auf <strong>dich</strong>, um Spesen zu bezahlen.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Warten auf die Zahlung der Spesen durch <strong>${actor}</strong>.`;
+                        return `Warten auf <strong>${actor}</strong>, um Auslagen zu bezahlen.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Warte darauf, dass ein Admin Spesen bezahlt.`;
+                        return `Warten darauf, dass ein Admin Spesen bezahlt.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Warten darauf, dass <strong>du</strong> das Einrichten eines Geschäftskontos abschließt.`;
+                        return `Warten darauf, dass <strong>du</strong> die Einrichtung eines Geschäftskontos abschließt.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Warte darauf, dass <strong>${actor}</strong> die Einrichtung eines Geschäftskontos abschließt.`;
+                        return `Warten darauf, dass <strong>${actor}</strong> die Einrichtung eines Geschäftskontos abschließt.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Warten, bis ein Admin das Geschäftskonto eingerichtet hat.`;
+                        return `Warten, bis ein Admin die Einrichtung eines Geschäftskontos abgeschlossen hat.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: ({eta, etaType}: NextStepParams) => {
                 let formattedETA = '';
                 if (eta) {
-                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `bis ${eta}` : ` ${eta}`;
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` bis ${eta}` : ` ${eta}`;
                 }
-                return `Warten auf Abschluss der Zahlung${formattedETA}.`;
+                return `Warte, bis die Zahlung abgeschlossen ist${formattedETA}.`;
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (_: NextStepParams) =>
-                `Ups! Es sieht so aus, als würdest du diesen Bericht bei <strong>dir selbst</strong> einreichen. Das Genehmigen eigener Berichte ist in deinem Workspace <strong>verboten</strong>. Bitte reiche diesen Bericht bei jemand anderem ein oder kontaktiere deine Adminperson, um die Person zu ändern, an die du Berichte einreichst.`,
+                `Ups! Sie scheinen diesen Bericht an <strong>sich selbst</strong> einzureichen. Die Genehmigung eigener Berichte ist in Ihrem Arbeitsbereich <strong>verboten</strong>. Bitte reichen Sie diesen Bericht bei einer anderen Person ein oder wenden Sie sich an Ihre Admin, um die empfangende Person zu ändern.`,
         },
         eta: {
             [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: 'in Kürze',
@@ -1844,8 +1862,6 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         troubleshoot: {
             clearCacheAndRestart: 'Cache leeren und neu starten',
-            viewConsole: 'Debugkonsole anzeigen',
-            debugConsole: 'Debug-Konsole',
             description:
                 '<muted-text>Verwende die folgenden Tools, um Probleme mit Expensify zu beheben. Wenn du auf Probleme stößt, <concierge-link>melde bitte einen Fehler</concierge-link>.</muted-text>',
             confirmResetDescription: 'Alle nicht gesendeten Entwurfsnachrichten gehen verloren, aber alle anderen Daten sind sicher.',
@@ -1877,24 +1893,12 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidateWithDelay: 'Mit Verzögerung ungültig machen',
             leftHandNavCache: 'Cache der linken Navigation',
             clearleftHandNavCache: 'Löschen',
-            recordTroubleshootData: 'Fehlerdiagnosedaten aufzeichnen',
             softKillTheApp: 'App sanft beenden',
             kill: 'Töten',
             sentryDebug: 'Sentry-Debug',
             sentryDebugDescription: 'Sentry-Anfragen in der Konsole protokollieren',
             sentryHighlightedSpanOps: 'Hervorgehobene Spannen-Namen',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaktion.klick, navigation, ui.laden',
-        },
-        debugConsole: {
-            saveLog: 'Protokoll speichern',
-            shareLog: 'Protokoll teilen',
-            enterCommand: 'Befehl eingeben',
-            execute: 'Ausführen',
-            noLogsAvailable: 'Keine Protokolle verfügbar',
-            logSizeTooLarge: (size: number) =>
-                `Protokollgröße überschreitet das Limit von ${size} MB. Bitte verwende „Protokoll speichern“, um die Protokolldatei stattdessen herunterzuladen.`,
-            logs: 'Protokolle',
-            viewConsole: 'Konsole anzeigen',
         },
         security: 'Sicherheit',
         signOut: 'Abmelden',
@@ -2173,6 +2177,11 @@ const translations: TranslationDeepObject<typeof en> = {
         unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} wird den Zugriff auf dieses Geschäftskonto verlieren. Wir schließen dennoch alle laufenden Zahlungen ab.`,
         reachOutForHelp: 'Sie wird mit der Expensify Card verwendet. <concierge-link>Wende dich an Concierge</concierge-link>, wenn du sie nicht mehr teilen möchtest.',
         unshareErrorModalTitle: 'Bankkonto kann nicht freigegeben werden',
+        travelCVV: {
+            title: 'Reise-CVV',
+            subtitle: 'Verwenden Sie dies bei der Buchung von Reisen',
+            description: 'Verwende diese Karte für deine Expensify Travel-Buchungen. Sie wird beim Bezahlen als “Travel Card” angezeigt.',
+        },
         chaseAccountNumberDifferent: 'Warum ist meine Kontonummer anders?',
     },
     cardPage: {
@@ -2245,6 +2254,12 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${amount} für ${merchant} – ${date}`,
         },
+        freezeCard: 'Karte sperren',
+        unfreeze: 'Entsperren',
+        unfreezeCard: 'Karte entsperren',
+        freezeDescription: 'Eine gesperrte Karte kann nicht für Käufe und Transaktionen verwendet werden. Du kannst sie jederzeit entsperren.',
+        unfreezeDescription:
+            'Durch das Entsperren dieser Karte werden Käufe und Transaktionen wieder zugelassen. Fahre nur fort, wenn du sicher bist, dass die Karte sicher verwendet werden kann.',
     },
     workflowsPage: {
         workflowTitle: 'Ausgaben',
@@ -2256,6 +2271,7 @@ ${amount} für ${merchant} – ${date}`,
         addApprovalsTitle: 'Genehmigungen',
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `Ausgaben von ${members} und die genehmigende Person ist ${approvers}`,
         addApprovalButton: 'Genehmigungsablauf hinzufügen',
+        findWorkflow: 'Workflow suchen',
         addApprovalTip: 'Dieser Standard-Workflow gilt für alle Mitglieder, sofern kein spezifischerer Workflow vorhanden ist.',
         approver: 'Genehmiger',
         addApprovalsDescription: 'Zusätzliche Genehmigung einholen, bevor eine Zahlung autorisiert wird.',
@@ -7113,6 +7129,9 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         topMerchants: 'Top-Händler',
         groupedExpenses: 'gruppierte Ausgaben',
         bulkActions: {
+            editMultiple: 'Mehrere bearbeiten',
+            editMultipleTitle: 'Mehrere Ausgaben bearbeiten',
+            editMultipleDescription: 'Änderungen werden für alle ausgewählten Ausgaben festgelegt und überschreiben alle zuvor festgelegten Werte.',
             approve: 'Genehmigen',
             pay: 'Bezahlen',
             delete: 'Löschen',
@@ -7452,6 +7471,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         parentNavigationSummary: ({reportName, workspaceName}: ParentNavigationSummaryParams) => `Von ${reportName}${workspaceName ? `in ${workspaceName}` : ''}`,
     },
     qrCodes: {
+        qrCode: 'QR-Code',
         copy: 'URL kopieren',
         copied: 'Kopiert!',
     },
@@ -8047,10 +8067,19 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             security: 'Expensify ist PCI-DSS-konform, verwendet eine Verschlüsselung auf Bankniveau und setzt redundante Infrastruktur ein, um Ihre Daten zu schützen.',
             learnMoreAboutSecurity: 'Erfahren Sie mehr über unsere Sicherheit.',
         },
+        expensifyCode: {
+            title: 'Expensify-Code',
+            discountCode: 'Rabattcode',
+            enterCode: 'Geben Sie einen Expensify-Code ein, um ihn auf Ihr Abonnement anzuwenden.',
+            apply: 'Anwenden',
+            error: {
+                invalid: 'Dieser Code ist ungültig',
+            },
+        },
         subscriptionSettings: {
             title: 'Abonnementeinstellungen',
-            summary: ({subscriptionType, subscriptionSize, autoRenew, autoIncrease}: SubscriptionSettingsSummaryParams) =>
-                `Abonnementstyp: ${subscriptionType}, Abonnementgröße: ${subscriptionSize}, Automatische Verlängerung: ${autoRenew}, Automatische jährliche Sitzplatzerhöhung: ${autoIncrease}`,
+            summary: ({subscriptionType, subscriptionSize, expensifyCode, autoRenew, autoIncrease}: SubscriptionSettingsSummaryParams) =>
+                `Abonnementstyp: ${subscriptionType}, Abonnementgröße: ${subscriptionSize}${expensifyCode ? `, Expensify-Code: ${expensifyCode}` : ''}, Automatische Verlängerung: ${autoRenew}, Automatische jährliche Sitzplatzerhöhung: ${autoIncrease}`,
             none: 'keine',
             on: 'an',
             off: 'aus',

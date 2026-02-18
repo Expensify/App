@@ -576,6 +576,14 @@ const translations: TranslationDeepObject<typeof en> = {
         week: '週',
         year: '年',
         quarter: '四半期',
+        expensifyLogo: 'Expensifyロゴ',
+    },
+    socials: {
+        podcast: 'ポッドキャストでフォロー',
+        twitter: 'Twitterでフォロー',
+        instagram: 'Instagramでフォロー',
+        facebook: 'Facebookでフォロー',
+        linkedin: 'LinkedInでフォロー',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -683,6 +691,15 @@ const translations: TranslationDeepObject<typeof en> = {
             rejectAuthentication: '認証を拒否',
             test: 'テスト',
             biometricsAuthentication: '生体認証',
+            authType: {
+                unknown: '不明',
+                none: 'なし',
+                credentials: '資格情報',
+                biometrics: '生体認証',
+                faceId: 'Face ID',
+                touchId: 'Touch ID',
+                opticId: 'Optic ID',
+            },
         },
         pleaseEnableInSystemSettings: {
             start: '顔認証/指紋認証を有効にするか、デバイスのパスコードを設定してください',
@@ -702,7 +719,6 @@ const translations: TranslationDeepObject<typeof en> = {
             biometrics: '顔や指紋を使って、素早く安全に認証できます。パスワードやコードは不要です。',
         },
         revoke: {
-            remove: '削除',
             title: '顔認証／指紋認証とパスキー',
             explanation: '1 つ以上のデバイスで顔／指紋またはパスキーによる認証が有効になっています。アクセスを取り消すと、次回どのデバイスで認証する場合もマジックコードが必要になります。',
             confirmationPrompt: '本当に実行しますか？次回以降、どのデバイスでも認証にはマジックコードが必要になります。',
@@ -710,11 +726,13 @@ const translations: TranslationDeepObject<typeof en> = {
             noDevices: '顔認証／指紋認証またはパスキー認証用に登録されているデバイスがありません。デバイスを登録すると、そのアクセスをここで取り消せるようになります。',
             dismiss: '了解しました',
             error: 'リクエストに失敗しました。後でもう一度お試しください。',
+            revoke: '取り消す',
         },
         unsupportedDevice: {
             unsupportedDevice: '未対応のデバイス',
             pleaseDownloadMobileApp: `<centered-text><muted-text> この操作はお使いのデバイスではサポートされていません。<a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> または <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Playストア</a> からExpensifyアプリをダウンロードして、もう一度お試しください。</muted-text></centered-text>`,
         },
+        verificationFailed: '認証に失敗しました',
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -1598,7 +1616,7 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `経費が追加されるのを<strong>あなた</strong>の操作で待っています。`;
+                        return `経費の追加を<strong>あなた</strong>が行うのを待機中です。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `<strong>${actor}</strong> が経費を追加するのを待っています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
@@ -1610,12 +1628,12 @@ const translations: TranslationDeepObject<typeof en> = {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `経費の提出を<strong>あなた</strong>が行うのを待っています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `<strong>${actor}</strong> が経費を提出するのを待っています。`;
+                        return `<strong>${actor}</strong>が経費を提出するのを待っています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `管理者が経費精算を提出するのを待機しています。`;
+                        return `管理者が経費を送信するのを待機中です。`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `これ以上の操作は必要ありません。`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `これ以上の操作は不要です。`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
@@ -1623,31 +1641,31 @@ const translations: TranslationDeepObject<typeof en> = {
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `<strong>${actor}</strong> が銀行口座を追加するのを待っています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `管理者が銀行口座を追加するのを待っています。`;
+                        return `管理者が銀行口座を追加するのを待機しています。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: ({actor, actorType, eta, etaType}: NextStepParams) => {
                 let formattedETA = '';
                 if (eta) {
-                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `${eta}に` : ` ${eta}`;
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` 毎月${eta}に` : ` ${eta}`;
                 }
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `<strong>あなた</strong>の経費が自動送信されるまでお待ちください${formattedETA}。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `<strong>${actor}</strong>の経費が自動送信されるのを待機しています${formattedETA}。`;
+                        return `<strong>${actor}</strong>の経費が自動送信されるまでお待ちください${formattedETA}。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `管理者の経費精算が自動的に提出されるのを待機中${formattedETA}。`;
+                        return `管理者の経費が自動送信されるのを待機中です${formattedETA}。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `問題を解決してくれるのを<strong>あなた</strong>を待っています。`;
+                        return `問題の修正を<strong>あなた</strong>が行うのを待っています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `<strong>${actor}</strong> が問題を修正するのを待っています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `管理者が問題を修正するのを待っています。`;
+                        return `管理者が問題を修正するのを待機しています。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
@@ -1655,9 +1673,9 @@ const translations: TranslationDeepObject<typeof en> = {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `経費の承認を<strong>あなた</strong>が行うのを待っています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `<strong>${actor}</strong> が経費を承認するのを待っています。`;
+                        return `<strong>${actor}</strong>が経費を承認するのを待っています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `管理者の経費承認を待機中です。`;
+                        return `管理者が経費を承認するのを待機しています。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
@@ -1665,9 +1683,9 @@ const translations: TranslationDeepObject<typeof en> = {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `このレポートのエクスポートを<strong>あなた</strong>が行うのを待っています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `このレポートをエクスポートするために<strong>${actor}</strong>を待機しています。`;
+                        return `このレポートをエクスポートするのを<strong>${actor}</strong>が待っています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `管理者がこのレポートをエクスポートするのを待機しています。`;
+                        return `管理者がこのレポートをエクスポートするのを待っています。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
@@ -1677,28 +1695,28 @@ const translations: TranslationDeepObject<typeof en> = {
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `<strong>${actor}</strong> が経費を支払うのを待っています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `管理者が経費を支払うのを待機中です。`;
+                        return `管理者が経費を支払うのを待っています。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `ビジネス銀行口座の設定が完了するのを<strong>あなた</strong>が終えるのを待っています。`;
+                        return `ビジネス銀行口座の設定が完了するのを<strong>あなた</strong>が行うのを待っています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `<strong>${actor}</strong> がビジネス銀行口座の設定を完了するのを待っています。`;
+                        return `<strong>${actor}</strong> がビジネス用銀行口座の設定を完了するのを待っています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `管理者がビジネス用銀行口座の設定を完了するのを待っています。`;
+                        return `管理者がビジネス銀行口座の設定を完了するのを待っています。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: ({eta, etaType}: NextStepParams) => {
                 let formattedETA = '';
                 if (eta) {
-                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `${eta} まで` : ` ${eta}`;
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` ${eta}まで` : ` ${eta}`;
                 }
                 return `支払いの完了を待機しています${formattedETA}。`;
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (_: NextStepParams) =>
-                `おっと！<strong>自分自身</strong>に提出しようとしているようです。ご利用のワークスペースでは、自分のレポートを承認することは<strong>禁止</strong>されています。別の人にこのレポートを提出するか、提出先の変更について管理者に連絡してください。`,
+                `おっと！<strong>自分自身</strong>に提出しようとしているようです。自分のレポートを承認することは、ワークスペースのルールで<strong>禁止</strong>されています。このレポートは他の人に提出するか、提出先を変更してもらうよう管理者に連絡してください。`,
         },
         eta: {
             [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: 'まもなく',
@@ -1833,8 +1851,6 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         troubleshoot: {
             clearCacheAndRestart: 'キャッシュをクリアして再起動',
-            viewConsole: 'デバッグコンソールを表示',
-            debugConsole: 'デバッグコンソール',
             description:
                 '<muted-text>以下のツールを使用して、Expensify のご利用状況のトラブルシューティングに役立ててください。問題が発生した場合は、<concierge-link>バグを報告</concierge-link>してください。</muted-text>',
             confirmResetDescription: '送信されていない下書きメッセージはすべて失われますが、その他のデータは安全です。',
@@ -1866,23 +1882,12 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidateWithDelay: '遅延して無効化',
             leftHandNavCache: '左側ナビキャッシュ',
             clearleftHandNavCache: 'クリア',
-            recordTroubleshootData: 'トラブルシュートデータを記録',
             softKillTheApp: 'アプリをソフトキルする',
             kill: '終了',
             sentryDebug: 'Sentry デバッグ',
             sentryDebugDescription: 'Sentry リクエストをコンソールに記録',
             sentryHighlightedSpanOps: '強調表示されたスパン名',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click、ナビゲーション、ui.load',
-        },
-        debugConsole: {
-            saveLog: 'ログを保存',
-            shareLog: 'ログを共有',
-            enterCommand: 'コマンドを入力',
-            execute: '実行',
-            noLogsAvailable: 'ログはありません',
-            logSizeTooLarge: (size: number) => `ログサイズが上限の ${size} MB を超えています。"ログを保存" を使用してログファイルをダウンロードしてください。`,
-            logs: 'ログ',
-            viewConsole: 'コンソールを表示',
         },
         security: 'セキュリティ',
         signOut: 'サインアウト',
@@ -2159,6 +2164,11 @@ const translations: TranslationDeepObject<typeof en> = {
         unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} はこのビジネス銀行口座へのアクセス権を失います。処理中の支払いは引き続き完了します。`,
         reachOutForHelp: 'そのレポートは Expensify Card と一緒に使用されています。共有を解除する必要がある場合は、<concierge-link>Concierge に連絡してください</concierge-link>。',
         unshareErrorModalTitle: '銀行口座の共有を解除できません',
+        travelCVV: {
+            title: 'トラベルCVV',
+            subtitle: '出張を予約するときにこれを使用してください',
+            description: 'このカードをExpensify Travelでの予約に使用してください。チェックアウト時には「Travel Card」と表示されます。',
+        },
         chaseAccountNumberDifferent: '口座番号が異なるのはなぜですか？',
     },
     cardPage: {
@@ -2226,6 +2236,11 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${date} の ${merchant} への ${amount}`,
         },
+        freezeCard: 'カードを一時停止',
+        unfreeze: '再開',
+        unfreezeCard: 'カードの一時停止を解除',
+        freezeDescription: '一時停止したカードは購入や取引に使用できません。いつでも再開できます。',
+        unfreezeDescription: 'このカードの一時停止を解除すると、購入と取引が再び可能になります。カードが安全に使用できると確信できる場合にのみ続行してください。',
     },
     workflowsPage: {
         workflowTitle: '支出',
@@ -2237,6 +2252,7 @@ ${date} の ${merchant} への ${amount}`,
         addApprovalsTitle: '承認',
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `${members} の経費で、承認者は ${approvers} です`,
         addApprovalButton: '承認ワークフローを追加',
+        findWorkflow: 'ワークフローを検索',
         addApprovalTip: 'より詳細なワークフローが存在する場合を除き、このデフォルトのワークフローがすべてのメンバーに適用されます。',
         approver: '承認者',
         addApprovalsDescription: '支払いを承認する前に、追加の承認を必須にする。',
@@ -7029,6 +7045,9 @@ ${reportName}
         topMerchants: '上位加盟店',
         groupedExpenses: 'グループ化された経費',
         bulkActions: {
+            editMultiple: '複数を編集',
+            editMultipleTitle: '複数の経費を編集',
+            editMultipleDescription: '変更は選択したすべての経費に適用され、以前に設定された値は上書きされます。',
             approve: '承認',
             pay: '支払う',
             delete: '削除',
@@ -7367,6 +7386,7 @@ ${reportName}
         parentNavigationSummary: ({reportName, workspaceName}: ParentNavigationSummaryParams) => `${reportName}${workspaceName ? `${workspaceName} の中` : ''} から`,
     },
     qrCodes: {
+        qrCode: 'QRコード',
         copy: 'URLをコピー',
         copied: 'コピーしました！',
     },
@@ -7952,13 +7972,22 @@ ${reportName}
         paymentCard: {
             addPaymentCard: '支払カードを追加',
             enterPaymentCardDetails: '支払いカードの詳細を入力してください',
-            security: 'Expensify は PCI-DSS に準拠し、銀行レベルの暗号化を使用し、冗長化されたインフラストラクチャでお客様のデータを保護しています。',
-            learnMoreAboutSecurity: 'セキュリティの詳細をご覧ください。',
+            security: 'Expensify は PCI-DSS に準拠し、銀行レベルの暗号化を使用し、お客様のデータを保護するために冗長化されたインフラストラクチャを活用しています。',
+            learnMoreAboutSecurity: '当社のセキュリティについて詳しく見る',
+        },
+        expensifyCode: {
+            title: 'Expensifyコード',
+            discountCode: '割引コード',
+            enterCode: 'サブスクリプションに適用するExpensifyコードを入力してください。',
+            apply: '適用',
+            error: {
+                invalid: 'このコードは無効です',
+            },
         },
         subscriptionSettings: {
             title: 'サブスクリプション設定',
-            summary: ({subscriptionType, subscriptionSize, autoRenew, autoIncrease}: SubscriptionSettingsSummaryParams) =>
-                `サブスクリプションタイプ: ${subscriptionType}、サブスクリプション規模: ${subscriptionSize}、自動更新: ${autoRenew}、年間席数の自動増加: ${autoIncrease}`,
+            summary: ({subscriptionType, subscriptionSize, expensifyCode, autoRenew, autoIncrease}: SubscriptionSettingsSummaryParams) =>
+                `サブスクリプションタイプ: ${subscriptionType}、サブスクリプション規模: ${subscriptionSize}${expensifyCode ? `、Expensifyコード: ${expensifyCode}` : ''}、自動更新: ${autoRenew}、年間席数の自動増加: ${autoIncrease}`,
             none: 'なし',
             on: 'オン',
             off: 'オフ',

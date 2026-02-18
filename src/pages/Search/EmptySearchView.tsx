@@ -23,6 +23,7 @@ import TextLink from '@components/TextLink';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useHasEmptyReportsForPolicy from '@hooks/useHasEmptyReportsForPolicy';
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -39,7 +40,7 @@ import {startTestDrive} from '@libs/actions/Tour';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {areAllGroupPoliciesExpenseChatDisabled, getDefaultChatEnabledPolicy, getGroupPaidPoliciesWithExpenseChatEnabled} from '@libs/PolicyUtils';
-import {generateReportID, hasEmptyReportsForPolicy, hasViolations as hasViolationsReportUtils, reportSummariesOnyxSelector} from '@libs/ReportUtils';
+import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {isDefaultExpenseReportsQuery, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -50,7 +51,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {IntroSelected, PersonalDetails, Policy, Report, Transaction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
-import getEmptyArray from '@src/types/utils/getEmptyArray';
 import useSearchEmptyStateIllustration from './useSearchEmptyStateIllustration';
 
 type EmptySearchViewProps = {
@@ -85,8 +85,6 @@ type EmptySearchViewItem = {
     subtitleStyle?: TextStyle;
     children?: React.ReactNode;
 };
-
-type ReportSummary = ReturnType<typeof reportSummariesOnyxSelector>[number];
 
 function EmptySearchView({similarSearchHash, type, hasResults, queryJSON}: EmptySearchViewProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -192,12 +190,9 @@ function EmptySearchViewContent({
 
     const defaultChatEnabledPolicyID = defaultChatEnabledPolicy?.id;
 
-    const [reportSummaries = getEmptyArray<ReportSummary>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        canBeMissing: true,
-        selector: reportSummariesOnyxSelector,
-    });
+    const hasEmptyReport = useHasEmptyReportsForPolicy(defaultChatEnabledPolicyID);
     const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED, {canBeMissing: true});
-    const shouldShowEmptyReportConfirmation = hasEmptyReportsForPolicy(reportSummaries, defaultChatEnabledPolicyID, accountID) && hasDismissedEmptyReportsConfirmation !== true;
+    const shouldShowEmptyReportConfirmation = hasEmptyReport && hasDismissedEmptyReportsConfirmation !== true;
 
     const filteredPolicyID = queryJSON?.policyID;
     let isFilteredWorkspaceAccessible = true;

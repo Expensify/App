@@ -697,7 +697,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }
 
         return (
-            <View style={[styles.renderHTML]}>
+            <View style={[styles.flexRow, styles.renderHTML]}>
                 <RenderHTML
                     html={
                         hasDependentTags

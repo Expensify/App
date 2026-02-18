@@ -126,7 +126,7 @@ No. Employees submit expenses the same way as before. Workspace Merchant Rules r
 
 ## What happens if a personal expense rule and a Workspace Merchant Rule both apply?
 
-Personal expense rules take precedence over Workspace Merchant Rules.
+Personal expense rules take precedence over Workspace Merchant Rules. Learn more about [Personal Expense Rules](https://help.expensify.com/articles/new-expensify/settings/Personal-Expense-Rules). 
 
 ## How can I tell which Workspace Merchant Rule was applied?
 
