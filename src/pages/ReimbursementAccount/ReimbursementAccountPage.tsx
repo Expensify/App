@@ -192,7 +192,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     }, [achData, isNonUSDWorkspace, policyIDParam]);
 
     const isDefaultReimbursementAccountData = deepEqual(reimbursementAccount, CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA);
-    const hasLoadedData = reimbursementAccount?.achData && !isDefaultReimbursementAccountData && reimbursementAccount?.isLoading !== true;
+    // reimbursementAccount?.isLoading can be undefined and data can be already fetched (returned via different command). Because of that we need to check whether isLoading it's not truthy
+    const hasLoadedData = reimbursementAccount?.achData && !isDefaultReimbursementAccountData && !reimbursementAccount?.isLoading;
     /**
      When this page is first opened, `reimbursementAccount` prop might not yet be fully loaded from Onyx.
      Calculating `shouldShowContinueSetupButton` immediately on initial render doesn't make sense as
