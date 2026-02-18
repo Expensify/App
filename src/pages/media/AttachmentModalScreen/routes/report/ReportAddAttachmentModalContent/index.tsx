@@ -4,8 +4,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {openReport} from '@libs/actions/Report';
-import validateAttachmentFile from '@libs/AttachmentUtils';
-import type {AttachmentValidationResult} from '@libs/AttachmentUtils';
 import {getValidatedImageSource} from '@libs/AvatarUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {canUserPerformWriteAction, isReportNotFound} from '@libs/ReportUtils';
@@ -20,6 +18,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {isMultipleAttachmentsValidationResult, validateAttachmentFile, validateMultipleAttachmentFiles} from '@libs/AttachmentValidation';
+import type {MultipleAttachmentsValidationResult, SingleAttachmentValidationResult} from '@libs/AttachmentValidation';
 import AddAttachmentModalCarouselView from './AddAttachmentModalCarouselView';
 
 function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScreenProps<typeof SCREENS.REPORT_ADD_ATTACHMENT>) {
@@ -90,18 +90,13 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
             return;
         }
 
-        function updateState(result: AttachmentValidationResult | AttachmentValidationResult[]) {
-            if (Array.isArray(result)) {
-                const validResults = result.filter((r) => r.isValid);
-                if (validResults.length === 0) {
-                    return;
+        function updateState(result: SingleAttachmentValidationResult | MultipleAttachmentsValidationResult) {
+            if (isMultipleAttachmentsValidationResult(result)) {
+                if (result.isValid) {
+                    setSource(result.validatedFiles.at(0)?.source ?? '');
+                    setValidFiles(result.validatedFiles.map((r) => r.file));
                 }
 
-                const validatedFiles = validResults.map((r) => r.file);
-                const firstValidSource = validResults.at(0)?.source;
-
-                setSource(firstValidSource);
-                setValidFiles(validatedFiles);
                 return;
             }
 
@@ -109,12 +104,12 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
                 return;
             }
 
-            setSource(result.source);
-            setValidFiles(result.file);
+            setSource(result.validatedFile.source);
+            setValidFiles(result.validatedFile.file);
         }
 
         if (Array.isArray(fileParam)) {
-            Promise.all(fileParam.map((f) => validateAttachmentFile(f))).then(updateState);
+            validateMultipleAttachmentFiles(fileParam).then(updateState);
             return;
         }
 
