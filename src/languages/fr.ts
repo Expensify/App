@@ -576,14 +576,6 @@ const translations: TranslationDeepObject<typeof en> = {
         week: 'Semaine',
         year: 'Année',
         quarter: 'Trimestre',
-        expensifyLogo: 'Logo Expensify',
-    },
-    socials: {
-        podcast: 'Suivez-nous sur Podcast',
-        twitter: 'Suivez-nous sur Twitter',
-        instagram: 'Suivez-nous sur Instagram',
-        facebook: 'Suivez-nous sur Facebook',
-        linkedin: 'Suivez-nous sur LinkedIn',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -1785,7 +1777,7 @@ const translations: TranslationDeepObject<typeof en> = {
         featureRequiresValidate: 'Cette fonctionnalité exige que vous validiez votre compte.',
         validateAccount: 'Validez votre compte',
         helpText: ({email}: {email: string}) =>
-            `Ajoutez d'autres moyens de vous connecter et d'envoyer des reçus à Expensify.<br/><br/>Ajoutez une adresse e-mail pour transférer des reçus à <a href="mailto:${email}">${email}</a> ou ajoutez un numéro de téléphone pour envoyer des reçus par SMS au 47777 (numéros américains uniquement).`,
+            `Ajoutez d’autres moyens de vous connecter et d’envoyer des reçus à Expensify.<br/><br/>Ajoutez une adresse e-mail pour transférer des reçus à <a href="mailto:${email}">${email}</a> ou ajoutez un numéro de téléphone pour envoyer des reçus par SMS au 47777 (numéros américains uniquement).`,
         pleaseVerify: 'Veuillez vérifier cette méthode de contact.',
         getInTouch: 'Nous utiliserons cette méthode pour vous contacter.',
         enterMagicCode: (contactMethod: string) => `Veuillez saisir le code magique envoyé à ${contactMethod}. Il devrait arriver d'ici une à deux minutes.`,
@@ -7489,7 +7481,6 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         parentNavigationSummary: ({reportName, workspaceName}: ParentNavigationSummaryParams) => `De ${reportName}${workspaceName ? `dans ${workspaceName}` : ''}`,
     },
     qrCodes: {
-        qrCode: 'Code QR',
         copy: 'Copier l’URL',
         copied: 'Copié !',
     },

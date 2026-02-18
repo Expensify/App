@@ -45,7 +45,6 @@ function ConciergeLinkRenderer({tnode, style}: ConciergeLinkRendererProps) {
             onPress={navigateToConciergeChat}
             onKeyDown={handleKeyDown}
             suppressHighlighting
-            accessible
             role={CONST.ROLE.LINK}
             tabIndex={0}
         >
