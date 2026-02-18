@@ -22,6 +22,7 @@ import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposit
 import Parser from '@libs/Parser';
 import type {FileObject} from '@src/types/utils/Attachment';
 import CONST from '@src/CONST';
+import Log from '@libs/Log';
 
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
 const excludeReportMentionStyle: Array<keyof MarkdownStyle> = ['mentionReport'];
@@ -188,16 +189,20 @@ function Composer({
                             .then((response) => response.blob())
                             .then((blob) => {
                                 const file = new File([blob], 'image.jpg', {type: 'image/jpeg'});
-                                return file;
+                                return file as FileObject;
                             });
                     }
                     return Promise.resolve(undefined);
                 });
 
-                Promise.all(filePromises).then((files) => {
-                    const validFiles = files.filter((file) => file !== undefined) as FileObject[];
-                    onPasteFile(validFiles);
-                });
+                Promise.all(filePromises)
+                    .then((files) => {
+                        const validFiles = files.filter((file) => file !== undefined);
+                        onPasteFile(validFiles);
+                    })
+                    .catch((error) => {
+                        Log.warn('Pasted files could not be validated', {error});
+                    });
                 return true;
             }
 

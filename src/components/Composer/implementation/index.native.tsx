@@ -16,6 +16,7 @@ import Parser from '@libs/Parser';
 import getFileSize from '@pages/Share/getFileSize';
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
+import Log from '@libs/Log';
 
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
 const excludeReportMentionStyle: Array<keyof MarkdownStyle> = ['mentionReport'];
@@ -108,10 +109,14 @@ function Composer({
                     .finally(() => file);
             });
 
-            Promise.all(filePromises).then((files) => {
-                const validFiles = files.filter((file) => file !== undefined) as FileObject[];
-                onPasteFile(validFiles);
-            });
+            Promise.all(filePromises)
+                .then((files) => {
+                    const validFiles = files.filter((file) => file !== undefined);
+                    onPasteFile(validFiles);
+                })
+                .catch((error) => {
+                    Log.warn('Pasted files could not be validated', {error});
+                });
         },
         [onPasteFile],
     );
