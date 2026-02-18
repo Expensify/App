@@ -1421,6 +1421,33 @@ describe('ReportUtils', () => {
             const reportName = computeReportName(threadReport, reports, undefined, undefined, undefined, undefined, reportActions);
             expect(reportName).toBe('resolved the duplicate');
         });
+
+        describe('Unreported transaction thread', () => {
+            test('HTML is stripped from unreported transaction message', async () => {
+                const fromReport = {
+                    ...LHNTestUtils.getFakeReport(),
+                    reportID: '789',
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fromReport.reportID}`, fromReport);
+
+                const transactionThread = {
+                    ...LHNTestUtils.getFakeReport(),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    reportID: '123',
+                    parentReportID: '456',
+                };
+
+                const reportName = getReportName(transactionThread);
+
+                // Should NOT contain HTML tags
+                expect(reportName).not.toContain('<a href');
+                expect(reportName).not.toContain('</a>');
+                // Should contain the text content
+                expect(reportName).toContain('moved this expense from');
+                expect(reportName).toContain('Ragnar');
+            });
+        });
     });
 
     describe('computeReportName (getSearchReportName tests)', () => {
