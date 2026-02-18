@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useReducer, useRef, useState} from 'react';
 import type {LayoutRectangle} from 'react-native';
 import {InteractionManager, PanResponder, StyleSheet, View} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
@@ -11,7 +11,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
-import {DragAndDropContext} from '@components/DragAndDrop/Provider';
+import {useDragAndDropState} from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
 import Icon from '@components/Icon';
@@ -86,7 +86,7 @@ function IOURequestStepScan({
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
-    const {isDraggingOver} = useContext(DragAndDropContext);
+    const {isDraggingOver} = useDragAndDropState();
     const [cameraPermissionState, setCameraPermissionState] = useState<PermissionState | undefined>('prompt');
     const [isFlashLightOn, toggleFlashlight] = useReducer((state) => !state, false);
     const [isTorchAvailable, setIsTorchAvailable] = useState(false);

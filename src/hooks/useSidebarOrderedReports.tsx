@@ -1,7 +1,6 @@
-import {createPoliciesSelector} from '@selectors/Policy';
 import {deepEqual} from 'fast-equals';
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
 import {getPolicyEmployeeListByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -13,6 +12,7 @@ import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDeepCompareRef from './useDeepCompareRef';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
+import useMappedPolicies from './useMappedPolicies';
 import usePrevious from './usePrevious';
 import useReportAttributes from './useReportAttributes';
 import useResponsiveLayout from './useResponsiveLayout';
@@ -44,15 +44,13 @@ const SidebarOrderedReportsContext = createContext<SidebarOrderedReportsContextV
     clearLHNCache: () => {},
 });
 
-const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PartialPolicyForSidebar =>
+const policyMapper = (policy: OnyxEntry<OnyxTypes.Policy>): PartialPolicyForSidebar =>
     (policy && {
         type: policy.type,
         name: policy.name,
         avatarURL: policy.avatarURL,
         employeeList: policy.employeeList,
     }) as PartialPolicyForSidebar;
-
-const policiesSelector = (policies: OnyxCollection<OnyxTypes.Policy>) => createPoliciesSelector(policies, policySelector);
 
 function SidebarOrderedReportsContextProvider({
     children,
@@ -69,7 +67,7 @@ function SidebarOrderedReportsContextProvider({
     const {localeCompare} = useLocalize();
     const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {canBeMissing: true});
     const [chatReports, {sourceValue: reportUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const [policies, {sourceValue: policiesUpdates}] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: true});
+    const [policies, {sourceValue: policiesUpdates}] = useMappedPolicies(policyMapper);
     const [transactions, {sourceValue: transactionsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const [transactionViolations, {sourceValue: transactionViolationsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [reportNameValuePairs, {sourceValue: reportNameValuePairsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});

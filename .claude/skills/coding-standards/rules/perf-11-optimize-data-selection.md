@@ -7,30 +7,117 @@ title: Optimize data selection and handling
 
 ### Reasoning
 
-Using broad data structures or performing unnecessary data operations causes excessive re-renders and degrades performance. Selecting specific fields and avoiding redundant operations reduces render cycles and improves efficiency.
+`useOnyx` supports an optional `selector` to narrow data before it reaches the component. Selectors control both **what** data the component receives and **how** Onyx detects changes:
+
+- **With a selector**: Onyx runs `deepEqual` on the selector output to decide whether to re-render. This guards against unnecessary re-renders when unrelated data changes, but the comparison cost scales with the size of the output.
+- **Without a selector**: Onyx uses `shallowEqual` on raw references, which is much cheaper. However, the component will re-render whenever **any** part of the subscribed data changes, since there is no narrowing to filter out irrelevant updates.
+
+This means selectors are a double-edged sword. A well-written selector that returns a primitive or a small object is highly effective — it skips re-renders when unrelated data changes, and `deepEqual` on a small value is trivial. But a poorly-written selector that returns a large object, a full collection, or a non-plain type like `Set`/`Map` makes things worse — it forces an expensive `deepEqual` on every Onyx update with no re-render savings.
+
+**When to use a selector:**
+- To pick a few fields from a single Onyx key (reduces re-renders from unrelated field changes)
+- To compute a final scalar (boolean, number, string) from a larger dataset
+
+**When NOT to use a selector:**
+- To transform or reshape data without reducing its size — subscribe without a selector and transform inline instead
+- To extract a large sub-property (e.g., `(data) => data?.reports`) — just access it directly after the hook
+- To filter/map entire collections into arrays — the output is still large, `deepEqual` still expensive
+- To return `Set` or `Map` — `deepEqual` is extremely slow on these types
 
 ### Incorrect
 
 ```tsx
-function UserProfile({ userId }) {
-  const [user] = useOnyx(`${ONYXKEYS.USER}${userId}`);
-  // Component re-renders when any user field changes, even unused ones
-  return <Text>{user?.name}</Text>;
+// BAD: No selector — component re-renders when any user field changes, even unused ones
+function UserProfile({userId}) {
+    const [user] = useOnyx(`${ONYXKEYS.USER}${userId}`);
+    return <Text>{user?.name}</Text>;
 }
+
+// BAD: Selector maps an entire collection — deepEqual must compare every item
+const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+    selector: (policies) =>
+        Object.fromEntries(
+            Object.entries(policies ?? {}).map(([key, policy]) => [
+                key,
+                {id: policy?.id, name: policy?.name, type: policy?.type},
+            ]),
+        ),
+});
+
+// BAD: Selector extracts a large sub-property without narrowing
+const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+    selector: (data) => data?.reports,
+});
+
+// BAD: Selector filters/maps a collection into an array — deepEqual on every item
+const [archivedReportIdsArray] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
+    selector: (data): string[] =>
+        Object.entries(data ?? {})
+            .filter(([, value]) => value?.isArchived)
+            .map(([key]) => key),
+});
+
+// BAD: Selector returns a Set — deepEqual is extremely slow on Sets
+const [archivedReportIds] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
+    selector: (data): Set<string> => {
+        const ids = new Set<string>();
+        Object.entries(data ?? {}).forEach(([key, value]) => {
+            if (value?.isArchived) {
+                ids.add(key);
+            }
+        });
+        return ids;
+    },
+});
+
+// BAD: Selector returns an array when the component only needs a boolean
+const [reportSummaries] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+    selector: (reports) =>
+        Object.values(reports ?? {}).filter((r) => r?.total === 0),
+});
+const hasEmptyReports = reportSummaries.length > 0;
 ```
 
 ### Correct
 
 ```tsx
-function UserProfile({ userId }) {
-  const [user] = useOnyx(`${ONYXKEYS.USER}${userId}`, {
-    selector: (user) => ({
-      name: user?.name,
-      avatar: user?.avatar,
-    }),
-  });
-  return <Text>{user?.name}</Text>;
+// GOOD: Selector picks only the fields the component needs from a single item
+function UserProfile({userId}) {
+    const [user] = useOnyx(`${ONYXKEYS.USER}${userId}`, {
+        selector: (user) => ({
+            name: user?.name,
+            avatar: user?.avatar,
+        }),
+    });
+    return <Text>{user?.name}</Text>;
 }
+
+// GOOD: No selector on collection — shallowEqual is cheap, transform inline
+const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+const mappedPolicies = Object.fromEntries(
+    Object.entries(policies ?? {}).map(([key, policy]) => [
+        key,
+        {id: policy?.id, name: policy?.name, type: policy?.type},
+    ]),
+);
+
+// GOOD: No selector — access the property directly
+const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+const reports = reportAttributes?.reports;
+
+// GOOD: No selector — filter and compute Set inline
+const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+const archivedReportIds = new Set(
+    Object.entries(reportNameValuePairs ?? {})
+        .filter(([, value]) => value?.isArchived)
+        .map(([key]) => key),
+);
+
+// GOOD: Selector computes the final boolean directly
+const [hasEmptyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+    selector: (reports) =>
+        Object.values(reports ?? {}).some((r) => r?.total === 0),
+});
 ```
 
 ---
@@ -39,19 +126,25 @@ function UserProfile({ userId }) {
 
 Flag ONLY when ALL of these are true:
 
-- A component uses a broad data structure (e.g., entire object) without selecting specific fields
-- This causes unnecessary re-renders when unrelated fields change
-- OR unnecessary data filtering/fetching is performed (excluding necessary data, fetching already available data)
+- A component uses `useOnyx` and either:
+  - Subscribes to a broad data structure without selecting specific fields, causing re-renders when unrelated fields change
+  - Uses a `selector` that returns a large object, full collection, mapped/transformed collection, `Set`, `Map`, or intermediate data structure that is further reduced by the component
 
 **DO NOT flag if:**
 
-- Specific fields are already being selected or the data structure is static
-- The filtering is necessary for correct functionality
-- The fetched data is required and cannot be derived from existing data
-- The function requires the entire object for valid operations
+- The selector returns a primitive value (`boolean`, `string`, `number`, `undefined`)
+- The selector returns a small object with only a few fields picked from a single item (not a collection)
+- The selector meaningfully reduces a large dataset to a small result
+- The `useOnyx` call is on a single-item key (not a collection), and the selector picks specific fields
+- The data structure is static or the function requires the entire object for valid operations
 
 **Search Patterns** (hints for reviewers):
 - `useOnyx`
 - `selector`
-- `\.filter\(`
-- `\.map\(`
+- `useOnyx.*selector`
+- `selector.*=>`
+- `new Set\(`
+- `new Map\(`
+- `Object\.fromEntries`
+- `Object\.entries.*\.map`
+- `Object\.values.*\.filter`

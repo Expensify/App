@@ -126,6 +126,7 @@ function IOURequestStepScan({
     const defaultTaxCode = getDefaultTaxCode(policy, initialTransaction);
     const transactionTaxCode = (initialTransaction?.taxCode ? initialTransaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = initialTransaction?.taxAmount ?? 0;
+    const [isAttachmentPickerActive, setIsAttachmentPickerActive] = useState(false);
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
@@ -651,32 +652,33 @@ function IOURequestStepScan({
                                         photo
                                         cameraTabIndex={1}
                                         onLayout={(e) => (viewfinderLayout.current = e.nativeEvent.layout)}
+                                        forceInactive={isAttachmentPickerActive}
                                     />
                                     <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
-                                    {canUseMultiScan ? (
-                                        <View style={[styles.flashButtonContainer, styles.primaryMediumIcon, flash && styles.bgGreenSuccess, !hasFlash && styles.opacity0]}>
-                                            <PressableWithFeedback
-                                                role={CONST.ROLE.BUTTON}
-                                                accessibilityLabel={translate('receipt.flash')}
-                                                sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
-                                                disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
-                                                onPress={() => setFlash((prevFlash) => !prevFlash)}
-                                            >
-                                                <Icon
-                                                    height={16}
-                                                    width={16}
-                                                    src={lazyIcons.Bolt}
-                                                    fill={flash ? theme.white : theme.icon}
-                                                />
-                                            </PressableWithFeedback>
-                                        </View>
-                                    ) : null}
                                     <Animated.View
                                         pointerEvents="none"
                                         style={[StyleSheet.absoluteFillObject, styles.backgroundWhite, blinkStyle, styles.zIndex10]}
                                     />
                                 </View>
                             </GestureDetector>
+                            {canUseMultiScan ? (
+                                <View style={[styles.flashButtonContainer, styles.primaryMediumIcon, flash && styles.bgGreenSuccess, !hasFlash && styles.opacity0]}>
+                                    <PressableWithFeedback
+                                        role={CONST.ROLE.BUTTON}
+                                        accessibilityLabel={translate('receipt.flash')}
+                                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
+                                        disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
+                                        onPress={() => setFlash((prevFlash) => !prevFlash)}
+                                    >
+                                        <Icon
+                                            height={16}
+                                            width={16}
+                                            src={lazyIcons.Bolt}
+                                            fill={flash ? theme.white : theme.icon}
+                                        />
+                                    </PressableWithFeedback>
+                                </View>
+                            ) : null}
                         </View>
                     )}
                 </View>
@@ -698,7 +700,10 @@ function IOURequestStepScan({
                 )}
                 <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
                     <AttachmentPicker
-                        onOpenPicker={() => setIsLoaderVisible(true)}
+                        onOpenPicker={() => {
+                            setIsAttachmentPickerActive(true);
+                            setIsLoaderVisible(true);
+                        }}
                         fileLimit={shouldAcceptMultipleFiles ? CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT : 1}
                         shouldValidateImage={false}
                     >
@@ -714,6 +719,7 @@ function IOURequestStepScan({
                                         onCanceled: () => setIsLoaderVisible(false),
                                         // makes sure the loader is not visible anymore e.g. when there is an error while uploading a file
                                         onClosed: () => {
+                                            setIsAttachmentPickerActive(false);
                                             setIsLoaderVisible(false);
                                         },
                                     });
@@ -781,6 +787,7 @@ function IOURequestStepScan({
                     <ReceiptPreviews
                         isMultiScanEnabled={isMultiScanEnabled}
                         submit={submitMultiScanReceipts}
+                        isCapturingPhoto={didCapturePhoto}
                     />
                 )}
 

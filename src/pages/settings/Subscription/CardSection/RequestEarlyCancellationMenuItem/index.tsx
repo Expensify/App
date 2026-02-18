@@ -1,5 +1,5 @@
-import React, {useContext} from 'react';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import React from 'react';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import MenuItem from '@components/MenuItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -11,7 +11,8 @@ function RequestEarlyCancellationMenuItem() {
     const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const {isActingAsDelegate} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
     const handleRequestEarlyCancellationPress = () => {
         if (isActingAsDelegate) {

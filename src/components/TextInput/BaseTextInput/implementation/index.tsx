@@ -84,6 +84,8 @@ function BaseTextInput({
     shouldUseDefaultLineHeightForPrefix = true,
     ref,
     sentryLabel,
+
+    role,
     ...inputProps
 }: BaseTextInputProps) {
     const InputComponent = InputComponentMap.get(type) ?? RNTextInput;
@@ -440,6 +442,9 @@ function BaseTextInput({
                                 }}
                                 // eslint-disable-next-line
                                 {...inputProps}
+                                // Filter out role="presentation" so it doesn't strip the native
+                                // semantics of the <input>. Other roles (e.g. searchbox) are preserved.
+                                role={role === CONST.ROLE.PRESENTATION ? undefined : role}
                                 autoCorrect={inputProps.secureTextEntry ? false : autoCorrect}
                                 placeholder={newPlaceholder}
                                 placeholderTextColor={placeholderTextColor ?? theme.placeholderText}
