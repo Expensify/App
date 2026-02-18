@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchQueryJSON} from '@components/Search/types';
@@ -64,20 +64,16 @@ function useSearchHighlightAndScroll({
     });
     const searchResultsData = searchResults?.data;
 
-    const newTransactions = useMemo((): Transaction[] => {
-        const prevIDs = Object.keys(previousTransactions ?? {});
-        if (prevIDs.length === 0) {
-            return [];
-        }
-        const previousIDs = new Set(prevIDs);
-        const result: Transaction[] = [];
+    const prevTransactionsIDs = Object.keys(previousTransactions ?? {});
+    const newTransactions: Transaction[] = [];
+    if (prevTransactionsIDs.length > 0) {
+        const previousIDs = new Set(prevTransactionsIDs);
         for (const [id, transaction] of Object.entries(transactions ?? {})) {
             if (!previousIDs.has(id) && transaction) {
-                result.push(transaction);
+                newTransactions.push(transaction);
             }
         }
-        return result;
-    }, [transactions, previousTransactions]);
+    }
 
     // Trigger search when a new report action is added while on chat or when a new transaction is added for the other search types.
     useEffect(() => {
