@@ -3,7 +3,7 @@ import CategoryPicker from '@components/CategoryPicker';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type {ListItem} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
@@ -43,7 +43,7 @@ function CategorySelectorModal({policyID, isVisible, currentCategory, onCategory
                 includePaddingTop={false}
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableKeyboardAvoidingView={false}
-                testID={CategorySelectorModal.displayName}
+                testID="CategorySelectorModal"
             >
                 <HeaderWithBackButton
                     title={label}
@@ -60,7 +60,5 @@ function CategorySelectorModal({policyID, isVisible, currentCategory, onCategory
         </Modal>
     );
 }
-
-CategorySelectorModal.displayName = 'CategorySelectorModal';
 
 export default CategorySelectorModal;

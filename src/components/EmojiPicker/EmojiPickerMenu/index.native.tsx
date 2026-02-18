@@ -1,13 +1,11 @@
 import type {ListRenderItem} from '@shopify/flash-list';
 import lodashDebounce from 'lodash/debounce';
 import React, {useCallback} from 'react';
-import type {ForwardedRef} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
 import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -23,7 +21,7 @@ import type EmojiPickerMenuProps from './types';
 import useEmojiPickerMenu from './useEmojiPickerMenu';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, ref: ForwardedRef<BaseTextInputRef>) {
+function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuProps) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -49,6 +47,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
         setFilteredEmojis(emojiData);
         setHeaderIndices(headerData);
 
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             requestAnimationFrame(() => {
                 emojiListRef.current?.scrollToOffset({offset: 0, animated: false});
@@ -108,7 +107,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
                         if (!('name' in item)) {
                             return;
                         }
-                        onEmojiSelected(emoji, item);
+                        onEmojiSelected(emoji, item, preferredSkinTone);
                     })}
                     emoji={emojiCode ?? ''}
                     isHighlighted={shouldEmojiBeHighlighted}
@@ -126,7 +125,8 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
                     accessibilityLabel={translate('common.search')}
                     role={CONST.ROLE.PRESENTATION}
                     onChangeText={filterEmojis}
-                    blurOnSubmit={filteredEmojis.length > 0}
+                    submitBehavior={filteredEmojis.length > 0 ? 'blurAndSubmit' : 'submit'}
+                    sentryLabel={CONST.SENTRY_LABEL.EMOJI_PICKER.SEARCH_INPUT}
                 />
             </View>
             <BaseEmojiPickerMenu
@@ -150,5 +150,4 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
     );
 }
 
-EmojiPickerMenu.displayName = 'EmojiPickerMenu';
-export default React.forwardRef(EmojiPickerMenu);
+export default EmojiPickerMenu;

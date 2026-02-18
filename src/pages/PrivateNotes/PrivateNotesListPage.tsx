@@ -14,8 +14,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PrivateNotesNavigatorParamList} from '@libs/Navigation/types';
 import {goBackToDetailsPage} from '@libs/ReportUtils';
-import type {WithReportAndPrivateNotesOrNotFoundProps} from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
-import withReportAndPrivateNotesOrNotFound from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
+import type {WithReportAndPrivateNotesOrNotFoundProps} from '@pages/inbox/report/withReportAndPrivateNotesOrNotFound';
+import withReportAndPrivateNotesOrNotFound from '@pages/inbox/report/withReportAndPrivateNotesOrNotFound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -88,7 +88,7 @@ function PrivateNotesListPage({report, accountID: sessionAccountID}: PrivateNote
     }, [report, personalDetailsList, sessionAccountID, translate, backTo]);
 
     return (
-        <ScreenWrapper testID={PrivateNotesListPage.displayName}>
+        <ScreenWrapper testID="PrivateNotesListPage">
             <HeaderWithBackButton
                 title={translate('privateNotes.title')}
                 shouldShowBackButton
@@ -105,7 +105,5 @@ function PrivateNotesListPage({report, accountID: sessionAccountID}: PrivateNote
         </ScreenWrapper>
     );
 }
-
-PrivateNotesListPage.displayName = 'PrivateNotesListPage';
 
 export default withReportAndPrivateNotesOrNotFound('privateNotes.title')(PrivateNotesListPage);

@@ -4,7 +4,7 @@ import {StyleSheet} from 'react-native';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
-import useCurrentReportID from '@hooks/useCurrentReportID';
+import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,12 +25,12 @@ function MentionReportRenderer({style, tnode, TDefaultRenderer, ...defaultRender
     const StyleUtils = useStyleUtils();
     const htmlAttributeReportID = tnode.attributes.reportid;
     const {currentReportID: currentReportIDContext, exactlyMatch} = useContext(MentionReportContext);
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
 
-    const currentReportID = useCurrentReportID();
+    const {currentReportID} = useCurrentReportIDState();
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const currentReportIDValue = currentReportIDContext || currentReportID?.currentReportID;
-    const [currentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentReportIDValue}`);
+    const currentReportIDValue = currentReportIDContext || currentReportID;
+    const [currentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentReportIDValue}`, {canBeMissing: true});
 
     // When we invite someone to a room they don't have the policy object, but we still want them to be able to see and click on report mentions, so we only check if the policyID in the report is from a workspace
     const isGroupPolicyReport = useMemo(() => currentReport && !isEmptyObject(currentReport) && !!currentReport.policyID && currentReport.policyID !== CONST.POLICY.ID_FAKE, [currentReport]);
@@ -80,7 +80,5 @@ function MentionReportRenderer({style, tnode, TDefaultRenderer, ...defaultRender
         </ShowContextMenuContext.Consumer>
     );
 }
-
-MentionReportRenderer.displayName = 'MentionReportRenderer';
 
 export default MentionReportRenderer;

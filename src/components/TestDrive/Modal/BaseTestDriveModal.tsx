@@ -77,6 +77,4 @@ function BaseTestDriveModal({
     );
 }
 
-BaseTestDriveModal.displayName = 'BaseTestDriveModal';
-
 export default BaseTestDriveModal;

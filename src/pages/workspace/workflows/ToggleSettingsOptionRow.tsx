@@ -1,16 +1,18 @@
 import type {ReactNode} from 'react';
 import React, {useEffect, useMemo} from 'react';
-import {View} from 'react-native';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import Accordion from '@components/Accordion';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import RenderHTML from '@components/RenderHTML';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Parser from '@libs/Parser';
+import CONST from '@src/CONST';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -77,6 +79,9 @@ type ToggleSettingOptionRowProps = {
 
     /** Callback to fire when the switch is toggled in disabled state */
     disabledAction?: () => void;
+
+    /** Callback to fire when the content area is pressed (only works when isActive is true) */
+    onPress?: () => void;
 };
 const ICON_SIZE = 48;
 
@@ -102,6 +107,7 @@ function ToggleSettingOptionRow({
     onCloseError,
     disabled = false,
     showLockIcon = false,
+    onPress,
 }: ToggleSettingOptionRowProps) {
     const styles = useThemeStyles();
     const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(isActive);
@@ -153,6 +159,27 @@ function ToggleSettingOptionRow({
         processedSubtitle,
     ]);
 
+    const contentArea = (
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
+            {!!icon && (
+                <Icon
+                    src={icon}
+                    height={ICON_SIZE}
+                    width={ICON_SIZE}
+                    additionalStyles={[styles.mr3]}
+                />
+            )}
+            {customTitle ?? (
+                <View style={[styles.flexColumn, styles.flex1]}>
+                    <Text style={[styles.textNormal, styles.lh20, titleStyle]}>{title}</Text>
+                    {!shouldPlaceSubtitleBelowSwitch && subtitle && subTitleView}
+                </View>
+            )}
+        </View>
+    );
+
+    const shouldMakeContentPressable = isActive && onPress;
+
     return (
         <OfflineWithFeedback
             pendingAction={pendingAction}
@@ -163,25 +190,19 @@ function ToggleSettingOptionRow({
         >
             <View style={styles.pRelative}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, shouldPlaceSubtitleBelowSwitch && styles.h10]}>
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
-                        {!!icon && (
-                            <Icon
-                                src={icon}
-                                height={ICON_SIZE}
-                                width={ICON_SIZE}
-                                additionalStyles={[styles.mr3]}
-                            />
-                        )}
-                        {customTitle ?? (
-                            <View style={[styles.flexColumn, styles.flex1]}>
-                                <Text style={[styles.textNormal, styles.lh20, titleStyle]}>{title}</Text>
-                                {!shouldPlaceSubtitleBelowSwitch && subtitle && subTitleView}
-                            </View>
-                        )}
-                    </View>
+                    <PressableWithoutFeedback
+                        style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
+                        onPress={shouldMakeContentPressable ? onPress : undefined}
+                        accessibilityLabel={title}
+                        role={shouldMakeContentPressable ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
+                        accessible={false}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TOGGLE_SETTINGS_ROW}
+                    >
+                        {contentArea}
+                    </PressableWithoutFeedback>
                     <Switch
                         disabledAction={disabledAction}
-                        accessibilityLabel={switchAccessibilityLabel}
+                        accessibilityLabel={typeof subtitle === 'string' && subtitle ? `${switchAccessibilityLabel}, ${subtitle}` : switchAccessibilityLabel}
                         onToggle={(isOn) => {
                             shouldAnimateAccordionSection.set(true);
                             onToggle(isOn);

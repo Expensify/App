@@ -1,9 +1,10 @@
 import type {ValueOf} from 'type-fest';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import type {Icon} from './OnyxCommon';
 import type Report from './Report';
+import type {TransactionCustomUnit} from './Transaction';
 
 /** Model of IOU participant */
 type Participant = {
@@ -147,6 +148,24 @@ type SplitExpense = {
 
     /** Timestamp when this split was created */
     created: string;
+
+    /** Merchant where the amount was spent */
+    merchant?: string;
+
+    /** The status of the transaction report */
+    statusNum?: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
+
+    /** Current reportID  */
+    reportID?: string;
+
+    /** Whether the split expense is reimbursable (out-of-pocket) or non-reimbursable (company spend) */
+    reimbursable?: boolean;
+
+    /** Whether this split has been manually edited by the user (locks the value from auto-adjustment) */
+    isManuallyEdited?: boolean;
+
+    /** Custom unit data for distance requests */
+    customUnit?: TransactionCustomUnit;
 };
 
 /** Model of IOU request */

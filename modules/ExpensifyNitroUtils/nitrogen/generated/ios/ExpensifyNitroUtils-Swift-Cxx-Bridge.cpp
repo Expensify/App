@@ -14,7 +14,7 @@
 namespace margelo::nitro::utils::bridge::swift {
 
   // pragma MARK: std::function<void(const std::vector<Contact>& /* result */)>
-  Func_void_std__vector_Contact_ create_Func_void_std__vector_Contact_(void* _Nonnull swiftClosureWrapper) {
+  Func_void_std__vector_Contact_ create_Func_void_std__vector_Contact_(void* _Nonnull swiftClosureWrapper) noexcept {
     auto swiftClosure = ExpensifyNitroUtils::Func_void_std__vector_Contact_::fromUnsafe(swiftClosureWrapper);
     return [swiftClosure = std::move(swiftClosure)](const std::vector<Contact>& result) mutable -> void {
       swiftClosure.call(result);
@@ -22,25 +22,25 @@ namespace margelo::nitro::utils::bridge::swift {
   }
   
   // pragma MARK: std::function<void(const std::exception_ptr& /* error */)>
-  Func_void_std__exception_ptr create_Func_void_std__exception_ptr(void* _Nonnull swiftClosureWrapper) {
+  Func_void_std__exception_ptr create_Func_void_std__exception_ptr(void* _Nonnull swiftClosureWrapper) noexcept {
     auto swiftClosure = ExpensifyNitroUtils::Func_void_std__exception_ptr::fromUnsafe(swiftClosureWrapper);
     return [swiftClosure = std::move(swiftClosure)](const std::exception_ptr& error) mutable -> void {
       swiftClosure.call(error);
     };
   }
   
-  // pragma MARK: std::shared_ptr<margelo::nitro::utils::HybridContactsModuleSpec>
-  std::shared_ptr<margelo::nitro::utils::HybridContactsModuleSpec> create_std__shared_ptr_margelo__nitro__utils__HybridContactsModuleSpec_(void* _Nonnull swiftUnsafePointer) {
+  // pragma MARK: std::shared_ptr<HybridContactsModuleSpec>
+  std::shared_ptr<HybridContactsModuleSpec> create_std__shared_ptr_HybridContactsModuleSpec_(void* _Nonnull swiftUnsafePointer) noexcept {
     ExpensifyNitroUtils::HybridContactsModuleSpec_cxx swiftPart = ExpensifyNitroUtils::HybridContactsModuleSpec_cxx::fromUnsafe(swiftUnsafePointer);
     return std::make_shared<margelo::nitro::utils::HybridContactsModuleSpecSwift>(swiftPart);
   }
-  void* _Nonnull get_std__shared_ptr_margelo__nitro__utils__HybridContactsModuleSpec_(std__shared_ptr_margelo__nitro__utils__HybridContactsModuleSpec_ cppType) {
+  void* _Nonnull get_std__shared_ptr_HybridContactsModuleSpec_(std__shared_ptr_HybridContactsModuleSpec_ cppType) noexcept {
     std::shared_ptr<margelo::nitro::utils::HybridContactsModuleSpecSwift> swiftWrapper = std::dynamic_pointer_cast<margelo::nitro::utils::HybridContactsModuleSpecSwift>(cppType);
-  #ifdef NITRO_DEBUG
+    #ifdef NITRO_DEBUG
     if (swiftWrapper == nullptr) [[unlikely]] {
       throw std::runtime_error("Class \"HybridContactsModuleSpec\" is not implemented in Swift!");
     }
-  #endif
+    #endif
     ExpensifyNitroUtils::HybridContactsModuleSpec_cxx& swiftPart = swiftWrapper->getSwiftPart();
     return swiftPart.toUnsafe();
   }

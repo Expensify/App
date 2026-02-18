@@ -1,7 +1,7 @@
 import {useCallback, useContext} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView} from 'react-native';
-import {ActionListContext} from '@pages/home/ReportScreenContext';
+import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import type ReportScrollManagerData from './types';
 
 function useReportScrollManager(): ReportScrollManagerData {
@@ -54,12 +54,12 @@ function useReportScrollManager(): ReportScrollManagerData {
     }, [flatListRef]);
 
     const scrollToOffset = useCallback(
-        (offset: number, animated = false) => {
+        (offset: number) => {
             if (!flatListRef?.current) {
                 return;
             }
 
-            flatListRef.current.scrollToOffset({offset, animated});
+            flatListRef.current.scrollToOffset({offset, animated: false});
         },
         [flatListRef],
     );

@@ -1,11 +1,12 @@
 import {useIsFocused} from '@react-navigation/native';
+import {feedKeysWithAssignedCardsSelector} from '@selectors/Card';
 import {accountIDSelector} from '@selectors/Session';
 import {deepEqual} from 'fast-equals';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {TextInputKeyPressEvent} from 'react-native';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
@@ -14,25 +15,26 @@ import {buildSubstitutionsMap} from '@components/Search/SearchRouter/buildSubsti
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import {getQueryWithSubstitutions} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from '@components/Search/SearchRouter/getUpdatedSubstitutionsMap';
-import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
+import {useSearchRouterActions} from '@components/Search/SearchRouter/SearchRouterContext';
 import type {SearchQueryJSON, SearchQueryString} from '@components/Search/types';
-import type {SearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
-import {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
-import type {SelectionListHandle} from '@components/SelectionList/types';
-import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
+import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
+import type {SearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
+import {isSearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
+import SidePanelButton from '@components/SidePanel/SidePanelButton';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenReport} from '@libs/actions/Report';
-import {clearAllFilters} from '@libs/actions/Search';
-import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
+import {setSearchContext} from '@libs/actions/Search';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {getAutocompleteQueryWithComma, getQueryWithoutAutocompletedPart} from '@libs/SearchAutocompleteUtils';
-import {buildUserReadableQueryString, getQueryWithUpdatedValues, isDefaultExpensesQuery, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import {getAutocompleteQueryWithComma, getTrimmedUserSearchQueryPreservingComma} from '@libs/SearchAutocompleteUtils';
+import {buildUserReadableQueryString, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -56,33 +58,47 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const [showPopupButton, setShowPopupButton] = useState(true);
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {translate} = useLocalize();
     const {shouldUseNarrowLayout: displayNarrowHeader} = useResponsiveLayout();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
-    const taxRates = useMemo(() => getAllTaxRates(), []);
-    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
-    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
-    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
+    const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
+    const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true});
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
+    const [feedKeysWithCards] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {selector: feedKeysWithAssignedCardsSelector, canBeMissing: true});
     const {inputQuery: originalInputQuery} = queryJSON;
-    const isDefaultQuery = isDefaultExpensesQuery(queryJSON);
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
-    const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, allFeeds, policies, currentUserAccountID);
+    const queryText = buildUserReadableQueryString({
+        queryJSON,
+        PersonalDetails: personalDetails,
+        reports,
+        taxRates,
+        cardList: personalAndWorkspaceCards,
+        cardFeeds: allFeeds,
+        policies,
+        currentUserAccountID,
+        autoCompleteWithSpace: true,
+        translate,
+        feedKeysWithCards,
+    });
 
-    // The actual input text that the user sees
-    const [textInputValue, setTextInputValue] = useState(isDefaultQuery ? '' : queryText);
+    const [searchContext] = useOnyx(ONYXKEYS.SEARCH_CONTEXT, {canBeMissing: true});
+    const shouldShowQuery = searchContext?.shouldShowSearchQuery ?? false;
+
+    const [textInputValue, setTextInputValue] = useState('');
     // The input text that was last used for autocomplete; needed for the SearchAutocompleteList when browsing list via arrow keys
-    const [autocompleteQueryValue, setAutocompleteQueryValue] = useState(isDefaultQuery ? '' : queryText);
+    const [autocompleteQueryValue, setAutocompleteQueryValue] = useState('');
     const [selection, setSelection] = useState({start: textInputValue.length, end: textInputValue.length});
 
     const [autocompleteSubstitutions, setAutocompleteSubstitutions] = useState<SubstitutionMap>({});
     const [isAutocompleteListVisible, setIsAutocompleteListVisible] = useState(false);
-    const listRef = useRef<SelectionListHandle>(null);
+    const listRef = useRef<SelectionListWithSectionsHandle>(null);
     const textInputRef = useRef<AnimatedTextInputRef>(null);
     const hasMountedRef = useRef(false);
     const isFocused = useIsFocused();
-    const {registerSearchPageInput} = useSearchRouterContext();
+    const {registerSearchPageInput} = useSearchRouterActions();
 
     useEffect(() => {
         hasMountedRef.current = true;
@@ -94,7 +110,6 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
             return;
         }
         textInputRef.current.blur();
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchRouterListVisible]);
 
@@ -107,30 +122,48 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     }, [isFocused, registerSearchPageInput, displayNarrowHeader]);
 
     useEffect(() => {
-        setTextInputValue(isDefaultQuery ? '' : queryText);
-        setAutocompleteQueryValue(isDefaultQuery ? '' : queryText);
-    }, [isDefaultQuery, queryText]);
+        const newValue = shouldShowQuery ? queryText : '';
+
+        setTextInputValue(newValue);
+        setAutocompleteQueryValue(newValue);
+    }, [queryText, shouldShowQuery]);
 
     useEffect(() => {
-        const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates, allCards, allFeeds, policies, currentUserAccountID);
+        const substitutionsMap = buildSubstitutionsMap(
+            originalInputQuery,
+            personalDetails,
+            reports,
+            taxRates,
+            personalAndWorkspaceCards,
+            allFeeds,
+            policies,
+            currentUserAccountID,
+            translate,
+        );
         setAutocompleteSubstitutions(substitutionsMap);
-    }, [allFeeds, allCards, originalInputQuery, personalDetails, reports, taxRates, policies, currentUserAccountID]);
+    }, [allFeeds, personalAndWorkspaceCards, originalInputQuery, personalDetails, reports, taxRates, policies, currentUserAccountID, translate]);
 
     useEffect(() => {
         if (searchRouterListVisible) {
             return;
         }
         setShowPopupButton(true);
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchRouterListVisible]);
 
     const onFocus = useCallback(() => {
         onSearchRouterFocus?.();
-        listRef.current?.updateAndScrollToFocusedIndex(0);
         setShowPopupButton(false);
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const handleKeyPress = useCallback((e: TextInputKeyPressEvent) => {
+        const keyEvent = e as unknown as KeyboardEvent;
+
+        if (keyEvent.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey && textInputRef.current?.isFocused()) {
+            keyEvent.preventDefault();
+            textInputRef.current.blur();
+        }
     }, []);
 
     const handleSearchAction = useCallback(
@@ -166,12 +199,6 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                     setAutocompleteSubstitutions(updatedSubstitutionsMap);
                 }
 
-                if (updatedUserQuery) {
-                    listRef.current?.updateAndScrollToFocusedIndex(0);
-                } else {
-                    listRef.current?.updateAndScrollToFocusedIndex(-1);
-                }
-
                 const endTime = Date.now();
                 Log.info('[CMD_K_DEBUG] Page search query change completed', false, {
                     actionId,
@@ -196,19 +223,24 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     );
 
     const submitSearch = useCallback(
-        (queryString: SearchQueryString) => {
+        (queryString: SearchQueryString, shouldSkipAmountConversion = false) => {
             const queryWithSubstitutions = getQueryWithSubstitutions(queryString, autocompleteSubstitutions);
-            const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions);
+            const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions, shouldSkipAmountConversion);
 
             if (!updatedQuery) {
                 return;
             }
 
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery}));
+            setSearchContext(true);
+            Navigation.navigate(
+                ROUTES.SEARCH_ROOT.getRoute({
+                    query: updatedQuery,
+                    rawQuery: queryWithSubstitutions,
+                }),
+            );
             hideSearchRouterList?.();
             setIsAutocompleteListVisible(false);
             if (updatedQuery !== originalInputQuery) {
-                clearAllFilters();
                 setTextInputValue('');
                 setAutocompleteQueryValue('');
             }
@@ -244,10 +276,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
 
                     if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION && textInputValue) {
                         const fieldKey = item.mapKey?.includes(':') ? item.mapKey.split(':').at(0) : item.mapKey;
-                        const keyIndex = fieldKey ? textInputValue.toLowerCase().lastIndexOf(`${fieldKey}:`) : -1;
-
-                        const trimmedUserSearchQuery =
-                            keyIndex !== -1 && fieldKey ? textInputValue.substring(0, keyIndex + fieldKey.length + 1) : getQueryWithoutAutocompletedPart(textInputValue);
+                        const trimmedUserSearchQuery = getTrimmedUserSearchQueryPreservingComma(textInputValue, fieldKey);
                         const newSearchQuery = `${trimmedUserSearchQuery}${sanitizeSearchValue(item.searchQuery)}\u00A0`;
 
                         onSearchQueryChange(newSearchQuery);
@@ -268,7 +297,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                             timestamp: endTime,
                         });
                     } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH) {
-                        submitSearch(item.searchQuery);
+                        submitSearch(item.searchQuery, item.keyForList !== 'findItem');
 
                         const endTime = Date.now();
                         Log.info('[CMD_K_DEBUG] Page search submitted', false, {
@@ -315,36 +344,20 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
         [autocompleteSubstitutions, onSearchQueryChange, submitSearch, textInputValue],
     );
 
-    const updateAutocompleteSubstitutions = useCallback(
-        (item: SearchQueryItem) => {
-            if (!item.autocompleteID || !item.mapKey) {
-                return;
-            }
-
-            const substitutions = {...autocompleteSubstitutions, [item.mapKey]: item.autocompleteID};
-            setAutocompleteSubstitutions(substitutions);
-        },
-        [autocompleteSubstitutions],
+    const searchQueryItem = useMemo(
+        () =>
+            textInputValue
+                ? {
+                      text: textInputValue,
+                      singleIcon: expensifyIcons.MagnifyingGlass,
+                      searchQuery: textInputValue,
+                      itemStyle: styles.activeComponentBG,
+                      keyForList: 'findItem',
+                      searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
+                  }
+                : undefined,
+        [textInputValue, expensifyIcons.MagnifyingGlass, styles.activeComponentBG],
     );
-
-    const setTextAndUpdateSelection = useCallback(
-        (text: string) => {
-            setTextInputValue(text);
-            setSelection({start: text.length, end: text.length});
-        },
-        [setSelection, setTextInputValue],
-    );
-
-    const searchQueryItem = textInputValue
-        ? {
-              text: textInputValue,
-              singleIcon: Expensicons.MagnifyingGlass,
-              searchQuery: textInputValue,
-              itemStyle: styles.activeComponentBG,
-              keyForList: 'findItem',
-              searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
-          }
-        : undefined;
 
     if (displayNarrowHeader) {
         return (
@@ -368,8 +381,8 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                                 onFocus={onFocus}
                                 wrapperStyle={{...styles.searchAutocompleteInputResults, ...styles.br2}}
                                 wrapperFocusedStyle={styles.searchAutocompleteInputResultsFocused}
-                                autocompleteListRef={listRef}
                                 ref={textInputRef}
+                                onKeyPress={handleKeyPress}
                             />
                         </Animated.View>
                         {showPopupButton && (
@@ -385,13 +398,12 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                                 handleSearch={handleSearchAction}
                                 searchQueryItem={searchQueryItem}
                                 onListItemPress={onListItemPress}
-                                setTextQuery={setTextAndUpdateSelection}
-                                updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
                                 ref={listRef}
                                 personalDetails={personalDetails}
                                 reports={reports}
-                                allCards={allCards}
+                                allCards={personalAndWorkspaceCards}
                                 allFeeds={allFeeds}
+                                textInputRef={textInputRef}
                             />
                         </View>
                     )}
@@ -402,7 +414,6 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
 
     const hideAutocompleteList = () => setIsAutocompleteListVisible(false);
     const showAutocompleteList = () => {
-        listRef.current?.updateAndScrollToFocusedIndex(0);
         setIsAutocompleteListVisible(true);
     };
     // we need `- BORDER_WIDTH` to achieve the effect that the input will not "jump"
@@ -445,35 +456,34 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                             wrapperStyle={{...styles.searchAutocompleteInputResults, ...styles.br2}}
                             wrapperFocusedStyle={styles.searchAutocompleteInputResultsFocused}
                             outerWrapperStyle={[inputWrapperActiveStyle, styles.pb2]}
-                            autocompleteListRef={listRef}
                             ref={textInputRef}
                             selection={selection}
                             substitutionMap={autocompleteSubstitutions}
+                            onKeyPress={handleKeyPress}
                         />
                     </View>
-                    <View style={[styles.mh65vh, !isAutocompleteListVisible && styles.dNone]}>
-                        <SearchAutocompleteList
-                            autocompleteQueryValue={autocompleteQueryValue}
-                            handleSearch={handleSearchAction}
-                            searchQueryItem={searchQueryItem}
-                            onListItemPress={onListItemPress}
-                            setTextQuery={setTextAndUpdateSelection}
-                            updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
-                            ref={listRef}
-                            shouldSubscribeToArrowKeyEvents={isAutocompleteListVisible}
-                            personalDetails={personalDetails}
-                            reports={reports}
-                            allCards={allCards}
-                            allFeeds={allFeeds}
-                        />
-                    </View>
+                    {isAutocompleteListVisible && (
+                        <View style={[styles.mh65vh]}>
+                            <SearchAutocompleteList
+                                autocompleteQueryValue={autocompleteQueryValue}
+                                handleSearch={handleSearchAction}
+                                searchQueryItem={searchQueryItem}
+                                onListItemPress={onListItemPress}
+                                ref={listRef}
+                                shouldSubscribeToArrowKeyEvents={isAutocompleteListVisible}
+                                personalDetails={personalDetails}
+                                reports={reports}
+                                allCards={personalAndWorkspaceCards}
+                                allFeeds={allFeeds}
+                                textInputRef={textInputRef}
+                            />
+                        </View>
+                    )}
                 </View>
             </View>
-            <HelpButton style={[styles.mt1Half]} />
+            <SidePanelButton style={styles.mt1Half} />
         </View>
     );
 }
-
-SearchPageHeaderInput.displayName = 'SearchPageHeaderInput';
 
 export default SearchPageHeaderInput;

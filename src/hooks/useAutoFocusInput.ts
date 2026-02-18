@@ -8,10 +8,10 @@ import {moveSelectionToEnd, scrollToBottom} from '@libs/InputUtils';
 import isWindowReadyToFocus from '@libs/isWindowReadyToFocus';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
+import {useSplashScreenState} from '@src/SplashScreenStateContext';
 import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
-import useSidePanel from './useSidePanel';
+import useSidePanelState from './useSidePanelState';
 
 type UseAutoFocusInput = {
     inputCallbackRef: (ref: TextInput | null) => void;
@@ -24,7 +24,7 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
     const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const isPopoverVisible = modal?.willAlertModalBecomeVisible && modal?.isPopover;
 
-    const {splashScreenState} = useSplashScreenStateContext();
+    const {splashScreenState} = useSplashScreenState();
 
     const inputRef = useRef<TextInput | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -33,6 +33,7 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
         if (!isScreenTransitionEnded || !isInputInitialized || !inputRef.current || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN || isPopoverVisible) {
             return;
         }
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const focusTaskHandle = InteractionManager.runAfterInteractions(() => {
             if (inputRef.current && isMultiline) {
                 moveSelectionToEnd(inputRef.current);
@@ -62,15 +63,28 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
     );
 
     // Trigger focus when Side Panel transition ends
-    const {isSidePanelTransitionEnded, shouldHideSidePanel} = useSidePanel();
+    const {isSidePanelTransitionEnded, shouldHideSidePanel} = useSidePanelState();
     const prevShouldHideSidePanel = usePrevious(shouldHideSidePanel);
+    const [wasSidePanelClosed, setWasSidePanelClosed] = useState(false);
+
     useEffect(() => {
-        if (!shouldHideSidePanel || prevShouldHideSidePanel) {
+        // Track when side panel transitions from visible to hidden
+        if (!(shouldHideSidePanel && !prevShouldHideSidePanel)) {
             return;
         }
+        setWasSidePanelClosed(true);
+    }, [shouldHideSidePanel, prevShouldHideSidePanel]);
 
+    useEffect(() => {
+        // Trigger focus when:
+        // 1. Side panel was just closed
+        // 2. Transition has fully completed
+        if (!wasSidePanelClosed || !isSidePanelTransitionEnded) {
+            return;
+        }
+        setWasSidePanelClosed(true);
         Promise.all([ComposerFocusManager.isReadyToFocus(), isWindowReadyToFocus()]).then(() => setIsScreenTransitionEnded(isSidePanelTransitionEnded));
-    }, [isSidePanelTransitionEnded, shouldHideSidePanel, prevShouldHideSidePanel]);
+    }, [isSidePanelTransitionEnded, wasSidePanelClosed]);
 
     const inputCallbackRef = (ref: TextInput | null) => {
         inputRef.current = ref;

@@ -1,8 +1,10 @@
 import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -12,6 +14,7 @@ function ConnectionCompletePage() {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark']);
     return (
         <View style={styles.deeplinkWrapperContainer}>
             <View style={styles.deeplinkWrapperMessage}>
@@ -32,13 +35,11 @@ function ConnectionCompletePage() {
                     width={variables.modalWordmarkWidth}
                     height={variables.modalWordmarkHeight}
                     fill={theme.success}
-                    src={Expensicons.ExpensifyWordmark}
+                    src={icons.ExpensifyWordmark}
                 />
             </View>
         </View>
     );
 }
-
-ConnectionCompletePage.displayName = 'ConnectionCompletePage';
 
 export default ConnectionCompletePage;

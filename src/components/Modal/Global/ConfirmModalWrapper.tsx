@@ -1,9 +1,10 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useState} from 'react';
 import type {ConfirmModalProps} from '@components/ConfirmModal';
 import ConfirmModal from '@components/ConfirmModal';
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import CONST from '@src/CONST';
+import {ModalActions} from './ModalContext';
 import type {ModalProps} from './ModalContext';
 
 type ConfirmModalWrapperProps = ModalProps & Omit<ConfirmModalProps, 'onConfirm' | 'onCancel' | 'isVisible'>;
@@ -15,23 +16,31 @@ type ConfirmModalWrapperProps = ModalProps & Omit<ConfirmModalProps, 'onConfirm'
 
 function ConfirmModalWrapper({closeModal, ...props}: ConfirmModalWrapperProps) {
     const activeElementRole = useActiveElementRole();
+    const [isVisible, setIsVisible] = useState(true);
+    const [closeAction, setCloseAction] = useState<typeof ModalActions.CONFIRM | typeof ModalActions.CLOSE>(ModalActions.CLOSE);
 
-    const handleConfirm = useCallback(() => {
-        closeModal({action: 'CONFIRM'});
-    }, [closeModal]);
+    const handleConfirm = () => {
+        setCloseAction(ModalActions.CONFIRM);
+        setIsVisible(false);
+    };
 
-    const handleCancel = useCallback(() => {
-        closeModal({action: 'CLOSE'});
-    }, [closeModal]);
+    const handleCancel = () => {
+        setCloseAction(ModalActions.CLOSE);
+        setIsVisible(false);
+    };
 
-    const shortcutConfig = useMemo(
-        () => ({
-            isActive: activeElementRole !== CONST.ROLE.BUTTON,
-            shouldPreventDefault: false,
-            shouldBubble: false,
-        }),
-        [activeElementRole],
-    );
+    const handleModalHide = () => {
+        if (isVisible) {
+            return;
+        }
+        closeModal({action: closeAction});
+    };
+
+    const shortcutConfig = {
+        isActive: activeElementRole !== CONST.ROLE.BUTTON,
+        shouldPreventDefault: false,
+        shouldBubble: false,
+    };
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, handleConfirm, shortcutConfig);
 
@@ -39,13 +48,12 @@ function ConfirmModalWrapper({closeModal, ...props}: ConfirmModalWrapperProps) {
         <ConfirmModal
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            isVisible
+            isVisible={isVisible}
             onConfirm={handleConfirm}
             onCancel={handleCancel}
+            onModalHide={handleModalHide}
         />
     );
 }
-
-ConfirmModalWrapper.displayName = 'ConfirmModalWrapper';
 
 export default ConfirmModalWrapper;

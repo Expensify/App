@@ -19,13 +19,13 @@ function getTopmostReportParams(state: State): ReportsSplitNavigatorParamList[ty
         return;
     }
 
-    const topmostReportsSplitNavigator = state.routes?.filter((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR).at(-1);
+    const topmostReportsSplitNavigator = state.routes?.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
 
     if (!topmostReportsSplitNavigator) {
         return;
     }
 
-    const topmostReport = topmostReportsSplitNavigator.state?.routes.filter((route) => route.name === SCREENS.REPORT).at(-1);
+    const topmostReport = topmostReportsSplitNavigator.state?.routes.findLast((route) => route.name === SCREENS.REPORT);
 
     if (!topmostReport) {
         return;

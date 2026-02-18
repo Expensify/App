@@ -13,10 +13,14 @@ The navigation in the app is built on top of the `react-navigation` library. To 
     - [Dismissing modals with opening a report](#dismissing-modals-with-opening-a-report)
     - [Summary](#summary)
   - [Adding new screens](#adding-new-screens)
+  - [Multi-step flows with URL synchronization](#multi-step-flows-with-url-synchronization)
+    - [When to use](#when-to-use)
+    - [Implementation pattern](#implementation-pattern)
   - [Debugging](#debugging)
     - [Reading state when it changes](#reading-state-when-it-changes)
     - [Finding the code that calls the navigation function](#finding-the-code-that-calls-the-navigation-function)
-  - [Using `backTo` route param](#using-backto-route-param)
+  - [How to remove backTo from URL](#how-to-remove-backto-from-url)
+    - [Separating routes for each screen instance](#separating-routes-for-each-screen-instance)
   - [Generating state from a path](#generating-state-from-a-path)
   - [Setting the correct screen underneath RHP](#setting-the-correct-screen-underneath-rhp)
   - [Performance solutions](#performance-solutions)
@@ -60,7 +64,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 
 // Basic navigation to a route
-Navigation.navigate(ROUTES.HOME);
+Navigation.navigate(ROUTES.INBOX);
 
 // Navigation with parameters
 Navigation.navigate(
@@ -71,7 +75,7 @@ Navigation.navigate(
 );
 
 // Navigation with forceReplace - replaces current screen instead of pushing a new one
-Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: nextReportID, backTo}), {forceReplace: true});
+Navigation.navigate(ROUTES.SETTINGS_WALLET, {forceReplace: true});
 
 // Navigation with a callback to handle anonymous users
 interceptAnonymousUser(() => {
@@ -395,7 +399,7 @@ export default NewSettingsScreen;
     });
     ```
 
-    Let's assume that we want to have PreferencesPage below our new Settings RHP screen.
+   Let's assume that we want to have PreferencesPage below our new Settings RHP screen.
 
     ```ts
     // src/libs/Navigation/linkingConfig/RELATIONS/SETTINGS_TO_RHP.ts
@@ -413,6 +417,236 @@ export default NewSettingsScreen;
 
     export default SETTINGS_TO_RHP;
     ```
+
+## Multi-step flows with URL synchronization
+
+Multi-step flows (wizards, forms with multiple screens) should use URL-based navigation via the `useSubPage` hook or via basic navigation between plain static routes. This approach ensures browser navigation works correctly and page refreshes preserve the current position.
+
+### When to use
+
+You can use `useSubPage` hook for any multi-step flow where:
+- Users progress through a series of screens to complete a task
+- Each step collects or displays different information
+- The flow has a final confirmation or summary step
+- You need proper browser back/forward button support
+- Page refresh should preserve the user's current position
+
+Common examples include:
+- Account setup wizards
+- Form flows with multiple sections
+- Settings configuration flows
+
+### Implementation pattern
+
+#### 1. Define your routes
+
+Add routes with a `subPage` parameter to `ROUTES.ts`. The `action` parameter is used for edit mode:
+
+```ts
+MY_FLOW: {
+    route: 'my-flow/:subPage?/:action?',
+    getRoute: (subPage?: string, action?: 'edit') => {
+        if (!subPage) {
+            return 'my-flow' as const;
+        }
+        return `my-flow/${subPage}${action ? `/${action}` : ''}` as const;
+    },
+},
+```
+
+#### 2. Add navigation config
+
+Register the screen in `linkingConfig/config.ts`:
+
+```ts
+[SCREENS.MY_FLOW]: {
+    path: ROUTES.MY_FLOW.route,
+    exact: true,
+},
+```
+
+#### 3. Define page constants
+
+Add page name constants to `CONST.ts`:
+
+```ts
+MY_FLOW: {
+    STEP_INDEX_LIST: ['1', '2', '3'],
+    PAGE_NAME: {
+        STEP_ONE: 'step-one',
+        STEP_TWO: 'step-two',
+        CONFIRMATION: 'confirmation',
+    },
+},
+```
+
+#### 4. Create sub-page components
+
+Each sub-page receives `SubPageProps` and any custom props you define:
+
+```ts
+import type {SubPageProps} from '@hooks/useSubPage/types';
+
+type CustomSubPageProps = SubPageProps & {
+    // Add custom props specific to your flow
+    formValues: MyFormType;
+};
+
+function StepOne({isEditing, onNext, onMove, formValues}: CustomSubPageProps) {
+    const handleSubmit = (data: FormData) => {
+        saveData(data);
+        onNext();
+    };
+
+    return (
+        <FormProvider onSubmit={handleSubmit}>
+            {/* Form fields */}
+        </FormProvider>
+    );
+}
+```
+
+#### 5. Implement the main flow component
+
+```ts
+import useSubPage from '@hooks/useSubPage';
+import type {SubPageProps} from '@hooks/useSubPage/types';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import InteractiveStepSubPageHeader from '@components/InteractiveStepSubPageHeader';
+
+type CustomSubPageProps = SubPageProps & {
+    formValues: MyFormType;
+};
+
+const pages = [
+    {pageName: CONST.MY_FLOW.PAGE_NAME.STEP_ONE, component: StepOne},
+    {pageName: CONST.MY_FLOW.PAGE_NAME.STEP_TWO, component: StepTwo},
+    {pageName: CONST.MY_FLOW.PAGE_NAME.CONFIRMATION, component: Confirmation},
+];
+
+function MyFlowContent() {
+    const {
+        CurrentPage,
+        isEditing,
+        pageIndex,
+        prevPage,
+        nextPage,
+        lastPageIndex,
+        moveTo,
+        resetToPage,
+        isRedirecting,
+    } = useSubPage<CustomSubPageProps>({
+        pages,
+        startFrom: 0,
+        onFinished: () => {
+            // Handle flow completion
+            Navigation.goBack();
+        },
+        buildRoute: (pageName, action) => ROUTES.MY_FLOW.getRoute(pageName, action),
+    });
+
+    const handleBackButtonPress = () => {
+        if (isEditing) {
+            Navigation.goBack();
+            return;
+        }
+
+        if (pageIndex === 0) {
+            Navigation.closeRHPFlow();
+            return;
+        }
+
+        prevPage();
+    };
+
+    if (isRedirecting) {
+        return <FullScreenLoadingIndicator />;
+    }
+
+    return (
+        <ScreenWrapper>
+            <HeaderWithBackButton
+                title={translate('myFlow.title')}
+                onBackButtonPress={handleBackButtonPress}
+            />
+            <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.NETSUITE_FORM_STEPS_HEADER_HEIGHT}]}>
+                <InteractiveStepSubPageHeader
+                    stepNames={CONST.MY_FLOW.STEP_INDEX_LIST}
+                    currentStepIndex={pageIndex}
+                    onStepSelected={moveTo}
+                />
+            </View>
+            <CurrentPage
+                isEditing={isEditing}
+                onNext={nextPage}
+                onMove={moveTo}
+                formValues={formValues}
+            />
+        </ScreenWrapper>
+    );
+}
+```
+
+### Using InteractiveStepSubPageHeader
+
+The `InteractiveStepSubPageHeader` component is designed to work with the `useSubPage` hook for URL-based multi-step flows.
+
+Key features:
+- Displays numbered step indicators with connecting lines
+- Shows completed steps with a checkmark icon
+- Allows users to tap on completed steps to navigate back (entering edit mode)
+- Locked (future) steps are disabled
+- Automatically syncs with the current page index from the URL
+
+```ts
+<InteractiveStepSubPageHeader
+    stepNames={CONST.MY_FLOW.STEP_INDEX_LIST}
+    currentStepIndex={pageIndex}
+    onStepSelected={moveTo}
+/>
+```
+
+> **Note**: The `stepNames` array determines the number of steps displayed. The `currentStepIndex` is 0-based. When a user taps a completed step, `onStepSelected` is called with that step's index, which triggers edit mode navigation.
+
+#### 6. Handle edit mode
+
+The hook automatically manages edit mode via the `action=edit` URL parameter. When users navigate to a previous step using `moveTo()`, they enter edit mode. In edit mode, calling `nextPage()` returns them to the last page (typically confirmation) instead of advancing sequentially:
+
+```ts
+// In Confirmation component - allow editing previous steps
+function Confirmation({onMove, formValues}: CustomSubPageProps) {
+    return (
+        <View>
+            <MenuItem
+                title={formValues.name}
+                description={translate('myFlow.name')}
+                onPress={() => onMove(0)}
+            />
+            {/* More review items */}
+        </View>
+    );
+}
+```
+
+#### 7. Skip pages conditionally
+
+Use `skipPages` to conditionally skip steps based on user input or feature flags:
+
+```ts
+const skipPages = useMemo(() => {
+    const pagesToSkip: string[] = [];
+    if (!requiresAdditionalInfo) {
+        pagesToSkip.push(CONST.MY_FLOW.PAGE_NAME.STEP_TWO);
+    }
+    return pagesToSkip;
+}, [requiresAdditionalInfo]);
+
+const {...} = useSubPage<CustomSubPageProps>({
+    pages,
+    skipPages,
+    // ...other props
+});
+```
 
 ## Debugging
 
@@ -434,10 +668,13 @@ const handleStateChange = (state: NavigationState | undefined) => {
 
 The easiest way to find the piece of code from which the navigation method was called is to use a debugger and breakpoints. You should attach a breakpoint in the navigation method and check the call stack, this way you can easily find the navigation method that caused the problem.
 
-## Using `backTo` route param
+## How to remove backTo from URL
 
 > [!WARNING]
-> **Deprecated**: The `backTo` parameter is deprecated and should not be used in new implementations. Most problems that `backTo` solved can be resolved by adding one or more routes for a single screen. If you don't know how to solve your problem, contact someone from the navigation team.
+> **Deprecated**: The `backTo` parameter is deprecated and should not be used in new implementations. Most problems that `backTo` solved can be resolved by adding one or more routes for a single screen. If you don't know how to solve your problem, contact someone from the navigation team. Old documentation on how to use `backTo` can be found below.
+
+<details>
+<summary>Using `backTo` route param</summary>
 
 When a particular screen can be opened from two or more different pages, we can use `backTo` route parameter to handle such case.
 
@@ -495,6 +732,96 @@ function NewSettingsScreen({route}: NewSettingsScreenNavigationProps) {
     );
 }
 ```
+</details>
+
+### Separating routes for each screen instance
+
+Often, you will need to reuse a single screen across multiple navigation flows. For example, the `VerifyAccountPage` can be viewed in many different RHP flows. The proper approach to implementing such a mechanism is to create a new route for each screen instance within a single flow.
+
+Considerations when removing `backTo` from a URL:
+
+- For RHP screens, check if the correct central screen is under the overlay after refreshing the page. More information on how to set the default screen underneath RHP can be found (here)[#setting-the-correct-screen-underneath-rhp].
+- Ensure that after refreshing the page and pressing the back button in the application, you return to the page from which you initially accessed the currently displayed screen.
+- If you use the same component for different routes, be sure to define the correct props type. Here's the example of `ReportScreen` that can be viewed in full screen width in the Inbox tab and in the Reports tab in the RHP.
+
+```ts
+type ReportScreenNavigationProps =
+    | PlatformStackScreenProps<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
+    | PlatformStackScreenProps<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>;
+```
+
+An example of a screen that is reused in several flows is `VerifyAccountPage`.
+
+1. Binding one component to multiple screens.
+
+`src/libs/Navigation/AppNavigator/ModalStackNavigators/index.tsx`
+
+```ts
+const TravelModalStackNavigator = createModalStackNavigator<TravelNavigatorParamList>({
+    // ...
+    [SCREENS.TRAVEL.VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/Travel/VerifyAccountPage').default,
+});
+
+const TwoFactorAuthenticatorStackNavigator = createModalStackNavigator<EnablePaymentsNavigatorParamList>({
+    // ...
+    [SCREENS.TWO_FACTOR_AUTH.VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/VerifyAccountPage').default,
+});
+```
+
+2. Custom component behavior depending on the current route.
+
+If we want the component's behavior to change based on the current route, we can extract the component shared by each route and pass properties to it that define the custom behavior, as is done for `VerifyAccountPage`.
+
+`VerifyAccountPageBase` is a shared component that receives `navigateBackTo` and `navigateForwardTo` props defining behavior that is custom across different flows. 
+
+Here's an example of reusing this component for Wallet and Travel flows:
+
+1. `src/pages/settings/Wallet/VerifyAccountPage.tsx`.
+
+```ts
+import React from 'react';
+import VerifyAccountPageBase from '@pages/settings/VerifyAccountPageBase';
+import ROUTES from '@src/ROUTES';
+
+function VerifyAccountPage() {
+    return (
+        <VerifyAccountPageBase
+            navigateBackTo={ROUTES.SETTINGS_WALLET}
+            navigateForwardTo={ROUTES.SETTINGS_ENABLE_PAYMENTS}
+        />
+    );
+}
+
+VerifyAccountPage.displayName = 'VerifyAccountPage';
+
+export default VerifyAccountPage;
+```
+
+2. `src/pages/Travel/VerifyAccountPage.tsx`.
+
+```ts
+import type {StackScreenProps} from '@react-navigation/stack';
+import React from 'react';
+import type {TravelNavigatorParamList} from '@libs/Navigation/types';
+import VerifyAccountPageBase from '@pages/settings/VerifyAccountPageBase';
+import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+
+type VerifyAccountPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.VERIFY_ACCOUNT>;
+
+function VerifyAccountPage({route}: VerifyAccountPageProps) {
+    return (
+        <VerifyAccountPageBase
+            navigateBackTo={ROUTES.TRAVEL_MY_TRIPS}
+            navigateForwardTo={ROUTES.TRAVEL_TCS.getRoute(route.params.domain)}
+        />
+    );
+}
+
+VerifyAccountPage.displayName = 'VerifyAccountPage';
+export default VerifyAccountPage;
+
+```
 
 ## Generating state from a path
 
@@ -507,7 +834,7 @@ In Expensify, we use an extended implementation of this function because:
 -   When opening a link leading to an onboarding screen, all previous screens in this flow have to be present in the navigation state.
 -   In case of opening the RHP, appropriate screens should be pushed to the navigation to be displayed below the overlay. A guide on how to set up a good screen for RHP can be found [here](#how-to-set-a-correct-screen-below-the-rhp).
 -   When opening the settings of a specific workspace, the workspace list needs to be pushed to the state.
--   When the `backTo` parameter is in the URL, we need to build a state also for the screen we want to return to.
+-   When the `backTo` parameter is in the URL, we need to build a state also for the screen we want to return to. (`backTo` parameter is deprecated, more information can be found [here](#how-to-properly-remove-backto-from-url))
 
 Here are examples how the state is generated based on route:
 
@@ -623,7 +950,7 @@ In the above example, we can see that when building a state from a link leading 
 
 ## Setting the correct screen underneath RHP
 
-RHP screens can usually be opened from a specific central screen. Of course there are cases where one RHP screen can be used in different tabs (then using `backTo` parameter comes in handy). However, most often one RHP screen has a specific central screen assigned underneath.
+RHP screens can usually be opened from a specific central screen. Of course there are cases where one RHP screen can be used in different tabs. However, most often one RHP screen has a specific central screen assigned underneath.
 
 > [!WARNING]
 > **Deprecated**: The `backTo` parameter is deprecated and should not be used in new implementations. Most problems that `backTo` solved can be resolved by adding one or more routes for a single screen. If you don't know how to solve your problem, contact someone from the navigation team.
@@ -1023,7 +1350,7 @@ import {ROUTES} from '@src/ROUTES';
 Navigation.goBack();
 
 // Back navigation with fallback
-Navigation.goBack(ROUTES.HOME);
+Navigation.goBack(ROUTES.INBOX);
 
 const reportID = 123;
 // Back navigation to a route with specific params

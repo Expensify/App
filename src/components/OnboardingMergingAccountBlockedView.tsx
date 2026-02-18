@@ -1,13 +1,15 @@
 import React from 'react';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import {setOnboardingErrorMessage} from '@userActions/Welcome';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import BlockingView from './BlockingViews/BlockingView';
 import Button from './Button';
-import {ToddBehindCloud} from './Icon/Illustrations';
 
 type OnboardingMergingAccountBlockedViewProps = {
     // Work email to display in the subtitle
@@ -20,14 +22,25 @@ type OnboardingMergingAccountBlockedViewProps = {
 function OnboardingMergingAccountBlockedView({workEmail, isVsb}: OnboardingMergingAccountBlockedViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud']);
+    const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, {canBeMissing: true});
+
+    const getErrorSubtitle = () => {
+        if (onboardingErrorMessage) {
+            return translate(onboardingErrorMessage);
+        }
+        // Fallback to generic error message
+        return translate('onboarding.mergeBlockScreen.subtitle', {workEmail});
+    };
+
     return (
         <>
             <BlockingView
-                icon={ToddBehindCloud}
+                icon={illustrations.ToddBehindCloud}
                 iconWidth={variables.modalTopIconWidth}
                 iconHeight={variables.modalTopIconHeight}
                 title={translate('onboarding.mergeBlockScreen.title')}
-                subtitle={translate('onboarding.mergeBlockScreen.subtitle', {workEmail})}
+                subtitle={getErrorSubtitle()}
                 subtitleStyle={[styles.colorMuted]}
             />
             <Button
@@ -36,7 +49,7 @@ function OnboardingMergingAccountBlockedView({workEmail, isVsb}: OnboardingMergi
                 style={[styles.mb5]}
                 text={translate('common.buttonConfirm')}
                 onPress={() => {
-                    setOnboardingErrorMessage('');
+                    setOnboardingErrorMessage(null);
                     if (isVsb) {
                         Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
                         return;
@@ -47,7 +60,5 @@ function OnboardingMergingAccountBlockedView({workEmail, isVsb}: OnboardingMergi
         </>
     );
 }
-
-OnboardingMergingAccountBlockedView.displayName = 'OnboardingMergingAccountBlockedView';
 
 export default OnboardingMergingAccountBlockedView;

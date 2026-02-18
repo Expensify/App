@@ -6,7 +6,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-import wrapInAct from '../utils/wrapInActHelper';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 jest.mock('@libs/Permissions');
@@ -27,6 +26,7 @@ jest.mock('../../src/libs/Navigation/navigationRef', () => ({
         routes: [],
     }),
     addListener: () => () => {},
+    isReady: () => true,
 }));
 jest.mock('@components/Icon/Expensicons');
 
@@ -73,15 +73,12 @@ describe('SidebarLinks', () => {
 
     test('[SidebarLinks] should render Sidebar with 500 reports stored', async () => {
         const scenario = async () => {
-            await waitFor(async () => {
-                // Query for the sidebar
-                await screen.findByTestId('lhn-options-list');
-            });
+            await screen.findByTestId('lhn-options-list');
         };
 
         await waitForBatchedUpdates();
 
-        Onyx.multiSet({
+        await Onyx.multiSet({
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
             [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
@@ -100,14 +97,9 @@ describe('SidebarLinks', () => {
             });
 
             // Then wait for the specific list item to be available
-            await waitFor(async () => {
-                const button = await screen.findByTestId('1');
-                await wrapInAct(() => {
-                    fireEvent.press(button);
-                });
-            });
+            const button = await screen.findByTestId('1');
+            fireEvent.press(button);
         };
-
         await Onyx.multiSet({
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
             [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],

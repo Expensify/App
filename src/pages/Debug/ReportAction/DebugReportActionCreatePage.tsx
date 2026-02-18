@@ -1,3 +1,5 @@
+import {isUserValidatedSelector} from '@selectors/Account';
+import {tierNameSelector} from '@selectors/UserWallet';
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -17,7 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
 import {rand64} from '@libs/NumberUtils';
-import ReportActionItem from '@pages/home/report/ReportActionItem';
+import ReportActionItem from '@pages/inbox/report/ReportActionItem';
 import Debug from '@userActions/Debug';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -50,8 +52,8 @@ function DebugReportActionCreatePage({
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
-    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: (wallet) => wallet?.tierName, canBeMissing: false});
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
+    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector, canBeMissing: false});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
     const [draftReportAction, setDraftReportAction] = useState<string>(() => getInitialReportAction(reportID, session, personalDetailsList));
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: false});
@@ -87,7 +89,7 @@ function DebugReportActionCreatePage({
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
             shouldEnableMinHeight={canUseTouchScreen()}
-            testID={DebugReportActionCreatePage.displayName}
+            testID="DebugReportActionCreatePage"
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
@@ -118,7 +120,6 @@ function DebugReportActionCreatePage({
                                     policies={policies}
                                     action={JSON.parse(draftReportAction.replaceAll('\n', '')) as ReportAction}
                                     report={{reportID}}
-                                    reportActions={[]}
                                     parentReportAction={undefined}
                                     displayAsGroup={false}
                                     isMostRecentIOUReportAction={false}
@@ -149,7 +150,5 @@ function DebugReportActionCreatePage({
         </ScreenWrapper>
     );
 }
-
-DebugReportActionCreatePage.displayName = 'DebugReportActionCreatePage';
 
 export default DebugReportActionCreatePage;

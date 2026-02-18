@@ -1,11 +1,11 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import * as Illustrations from '@components/Icon/Illustrations';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteApprovalAccount} from '@libs/actions/connections/NetSuiteCommands';
@@ -22,14 +22,15 @@ import ROUTES from '@src/ROUTES';
 function NetSuiteApprovalAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const policyID = policy?.id;
 
     const config = policy?.connections?.netsuite?.options.config;
     const netsuiteApprovalAccountOptions = useMemo<SelectorType[]>(
-        () => getNetSuiteApprovalAccountOptions(policy ?? undefined, config?.approvalAccount),
+        () => getNetSuiteApprovalAccountOptions(policy ?? undefined, config?.approvalAccount, translate),
         // The default option will be language dependent, so we need to recompute the options when the language changes
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [config?.approvalAccount, policy, translate],
     );
 
@@ -48,7 +49,7 @@ function NetSuiteApprovalAccountSelectPage({policy}: WithPolicyConnectionsProps)
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
-                icon={Illustrations.TeleScope}
+                icon={illustrations.Telescope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.netsuite.noAccountsFound')}
@@ -56,7 +57,7 @@ function NetSuiteApprovalAccountSelectPage({policy}: WithPolicyConnectionsProps)
                 containerStyle={styles.pb10}
             />
         ),
-        [translate, styles.pb10],
+        [illustrations.Telescope, translate, styles.pb10],
     );
 
     const headerContent = useMemo(
@@ -73,9 +74,9 @@ function NetSuiteApprovalAccountSelectPage({policy}: WithPolicyConnectionsProps)
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={NetSuiteApprovalAccountSelectPage.displayName}
+            displayName="NetSuiteApprovalAccountSelectPage"
             headerContent={headerContent}
-            sections={netsuiteApprovalAccountOptions.length ? [{data: netsuiteApprovalAccountOptions}] : []}
+            data={netsuiteApprovalAccountOptions}
             listItem={RadioListItem}
             onSelectRow={updateCollectionAccount}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
@@ -90,7 +91,5 @@ function NetSuiteApprovalAccountSelectPage({policy}: WithPolicyConnectionsProps)
         />
     );
 }
-
-NetSuiteApprovalAccountSelectPage.displayName = 'NetSuiteApprovalAccountSelectPage';
 
 export default withPolicyConnections(NetSuiteApprovalAccountSelectPage);

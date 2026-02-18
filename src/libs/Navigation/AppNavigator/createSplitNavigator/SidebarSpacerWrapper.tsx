@@ -15,6 +15,4 @@ function SidebarSpacerWrapper({children}: SidebarSpacerWrapperProps) {
     return <View style={styles.rootNavigatorContainerStyles(shouldUseNarrowLayout)}>{children}</View>;
 }
 
-SidebarSpacerWrapper.displayName = 'SidebarSpacerWrapper';
-
 export default SidebarSpacerWrapper;

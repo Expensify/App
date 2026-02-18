@@ -28,13 +28,13 @@ Removing a member from a workspace prevents them from submitting reports to or a
 Yes, as long as the reports have been submitted. You can navigate to the Reports page and enter the member's email in the search field to find them. However, draft reports will be removed from the workspace, so they will no longer be visible to the Workspace Admin.
 
 ## Can members still access their reports on a workspace after they have been removed?
-Yes. Any report that has been approved will now show the workspace as "(not shared)" in their account. If it is a **Draft Report**, they will still be able to edit it and add it to a new workspace. If the report is **Approved or Reimbursed,** they will not be able to edit it further.
+Yes. Any report that has been approved will now show the workspace as "(not shared)" in their account. If it is a **Draft Report**, they will still be able to edit it and add it to a new workspace. If the report is **Approved or Paid,** they will not be able to edit it further.
 
 ## Who can remove members from a workspace?
 Only **Workspace Admins**. Members cannot add or remove themselves from a workspace. **Domain Admins** who are not also Workspace Admins cannot remove a member from a workspace.
 
 ## How do I remove a member from a workspace if I am seeing an error message?
-If a member is a Preferred Exporter, Billing Owner, Report Approver, or has submitted reports in the **processing state**, follow these steps before removing them:
+If a member is a Preferred Exporter, Billing Owner, Report Approver, or has submitted reports in the **Outstanding state**, follow these steps before removing them:
 
 - **Preferred Exporter:**
   - Go to **Settings > Workspaces > [Workspace Name] > Accounting**.
@@ -48,6 +48,6 @@ If a member is a Preferred Exporter, Billing Owner, Report Approver, or has subm
   - Remove them as an approver by going to **Settings > Workspaces > [Workspace Name] > Members > Approval Mode**.
   - Change the "**Submit reports to**" field.
 
-- **Processing Reports:**
+- **Outstanding Reports:**
   - Approve or reject the member’s reports on your **Reports** page.
 

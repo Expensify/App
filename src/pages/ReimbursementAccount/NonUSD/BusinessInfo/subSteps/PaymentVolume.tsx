@@ -21,7 +21,10 @@ function PaymentVolume({onNext, onMove, isEditing}: PaymentVolumeProps) {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const currency = policy?.outputCurrency ?? '';
 
-    const annualVolumeRangeListOptions = useMemo(() => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.AnnualVolumeRange), [corpayOnboardingFields]);
+    const annualVolumeRangeListOptions = useMemo(
+        () => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.AnnualVolumeRange),
+        [corpayOnboardingFields?.picklists.AnnualVolumeRange],
+    );
 
     const annualVolumeDefaultValue = reimbursementAccount?.achData?.corpay?.[ANNUAL_VOLUME] ?? '';
 
@@ -31,7 +34,7 @@ function PaymentVolume({onNext, onMove, isEditing}: PaymentVolumeProps) {
                 inputID: ANNUAL_VOLUME,
                 defaultValue: annualVolumeDefaultValue,
                 options: annualVolumeRangeListOptions,
-                description: translate('businessInfoStep.annualPaymentVolumeInCurrency', {currencyCode: currency}),
+                description: translate('businessInfoStep.annualPaymentVolumeInCurrency', currency),
                 modalHeaderTitle: translate('businessInfoStep.selectAnnualPaymentVolume'),
                 searchInputTitle: translate('businessInfoStep.findAnnualPaymentVolume'),
             },
@@ -61,7 +64,5 @@ function PaymentVolume({onNext, onMove, isEditing}: PaymentVolumeProps) {
         />
     );
 }
-
-PaymentVolume.displayName = 'PaymentVolume';
 
 export default PaymentVolume;

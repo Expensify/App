@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
@@ -92,8 +92,8 @@ function QuickbooksDesktopPreferredExporterConfigurationPage({policy}: WithPolic
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={QuickbooksDesktopPreferredExporterConfigurationPage.displayName}
-            sections={[{data}]}
+            displayName="QuickbooksDesktopPreferredExporterConfigurationPage"
+            data={data}
             listItem={RadioListItem}
             headerContent={headerContent}
             onBackButtonPress={goBack}
@@ -114,7 +114,5 @@ function QuickbooksDesktopPreferredExporterConfigurationPage({policy}: WithPolic
         />
     );
 }
-
-QuickbooksDesktopPreferredExporterConfigurationPage.displayName = 'QuickbooksDesktopPreferredExporterConfigurationPage';
 
 export default withPolicyConnections(QuickbooksDesktopPreferredExporterConfigurationPage);

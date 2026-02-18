@@ -31,14 +31,14 @@ Expensify's QuickBooks Online integration includes different features depending 
 
 ---
 
-# Step 1: Set up employees in QuickBooks Online
+# Step 1: Set up employees or vendors in QuickBooks Online
 
-Before connecting, make sure employees are set up correctly in QuickBooks Online using the same email address they use in Expensify.
+Before connecting, make sure employees/vendors are set up correctly in QuickBooks Online using the same email address they use in Expensify.
 
 To do this:
 1. Log into QuickBooks Online.
-2. Go to **Payroll > Employees**.
-3. Add or edit employees as needed (method may vary by country).
+2. Go to **Payroll > Employees**, or **Expenses > Vendors**
+3. Add or edit employees or vendors as needed (method may vary by country).
 
 ---
 

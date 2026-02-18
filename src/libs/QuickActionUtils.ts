@@ -1,41 +1,47 @@
-import type {SvgProps} from 'react-native-svg';
-import * as Expensicons from '@components/Icon/Expensicons';
+import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Beta, Policy, Report} from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type QuickAction from '@src/types/onyx/QuickAction';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type IconAsset from '@src/types/utils/IconAsset';
 import getIconForAction from './getIconForAction';
+import {getPerDiemCustomUnit, isTimeTrackingEnabled} from './PolicyUtils';
 import {canCreateRequest} from './ReportUtils';
 
-const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
+const getQuickActionIcon = (
+    icons: Record<'CalendarSolid' | 'Car' | 'Task' | 'Coins' | 'Receipt' | 'Cash' | 'Transfer' | 'ReceiptScan' | 'MoneyCircle' | 'Clock', IconAsset>,
+    action: QuickActionName,
+): IconAsset => {
     switch (action) {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
-            return getIconForAction(CONST.IOU.TYPE.REQUEST);
+            return getIconForAction(CONST.IOU.TYPE.REQUEST, icons);
         case CONST.QUICK_ACTIONS.REQUEST_SCAN:
-            return Expensicons.ReceiptScan;
+            return icons.ReceiptScan;
         case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
-            return Expensicons.Car;
+            return icons.Car;
         case CONST.QUICK_ACTIONS.PER_DIEM:
-            return Expensicons.CalendarSolid;
+        case CONST.QUICK_ACTIONS.TRACK_PER_DIEM:
+            return icons.CalendarSolid;
         case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
         case CONST.QUICK_ACTIONS.SPLIT_SCAN:
         case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
-            return getIconForAction(CONST.IOU.TYPE.SPLIT);
+            return getIconForAction(CONST.IOU.TYPE.SPLIT, icons);
         case CONST.QUICK_ACTIONS.SEND_MONEY:
-            return getIconForAction(CONST.IOU.TYPE.SEND);
+            return getIconForAction(CONST.IOU.TYPE.SEND, icons);
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
-            return Expensicons.Task;
+            return icons.Task;
         case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
-            return Expensicons.Car;
+            return icons.Car;
         case CONST.QUICK_ACTIONS.TRACK_MANUAL:
-            return getIconForAction(CONST.IOU.TYPE.TRACK);
+            return getIconForAction(CONST.IOU.TYPE.TRACK, icons);
         case CONST.QUICK_ACTIONS.TRACK_SCAN:
-            return Expensicons.ReceiptScan;
-        case CONST.QUICK_ACTIONS.CREATE_REPORT:
-            return Expensicons.Document;
+            return icons.ReceiptScan;
+        case CONST.QUICK_ACTIONS.REQUEST_TIME:
+            return icons.Clock;
         default:
-            return Expensicons.MoneyCircle;
+            return icons.MoneyCircle;
     }
 };
 
@@ -44,6 +50,7 @@ const getIOUType = (action: QuickActionName | undefined) => {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
         case CONST.QUICK_ACTIONS.REQUEST_SCAN:
         case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
+        case CONST.QUICK_ACTIONS.REQUEST_TIME:
         case CONST.QUICK_ACTIONS.PER_DIEM:
             return CONST.IOU.TYPE.SUBMIT;
         case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
@@ -73,6 +80,7 @@ const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
         case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
             return 'quickAction.recordDistance';
         case CONST.QUICK_ACTIONS.PER_DIEM:
+        case CONST.QUICK_ACTIONS.TRACK_PER_DIEM:
             return 'quickAction.perDiem';
         case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
             return 'quickAction.splitBill';
@@ -84,6 +92,8 @@ const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
             return 'quickAction.paySomeone';
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
             return 'quickAction.assignTask';
+        case CONST.QUICK_ACTIONS.REQUEST_TIME:
+            return 'quickAction.createTimeExpense';
         default:
             return '' as TranslationPaths;
     }
@@ -92,7 +102,29 @@ const isManagerMcTestQuickActionReport = (report: Report | undefined) => {
     return !!report?.participants?.[CONST.ACCOUNT_ID.MANAGER_MCTEST];
 };
 
-const isQuickActionAllowed = (quickAction: QuickAction, quickActionReport: Report | undefined, quickActionPolicy: Policy | undefined, isReportArchived = false) => {
+const isQuickActionAllowed = (
+    quickAction: QuickAction,
+    quickActionReport: Report | undefined,
+    quickActionPolicy: Policy | undefined,
+    isReportArchived: boolean | undefined,
+    betas: OnyxEntry<Beta[]>,
+    isRestrictedToPreferredPolicy = false,
+) => {
+    if (quickAction?.action === CONST.QUICK_ACTIONS.PER_DIEM || quickAction?.action === CONST.QUICK_ACTIONS.TRACK_PER_DIEM) {
+        if (!quickActionPolicy?.arePerDiemRatesEnabled) {
+            return false;
+        }
+        const perDiemCustomUnit = getPerDiemCustomUnit(quickActionPolicy);
+        if (isEmptyObject(perDiemCustomUnit?.rates)) {
+            return false;
+        }
+    }
+    if (quickAction?.action === CONST.QUICK_ACTIONS.REQUEST_TIME) {
+        if (!isTimeTrackingEnabled(quickActionPolicy)) {
+            return false;
+        }
+    }
+
     const iouType = getIOUType(quickAction?.action);
     if (iouType) {
         // We're disabling QAB for Manager McTest reports to prevent confusion when submitting real data for Manager McTest
@@ -100,15 +132,7 @@ const isQuickActionAllowed = (quickAction: QuickAction, quickActionReport: Repor
         if (isReportHasManagerMCTest) {
             return false;
         }
-        return canCreateRequest(quickActionReport, quickActionPolicy, iouType, isReportArchived);
-    }
-    if (quickAction?.action === CONST.QUICK_ACTIONS.PER_DIEM) {
-        return !!quickActionPolicy?.arePerDiemRatesEnabled;
-    }
-    // We don't want to show this QAB since this is already available in the FloatingActionButtonAndPopover
-    // In the future, we will remove this when the BE no longer returns this action
-    if (quickAction?.action === CONST.QUICK_ACTIONS.CREATE_REPORT) {
-        return false;
+        return canCreateRequest(quickActionReport, quickActionPolicy, iouType, isReportArchived, betas, isRestrictedToPreferredPolicy);
     }
     return true;
 };

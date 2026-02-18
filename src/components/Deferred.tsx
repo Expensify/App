@@ -27,6 +27,4 @@ function Deferred({children}: PropsWithChildren) {
     return children;
 }
 
-Deferred.displayName = 'Deferred';
-
 export default Deferred;

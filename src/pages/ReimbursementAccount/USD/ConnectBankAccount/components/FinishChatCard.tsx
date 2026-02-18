@@ -1,17 +1,20 @@
 import React from 'react';
-import {ChatBubble, Pencil, RotateLeft} from '@components/Icon/Expensicons';
-import {ConciergeBubble} from '@components/Icon/Illustrations';
+// eslint-disable-next-line no-restricted-imports
+import {RotateLeft} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
 import {goToWithdrawalAccountSetupStep, requestResetBankAccount, setBankAccountSubStep} from '@userActions/BankAccounts';
 import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccount} from '@src/types/onyx';
 import Enable2FACard from './Enable2FACard';
 
@@ -30,28 +33,32 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBank
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
     const policyID = reimbursementAccount?.achData?.policyID;
     const shouldShowResetModal = reimbursementAccount?.shouldShowResetModal ?? false;
-    const handleNavigateToConciergeChat = () => navigateToConciergeChat(true, undefined, undefined, reimbursementAccount?.achData?.ACHRequestReportActionID);
+    const handleNavigateToConciergeChat = () => navigateToConciergeChat(conciergeReportID, true, undefined, undefined, reimbursementAccount?.achData?.ACHRequestReportActionID);
+
+    const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'ChatBubble']);
+    const illustrations = useMemoizedLazyIllustrations(['ConciergeBubble']);
 
     return (
         <ScrollView style={[styles.flex1]}>
             <Section
                 title={translate('workspace.bankAccount.letsFinishInChat')}
-                icon={ConciergeBubble}
+                icon={illustrations.ConciergeBubble}
                 containerStyles={[styles.mb8, styles.mh5]}
                 titleStyles={[styles.mb3]}
             >
                 <Text style={styles.mb6}>{translate('connectBankAccountStep.letsChatText')}</Text>
                 <MenuItem
-                    icon={ChatBubble}
+                    icon={icons.ChatBubble}
                     title={translate('workspace.bankAccount.finishInChat')}
                     onPress={handleNavigateToConciergeChat}
                     outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
                     shouldShowRightIcon
                 />
                 <MenuItem
-                    icon={Pencil}
+                    icon={icons.Pencil}
                     title={translate('workspace.bankAccount.updateDetails')}
                     onPress={() => {
                         setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL).then(() => {
@@ -81,7 +88,5 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBank
         </ScrollView>
     );
 }
-
-FinishChatCard.displayName = 'FinishChatCard';
 
 export default FinishChatCard;

@@ -43,11 +43,12 @@ function RulesCustomPage({
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={RulesCustomPage.displayName}
+                testID="RulesCustomPage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.rules.customRules.title')}
@@ -84,7 +85,5 @@ function RulesCustomPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-RulesCustomPage.displayName = 'RulesCustomPage';
 
 export default RulesCustomPage;

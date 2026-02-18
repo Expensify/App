@@ -11674,20 +11674,20 @@ async function run() {
                 };
             });
             // Then make sure we include any demoted or closed blockers as well, and just check them off automatically
-            currentChecklistData?.deployBlockers.forEach((deployBlocker) => {
+            for (const deployBlocker of currentChecklistData?.deployBlockers ?? []) {
                 const isResolved = deployBlockers.findIndex((openBlocker) => openBlocker.number === deployBlocker.number) < 0;
                 deployBlockers.push({
                     ...deployBlocker,
                     isResolved,
                 });
-            });
+            }
             // Include any existing Mobile-Expensify PRs from the current checklist that aren't in the new merged list
-            currentChecklistData?.PRListMobileExpensify.forEach((existingPR) => {
+            for (const existingPR of currentChecklistData?.PRListMobileExpensify ?? []) {
                 const isAlreadyIncluded = PRListMobileExpensify.findIndex((pr) => pr.number === existingPR.number) >= 0;
                 if (!isAlreadyIncluded) {
                     PRListMobileExpensify.push(existingPR);
                 }
-            });
+            }
             const didVersionChange = newVersion !== currentChecklistData?.version;
             const stagingDeployCashBodyAndAssignees = await GithubUtils_1.default.generateStagingDeployCashBodyAndAssignees(newVersion, PRList.map((pr) => pr.url), PRListMobileExpensify.map((pr) => pr.url), PRList.filter((pr) => pr.isVerified).map((pr) => pr.url), PRListMobileExpensify.filter((pr) => pr.isVerified).map((pr) => pr.url), deployBlockers.map((blocker) => blocker.url), deployBlockers.filter((blocker) => blocker.isResolved).map((blocker) => blocker.url), currentChecklistData?.internalQAPRList.filter((pr) => pr.isResolved).map((pr) => pr.url), didVersionChange ? false : currentChecklistData.isFirebaseChecked, didVersionChange ? false : currentChecklistData.isGHStatusChecked);
             if (stagingDeployCashBodyAndAssignees) {
@@ -11743,6 +11743,7 @@ const GIT_CONST = {
     GITHUB_OWNER: process.env.GITHUB_REPOSITORY_OWNER ?? 'Expensify',
     APP_REPO: (process.env.GITHUB_REPOSITORY ?? 'Expensify/App').split('/').at(1) ?? '',
     MOBILE_EXPENSIFY_REPO: 'Mobile-Expensify',
+    DEFAULT_BASE_REF: 'main',
 };
 const CONST = {
     ...GIT_CONST,
@@ -11920,25 +11921,25 @@ function getPreviousExistingTag(tag, level) {
  */
 function getValidMergedPRs(commits) {
     const mergedPRs = new Set();
-    commits.forEach((commit) => {
+    for (const commit of commits) {
         const author = commit.authorName;
         if (author === CONST_1.default.OS_BOTIFY) {
-            return;
+            continue;
         }
         // Retrieve the PR number from the commit subject,
         const match = commit.subject.match(/Merge pull request #(\d+) from (?!Expensify\/.*-cherry-pick-(staging|production))/);
         if (!Array.isArray(match) || match.length < 2) {
-            return;
+            continue;
         }
         const pr = Number.parseInt(match[1], 10);
         if (mergedPRs.has(pr)) {
             // If a PR shows up in the log twice, that means that the PR was deployed in the previous checklist.
             // That also means that we don't want to include it in the current checklist, so we remove it now.
             mergedPRs.delete(pr);
-            return;
+            continue;
         }
         mergedPRs.add(pr);
-    });
+    }
     return Array.from(mergedPRs);
 }
 /**
@@ -12123,7 +12124,7 @@ class GithubUtils {
     static getStagingDeployCashData(issue) {
         try {
             const versionRegex = new RegExp('([0-9]+)\\.([0-9]+)\\.([0-9]+)(?:-([0-9]+))?', 'g');
-            const version = (issue.body?.match(versionRegex)?.[0] ?? '').replace(/`/g, '');
+            const version = (issue.body?.match(versionRegex)?.[0] ?? '').replaceAll('`', '');
             return {
                 title: issue.title,
                 url: issue.url,
@@ -12232,7 +12233,7 @@ class GithubUtils {
                 console.log('Found the following Internal QA PRs:', internalQAPRMap);
                 const noQAPRs = Array.isArray(data) ? data.filter((PR) => /\[No\s?QA]/i.test(PR.title)).map((item) => item.html_url) : [];
                 console.log('Found the following NO QA PRs:', noQAPRs);
-                const verifiedOrNoQAPRs = [...new Set([...verifiedPRList, ...verifiedPRListMobileExpensify, ...noQAPRs])];
+                const verifiedOrNoQAPRs = new Set([...verifiedPRList, ...verifiedPRListMobileExpensify, ...noQAPRs]);
                 const sortedPRList = [...new Set((0, arrayDifference_1.default)(PRList, Object.keys(internalQAPRMap)))].sort((a, b) => GithubUtils.getPullRequestNumberFromURL(a) - GithubUtils.getPullRequestNumberFromURL(b));
                 const sortedPRListMobileExpensify = [...new Set(PRListMobileExpensify)].sort((a, b) => GithubUtils.getPullRequestNumberFromURL(a) - GithubUtils.getPullRequestNumberFromURL(b));
                 const sortedDeployBlockers = [...new Set(deployBlockers)].sort((a, b) => GithubUtils.getIssueOrPullRequestNumberFromURL(a) - GithubUtils.getIssueOrPullRequestNumberFromURL(b));
@@ -12247,43 +12248,43 @@ class GithubUtils {
                 // PR list
                 if (sortedPRList.length > 0) {
                     issueBody += '**This release contains changes from the following pull requests:**\r\n';
-                    sortedPRList.forEach((URL) => {
-                        issueBody += verifiedOrNoQAPRs.includes(URL) ? '- [x]' : '- [ ]';
+                    for (const URL of sortedPRList) {
+                        issueBody += verifiedOrNoQAPRs.has(URL) ? '- [x]' : '- [ ]';
                         issueBody += ` ${URL}\r\n`;
-                    });
+                    }
                     issueBody += '\r\n\r\n';
                 }
                 // Mobile-Expensify PR list
                 if (sortedPRListMobileExpensify.length > 0) {
                     issueBody += '**Mobile-Expensify PRs:**\r\n';
-                    sortedPRListMobileExpensify.forEach((URL) => {
-                        issueBody += verifiedOrNoQAPRs.includes(URL) ? '- [x]' : '- [ ]';
+                    for (const URL of sortedPRListMobileExpensify) {
+                        issueBody += verifiedOrNoQAPRs.has(URL) ? '- [x]' : '- [ ]';
                         issueBody += ` ${URL}\r\n`;
-                    });
+                    }
                     issueBody += '\r\n\r\n';
                 }
                 // Internal QA PR list
                 if (!(0, isEmptyObject_1.isEmptyObject)(internalQAPRMap)) {
                     console.log('Found the following verified Internal QA PRs:', resolvedInternalQAPRs);
                     issueBody += '**Internal QA:**\r\n';
-                    Object.keys(internalQAPRMap).forEach((URL) => {
+                    for (const URL of Object.keys(internalQAPRMap)) {
                         const merger = internalQAPRMap[URL];
                         const mergerMention = `@${merger}`;
                         issueBody += `${resolvedInternalQAPRs.includes(URL) ? '- [x]' : '- [ ]'} `;
                         issueBody += `${URL}`;
                         issueBody += ` - ${mergerMention}`;
                         issueBody += '\r\n';
-                    });
+                    }
                     issueBody += '\r\n\r\n';
                 }
                 // Deploy blockers
                 if (deployBlockers.length > 0) {
                     issueBody += '**Deploy Blockers:**\r\n';
-                    sortedDeployBlockers.forEach((URL) => {
+                    for (const URL of sortedDeployBlockers) {
                         issueBody += resolvedDeployBlockers.includes(URL) ? '- [x] ' : '- [ ] ';
                         issueBody += URL;
                         issueBody += '\r\n';
-                    });
+                    }
                     issueBody += '\r\n\r\n';
                 }
                 issueBody += '**Deployer verifications:**';
@@ -12485,7 +12486,7 @@ class GithubUtils {
     /**
      * Get the contents of a file from the API at a given ref as a string.
      */
-    static async getFileContents(path, ref = 'main') {
+    static async getFileContents(path, ref = CONST_1.default.DEFAULT_BASE_REF) {
         const { data } = await this.octokit.repos.getContent({
             owner: CONST_1.default.GITHUB_OWNER,
             repo: CONST_1.default.APP_REPO,
@@ -12499,6 +12500,15 @@ class GithubUtils {
             throw new Error(`Provided path ${path} is invalid`);
         }
         return Buffer.from(data.content, 'base64').toString('utf8');
+    }
+    static async getPullRequestChangedSVGFileNames(pullRequestNumber) {
+        const files = this.paginate(this.octokit.pulls.listFiles, {
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            pull_number: pullRequestNumber,
+            per_page: 100,
+        }, (response) => response.data.filter((file) => file.filename.endsWith('.svg') && (file.status === 'added' || file.status === 'modified')).map((file) => file.filename));
+        return files;
     }
     /**
      * Get commits between two tags via the GitHub API
@@ -12559,6 +12569,21 @@ class GithubUtils {
             console.log('');
             throw error;
         }
+    }
+    static async getPullRequestDiff(pullRequestNumber) {
+        if (!this.internalOctokit) {
+            this.initOctokit();
+        }
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        const response = await this.internalOctokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            pull_number: pullRequestNumber,
+            mediaType: {
+                format: 'diff',
+            },
+        });
+        return response.data;
     }
 }
 exports["default"] = GithubUtils;

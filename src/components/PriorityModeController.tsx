@@ -1,6 +1,8 @@
 import {useNavigation} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import useOnyx from '@hooks/useOnyx';
 import {updateChatPriorityMode} from '@libs/actions/User';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
@@ -12,6 +14,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import FocusModeNotification from './FocusModeNotification';
+
+const isInFocusModeSelector = (priorityMode: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>) => priorityMode === CONST.PRIORITY_MODE.GSD;
 
 /**
  * This component is used to automatically switch a user into #focus mode when they exceed a certain number of reports.
@@ -27,7 +31,7 @@ import FocusModeNotification from './FocusModeNotification';
 export default function PriorityModeController() {
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
     const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
-    const [isInFocusMode, isInFocusModeMetadata] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {selector: (priorityMode) => priorityMode === CONST.PRIORITY_MODE.GSD, canBeMissing: true});
+    const [isInFocusMode, isInFocusModeMetadata] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {selector: isInFocusModeSelector, canBeMissing: true});
     const [hasTriedFocusMode, hasTriedFocusModeMetadata] = useOnyx(ONYXKEYS.NVP_TRY_FOCUS_MODE, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const currentRouteName = useCurrentRouteName();
@@ -35,13 +39,13 @@ export default function PriorityModeController() {
     const closeModal = useCallback(() => setShouldShowModal(false), []);
     const validReportCount = useMemo(() => {
         let count = 0;
-        Object.values(allReports ?? {}).forEach((report) => {
+        for (const report of Object.values(allReports ?? {})) {
             if (!isValidReport(report) || !isReportParticipant(accountID ?? CONST.DEFAULT_NUMBER_ID, report)) {
-                return;
+                continue;
             }
 
             count++;
-        });
+        }
         return count;
     }, [accountID, allReports]);
 
@@ -73,16 +77,30 @@ export default function PriorityModeController() {
 
         // We wait for the user to navigate back to the home screen before triggering this switch
         const isNarrowLayout = getIsNarrowLayout();
-        if ((isNarrowLayout && currentRouteName !== SCREENS.HOME) || (!isNarrowLayout && currentRouteName !== SCREENS.REPORT)) {
+        if ((isNarrowLayout && currentRouteName !== SCREENS.INBOX) || (!isNarrowLayout && currentRouteName !== SCREENS.REPORT)) {
             Log.info("[PriorityModeController] Not switching user to focus mode as they aren't on the home screen", false, {validReportCount, currentRouteName});
             return;
         }
 
         Log.info('[PriorityModeController] Switching user to focus mode', false, {validReportCount, hasTriedFocusMode, isInFocusMode, currentRouteName});
         updateChatPriorityMode(CONST.PRIORITY_MODE.GSD, true);
-        setShouldShowModal(true);
+        requestAnimationFrame(() => {
+            setShouldShowModal(true);
+        });
         hasSwitched.current = true;
     }, [accountID, currentRouteName, hasTriedFocusMode, hasTriedFocusModeMetadata, isInFocusMode, isInFocusModeMetadata, isLoadingReportData, validReportCount]);
+
+    useEffect(() => {
+        if (!shouldShowModal) {
+            return;
+        }
+        const isNavigatingToPriorityModePage = currentRouteName === SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE;
+
+        // Hide focus modal when settings button is pressed from the prompt.
+        if (isNavigatingToPriorityModePage) {
+            setShouldShowModal(false);
+        }
+    }, [currentRouteName, shouldShowModal]);
 
     return shouldShowModal ? <FocusModeNotification onClose={closeModal} /> : null;
 }

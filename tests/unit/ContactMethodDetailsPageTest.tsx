@@ -1,5 +1,6 @@
 import {render} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
+import HTMLEngineProvider from '@components/HTMLEngineProvider';
 // eslint-disable-next-line no-restricted-syntax
 import * as UserActions from '@libs/actions/User';
 import ContactMethodDetailsPage from '@pages/settings/Profile/Contacts/ContactMethodDetailsPage';
@@ -13,7 +14,16 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
 }));
 
-jest.mock('@components/DelegateNoAccessModalProvider');
+jest.mock('@components/DelegateNoAccessModalProvider', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actual = jest.requireActual('@components/DelegateNoAccessModalProvider');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actual,
+        useDelegateNoAccessState: () => ({isActingAsDelegate: false, isDelegateAccessRestricted: false}),
+        useDelegateNoAccessActions: () => ({showDelegateNoAccessModal: jest.fn()}),
+    };
+});
 
 jest.mock('@libs/actions/User', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -24,6 +34,10 @@ jest.mock('@libs/actions/User', () => {
         resetContactMethodValidateCodeSentState: jest.fn(),
     };
 });
+
+function HTMLProviderWrapper({children}: {children: React.ReactNode}) {
+    return <HTMLEngineProvider>{children}</HTMLEngineProvider>;
+}
 
 const fakeEmail = 'fake@gmail.com';
 const mockRoute = {
@@ -55,10 +69,12 @@ describe('ContactMethodDetailsPage', () => {
 
     function ContactMethodDetailsPageRenderer() {
         return (
-            <ContactMethodDetailsPage
-                // @ts-expect-error - Ignoring type errors for testing purposes
-                route={mockRoute}
-            />
+            <HTMLProviderWrapper>
+                <ContactMethodDetailsPage
+                    // @ts-expect-error - Ignoring type errors for testing purposes
+                    route={mockRoute}
+                />
+            </HTMLProviderWrapper>
         );
     }
 

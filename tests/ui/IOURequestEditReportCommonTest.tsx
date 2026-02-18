@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -9,7 +9,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const FAKE_REPORT_ID = '1';
@@ -51,6 +50,7 @@ const renderIOURequestEditReportCommon = ({selectedReportID = '', selectedPolicy
                 selectedPolicyID={selectedPolicyID}
                 selectReport={jest.fn()}
                 backTo=""
+                isPerDiemRequest={false}
             />
         </ComposeProviders>,
     );
@@ -66,29 +66,33 @@ describe('IOURequestEditReportCommon', () => {
                 },
             });
             initOnyxDerivedValues();
-            return waitForBatchedUpdates();
+            return waitForBatchedUpdatesWithAct();
         });
 
-        beforeEach(() => {
-            Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: createRandomPolicy(Number(FAKE_POLICY_ID), CONST.POLICY.TYPE.TEAM),
-                [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: {
-                    reportID: FAKE_REPORT_ID,
-                    reportName: 'Expense Report',
-                    ownerAccountID: FAKE_ACCOUNT_ID,
-                    policyID: FAKE_POLICY_ID,
-                    type: CONST.REPORT.TYPE.EXPENSE,
-                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                },
+        beforeEach(async () => {
+            await act(async () => {
+                await Onyx.multiSet({
+                    [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: createRandomPolicy(Number(FAKE_POLICY_ID), CONST.POLICY.TYPE.TEAM),
+                    [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: {
+                        reportID: FAKE_REPORT_ID,
+                        reportName: 'Expense Report',
+                        ownerAccountID: FAKE_ACCOUNT_ID,
+                        policyID: FAKE_POLICY_ID,
+                        type: CONST.REPORT.TYPE.EXPENSE,
+                        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    },
+                });
             });
-            return waitForBatchedUpdates();
+            return waitForBatchedUpdatesWithAct();
         });
 
-        afterEach(() => {
-            Onyx.clear();
+        afterEach(async () => {
+            await act(async () => {
+                await Onyx.clear();
+            });
             jest.clearAllMocks();
-            return waitForBatchedUpdates();
+            return waitForBatchedUpdatesWithAct();
         });
 
         it('should not show DotIndicator when the report has brickRoadIndicator', async () => {
@@ -100,8 +104,10 @@ describe('IOURequestEditReportCommon', () => {
                 policyID: FAKE_POLICY_ID,
             };
 
-            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockTransactionReport.reportID}`, mockTransactionReport);
-            await waitForBatchedUpdates();
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockTransactionReport.reportID}`, mockTransactionReport);
+            });
+            await waitForBatchedUpdatesWithAct();
 
             // When the component is rendered with the transaction reports
             renderIOURequestEditReportCommon({selectedReportID: mockTransactionReport.reportID, selectedPolicyID: mockTransactionReport.policyID});
@@ -128,29 +134,33 @@ describe('IOURequestEditReportCommon', () => {
             });
         });
 
-        beforeEach(() => {
-            Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: {
-                    ...createRandomPolicy(Number(FAKE_POLICY_ID), CONST.POLICY.TYPE.TEAM),
-                    role: CONST.POLICY.ROLE.USER,
-                },
-                [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: {
-                    reportID: FAKE_REPORT_ID,
-                    reportName: 'Expense Report',
-                    ownerAccountID: FAKE_ACCOUNT_ID,
-                    policyID: FAKE_POLICY_ID,
-                    type: CONST.REPORT.TYPE.EXPENSE,
-                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                },
+        beforeEach(async () => {
+            await act(async () => {
+                await Onyx.multiSet({
+                    [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: {
+                        ...createRandomPolicy(Number(FAKE_POLICY_ID), CONST.POLICY.TYPE.TEAM),
+                        role: CONST.POLICY.ROLE.USER,
+                    },
+                    [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: {
+                        reportID: FAKE_REPORT_ID,
+                        reportName: 'Expense Report',
+                        ownerAccountID: FAKE_ACCOUNT_ID,
+                        policyID: FAKE_POLICY_ID,
+                        type: CONST.REPORT.TYPE.EXPENSE,
+                        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    },
+                });
             });
-            return waitForBatchedUpdates();
+            return waitForBatchedUpdatesWithAct();
         });
 
-        afterEach(() => {
-            Onyx.clear();
+        afterEach(async () => {
+            await act(async () => {
+                await Onyx.clear();
+            });
             jest.clearAllMocks();
-            return waitForBatchedUpdates();
+            return waitForBatchedUpdatesWithAct();
         });
 
         it('should display not found page when the report is Open and the user is not the owner or admin', async () => {
@@ -164,8 +174,10 @@ describe('IOURequestEditReportCommon', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
 
-            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockTransactionReport.reportID}`, mockTransactionReport);
-            await waitForBatchedUpdates();
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockTransactionReport.reportID}`, mockTransactionReport);
+            });
+            await waitForBatchedUpdatesWithAct();
 
             // When the component is rendered with the transaction reports
             renderIOURequestEditReportCommon({selectedReportID: mockTransactionReport.reportID, selectedPolicyID: mockTransactionReport.policyID});

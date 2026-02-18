@@ -1,10 +1,9 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
-import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import {setIsGPSInProgressModalOpen} from '@userActions/isGPSInProgressModalOpen';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {HybridApp} from '@src/types/onyx';
 import type HybridAppSettings from './types';
 
 /*
@@ -24,11 +23,17 @@ function getHybridAppSettings(): Promise<HybridAppSettings | null> {
     });
 }
 
-function closeReactNativeApp({shouldSetNVP}: {shouldSetNVP: boolean}) {
+function closeReactNativeApp({shouldSetNVP, isTrackingGPS}: {shouldSetNVP: boolean; isTrackingGPS: boolean}) {
+    if (isTrackingGPS) {
+        setIsGPSInProgressModalOpen(true);
+        return;
+    }
+
     Navigation.clearPreloadedRoutes();
     if (CONFIG.IS_HYBRID_APP) {
         Onyx.merge(ONYXKEYS.HYBRID_APP, {closingReactNativeApp: true});
     }
+
     // eslint-disable-next-line no-restricted-properties
     HybridAppModule.closeReactNativeApp({shouldSetNVP});
 }
@@ -75,42 +80,4 @@ function resetSignInFlow() {
     });
 }
 
-/*
- * Updates Onyx state after start of React Native runtime based on initial `useNewDotSignInPage` value
- */
-function prepareHybridAppAfterTransitionToNewDot(hybridApp: HybridApp) {
-    if (hybridApp?.useNewDotSignInPage) {
-        return Onyx.merge(ONYXKEYS.HYBRID_APP, {
-            ...hybridApp,
-            readyToShowAuthScreens: !(hybridApp?.useNewDotSignInPage ?? false),
-        });
-    }
-
-    // When we transition with useNewDotSignInPage === false, it means that we're already authenticated on NewDot side.
-    return Onyx.merge(ONYXKEYS.HYBRID_APP, {
-        ...hybridApp,
-        readyToShowAuthScreens: true,
-    });
-}
-
-function migrateHybridAppToNewPartnerName() {
-    if (!CONFIG.IS_HYBRID_APP) {
-        return;
-    }
-
-    Log.info('[HybridApp] Migrating to new partner name');
-    Onyx.merge(ONYXKEYS.HYBRID_APP, {
-        shouldUseNewPartnerName: true,
-    });
-}
-
-export {
-    getHybridAppSettings,
-    setReadyToShowAuthScreens,
-    resetSignInFlow,
-    prepareHybridAppAfterTransitionToNewDot,
-    setUseNewDotSignInPage,
-    setClosingReactNativeApp,
-    closeReactNativeApp,
-    migrateHybridAppToNewPartnerName,
-};
+export {getHybridAppSettings, setReadyToShowAuthScreens, resetSignInFlow, setUseNewDotSignInPage, setClosingReactNativeApp, closeReactNativeApp};

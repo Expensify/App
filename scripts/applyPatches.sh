@@ -59,11 +59,15 @@ else
             info "patch failed to apply for $PACKAGE. Removing it before reinstall..."
             rm -rf "$SCRIPT_DIR/../node_modules/$PACKAGE"
         done
+
         npm install --ignore-scripts
         if ! patchPackage; then
             error "patch-package failed after retry, giving up"
             exit 1
         fi
+
+        success "patch-package succeeded after retry"
+        exit 0
     fi
     error "patch-package failed"
     exit 1

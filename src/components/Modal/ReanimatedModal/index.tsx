@@ -1,7 +1,7 @@
 import noop from 'lodash/noop';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeEventSubscription, ViewStyle} from 'react-native';
-import {BackHandler, InteractionManager, Modal, View} from 'react-native';
+import {BackHandler, InteractionManager, Modal, StyleSheet, View} from 'react-native';
 import {LayoutAnimationConfig} from 'react-native-reanimated';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
@@ -46,6 +46,7 @@ function ReanimatedModal({
     shouldPreventScrollOnFocus,
     initialFocus,
     shouldIgnoreBackHandlerDuringTransition = false,
+    shouldEnableNewFocusManagement,
     ...props
 }: ReanimatedModalProps) {
     const [isVisibleState, setIsVisibleState] = useState(isVisible);
@@ -80,14 +81,14 @@ function ReanimatedModal({
     );
 
     useEffect(() => {
-        if (getPlatform() === CONST.PLATFORM.WEB || getPlatform() === CONST.PLATFORM.DESKTOP) {
+        if (getPlatform() === CONST.PLATFORM.WEB) {
             document.body.addEventListener('keyup', handleEscape, {capture: true});
         } else {
             backHandlerListener.current = BackHandler.addEventListener('hardwareBackPress', onBackButtonPressHandler);
         }
 
         return () => {
-            if (getPlatform() === CONST.PLATFORM.WEB || getPlatform() === CONST.PLATFORM.DESKTOP) {
+            if (getPlatform() === CONST.PLATFORM.WEB) {
                 document.body.removeEventListener('keyup', handleEscape, {capture: true});
             } else {
                 backHandlerListener.current?.remove();
@@ -98,24 +99,27 @@ function ReanimatedModal({
     useEffect(
         () => () => {
             if (handleRef.current) {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.clearInteractionHandle(handleRef.current);
             }
 
             setIsVisibleState(false);
             setIsContainerOpen(false);
         },
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
     );
 
     useEffect(() => {
         if (isVisible && !isContainerOpen && !isTransitioning) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             handleRef.current = InteractionManager.createInteractionHandle();
             onModalWillShow();
 
             setIsVisibleState(true);
             setIsTransitioning(true);
         } else if (!isVisible && isContainerOpen && !isTransitioning) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             handleRef.current = InteractionManager.createInteractionHandle();
             onModalWillHide();
 
@@ -123,7 +127,7 @@ function ReanimatedModal({
             setIsVisibleState(false);
             setIsTransitioning(true);
         }
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isVisible, isContainerOpen, isTransitioning]);
 
     const backdropStyle: ViewStyle = useMemo(() => {
@@ -134,6 +138,7 @@ function ReanimatedModal({
         setIsTransitioning(false);
         setIsContainerOpen(true);
         if (handleRef.current) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.clearInteractionHandle(handleRef.current);
         }
         onModalShow();
@@ -143,8 +148,10 @@ function ReanimatedModal({
         setIsTransitioning(false);
         setIsContainerOpen(false);
         if (handleRef.current) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.clearInteractionHandle(handleRef.current);
         }
+
         // Because on Android, the Modal's onDismiss callback does not work reliably. There's a reported issue at:
         // https://stackoverflow.com/questions/58937956/react-native-modal-ondismiss-not-invoked
         // Therefore, we manually call onModalHide() here for Android.
@@ -152,6 +159,10 @@ function ReanimatedModal({
             onModalHide();
         }
     }, [onModalHide]);
+
+    const modalStyle = useMemo(() => {
+        return {zIndex: StyleSheet.flatten(style)?.zIndex};
+    }, [style]);
 
     const containerView = (
         <Container
@@ -214,6 +225,7 @@ function ReanimatedModal({
                         onModalHide();
                     }
                 }}
+                style={modalStyle}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             >
@@ -230,6 +242,7 @@ function ReanimatedModal({
                     <FocusTrapForModal
                         active={modalVisibility}
                         initialFocus={initialFocus}
+                        shouldReturnFocus={!shouldEnableNewFocusManagement}
                         shouldPreventScroll={shouldPreventScrollOnFocus}
                     >
                         {isVisibleState && containerView}
@@ -239,7 +252,5 @@ function ReanimatedModal({
         </LayoutAnimationConfig>
     );
 }
-
-ReanimatedModal.displayName = 'ReanimatedModal';
 
 export default ReanimatedModal;

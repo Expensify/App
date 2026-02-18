@@ -68,7 +68,7 @@ function EnterSignerInfo({route}: EnterSignerInfoProps) {
         return () => {
             clearEnterSignerInformationFormSave();
         };
-    }, [enterSignerInfoForm]);
+    }, [enterSignerInfoForm?.errors, enterSignerInfoForm?.isSavingSignerInformation, enterSignerInfoForm?.isSuccess]);
 
     useEffect(() => {
         return clearErrors(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM);
@@ -90,7 +90,7 @@ function EnterSignerInfo({route}: EnterSignerInfoProps) {
 
     return (
         <InteractiveStepWrapper
-            wrapperID={EnterSignerInfo.displayName}
+            wrapperID="EnterSignerInfo"
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('signerInfoStep.signerInfo')}
         >
@@ -103,7 +103,5 @@ function EnterSignerInfo({route}: EnterSignerInfoProps) {
         </InteractiveStepWrapper>
     );
 }
-
-EnterSignerInfo.displayName = 'EnterSignerInfo';
 
 export default EnterSignerInfo;

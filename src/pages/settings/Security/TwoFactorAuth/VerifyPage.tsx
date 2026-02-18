@@ -11,6 +11,7 @@ import QRCode from '@components/QRCode';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import type {BaseTwoFactorAuthFormRef} from '@components/TwoFactorAuthForm/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -24,8 +25,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import TwoFactorAuthForm from './TwoFactorAuthForm';
-import type {BaseTwoFactorAuthFormRef} from './TwoFactorAuthForm/types';
+import ToggleTwoFactorAuthForm from './ToggleTwoFactorAuthForm';
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
 const TROUBLESHOOTING_LINK = 'https://help.expensify.com/articles/new-expensify/settings/Enable-Two-Factor-Authentication';
@@ -75,6 +75,7 @@ function VerifyPage({route}: VerifyPageProps) {
 
     const scrollViewRef = useRef<RNScrollView>(null);
     const handleInputFocus = useCallback(() => {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             requestAnimationFrame(() => {
                 scrollViewRef.current?.scrollToEnd({animated: true});
@@ -92,7 +93,7 @@ function VerifyPage({route}: VerifyPageProps) {
                 total: 3,
             }}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_2FA_ROOT.getRoute(route.params?.backTo, route.params?.forwardTo))}
-            shouldEnableViewportOffsetTop
+            shouldEnableMaxHeight={false}
         >
             <ScrollView
                 ref={scrollViewRef}
@@ -104,7 +105,10 @@ function VerifyPage({route}: VerifyPageProps) {
                         {translate('twoFactorAuth.scanCode')}
                         <TextLink href={TROUBLESHOOTING_LINK}> {translate('twoFactorAuth.authenticatorApp')}</TextLink>.
                     </Text>
-                    <View style={[styles.alignItemsCenter, styles.mt5]}>
+                    <View
+                        style={[styles.alignItemsCenter, styles.mt5]}
+                        fsClass={CONST.FULLSTORY.CLASS.EXCLUDE}
+                    >
                         <QRCode
                             url={buildAuthenticatorUrl()}
                             logo={expensifyLogo}
@@ -114,7 +118,7 @@ function VerifyPage({route}: VerifyPageProps) {
                     </View>
                     <Text style={styles.mt5}>{translate('twoFactorAuth.addKey')}</Text>
                     <View style={[styles.mt11, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        {!!account?.twoFactorAuthSecretKey && <Text>{splitSecretInChunks(account?.twoFactorAuthSecretKey ?? '')}</Text>}
+                        {!!account?.twoFactorAuthSecretKey && <Text fsClass={CONST.FULLSTORY.CLASS.MASK}>{splitSecretInChunks(account?.twoFactorAuthSecretKey ?? '')}</Text>}
                         <PressableWithDelayToggle
                             text={translate('twoFactorAuth.copy')}
                             textChecked={translate('common.copied')}
@@ -126,13 +130,14 @@ function VerifyPage({route}: VerifyPageProps) {
                             styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCopyCodeButton]}
                             textStyles={[styles.buttonMediumText]}
                             accessible={false}
+                            sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.COPY}
                         />
                     </View>
                     <Text style={styles.mt11}>{translate('twoFactorAuth.enterCode')}</Text>
                 </View>
                 <View style={[styles.mh5, styles.mb4, styles.mt3]}>
-                    <TwoFactorAuthForm
-                        innerRef={formRef}
+                    <ToggleTwoFactorAuthForm
+                        ref={formRef}
                         shouldAutoFocusOnMobile={false}
                         onFocus={handleInputFocus}
                     />
@@ -155,7 +160,5 @@ function VerifyPage({route}: VerifyPageProps) {
         </TwoFactorAuthWrapper>
     );
 }
-
-VerifyPage.displayName = 'VerifyPage';
 
 export default VerifyPage;

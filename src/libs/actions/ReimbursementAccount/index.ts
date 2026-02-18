@@ -1,9 +1,9 @@
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
-import type {ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
+import type {ACHData, ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
 import resetNonUSDBankAccount from './resetNonUSDBankAccount';
 import resetUSDBankAccount from './resetUSDBankAccount';
 
@@ -28,6 +28,10 @@ function hideBankAccountErrors() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', errors: null});
 }
 
+function updateReimbursementAccount(achData: Partial<ACHData>) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData});
+}
+
 function updateReimbursementAccountDraft(bankAccountData: Partial<ReimbursementAccountForm>) {
     Onyx.merge(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, bankAccountData);
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {draftStep: undefined});
@@ -35,6 +39,10 @@ function updateReimbursementAccountDraft(bankAccountData: Partial<ReimbursementA
 
 function clearReimbursementAccountDraft() {
     Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {});
+}
+
+function clearReimbursementAccount() {
+    Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA);
 }
 
 /**
@@ -66,7 +74,9 @@ export {
     updateReimbursementAccountDraft,
     requestResetBankAccount,
     cancelResetBankAccount,
+    clearReimbursementAccount,
     clearReimbursementAccountDraft,
     setBankAccountState,
     setReimbursementAccountOptionPressed,
+    updateReimbursementAccount,
 };

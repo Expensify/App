@@ -1,7 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import type Navigation from '@libs/Navigation/Navigation';
-import useReportUnreadMessageScrollTracking from '@pages/home/report/useReportUnreadMessageScrollTracking';
+import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
 import {readNewestAction} from '@userActions/Report';
 import CONST from '@src/CONST';
 

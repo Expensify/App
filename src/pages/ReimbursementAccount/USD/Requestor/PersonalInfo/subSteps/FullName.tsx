@@ -4,6 +4,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
@@ -38,10 +39,9 @@ function FullName({onNext, onMove, isEditing}: SubStepProps) {
             firstNameInputID={PERSONAL_INFO_STEP_KEY.FIRST_NAME}
             lastNameInputID={PERSONAL_INFO_STEP_KEY.LAST_NAME}
             defaultValues={defaultValues}
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
         />
     );
 }
-
-FullName.displayName = 'FullName';
 
 export default FullName;

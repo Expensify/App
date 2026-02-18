@@ -6,10 +6,10 @@ import YesNoStep from '@components/SubStepForms/YesNoStep';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import Navigation from '@navigation/Navigation';
+import getInitialSubStepForSignerInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInitialSubStepForSignerInfoStep';
 import getSignerDetailsAndSignerFilesForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getSignerDetailsAndSignerFilesForSignerInfo';
 import {askForCorpaySignerInformation, clearReimbursementAccountSaveCorpayOnboardingDirectorInformation, saveCorpayOnboardingDirectorInformation} from '@userActions/BankAccounts';
 import {clearErrors} from '@userActions/FormActions';
@@ -48,7 +48,7 @@ type SignerDetailsFormProps = SubStepProps;
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
 const SUBSTEP: Record<string, number> = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SUBSTEP;
-const {OWNS_MORE_THAN_25_PERCENT, COMPANY_NAME} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
+const {OWNS_MORE_THAN_25_PERCENT, COMPANY_NAME, SIGNER_EMAIL, SIGNER_FULL_NAME, SECOND_SIGNER_EMAIL} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 
 const fullBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [Name, JobTitle, DateOfBirth, Address, UploadDocuments, Confirmation];
 const userIsOwnerBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [JobTitle, UploadDocuments, Confirmation];
@@ -56,7 +56,6 @@ const userIsOwnerBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [Jo
 function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
-    const {isBetaEnabled} = usePermissions();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
@@ -66,12 +65,16 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
     const currency = policy?.outputCurrency ?? '';
     const isUserOwner = reimbursementAccount?.achData?.corpay?.[OWNS_MORE_THAN_25_PERCENT] ?? reimbursementAccountDraft?.[OWNS_MORE_THAN_25_PERCENT] ?? false;
     const companyName = reimbursementAccount?.achData?.corpay?.[COMPANY_NAME] ?? reimbursementAccountDraft?.[COMPANY_NAME] ?? '';
+    const savedSignerEmail = reimbursementAccount?.achData?.corpay?.[SIGNER_EMAIL];
+    const savedSignerFullName = reimbursementAccount?.achData?.corpay?.[SIGNER_FULL_NAME];
+    const savedSecondSignerEmail = reimbursementAccount?.achData?.corpay?.[SECOND_SIGNER_EMAIL];
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const [currentSubStep, setCurrentSubStep] = useState<number>(SUBSTEP.IS_DIRECTOR);
+    const initialSubStep = getInitialSubStepForSignerInfoStep(savedSignerEmail, savedSignerFullName, savedSecondSignerEmail, currency);
+    const [currentSubStep, setCurrentSubStep] = useState<number>(initialSubStep);
     const [isUserDirector, setIsUserDirector] = useState(false);
     const primaryLogin = account?.primaryLogin ?? '';
     // Corpay does not accept emails with a "+" character and will not let us connect account at the end of whole flow
-    const signerEmail = !isProduction && isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) ? Str.replaceAll(primaryLogin, '+', '') : primaryLogin;
+    const signerEmail = !isProduction ? Str.replaceAll(primaryLogin, '+', '') : primaryLogin;
 
     const submit = useCallback(() => {
         const {signerDetails, signerFiles} = getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft, signerEmail, isUserOwner);
@@ -102,7 +105,7 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
         return () => {
             clearReimbursementAccountSaveCorpayOnboardingDirectorInformation();
         };
-    }, [reimbursementAccount, onSubmit, currency, currentSubStep]);
+    }, [reimbursementAccount?.errors, reimbursementAccount?.isSavingCorpayOnboardingDirectorInformation, reimbursementAccount?.isSuccess, onSubmit, currency, currentSubStep]);
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -113,7 +116,7 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
         if (reimbursementAccount?.isAskingForCorpaySignerInformationSuccess) {
             setCurrentSubStep(SUBSTEP.HANG_TIGHT);
         }
-    }, [reimbursementAccount]);
+    }, [reimbursementAccount?.errors, reimbursementAccount?.isAskingForCorpaySignerInformation, reimbursementAccount?.isAskingForCorpaySignerInformationSuccess]);
 
     const bodyContent = useMemo(() => {
         if (isUserOwner) {
@@ -178,21 +181,31 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
         }
     }, [currentSubStep, goToTheLastStep, isEditing, isUserDirector, onBackButtonPress, prevScreen, screenIndex]);
 
+    const shouldSendOnlySecondSignerEmail = currency === CONST.CURRENCY.AUD && isUserDirector;
+
     const handleEmailSubmit = useCallback(
         (values: EmailSubmitParams) => {
-            askForCorpaySignerInformation({
-                signerEmail: values.signerEmail,
-                secondSignerEmail: values.secondSignerEmail,
-                policyID: String(policyID),
-                bankAccountID,
-            });
+            const params = shouldSendOnlySecondSignerEmail
+                ? {
+                      secondSignerEmail: values.secondSignerEmail,
+                      policyID: String(policyID),
+                      bankAccountID,
+                  }
+                : {
+                      signerEmail: values.signerEmail,
+                      secondSignerEmail: values.secondSignerEmail,
+                      policyID: String(policyID),
+                      bankAccountID,
+                  };
+
+            askForCorpaySignerInformation(params);
         },
-        [bankAccountID, policyID],
+        [bankAccountID, policyID, shouldSendOnlySecondSignerEmail],
     );
 
     return (
         <InteractiveStepWrapper
-            wrapperID={SignerInfo.displayName}
+            wrapperID="SignerInfo"
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('signerInfoStep.signerInfo')}
             stepNames={stepNames}
@@ -200,7 +213,7 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
         >
             {currentSubStep === SUBSTEP.IS_DIRECTOR && (
                 <YesNoStep
-                    title={translate('signerInfoStep.areYouDirector', {companyName})}
+                    title={translate('signerInfoStep.areYouDirector', companyName)}
                     description={translate('signerInfoStep.regulationRequiresUs')}
                     defaultValue={isUserDirector}
                     onSelectedValue={handleNextSubStep}
@@ -232,7 +245,5 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
         </InteractiveStepWrapper>
     );
 }
-
-SignerInfo.displayName = 'SignerInfo';
 
 export default SignerInfo;

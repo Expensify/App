@@ -40,18 +40,16 @@ namespace margelo::nitro::utils {
 
 namespace margelo::nitro {
 
-  using namespace margelo::nitro::utils;
-
   // C++ StringHolder <> JS StringHolder (object)
   template <>
-  struct JSIConverter<StringHolder> final {
-    static inline StringHolder fromJSI(jsi::Runtime& runtime, const jsi::Value& arg) {
+  struct JSIConverter<margelo::nitro::utils::StringHolder> final {
+    static inline margelo::nitro::utils::StringHolder fromJSI(jsi::Runtime& runtime, const jsi::Value& arg) {
       jsi::Object obj = arg.asObject(runtime);
-      return StringHolder(
+      return margelo::nitro::utils::StringHolder(
         JSIConverter<std::string>::fromJSI(runtime, obj.getProperty(runtime, "value"))
       );
     }
-    static inline jsi::Value toJSI(jsi::Runtime& runtime, const StringHolder& arg) {
+    static inline jsi::Value toJSI(jsi::Runtime& runtime, const margelo::nitro::utils::StringHolder& arg) {
       jsi::Object obj(runtime);
       obj.setProperty(runtime, "value", JSIConverter<std::string>::toJSI(runtime, arg.value));
       return obj;

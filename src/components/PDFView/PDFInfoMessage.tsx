@@ -40,6 +40,4 @@ function PDFInfoMessage({onShowForm}: PDFInfoMessageProps) {
     );
 }
 
-PDFInfoMessage.displayName = 'PDFInfoMessage';
-
 export default PDFInfoMessage;

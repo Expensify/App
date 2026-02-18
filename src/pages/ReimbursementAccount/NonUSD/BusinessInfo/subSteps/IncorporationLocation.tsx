@@ -65,9 +65,9 @@ function IncorporationLocation({onNext, isEditing}: IncorporationLocationProps) 
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            return getFieldRequiredErrors(values, shouldGatherState ? STEP_FIELDS : [FORMATION_INCORPORATION_COUNTRY_CODE]);
+            return getFieldRequiredErrors(values, shouldGatherState ? STEP_FIELDS : [FORMATION_INCORPORATION_COUNTRY_CODE], translate);
         },
-        [shouldGatherState],
+        [shouldGatherState, translate],
     );
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
@@ -123,7 +123,5 @@ function IncorporationLocation({onNext, isEditing}: IncorporationLocationProps) 
         </FormProvider>
     );
 }
-
-IncorporationLocation.displayName = 'IncorporationLocation';
 
 export default IncorporationLocation;

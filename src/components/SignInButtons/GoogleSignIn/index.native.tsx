@@ -1,11 +1,14 @@
 import {GoogleSignin, statusCodes} from '@react-native-google-signin/google-signin';
 import React from 'react';
 import IconButton from '@components/SignInButtons/IconButton';
+import useOnyx from '@hooks/useOnyx';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {beginGoogleSignIn} from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type Locale from '@src/types/onyx/Locale';
 import type {GoogleSignInProps} from '.';
 import type GoogleError from './types';
 
@@ -23,7 +26,7 @@ function getWebClientId() {
 /**
  * Google Sign In method for iOS and android that returns identityToken.
  */
-function googleSignInRequest() {
+function googleSignInRequest(preferredLocale?: Locale) {
     GoogleSignin.configure({
         webClientId: getWebClientId(),
         iosClientId: CONFIG.IS_HYBRID_APP ? CONFIG.GOOGLE_SIGN_IN.HYBRID_APP.IOS_CLIENT_ID : CONFIG.GOOGLE_SIGN_IN.IOS_CLIENT_ID,
@@ -37,7 +40,7 @@ function googleSignInRequest() {
 
     GoogleSignin.signIn()
         .then((response) => response.idToken)
-        .then((token) => beginGoogleSignIn(token))
+        .then((token) => beginGoogleSignIn(token, preferredLocale))
         .catch((error: GoogleError | undefined) => {
             // Handle unexpected error shape
             if (error?.code === undefined) {
@@ -60,17 +63,16 @@ function googleSignInRequest() {
  * Google Sign In button for iOS.
  */
 function GoogleSignIn({onPress = () => {}}: GoogleSignInProps) {
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
     return (
         <IconButton
             onPress={() => {
                 onPress();
-                googleSignInRequest();
+                googleSignInRequest(preferredLocale);
             }}
             provider={CONST.SIGN_IN_METHOD.GOOGLE}
         />
     );
 }
-
-GoogleSignIn.displayName = 'GoogleSignIn';
 
 export default GoogleSignIn;

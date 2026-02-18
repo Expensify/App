@@ -27,9 +27,9 @@ If you haven't already, follow the instructions to [connect a U.S. business bank
 ---
 
 # Step 2: Enable Global Reimbursement
-1. Go to **Settings > Workspaces [Workspace Name] > Overview**.
+1. Go to **Settings > Workspaces > [Workspace Name] > Overview**.
 2. In the **Report Currency** dropdown, select **USD**.
-3. Navigate to **Settings > Workspaces [Workspace Name] > Workflows**.
+3. Navigate to **Settings > Workspaces > [Workspace Name] > Workflows**.
 4. Scroll to **Make or track payments**.
 5. Set the reimbursement method to **Direct** and select the correct U.S. bank account.
 6. Go to **Settings > Account > Wallet**.
@@ -48,14 +48,16 @@ If you haven't already, follow the instructions to [connect a U.S. business bank
 ---
 
 # Step 4: Confirm Test Transactions
-1. **Expensify will send test deposits to the provided bank account:** Once those are sent, our support team will ask you to verify the deposit amounts.
-2. Once the test deposit amounts are confirmed, the bank account is verified for global reimbursement.
+
+1. **Expensify will send test deposits to the provided bank account:** These are small deposits from our global payments partner, **Corpay-Cambridge Mercantile**, and are part of the final verification step.
+2. **Check with your bank and let us know once you see them:** These test transactions won't appear in Expensify — you’ll need to monitor your bank account and tell us once they’re received.
+3. **We’ll confirm once verification is complete:** After we hear from you, we’ll complete the verification process and let you know when you're ready to start sending international reimbursements.
 
 ---
 
 # Step 5: Start Reimbursing Internationally
 
-⏳**Timeline:** The account is typically set up to issue global reimbursements within two business days after onboarding is complete and the bank account is verified.
+**Timeline:** The account is typically set up to issue global reimbursements within two business days after onboarding is complete and the bank account is verified.
 
 Once your U.S. bank account is verified for global reimbursements:
 1. Go to **Settings > Workspaces > [Workspace Name] > Workflows**.

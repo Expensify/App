@@ -1,6 +1,7 @@
 import type {ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {Action} from '@hooks/useSingleExecution';
 import type {StepCounterParams} from '@src/languages/params';
@@ -13,7 +14,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 type ThreeDotsMenuItem = {
     /** An icon element displayed on the left side */
-    icon: IconAsset;
+    icon: IconAsset | Extract<ExpensifyIconName, 'ChatBubbles' | 'CommentBubbles'>;
 
     /** Translation key for the label */
     translationKey: TranslationPaths;
@@ -51,6 +52,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Method to trigger when pressing download button of the header */
     onDownloadButtonPress?: () => void;
 
+    /** Method to trigger when pressing rotate button of the header */
+    onRotateButtonPress?: () => void;
+
     /** Method to trigger when pressing close button of the header */
     onCloseButtonPress?: () => void;
 
@@ -71,6 +75,12 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** Whether we should show a loading indicator replacing the download button */
     isDownloading?: boolean;
+
+    /** Whether we should show a rotate button */
+    shouldShowRotateButton?: boolean;
+
+    /** Whether we should show a loading indicator replacing the rotate button */
+    isRotating?: boolean;
 
     /** Whether we should show a pin button */
     shouldShowPinButton?: boolean;
@@ -131,6 +141,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** Whether we should enable detail page navigation */
     shouldEnableDetailPageNavigation?: boolean;
+
+    /** Number of lines to display for the title */
+    numberOfTitleLines?: number;
 
     /** Whether we should overlay the 3 dots menu */
     shouldOverlayDots?: boolean;

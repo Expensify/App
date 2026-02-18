@@ -39,7 +39,7 @@ function TextInput({ref, ...props}: BaseTextInputProps) {
             }
             removeVisibilityListener();
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const isLabeledMultiline = !!props.label?.length && props.multiline;
@@ -72,11 +72,9 @@ function TextInput({ref, ...props}: BaseTextInputProps) {
                 ref.current = element;
             }}
             inputStyle={[styles.baseTextInput, styles.textInputDesktop, isLabeledMultiline ? styles.textInputMultiline : {}, props.inputStyle]}
-            textInputContainerStyles={[labelAnimationStyle as StyleProp<ViewStyle>, props.textInputContainerStyles]}
+            textInputContainerStyles={[labelAnimationStyle as StyleProp<ViewStyle>, props.textInputContainerStyles, styles.cursorText]}
         />
     );
 }
-
-TextInput.displayName = 'TextInput';
 
 export default TextInput;

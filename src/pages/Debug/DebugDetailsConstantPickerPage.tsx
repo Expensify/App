@@ -4,7 +4,7 @@ import CategoryPicker from '@components/CategoryPicker';
 import CurrencySelectionList from '@components/CurrencySelectionList';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type {ListItem} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -90,13 +90,11 @@ function DebugDetailsConstantPickerPage({
     }, [fieldName, fieldValue, formType, onSubmit, policyID, translate]);
 
     return (
-        <ScreenWrapper testID={DebugDetailsConstantPickerPage.displayName}>
+        <ScreenWrapper testID="DebugDetailsConstantPickerPage">
             <HeaderWithBackButton title={fieldName} />
             <View style={styles.containerWithSpaceBetween}>{renderPicker()}</View>
         </ScreenWrapper>
     );
 }
-
-DebugDetailsConstantPickerPage.displayName = 'DebugDetailsConstantPickerPage';
 
 export default DebugDetailsConstantPickerPage;

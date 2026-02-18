@@ -48,5 +48,4 @@ function ReportActionsSkeletonView({shouldAnimate = true, possibleVisibleContent
     return <View testID="ReportActionsSkeletonView">{skeletonViewLines}</View>;
 }
 
-ReportActionsSkeletonView.displayName = 'ReportActionsSkeletonView';
 export default ReportActionsSkeletonView;

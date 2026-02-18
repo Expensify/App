@@ -1,5 +1,7 @@
-import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
-import {interpolateColor, runOnJS, useAnimatedReaction, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
+import {isClosingReactNativeAppSelector} from '@selectors/HybridApp';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {interpolateColor, useAnimatedReaction, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
@@ -7,7 +9,7 @@ import {navigationRef} from '@libs/Navigation/Navigation';
 import StatusBar from '@libs/StatusBar';
 import type {StatusBarStyle} from '@styles/index';
 import ONYXKEYS from '@src/ONYXKEYS';
-import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackgroundContext';
+import {useCustomStatusBarAndBackgroundActions, useCustomStatusBarAndBackgroundState} from './CustomStatusBarAndBackgroundContext';
 import updateGlobalBackgroundColor from './updateGlobalBackgroundColor';
 import updateStatusBarAppearance from './updateStatusBarAppearance';
 
@@ -18,10 +20,11 @@ type CustomStatusBarAndBackgroundProps = {
 };
 
 function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBackgroundProps) {
-    const {isRootStatusBarEnabled, setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
+    const {isRootStatusBarEnabled} = useCustomStatusBarAndBackgroundState();
+    const {setRootStatusBarEnabled} = useCustomStatusBarAndBackgroundActions();
     const theme = useTheme();
     const [statusBarStyle, setStatusBarStyle] = useState<StatusBarStyle>();
-    const [closingReactNativeApp = false] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: (hybridApp) => hybridApp?.closingReactNativeApp, canBeMissing: true});
+    const [closingReactNativeApp = false] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: isClosingReactNativeAppSelector, canBeMissing: true});
 
     // Include `closingReactNativeApp` to disable the StatusBar when switching from HybridApp to OldDot,
     // preventing unexpected status bar blinking during the transition
@@ -57,7 +60,7 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
                 return;
             }
             const backgroundColor = interpolateColor(statusBarAnimation.get(), [0, 1], [prevStatusBarBackgroundColor.get(), statusBarBackgroundColor.get()]);
-            runOnJS(updateStatusBarAppearance)({backgroundColor});
+            scheduleOnRN(updateStatusBarAppearance, {backgroundColor});
         },
     );
 
@@ -185,7 +188,5 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
 
     return <StatusBar />;
 }
-
-CustomStatusBarAndBackground.displayName = 'CustomStatusBarAndBackground';
 
 export default CustomStatusBarAndBackground;

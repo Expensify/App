@@ -1,7 +1,8 @@
 /* cspell:disable */
-import {getPNRReservationDataFromTripReport, getReservationsFromTripReport} from '@libs/TripReservationUtils';
+import {getAirReservations, getPNRReservationDataFromTripReport, getReservationsFromTripReport} from '@libs/TripReservationUtils';
 import CONST from '@src/CONST';
 import type {Pnr, TripData} from '@src/types/onyx/TripData';
+import {airReservationPnrData, airReservationTravelers} from '../data/TripAirReservationData';
 import {createRandomReport} from '../utils/collections/reports';
 
 const basicTripData: TripData = {
@@ -177,7 +178,7 @@ const airPnrDirect: Pnr = {
                                 legIdx: 0,
                                 flightIdx: 0,
                                 amount: 0,
-                                number: 0,
+                                number: '14C',
                             },
                         ],
                         itinerary: {
@@ -2266,15 +2267,46 @@ const tripWithAllReservations: TripData = {
 };
 
 describe('TripReservationUtils', () => {
+    describe('getAirReservations', () => {
+        it('should return air reservations in the correct order', () => {
+            const result = getAirReservations(airReservationPnrData, airReservationTravelers);
+            expect(result).toHaveLength(2);
+            // We sort the values based on legIdx, so we expect the first value to have legId 0
+            // and the second value to have legId 1
+            // This check will fail if the values are not sorted correctly in getAirReservations
+            expect(result.at(0)?.reservation.legId).toBe(0);
+            expect(result.at(1)?.reservation.legId).toBe(1);
+        });
+
+        it('should correctly extract the seat number from the seats array', () => {
+            const result = getAirReservations(airReservationPnrData, airReservationTravelers);
+
+            // The first leg has a seat assigned ("12A")
+            expect(result.at(0)?.reservation.seatNumber).toBe('12A');
+
+            // The second leg has no seat assigned (empty string)
+            expect(result.at(1)?.reservation.seatNumber).toBe('');
+        });
+
+        it('should not serialize the entire seat object as the seat number', () => {
+            const result = getAirReservations(airReservationPnrData, airReservationTravelers);
+
+            // Verify the seat number is just the value, not a JSON object
+            const seatNumber = result.at(0)?.reservation.seatNumber;
+            expect(seatNumber).not.toContain('{');
+            expect(seatNumber).not.toContain('amount');
+            expect(seatNumber).not.toContain('legIdx');
+        });
+    });
     describe('getReservationsFromTripReport', () => {
         it('should return an empty array when there are no transactions and trip payload', () => {
-            const report = createRandomReport(1);
+            const report = createRandomReport(1, undefined);
             const result = getReservationsFromTripReport(report, []);
             expect(result).toEqual([]);
         });
 
         it('should return reservations from tripPayload', () => {
-            const report = createRandomReport(1);
+            const report = createRandomReport(1, undefined);
             report.tripData = {
                 tripID: 'trip123',
                 payload: tripWithAllReservations,
@@ -2307,13 +2339,13 @@ describe('TripReservationUtils', () => {
 
     describe('getPNRReservationDataFromTripReport', () => {
         it('should return an empty array when there are no transactions and trip payload', () => {
-            const report = createRandomReport(1);
+            const report = createRandomReport(1, undefined);
             const result = getPNRReservationDataFromTripReport(report, []);
             expect(result).toEqual([]);
         });
 
         it('should return PNR reservation data from tripPayload', () => {
-            const report = createRandomReport(1);
+            const report = createRandomReport(1, undefined);
             report.tripData = {
                 tripID: 'trip123',
                 payload: tripWithAllReservations,

@@ -2,11 +2,14 @@ import React from 'react';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
 import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/WorkspaceConfirmationForm';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {createWorkspaceWithPolicyDraftAndNavigateToIt} from '@libs/actions/App';
 import {generatePolicyID} from '@libs/actions/Policy/Policy';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
+import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {LastPaymentMethodType} from '@src/types/onyx';
@@ -17,21 +20,30 @@ function WorkspaceConfirmationPage() {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const privateSubscription = usePrivateSubscription();
     const onSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
         const policyID = params.policyID || generatePolicyID();
         const routeToNavigate = isSmallScreenWidth ? ROUTES.WORKSPACE_INITIAL.getRoute(policyID) : ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID);
-        createWorkspaceWithPolicyDraftAndNavigateToIt(
-            '',
-            params.name,
-            false,
-            false,
-            '',
+        createWorkspaceWithPolicyDraftAndNavigateToIt({
+            introSelected,
+            policyOwnerEmail: '',
+            policyName: params.name,
+            transitionFromOldDot: false,
+            makeMeAdmin: false,
+            backTo: '',
             policyID,
-            params.currency,
-            params.avatarFile as File,
-            routeToNavigate,
-            lastPaymentMethod?.[policyID] as LastPaymentMethodType,
-        );
+            currency: params.currency,
+            file: params.avatarFile as File,
+            routeToNavigateAfterCreate: routeToNavigate,
+            lastUsedPaymentMethod: lastPaymentMethod?.[policyID] as LastPaymentMethodType,
+            activePolicyID,
+            currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+            currentUserEmailParam: currentUserPersonalDetails.email ?? '',
+            shouldCreateControlPolicy: isSubscriptionTypeOfInvoicing(privateSubscription?.type),
+        });
     };
     const currentUrl = getCurrentUrl();
     // Approved Accountants and Guides can enter a flow where they make a workspace for other users,
@@ -42,7 +54,7 @@ function WorkspaceConfirmationPage() {
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnableMaxHeight
-            testID={WorkspaceConfirmationPage.displayName}
+            testID="WorkspaceConfirmationPage"
         >
             <WorkspaceConfirmationForm
                 policyOwnerEmail={policyOwnerEmail}
@@ -51,7 +63,5 @@ function WorkspaceConfirmationPage() {
         </ScreenWrapper>
     );
 }
-
-WorkspaceConfirmationPage.displayName = 'WorkspaceConfirmationPage';
 
 export default WorkspaceConfirmationPage;

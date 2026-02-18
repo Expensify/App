@@ -2,7 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
@@ -66,10 +66,10 @@ function XeroPurchaseBillDateSelectPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <SelectionScreen
-            displayName={XeroPurchaseBillDateSelectPage.displayName}
+            displayName="XeroPurchaseBillDateSelectPage"
             title="workspace.xero.exportDate.label"
             headerContent={headerContent}
-            sections={[{data}]}
+            data={data}
             listItem={RadioListItem}
             onSelectRow={(selection: SelectorType) => selectExportDate(selection as MenuListItem)}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
@@ -85,7 +85,5 @@ function XeroPurchaseBillDateSelectPage({policy}: WithPolicyConnectionsProps) {
         />
     );
 }
-
-XeroPurchaseBillDateSelectPage.displayName = 'XeroPurchaseBillDateSelectPage';
 
 export default withPolicyConnections(XeroPurchaseBillDateSelectPage);

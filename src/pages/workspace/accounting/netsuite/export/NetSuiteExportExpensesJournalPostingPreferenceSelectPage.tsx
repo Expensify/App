@@ -1,7 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback} from 'react';
 import type {ValueOf} from 'type-fest';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
@@ -62,9 +62,9 @@ function NetSuiteExportExpensesJournalPostingPreferenceSelectPage({policy}: With
 
     return (
         <SelectionScreen
-            displayName={NetSuiteExportExpensesJournalPostingPreferenceSelectPage.displayName}
+            displayName="NetSuiteExportExpensesJournalPostingPreferenceSelectPage"
             title="workspace.netsuite.journalPostingPreference.label"
-            sections={[{data}]}
+            data={data}
             listItem={RadioListItem}
             onSelectRow={(selection: SelectorType) => selectPostingPreference(selection as MenuListItem)}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
@@ -85,7 +85,5 @@ function NetSuiteExportExpensesJournalPostingPreferenceSelectPage({policy}: With
         />
     );
 }
-
-NetSuiteExportExpensesJournalPostingPreferenceSelectPage.displayName = 'NetSuiteExportExpensesJournalPostingPreferenceSelectPage';
 
 export default withPolicyConnections(NetSuiteExportExpensesJournalPostingPreferenceSelectPage);

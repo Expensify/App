@@ -56,7 +56,5 @@ def add_nitrogen_files(spec)
     "SWIFT_OBJC_INTEROP_MODE" => "objcxx",
     # Enables stricter modular headers
     "DEFINES_MODULE" => "YES",
-    # C++ compiler flags to disable Folly config and coroutines. https://github.com/mrousavy/nitro/issues/591
-    "GCC_PREPROCESSOR_DEFINITIONS" => "$(inherited) FOLLY_NO_CONFIG FOLLY_CFG_NO_COROUTINES",
   })
 end

@@ -1,5 +1,6 @@
 import {useCallback, useMemo, useState} from 'react';
 import type {PermissionStatus} from 'react-native-permissions';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import type {GetOptionsConfig, Options, SearchOption} from '@libs/OptionsListUtils';
 import {getEmptyOptions, getSearchOptions, getSearchValueForPhoneOrEmail, getValidOptions} from '@libs/OptionsListUtils';
@@ -7,10 +8,15 @@ import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useDebounce from './useDebounce';
 import useDebouncedState from './useDebouncedState';
 import useOnyx from './useOnyx';
 
-type SearchSelectorContext = (typeof CONST.SEARCH_SELECTOR)[keyof Pick<typeof CONST.SEARCH_SELECTOR, 'SEARCH_CONTEXT_GENERAL' | 'SEARCH_CONTEXT_SEARCH' | 'SEARCH_CONTEXT_MEMBER_INVITE'>];
+type SearchSelectorContext = (typeof CONST.SEARCH_SELECTOR)[keyof Pick<
+    typeof CONST.SEARCH_SELECTOR,
+    'SEARCH_CONTEXT_GENERAL' | 'SEARCH_CONTEXT_SEARCH' | 'SEARCH_CONTEXT_MEMBER_INVITE' | 'SEARCH_CONTEXT_SHARE_DESTINATION' | 'SEARCH_CONTEXT_ATTENDEES'
+>];
 type SearchSelectorSelectionMode = (typeof CONST.SEARCH_SELECTOR)[keyof Pick<typeof CONST.SEARCH_SELECTOR, 'SELECTION_MODE_SINGLE' | 'SELECTION_MODE_MULTI'>];
 
 type UseSearchSelectorConfig = {
@@ -20,17 +26,26 @@ type UseSearchSelectorConfig = {
     /** Maximum number of results to return (for heap optimization) */
     maxResultsPerPage?: number;
 
+    /** How many recent reports should be returned? The rest count from maxResultsPerPage will be with contacts. null value means no limit */
+    maxRecentReportsToShow?: number;
+
     /** What is the context that we are using this hook for */
     searchContext?: SearchSelectorContext;
 
     /** Whether to include user to invite option */
     includeUserToInvite?: boolean;
 
-    /** Logins to exclude from results */
+    /** Logins to exclude from results (hard exclusions - cannot be selected at all) */
     excludeLogins?: Record<string, boolean>;
+
+    /** Logins to exclude from suggestions only (soft exclusions - can still be manually entered) */
+    excludeFromSuggestionsOnly?: Record<string, boolean>;
 
     /** Whether to include recent reports (for getMemberInviteOptions) */
     includeRecentReports?: boolean;
+
+    /** Whether to include current user */
+    includeCurrentUser?: boolean;
 
     /** Enable phone contacts integration */
     enablePhoneContacts?: boolean;
@@ -78,6 +93,9 @@ type UseSearchSelectorReturn = {
     /** Current search term */
     searchTerm: string;
 
+    /** Debounced search term */
+    debouncedSearchTerm: string;
+
     /** Function to update search term */
     setSearchTerm: (value: string) => void;
 
@@ -116,9 +134,11 @@ type UseSearchSelectorReturn = {
 function useSearchSelectorBase({
     selectionMode,
     maxResultsPerPage = CONST.MAX_SELECTION_LIST_PAGE_LENGTH,
+    maxRecentReportsToShow,
     searchContext = 'search',
     includeUserToInvite = true,
     excludeLogins = CONST.EMPTY_OBJECT,
+    excludeFromSuggestionsOnly = CONST.EMPTY_OBJECT,
     includeRecentReports = false,
     getValidOptionsConfig = CONST.EMPTY_OBJECT,
     onSelectionChange,
@@ -126,6 +146,7 @@ function useSearchSelectorBase({
     initialSelected,
     shouldInitialize = true,
     contactOptions,
+    includeCurrentUser = false,
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
     const {options: defaultOptions, areOptionsInitialized} = useOptionsList({
         shouldInitialize,
@@ -142,18 +163,31 @@ function useSearchSelectorBase({
         };
     }, [areOptionsInitialized, defaultOptions, contactOptions]);
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true});
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>(initialSelected ?? []);
     const [maxResults, setMaxResults] = useState(maxResultsPerPage);
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserAccountID = currentUserPersonalDetails.accountID;
+    const currentUserEmail = currentUserPersonalDetails.email ?? '';
+    const personalDetails = usePersonalDetails();
 
-    const onListEndReached = useCallback(() => {
-        setMaxResults((previous) => previous + maxResultsPerPage);
-    }, [maxResultsPerPage]);
+    const onListEndReached = useDebounce(
+        useCallback(() => {
+            setMaxResults((previous) => previous + maxResultsPerPage);
+        }, [maxResultsPerPage]),
+        CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME,
+    );
 
     const computedSearchTerm = useMemo(() => {
         return getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode);
     }, [debouncedSearchTerm, countryCode]);
+    const trimmedSearchInput = debouncedSearchTerm.trim();
 
     const baseOptions = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -162,30 +196,163 @@ function useSearchSelectorBase({
 
         switch (searchContext) {
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SEARCH:
-                return getSearchOptions(optionsWithContacts, betas ?? [], true, true, computedSearchTerm, maxResults, includeUserToInvite);
-            case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE:
-                return getValidOptions(optionsWithContacts, {
+                return getSearchOptions({
+                    options: optionsWithContacts,
+                    draftComments,
+                    nvpDismissedProductTraining,
                     betas: betas ?? [],
-                    includeP2P: true,
-                    includeSelectedOptions: false,
-                    excludeLogins,
-                    includeRecentReports,
-                    maxElements: maxResults,
-                    searchString: computedSearchTerm,
-                });
-            case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
-                return getValidOptions(optionsWithContacts, {
-                    ...getValidOptionsConfig,
-                    betas: betas ?? [],
-                    searchString: computedSearchTerm,
-                    maxElements: maxResults,
+                    isUsedInChatFinder: true,
+                    includeReadOnly: true,
+                    searchQuery: computedSearchTerm,
+                    maxResults,
                     includeUserToInvite,
-                    loginsToExclude: excludeLogins,
+                    countryCode,
+                    loginList,
+                    policyCollection: allPolicies,
+                    currentUserAccountID,
+                    currentUserEmail,
+                    personalDetails,
                 });
+            case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE:
+                return getValidOptions(
+                    optionsWithContacts,
+                    allPolicies,
+                    draftComments,
+                    nvpDismissedProductTraining,
+                    loginList,
+                    currentUserAccountID,
+                    currentUserEmail,
+                    {
+                        betas: betas ?? [],
+                        includeP2P: true,
+                        includeSelectedOptions: false,
+                        excludeLogins,
+                        excludeFromSuggestionsOnly,
+                        includeRecentReports,
+                        maxElements: maxResults,
+                        maxRecentReportElements: maxRecentReportsToShow,
+                        searchString: computedSearchTerm,
+                        searchInputValue: trimmedSearchInput,
+                        includeUserToInvite,
+                        personalDetails,
+                    },
+                    countryCode,
+                    reportAttributesDerived?.reports,
+                );
+            case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
+                return getValidOptions(
+                    optionsWithContacts,
+                    allPolicies,
+                    draftComments,
+                    nvpDismissedProductTraining,
+                    loginList,
+                    currentUserAccountID,
+                    currentUserEmail,
+                    {
+                        ...getValidOptionsConfig,
+                        betas: betas ?? [],
+                        searchString: computedSearchTerm,
+                        searchInputValue: trimmedSearchInput,
+                        maxElements: maxResults,
+                        maxRecentReportElements: maxRecentReportsToShow,
+                        includeUserToInvite,
+                        excludeLogins,
+                        excludeFromSuggestionsOnly,
+                        personalDetails,
+                    },
+                    countryCode,
+                    reportAttributesDerived?.reports,
+                );
+            case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION:
+                return getValidOptions(
+                    optionsWithContacts,
+                    allPolicies,
+                    draftComments,
+                    nvpDismissedProductTraining,
+                    loginList,
+                    currentUserAccountID,
+                    currentUserEmail,
+                    {
+                        betas,
+                        selectedOptions,
+                        includeMultipleParticipantReports: true,
+                        showChatPreviewLine: true,
+                        forcePolicyNamePreview: true,
+                        includeThreads: true,
+                        includeMoneyRequests: true,
+                        includeTasks: true,
+                        excludeLogins,
+                        loginsToExclude: excludeLogins,
+                        includeOwnedWorkspaceChats: true,
+                        includeSelfDM: true,
+                        searchString: computedSearchTerm,
+                        searchInputValue: trimmedSearchInput,
+                        maxElements: maxResults,
+                        includeUserToInvite,
+                        personalDetails,
+                    },
+                    countryCode,
+                    reportAttributesDerived?.reports,
+                );
+            case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES:
+                return getValidOptions(
+                    optionsWithContacts,
+                    allPolicies,
+                    draftComments,
+                    nvpDismissedProductTraining,
+                    loginList,
+                    currentUserAccountID,
+                    currentUserEmail,
+                    {
+                        ...getValidOptionsConfig,
+                        betas: betas ?? [],
+                        includeP2P: true,
+                        includeSelectedOptions: false,
+                        excludeLogins,
+                        excludeFromSuggestionsOnly,
+                        loginsToExclude: excludeLogins,
+                        includeRecentReports,
+                        maxElements: maxResults,
+                        maxRecentReportElements: maxRecentReportsToShow,
+                        searchString: computedSearchTerm,
+                        searchInputValue: trimmedSearchInput,
+                        includeUserToInvite,
+                        includeCurrentUser,
+                        shouldAcceptName: true,
+                        personalDetails,
+                    },
+                    countryCode,
+                    reportAttributesDerived?.reports,
+                );
             default:
                 return getEmptyOptions();
         }
-    }, [areOptionsInitialized, optionsWithContacts, betas, computedSearchTerm, maxResults, searchContext, includeUserToInvite, excludeLogins, includeRecentReports, getValidOptionsConfig]);
+    }, [
+        areOptionsInitialized,
+        searchContext,
+        optionsWithContacts,
+        draftComments,
+        nvpDismissedProductTraining,
+        betas,
+        computedSearchTerm,
+        maxResults,
+        includeUserToInvite,
+        countryCode,
+        loginList,
+        allPolicies,
+        excludeLogins,
+        excludeFromSuggestionsOnly,
+        includeRecentReports,
+        maxRecentReportsToShow,
+        getValidOptionsConfig,
+        selectedOptions,
+        includeCurrentUser,
+        currentUserAccountID,
+        currentUserEmail,
+        personalDetails,
+        reportAttributesDerived?.reports,
+        trimmedSearchInput,
+    ]);
 
     const isOptionSelected = useMemo(() => {
         return (option: OptionData) =>
@@ -274,6 +441,7 @@ function useSearchSelectorBase({
 
     return {
         searchTerm,
+        debouncedSearchTerm,
         setSearchTerm,
         searchOptions,
         availableOptions,

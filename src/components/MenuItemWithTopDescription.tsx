@@ -29,6 +29,4 @@ function MenuItemWithTopDescription({highlighted, outerWrapperStyle, ref, ...pro
     );
 }
 
-MenuItemWithTopDescription.displayName = 'MenuItemWithTopDescription';
-
 export default MenuItemWithTopDescription;

@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {getExpenseTypeTranslationKey} from '@libs/SearchUIUtils';
+import {getExpenseTypeTranslationKey} from '@libs/TransactionUtils';
 import {updateAdvancedFilters} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,7 +42,7 @@ function SearchFiltersExpenseTypePage() {
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersExpenseTypePage.displayName}
+            testID="SearchFiltersExpenseTypePage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom={false}
@@ -65,7 +65,5 @@ function SearchFiltersExpenseTypePage() {
         </ScreenWrapper>
     );
 }
-
-SearchFiltersExpenseTypePage.displayName = 'SearchFiltersExpenseTypePage';
 
 export default SearchFiltersExpenseTypePage;

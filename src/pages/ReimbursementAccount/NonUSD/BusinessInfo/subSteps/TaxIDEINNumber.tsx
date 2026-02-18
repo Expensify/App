@@ -25,10 +25,10 @@ function TaxIDEINNumber({onNext, onMove, isEditing}: TaxIDEINNumberProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, STEP_FIELDS);
+            const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
             if (values[TAX_ID_EIN_NUMBER] && !isValidTaxIDEINNumber(values[TAX_ID_EIN_NUMBER], businessStepCountryValue)) {
-                errors[TAX_ID_EIN_NUMBER] = translate('businessInfoStep.error.taxIDEIN', {country: businessStepCountryValue});
+                errors[TAX_ID_EIN_NUMBER] = translate('businessInfoStep.error.taxIDEIN', businessStepCountryValue);
             }
 
             return errors;
@@ -48,17 +48,15 @@ function TaxIDEINNumber({onNext, onMove, isEditing}: TaxIDEINNumberProps) {
             onNext={onNext}
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-            formTitle={translate('businessInfoStep.whatsTheBusinessTaxIDEIN', {country: businessStepCountryValue})}
+            formTitle={translate('businessInfoStep.whatsTheBusinessTaxIDEIN', businessStepCountryValue)}
             validate={validate}
             onSubmit={handleSubmit}
             inputId={TAX_ID_EIN_NUMBER}
-            inputLabel={translate('businessInfoStep.taxIDEIN', {country: businessStepCountryValue})}
+            inputLabel={translate('businessInfoStep.taxIDEIN', businessStepCountryValue)}
             defaultValue={defaultValue}
             shouldShowHelpLinks={false}
         />
     );
 }
-
-TaxIDEINNumber.displayName = 'TaxIDEINNumber';
 
 export default TaxIDEINNumber;

@@ -46,7 +46,15 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
                                     return;
                                 }
                                 const isAuthTokenRequired = !!htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
-                                const route = ROUTES.ATTACHMENTS.getRoute({attachmentID, reportID: report?.reportID, type, source: sourceURL, accountID, isAuthTokenRequired, hashKey});
+                                const route = ROUTES.REPORT_ATTACHMENTS.getRoute({
+                                    attachmentID,
+                                    reportID: report?.reportID,
+                                    type,
+                                    source: sourceURL,
+                                    accountID,
+                                    isAuthTokenRequired,
+                                    hashKey,
+                                });
                                 Navigation.navigate(route);
                             }}
                         />
@@ -56,7 +64,5 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
         </ShowContextMenuContext.Consumer>
     );
 }
-
-VideoRenderer.displayName = 'VideoRenderer';
 
 export default VideoRenderer;

@@ -1,5 +1,6 @@
 import type {FocusTrapProps} from 'focus-trap-react';
-import type {ViewStyle} from 'react-native';
+import type {ForwardedRef} from 'react';
+import type {View, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type CONST from '@src/CONST';
@@ -113,6 +114,16 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
          * Disables the bottom safe area padding in the modal. Used in for scrollable FeatureTrainingModal.
          */
         shouldDisableBottomSafeAreaPadding?: boolean;
+
+        /**
+         * Reference to the outer element.
+         */
+        ref?: ForwardedRef<View>;
+
+        /**
+         * Whether the modal should display under the side panel.
+         */
+        shouldDisplayBelowModals?: boolean;
     };
 
 export default BaseModalProps;

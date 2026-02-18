@@ -40,22 +40,31 @@ function EnterEmail({onSubmit, isUserDirector, isLoading}: EnterEmailProps) {
     const policy = usePolicy(policyID);
     const currency = policy?.outputCurrency ?? '';
     const shouldGatherBothEmails = currency === CONST.CURRENCY.AUD && !isUserDirector;
+    const shouldGatherOnlySecondSignerEmail = currency === CONST.CURRENCY.AUD && isUserDirector;
     const companyName = reimbursementAccount?.achData?.corpay?.[COMPANY_NAME] ?? '';
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, shouldGatherBothEmails ? [SIGNER_EMAIL, SECOND_SIGNER_EMAIL] : [SIGNER_EMAIL]);
-            if (values[SIGNER_EMAIL] && !Str.isValidEmail(values[SIGNER_EMAIL])) {
+            const errors = getFieldRequiredErrors(values, shouldGatherBothEmails ? [SIGNER_EMAIL, SECOND_SIGNER_EMAIL] : [SIGNER_EMAIL], translate);
+            if (!shouldGatherOnlySecondSignerEmail && values[SIGNER_EMAIL] && !Str.isValidEmail(values[SIGNER_EMAIL])) {
                 errors[SIGNER_EMAIL] = translate('bankAccount.error.email');
+            }
+
+            if (shouldGatherOnlySecondSignerEmail && values[SECOND_SIGNER_EMAIL] && !Str.isValidEmail(String(values[SECOND_SIGNER_EMAIL]))) {
+                errors[SECOND_SIGNER_EMAIL] = translate('bankAccount.error.email');
             }
 
             if (shouldGatherBothEmails && values[SECOND_SIGNER_EMAIL] && !Str.isValidEmail(String(values[SECOND_SIGNER_EMAIL]))) {
                 errors[SECOND_SIGNER_EMAIL] = translate('bankAccount.error.email');
             }
 
+            if (shouldGatherBothEmails && values[SIGNER_EMAIL] === values[SECOND_SIGNER_EMAIL]) {
+                errors[SECOND_SIGNER_EMAIL] = translate('signerInfoStep.error.emailsMustBeDifferent');
+            }
+
             return errors;
         },
-        [shouldGatherBothEmails, translate],
+        [shouldGatherBothEmails, shouldGatherOnlySecondSignerEmail, translate],
     );
 
     return (
@@ -68,14 +77,14 @@ function EnterEmail({onSubmit, isUserDirector, isLoading}: EnterEmailProps) {
             style={[styles.mh5, styles.flexGrow1]}
             shouldHideFixErrorsAlert={!shouldGatherBothEmails}
         >
-            <Text style={[styles.textHeadlineLineHeightXXL]}>{translate(shouldGatherBothEmails ? 'signerInfoStep.enterTwoEmails' : 'signerInfoStep.enterOneEmail', {companyName})}</Text>
+            <Text style={[styles.textHeadlineLineHeightXXL]}>{translate(shouldGatherBothEmails ? 'signerInfoStep.enterTwoEmails' : 'signerInfoStep.enterOneEmail', companyName)}</Text>
             {!shouldGatherBothEmails && <Text style={[styles.pv3, styles.textSupporting]}>{translate('signerInfoStep.regulationRequiresOneMoreDirector')}</Text>}
             <InputWrapper
                 InputComponent={TextInput}
                 label={shouldGatherBothEmails ? `${translate('common.email')} 1` : translate('common.email')}
                 aria-label={shouldGatherBothEmails ? `${translate('common.email')} 1` : translate('common.email')}
                 role={CONST.ROLE.PRESENTATION}
-                inputID={SIGNER_EMAIL}
+                inputID={shouldGatherOnlySecondSignerEmail ? SECOND_SIGNER_EMAIL : SIGNER_EMAIL}
                 inputMode={CONST.INPUT_MODE.EMAIL}
                 containerStyles={[styles.mt6]}
                 ref={!shouldGatherBothEmails ? inputCallbackRef : undefined}
@@ -94,8 +103,6 @@ function EnterEmail({onSubmit, isUserDirector, isLoading}: EnterEmailProps) {
         </FormProvider>
     );
 }
-
-EnterEmail.displayName = 'EnterEmail';
 
 export type {EmailSubmitParams};
 export default EnterEmail;

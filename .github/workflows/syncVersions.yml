@@ -1,0 +1,160 @@
+name: Sync E/App and Mobile-Expensify versions
+
+on:
+  workflow_dispatch:
+    inputs:
+      TARGET_VERSION:
+        description: 'Version to sync to (leave empty to auto-detect from Mobile-Expensify)'
+        required: false
+        type: string
+
+jobs:
+  syncVersions:
+    runs-on: macos-latest
+    steps:
+      - name: Check out
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        with:
+          ref: main
+          submodules: true
+          # The OS_BOTIFY_COMMIT_TOKEN is a personal access token tied to osbotify
+          # This is a workaround to allow pushes to a protected branch
+          token: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
+
+      - name: Validate actor is a mobile deployer
+        uses: ./.github/actions/composite/validateActor
+        with:
+          REQUIRE_APP_DEPLOYER: true
+          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
+
+      - name: Setup git for OSBotify
+        uses: Expensify/GitHub-Actions/setupGitForOSBotify@main
+        id: setupGitForOSBotify
+        with:
+          OP_VAULT: ${{ vars.OP_VAULT }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          SETUP_AS_APP: false
+
+      - name: Update submodule to latest Mobile-Expensify main
+        run: git submodule update --remote
+
+      - name: Check current versions
+        id: checkVersions
+        run: |
+          APP_VERSION=$(jq -r .version package.json)
+          ME_VERSION=$(jq -r .meta.version Mobile-Expensify/app/config/config.json)
+          echo "E/App version: $APP_VERSION"
+          echo "Mobile-Expensify version: $ME_VERSION"
+          echo "APP_VERSION=$APP_VERSION" >> "$GITHUB_OUTPUT"
+          echo "ME_VERSION=$ME_VERSION" >> "$GITHUB_OUTPUT"
+          
+          if [ "$APP_VERSION" == "$ME_VERSION" ]; then
+            echo "::notice::✅ Versions are already in sync: $APP_VERSION"
+            echo "IN_SYNC=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::⚠️ Versions are out of sync - E/App: $APP_VERSION, Mobile-Expensify: $ME_VERSION"
+            echo "IN_SYNC=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Determine target version
+        if: steps.checkVersions.outputs.IN_SYNC != 'true'
+        id: targetVersion
+        run: |
+          if [ -n "${{ inputs.TARGET_VERSION }}" ]; then
+            echo "Using provided target version: ${{ inputs.TARGET_VERSION }}"
+            echo "VERSION=${{ inputs.TARGET_VERSION }}" >> "$GITHUB_OUTPUT"
+          else
+            # Use Mobile-Expensify version as source of truth since it was pushed first
+            echo "Using Mobile-Expensify version as target: ${{ steps.checkVersions.outputs.ME_VERSION }}"
+            echo "VERSION=${{ steps.checkVersions.outputs.ME_VERSION }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup Node
+        if: steps.checkVersions.outputs.IN_SYNC != 'true'
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Sync E/App to target version
+        if: steps.checkVersions.outputs.IN_SYNC != 'true'
+        run: |
+          TARGET="${{ steps.targetVersion.outputs.VERSION }}"
+          echo "::notice::Syncing E/App to version $TARGET"
+          
+          # Update version using npm (this updates package.json and package-lock.json)
+          npm --no-git-tag-version version "$TARGET"
+          
+          # Extract version components for native file updates
+          SHORT_VERSION="${TARGET%-*}"  # e.g., "9.3.11" from "9.3.11-48"
+          BUILD_NUMBER="${TARGET#*-}"   # e.g., "48" from "9.3.11-48"
+          CF_VERSION="${SHORT_VERSION}.${BUILD_NUMBER}"  # e.g., "9.3.11.48"
+          
+          # Pad build number components for Android version code (prefix 10 for E/App)
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$SHORT_VERSION"
+          ANDROID_VERSION_CODE="10$(printf '%02d' "$MAJOR")$(printf '%02d' "$MINOR")$(printf '%02d' "$PATCH")$(printf '%02d' "$BUILD_NUMBER")"
+          
+          echo "Updating Android build.gradle with versionName=$TARGET, versionCode=$ANDROID_VERSION_CODE"
+          sed -i '' "s/versionName \"[0-9.-]*\"/versionName \"$TARGET\"/" android/app/build.gradle
+          sed -i '' "s/versionCode [0-9]*/versionCode $ANDROID_VERSION_CODE/" android/app/build.gradle
+          
+          echo "Updating iOS plists with CFBundleShortVersionString=$SHORT_VERSION, CFBundleVersion=$CF_VERSION"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $SHORT_VERSION" ios/NewExpensify/Info.plist
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $CF_VERSION" ios/NewExpensify/Info.plist
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $SHORT_VERSION" ios/NotificationServiceExtension/Info.plist
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $CF_VERSION" ios/NotificationServiceExtension/Info.plist
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $SHORT_VERSION" ios/ShareViewController/Info.plist
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $CF_VERSION" ios/ShareViewController/Info.plist
+          
+          # Commit version changes
+          git add package.json package-lock.json android/app/build.gradle ios/*/Info.plist
+          git commit -m "Update version to $TARGET (sync recovery)"
+          
+          # Update submodule reference
+          git add Mobile-Expensify
+          git commit -m "Update Mobile-Expensify submodule version to $TARGET (sync recovery)"
+          
+          # Push changes
+          if ! git push origin main; then
+            echo "::warning::Push failed, attempting rebase..."
+            git fetch origin main
+            git rebase origin/main
+            git push origin main
+          fi
+          
+          echo "::notice::✅ Successfully synced E/App to version $TARGET"
+
+      - name: Verify sync completed
+        if: steps.checkVersions.outputs.IN_SYNC != 'true'
+        run: |
+          APP_VERSION=$(jq -r .version package.json)
+          ME_VERSION=$(jq -r .meta.version Mobile-Expensify/app/config/config.json)
+          
+          if [ "$APP_VERSION" != "$ME_VERSION" ]; then
+            echo "::error::Sync failed! Versions still don't match"
+            echo "::error::E/App: $APP_VERSION, Mobile-Expensify: $ME_VERSION"
+            exit 1
+          fi
+          echo "::notice::✅ Versions verified: $APP_VERSION"
+
+      - name: Announce sync in Slack
+        if: steps.checkVersions.outputs.IN_SYNC != 'true'
+        # v3
+        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#deployer',
+              attachments: [{
+                color: "good",
+                text: `✅ Version sync completed. E/App and Mobile-Expensify are now both at version ${{ steps.targetVersion.outputs.VERSION }}`
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+      - name: Announce failed workflow in Slack
+        if: ${{ failure() }}
+        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
+        with:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}

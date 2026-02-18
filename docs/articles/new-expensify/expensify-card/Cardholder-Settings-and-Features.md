@@ -1,7 +1,7 @@
 ---
 title: Using Your Expensify Card in New Expensify
 description: Learn how to activate, use, and manage your physical and virtual Expensify Card, including Smart Limits, notifications, and troubleshooting.
-keywords: [New Expensify, Expensify Card, Smart Limit, activate card, virtual card, card notifications, card declined]
+keywords: [New Expensify, Expensify Card, Smart Limit, activate card, virtual card, card notifications, card declined, eReceipts]
 ---
 
 Once you receive your Expensify Visa® Commercial Card, you can activate it and start using it immediately. When you use your Expensify Card, expenses are automatically created, and SmartScanned receipts are matched to the corresponding transactions. For most purchases, excluding lodging, Expensify also generates IRS-compliant eReceipts. If your organization doesn't require itemized receipts, you can rely on eReceipts to meet documentation requirements.
@@ -10,7 +10,7 @@ Once you receive your Expensify Visa® Commercial Card, you can activate it and 
 
 # Activate your Expensify Card
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Reports > Tasks**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Account > Wallet > Expensify Card**.
 2. Complete the task labeled **Activate your Expensify Card**.
 3. Enter the last 4 digits of your physical card to activate it.
 
@@ -49,7 +49,7 @@ Get real-time alerts for purchases and declines by enabling push notifications.
 4. Toggle notifications **On**.
 5. Customize your alert style based on your preferences.
 
-See this guide for more information on [setting up Expensify Card notifications](https://help.expensify.com/articles/new-expensify/expensify-card/Enable-Expensify-Card-notifications).
+See this guide for more information on [setting up Expensify Card notifications](https://help.expensify.com/articles/new-expensify/expensify-card/Expensify-Card-Notifications).
 
 ---
 
@@ -57,7 +57,7 @@ See this guide for more information on [setting up Expensify Card notifications]
 
 - **Submit expenses regularly**: As expenses are approved, your Smart Limit is restored.
 - **SmartScan receipts**: Receipts will auto-merge with card transactions when scanned.
-- **eReceipts**: IRS-compliant receipts are generated for most transactions except lodging.
+- **eReceipts**: IRS-compliant receipts are generated for most transactions except lodging. There is no $75 cap for eReceipts on Expensify Card purchases.
 - **Expense reporting**: Submit your card transactions like any other expense. Approval refreshes your available Smart Limit.
 
 ---
@@ -100,7 +100,7 @@ For more details on adding a card to Apple or Android Pay, see this [guide](http
 
 ## What if I haven’t received my Expensify Card?
 
-If your physical card hasn't arrived within a week, you'll want to double-check your mailing address and order a new card. See this guide for requesting a new Expensify Card.
+If your physical card hasn't arrived within a week, confirm your mailing address is correct and request a new card. See [this guide](https://help.expensify.com/articles/expensify-classic/expensify-card/Request-the-Expensify-Card#steps-to-request-the-expensify-card) for requesting a new Expensify Card.
 
 ## Why did my card get declined?
 
