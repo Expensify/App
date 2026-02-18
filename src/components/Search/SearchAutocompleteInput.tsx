@@ -8,7 +8,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
-import useCurrencyList from '@hooks/useCurrencyList';
+import {useCurrencyListState} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFocusAfterNav from '@hooks/useFocusAfterNav';
 import useLocalize from '@hooks/useLocalize';
@@ -99,7 +99,7 @@ function SearchAutocompleteInput({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const inputRef = useRef<AnimatedTextInputRef>(null);
     const autoFocusAfterNav = useFocusAfterNav(inputRef, shouldDelayFocus);
-    const {currencyList} = useCurrencyList();
+    const {currencyList} = useCurrencyListState();
     const currencyAutocompleteList = Object.keys(currencyList).filter((currencyCode) => !currencyList[currencyCode]?.retired);
     const currencySharedValue = useSharedValue(currencyAutocompleteList);
 

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import {renderHook} from '@testing-library/react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -1850,6 +1851,21 @@ const transactionTagGroupListItems: TransactionTagGroupListItemType[] = [
     },
 ];
 
+const cardListMock = {
+    [cardID]: {
+        state: 1,
+        bank: 'vcf',
+        fundID: '5555',
+        lastFourPAN: '1234',
+    },
+    [cardID2]: {
+        state: 1,
+        bank: CONST.EXPENSIFY_CARD.BANK,
+        fundID: '5555',
+        lastFourPAN: '1234',
+    },
+} as unknown as OnyxTypes.CardList;
+
 const transactionMerchantGroupListItemsSorted: TransactionMerchantGroupListItemType[] = [
     {
         merchant: merchantName1,
@@ -2603,6 +2619,7 @@ describe('SearchUIUtils', () => {
                     bankAccountList: {},
                     groupBy: CONST.SEARCH.GROUP_BY.CARD,
                     cardFeeds: mockCardFeeds,
+                    cardList: cardListMock,
                     allReportMetadata: {},
                 })[0],
             ).toStrictEqual(transactionCardGroupListItems);
@@ -6155,6 +6172,49 @@ describe('SearchUIUtils', () => {
             const transactionThread = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}456`);
 
             expect(transactionThread).toBeTruthy();
+        });
+    });
+
+    describe('getSearchBulkEditPolicyID', () => {
+        it('returns the active policy when there are no selected transactions', () => {
+            const result = SearchUIUtils.getSearchBulkEditPolicyID([], 'policy-1', undefined, undefined);
+            expect(result).toBe('policy-1');
+        });
+
+        it('returns the shared policy when all selected transactions match', () => {
+            const transaction1 = {transactionID: 't1', reportID: 'r1'} as OnyxTypes.Transaction;
+            const transaction2 = {transactionID: 't2', reportID: 'r2'} as OnyxTypes.Transaction;
+            const transactions: OnyxCollection<OnyxTypes.Transaction> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+            };
+            const bulkReport1 = {reportID: 'r1', policyID: 'policy-1'} as OnyxTypes.Report;
+            const bulkReport2 = {reportID: 'r2', policyID: 'policy-1'} as OnyxTypes.Report;
+            const reports: OnyxCollection<OnyxTypes.Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${bulkReport1.reportID}`]: bulkReport1,
+                [`${ONYXKEYS.COLLECTION.REPORT}${bulkReport2.reportID}`]: bulkReport2,
+            };
+
+            const result = SearchUIUtils.getSearchBulkEditPolicyID(['t1', 't2'], 'policy-2', transactions, reports);
+            expect(result).toBe('policy-1');
+        });
+
+        it('falls back to the active policy when selected transactions are from different policies', () => {
+            const transaction1 = {transactionID: 't1', reportID: 'r1'} as OnyxTypes.Transaction;
+            const transaction2 = {transactionID: 't2', reportID: 'r2'} as OnyxTypes.Transaction;
+            const transactions: OnyxCollection<OnyxTypes.Transaction> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+            };
+            const bulkReport1 = {reportID: 'r1', policyID: 'policy-1'} as OnyxTypes.Report;
+            const bulkReport2 = {reportID: 'r2', policyID: 'policy-2'} as OnyxTypes.Report;
+            const reports: OnyxCollection<OnyxTypes.Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${bulkReport1.reportID}`]: bulkReport1,
+                [`${ONYXKEYS.COLLECTION.REPORT}${bulkReport2.reportID}`]: bulkReport2,
+            };
+
+            const result = SearchUIUtils.getSearchBulkEditPolicyID(['t1', 't2'], 'policy-3', transactions, reports);
+            expect(result).toBe('policy-3');
         });
     });
 

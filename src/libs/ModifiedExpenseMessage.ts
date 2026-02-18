@@ -28,6 +28,7 @@ import {buildReportNameFromParticipantNames, getPolicyExpenseChatName} from './R
 // eslint-disable-next-line import/no-cycle
 import {getPolicyName, getReportName, getRootParentReport, isPolicyExpenseChat, isSelfDM} from './ReportUtils';
 import {getFormattedAttendees, getTagArrayFromName} from './TransactionUtils';
+import {isInvalidMerchantValue} from './ValidationUtils';
 
 let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
 // eslint-disable-next-line @typescript-eslint/no-deprecated -- Onyx.connectWithoutView is being removed in https://github.com/Expensify/App/issues/66336
@@ -79,11 +80,11 @@ function buildMessageFragmentForValue(
     const isCategoryField = valueName.includes(translate('common.category').toLowerCase());
 
     const displayValueName = shouldConvertToLowercase ? valueName.toLowerCase() : valueName;
-    const isOldValuePartialMerchant = valueName === translate('common.merchant') && oldValue === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+    const isOldMerchantInvalid = valueName === translate('common.merchant') && isInvalidMerchantValue(oldValue);
     const isOldCategoryMissing = isCategoryField && isCategoryMissing(oldValue);
     const isNewCategoryMissing = isCategoryField && isCategoryMissing(newValue);
 
-    if (!oldValue || isOldValuePartialMerchant || isOldCategoryMissing) {
+    if (!oldValue || isOldMerchantInvalid || isOldCategoryMissing) {
         if (!(isOldCategoryMissing && isNewCategoryMissing)) {
             const fragment = translate('iou.setTheRequest', displayValueName, newValueToDisplay);
             setFragments.push(fragment);

@@ -1,7 +1,7 @@
-import React, {useContext} from 'react';
+import React from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -58,10 +58,13 @@ function SubscriptionSettings() {
     const preferredCurrency = usePreferredCurrency();
     const themeIllustrations = useThemeIllustrations();
     const possibleCostSavings = useSubscriptionPossibleCostSavings();
-    const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const {isActingAsDelegate} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
     const [privateTaxExempt] = useOnyx(ONYXKEYS.NVP_PRIVATE_TAX_EXEMPT, {canBeMissing: true});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+    const isExpensifyCodeApplied = !!privateSubscription?.expensifyCode;
+    const shouldShowExpensifyCodeSection = !privateSubscription?.isSecretPromoCode;
     const subscriptionPrice = getSubscriptionPrice(subscriptionPlan, preferredCurrency, privateSubscription?.type, hasTeam2025Pricing);
     const priceDetails = translate(`subscription.yourPlan.${subscriptionPlan === CONST.POLICY.TYPE.CORPORATE ? 'control' : 'collect'}.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`, {
         lower: convertToShortDisplayString(subscriptionPrice, preferredCurrency),
@@ -88,6 +91,18 @@ function SubscriptionSettings() {
             return;
         }
         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SIZE.getRoute(1));
+    };
+
+    const onExpensifyCodePress = () => {
+        if (isExpensifyCodeApplied) {
+            return;
+        }
+        if (isActingAsDelegate) {
+            showDelegateNoAccessModal();
+            return;
+        }
+
+        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_EXPENSIFY_CODE);
     };
     const illustrations = useMemoizedLazyIllustrations(['SubscriptionAnnual', 'SubscriptionPPU']);
 
@@ -256,6 +271,18 @@ function SubscriptionSettings() {
                         </OfflineWithFeedback>
                     </>
                 ) : null}
+
+                {shouldShowExpensifyCodeSection && (
+                    <MenuItemWithTopDescription
+                        description={translate('subscription.expensifyCode.title')}
+                        shouldShowRightIcon={!isExpensifyCodeApplied}
+                        onPress={onExpensifyCodePress}
+                        interactive={!isExpensifyCodeApplied}
+                        wrapperStyle={styles.sectionMenuItemTopDescription}
+                        style={styles.mt5}
+                        title={privateSubscription?.expensifyCode}
+                    />
+                )}
                 <MenuItemWithTopDescription
                     description={privateTaxExempt ? translate('subscription.details.taxExemptStatus') : undefined}
                     shouldShowRightIcon
@@ -265,7 +292,7 @@ function SubscriptionSettings() {
                     }}
                     icon={icons.Coins}
                     wrapperStyle={styles.sectionMenuItemTopDescription}
-                    style={styles.mv5}
+                    style={styles.mb5}
                     titleStyle={privateTaxExempt ? undefined : styles.textBold}
                     title={privateTaxExempt ? translate('subscription.details.taxExemptEnabled') : translate('subscription.details.taxExempt')}
                 />

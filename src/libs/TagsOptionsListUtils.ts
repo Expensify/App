@@ -3,9 +3,10 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import CONST from '@src/CONST';
 import type {Policy, PolicyTag, PolicyTagLists, PolicyTags, Transaction} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import {insertTagIntoTransactionTagsString} from './IOUUtils';
 import {hasEnabledOptions} from './OptionsListUtils';
 import type {Option} from './OptionsListUtils';
-import {getCleanedTagName, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isMultiLevelTags as isMultiLevelTagsPolicyUtils} from './PolicyUtils';
+import {getCleanedTagName, getTagList, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isMultiLevelTags as isMultiLevelTagsPolicyUtils} from './PolicyUtils';
 import tokenizedSearch from './tokenizedSearch';
 import {getTagArrayFromName, getTagForDisplay} from './TransactionUtils';
 
@@ -27,6 +28,16 @@ type TagVisibility = {
 
     /** Flag indicating if the tag should be shown */
     shouldShow: boolean;
+};
+
+type UpdatedTransactionTagParams = {
+    transactionTag: string;
+    selectedTagName: string;
+    currentTag: string;
+    tagListIndex: number;
+    policyTags: OnyxEntry<PolicyTagLists>;
+    hasDependentTags: boolean;
+    hasMultipleTagLists: boolean;
 };
 
 /**
@@ -226,6 +237,35 @@ function getTagVisibility({
 }
 
 /**
+ * Determines whether a dependent tag list should be shown based on the selected parent tag
+ * and available enabled tags for the current level.
+ */
+function shouldShowDependentTagList(tagListIndex: number, transactionTag: string | undefined, tags: PolicyTags | undefined): boolean {
+    if (tagListIndex === 0) {
+        return true;
+    }
+
+    const tagParts = getTagArrayFromName(transactionTag ?? '');
+    const previousTagValue = tagParts.at(tagListIndex - 1);
+    if (!previousTagValue) {
+        return false;
+    }
+
+    const parentTag = tagParts.slice(0, tagListIndex).join(':');
+    const availableTags = Object.values(tags ?? {}).filter((policyTag) => {
+        const filterRegex = policyTag.rules?.parentTagsFilter;
+        if (!filterRegex) {
+            return true;
+        }
+
+        const regex = new RegExp(filterRegex);
+        return regex.test(parentTag ?? '');
+    });
+
+    return availableTags.some((tag) => tag.enabled);
+}
+
+/**
  * Checks if any tag from policy tag lists exists in the transaction tag string.
  *
  * @param policyTagLists - The policy tag lists object containing tag list records
@@ -250,5 +290,68 @@ function hasMatchingTag(policyTagLists: OnyxEntry<PolicyTagLists>, transactionTa
     });
 }
 
-export {getTagsOptions, getTagListSections, hasEnabledTags, sortTags, getTagVisibility, hasMatchingTag};
+function getUpdatedTransactionTag({transactionTag, selectedTagName, currentTag, tagListIndex, policyTags, hasDependentTags, hasMultipleTagLists}: UpdatedTransactionTagParams): string {
+    const isSelectedTag = selectedTagName === currentTag;
+
+    if (hasDependentTags) {
+        const tagParts = transactionTag ? getTagArrayFromName(transactionTag) : [];
+
+        if (isSelectedTag) {
+            // Deselect: clear this and all child tags.
+            tagParts.splice(tagListIndex);
+        } else {
+            // Select new tag: replace this index and clear child tags.
+            tagParts.splice(tagListIndex, tagParts.length - tagListIndex, selectedTagName);
+
+            const policyTagLists = getTagLists(policyTags);
+            // Auto-select subsequent tags if there is only one enabled tag
+            for (let i = tagListIndex + 1; i < policyTagLists.length; i++) {
+                const availableNextLevelTags = getTagList(policyTags, i);
+                const enabledTags = Object.values(availableNextLevelTags.tags).filter((tag) => tag.enabled);
+
+                if (enabledTags.length === 1) {
+                    // If there is only one enabled tag, we can auto-select it.
+                    const firstTag = enabledTags.at(0);
+                    if (firstTag) {
+                        tagParts.push(firstTag.name);
+                    }
+                } else {
+                    // If there are no enabled tags or more than one, stop auto-selecting.
+                    break;
+                }
+            }
+        }
+
+        return tagParts.join(':');
+    }
+
+    // Independent tags (fallback): use comma-separated list.
+    return insertTagIntoTransactionTagsString(transactionTag, isSelectedTag ? '' : selectedTagName, tagListIndex, hasMultipleTagLists);
+}
+
+/**
+ * Gets enabled tags filtered by parent tag at a specific index level.
+ *
+ * Filters the policy tags to return only enabled tags whose parent tag filter
+ * matches the provided parent tag value at the given index level.
+ *
+ * @param tags - The policy tags object containing all available tags
+ * @param tag - The tag string (potentially multi-level, e.g., "California:North")
+ * @param index - The index level to truncate the tag to for parent filtering
+ * @returns Array of enabled policy tags that match the parent tag filter
+ */
+function getEnabledTags(tags: PolicyTags, tag: string, index: number) {
+    // Truncate tag to the current level (e.g., "California:North")
+    const parentTag = getTagArrayFromName(tag).slice(0, index).join(':');
+
+    return Object.values(tags).filter((policyTag) => {
+        if (!policyTag.enabled) {
+            return false;
+        }
+        const filterRegex = policyTag.rules?.parentTagsFilter ?? policyTag.parentTagsFilter;
+        return !filterRegex || new RegExp(filterRegex).test(parentTag);
+    });
+}
+
+export {getTagsOptions, getTagListSections, hasEnabledTags, sortTags, getTagVisibility, hasMatchingTag, getUpdatedTransactionTag, shouldShowDependentTagList, getEnabledTags};
 export type {SelectedTagOption, TagVisibility, TagOption};

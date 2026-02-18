@@ -17,12 +17,13 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 type PopoverComponentProps = {
     closeOverlay: () => void;
 };
 
-type DropdownButtonProps = {
+type DropdownButtonProps = WithSentryLabel & {
     /** The label to display on the select */
     label: string;
 
@@ -58,7 +59,7 @@ const ANCHOR_ORIGIN = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
-function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medium = false, labelStyle, innerStyles, caretWrapperStyle, wrapperStyle}: DropdownButtonProps) {
+function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medium = false, labelStyle, innerStyles, caretWrapperStyle, wrapperStyle, sentryLabel}: DropdownButtonProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHL and narrow layout
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -134,6 +135,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medi
                 ref={triggerRef}
                 innerStyles={[isOverlayVisible && styles.buttonHoveredBG, {maxWidth: 256}, innerStyles]}
                 onPress={calculatePopoverPositionAndToggleOverlay}
+                sentryLabel={sentryLabel}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(medium ? {medium: true} : {small: true})}
             >
