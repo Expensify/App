@@ -15,7 +15,7 @@ import type {SplitListItemType} from '@components/SelectionList/ListItem/types';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useAllTransactions from '@hooks/useAllTransactions';
 import useConfirmModal from '@hooks/useConfirmModal';
-import useCurrencyList from '@hooks/useCurrencyList';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -73,7 +73,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const [errorMessage, setErrorMessage] = React.useState<string>('');
     const searchContext = useSearchContext();
 
-    const {getCurrencySymbol} = useCurrencyList();
+    const {getCurrencySymbol} = useCurrencyListActions();
 
     const [selectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.SPLIT_EXPENSE_TAB_TYPE}`, {canBeMissing: true});
     const [draftTransaction, draftTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: false});
@@ -208,21 +208,21 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
         if (invalidSplit && sumOfSplitExpenses !== transactionDetailsAmount) {
             if (difference > 0) {
-                setErrorMessage(translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(Math.abs(difference), transactionDetails?.currency)}));
+                setErrorMessage(translate('iou.totalAmountGreaterThanOriginal', convertToDisplayString(Math.abs(difference), transactionDetails?.currency)));
             } else {
-                setErrorMessage(translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(Math.abs(difference), transactionDetails?.currency)}));
+                setErrorMessage(translate('iou.totalAmountLessThanOriginal', convertToDisplayString(Math.abs(difference), transactionDetails?.currency)));
             }
             return;
         }
 
         if (sumOfSplitExpenses > transactionDetailsAmount) {
             const greaterThanDifference = sumOfSplitExpenses - transactionDetailsAmount;
-            setErrorMessage(translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(greaterThanDifference, transactionDetails?.currency)}));
+            setErrorMessage(translate('iou.totalAmountGreaterThanOriginal', convertToDisplayString(greaterThanDifference, transactionDetails?.currency)));
             return;
         }
         if (sumOfSplitExpenses < transactionDetailsAmount && (isPerDiem || isCard)) {
             const lessThanDifference = transactionDetailsAmount - sumOfSplitExpenses;
-            setErrorMessage(translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(lessThanDifference, transactionDetails?.currency)}));
+            setErrorMessage(translate('iou.totalAmountLessThanOriginal', convertToDisplayString(lessThanDifference, transactionDetails?.currency)));
             return;
         }
 
@@ -357,14 +357,14 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     if (invalidSplit && sumOfSplitExpenses !== transactionDetailsAmount) {
         if (difference > 0) {
-            warningMessage = translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(Math.abs(difference), transactionDetails?.currency)});
+            warningMessage = translate('iou.totalAmountGreaterThanOriginal', convertToDisplayString(Math.abs(difference), transactionDetails?.currency));
         } else {
-            warningMessage = translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(Math.abs(difference), transactionDetails?.currency)});
+            warningMessage = translate('iou.totalAmountLessThanOriginal', convertToDisplayString(Math.abs(difference), transactionDetails?.currency));
         }
     } else if (difference < 0) {
-        warningMessage = translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(Math.abs(difference), transactionDetails.currency)});
+        warningMessage = translate('iou.totalAmountLessThanOriginal', convertToDisplayString(Math.abs(difference), transactionDetails.currency));
     } else if (difference > 0) {
-        warningMessage = translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(Math.abs(difference), transactionDetails?.currency)});
+        warningMessage = translate('iou.totalAmountGreaterThanOriginal', convertToDisplayString(Math.abs(difference), transactionDetails?.currency));
     }
 
     const footerContent = (
@@ -457,10 +457,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 <View style={styles.flex1}>
                     <HeaderWithBackButton
                         title={headerTitle}
-                        subtitle={translate('iou.splitExpenseSubtitle', {
-                            amount: convertToDisplayString(transactionDetailsAmount, transactionDetails?.currency),
-                            merchant: draftTransaction?.merchant ?? '',
-                        })}
+                        subtitle={translate('iou.splitExpenseSubtitle', convertToDisplayString(transactionDetailsAmount, transactionDetails?.currency), draftTransaction?.merchant ?? '')}
                         onBackButtonPress={() => Navigation.goBack(backTo)}
                     />
 

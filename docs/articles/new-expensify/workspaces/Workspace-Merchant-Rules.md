@@ -36,6 +36,8 @@ To create a Workspace Merchant Rule:
 
 **Note:** Workspace Merchant Rules are only available after **Workspace Rules** are enabled for the workspace. If you don't see the Merchant Rules section, first [enable Workspace Rules](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Rules#enable-workspace-rules). 
 
+![Creating a Workspace Merchant Rule]({{site.url}}/assets/images/ExpensiHelp-MerchantRules-1.png){:width="100%"}
+
 ---
 
 ## When Workspace Merchant Rules apply to expenses 
@@ -108,6 +110,8 @@ Examples:
 
 This ensures office-related purchases follow company coding standards.
 
+![Image of an expense with Workspace Merchant Rule applied]({{site.url}}/assets/images/ExpensiHelp-MerchantRules-2.png){:width="100%"}
+
 ---
 
 # FAQ
@@ -126,7 +130,7 @@ No. Employees submit expenses the same way as before. Workspace Merchant Rules r
 
 ## What happens if a personal expense rule and a Workspace Merchant Rule both apply?
 
-Personal expense rules take precedence over Workspace Merchant Rules.
+Personal expense rules take precedence over Workspace Merchant Rules. Learn more about [Personal Expense Rules](https://help.expensify.com/articles/new-expensify/settings/Personal-Expense-Rules). 
 
 ## How can I tell which Workspace Merchant Rule was applied?
 

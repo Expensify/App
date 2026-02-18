@@ -365,6 +365,25 @@ describe('ModifiedExpenseMessage', () => {
             });
         });
 
+        describe('when the merchant is changed while the previous merchant was the default merchant', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    merchant: 'KFC',
+                    oldMerchant: CONST.TRANSACTION.DEFAULT_MERCHANT,
+                },
+            };
+
+            it('returns the correct text message', () => {
+                const expectedResult = `set the merchant to "KFC"`;
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
         describe('when the merchant is cleared to PARTIAL_TRANSACTION_MERCHANT', () => {
             const reportAction = {
                 ...createRandomReportAction(1),
