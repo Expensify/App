@@ -51,7 +51,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
-import {getSubstitutionMapKey} from './SearchRouter/getQueryWithSubstitutions';
+import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
+import {getSubstitutionMapKey, getSubstitutionMapKeyWithIndex} from './SearchRouter/getQueryWithSubstitutions';
 import type {SearchFilterKey, UserFriendlyKey} from './types';
 
 type AutocompleteItemData = {
@@ -101,6 +102,9 @@ type SearchAutocompleteListProps = {
 
     /** All cards */
     allCards: CardList | undefined;
+
+    /** Map of display values to actual IDs for filters (e.g. workspace name -> policy ID). Used to exclude by ID when multiple options share the same name. */
+    autocompleteSubstitutions?: SubstitutionMap;
 
     /** Reference to the outer element */
     ref?: ForwardedRef<SelectionListWithSectionsHandle>;
@@ -164,6 +168,7 @@ function SearchAutocompleteList({
     reports,
     allFeeds,
     allCards = CONST.EMPTY_OBJECT,
+    autocompleteSubstitutions,
     ref,
 }: SearchAutocompleteListProps) {
     const styles = useThemeStyles();
@@ -604,8 +609,33 @@ function SearchAutocompleteList({
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID: {
+                // Exclude by policy ID when substitutions are available so that workspaces with the same name
+                // (e.g. 3+ workspaces named "A's Workspace") each appear in autocomplete until selected; we use
+                // index-based keys so multiple same-name selections are tracked separately.
+                const policyIdRanges = ranges.filter((range) => range.key === autocompleteKey);
+                const keyValueCount = new Map<string, number>();
+                const alreadySelectedPolicyIds =
+                    autocompleteSubstitutions &&
+                    new Set(
+                        policyIdRanges
+                            .map((range) => {
+                                const baseKey = getSubstitutionMapKey(range.key, range.value);
+                                const index = keyValueCount.get(baseKey) ?? 0;
+                                keyValueCount.set(baseKey, index + 1);
+                                const fullKey = getSubstitutionMapKeyWithIndex(range.key, range.value, index);
+                                return autocompleteSubstitutions[fullKey] ?? (index === 0 ? autocompleteSubstitutions[baseKey] : undefined);
+                            })
+                            .filter(Boolean),
+                    );
+
                 const filteredPolicies = workspaceList
-                    .filter((workspace) => workspace.name.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(workspace.name.toLowerCase()))
+                    .filter((workspace) => {
+                        const matchesSearch = workspace.name.toLowerCase().includes(autocompleteValue.toLowerCase());
+                        if (alreadySelectedPolicyIds?.size) {
+                            return matchesSearch && !alreadySelectedPolicyIds.has(workspace.id);
+                        }
+                        return matchesSearch && !alreadyAutocompletedKeys.has(workspace.name.toLowerCase());
+                    })
                     .sort()
                     .slice(0, 10);
 
