@@ -4,7 +4,6 @@ description: Set up the Sage Intacct integration in Expensify to streamline expe
 keywords: [New Expensify, Sage Intacct integration, connect Sage Intacct, expense report export, vendor bill export]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Connect your Workspace to Sage Intacct to automate expense syncing and reduce manual data entry. This guide walks through the setup for user-based and role-based permissions and covers options for exporting expenses as reports or vendor bills.
 
@@ -141,7 +140,7 @@ In Sage Intacct, go to **Company > Subscriptions > Customization Services** to a
 
 # Step 6: Download the Expensify Package
 
-1. In Expensify, from the left-hand menu, go to **Workspaces > [Workspace Name] > Accounting**
+1. In Expensify, from the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting**
 2. Select **Sage Intacct > Connect to Sage Intacct**
 3. Click **Download Package**
 
@@ -187,4 +186,3 @@ If auto-export fails, the specific error will appear in the report’s comment s
 
 Yes, but reports exported as **Expense Reports** must not have a total below $0.
 
-</div>

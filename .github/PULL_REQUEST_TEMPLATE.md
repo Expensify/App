@@ -85,7 +85,6 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
     - [ ] iOS: Native
     - [ ] iOS: mWeb Safari
     - [ ] MacOS: Chrome / Safari
-    - [ ] MacOS: Desktop
 - [ ] I verified there are no console errors (if there's a console error not related to the PR, report it or open an issue for it to be fixed)
 - [ ] I verified there are no new alerts related to the `canBeMissing` param for `useOnyx`
 - [ ] I followed proper code patterns (see [Reviewing the code](https://github.com/Expensify/App/blob/main/contributingGuides/PR_REVIEW_GUIDELINES.md#reviewing-the-code))
@@ -109,6 +108,9 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
 - [ ] If a new CSS style is added I verified that:
     - [ ] A similar style doesn't already exist
     - [ ] The style can't be created with an existing [StyleUtils](https://github.com/Expensify/App/blob/main/src/styles/utils/index.ts) function (i.e. `StyleUtils.getBackgroundAndBorderStyle(theme.componentBG)`)
+- [ ] If new assets were added or existing ones were modified, I verified that:
+    - [ ] The assets are optimized and compressed (for SVG files, run `npm run compress-svg`)
+    - [ ] The assets load correctly across all supported platforms.
 - [ ] If the PR modifies code that runs when editing or sending messages, I tested and verified there is no unexpected behavior for all supported markdown - URLs, single line code, code blocks, quotes, headings, bold, strikethrough, and italic.
 - [ ] If the PR modifies a generic component, I tested and verified that those changes do not break usages of that component in the rest of the App (i.e. if a shared library or component like `Avatar` is modified, I verified that `Avatar` is working as expected in all cases)
 - [ ] If the PR modifies a component related to any of the existing Storybook stories, I tested and verified all stories for that component are still working as expected.
@@ -151,13 +153,6 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
 
 <details>
 <summary>MacOS: Chrome / Safari</summary>
-
-<!-- add screenshots or videos here -->
-
-</details>
-
-<details>
-<summary>MacOS: Desktop</summary>
 
 <!-- add screenshots or videos here -->
 

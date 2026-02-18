@@ -5,41 +5,38 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import RadioButton from '@components/RadioButton';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {MergeValue} from '@libs/MergeTransactionUtils';
+import type {MergeFieldData, MergeFieldKey} from '@libs/MergeTransactionUtils';
+import type {Transaction} from '@src/types/onyx';
 
 type MergeFieldReviewProps = {
-    field: string;
-    values: MergeValue[];
-    selectedValue: MergeValue;
-    onValueSelected: (selected: MergeValue) => void;
+    mergeField: MergeFieldData;
+    onValueSelected: (transaction: Transaction, field: MergeFieldKey) => void;
     errorText: string | undefined;
-    formatValue: (mergeValue: MergeValue) => string;
 };
 
-function MergeFieldReview({field, values, selectedValue, onValueSelected, errorText, formatValue}: MergeFieldReviewProps) {
+function MergeFieldReview({mergeField, onValueSelected, errorText}: MergeFieldReviewProps) {
+    const {label, field, options} = mergeField;
     const styles = useThemeStyles();
 
     return (
         <View style={[styles.mb3, styles.pv5, styles.borderRadiusComponentLarge, styles.highlightBG]}>
-            <Text style={[styles.textSupporting, styles.pb3, styles.ph5]}>{field}</Text>
-            {values.map((mergeValue: MergeValue) => {
-                const {value, currency} = mergeValue;
-                const displayValue = formatValue(mergeValue);
-                const isSelected = selectedValue.value === value && (!currency || selectedValue.currency === currency);
+            <Text style={[styles.textSupporting, styles.pb3, styles.ph5]}>{label}</Text>
+            {options.map((option) => {
+                const {transaction, displayValue, isSelected} = option;
 
                 return (
                     <PressableWithoutFeedback
-                        key={`${value}${currency}`}
-                        onPress={() => onValueSelected(mergeValue)}
-                        accessibilityLabel={formatValue(mergeValue)}
+                        key={`${field}-${transaction.transactionID}`}
+                        onPress={() => onValueSelected(transaction, field)}
+                        accessibilityLabel={displayValue}
                         accessible={false}
                         hoverStyle={styles.hoveredComponentBG}
                         style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv5, styles.ph5]}
                     >
-                        <Text style={[styles.mr1, styles.textBold]}>{displayValue}</Text>
+                        <Text style={[styles.flex1, styles.mr1, styles.textBold, styles.breakWord]}>{displayValue}</Text>
                         <RadioButton
                             isChecked={isSelected}
-                            onPress={() => onValueSelected(mergeValue)}
+                            onPress={() => onValueSelected(transaction, field)}
                             accessibilityLabel={displayValue}
                             shouldUseNewStyle
                         />
@@ -55,7 +52,5 @@ function MergeFieldReview({field, values, selectedValue, onValueSelected, errorT
         </View>
     );
 }
-
-MergeFieldReview.displayName = 'MergeFieldReview';
 
 export default MergeFieldReview;

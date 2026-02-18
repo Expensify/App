@@ -4,7 +4,6 @@ description: How to export expenses and reports using custom reports, PDF files,
 keywords: [Expensify Classic, export expense reports]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 Expensify offers multiple ways to export your expenses and reports:
 - **Export as a PDF**
@@ -130,7 +129,8 @@ Enter any of the following formulas into the Formula field for each column. Be s
 | {report:workspaceName} | Would output Sales assuming that the given report was under a workspace named Sales.|
 | {report:policyName} | Same as the workspace name. Policy is an older term for workspace.|
 | Status | Is the current state of the report when it was exported.|
-| {report:status} | Would output Approved assuming that the report has been approved and not yet reimbursed.|
+| {report:status} | Outputs the current report status using the historical labels (Open, Processing, Approved, Reimbursed or Closed).|
+| {report:displaystatus} | Outputs the current report status (Draft, Outstanding, Approved, Paid, or Done). |
 | Custom Fields | |
 | {report:submit:from:customfield1} | Would output the custom field 1 entry associated with the user who submitted the report. If John Smith’s Custom Field 1 contains 100, then this formula would output 100.|
 | {report:submit:from:customfield2} | Would output the custom field 2 entry associated with the user who submitted the report. If John Smith’s Custom Field 2 contains 1234, then this formula would output 1234. |
@@ -300,4 +300,3 @@ Excel may automatically remove leading zeros. To prevent this:
 2. Select your CSV file.
 3. In step 3, set relevant columns to **Text format**.
 
-</div>

@@ -6,7 +6,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import BankAccount from '@libs/models/BankAccount';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import {isValidWebsite} from '@libs/ValidationUtils';
 import getInitialSubStepForBusinessInfo from '@pages/ReimbursementAccount/USD/utils/getInitialSubStepForBusinessInfo';
@@ -56,7 +55,7 @@ function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
             ...lodashPick(reimbursementAccount?.achData, ...fieldNames),
             ...lodashPick(reimbursementAccountDraft, ...fieldNames),
         }),
-        [reimbursementAccount, reimbursementAccountDraft],
+        [reimbursementAccount?.achData, reimbursementAccountDraft],
     );
 
     const policyID = reimbursementAccount?.achData?.policyID;
@@ -70,7 +69,7 @@ function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
                 {
                     ...values,
                     ...getBankAccountFields(['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings']),
-                    companyTaxID: values.companyTaxID?.replace(CONST.REGEX.NON_NUMERIC, ''),
+                    companyTaxID: values.companyTaxID?.replaceAll(CONST.REGEX.NON_NUMERIC, ''),
                     companyPhone: parsePhoneNumber(values.companyPhone ?? '', {regionCode: CONST.COUNTRY.US}).number?.significant,
                     website: isValidWebsite(companyWebsite) ? companyWebsite : undefined,
                 },
@@ -78,10 +77,10 @@ function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
                 isConfirmPage,
             );
         },
-        [reimbursementAccount, values, getBankAccountFields, policyID],
+        [reimbursementAccount?.achData?.bankAccountID, values, getBankAccountFields, policyID],
     );
 
-    const isBankAccountVerifying = reimbursementAccount?.achData?.state === BankAccount.STATE.VERIFYING;
+    const isBankAccountVerifying = reimbursementAccount?.achData?.state === CONST.BANK_ACCOUNT.STATE.VERIFYING;
     const startFrom = useMemo(() => (isBankAccountVerifying ? 0 : getInitialSubStepForBusinessInfo(values)), [values, isBankAccountVerifying]);
 
     const {
@@ -109,7 +108,7 @@ function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
 
     return (
         <InteractiveStepWrapper
-            wrapperID={BusinessInfo.displayName}
+            wrapperID="BusinessInfo"
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             headerTitle={translate('businessInfoStep.businessInfo')}
@@ -125,7 +124,5 @@ function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
         </InteractiveStepWrapper>
     );
 }
-
-BusinessInfo.displayName = 'BusinessInfo';
 
 export default BusinessInfo;

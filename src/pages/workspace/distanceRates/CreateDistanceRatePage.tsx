@@ -11,6 +11,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setMoneyRequestDistanceRate} from '@libs/actions/IOU';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getOptimisticRateName, validateRateValue} from '@libs/PolicyDistanceRatesUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
@@ -21,28 +22,33 @@ import {createPolicyDistanceRate} from '@userActions/Policy/DistanceRate';
 import {generateCustomUnitID} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PolicyCreateDistanceRateForm';
 import type {Rate} from '@src/types/onyx/Policy';
 
 type CreateDistanceRatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CREATE_DISTANCE_RATE>;
 
-function CreateDistanceRatePage({route}: CreateDistanceRatePageProps) {
+function CreateDistanceRatePage({
+    route: {
+        params: {policyID, transactionID, reportID},
+    },
+}: CreateDistanceRatePageProps) {
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
-    const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const customUnit = getDistanceRateCustomUnit(policy);
     const customUnitID = customUnit?.customUnitID;
     const customUnitRateID = generateCustomUnitID();
     const {inputCallbackRef} = useAutoFocusInput();
+    const isDistanceRateUpgrade = transactionID && reportID;
 
     const FullPageBlockingView = !customUnitID ? FullPageOfflineBlockingView : View;
 
     const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => validateRateValue(values, customUnit?.rates ?? {}, toLocaleDigit),
-        [toLocaleDigit, customUnit?.rates],
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => validateRateValue(values, toLocaleDigit, translate),
+        [toLocaleDigit, translate],
     );
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => {
@@ -60,6 +66,11 @@ function CreateDistanceRatePage({route}: CreateDistanceRatePageProps) {
         };
 
         createPolicyDistanceRate(policyID, customUnitID, newRate);
+        if (isDistanceRateUpgrade) {
+            setMoneyRequestDistanceRate(transactionID, customUnitRateID, policy, true);
+            Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID), {compareParams: false});
+            return;
+        }
         Navigation.goBack();
     };
 
@@ -72,10 +83,10 @@ function CreateDistanceRatePage({route}: CreateDistanceRatePageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={CreateDistanceRatePage.displayName}
+                testID="CreateDistanceRatePage"
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton title={translate('workspace.distanceRates.addRate')} />
+                <HeaderWithBackButton title={isDistanceRateUpgrade ? translate('common.rate') : translate('workspace.distanceRates.addRate')} />
                 <FullPageBlockingView style={[styles.flexGrow1]}>
                     <FormProvider
                         formID={ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM}
@@ -103,7 +114,5 @@ function CreateDistanceRatePage({route}: CreateDistanceRatePageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-CreateDistanceRatePage.displayName = 'CreateDistanceRatePage';
 
 export default CreateDistanceRatePage;

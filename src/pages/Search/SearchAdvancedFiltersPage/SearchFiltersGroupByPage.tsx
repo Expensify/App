@@ -6,7 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {SearchGroupBy} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -24,12 +24,12 @@ function SearchFiltersGroupByPage() {
     const [selectedItem, setSelectedItem] = useState(searchAdvancedFiltersForm?.groupBy);
 
     const listData: Array<ListItem<SearchGroupBy>> = useMemo(() => {
-        return getGroupByOptions().map((groupOption) => ({
+        return getGroupByOptions(translate).map((groupOption) => ({
             text: groupOption.text,
             keyForList: groupOption.value,
             isSelected: selectedItem === groupOption.value,
         }));
-    }, [selectedItem]);
+    }, [translate, selectedItem]);
 
     const updateSelectedItem = useCallback((type: ListItem<SearchGroupBy>) => {
         setSelectedItem(type?.keyForList ?? undefined);
@@ -40,13 +40,15 @@ function SearchFiltersGroupByPage() {
     }, []);
 
     const applyChanges = useCallback(() => {
-        updateAdvancedFilters({groupBy: selectedItem ?? null});
-        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+        // When groupBy is cleared, also clear the view since view is only valid when groupBy is set
+        const updates = selectedItem ? {groupBy: selectedItem} : {groupBy: null, view: null};
+        updateAdvancedFilters(updates);
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     }, [selectedItem]);
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersGroupByPage.displayName}
+            testID="SearchFiltersGroupByPage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight
@@ -54,13 +56,13 @@ function SearchFiltersGroupByPage() {
             <HeaderWithBackButton
                 title={translate('search.groupBy')}
                 onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                 }}
             />
             <View style={[styles.flex1]}>
                 <SelectionList
                     shouldSingleExecuteRowSelect
-                    sections={[{data: listData}]}
+                    data={listData}
                     ListItem={SingleSelectListItem}
                     onSelectRow={updateSelectedItem}
                 />
@@ -84,7 +86,5 @@ function SearchFiltersGroupByPage() {
         </ScreenWrapper>
     );
 }
-
-SearchFiltersGroupByPage.displayName = 'SearchFiltersGroupByPage';
 
 export default SearchFiltersGroupByPage;

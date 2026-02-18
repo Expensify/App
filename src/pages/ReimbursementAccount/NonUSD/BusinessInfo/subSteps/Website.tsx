@@ -28,12 +28,12 @@ function Website({onNext, onMove, isEditing}: WebsiteProps) {
     const currency = policy?.outputCurrency ?? '';
     const isWebsiteRequired = currency === CONST.CURRENCY.USD || CONST.CURRENCY.CAD;
 
-    const defaultWebsiteExample = useMemo(() => getDefaultCompanyWebsite(session, account), [session, account]);
+    const defaultWebsiteExample = useMemo(() => getDefaultCompanyWebsite(session, account, true), [session, account]);
     const defaultCompanyWebsite = reimbursementAccount?.achData?.website ?? defaultWebsiteExample;
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = isWebsiteRequired ? getFieldRequiredErrors(values, STEP_FIELDS) : {};
+            const errors = isWebsiteRequired ? getFieldRequiredErrors(values, STEP_FIELDS, translate) : {};
 
             if (values[COMPANY_WEBSITE] && !isValidWebsite(Str.sanitizeURL(values[COMPANY_WEBSITE], CONST.COMPANY_WEBSITE_DEFAULT_SCHEME))) {
                 errors[COMPANY_WEBSITE] = translate('bankAccount.error.website');
@@ -72,7 +72,5 @@ function Website({onNext, onMove, isEditing}: WebsiteProps) {
         />
     );
 }
-
-Website.displayName = 'Website';
 
 export default Website;

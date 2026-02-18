@@ -1,6 +1,8 @@
+import {Str} from 'expensify-common';
 import type {ComponentType} from 'react';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
@@ -67,10 +69,12 @@ const INPUT_KEYS = {
     ANNUAL_VOLUME: INPUT_IDS.ADDITIONAL_DATA.CORPAY.ANNUAL_VOLUME,
     TRADE_VOLUME: INPUT_IDS.ADDITIONAL_DATA.CORPAY.TRADE_VOLUME,
     TAX_ID_EIN_NUMBER: INPUT_IDS.ADDITIONAL_DATA.CORPAY.TAX_ID_EIN_NUMBER,
+    BUSINESS_TYPE_ID: INPUT_IDS.ADDITIONAL_DATA.CORPAY.BUSINESS_TYPE_ID,
 };
 
 function BusinessInfo({onBackButtonPress, onSubmit, stepNames}: BusinessInfoProps) {
     const {translate} = useLocalize();
+    const {isProduction} = useEnvironment();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
@@ -83,23 +87,29 @@ function BusinessInfo({onBackButtonPress, onSubmit, stepNames}: BusinessInfoProp
     const startFrom = useMemo(() => getInitialSubStepForBusinessInfoStep(businessInfoStepValues), [businessInfoStepValues]);
 
     const country = reimbursementAccount?.achData?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
+    const isBusinessTypeRequired = country !== CONST.COUNTRY.CA;
+    const isSubmittingRef = useRef(false);
 
     useEffect(() => {
         getCorpayOnboardingFields(country);
     }, [country]);
 
     const submit = useCallback(() => {
+        isSubmittingRef.current = true;
         saveCorpayOnboardingCompanyDetails(
             {
                 ...businessInfoStepValues,
+                // Corpay does not accept emails with a "+" character and will not let us connect account at the end of whole flow
+                businessConfirmationEmail: !isProduction ? Str.replaceAll(businessInfoStepValues.businessConfirmationEmail, '+', '') : businessInfoStepValues.businessConfirmationEmail,
                 fundSourceCountries: country,
                 fundDestinationCountries: country,
                 currencyNeeded: currency,
                 purposeOfTransactionId: CONST.NON_USD_BANK_ACCOUNT.PURPOSE_OF_TRANSACTION_ID,
+                businessTypeId: isBusinessTypeRequired ? businessInfoStepValues.businessTypeId : undefined,
             },
             bankAccountID,
         );
-    }, [country, currency, bankAccountID, businessInfoStepValues]);
+    }, [businessInfoStepValues, isProduction, country, currency, isBusinessTypeRequired, bankAccountID]);
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -107,7 +117,9 @@ function BusinessInfo({onBackButtonPress, onSubmit, stepNames}: BusinessInfoProp
             return;
         }
 
-        if (reimbursementAccount?.isSuccess) {
+        // We need to check value of local isSubmittingRef because on initial render reimbursementAccount?.isSuccess is still true after submitting the previous step
+        if (reimbursementAccount?.isSuccess && isSubmittingRef.current) {
+            isSubmittingRef.current = false;
             onSubmit();
             clearReimbursementAccountSaveCorpayOnboardingCompanyDetails();
         }
@@ -115,7 +127,7 @@ function BusinessInfo({onBackButtonPress, onSubmit, stepNames}: BusinessInfoProp
         return () => {
             clearReimbursementAccountSaveCorpayOnboardingCompanyDetails();
         };
-    }, [reimbursementAccount, onSubmit]);
+    }, [reimbursementAccount?.errors, reimbursementAccount?.isSavingCorpayOnboardingCompanyFields, reimbursementAccount?.isSuccess, onSubmit]);
 
     const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo, goToTheLastStep} = useSubStep({bodyContent, startFrom, onFinished: submit});
 
@@ -135,7 +147,7 @@ function BusinessInfo({onBackButtonPress, onSubmit, stepNames}: BusinessInfoProp
 
     return (
         <InteractiveStepWrapper
-            wrapperID={BusinessInfo.displayName}
+            wrapperID="BusinessInfo"
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('businessInfoStep.businessInfoTitle')}
             stepNames={stepNames}
@@ -150,7 +162,5 @@ function BusinessInfo({onBackButtonPress, onSubmit, stepNames}: BusinessInfoProp
         </InteractiveStepWrapper>
     );
 }
-
-BusinessInfo.displayName = 'BusinessInfo';
 
 export default BusinessInfo;

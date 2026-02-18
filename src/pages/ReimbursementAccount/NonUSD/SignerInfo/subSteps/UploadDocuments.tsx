@@ -14,14 +14,14 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
-import getNeededDocumentsStatusForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getNeededDocumentsStatusForSignerInfo';
-import WhyLink from '@pages/ReimbursementAccount/NonUSD/WhyLink';
+import getNeededDocumentsStatusForSignerInfo from '@pages/ReimbursementAccount/utils/getNeededDocumentsStatusForSignerInfo';
+import WhyLink from '@pages/ReimbursementAccount/WhyLink';
 import {clearErrorFields, setDraftValues, setErrorFields} from '@userActions/FormActions';
 import {openExternalLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 type UploadDocumentsProps = SubStepProps;
 
@@ -73,9 +73,9 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
             setIsPDSandFSGDownloadedTouched(true);
-            return getFieldRequiredErrors(values, STEP_FIELDS);
+            return getFieldRequiredErrors(values, STEP_FIELDS, translate);
         },
-        [STEP_FIELDS],
+        [STEP_FIELDS, translate],
     );
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
@@ -256,7 +256,5 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
         </FormProvider>
     );
 }
-
-UploadDocuments.displayName = 'UploadDocuments';
 
 export default UploadDocuments;

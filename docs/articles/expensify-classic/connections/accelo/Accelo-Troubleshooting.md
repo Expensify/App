@@ -3,7 +3,6 @@ title: Accelo Troubleshooting
 description: Learn how to troubleshoot and resolve common issues with the Accelo integration in Expensify.
 keywords: [Accelo, Expensify Classic]
 ---
-<div id="expensify-classic" markdown="1">
 
 The Accelo integration with Expensify primarily operates on Accelo’s end. For detailed support, refer to their [help site](https://help.accelo.com/guides/integrations-guide/expensify/) and [FAQs](https://help.accelo.com/guides/integrations-guide/expensify/#faq).
 
@@ -37,13 +36,13 @@ Expense report statuses in Expensify correspond to specific statuses in Accelo, 
 
 | Expensify Report Status | Accelo Expense Status |
 |-------------------------|-----------------------|
-| Open                    | Submitted             |
-| Submitted               | Submitted             |
+| Draft                   | Submitted             |
+| Outstanding             | Submitted             |
 | Approved                | Approved              |
-| Reimbursed              | Approved              |
+| Paid                    | Approved              |
 | Rejected                | Declined              |
 | Archived                | Approved              |
-| Closed                  | Approved              |
+| Paid                    | Approved              |
 
 ---
 
@@ -57,4 +56,3 @@ Yes, you can integrate Accelo and an accounting system simultaneously in Expensi
 
 For further assistance, visit the [Accelo help site](https://help.accelo.com/guides/integrations-guide/expensify/) or reach out to Concierge.
 
-</div>

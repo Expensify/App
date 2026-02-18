@@ -4,7 +4,6 @@ description: Learn how to integrate Expensify with Deel to automate expense sync
 keywords: [Expensify Classic, Deel, integration, expense syncing, reimbursements, approval workflow]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 Expensify’s API helps connect your account to third-party tools like NetSuite, Xero, and even internal systems like Workday. This guide includes tips, usage examples, and common troubleshooting questions — many sourced from customers who’ve done it before.
 
@@ -48,4 +47,3 @@ Before setting up the integration, ensure you meet the following requirements:
 # Next Steps
 For a step-by-step setup guide, refer to the [official Deel integration guide](https://help.letsdeel.com/hc/en-gb/articles/5871319525521-How-To-Set-Up-The-Expensify-Integration-On-Deel-For-EOR-Employees-And-Contractors).
 
-</div>

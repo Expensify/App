@@ -1,7 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
@@ -55,10 +55,10 @@ function NetSuiteVendorBillApprovalLevelSelectPage({policy}: WithPolicyConnectio
 
     return (
         <SelectionScreen
-            displayName={NetSuiteVendorBillApprovalLevelSelectPage.displayName}
+            displayName="NetSuiteVendorBillApprovalLevelSelectPage"
             title="workspace.netsuite.advancedConfig.exportVendorBillsTo.label"
             headerContent={headerContent}
-            sections={[{data}]}
+            data={data}
             listItem={RadioListItem}
             onSelectRow={(selection: SelectorType) => selectVendorBillApprovalLevel(selection as MenuListItem)}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
@@ -78,7 +78,5 @@ function NetSuiteVendorBillApprovalLevelSelectPage({policy}: WithPolicyConnectio
         />
     );
 }
-
-NetSuiteVendorBillApprovalLevelSelectPage.displayName = 'NetSuiteVendorBillApprovalLevelSelectPage';
 
 export default withPolicyConnections(NetSuiteVendorBillApprovalLevelSelectPage);

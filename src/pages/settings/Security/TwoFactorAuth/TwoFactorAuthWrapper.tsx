@@ -2,6 +2,7 @@ import React, {useMemo} from 'react';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import {useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -32,6 +33,9 @@ type TwoFactorAuthWrapperProps = ChildrenProps & {
 
     /** Flag to indicate if the viewport offset top should be enabled */
     shouldEnableViewportOffsetTop?: boolean;
+
+    /** Flag to indicate if max height should be enabled */
+    shouldEnableMaxHeight?: boolean;
 };
 
 function TwoFactorAuthWrapper({
@@ -41,10 +45,11 @@ function TwoFactorAuthWrapper({
     onBackButtonPress,
     shouldEnableKeyboardAvoidingView = true,
     shouldEnableViewportOffsetTop = false,
+    shouldEnableMaxHeight = true,
     children,
 }: TwoFactorAuthWrapperProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
-    const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFound = useMemo(() => {
@@ -72,10 +77,10 @@ function TwoFactorAuthWrapper({
 
     const viewportOffsetTop = useViewportOffsetTop();
 
-    if (isActingAsDelegate) {
+    if (isDelegateAccessRestricted) {
         return (
             <ScreenWrapper
-                testID={TwoFactorAuthWrapper.displayName}
+                testID="TwoFactorAuthWrapper"
                 includeSafeAreaPaddingBottom={false}
                 shouldEnablePickerAvoiding={false}
             >
@@ -90,7 +95,7 @@ function TwoFactorAuthWrapper({
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
             shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
-            shouldEnableMaxHeight
+            shouldEnableMaxHeight={shouldEnableMaxHeight}
             testID={stepName}
             style={shouldEnableViewportOffsetTop ? {marginTop: viewportOffsetTop} : undefined}
         >
@@ -109,7 +114,5 @@ function TwoFactorAuthWrapper({
         </ScreenWrapper>
     );
 }
-
-TwoFactorAuthWrapper.displayName = 'TwoFactorAuthWrapper';
 
 export default TwoFactorAuthWrapper;

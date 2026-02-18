@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import Animated, {Keyframe} from 'react-native-reanimated';
+import Animated, {Keyframe, ReduceMotion} from 'react-native-reanimated';
 import type {BackdropProps} from '@components/Modal/ReanimatedModal/types';
 import {getModalInAnimation, getModalOutAnimation} from '@components/Modal/ReanimatedModal/utils';
 import {PressableWithoutFeedback} from '@components/Pressable';
@@ -26,7 +26,7 @@ function Backdrop({
             return;
         }
         const FadeIn = new Keyframe(getModalInAnimation('fadeIn'));
-        return FadeIn.duration(animationInTiming);
+        return FadeIn.duration(animationInTiming).reduceMotion(ReduceMotion.Never);
     }, [animationInTiming, backdropOpacity]);
 
     const Exiting = useMemo(() => {
@@ -34,7 +34,7 @@ function Backdrop({
             return;
         }
         const FadeOut = new Keyframe(getModalOutAnimation('fadeOut'));
-        return FadeOut.duration(animationOutTiming);
+        return FadeOut.duration(animationOutTiming).reduceMotion(ReduceMotion.Never);
     }, [animationOutTiming, backdropOpacity]);
 
     const backdropStyle = useMemo(
@@ -52,6 +52,7 @@ function Backdrop({
                 onPress={onBackdropPress}
                 style={[styles.userSelectNone, styles.cursorAuto]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                sentryLabel={CONST.SENTRY_LABEL.REANIMATED_MODAL.BACKDROP}
             >
                 {isBackdropVisible && (
                     <Animated.View
@@ -80,7 +81,5 @@ function Backdrop({
         )
     );
 }
-
-Backdrop.displayName = 'Backdrop';
 
 export default Backdrop;

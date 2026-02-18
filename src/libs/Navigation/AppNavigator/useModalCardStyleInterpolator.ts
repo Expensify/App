@@ -3,7 +3,7 @@ import type {StackCardInterpolatedStyle, StackCardInterpolationProps} from '@rea
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSidePanel from '@hooks/useSidePanel';
+import useSidePanelState from '@hooks/useSidePanelState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import variables from '@styles/variables';
 
@@ -13,7 +13,8 @@ type ModalCardStyleInterpolatorProps = {
     shouldFadeScreen?: boolean;
     shouldAnimateSidePanel?: boolean;
     props: StackCardInterpolationProps;
-    outputRangeMultiplier?: number;
+    outputRangeMultiplier?: Animated.AnimatedNode;
+    animationEnabled?: boolean;
 };
 
 type ModalCardStyleInterpolator = (props: ModalCardStyleInterpolatorProps) => StackCardInterpolatedStyle;
@@ -21,7 +22,7 @@ type ModalCardStyleInterpolator = (props: ModalCardStyleInterpolatorProps) => St
 const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
     const {shouldUseNarrowLayout, onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
-    const {sidePanelOffset} = useSidePanel();
+    const {sidePanelOffset, sidePanelNVP, isSidePanelTransitionEnded} = useSidePanelState();
 
     const modalCardStyleInterpolator: ModalCardStyleInterpolator = ({
         props: {
@@ -34,6 +35,7 @@ const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
         shouldFadeScreen = false,
         shouldAnimateSidePanel = false,
         outputRangeMultiplier = 1,
+        animationEnabled = true,
     }) => {
         if (isOnboardingModal ? onboardingIsMediumOrLargerScreenWidth : shouldFadeScreen) {
             return {
@@ -42,17 +44,25 @@ const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
         }
 
         const translateX = Animated.multiply(
-            progress.interpolate({
-                inputRange: [0, 1],
-                outputRange: [outputRangeMultiplier * (shouldUseNarrowLayout ? screen.width : variables.sideBarWidth), 0],
-                extrapolate: 'clamp',
-            }),
+            Animated.multiply(
+                progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [shouldUseNarrowLayout ? screen.width : variables.sideBarWidth, 0],
+                    extrapolate: 'clamp',
+                }),
+                outputRangeMultiplier,
+            ),
             inverted,
         );
 
         const cardStyle = StyleUtils.getCardStyles(screen.width);
 
-        if (!isFullScreenModal || shouldUseNarrowLayout) {
+        // Screen should animate if:
+        // 1. The animation is enabled
+        // 2. The modal is not a full screen on wide layout
+        // 3. The side panel transition is in progress on narrow layout
+        const shouldAnimate = animationEnabled && (!isFullScreenModal || shouldUseNarrowLayout) && (isSidePanelTransitionEnded || !!sidePanelNVP?.openNarrowScreen || !shouldUseNarrowLayout);
+        if (shouldAnimate) {
             cardStyle.transform = [{translateX}];
         }
 

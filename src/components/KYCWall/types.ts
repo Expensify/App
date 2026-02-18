@@ -1,4 +1,4 @@
-import type {RefObject} from 'react';
+import type {ForwardedRef, RefObject} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -21,6 +21,14 @@ type AnchorPosition = {
 
 type PaymentMethod = ValueOf<typeof CONST.PAYMENT_METHODS>;
 
+type ContinueActionParams = {
+    event?: GestureResponderEvent | KeyboardEvent;
+    iouPaymentType?: PaymentMethodType;
+    paymentMethod?: PaymentMethod;
+    policy?: Policy;
+    goBackRoute?: Route;
+};
+
 type KYCWallProps = {
     /** Route for the Add Bank Account screen for a given navigation stack */
     addBankAccountRoute?: Route;
@@ -31,7 +39,7 @@ type KYCWallProps = {
     /** Route for the KYC enable payments screen for a given navigation stack */
     enablePaymentsRoute: Route;
 
-    /** Listen for window resize event on web and desktop */
+    /** Listen for window resize event on web */
     shouldListenForResize?: boolean;
 
     /** Wrapped components should be disabled, and not in spinner/loading state */
@@ -62,10 +70,17 @@ type KYCWallProps = {
     onSuccessfulKYC: (iouPaymentType?: PaymentMethodType, currentSource?: Source) => void;
 
     /** Children to build the KYC */
-    children: (continueAction: (event: GestureResponderEvent | KeyboardEvent | undefined, method?: PaymentMethodType) => void, anchorRef: RefObject<View | null>) => void;
+    children: (continueAction: (params?: ContinueActionParams) => void, anchorRef: RefObject<View | null>) => void;
 
     /** The policy used for payment */
     policy?: Policy;
+
+    /** Reference to the KYCWall component */
+    ref: ForwardedRef<KYCWallRef>;
 };
 
-export type {AnchorPosition, KYCWallProps, PaymentMethod, DomRect, PaymentMethodType, Source};
+type KYCWallRef = {
+    continueAction?: (params: ContinueActionParams) => void;
+};
+
+export type {AnchorPosition, KYCWallRef, KYCWallProps, PaymentMethod, DomRect, PaymentMethodType, Source, ContinueActionParams};

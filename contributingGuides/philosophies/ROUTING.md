@@ -21,6 +21,14 @@ Aim for the shortest possible URL that is also still human readable.
 Exceptions:
 - When abbreviated paths are used in specific instances like `r/` (for reports) and `a/` (for accounts) for strategic purposes
 
+### - SHOULD use human readable names before using IDs
+Example:
+1. `domain/expensify.com/settings` - It's better to use the domain name "expensify.com" rather than an ID because it is readable, won't ever change, and is not a privacy or security concern
+
+Exceptions:
+- When there would be PII (personally identifiable information) that would leak in the URL like email addresses, use an ID instead
+- When the name can be updated but the path remains the same (eg. a workspace name), use an ID instead
+
 ### - MUST use kebab-case for all parts of a URL (eg. words separated by hyphens)
 ### - MUST use all lower case words
 ### - MUST be defined in `ROUTES.ts`
@@ -43,7 +51,7 @@ Internet routers and third-party-services can see and store any information in t
 
 ### - SHOULD NOT use query parameters
 Exceptions:
-- When a URL needs to be encoded and added to the path (eg. `?backTo=URL`, `?forwardTo=URL`)
+- When a URL needs to be encoded and added to the path (eg. `?backTo=URL`, `?forwardTo=URL`) - **Note: `backTo` parameter is deprecated and should not be used in new implementations**
 - When complex data needs to be part of the path (eg. `/search?q=QUERY`)
 
 ### - SHOULD NOT use optional parameters

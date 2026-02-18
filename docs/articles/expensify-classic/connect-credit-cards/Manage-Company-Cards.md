@@ -3,7 +3,6 @@ title: Manage Company Credit Cards in Expensify
 description: Learn how to assign, manage, and unassign company cards in Expensify to streamline expense tracking and maintain accurate transaction records.
 keywords: [Expensify Classic, company cards, direct bank feeds, commercial card feeds]
 ---
-<div id="expensify-classic" markdown="1">
 
 Assigning company cards in Expensify ensures employees can seamlessly track business expenses, while administrators maintain accurate transaction records. This guide explains how to assign, manage, and unassign company cards to keep your expense management streamlined
 
@@ -163,7 +162,7 @@ Commercial feeds are more stable and reliable but require setup by your bank. Di
 Ensure the file includes the required fields and matches the formatting guidelines. Use Expensify’s [CSV template](https://s3-us-west-1.amazonaws.com/concierge-responses-expensify-com/uploads%2F1594908368712-Best+Example+CSV+for+Domains.csv) for reference.
 
 ## Unassigning Cards: What happens when I unassign a card?
-Unassigning a card deletes all open or unreported expenses linked to it. Submitted or processed expenses remain unaffected.
+Unassigning a card deletes all draft or unreported expenses linked to it. Submitted or processed expenses remain unaffected.
 
 ## Connection Issues: Why is my card connection broken?
 Check for changes to bank credentials, security questions, or login details. Update the information in Expensify and re-establish the connection via **Fix Card**.
@@ -171,4 +170,3 @@ Check for changes to bank credentials, security questions, or login details. Upd
 ## Historical Data: How far back can I import transactions?
 Most banks provide 30-90 days of historical data. Older transactions can be imported using the CSV upload method.
 
-</div>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import Parser from '@libs/Parser';
 import StringUtils from '@libs/StringUtils';
@@ -6,9 +6,23 @@ import DisplayNamesWithoutTooltip from './DisplayNamesWithoutTooltip';
 import DisplayNamesWithToolTip from './DisplayNamesWithTooltip';
 import type DisplayNamesProps from './types';
 
-function DisplayNames({fullTitle, tooltipEnabled, textStyles, numberOfLines, shouldAddEllipsis, shouldUseFullTitle, displayNamesWithTooltips, renderAdditionalText}: DisplayNamesProps) {
+function DisplayNames({
+    fullTitle,
+    tooltipEnabled,
+    textStyles,
+    numberOfLines,
+    shouldAddEllipsis,
+    shouldUseFullTitle,
+    displayNamesWithTooltips,
+    renderAdditionalText,
+    forwardedFSClass,
+    shouldParseFullTitle = true,
+}: DisplayNamesProps) {
     const {translate} = useLocalize();
-    const title = StringUtils.lineBreaksToSpaces(Parser.htmlToText(fullTitle)) || translate('common.hidden');
+    const title = useMemo(() => {
+        const processedTitle = shouldParseFullTitle ? Parser.htmlToText(fullTitle) : fullTitle;
+        return StringUtils.lineBreaksToSpaces(processedTitle) || translate('common.hidden');
+    }, [fullTitle, shouldParseFullTitle, translate]);
 
     if (!tooltipEnabled) {
         return (
@@ -17,6 +31,7 @@ function DisplayNames({fullTitle, tooltipEnabled, textStyles, numberOfLines, sho
                 numberOfLines={numberOfLines}
                 fullTitle={title}
                 renderAdditionalText={renderAdditionalText}
+                forwardedFSClass={forwardedFSClass}
             />
         );
     }
@@ -29,6 +44,7 @@ function DisplayNames({fullTitle, tooltipEnabled, textStyles, numberOfLines, sho
                 textStyles={textStyles}
                 numberOfLines={numberOfLines}
                 renderAdditionalText={renderAdditionalText}
+                forwardedFSClass={forwardedFSClass}
             />
         );
     }
@@ -41,10 +57,9 @@ function DisplayNames({fullTitle, tooltipEnabled, textStyles, numberOfLines, sho
             shouldAddEllipsis={shouldAddEllipsis}
             numberOfLines={numberOfLines}
             renderAdditionalText={renderAdditionalText}
+            forwardedFSClass={forwardedFSClass}
         />
     );
 }
-
-DisplayNames.displayName = 'DisplayNames';
 
 export default DisplayNames;

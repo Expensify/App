@@ -3,15 +3,17 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import * as Illustrations from '@components/Icon/Illustrations';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
@@ -37,8 +39,10 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID, {canBeMissing: true});
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, {canBeMissing: true});
-    const [conciergeChatReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+    const [conciergeChatReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+    const archivedReportsIdSet = useArchivedReportsIdSet();
     const {onboardingMessages} = useOnboardingMessages();
+    const {isRestrictedPolicyCreation} = usePreferredPolicy();
     // When we merge public email with work email, we now want to navigate to the
     // concierge chat report of the new work email and not the last accessed report.
     const mergedAccountConciergeReportID = !onboardingValues?.shouldRedirectToClassicAfterMerge && onboardingValues?.shouldValidate ? conciergeChatReportID : undefined;
@@ -48,24 +52,25 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
     const ICON_SIZE = 48;
+    const illustrations = useMemoizedLazyIllustrations(['MoneyReceipts', 'Tag', 'ReportReceipt']);
 
     const processedHelperText = `<comment><muted-text-label>${translate('onboarding.workspace.price')}</muted-text-label></comment>`;
 
     useEffect(() => {
-        setOnboardingErrorMessage('');
+        setOnboardingErrorMessage(null);
     }, []);
 
     const section: Item[] = [
         {
-            icon: Illustrations.MoneyReceipts,
+            icon: illustrations.MoneyReceipts,
             titleTranslationKey: 'onboarding.workspace.explanationModal.descriptionOne',
         },
         {
-            icon: Illustrations.Tag,
+            icon: illustrations.Tag,
             titleTranslationKey: 'onboarding.workspace.explanationModal.descriptionTwo',
         },
         {
-            icon: Illustrations.ReportReceipt,
+            icon: illustrations.ReportReceipt,
             titleTranslationKey: 'onboarding.workspace.explanationModal.descriptionThree',
         },
     ];
@@ -82,12 +87,21 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
             lastName: currentUserPersonalDetails.lastName,
             adminsChatReportID: onboardingAdminsChatReportID,
             onboardingPolicyID,
+            shouldSkipTestDriveModal: !!onboardingPolicyID && !onboardingAdminsChatReportID,
         });
 
         setOnboardingAdminsChatReportID();
         setOnboardingPolicyID();
 
-        navigateAfterOnboardingWithMicrotaskQueue(isSmallScreenWidth, isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), onboardingPolicyID, mergedAccountConciergeReportID);
+        navigateAfterOnboardingWithMicrotaskQueue(
+            isSmallScreenWidth,
+            isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+            conciergeChatReportID,
+            archivedReportsIdSet,
+            onboardingPolicyID,
+            mergedAccountConciergeReportID,
+            false,
+        );
     }, [
         onboardingPurposeSelected,
         currentUserPersonalDetails.firstName,
@@ -95,18 +109,23 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
         onboardingAdminsChatReportID,
         onboardingMessages,
         onboardingPolicyID,
+        archivedReportsIdSet,
         isSmallScreenWidth,
         isBetaEnabled,
         mergedAccountConciergeReportID,
+        conciergeChatReportID,
     ]);
 
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
-            testID={BaseOnboardingWorkspaceOptional.displayName}
+            testID="BaseOnboardingWorkspaceOptional"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
-            <HeaderWithBackButton progressBarPercentage={100} />
+            <HeaderWithBackButton
+                progressBarPercentage={100}
+                shouldDisplayHelpButton={false}
+            />
             <View style={[styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
                 <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb3]}>
                     <Text style={styles.textHeadlineH1}>{translate('onboarding.workspace.title')}</Text>
@@ -148,22 +167,22 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
                         onPress={() => completeOnboarding()}
                     />
                 </View>
-                <View>
-                    <Button
-                        success
-                        large
-                        text={translate('onboarding.workspace.createWorkspace')}
-                        onPress={() => {
-                            setOnboardingErrorMessage('');
-                            Navigation.navigate(ROUTES.ONBOARDING_WORKSPACE_CONFIRMATION.getRoute());
-                        }}
-                    />
-                </View>
+                {!isRestrictedPolicyCreation && (
+                    <View>
+                        <Button
+                            success
+                            large
+                            text={translate('onboarding.workspace.createWorkspace')}
+                            onPress={() => {
+                                setOnboardingErrorMessage(null);
+                                Navigation.navigate(ROUTES.ONBOARDING_WORKSPACE_CONFIRMATION.getRoute());
+                            }}
+                        />
+                    </View>
+                )}
             </View>
         </ScreenWrapper>
     );
 }
-
-BaseOnboardingWorkspaceOptional.displayName = 'BaseOnboardingWorkspaceOptional';
 
 export default BaseOnboardingWorkspaceOptional;

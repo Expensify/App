@@ -22,7 +22,7 @@ Before exporting expenses, use filters to refine your search:
    - **Tags** – Locate expenses based on assigned tags.
    - **Submitters** – Find expenses by employee or vendor.
    - **Personal Expenses** – Show expenses that have not yet been added to a report.
-   - **Open, Processing, Approved, Reimbursed, Closed** – View expenses at different reporting stages.
+   - **Draft, Outstanding, Approved, Paid, Done** – View expenses at different reporting stages.
 
 **Note:** Some filters adjust dynamically based on your current selections. If results aren’t as expected, click **Reset** to clear all filters.
 
@@ -64,9 +64,9 @@ Yes! Select multiple expenses and click **Edit Multiple** to make bulk changes b
 
 ## What submitter expenses can a Workspace Admin see?
 
-A Workspace admin can view **Processing, Approved, and Reimbursed** expenses if they were submitted under the Workspace they manage. Unreported expenses remain invisible until added to a report.
+A Workspace admin can view **Outstanding, Approved, and Paid** expenses if they were submitted under the Workspace they manage. Unreported expenses remain invisible until added to a report.
 
-Admins can edit **tags** and **categories**, but must reject expenses or have them in **Processing** to modify the amount, date, or merchant name. For company card reconciliation, refer to [this article](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-credit-cards/company-cards/Reconciliation).
+Admins can edit **tags** and **categories**, but can only modify the amount, date, or merchant name if the report is **Outstanding**. Reports can be rejected back to the last approver to put them back in an outstanding state. For company card reconciliation, refer to [this article](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-credit-cards/company-cards/Reconciliation).
 
 ## Can I search for expenses in the mobile app?
 

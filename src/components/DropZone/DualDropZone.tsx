@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -28,33 +28,38 @@ function DualDropZone({isEditing, onAttachmentDrop, onReceiptDrop, shouldAcceptS
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const theme = useTheme();
+    const icons = useMemoizedLazyExpensifyIcons(['MessageInABottle', 'SmartScan', 'ReplaceReceipt']);
 
     const shouldStackVertically = shouldUseNarrowLayout || isMediumScreenWidth;
     const scanReceiptsText = shouldAcceptSingleReceipt ? 'dropzone.addReceipt' : 'dropzone.scanReceipts';
 
     return (
-        <DragAndDropConsumer>
+        <DragAndDropConsumer onDrop={() => {}}>
             <View style={[shouldStackVertically ? styles.flexColumn : styles.flexRow, styles.w100, styles.h100]}>
                 <DropZoneWrapper onDrop={onAttachmentDrop}>
                     {({isDraggingOver}) => (
                         <DropZoneUI
-                            icon={Expensicons.MessageInABottle}
+                            icon={icons.MessageInABottle}
                             dropTitle={translate('dropzone.addAttachments')}
                             dropStyles={styles.attachmentDropOverlay(isDraggingOver)}
                             dropTextStyles={styles.attachmentDropText}
                             dropWrapperStyles={shouldStackVertically ? styles.pb0 : styles.pr0}
-                            dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.attachmentDropBorderColorActive, isDraggingOver)}
+                            dashedBorderStyles={[
+                                styles.dropzoneArea,
+                                styles.easeInOpacityTransition,
+                                styles.activeDropzoneDashedBorder(theme.attachmentDropBorderColorActive, isDraggingOver),
+                            ]}
                         />
                     )}
                 </DropZoneWrapper>
                 <DropZoneWrapper onDrop={onReceiptDrop}>
                     {({isDraggingOver}) => (
                         <DropZoneUI
-                            icon={isEditing ? Expensicons.ReplaceReceipt : Expensicons.SmartScan}
+                            icon={isEditing ? icons.ReplaceReceipt : icons.SmartScan}
                             dropTitle={translate(isEditing ? 'dropzone.replaceReceipt' : scanReceiptsText)}
                             dropStyles={styles.receiptDropOverlay(isDraggingOver)}
                             dropTextStyles={styles.receiptDropText}
-                            dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, isDraggingOver)}
+                            dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, isDraggingOver)]}
                         />
                     )}
                 </DropZoneWrapper>

@@ -8,8 +8,8 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {getExpenseTypeTranslationKey} from '@libs/SearchUIUtils';
-import * as SearchActions from '@userActions/Search';
+import {getExpenseTypeTranslationKey} from '@libs/TransactionUtils';
+import {updateAdvancedFilters} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -18,7 +18,7 @@ function SearchFiltersExpenseTypePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
     const initiallySelectedItems = useMemo(
         () =>
             searchAdvancedFiltersForm?.expenseType
@@ -38,11 +38,11 @@ function SearchFiltersExpenseTypePage() {
         });
     }, [allExpenseTypes, translate]);
 
-    const updateExpenseTypeFilter = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({expenseType: values}), []);
+    const updateExpenseTypeFilter = useCallback((values: string[]) => updateAdvancedFilters({expenseType: values}), []);
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersExpenseTypePage.displayName}
+            testID="SearchFiltersExpenseTypePage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom={false}
@@ -51,7 +51,7 @@ function SearchFiltersExpenseTypePage() {
             <HeaderWithBackButton
                 title={translate('search.expenseType')}
                 onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                 }}
             />
             <View style={[styles.flex1]}>
@@ -65,7 +65,5 @@ function SearchFiltersExpenseTypePage() {
         </ScreenWrapper>
     );
 }
-
-SearchFiltersExpenseTypePage.displayName = 'SearchFiltersExpenseTypePage';
 
 export default SearchFiltersExpenseTypePage;

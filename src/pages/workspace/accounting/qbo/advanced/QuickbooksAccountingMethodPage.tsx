@@ -2,7 +2,7 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
@@ -66,10 +66,10 @@ function QuickbooksAccountingMethodPage({policy, route}: WithPolicyConnectionsPr
 
     return (
         <SelectionScreen
-            displayName={QuickbooksAccountingMethodPage.displayName}
+            displayName="QuickbooksAccountingMethodPage"
             headerTitleAlreadyTranslated={translate('workspace.qbo.accountingMethods.label')}
             headerContent={headerContent}
-            sections={[{data}]}
+            data={data}
             listItem={RadioListItem}
             onSelectRow={(selection: SelectorType) => selectExpenseReportApprovalLevel(selection as MenuListItem)}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
@@ -79,10 +79,9 @@ function QuickbooksAccountingMethodPage({policy, route}: WithPolicyConnectionsPr
             onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.getRoute(policyID, backTo))}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
             pendingAction={pendingAction}
+            shouldBeBlocked={!config?.autoSync?.enabled}
         />
     );
 }
-
-QuickbooksAccountingMethodPage.displayName = 'QuickbooksAccountingMethodPage';
 
 export default withPolicyConnections(QuickbooksAccountingMethodPage);

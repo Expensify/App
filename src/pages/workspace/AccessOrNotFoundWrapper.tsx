@@ -7,22 +7,22 @@ import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {openWorkspace} from '@libs/actions/Policy/Policy';
 import {isValidMoneyRequestType} from '@libs/IOUUtils';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import type {RootNavigatorParamList, State} from '@libs/Navigation/types';
+import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFromWorkspaceSettingPages';
+import Navigation from '@libs/Navigation/Navigation';
 import {canSendInvoice, isControlPolicy, isPaidGroupPolicy, isPolicyAccessible, isPolicyAdmin, isPolicyFeatureEnabled as isPolicyFeatureEnabledUtil} from '@libs/PolicyUtils';
 import {canCreateRequest} from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Report} from '@src/types/onyx';
+import type {Beta, Report} from '@src/types/onyx';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import callOrReturn from '@src/types/utils/callOrReturn';
@@ -37,18 +37,29 @@ const ACCESS_VARIANTS = {
         login: string,
         report: OnyxEntry<Report>,
         allPolicies: NonNullable<OnyxCollection<Policy>> | null,
+        betas: OnyxEntry<Beta[]>,
         iouType?: IOUType,
         isReportArchived?: boolean,
+        isRestrictedToPreferredPolicy?: boolean,
     ) =>
         !!iouType &&
         isValidMoneyRequestType(iouType) &&
         // Allow the user to submit the expense if we are submitting the expense in global menu or the report can create the expense
 
-        (isEmptyObject(report?.reportID) || canCreateRequest(report, policy, iouType, isReportArchived)) &&
+        (isEmptyObject(report?.reportID) || canCreateRequest(report, policy, iouType, isReportArchived, betas, isRestrictedToPreferredPolicy)) &&
         (iouType !== CONST.IOU.TYPE.INVOICE || canSendInvoice(allPolicies, login)),
 } as const satisfies Record<
     string,
-    (policy: Policy, login: string, report: Report, allPolicies: NonNullable<OnyxCollection<Policy>> | null, iouType?: IOUType, isArchivedReport?: boolean) => boolean
+    (
+        policy: Policy,
+        login: string,
+        report: Report,
+        allPolicies: NonNullable<OnyxCollection<Policy>> | null,
+        betas: OnyxEntry<Beta[]>,
+        iouType?: IOUType,
+        isArchivedReport?: boolean,
+        isRestrictedToPreferredPolicy?: boolean,
+    ) => boolean
 >;
 
 type AccessVariant = keyof typeof ACCESS_VARIANTS;
@@ -107,14 +118,7 @@ function PageNotFoundFallback({policyID, fullPageNotFoundViewProps, isFeatureEna
             shouldShowOfflineIndicator={false}
             onBackButtonPress={() => {
                 if (isPolicyNotAccessible) {
-                    const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
-                    const secondToLastRoute = rootState.routes.at(-2);
-
-                    if (secondToLastRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
-                        Navigation.dismissModal();
-                    } else {
-                        Navigation.goBack(ROUTES.WORKSPACES_LIST.route);
-                    }
+                    goBackFromWorkspaceSettingPages();
                     return;
                 }
                 Navigation.goBack(policyID && !isMoneyRequest ? ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID) : undefined);
@@ -145,6 +149,8 @@ function AccessOrNotFoundWrapper({
     });
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
     const {login = ''} = useCurrentUserPersonalDetails();
+    const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const isPolicyIDInRoute = !!policyID?.length;
     const isMoneyRequest = !!iouType && isValidMoneyRequestType(iouType);
     const isFromGlobalCreate = !!reportID && isEmptyObject(report?.reportID);
@@ -158,7 +164,7 @@ function AccessOrNotFoundWrapper({
         }
 
         openWorkspace(policyID, []);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isPolicyIDInRoute, policyID]);
 
     const shouldShowFullScreenLoadingIndicator = !isMoneyRequest && isLoadingReportData !== false && (!Object.entries(policy ?? {}).length || !policy?.id);
@@ -170,25 +176,29 @@ function AccessOrNotFoundWrapper({
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isPageAccessible = accessVariants.reduce((acc, variant) => {
         const accessFunction = ACCESS_VARIANTS[variant];
-        return acc && accessFunction(policy, login, report, allPolicies ?? null, iouType, isReportArchived);
+        if (variant === CONST.IOU.ACCESS_VARIANTS.CREATE) {
+            return acc && accessFunction(policy, login, report, allPolicies ?? null, betas, iouType, isReportArchived, isRestrictedToPreferredPolicy);
+        }
+        return acc && accessFunction(policy, login, report, allPolicies ?? null, betas, iouType, isReportArchived);
     }, true);
 
-    const isPolicyNotAccessible = !isPolicyAccessible(policy);
+    const isPolicyNotAccessible = !isPolicyAccessible(policy, login);
     const shouldShowNotFoundPage = (!isMoneyRequest && !isFromGlobalCreate && isPolicyNotAccessible) || !isPageAccessible || shouldBeBlocked;
     // We only update the feature state if it isn't pending.
     // This is because the feature state changes several times during the creation of a workspace, while we are waiting for a response from the backend.
     // Without this, we can be unexpectedly navigated to the More Features page.
     useEffect(() => {
-        if (!isFocused || isFeatureEnabled || (pendingField && !isOffline && !isFeatureEnabled)) {
+        if (!isFocused || isEmptyObject(policy) || isFeatureEnabled || (pendingField && !isOffline && !isFeatureEnabled) || shouldShowNotFoundPage) {
             return;
         }
 
         // When a workspace feature linked to the current page is disabled we will navigate to the More Features page.
-        Navigation.isNavigationReady().then(() => Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+        });
         // We don't need to run the effect on policyID change as we only use it to get the route to navigate to.
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [pendingField, isOffline, isFeatureEnabled]);
+    }, [pendingField, isOffline, isFeatureEnabled, shouldShowNotFoundPage, isFocused]);
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

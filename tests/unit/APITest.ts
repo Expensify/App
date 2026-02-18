@@ -800,4 +800,58 @@ describe('APITests', () => {
                 expect(xhr.mock.calls.at(0)?.[1].policyID).toBe('2');
             });
     });
+
+    test('Write request with supportal insufficient permissions (411) suppresses retry, applies failureData, and triggers modal', () => {
+        const xhr = jest.spyOn(HttpUtils, 'xhr').mockResolvedValue({jsonCode: 411, message: 'You are not authorized to take this action when support logged in.'});
+
+        const onyxUpdateSpy = jest.spyOn(Onyx, 'update');
+        const onyxSetSpy = jest.spyOn(Onyx, 'set');
+
+        const failureData = [
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY,
+                value: 'onboarding.errorSelection',
+            },
+        ];
+
+        return Onyx.multiSet({
+            [ONYXKEYS.SESSION]: {authToken: 'anyToken', authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT},
+            [ONYXKEYS.NETWORK]: {isOffline: false},
+        })
+            .then(() => {
+                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+                API.write<WriteCommand>('MockCommand' as WriteCommand, {} as ApiRequestCommandParameters[WriteCommand], {failureData});
+                return waitForNetworkPromises();
+            })
+            .then(waitForBatchedUpdates)
+            .then(() => {
+                // Should only call once (no retries)
+                expect(xhr).toHaveBeenCalledTimes(1);
+
+                // Request should not remain in the persisted queue
+                expect(PersistedRequests.getAll().length).toBe(0);
+
+                // Failure data should be applied through Onyx.update at flush time
+                const failureApplied = onyxUpdateSpy.mock.calls.some(([updates]) => {
+                    if (!Array.isArray(updates)) {
+                        return false;
+                    }
+                    return updates.some((u) => u?.key === ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY && u?.value === 'onboarding.errorSelection');
+                });
+                expect(failureApplied).toBe(true);
+
+                // Supportal permission middleware should have set the modal payload via Onyx.set
+                const supportalModalSet = onyxSetSpy.mock.calls.some(([key, payload]) => {
+                    if (key !== ONYXKEYS.SUPPORTAL_PERMISSION_DENIED) {
+                        return false;
+                    }
+                    if (typeof payload !== 'object' || payload === null) {
+                        return false;
+                    }
+                    return (payload as {command?: string}).command === 'MockCommand';
+                });
+                expect(supportalModalSet).toBe(true);
+            });
+    });
 });

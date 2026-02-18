@@ -4,13 +4,20 @@ import type {TextInputProps} from 'react-native';
 import {TextInput} from 'react-native';
 import Animated from 'react-native-reanimated';
 import useTheme from '@hooks/useTheme';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+import CONST from '@src/CONST';
 
 // Convert the underlying TextInput into an Animated component so that we can take an animated ref and pass it to a worklet
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 
 type AnimatedTextInputRef = typeof AnimatedTextInput & TextInput & HTMLInputElement;
 
-function RNTextInputWithRef(props: TextInputProps, ref: ForwardedRef<AnimatedTextInputRef>) {
+type RNTextInputWithRefProps = TextInputProps &
+    ForwardedFSClassProps & {
+        ref?: ForwardedRef<AnimatedTextInputRef>;
+    };
+
+function RNTextInputWithRef({ref, forwardedFSClass = CONST.FULLSTORY.CLASS.UNMASK, ...props}: RNTextInputWithRefProps) {
     const theme = useTheme();
 
     return (
@@ -18,19 +25,19 @@ function RNTextInputWithRef(props: TextInputProps, ref: ForwardedRef<AnimatedTex
             allowFontScaling={false}
             textBreakStrategy="simple"
             keyboardAppearance={theme.colorScheme}
-            ref={(refHandle) => {
+            ref={(refHandle: AnimatedTextInputRef) => {
                 if (typeof ref !== 'function') {
                     return;
                 }
-                ref(refHandle as AnimatedTextInputRef);
+                ref(refHandle);
             }}
+            // eslint-disable-next-line react/forbid-component-props
+            fsClass={forwardedFSClass}
             // eslint-disable-next-line
             {...props}
         />
     );
 }
 
-RNTextInputWithRef.displayName = 'RNTextInputWithRef';
-
-export default React.forwardRef(RNTextInputWithRef);
+export default RNTextInputWithRef;
 export type {AnimatedTextInputRef};

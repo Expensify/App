@@ -1,13 +1,16 @@
 import {Str} from 'expensify-common';
-import {ResizeMode, Video} from 'expo-av';
-import React, {useState} from 'react';
+import {useEvent} from 'expo';
+import type {SourceLoadEventPayload, VideoThumbnail} from 'expo-video';
+import {useVideoPlayer} from 'expo-video';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {cleanFileName, getFileName} from '@libs/fileDownload/FileUtils';
 import variables from '@styles/variables';
 import {checkIsFileImage} from './Attachments/AttachmentView';
 import DefaultAttachmentView from './Attachments/AttachmentView/DefaultAttachmentView';
 import Icon from './Icon';
-import {Play} from './Icon/Expensicons';
 import Image from './Image';
 import PDFThumbnail from './PDFThumbnail';
 import {PressableWithFeedback} from './Pressable';
@@ -28,12 +31,31 @@ type AttachmentPreviewProps = {
 
 function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: AttachmentPreviewProps) {
     const styles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['Play']);
 
-    const fileName = source.split('/').pop() ?? undefined;
     const fillStyle = aspectRatio < 1 ? styles.h100 : styles.w100;
     const [isEncryptedPDF, setIsEncryptedPDF] = useState(false);
+    const fileName = useMemo(() => {
+        const rawFileName = getFileName(source);
+        return cleanFileName(rawFileName);
+    }, [source]);
 
-    if (typeof source === 'string' && Str.isVideo(source)) {
+    const isVideo = typeof source === 'string' && Str.isVideo(source);
+    const isFileImage = checkIsFileImage(source, fileName);
+
+    const [thumbnail, setThumbnail] = useState<VideoThumbnail | null>(null);
+    const videoPlayer = useVideoPlayer(isVideo ? source : null);
+
+    const {videoSource} = useEvent(videoPlayer, 'sourceLoad', {videoSource: null} as SourceLoadEventPayload);
+
+    useEffect(() => {
+        if (!videoSource) {
+            return;
+        }
+        videoPlayer.generateThumbnailsAsync([1]).then((thumbnails) => setThumbnail(thumbnails.at(0) ?? null));
+    }, [videoPlayer, videoSource]);
+
+    if (isVideo) {
         return (
             <PressableWithFeedback
                 accessibilityRole="button"
@@ -42,21 +64,17 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
                 accessible
                 accessibilityLabel="Attachment Thumbnail"
             >
-                <Video
-                    style={[styles.w100, styles.h100]}
-                    source={{
-                        uri: source,
-                    }}
-                    shouldPlay={false}
-                    useNativeControls={false}
-                    resizeMode={ResizeMode.CONTAIN}
-                    isLooping={false}
-                    onError={onLoadError}
-                />
+                {!!thumbnail && (
+                    <Image
+                        source={thumbnail}
+                        style={[fillStyle, {aspectRatio}]}
+                        resizeMode="cover"
+                    />
+                )}
                 <View style={[styles.h100, styles.w100, styles.pAbsolute, styles.justifyContentCenter, styles.alignItemsCenter]}>
                     <View style={styles.videoThumbnailPlayButton}>
                         <Icon
-                            src={Play}
+                            src={icons.Play}
                             fill="white"
                             width={variables.iconSizeXLarge}
                             height={variables.iconSizeXLarge}
@@ -66,7 +84,6 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
             </PressableWithFeedback>
         );
     }
-    const isFileImage = checkIsFileImage(source, fileName);
 
     if (isFileImage) {
         return (
@@ -109,7 +126,5 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
 
     return <DefaultAttachmentView fileName={fileName} />;
 }
-
-AttachmentPreview.displayName = 'AttachmentPreview';
 
 export default AttachmentPreview;

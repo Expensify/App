@@ -28,11 +28,9 @@ function BaseNativePlaidLink({token, onSuccess = () => {}, onExit = () => {}, on
         };
 
         // We generally do not need to include the token as a dependency here as it is only provided once via props and should not change
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     return null;
 }
-
-BaseNativePlaidLink.displayName = 'BaseNativePlaidLink';
 
 export default BaseNativePlaidLink;

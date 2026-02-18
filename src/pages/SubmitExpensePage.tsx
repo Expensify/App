@@ -42,7 +42,7 @@ function SubmitExpensePage() {
     );
 
     return (
-        <ScreenWrapper testID={SubmitExpensePage.displayName}>
+        <ScreenWrapper testID="SubmitExpensePage">
             <View style={[styles.borderBottom]}>
                 <ReportHeaderSkeletonView onBackButtonPress={Navigation.goBack} />
             </View>
@@ -50,7 +50,5 @@ function SubmitExpensePage() {
         </ScreenWrapper>
     );
 }
-
-SubmitExpensePage.displayName = 'SubmitExpensePage';
 
 export default SubmitExpensePage;

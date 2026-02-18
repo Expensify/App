@@ -4,14 +4,14 @@ import isEmpty from 'lodash/isEmpty';
 import isObject from 'lodash/isObject';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormValue} from '@components/Form/types';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import type {Report, TaxRates} from '@src/types/onyx';
 import {getMonthFromExpirationDateString, getYearFromExpirationDateString} from './CardUtils';
 import DateUtils from './DateUtils';
-import {translateLocal} from './Localize';
-import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from './LoginUtils';
+import {getPhoneNumberWithoutSpecialChars} from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
 import StringUtils from './StringUtils';
 
@@ -67,6 +67,15 @@ function isValidDate(date: string | Date): boolean {
 
     const pastDate = subYears(new Date(), 1000);
     const futureDate = addYears(new Date(), 1000);
+
+    if (typeof date === 'string') {
+        const parsedDate = parse(date, 'yyyy-MM-dd', new Date());
+        if (!isValid(parsedDate)) {
+            return false;
+        }
+        return isAfter(parsedDate, pastDate) && isBefore(parsedDate, futureDate);
+    }
+
     const testDate = new Date(date);
     return isValid(testDate) && isAfter(testDate, pastDate) && isBefore(testDate, futureDate);
 }
@@ -111,16 +120,20 @@ function isRequiredFulfilled(value?: FormValue | number[] | string[] | Record<st
  * @param values - all form values
  * @param requiredFields - required fields for particular form
  */
-function getFieldRequiredErrors<TFormID extends OnyxFormKey>(values: FormOnyxValues<TFormID>, requiredFields: Array<FormOnyxKeys<TFormID>>): FormInputErrors<TFormID> {
+function getFieldRequiredErrors<TFormID extends OnyxFormKey>(
+    values: FormOnyxValues<TFormID>,
+    requiredFields: Array<FormOnyxKeys<TFormID>>,
+    translate: LocalizedTranslate,
+): FormInputErrors<TFormID> {
     const errors: FormInputErrors<TFormID> = {};
 
-    requiredFields.forEach((fieldKey) => {
+    for (const fieldKey of requiredFields) {
         if (isRequiredFulfilled(values[fieldKey] as FormValue)) {
-            return;
+            continue;
         }
-
-        errors[fieldKey] = translateLocal('common.error.fieldRequired');
-    });
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        errors[fieldKey] = translate('common.error.fieldRequired');
+    }
 
     return errors;
 }
@@ -202,12 +215,13 @@ function meetsMaximumAgeRequirement(date: string): boolean {
 /**
  * Validate that given date is in a specified range of years before now.
  */
-function getAgeRequirementError(date: string, minimumAge: number, maximumAge: number): string {
+function getAgeRequirementError(translate: LocalizedTranslate, date: string, minimumAge: number, maximumAge: number): string {
     const currentDate = startOfDay(new Date());
     const testDate = parse(date, CONST.DATE.FNS_FORMAT_STRING, currentDate);
 
     if (!isValid(testDate)) {
-        return translateLocal('common.error.dateInvalid');
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translate('common.error.dateInvalid');
     }
 
     const maximalDate = subYears(currentDate, minimumAge);
@@ -218,29 +232,32 @@ function getAgeRequirementError(date: string, minimumAge: number, maximumAge: nu
     }
 
     if (isSameDay(testDate, maximalDate) || isAfter(testDate, maximalDate)) {
-        return translateLocal('privatePersonalDetails.error.dateShouldBeBefore', {dateString: format(maximalDate, CONST.DATE.FNS_FORMAT_STRING)});
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translate('privatePersonalDetails.error.dateShouldBeBefore', format(maximalDate, CONST.DATE.FNS_FORMAT_STRING));
     }
-
-    return translateLocal('privatePersonalDetails.error.dateShouldBeAfter', {dateString: format(minimalDate, CONST.DATE.FNS_FORMAT_STRING)});
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    return translate('privatePersonalDetails.error.dateShouldBeAfter', format(minimalDate, CONST.DATE.FNS_FORMAT_STRING));
 }
 
 /**
  * Validate that given date is not in the past.
  */
-function getDatePassedError(inputDate: string): string {
+function getDatePassedError(translate: LocalizedTranslate, inputDate: string): string {
     const currentDate = new Date();
     const parsedDate = new Date(`${inputDate}T00:00:00`); // set time to 00:00:00 for accurate comparison
 
     // If input date is not valid, return an error
     if (!isValid(parsedDate)) {
-        return translateLocal('common.error.dateInvalid');
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translate('common.error.dateInvalid');
     }
 
     // Clear time for currentDate so comparison is based solely on the date
     currentDate.setHours(0, 0, 0, 0);
 
     if (parsedDate < currentDate) {
-        return translateLocal('common.error.dateInvalid');
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translate('common.error.dateInvalid');
     }
 
     return '';
@@ -264,12 +281,12 @@ function validateIdentity(identity: Record<string, string>): Record<string, bool
     const errors: Record<string, boolean> = {};
 
     // Check that all required fields are filled
-    requiredFields.forEach((fieldName) => {
+    for (const fieldName of requiredFields) {
         if (isRequiredFulfilled(identity[fieldName])) {
-            return;
+            continue;
         }
         errors[fieldName] = true;
-    });
+    }
 
     if (!isValidAddress(identity.street)) {
         errors.street = true;
@@ -455,7 +472,7 @@ type DateTimeValidationErrorKeys = {
  * data - A date and time string in 'YYYY-MM-DD HH:mm:ss.sssZ' format
  * returns an object containing the error messages for the date and time
  */
-const validateDateTimeIsAtLeastOneMinuteInFuture = (data: string): DateTimeValidationErrorKeys => {
+const validateDateTimeIsAtLeastOneMinuteInFuture = (translate: LocalizedTranslate, data: string): DateTimeValidationErrorKeys => {
     if (!data) {
         return {
             dateValidationErrorKey: '',
@@ -464,8 +481,8 @@ const validateDateTimeIsAtLeastOneMinuteInFuture = (data: string): DateTimeValid
     }
     const parsedInputData = parseISO(data);
 
-    const dateValidationErrorKey = DateUtils.getDayValidationErrorKey(parsedInputData);
-    const timeValidationErrorKey = DateUtils.getTimeValidationErrorKey(parsedInputData);
+    const dateValidationErrorKey = DateUtils.getDayValidationErrorKey(translate, parsedInputData);
+    const timeValidationErrorKey = DateUtils.getTimeValidationErrorKey(translate, parsedInputData);
     return {
         dateValidationErrorKey,
         timeValidationErrorKey,
@@ -533,8 +550,7 @@ function isValidEmail(email: string): boolean {
  * @param phoneNumber
  */
 function isValidPhoneInternational(phoneNumber: string): boolean {
-    const phoneNumberWithCountryCode = appendCountryCode(phoneNumber);
-    const parsedPhoneNumber = parsePhoneNumber(phoneNumberWithCountryCode);
+    const parsedPhoneNumber = parsePhoneNumber(phoneNumber);
 
     return parsedPhoneNumber.possible && Str.isValidE164Phone(parsedPhoneNumber.number?.e164 ?? '');
 }
@@ -559,13 +575,13 @@ function isValidOwnershipPercentage(value: string, totalOwnedPercentage: Record<
 
     let totalOwnedPercentageSum = 0;
     const totalOwnedPercentageKeys = Object.keys(totalOwnedPercentage);
-    totalOwnedPercentageKeys.forEach((key) => {
+    for (const key of totalOwnedPercentageKeys) {
         if (key === ownerBeingModifiedID) {
-            return;
+            continue;
         }
 
         totalOwnedPercentageSum += totalOwnedPercentage[key];
-    });
+    }
 
     const isTotalSumValid = totalOwnedPercentageSum + parsedValue <= 100;
 
@@ -637,12 +653,36 @@ function isValidCARegistrationNumber(registrationNumber: string): boolean {
     return /^\d{9}(?:[A-Z]{2}\d{4})?$/.test(registrationNumber);
 }
 
+type EUCountry = keyof typeof CONST.ALL_EUROPEAN_UNION_COUNTRIES;
+
+/**
+ * Validates the given value if it is EU member country
+ * @param country
+ */
+function isEUMember(country: Country | ''): boolean {
+    return country in CONST.ALL_EUROPEAN_UNION_COUNTRIES;
+}
+
+/**
+ * Validates the given values if its is correct registration number for given EU member country
+ * @param registrationNumber
+ * @param country
+ */
+function isValidEURegistrationNumber(registrationNumber: string, country: EUCountry): boolean {
+    const regex = CONST.EU_REGISTRATION_NUMBER_REGEX[country];
+    return !!regex && regex.test(registrationNumber);
+}
+
 /**
  * Validates the given value if it is correct registration number for the given country.
  * @param registrationNumber
  * @param country
  */
 function isValidRegistrationNumber(registrationNumber: string, country: Country | '') {
+    if (isEUMember(country)) {
+        return isValidEURegistrationNumber(registrationNumber, country as EUCountry);
+    }
+
     switch (country) {
         case CONST.COUNTRY.AU:
             return isValidAURegistrationNumber(registrationNumber);
@@ -725,6 +765,13 @@ function isValidTaxIDEINNumber(number: string, country: Country | '') {
     }
 }
 
+/**
+ * Checks if a merchant string value is considered invalid/empty
+ */
+function isInvalidMerchantValue(merchant?: string): boolean {
+    return merchant === '' || merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || merchant === CONST.TRANSACTION.DEFAULT_MERCHANT;
+}
+
 export {
     meetsMinimumAgeRequirement,
     meetsMaximumAgeRequirement,
@@ -778,4 +825,5 @@ export {
     isValidRegistrationNumber,
     isValidInputLength,
     isValidTaxIDEINNumber,
+    isInvalidMerchantValue,
 };

@@ -4,26 +4,24 @@ description: Learn how to arrange travel in Expensify on behalf of another membe
 keywords: [arrange travel, book for others, travel arranger, expensify travel, classic, new expensify]
 ---
 
-<div id="new-expensify" markdown="1">
 
-Once granted the Travel Arranger role, you can arrange travel for another member of your organization using Expensify Travel.
-
----
-
-## How to access the travel tool
-
-- **In New Expensify:** Click the green **+** button in the bottom-left corner of your screen, then select **Book travel**.
-- **In Classic Expensify:** Click **Travel** in the left-hand menu, then select **Book or manage travel**.
-
-**Need to enable travel still?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
+After you're assigned the Travel Arranger role, you can arrange travel for another member of your organization using Expensify Travel.
 
 ---
 
-## How to get access
+## Where to find Expensify Travel
+
+Tap the green ➕ **Create** button at the bottom of your screen, then choose **Book travel**.
+
+If you don’t see **Book travel**, ask a Workspace Admin to [enable Expensify Travel](https://help.expensify.com/articles/travel/company-setup/Enable-Travel-on-a-Workspace) on the workspace. 
+
+---
+
+## How to get the Travel Arranger role
 
 Before arranging travel for another traveler, a Travel Admin must assign you the **Travel Arranger** role.
 
-**To set the Travel Arranger role for another travel member:**
+**To set the Travel Arranger role for another member:**
 
 1. Head to Expensify Travel.
 2. Click on **Program** > **Users** > search and select the name of the user who needs to arrange travel.
@@ -49,7 +47,7 @@ Before arranging travel for another traveler, a Travel Admin must assign you the
 
 ---
 
-## What happens next
+## What happens after booking for another member with Expensify Travel 
 
 - The selected traveler will receive a confirmation email.
 - Receipts will automatically be sent to their Expensify account and added to a trip report.
@@ -68,4 +66,3 @@ The traveler's account is responsible for the charge. Receipts will route direct
 ## Can I manage trips I’ve booked for someone else?
 Yes. If you booked the trip on behalf of someone else, you can view and manage it from the Trips > My trips page. Click the **Pencil** icon to the right of your name in the traveler selection button and search for the traveler to pull up their trips.
 
-</div>

@@ -1,11 +1,12 @@
 import {useMemo} from 'react';
 import * as eReceiptBGs from '@components/Icon/EReceiptBGs';
 import * as MCCIcons from '@components/Icon/MCCIcons';
-import type {TransactionListItemType} from '@components/SelectionList/types';
+import type {TransactionListItemType} from '@components/SelectionListWithSections/types';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {getTripEReceiptIcon} from '@libs/TripReservationUtils';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
+import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useStyleUtils from './useStyleUtils';
 
 const backgroundImages = {
@@ -19,6 +20,7 @@ const backgroundImages = {
 
 export default function useEReceipt(transactionData: Transaction | TransactionListItemType | undefined, fileExtension?: string, isReceiptThumbnail?: boolean) {
     const StyleUtils = useStyleUtils();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plane', 'Bed']);
 
     const colorCode = isReceiptThumbnail ? StyleUtils.getFileExtensionColorCode(fileExtension) : StyleUtils.getEReceiptColorCode(transactionData);
     const colorStyles = StyleUtils.getEReceiptColorStyles(colorCode);
@@ -28,7 +30,7 @@ export default function useEReceipt(transactionData: Transaction | TransactionLi
     const transactionDetails = getTransactionDetails(transactionData);
     const transactionMCCGroup = transactionDetails?.mccGroup;
     const MCCIcon = transactionMCCGroup ? MCCIcons[`${transactionMCCGroup}`] : undefined;
-    const tripIcon = getTripEReceiptIcon(transactionData);
+    const tripIcon = getTripEReceiptIcon(expensifyIcons, transactionData);
 
     const backgroundImage = useMemo(() => backgroundImages[colorCode], [colorCode]);
 

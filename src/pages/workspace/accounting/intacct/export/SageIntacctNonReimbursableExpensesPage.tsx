@@ -61,9 +61,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
     const menuItems: ExtendedMenuItemWithSubscribedSettings[] = [
         {
             type: 'menuitem',
-            title: config?.export.nonReimbursable
-                ? translate(`workspace.sageIntacct.nonReimbursableExpenses.values.${config?.export.nonReimbursable}`)
-                : translate('workspace.sageIntacct.notConfigured'),
+            title: config?.export.nonReimbursable ? translate(`workspace.sageIntacct.nonReimbursableExpenses.values.${config?.export.nonReimbursable}`) : undefined,
             description: translate('workspace.accounting.exportAs'),
             onPress: () => {
                 if (!policyID) {
@@ -75,7 +73,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
         },
         {
             type: 'menuitem',
-            title: config?.export.nonReimbursableAccount ? config.export.nonReimbursableAccount : translate('workspace.sageIntacct.notConfigured'),
+            title: config?.export.nonReimbursableAccount ? config.export.nonReimbursableAccount : undefined,
             description: translate('workspace.sageIntacct.creditCardAccount'),
             onPress: () => {
                 if (!policyID) {
@@ -90,7 +88,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
             type: 'toggle',
             title: translate('workspace.sageIntacct.defaultVendor'),
             key: 'Default vendor toggle',
-            subtitle: translate('workspace.sageIntacct.defaultVendorDescription', {isReimbursable: false}),
+            subtitle: translate('workspace.sageIntacct.defaultVendorDescription', false),
             shouldPlaceSubtitleBelowSwitch: true,
             isActive: !!config?.export.nonReimbursableCreditCardChargeDefaultVendor,
             switchAccessibilityLabel: translate('workspace.sageIntacct.defaultVendor'),
@@ -118,7 +116,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
             children: [
                 {
                     type: 'menuitem',
-                    title: defaultVendorName && defaultVendorName !== '' ? defaultVendorName : translate('workspace.sageIntacct.notConfigured'),
+                    title: defaultVendorName && defaultVendorName !== '' ? defaultVendorName : undefined,
                     description: translate('workspace.sageIntacct.defaultVendor'),
                     onPress: () => {
                         if (!policyID) {
@@ -147,7 +145,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
 
     return (
         <ConnectionLayout
-            displayName={SageIntacctNonReimbursableExpensesPage.displayName}
+            displayName="SageIntacctNonReimbursableExpensesPage"
             headerTitle="workspace.accounting.exportCompanyCard"
             title="workspace.sageIntacct.nonReimbursableExpenses.description"
             onBackButtonPress={() => Navigation.goBack(backTo ?? (policyID && ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID)))}
@@ -189,7 +187,5 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
         </ConnectionLayout>
     );
 }
-
-SageIntacctNonReimbursableExpensesPage.displayName = 'SageIntacctNonReimbursableExpensesPage';
 
 export default withPolicyConnections(SageIntacctNonReimbursableExpensesPage);

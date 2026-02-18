@@ -1,21 +1,23 @@
 import React from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import {requestUnlockAccount} from '@userActions/User';
 import ROUTES from '@src/ROUTES';
 
 function UnlockAccountPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['EmptyStateSpyPigeon']);
 
     return (
         <ScreenWrapper
-            testID={UnlockAccountPage.displayName}
+            testID="UnlockAccountPage"
             includeSafeAreaPaddingBottom
         >
             <HeaderWithBackButton
@@ -24,13 +26,16 @@ function UnlockAccountPage() {
             />
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <ConfirmationPage
-                    illustration={Expensicons.EmptyStateSpyPigeon}
+                    illustration={icons.EmptyStateSpyPigeon}
                     heading={translate('unlockAccountPage.yourAccountIsLocked')}
                     description={translate('unlockAccountPage.chatToConciergeToUnlock')}
                     shouldShowButton
                     descriptionStyle={styles.colorMuted}
                     buttonText={translate('unlockAccountPage.chatWithConcierge')}
-                    onButtonPress={() => Navigation.navigate(ROUTES.CONCIERGE)}
+                    onButtonPress={() => {
+                        requestUnlockAccount();
+                        Navigation.navigate(ROUTES.CONCIERGE);
+                    }}
                     containerStyle={styles.h100}
                 />
             </ScrollView>
@@ -38,5 +43,4 @@ function UnlockAccountPage() {
     );
 }
 
-UnlockAccountPage.displayName = 'UnlockAccountPage';
 export default UnlockAccountPage;

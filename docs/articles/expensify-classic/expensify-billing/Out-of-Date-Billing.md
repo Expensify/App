@@ -3,7 +3,6 @@ title: Out-of-Date Billing
 description: How to resolve an out-of-date billing notification for your Expensify Workspace.
 keywords: [Expensify Classic, out-of-date billing, billing notification, retry billing]
 ---
-<div id="expensify-classic" markdown="1">
 
 **A notification about out-of-date billing appears when:**
 
@@ -34,4 +33,3 @@ keywords: [Expensify Classic, out-of-date billing, billing notification, retry b
 
 Once the payment is processed, the out-of-date billing notification will disappear.
 
-</div>

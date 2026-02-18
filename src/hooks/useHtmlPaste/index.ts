@@ -1,4 +1,5 @@
-import {useCallback, useEffect} from 'react';
+import {useCallback, useEffect, useRef} from 'react';
+import {isStandaloneURL, toMarkdownLink} from '@libs/MarkdownLinkHelpers';
 import Parser from '@libs/Parser';
 import CONST from '@src/CONST';
 import type UseHtmlPaste from './types';
@@ -82,7 +83,7 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
                 // eslint-disable-next-line no-empty
             } catch (e) {}
             // We only need to set the callback once.
-            // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+            // eslint-disable-next-line react-hooks/exhaustive-deps
         },
         [maxLength, textInputRef],
     );
@@ -101,15 +102,25 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
 
     /**
      * Paste the plaintext content into Composer.
-     *
-     * @param {ClipboardEvent} event
+     * If the clipboard contains a single URL and there is selected text, wrap the selected text in a markdown link.
      */
     const handlePastePlainText = useCallback(
         (event: ClipboardEvent) => {
-            const plainText = event.clipboardData?.getData('text/plain');
-            if (plainText) {
-                paste(plainText);
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            const clipboardText = event.clipboardData?.getData('text/plain') || event.clipboardData?.getData('text/uri-list');
+            if (!clipboardText) {
+                return;
             }
+
+            const selection = window.getSelection?.();
+            const selectedText = selection?.toString() ?? '';
+
+            if (isStandaloneURL(clipboardText) && selectedText) {
+                paste(toMarkdownLink(selectedText, clipboardText));
+                return;
+            }
+
+            paste(clipboardText);
         },
         [paste],
     );
@@ -160,21 +171,34 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
             }
             handlePastePlainText(event);
         },
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [handlePastedHTML, handlePastePlainText, preHtmlPasteCallback],
     );
+
+    const handlePasteRef = useRef<(event: ClipboardEvent) => void>(handlePaste);
+    useEffect(() => {
+        handlePasteRef.current = handlePaste;
+    }, [handlePaste]);
 
     useEffect(() => {
         if (!isActive) {
             return;
         }
-        document.addEventListener('paste', handlePaste, true);
+
+        const listener = (event: ClipboardEvent) => {
+            handlePasteRef.current(event);
+        };
+
+        document.addEventListener('paste', listener, true);
 
         return () => {
-            document.removeEventListener('paste', handlePaste, true);
+            document.removeEventListener('paste', listener, true);
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isActive]);
+
+    return {
+        handlePastePlainText,
+    };
 };
 
 export default useHtmlPaste;

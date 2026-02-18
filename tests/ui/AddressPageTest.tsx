@@ -24,10 +24,6 @@ jest.mock('@rnmapbox/maps', () => {
     };
 });
 
-jest.mock('@react-native-community/geolocation', () => ({
-    setRNConfiguration: jest.fn(),
-}));
-
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
 const renderPage = (initialRouteName: typeof SCREENS.SETTINGS.PROFILE.ADDRESS) => {
@@ -48,11 +44,15 @@ const renderPage = (initialRouteName: typeof SCREENS.SETTINGS.PROFILE.ADDRESS) =
 };
 
 describe('AddressPageTest', () => {
-    beforeAll(() => {
+    beforeAll(async () => {
         Onyx.init({
             keys: ONYXKEYS,
         });
-        Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
+        });
+        await waitForBatchedUpdatesWithAct();
     });
     it('should not reset state', async () => {
         await TestHelper.signInWithTestUser();
@@ -68,6 +68,8 @@ describe('AddressPageTest', () => {
             });
             await Onyx.merge(`${ONYXKEYS.IS_LOADING_APP}`, false);
         });
+
+        await waitForBatchedUpdatesWithAct();
 
         renderPage(SCREENS.SETTINGS.PROFILE.ADDRESS);
 

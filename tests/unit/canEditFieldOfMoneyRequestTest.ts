@@ -68,7 +68,7 @@ describe('canEditFieldOfMoneyRequest', () => {
                 childStateNum: CONST.REPORT.STATE_NUM.OPEN,
                 childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 originalMessage: {
-                    // eslint-disable-next-line deprecation/deprecation
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     ...randomReportAction.originalMessage,
                     IOUReportID,
                     IOUTransactionID,
@@ -103,12 +103,37 @@ describe('canEditFieldOfMoneyRequest', () => {
                 return waitForBatchedUpdates();
             });
 
-            // Then the user should be able to move the invoice to the outstanding expense report
-            it('should return true for invoice report action given that there is a minimum of one outstanding report', async () => {
+            it('should return false for invoice report action if it is not outstanding report', async () => {
                 const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
 
                 const canEditReportField = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, undefined, outstandingReportsByPolicyID);
+                expect(canEditReportField).toBe(false);
+            });
+
+            it('should return true for invoice report action when there are outstanding reports', async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, outstandingExpenseReport);
+                await waitForBatchedUpdates();
+                const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+
+                const canEditReportField = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, undefined, outstandingReportsByPolicyID);
+
                 expect(canEditReportField).toBe(true);
+            });
+
+            it('should return false for invoice report action when billable field is edited on an approved invoice report', async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, {
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                });
+                await waitForBatchedUpdates();
+
+                const canEditBillable = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.BILLABLE);
+                expect(canEditBillable).toBe(false);
+            });
+
+            it('should return true for invoice report action when billable field is edited on an unapproved invoice report', () => {
+                const canEditBillable = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.BILLABLE);
+                expect(canEditBillable).toBe(true);
             });
         });
 
@@ -153,7 +178,7 @@ describe('canEditFieldOfMoneyRequest', () => {
                 childStateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 childStatusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 originalMessage: {
-                    // eslint-disable-next-line deprecation/deprecation
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     ...randomReportAction.originalMessage,
                     IOUReportID,
                     IOUTransactionID,
@@ -163,7 +188,13 @@ describe('canEditFieldOfMoneyRequest', () => {
                 },
             };
 
-            const moneyRequestTransaction = {...createRandomTransaction(Number(IOUTransactionID)), reportID: IOUReportID, transactionID: IOUTransactionID, amount: EXPENSE_AMOUNT};
+            const moneyRequestTransaction = {
+                ...createRandomTransaction(Number(IOUTransactionID)),
+                reportID: IOUReportID,
+                managedCard: false,
+                transactionID: IOUTransactionID,
+                amount: EXPENSE_AMOUNT,
+            };
 
             const expenseReport = {
                 ...createExpenseReport(Number(IOUReportID)),
@@ -185,6 +216,20 @@ describe('canEditFieldOfMoneyRequest', () => {
             afterEach(() => {
                 Onyx.clear();
                 return waitForBatchedUpdates();
+            });
+
+            it('should return true for submitter of a distance request for amount and currency fields', async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, expenseReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${moneyRequestTransaction.transactionID}`, {iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE});
+                await waitForBatchedUpdates();
+
+                // If it is the submitter of a distance request
+                const canEditReportFieldAmount = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT, undefined, undefined);
+                const canEditReportFieldCurrency = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.CURRENCY, undefined, undefined);
+
+                // Then we should allow editing amount and currency fields.
+                expect(canEditReportFieldAmount).toBe(true);
+                expect(canEditReportFieldCurrency).toBe(true);
             });
 
             it('should return true for submitter when there are multiple outstanding reports', async () => {
@@ -249,6 +294,21 @@ describe('canEditFieldOfMoneyRequest', () => {
                 const canEditReportField = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, undefined, outstandingReportsByPolicyID);
 
                 // Then they should not be able to move the expense since there's only one outstanding report
+                expect(canEditReportField).toBe(false);
+            });
+
+            it('should return false when the expense report is not outstanding report', async () => {
+                // Given that there are multiple outstanding expense reports in the same policy
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, {...expenseReport, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_1_ID}`, outstandingExpenseReport1);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_2_ID}`, outstandingExpenseReport2);
+                await waitForBatchedUpdates();
+                const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+
+                // When the submitter tries to move an expense between reports
+                const canEditReportField = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, undefined, outstandingReportsByPolicyID);
+
+                // Then they should be able to move the expense since there are multiple outstanding expense reports
                 expect(canEditReportField).toBe(false);
             });
         });

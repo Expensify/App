@@ -1,14 +1,16 @@
-import React, {forwardRef, lazy, Suspense, useEffect, useMemo, useState} from 'react';
+import React, {lazy, Suspense, useEffect, useState} from 'react';
 import {ErrorBoundary} from 'react-error-boundary';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import ActivityIndicator from '@components/ActivityIndicator';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {MapViewHandle, MapViewProps} from './MapViewTypes';
+import type {MapViewProps} from './MapViewTypes';
 import PendingMapView from './PendingMapView';
 
-const MapView = forwardRef<MapViewHandle, MapViewProps>((props, ref) => {
+const MapViewImpl = lazy(() => import('./MapViewImpl.website'));
+
+function MapView({ref, ...props}: MapViewProps) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -23,13 +25,6 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>((props, ref) => {
         setErrorResetKey((key) => key + 1);
     }, [isOffline, wasOffline]);
 
-    // The only way to retry loading the module is to call `React.lazy` again.
-    const MapViewImpl = useMemo(
-        () => lazy(() => import('./MapViewImpl.website')),
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [errorResetKey],
-    );
-
     return (
         <ErrorBoundary
             resetKeys={[errorResetKey]}
@@ -41,15 +36,30 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>((props, ref) => {
                 />
             }
         >
-            <Suspense fallback={<FullScreenLoadingIndicator />}>
-                <MapViewImpl
-                    ref={ref}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...props}
-                />
+            <Suspense
+                fallback={
+                    <ActivityIndicator
+                        size="large"
+                        style={[styles.h100]}
+                    />
+                }
+            >
+                {!isOffline ? (
+                    <MapViewImpl
+                        ref={ref}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...props}
+                    />
+                ) : (
+                    <PendingMapView
+                        title={translate('distance.mapPending.title')}
+                        subtitle={translate('distance.mapPending.subtitle')}
+                        style={styles.mapEditView}
+                    />
+                )}
             </Suspense>
         </ErrorBoundary>
     );
-});
+}
 
 export default MapView;

@@ -19,7 +19,7 @@ type AttachmentCarouselViewProps = {
     /** Callback for cancelling auto hiding of carousel button arrows */
     cancelAutoHideArrow: () => void;
     /** A callback that is called when swipe-down-to-close gesture happens */
-    onClose?: () => void;
+    onSwipeDown?: () => void;
     /** Sets current page */
     setPage: (page: number) => void;
     /** The report currently being looked at */

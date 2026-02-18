@@ -1,15 +1,14 @@
+import type {ParamListBase} from '@react-navigation/native';
 import {CardStyleInterpolators} from '@react-navigation/stack';
-import {useMemo} from 'react';
+import {useCallback} from 'react';
+import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import enhanceCardStyleInterpolator from '@libs/Navigation/AppNavigator/enhanceCardStyleInterpolator';
 import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
-import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
-import variables from '@styles/variables';
-import type {ThemeStyles} from '@src/styles';
+import type {PlatformStackNavigationOptions, PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 
-type GetModalStackScreenOptions = (styles: ThemeStyles) => PlatformStackNavigationOptions;
-
-function useModalStackScreenOptions(getScreenOptions?: GetModalStackScreenOptions) {
+function useWideModalStackScreenOptions() {
     const styles = useThemeStyles();
 
     // We have to use isSmallScreenWidth, otherwise the content of RHP 'jumps' on Safari - its width is set to size of screen and only after rerender it is set to the correct value
@@ -17,34 +16,44 @@ function useModalStackScreenOptions(getScreenOptions?: GetModalStackScreenOption
     // https://github.com/Expensify/App/issues/63747
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const {wideRHPRouteKeys, superWideRHPRouteKeys} = useWideRHPState();
 
-    const cardStyleInterpolator = CardStyleInterpolators.forHorizontalIOS;
+    return useCallback<({route}: {route: PlatformStackRouteProp<ParamListBase, string>}) => PlatformStackNavigationOptions>(
+        ({route}) => {
+            let cardStyleInterpolator = CardStyleInterpolators.forHorizontalIOS;
 
-    const defaultSubRouteOptions = useMemo(
-        (): PlatformStackNavigationOptions => ({
-            ...hideKeyboardOnSwipe,
-            headerShown: false,
-            animationTypeForReplace: 'pop',
-            native: {
-                contentStyle: styles.navigationScreenCardStyle,
-            },
-            web: {
-                cardStyle: {
-                    ...styles.navigationScreenCardStyle,
-                    width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+            if (!isSmallScreenWidth) {
+                if (superWideRHPRouteKeys.includes(route.key)) {
+                    cardStyleInterpolator = enhanceCardStyleInterpolator(CardStyleInterpolators.forHorizontalIOS, {
+                        cardStyle: styles.superWideRHPExtendedCardInterpolatorStyles,
+                    });
+                } else if (wideRHPRouteKeys.includes(route.key)) {
+                    cardStyleInterpolator = enhanceCardStyleInterpolator(CardStyleInterpolators.forHorizontalIOS, {
+                        cardStyle: styles.wideRHPExtendedCardInterpolatorStyles,
+                    });
+                    // single RHPs displayed above the wide RHP need to be positioned
+                } else if (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0) {
+                    cardStyleInterpolator = enhanceCardStyleInterpolator(CardStyleInterpolators.forHorizontalIOS, {
+                        cardStyle: styles.singleRHPExtendedCardInterpolatorStyles,
+                    });
+                }
+            }
+
+            return {
+                ...hideKeyboardOnSwipe,
+                headerShown: false,
+                animationTypeForReplace: 'pop',
+                native: {
+                    contentStyle: styles.navigationScreenCardStyle,
                 },
-                cardStyleInterpolator,
-            },
-        }),
-        [cardStyleInterpolator, isSmallScreenWidth, styles.navigationScreenCardStyle],
+                web: {
+                    cardStyle: styles.navigationScreenCardStyle,
+                    cardStyleInterpolator,
+                },
+            };
+        },
+        [isSmallScreenWidth, styles, superWideRHPRouteKeys, wideRHPRouteKeys],
     );
-
-    if (!getScreenOptions) {
-        return defaultSubRouteOptions;
-    }
-
-    return {...defaultSubRouteOptions, ...getScreenOptions(styles)};
 }
 
-export default useModalStackScreenOptions;
-export type {GetModalStackScreenOptions};
+export default useWideModalStackScreenOptions;

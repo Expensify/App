@@ -4,7 +4,6 @@ description: Automate expense report approvals by setting up an approval workflo
 keywords: [Expensify Classic, approval workflow, report approvals, auto-approve, enforce approval rules, complex workflows]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 Set up an automated report approval workflow in Expensify Classic to streamline expense review. Depending on your workspace's needs, you can choose a simple or multi-level approach.
 
@@ -41,4 +40,3 @@ When enabled:
 
 **Note:** Learn more about [Complex Approval Workflows](https://help.expensify.com/articles/expensify-classic/reports/How-Complex-Approval-Workflows-Work) for advanced setup options.
 
-</div>

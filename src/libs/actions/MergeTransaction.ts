@@ -1,14 +1,31 @@
+import {deepEqual} from 'fast-equals';
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxMergeInput, OnyxUpdate} from 'react-native-onyx';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {GetTransactionsForMergingParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import {isPolicyAdmin} from '@libs/PolicyUtils';
-import {getReportOrDraftReport, getReportTransactions, isMoneyRequestReportEligibleForMerge, isReportManager} from '@libs/ReportUtils';
+import Log from '@libs/Log';
+import {
+    areTransactionsEligibleForMerge,
+    getMergeableDataAndConflictFields,
+    getMergeFieldValue,
+    MERGE_FIELDS,
+    selectTargetAndSourceTransactionsForMerge,
+    shouldNavigateToReceiptReview,
+} from '@libs/MergeTransactionUtils';
+import type {MergeFieldKey, MergeTransactionUpdateValues} from '@libs/MergeTransactionUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getIOUActionForReportID, getTrackExpenseActionableWhisper} from '@libs/ReportActionsUtils';
+import {getReportOrDraftReport, getReportTransactions, getTransactionDetails, isCurrentUserSubmitter, isMoneyRequestReportEligibleForMerge, isReportManager} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import {getTransactionViolationsOfTransaction, isCardTransaction} from '@src/libs/TransactionUtils';
+import {isDistanceRequest, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {MergeTransaction, Policy, Report, Transaction} from '@src/types/onyx';
+import ROUTES from '@src/ROUTES';
+import type {CardList, MergeTransaction, Policy, PolicyCategories, PolicyTagLists, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
+import {getCleanUpTransactionThreadReportOnyxData, getDeleteTrackExpenseInformation, getUpdateMoneyRequestParams, getUpdateTrackExpenseParams} from './IOU';
+import type {UpdateMoneyRequestData, UpdateMoneyRequestDataKeys} from './IOU';
 
 /**
  * Setup merge transaction data for merging flow
@@ -20,14 +37,68 @@ function setupMergeTransactionData(transactionID: string, values: Partial<MergeT
 /**
  * Sets merge transaction data for a specific transaction
  */
-function setMergeTransactionKey(transactionID: string, values: Partial<MergeTransaction>) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, values);
+function setMergeTransactionKey(transactionID: string, values: MergeTransactionUpdateValues) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, values as OnyxMergeInput<`${typeof ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${string}`>);
+}
+
+function setupMergeTransactionDataAndNavigate(
+    navigationTransactionID: string,
+    transactions: Transaction[],
+    localeCompare: LocaleContextProps['localeCompare'],
+    searchReports?: Report[],
+    isSelectingSourceTransaction?: boolean,
+    isOnSearch?: boolean,
+) {
+    if (!transactions.length || transactions.length > 2) {
+        return;
+    }
+
+    if (transactions.length === 1) {
+        const transaction = transactions.at(0);
+        if (transaction) {
+            setupMergeTransactionData(navigationTransactionID, {targetTransactionID: transaction.transactionID});
+            Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(transaction.transactionID, Navigation.getActiveRoute(), isOnSearch));
+            return;
+        }
+    }
+
+    const {targetTransaction, sourceTransaction} = selectTargetAndSourceTransactionsForMerge(transactions.at(0), transactions.at(1));
+    if (!targetTransaction || !sourceTransaction) {
+        return;
+    }
+
+    const setupData = {targetTransactionID: targetTransaction?.transactionID, sourceTransactionID: sourceTransaction?.transactionID};
+    if (isSelectingSourceTransaction) {
+        setMergeTransactionKey(navigationTransactionID, setupData);
+    } else {
+        setupMergeTransactionData(navigationTransactionID, setupData);
+    }
+    if (shouldNavigateToReceiptReview([targetTransaction, sourceTransaction])) {
+        // Navigate to the receipt review page if both transactions have a receipt
+        Navigation.navigate(ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE.getRoute(navigationTransactionID, Navigation.getActiveRoute(), isOnSearch));
+    } else {
+        const receipt = targetTransaction.receipt?.receiptID ? targetTransaction.receipt : sourceTransaction.receipt;
+        if (receipt) {
+            setMergeTransactionKey(navigationTransactionID, {receipt});
+        }
+
+        // If transactions are identical, skip to the confirmation page
+        const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, localeCompare, searchReports);
+        if (!conflictFields.length) {
+            // If there are no conflict fields, we should set mergeable data and navigate to the confirmation page
+            setMergeTransactionKey(navigationTransactionID, mergeableData);
+            Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(navigationTransactionID, Navigation.getActiveRoute(), isOnSearch));
+            return;
+        }
+
+        Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(navigationTransactionID, Navigation.getActiveRoute(), isOnSearch));
+    }
 }
 
 /**
  * Fetches eligible transactions for merging
  */
-function getTransactionsForMerging(transactionID: string) {
+function getTransactionsForMergingFromAPI(transactionID: string) {
     const parameters: GetTransactionsForMergingParams = {
         transactionID,
     };
@@ -35,188 +106,440 @@ function getTransactionsForMerging(transactionID: string) {
     API.read(READ_COMMANDS.GET_TRANSACTIONS_FOR_MERGING, parameters);
 }
 
-function areTransactionsEligibleForMerge(transaction1: Transaction, transaction2: Transaction) {
-    // Do not allow merging two card transactions
-    return !isCardTransaction(transaction1) || !isCardTransaction(transaction2);
-}
-
 /**
  * Fetches eligible transactions for merging locally
  * This is FE version of READ_COMMANDS.GET_TRANSACTIONS_FOR_MERGING API call
  */
-
-function getTransactionsForMergingLocally(
-    targetTransactionID: string,
-    transactions: OnyxCollection<Transaction>,
-    policy: OnyxEntry<Policy>,
-    report: OnyxEntry<Report>,
-    currentUserLogin: string | undefined,
-) {
+function getTransactionsForMergingLocally(transactionID: string, targetTransaction: Transaction, transactions: OnyxCollection<Transaction>, isAdmin = false) {
     const transactionsArray = Object.values(transactions ?? {});
-    const targetTransaction = transactionsArray.find((transaction) => transaction?.transactionID === targetTransactionID);
-    const isAdmin = isPolicyAdmin(policy, currentUserLogin);
-    const isManager = isReportManager(report);
 
-    let eligibleTransactions: Transaction[] = [];
+    const eligibleTransactions = transactionsArray.filter((transaction): transaction is Transaction => {
+        if (!transaction || transaction.transactionID === targetTransaction.transactionID) {
+            return false;
+        }
 
-    // In phase 1:
-    // for managers and admins: we have decided to only return transaction from the target transaction report;
-    // for submitter: can see all transactions that you're also a submitter
-    if (!targetTransaction) {
-        eligibleTransactions = [];
-    } else if (isAdmin || isManager) {
-        const reportTransactions = getReportTransactions(report?.reportID);
-        eligibleTransactions = reportTransactions.filter((transaction): transaction is Transaction => {
-            if (!transaction || transaction.transactionID === targetTransactionID) {
-                return false;
-            }
-            return areTransactionsEligibleForMerge(targetTransaction, transaction);
-        });
-    } else {
-        eligibleTransactions = transactionsArray.filter((transaction): transaction is Transaction => {
-            if (!transaction || transaction.transactionID === targetTransactionID) {
-                return false;
-            }
+        const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        return (
+            areTransactionsEligibleForMerge(targetTransaction, transaction) &&
+            !isTransactionPendingDelete(transaction) &&
+            (isUnreportedExpense || (!!transaction.reportID && isMoneyRequestReportEligibleForMerge(transaction.reportID, isAdmin)))
+        );
+    });
 
-            const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-            return (
-                areTransactionsEligibleForMerge(targetTransaction, transaction) &&
-                (isUnreportedExpense || (!!transaction.reportID && isMoneyRequestReportEligibleForMerge(transaction.reportID, false)))
-            );
-        });
-    }
-
-    Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${targetTransactionID}`, {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {
         eligibleTransactions,
     });
 }
 
+function getTransactionsForMerging({
+    isOffline,
+    targetTransaction,
+    transactions,
+    policy,
+    report,
+    currentUserLogin,
+}: {
+    isOffline: boolean;
+    targetTransaction: Transaction;
+    transactions: OnyxCollection<Transaction>;
+    policy: OnyxEntry<Policy>;
+    report: OnyxEntry<Report>;
+    currentUserLogin: string | undefined;
+    cardList?: CardList;
+}) {
+    const transactionID = targetTransaction.transactionID;
+
+    // Collect/Control workspaces:
+    // - Admins and approvers: The list of eligible expenses will only contain the expenses from the report that the admin/approver triggered the merge from. This is intentionally limited since they’ll only be reviewing one report at a time.
+    // - Submitters will see all their editable expenses, including their IOUs/unreported expenses
+    // IOU:
+    // - There are no admins/approvers outside of the submitter in these cases, so there’s no consideration for different roles.
+    // - The submitter, who is also the admin, will see all their editable expenses, including their IOUs/unreported expenses
+    const isAdmin = isPolicyAdmin(policy, currentUserLogin);
+    const isManager = isReportManager(report);
+
+    if (isPaidGroupPolicy(policy) && (isAdmin || isManager) && !isCurrentUserSubmitter(report)) {
+        const reportTransactions = getReportTransactions(report?.reportID);
+        const eligibleTransactions = reportTransactions.filter((transaction): transaction is Transaction => {
+            if (!transaction || transaction.transactionID === transactionID) {
+                return false;
+            }
+
+            return areTransactionsEligibleForMerge(targetTransaction, transaction);
+        });
+
+        Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {
+            eligibleTransactions,
+        });
+        return;
+    }
+
+    if (isOffline) {
+        getTransactionsForMergingLocally(transactionID, targetTransaction, transactions, isAdmin);
+    } else {
+        getTransactionsForMergingFromAPI(transactionID);
+    }
+}
+
+function getOnyxTargetTransactionData({
+    targetTransaction,
+    targetTransactionViolations,
+    mergeTransaction,
+    targetTransactionThreadReport,
+    targetTransactionThreadParentReport,
+    targetTransactionThreadParentReportNextStep,
+    policy,
+    policyTags,
+    policyCategories,
+    currentUserAccountIDParam,
+    currentUserEmailParam,
+    isASAPSubmitBetaEnabled,
+}: {
+    targetTransaction: Transaction;
+    targetTransactionViolations: OnyxEntry<TransactionViolations>;
+    mergeTransaction: MergeTransaction;
+    targetTransactionThreadReport: OnyxEntry<Report>;
+    targetTransactionThreadParentReport: OnyxEntry<Report>;
+    targetTransactionThreadParentReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
+    policy: OnyxEntry<Policy>;
+    policyTags: OnyxEntry<PolicyTagLists>;
+    policyCategories: OnyxEntry<PolicyCategories>;
+    currentUserAccountIDParam: number;
+    currentUserEmailParam: string;
+    isASAPSubmitBetaEnabled: boolean;
+}) {
+    let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
+    const isUnreportedExpense = !mergeTransaction.reportID || mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+
+    // Compare mergeTransaction with targetTransaction and remove fields with same values
+    const targetTransactionDetails = getTransactionDetails(targetTransaction);
+    const filteredTransactionChanges = Object.fromEntries(
+        Object.entries(mergeTransaction).filter(([key, mergeValue]) => {
+            if (!(MERGE_FIELDS as readonly string[]).includes(key)) {
+                return false;
+            }
+
+            const targetValue = getMergeFieldValue(targetTransactionDetails, targetTransaction, key as MergeFieldKey);
+
+            return !deepEqual(mergeValue, targetValue);
+        }),
+    );
+    filteredTransactionChanges.comment = filteredTransactionChanges.description;
+    const shouldBuildOptimisticModifiedExpenseReportAction = false;
+
+    if (isUnreportedExpense) {
+        data = getUpdateTrackExpenseParams(
+            targetTransaction.transactionID,
+            targetTransactionThreadReport?.reportID,
+            filteredTransactionChanges,
+            policy,
+            shouldBuildOptimisticModifiedExpenseReportAction,
+        );
+    } else {
+        data = getUpdateMoneyRequestParams({
+            transactionID: targetTransaction.transactionID,
+            transactionThreadReport: targetTransactionThreadReport,
+            iouReport: targetTransactionThreadParentReport,
+            iouReportNextStep: targetTransactionThreadParentReportNextStep,
+            transactionChanges: filteredTransactionChanges,
+            policy,
+            policyTagList: policyTags,
+            policyCategories,
+            violations: targetTransactionViolations ?? [],
+            shouldBuildOptimisticModifiedExpenseReportAction,
+            currentUserAccountIDParam,
+            currentUserEmailParam,
+            isASAPSubmitBetaEnabled,
+        });
+    }
+
+    const onyxData = data.onyxData;
+
+    onyxData.optimisticData?.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`,
+        value: {
+            receipt: mergeTransaction.receipt ?? null,
+        },
+    });
+
+    // getUpdateMoneyRequestParams currently derives optimistic distance data from transaction.routes.
+    // In the merge flow, the selected merchant determines waypoints/customUnit => we can optimistic distance data from the selected merchant's waypoints/customUnit instead of transaction.routes
+    if (isDistanceRequest(targetTransaction)) {
+        onyxData.optimisticData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`,
+            value: {
+                comment: {
+                    waypoints: mergeTransaction.waypoints ?? null,
+                    customUnit: mergeTransaction.customUnit ?? null,
+                },
+                routes: mergeTransaction.routes ?? null,
+                iouRequestType: mergeTransaction.iouRequestType ?? null,
+            },
+        });
+    }
+
+    return onyxData;
+}
+
+type MergeTransactionRequestParams = {
+    mergeTransactionID: string;
+    mergeTransaction: MergeTransaction;
+    targetTransaction: Transaction;
+    allTransactionViolations: OnyxCollection<TransactionViolations>;
+    sourceTransaction: Transaction;
+    targetTransactionThreadReport: OnyxEntry<Report>;
+    targetTransactionThreadParentReport: OnyxEntry<Report>;
+    targetTransactionThreadParentReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
+    policy: OnyxEntry<Policy>;
+    policyTags: OnyxEntry<PolicyTagLists>;
+    policyCategories: OnyxEntry<PolicyCategories>;
+    currentUserAccountIDParam: number;
+    currentUserEmailParam: string;
+    isASAPSubmitBetaEnabled: boolean;
+    selfDMReport: OnyxEntry<Report>;
+};
 /**
  * Merges two transactions by updating the target transaction with selected fields and deleting the source transaction
  */
-function mergeTransactionRequest(mergeTransactionID: string, mergeTransaction: MergeTransaction, targetTransaction: Transaction, sourceTransaction: Transaction) {
-    const isUnreportedExpense = !targetTransaction.reportID || targetTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-
-    // If the target transaction we're keeping is unreported, the amount needs to be positive. Otherwise for expense reports it needs to be the opposite sign.
-    const finalAmount = isUnreportedExpense ? Math.abs(mergeTransaction.amount) : -mergeTransaction.amount;
+function mergeTransactionRequest({
+    mergeTransactionID,
+    mergeTransaction,
+    targetTransaction,
+    sourceTransaction,
+    targetTransactionThreadReport,
+    targetTransactionThreadParentReport,
+    targetTransactionThreadParentReportNextStep,
+    allTransactionViolations,
+    policy,
+    policyTags,
+    policyCategories,
+    currentUserAccountIDParam,
+    currentUserEmailParam,
+    isASAPSubmitBetaEnabled,
+    selfDMReport,
+}: MergeTransactionRequestParams) {
+    // For both unreported expenses and expense reports, negate the display amount when storing
+    // This preserves the user's chosen sign while following the storage convention
+    const finalAmount = -mergeTransaction.amount;
 
     // Call the merge transaction action
     const params = {
         transactionID: mergeTransaction.targetTransactionID,
         transactionIDList: [mergeTransaction.sourceTransactionID],
-        created: targetTransaction.created,
+        created: mergeTransaction.created,
         merchant: mergeTransaction.merchant,
         amount: finalAmount,
         currency: mergeTransaction.currency,
         category: mergeTransaction.category,
-        comment: mergeTransaction.description,
+        comment: JSON.stringify({
+            ...targetTransaction.comment,
+            comment: mergeTransaction.description,
+            customUnit: mergeTransaction.customUnit,
+            waypoints: mergeTransaction.waypoints ?? null,
+            attendees: mergeTransaction.attendees,
+            originalTransactionID: mergeTransaction.originalTransactionID,
+        }),
         billable: mergeTransaction.billable,
         reimbursable: mergeTransaction.reimbursable,
         tag: mergeTransaction.tag,
         receiptID: mergeTransaction.receipt?.receiptID,
-        reportID: targetTransaction.reportID,
+        reportID: mergeTransaction.reportID,
     };
 
-    // Optimistic update the target transaction with the new values
-    const optimisticTargetTransactionData: OnyxUpdate = {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`,
-        value: {
-            merchant: params.merchant,
-            category: params.category,
-            tag: params.tag,
-            comment: {
-                comment: params.comment,
-            },
-            reimbursable: params.reimbursable,
-            billable: params.billable,
-            // Update receipt if receiptID is provided
-            ...(params.receiptID && {
-                receipt: {
-                    source: mergeTransaction.receipt?.source ?? targetTransaction.receipt?.source,
-                    receiptID: params.receiptID,
-                },
-            }),
-        },
-    };
-    const failureTargetTransactionData: OnyxUpdate = {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`,
-        value: targetTransaction,
-    };
+    const onyxTargetTransactionData = getOnyxTargetTransactionData({
+        targetTransaction,
+        targetTransactionViolations: allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + targetTransaction.transactionID] ?? [],
+        mergeTransaction,
+        targetTransactionThreadReport,
+        targetTransactionThreadParentReport,
+        targetTransactionThreadParentReportNextStep,
+        policy,
+        policyTags,
+        policyCategories,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        isASAPSubmitBetaEnabled,
+    });
 
     // Optimistic delete the source transaction and also delete its report if it was a single expense report
-    const optimisticSourceTransactionData: OnyxUpdate = {
-        onyxMethod: Onyx.METHOD.SET,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`,
-        value: null,
-    };
-    const failureSourceTransactionData: OnyxUpdate = {
-        onyxMethod: Onyx.METHOD.SET,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`,
-        value: sourceTransaction,
-    };
-    const transactionsOfSourceReport = getReportTransactions(sourceTransaction.reportID);
-    const optimisticSourceReportData: OnyxUpdate[] =
-        transactionsOfSourceReport.length === 1
+    const isUnreportedSourceTransaction = sourceTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    const selfDMReportID = selfDMReport?.reportID;
+
+    const sourceTransactionOptimisticData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>
+    > = [];
+    const sourceTransactionSuccessData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [];
+    const sourceTransactionFailureData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>
+    > = [];
+    if (!isUnreportedSourceTransaction || !selfDMReportID) {
+        const optimisticSourceTransactionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION> = {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`,
+            value: null,
+        };
+        const failureSourceTransactionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION> = {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`,
+            value: sourceTransaction,
+        };
+        const transactionsOfSourceReport = getReportTransactions(sourceTransaction.reportID);
+        const optimisticSourceReportData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> =
+            transactionsOfSourceReport.length === 1
+                ? [
+                      {
+                          onyxMethod: Onyx.METHOD.SET,
+                          key: `${ONYXKEYS.COLLECTION.REPORT}${sourceTransaction.reportID}`,
+                          value: null,
+                      },
+                  ]
+                : [];
+
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+        const failureSourceReportData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> =
+            transactionsOfSourceReport.length === 1
+                ? [
+                      {
+                          onyxMethod: Onyx.METHOD.SET,
+                          key: `${ONYXKEYS.COLLECTION.REPORT}${sourceTransaction.reportID}`,
+                          value: getReportOrDraftReport(sourceTransaction.reportID),
+                      },
+                  ]
+                : [];
+        const iouActionOfSourceTransaction = getIOUActionForReportID(sourceTransaction.reportID, sourceTransaction.transactionID);
+        const optimisticSourceReportActionData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = iouActionOfSourceTransaction
             ? [
                   {
-                      onyxMethod: Onyx.METHOD.SET,
-                      key: `${ONYXKEYS.COLLECTION.REPORT}${sourceTransaction.reportID}`,
-                      value: null,
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceTransaction.reportID}`,
+                      value: {
+                          [iouActionOfSourceTransaction.reportActionID]: {
+                              pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                          },
+                      },
+                  },
+              ]
+            : [];
+        const successSourceReportActionData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = iouActionOfSourceTransaction
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceTransaction.reportID}`,
+                      value: {
+                          [iouActionOfSourceTransaction.reportActionID]: {
+                              pendingAction: null,
+                          },
+                      },
                   },
               ]
             : [];
 
-    const failureSourceReportData: OnyxUpdate[] =
-        transactionsOfSourceReport.length === 1
+        const failureSourceReportActionData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = iouActionOfSourceTransaction
             ? [
                   {
-                      onyxMethod: Onyx.METHOD.SET,
-                      key: `${ONYXKEYS.COLLECTION.REPORT}${sourceTransaction.reportID}`,
-                      value: getReportOrDraftReport(sourceTransaction.reportID),
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceTransaction.reportID}`,
+                      value: {
+                          [iouActionOfSourceTransaction.reportActionID]: {
+                              pendingAction: null,
+                          },
+                      },
                   },
               ]
             : [];
 
+        const sourceIouAction = getIOUActionForReportID(sourceTransaction.reportID, sourceTransaction.transactionID);
+        const sourceTransactionThreadReportID = sourceIouAction?.childReportID;
+        const shouldDeleteTransactionThread = !!sourceTransactionThreadReportID;
+        const cleanUpSourceTransactionThreadReportOnyxData = getCleanUpTransactionThreadReportOnyxData({
+            transactionThreadID: sourceTransactionThreadReportID,
+            shouldDeleteTransactionThread,
+            reportAction: sourceIouAction,
+        });
+        optimisticSourceReportActionData.push(...cleanUpSourceTransactionThreadReportOnyxData.optimisticData);
+        successSourceReportActionData.push(...cleanUpSourceTransactionThreadReportOnyxData.successData);
+        failureSourceReportActionData.push(...cleanUpSourceTransactionThreadReportOnyxData.failureData);
+
+        // Optimistic data
+        sourceTransactionOptimisticData.push(optimisticSourceTransactionData, ...optimisticSourceReportData, ...optimisticSourceReportActionData);
+        // Failure data
+        sourceTransactionFailureData.push(failureSourceTransactionData, ...failureSourceReportData, ...failureSourceReportActionData);
+        // Success data
+        sourceTransactionSuccessData.push(...successSourceReportActionData);
+    } else {
+        const whisperAction = getTrackExpenseActionableWhisper(sourceTransaction.transactionID, selfDMReportID);
+        const sourceIouAction = getIOUActionForReportID(selfDMReportID, sourceTransaction.transactionID);
+        const actionableWhisperReportActionID = whisperAction?.reportActionID;
+
+        if (!sourceIouAction) {
+            Log.warn("Can't find the iouAction for the transaction in the selfDM report.");
+        } else {
+            const {optimisticData, successData, failureData} = getDeleteTrackExpenseInformation(
+                selfDMReport,
+                sourceTransaction.transactionID,
+                sourceIouAction,
+                false,
+                undefined,
+                undefined,
+                actionableWhisperReportActionID,
+                CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION.NOTHING,
+                false,
+            );
+
+            sourceTransactionOptimisticData.push(...optimisticData);
+            sourceTransactionSuccessData.push(...successData);
+            sourceTransactionFailureData.push(...failureData);
+        }
+    }
     // Optimistic delete the merge transaction
-    const optimisticMergeTransactionData: OnyxUpdate = {
+    const optimisticMergeTransactionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.MERGE_TRANSACTION> = {
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`,
         value: null,
     };
 
     // Optimistic delete duplicated transaction violations
-    const optimisticTransactionViolations: OnyxUpdate[] = [targetTransaction.transactionID, sourceTransaction.transactionID].map((id) => {
-        const violations = getTransactionViolationsOfTransaction(id);
+    const optimisticTransactionViolations: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [targetTransaction.transactionID, sourceTransaction.transactionID].map(
+        (id) => {
+            const violations = allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + id] ?? [];
 
-        return {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
-            value: violations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
-        };
-    });
-    const failureTransactionViolations: OnyxUpdate[] = [targetTransaction.transactionID, sourceTransaction.transactionID].map((id) => {
-        const violations = getTransactionViolationsOfTransaction(id);
+            return {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
+                value: violations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
+            };
+        },
+    );
+    const failureTransactionViolations: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [targetTransaction.transactionID, sourceTransaction.transactionID].map(
+        (id) => {
+            const violations = allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + id] ?? [];
 
-        return {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
-            value: violations,
-        };
-    });
+            return {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
+                value: violations,
+            };
+        },
+    );
 
-    const optimisticData: OnyxUpdate[] = [
-        optimisticTargetTransactionData,
-        optimisticSourceTransactionData,
-        ...optimisticSourceReportData,
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const optimisticData: Array<OnyxUpdate<UpdateMoneyRequestDataKeys | typeof ONYXKEYS.COLLECTION.MERGE_TRANSACTION>> = [
+        ...(onyxTargetTransactionData.optimisticData ?? []),
         optimisticMergeTransactionData,
         ...optimisticTransactionViolations,
+        ...sourceTransactionOptimisticData,
     ];
 
-    const failureData: OnyxUpdate[] = [failureTargetTransactionData, failureSourceTransactionData, ...failureSourceReportData, ...failureTransactionViolations];
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const failureData: Array<OnyxUpdate<UpdateMoneyRequestDataKeys>> = [...(onyxTargetTransactionData.failureData ?? []), ...failureTransactionViolations, ...sourceTransactionFailureData];
 
-    API.write(WRITE_COMMANDS.MERGE_TRANSACTION, params, {optimisticData, failureData});
+    const successData: Array<OnyxUpdate<UpdateMoneyRequestDataKeys>> = [];
+    successData.push(...sourceTransactionSuccessData);
+    successData.push(...(onyxTargetTransactionData.successData ?? []));
+
+    API.write(WRITE_COMMANDS.MERGE_TRANSACTION, params, {optimisticData, failureData, successData});
 }
 
-export {setupMergeTransactionData, setMergeTransactionKey, getTransactionsForMerging, getTransactionsForMergingLocally, mergeTransactionRequest};
+export {areTransactionsEligibleForMerge, setupMergeTransactionData, setupMergeTransactionDataAndNavigate, setMergeTransactionKey, getTransactionsForMerging, mergeTransactionRequest};

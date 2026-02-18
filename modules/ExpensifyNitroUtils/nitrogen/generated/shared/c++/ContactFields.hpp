@@ -40,30 +40,28 @@ namespace margelo::nitro::utils {
 
 namespace margelo::nitro {
 
-  using namespace margelo::nitro::utils;
-
   // C++ ContactFields <> JS ContactFields (union)
   template <>
-  struct JSIConverter<ContactFields> final {
-    static inline ContactFields fromJSI(jsi::Runtime& runtime, const jsi::Value& arg) {
+  struct JSIConverter<margelo::nitro::utils::ContactFields> final {
+    static inline margelo::nitro::utils::ContactFields fromJSI(jsi::Runtime& runtime, const jsi::Value& arg) {
       std::string unionValue = JSIConverter<std::string>::fromJSI(runtime, arg);
       switch (hashString(unionValue.c_str(), unionValue.size())) {
-        case hashString("FIRST_NAME"): return ContactFields::FIRST_NAME;
-        case hashString("LAST_NAME"): return ContactFields::LAST_NAME;
-        case hashString("PHONE_NUMBERS"): return ContactFields::PHONE_NUMBERS;
-        case hashString("EMAIL_ADDRESSES"): return ContactFields::EMAIL_ADDRESSES;
-        case hashString("IMAGE_DATA"): return ContactFields::IMAGE_DATA;
+        case hashString("FIRST_NAME"): return margelo::nitro::utils::ContactFields::FIRST_NAME;
+        case hashString("LAST_NAME"): return margelo::nitro::utils::ContactFields::LAST_NAME;
+        case hashString("PHONE_NUMBERS"): return margelo::nitro::utils::ContactFields::PHONE_NUMBERS;
+        case hashString("EMAIL_ADDRESSES"): return margelo::nitro::utils::ContactFields::EMAIL_ADDRESSES;
+        case hashString("IMAGE_DATA"): return margelo::nitro::utils::ContactFields::IMAGE_DATA;
         default: [[unlikely]]
           throw std::invalid_argument("Cannot convert \"" + unionValue + "\" to enum ContactFields - invalid value!");
       }
     }
-    static inline jsi::Value toJSI(jsi::Runtime& runtime, ContactFields arg) {
+    static inline jsi::Value toJSI(jsi::Runtime& runtime, margelo::nitro::utils::ContactFields arg) {
       switch (arg) {
-        case ContactFields::FIRST_NAME: return JSIConverter<std::string>::toJSI(runtime, "FIRST_NAME");
-        case ContactFields::LAST_NAME: return JSIConverter<std::string>::toJSI(runtime, "LAST_NAME");
-        case ContactFields::PHONE_NUMBERS: return JSIConverter<std::string>::toJSI(runtime, "PHONE_NUMBERS");
-        case ContactFields::EMAIL_ADDRESSES: return JSIConverter<std::string>::toJSI(runtime, "EMAIL_ADDRESSES");
-        case ContactFields::IMAGE_DATA: return JSIConverter<std::string>::toJSI(runtime, "IMAGE_DATA");
+        case margelo::nitro::utils::ContactFields::FIRST_NAME: return JSIConverter<std::string>::toJSI(runtime, "FIRST_NAME");
+        case margelo::nitro::utils::ContactFields::LAST_NAME: return JSIConverter<std::string>::toJSI(runtime, "LAST_NAME");
+        case margelo::nitro::utils::ContactFields::PHONE_NUMBERS: return JSIConverter<std::string>::toJSI(runtime, "PHONE_NUMBERS");
+        case margelo::nitro::utils::ContactFields::EMAIL_ADDRESSES: return JSIConverter<std::string>::toJSI(runtime, "EMAIL_ADDRESSES");
+        case margelo::nitro::utils::ContactFields::IMAGE_DATA: return JSIConverter<std::string>::toJSI(runtime, "IMAGE_DATA");
         default: [[unlikely]]
           throw std::invalid_argument("Cannot convert ContactFields to JS - invalid value: "
                                     + std::to_string(static_cast<int>(arg)) + "!");

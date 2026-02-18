@@ -40,11 +40,11 @@ describe('CurrencyUtils', () => {
     describe('getLocalizedCurrencySymbol', () => {
         test.each(AVAILABLE_LOCALES)('Returns non empty string for all currencyCode with preferredLocale %s', (preferredLocale) =>
             IntlStore.load(preferredLocale).then(() => {
-                currencyCodeList.forEach((currencyCode: string) => {
-                    const localizedSymbol = CurrencyUtils.getLocalizedCurrencySymbol(currencyCode);
+                for (const currencyCode of currencyCodeList) {
+                    const localizedSymbol = CurrencyUtils.getLocalizedCurrencySymbol(preferredLocale, currencyCode);
 
                     expect(localizedSymbol).toBeTruthy();
-                });
+                }
             }),
         );
     });

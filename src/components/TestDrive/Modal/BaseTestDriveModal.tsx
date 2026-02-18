@@ -1,10 +1,12 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import TestDrive from '@assets/images/test-drive.svg';
 import type {FeatureTrainingModalProps} from '@components/FeatureTrainingModal';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setOnboardingTestDriveModalDismissed} from '@libs/actions/Welcome';
+import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 
 type BaseTestDriveModalProps = Pick<
@@ -37,6 +39,18 @@ function BaseTestDriveModal({
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
+    useEffect(
+        () => () => {
+            // On Android, when the app is closed, this callback still gets executed, and `currentRoute` is set to an empty string (`''`).
+            const currentRoute = Navigation.getActiveRoute();
+            if (!currentRoute) {
+                return;
+            }
+            setOnboardingTestDriveModalDismissed();
+        },
+        [],
+    );
+
     return (
         <FeatureTrainingModal
             image={TestDrive}
@@ -62,7 +76,5 @@ function BaseTestDriveModal({
         </FeatureTrainingModal>
     );
 }
-
-BaseTestDriveModal.displayName = 'BaseTestDriveModal';
 
 export default BaseTestDriveModal;

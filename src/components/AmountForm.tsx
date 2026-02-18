@@ -1,9 +1,12 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef} from 'react';
+import React from 'react';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCurrencyDecimals, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
+import {getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
 import NumberWithSymbolForm from './NumberWithSymbolForm';
+import type {NumberWithSymbolFormRef} from './NumberWithSymbolForm';
 import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
 
 type AmountFormProps = {
@@ -42,31 +45,46 @@ type AmountFormProps = {
 
     /** Whether to hide the currency symbol */
     hideCurrencySymbol?: boolean;
+
+    /** Whether the input should be disabled */
+    disabled?: boolean;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<BaseTextInputRef>;
+
+    /** Reference to the number form for imperative updates */
+    numberFormRef?: ForwardedRef<NumberWithSymbolFormRef>;
+
+    /** Callback when the user presses the submit key (Enter) */
+    onSubmitEditing?: () => void;
 } & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'autoGrowMarginSide'>;
 
 /**
  * Wrapper around NumberWithSymbolForm with currency handling.
  */
-function AmountForm(
-    {
-        value,
-        currency = CONST.CURRENCY.USD,
-        amountMaxLength,
-        errorText,
-        onInputChange,
-        onCurrencyButtonPress,
-        displayAsTextInput = false,
-        isCurrencyPressable = true,
-        label,
-        decimals: decimalsProp,
-        hideCurrencySymbol = false,
-        autoFocus,
-        autoGrowExtraSpace,
-        autoGrowMarginSide,
-    }: AmountFormProps,
-    forwardedRef: ForwardedRef<BaseTextInputRef>,
-) {
+function AmountForm({
+    value,
+    currency = CONST.CURRENCY.USD,
+    amountMaxLength,
+    errorText,
+    onInputChange,
+    onCurrencyButtonPress,
+    displayAsTextInput = false,
+    isCurrencyPressable = true,
+    label,
+    decimals: decimalsProp,
+    hideCurrencySymbol = false,
+    disabled = false,
+    autoFocus,
+    autoGrowExtraSpace,
+    autoGrowMarginSide,
+    onSubmitEditing,
+    ref,
+    numberFormRef,
+}: AmountFormProps) {
+    const {preferredLocale} = useLocalize();
     const styles = useThemeStyles();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const decimals = decimalsProp ?? getCurrencyDecimals(currency);
 
     return (
@@ -74,18 +92,20 @@ function AmountForm(
             label={label}
             value={value}
             decimals={decimals}
+            currency={currency}
             displayAsTextInput={displayAsTextInput}
             onInputChange={onInputChange}
             onSymbolButtonPress={onCurrencyButtonPress}
-            ref={(ref: BaseTextInputRef) => {
-                if (typeof forwardedRef === 'function') {
-                    forwardedRef(ref);
-                } else if (forwardedRef && 'current' in forwardedRef) {
+            ref={(newRef: BaseTextInputRef | null) => {
+                if (typeof ref === 'function') {
+                    ref(newRef);
+                } else if (ref && 'current' in ref) {
                     // eslint-disable-next-line no-param-reassign
-                    forwardedRef.current = ref;
+                    ref.current = newRef;
                 }
             }}
-            symbol={getLocalizedCurrencySymbol(currency) ?? ''}
+            numberFormRef={numberFormRef}
+            symbol={getLocalizedCurrencySymbol(preferredLocale, currency) ?? ''}
             symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX}
             isSymbolPressable={isCurrencyPressable}
             hideSymbol={hideCurrencySymbol}
@@ -97,11 +117,11 @@ function AmountForm(
             autoFocus={autoFocus}
             autoGrowExtraSpace={autoGrowExtraSpace}
             autoGrowMarginSide={autoGrowMarginSide}
+            onSubmitEditing={onSubmitEditing}
+            disabled={disabled}
         />
     );
 }
 
-AmountForm.displayName = 'AmountForm';
-
-export default forwardRef(AmountForm);
-export type {AmountFormProps};
+export default AmountForm;
+export type {AmountFormProps, NumberWithSymbolFormRef};

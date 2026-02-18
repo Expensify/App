@@ -201,7 +201,7 @@ class GithubUtils {
     static getStagingDeployCashData(issue: OctokitIssueItem): StagingDeployCashData {
         try {
             const versionRegex = new RegExp('([0-9]+)\\.([0-9]+)\\.([0-9]+)(?:-([0-9]+))?', 'g');
-            const version = (issue.body?.match(versionRegex)?.[0] ?? '').replace(/`/g, '');
+            const version = (issue.body?.match(versionRegex)?.[0] ?? '').replaceAll('`', '');
 
             return {
                 title: issue.title,
@@ -334,7 +334,7 @@ class GithubUtils {
 
                     const noQAPRs = Array.isArray(data) ? data.filter((PR) => /\[No\s?QA]/i.test(PR.title)).map((item) => item.html_url) : [];
                     console.log('Found the following NO QA PRs:', noQAPRs);
-                    const verifiedOrNoQAPRs = [...new Set([...verifiedPRList, ...verifiedPRListMobileExpensify, ...noQAPRs])];
+                    const verifiedOrNoQAPRs = new Set([...verifiedPRList, ...verifiedPRListMobileExpensify, ...noQAPRs]);
 
                     const sortedPRList = [...new Set(arrayDifference(PRList, Object.keys(internalQAPRMap)))].sort(
                         (a, b) => GithubUtils.getPullRequestNumberFromURL(a) - GithubUtils.getPullRequestNumberFromURL(b),
@@ -357,27 +357,23 @@ class GithubUtils {
 
                     issueBody += '\r\n';
 
-                    // Warn deployers about potential bugs with the new process
-                    issueBody +=
-                        '> 💡 **Deployer FYI:** This checklist was generated using a new process. PR list from original method and detail logging can be found in the most recent [deploy workflow](https://github.com/Expensify/App/actions/workflows/deploy.yml) labeled `staging`, in the `createChecklist` action. Please tag @Julesssss with any issues.\r\n\r\n';
-
                     // PR list
                     if (sortedPRList.length > 0) {
-                        issueBody += '\r\n**This release contains changes from the following pull requests:**\r\n';
-                        sortedPRList.forEach((URL) => {
-                            issueBody += verifiedOrNoQAPRs.includes(URL) ? '- [x]' : '- [ ]';
+                        issueBody += '**This release contains changes from the following pull requests:**\r\n';
+                        for (const URL of sortedPRList) {
+                            issueBody += verifiedOrNoQAPRs.has(URL) ? '- [x]' : '- [ ]';
                             issueBody += ` ${URL}\r\n`;
-                        });
+                        }
                         issueBody += '\r\n\r\n';
                     }
 
                     // Mobile-Expensify PR list
                     if (sortedPRListMobileExpensify.length > 0) {
                         issueBody += '**Mobile-Expensify PRs:**\r\n';
-                        sortedPRListMobileExpensify.forEach((URL) => {
-                            issueBody += verifiedOrNoQAPRs.includes(URL) ? '- [x]' : '- [ ]';
+                        for (const URL of sortedPRListMobileExpensify) {
+                            issueBody += verifiedOrNoQAPRs.has(URL) ? '- [x]' : '- [ ]';
                             issueBody += ` ${URL}\r\n`;
-                        });
+                        }
                         issueBody += '\r\n\r\n';
                     }
 
@@ -385,25 +381,25 @@ class GithubUtils {
                     if (!isEmptyObject(internalQAPRMap)) {
                         console.log('Found the following verified Internal QA PRs:', resolvedInternalQAPRs);
                         issueBody += '**Internal QA:**\r\n';
-                        Object.keys(internalQAPRMap).forEach((URL) => {
+                        for (const URL of Object.keys(internalQAPRMap)) {
                             const merger = internalQAPRMap[URL];
                             const mergerMention = `@${merger}`;
                             issueBody += `${resolvedInternalQAPRs.includes(URL) ? '- [x]' : '- [ ]'} `;
                             issueBody += `${URL}`;
                             issueBody += ` - ${mergerMention}`;
                             issueBody += '\r\n';
-                        });
+                        }
                         issueBody += '\r\n\r\n';
                     }
 
                     // Deploy blockers
                     if (deployBlockers.length > 0) {
                         issueBody += '**Deploy Blockers:**\r\n';
-                        sortedDeployBlockers.forEach((URL) => {
+                        for (const URL of sortedDeployBlockers) {
                             issueBody += resolvedDeployBlockers.includes(URL) ? '- [x] ' : '- [ ] ';
                             issueBody += URL;
                             issueBody += '\r\n';
-                        });
+                        }
                         issueBody += '\r\n\r\n';
                     }
 
@@ -662,7 +658,7 @@ class GithubUtils {
     /**
      * Get the contents of a file from the API at a given ref as a string.
      */
-    static async getFileContents(path: string, ref = 'main'): Promise<string> {
+    static async getFileContents(path: string, ref = CONST.DEFAULT_BASE_REF): Promise<string> {
         const {data} = await this.octokit.repos.getContent({
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
@@ -676,6 +672,21 @@ class GithubUtils {
             throw new Error(`Provided path ${path} is invalid`);
         }
         return Buffer.from(data.content, 'base64').toString('utf8');
+    }
+
+    static async getPullRequestChangedSVGFileNames(pullRequestNumber: number): Promise<string[]> {
+        const files = this.paginate(
+            this.octokit.pulls.listFiles,
+            {
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
+                pull_number: pullRequestNumber,
+                per_page: 100,
+            },
+            (response) => response.data.filter((file) => file.filename.endsWith('.svg') && (file.status === 'added' || file.status === 'modified')).map((file) => file.filename),
+        );
+
+        return files;
     }
 
     /**
@@ -745,6 +756,22 @@ class GithubUtils {
             console.log('');
             throw error;
         }
+    }
+
+    static async getPullRequestDiff(pullRequestNumber: number): Promise<string> {
+        if (!this.internalOctokit) {
+            this.initOctokit();
+        }
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        const response = await (this.internalOctokit as InternalOctokit).request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
+            pull_number: pullRequestNumber,
+            mediaType: {
+                format: 'diff',
+            },
+        });
+        return response.data as unknown as string;
     }
 }
 

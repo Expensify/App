@@ -60,5 +60,4 @@ function SkeletonViewLines({numberOfRows, shouldAnimate = true}: SkeletonViewLin
     );
 }
 
-SkeletonViewLines.displayName = 'SkeletonViewLines';
 export default SkeletonViewLines;

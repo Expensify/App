@@ -7,11 +7,9 @@ function Indicator() {
     const styles = useThemeStyles();
     const {indicatorColor, status} = useAccountTabIndicatorStatus();
 
-    const indicatorStyles = [styles.alignItemsCenter, styles.justifyContentCenter, styles.statusIndicator(indicatorColor)];
+    const indicatorStyles = [styles.alignItemsCenter, styles.justifyContentCenter, styles.statusIndicator, styles.statusIndicatorColor(indicatorColor)];
 
     return !!status && <View style={StyleSheet.flatten(indicatorStyles)} />;
 }
-
-Indicator.displayName = 'Indicator';
 
 export default Indicator;

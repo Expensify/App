@@ -21,7 +21,10 @@ import type {
 import type PusherModule from './types';
 
 let shouldForceOffline = false;
-Onyx.connect({
+
+// shouldForceOffline is only used to ignore pusher events when the client has been forced offline.
+// Since it's not connected to any UI, it's OK to use connectWithoutView.
+Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
     callback: (network) => {
         if (!network) {
@@ -47,7 +50,9 @@ const eventsBoundToChannels = new Map<Channel, Set<PusherEventName>>();
  * Trigger each of the socket event callbacks with the event information
  */
 function callSocketEventCallbacks(eventName: SocketEventName, data?: EventCallbackError | States) {
-    socketEventCallbacks.forEach((cb) => cb(eventName, data));
+    for (const cb of socketEventCallbacks) {
+        cb(eventName, data);
+    }
 }
 
 /**
@@ -197,6 +202,7 @@ function subscribe<EventName extends PusherEventName>(
     return initPromise.then(
         () =>
             new Promise((resolve, reject) => {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     // We cannot call subscribe() before init(). Prevent any attempt to do this on dev.
                     if (!socket) {

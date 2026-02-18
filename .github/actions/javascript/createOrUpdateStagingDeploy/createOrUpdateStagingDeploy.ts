@@ -164,21 +164,21 @@ async function run(): Promise<IssuesCreateResponse | void> {
             });
 
             // Then make sure we include any demoted or closed blockers as well, and just check them off automatically
-            currentChecklistData?.deployBlockers.forEach((deployBlocker) => {
+            for (const deployBlocker of currentChecklistData?.deployBlockers ?? []) {
                 const isResolved = deployBlockers.findIndex((openBlocker) => openBlocker.number === deployBlocker.number) < 0;
                 deployBlockers.push({
                     ...deployBlocker,
                     isResolved,
                 });
-            });
+            }
 
             // Include any existing Mobile-Expensify PRs from the current checklist that aren't in the new merged list
-            currentChecklistData?.PRListMobileExpensify.forEach((existingPR) => {
+            for (const existingPR of currentChecklistData?.PRListMobileExpensify ?? []) {
                 const isAlreadyIncluded = PRListMobileExpensify.findIndex((pr) => pr.number === existingPR.number) >= 0;
                 if (!isAlreadyIncluded) {
                     PRListMobileExpensify.push(existingPR);
                 }
-            });
+            }
 
             const didVersionChange = newVersion !== currentChecklistData?.version;
             const stagingDeployCashBodyAndAssignees = await GithubUtils.generateStagingDeployCashBodyAndAssignees(
@@ -210,7 +210,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
             const {data: newChecklist} = await GithubUtils.octokit.issues.create({
                 ...defaultPayload,
                 title: `Deploy Checklist: New Expensify ${format(new Date(), CONST.DATE_FORMAT_STRING)}`,
-                labels: [CONST.LABELS.STAGING_DEPLOY],
+                labels: [CONST.LABELS.STAGING_DEPLOY, CONST.LABELS.LOCK_DEPLOY],
                 assignees: [CONST.APPLAUSE_BOT as string].concat(checklistAssignees),
             });
             console.log(`Successfully created new StagingDeployCash! 🎉 ${newChecklist.html_url}`);

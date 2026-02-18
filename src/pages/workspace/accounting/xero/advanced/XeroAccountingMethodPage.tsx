@@ -2,7 +2,7 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
@@ -66,10 +66,10 @@ function XeroAccountingMethodPage({policy, route}: WithPolicyConnectionsProps) {
 
     return (
         <SelectionScreen
-            displayName={XeroAccountingMethodPage.displayName}
+            displayName="XeroAccountingMethodPage"
             headerTitleAlreadyTranslated={translate('workspace.xero.accountingMethods.label')}
             headerContent={headerContent}
-            sections={[{data}]}
+            data={data}
             listItem={RadioListItem}
             onSelectRow={(selection: SelectorType) => selectExpenseReportApprovalLevel(selection as MenuListItem)}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
@@ -79,10 +79,9 @@ function XeroAccountingMethodPage({policy, route}: WithPolicyConnectionsProps) {
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_AUTO_SYNC.getRoute(policyID, backTo))}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
             pendingAction={pendingAction}
+            shouldBeBlocked={!config?.autoSync?.enabled}
         />
     );
 }
-
-XeroAccountingMethodPage.displayName = 'XeroAccountingMethodPage';
 
 export default withPolicyConnections(XeroAccountingMethodPage);

@@ -4,7 +4,6 @@ description: Learn how to connect Expensify to QuickBooks Online for seamless ex
 keywords: [Expensify Classic, QuickBooks Online, Expensify integration, expense management, accounting, export reports]
 order: 1
 ---
-<div id="expensify-classic" markdown="1">
 
 Expensify's integration with QuickBooks Online allows you to import expense accounts, sync financial data, and export reports directly for streamlined reconciliation. This guide walks you through setting up the connection and ensuring a smooth integration.
 
@@ -58,4 +57,3 @@ After connecting, you can export past reports from Expensify to QuickBooks Onlin
 4. Click **Export To**, then select **QuickBooks Online**.
     - If you do not want to export specific reports, select **Mark as Manually Entered** instead.
 
-</div>

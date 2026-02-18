@@ -99,6 +99,8 @@ type ThemeColors = {
     tooltipSupportingText: Color;
     tooltipPrimaryText: Color;
     trialBannerBackgroundColor: Color;
+    widgetIconBG: Color;
+    widgetIconFill: Color;
     skeletonLHNIn: Color;
     skeletonLHNOut: Color;
     QRLogo: Color;
@@ -111,6 +113,14 @@ type ThemeColors = {
     travelBG: Color;
     todoBG: Color;
     trialTimer: Color;
+
+    reportStatusBadge: Record<
+        'draft' | 'outstanding' | 'paid' | 'approved' | 'closed',
+        {
+            backgroundColor: Color;
+            textColor: Color;
+        }
+    >;
 
     PAGE_THEMES: Record<string, {backgroundColor: Color; statusBarStyle: StatusBarStyle}>;
 

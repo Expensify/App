@@ -93,6 +93,4 @@ function ItemListSkeletonView({
     );
 }
 
-ItemListSkeletonView.displayName = 'ListItemSkeleton';
-
 export default ItemListSkeletonView;

@@ -4,7 +4,6 @@ description: A list of common QuickBooks Online errors and how to resolve them
 keywords: [New Expensify, QuickBooks Online errors, QBO export error, accounting sync, export failed]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Sometimes reports may fail to export or sync with QuickBooks Online. This guide outlines common errors and how to resolve them.
 
@@ -30,12 +29,12 @@ Errors will prevent automatic export until resolved.
 
 # Issue: Unable to manually export a report
 
-Only reports in **Approved**, **Closed**, or **Reimbursed** status can be exported. If the report is **Open**, the export button will load an empty screen.
+Only reports in **Approved**, **Done**, or **Paid** status can be exported. If the report is a **Draft**, the export button will load an empty screen.
 
 ## How to resolve
 
-1. Submit the report (if Open)
-2. Have an approver approve it (if Processing)
+1. Submit the report (if it's a Draft)
+2. Have an approver approve it (if it's Outstanding)
 3. Then, a Workspace Admin can manually export the report
 
 ---
@@ -203,4 +202,3 @@ Check the exporter's role in **Workspaces > [Workspace Name] > Accounting > Quic
 
 Yes — QuickBooks Online accepts negative expenses across all export types.
 
-</div>

@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OnboardingMergingAccountBlockedView from '@components/OnboardingMergingAccountBlockedView';
@@ -34,7 +34,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
     const isVsb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
-    const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, {canBeMissing: true});
+    const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, {canBeMissing: true});
     const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
     const isFocused = useIsFocused();
 
@@ -42,7 +42,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
         if (onboardingValues?.isMergeAccountStepCompleted === undefined) {
             return;
         }
-        setOnboardingErrorMessage('');
+        setOnboardingErrorMessage(null);
         if (onboardingValues?.shouldRedirectToClassicAfterMerge) {
             openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
             return;
@@ -65,22 +65,19 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
         }
 
         Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
-    }, [onboardingValues, isVsb, isSmb, isFocused]);
+    }, [onboardingValues?.isMergeAccountStepCompleted, onboardingValues?.shouldRedirectToClassicAfterMerge, onboardingValues?.isMergeAccountStepSkipped, isVsb, isSmb, isFocused]);
 
-    const sendValidateCode = useCallback(() => {
+    const sendValidateCode = () => {
         if (!credentials?.login) {
             return;
         }
         resendValidateCode(credentials.login);
-    }, [credentials?.login]);
+    };
 
-    const validateAccountAndMerge = useCallback(
-        (validateCode: string) => {
-            setOnboardingErrorMessage('');
-            MergeIntoAccountAndLogin(workEmail, validateCode, session?.accountID);
-        },
-        [workEmail, session?.accountID],
-    );
+    const validateAccountAndMerge = (validateCode: string) => {
+        setOnboardingErrorMessage(null);
+        MergeIntoAccountAndLogin(workEmail, validateCode, session?.accountID);
+    };
 
     return (
         <ScreenWrapper
@@ -94,6 +91,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
                 onBackButtonPress={() => {
                     updateOnboardingValuesAndNavigation(onboardingValues);
                 }}
+                shouldDisplayHelpButton={false}
             />
             {onboardingValues?.isMergingAccountBlocked ? (
                 <View style={[styles.flex1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
@@ -110,22 +108,20 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
                         handleSubmitForm={validateAccountAndMerge}
                         sendValidateCode={sendValidateCode}
                         validateCodeActionErrorField="mergeIntoAccountAndLogIn"
-                        clearError={() => setOnboardingErrorMessage('')}
+                        clearError={() => setOnboardingErrorMessage(null)}
                         buttonStyles={[styles.flex2, styles.justifyContentEnd, styles.mb5]}
                         shouldShowSkipButton
                         handleSkipButtonPress={() => {
-                            setOnboardingErrorMessage('');
+                            setOnboardingErrorMessage(null);
                             setOnboardingMergeAccountStepValue(true, true);
                         }}
                         isLoading={isValidateCodeFormSubmitting}
-                        validateError={onboardingErrorMessage ? {invalidCodeError: onboardingErrorMessage} : undefined}
+                        validateError={onboardingErrorMessage ? {invalidCodeError: translate(onboardingErrorMessage)} : undefined}
                     />
                 </View>
             )}
         </ScreenWrapper>
     );
 }
-
-BaseOnboardingWorkEmailValidation.displayName = 'BaseOnboardingWorkEmailValidation';
 
 export default BaseOnboardingWorkEmailValidation;

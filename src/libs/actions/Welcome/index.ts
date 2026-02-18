@@ -8,54 +8,22 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import CONFIG from '@src/CONFIG';
 import type {OnboardingAccounting} from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OnboardingPurpose} from '@src/types/onyx';
 import type Onboarding from '@src/types/onyx/Onboarding';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnboardingCompanySize} from './OnboardingFlow';
 
-type OnboardingData = Onboarding | undefined;
-
 let isLoadingReportData = true;
-let onboarding: OnboardingData;
-
-type HasCompletedOnboardingFlowProps = {
-    onCompleted?: () => void;
-    onNotCompleted?: () => void;
-    onCanceled?: () => void;
-};
 
 let resolveIsReadyPromise: (value?: Promise<void>) => void | undefined;
 let isServerDataReadyPromise = new Promise<void>((resolve) => {
     resolveIsReadyPromise = resolve;
 });
 
-let resolveOnboardingFlowStatus: () => void;
-let isOnboardingFlowStatusKnownPromise = new Promise<void>((resolve) => {
-    resolveOnboardingFlowStatus = resolve;
-});
-
 function onServerDataReady(): Promise<void> {
     return isServerDataReadyPromise;
-}
-
-let isOnboardingInProgress = false;
-function isOnboardingFlowCompleted({onCompleted, onNotCompleted, onCanceled}: HasCompletedOnboardingFlowProps) {
-    isOnboardingFlowStatusKnownPromise.then(() => {
-        if (isEmptyObject(onboarding) || onboarding?.hasCompletedGuidedSetupFlow === undefined) {
-            onCanceled?.();
-            return;
-        }
-
-        if (onboarding?.hasCompletedGuidedSetupFlow) {
-            isOnboardingInProgress = false;
-            onCompleted?.();
-        } else if (!isOnboardingInProgress) {
-            isOnboardingInProgress = true;
-            onNotCompleted?.();
-        }
-    });
 }
 
 /**
@@ -67,17 +35,6 @@ function checkServerDataReady() {
     }
 
     resolveIsReadyPromise?.();
-}
-
-/**
- * Check if the onboarding data is loaded
- */
-function checkOnboardingDataReady() {
-    if (onboarding === undefined) {
-        return;
-    }
-
-    resolveOnboardingFlowStatus();
 }
 
 function setOnboardingPurposeSelected(value: OnboardingPurpose) {
@@ -92,8 +49,8 @@ function setOnboardingUserReportedIntegration(value: OnboardingAccounting | null
     Onyx.set(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, value);
 }
 
-function setOnboardingErrorMessage(value: string) {
-    Onyx.set(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, value ?? null);
+function setOnboardingErrorMessage(value: TranslationPaths | null) {
+    Onyx.set(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, value);
 }
 
 function setOnboardingAdminsChatReportID(adminsChatReportID?: string) {
@@ -121,12 +78,17 @@ function updateOnboardingValuesAndNavigation(onboardingValues: Onboarding | unde
 function setOnboardingMergeAccountStepValue(value: boolean, skipped = false) {
     Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergeAccountStepCompleted: value, isMergeAccountStepSkipped: skipped});
 }
+
+function setOnboardingTestDriveModalDismissed() {
+    Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {testDriveModalDismissed: true});
+}
+
 function completeHybridAppOnboarding() {
     if (!CONFIG.IS_HYBRID_APP) {
         return;
     }
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_TRY_NEW_DOT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_TRY_NEW_DOT,
@@ -150,15 +112,9 @@ function completeHybridAppOnboarding() {
     });
 }
 
-Onyx.connect({
-    key: ONYXKEYS.NVP_ONBOARDING,
-    callback: (value) => {
-        onboarding = value;
-        checkOnboardingDataReady();
-    },
-});
-
-Onyx.connect({
+// We use `connectWithoutView` here since this connection only to get loading flag
+// and doesn't need to trigger component re-renders.
+Onyx.connectWithoutView({
     key: ONYXKEYS.IS_LOADING_REPORT_DATA,
     initWithStoredValues: false,
     callback: (value) => {
@@ -171,11 +127,7 @@ function resetAllChecks() {
     isServerDataReadyPromise = new Promise((resolve) => {
         resolveIsReadyPromise = resolve;
     });
-    isOnboardingFlowStatusKnownPromise = new Promise<void>((resolve) => {
-        resolveOnboardingFlowStatus = resolve;
-    });
     isLoadingReportData = true;
-    isOnboardingInProgress = false;
 }
 
 function setSelfTourViewed(shouldUpdateOnyxDataOnlyLocally = false) {
@@ -184,7 +136,7 @@ function setSelfTourViewed(shouldUpdateOnyxDataOnlyLocally = false) {
         return;
     }
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_ONBOARDING>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
@@ -217,7 +169,6 @@ function dismissProductTraining(elementName: string, isDismissedUsingCloseButton
 
 export {
     onServerDataReady,
-    isOnboardingFlowCompleted,
     dismissProductTraining,
     setOnboardingPurposeSelected,
     updateOnboardingLastVisitedPath,
@@ -231,4 +182,5 @@ export {
     setOnboardingMergeAccountStepValue,
     updateOnboardingValuesAndNavigation,
     setOnboardingUserReportedIntegration,
+    setOnboardingTestDriveModalDismissed,
 };

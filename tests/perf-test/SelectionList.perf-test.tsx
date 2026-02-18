@@ -3,9 +3,10 @@ import type {RenderResult} from '@testing-library/react-native';
 import React, {useState} from 'react';
 import type {ComponentType} from 'react';
 import {measureRenders} from 'reassure';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
-import type {ListItem} from '@components/SelectionList/types';
+// eslint-disable-next-line no-restricted-imports
+import SelectionList from '@components/SelectionListWithSections';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import type {KeyboardStateContextValue} from '@components/withKeyboardState';
 import variables from '@styles/variables';
 

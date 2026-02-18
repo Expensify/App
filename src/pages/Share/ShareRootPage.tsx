@@ -5,18 +5,22 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabNavigatorSkeleton from '@components/Skeletons/TabNavigatorSkeleton';
 import TabSelector from '@components/TabSelector/TabSelector';
+import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {addTempShareFile, clearShareData} from '@libs/actions/Share';
+import {addTempShareFile, addValidatedShareFile, clearShareData} from '@libs/actions/Share';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {splitExtensionFromFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
+import {shouldValidateFile} from '@libs/ReceiptUtils';
 import ShareActionHandler from '@libs/ShareActionHandlerModule';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ShareTempFile} from '@src/types/onyx';
+import type {FileObject} from '@src/types/utils/Attachment';
 import getFileSize from './getFileSize';
 import ShareTab from './ShareTab';
 import SubmitTab from './SubmitTab';
@@ -25,14 +29,36 @@ function showErrorAlert(title: string, message: string) {
     Alert.alert(title, message, [
         {
             onPress: () => {
-                Navigation.navigate(ROUTES.HOME);
+                Navigation.navigate(ROUTES.INBOX);
             },
         },
     ]);
-    Navigation.navigate(ROUTES.HOME);
+    Navigation.navigate(ROUTES.INBOX);
 }
 
 function ShareRootPage() {
+    const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE, {canBeMissing: true});
+
+    const {validateFiles} = useFilesValidation(addValidatedShareFile);
+    const isTextShared = currentAttachment?.mimeType === 'txt';
+
+    const validateFileIfNecessary = useCallback(
+        (file: ShareTempFile) => {
+            if (!file || isTextShared || !shouldValidateFile(file)) {
+                return;
+            }
+
+            validateFiles([
+                {
+                    name: file.id,
+                    uri: file.content,
+                    type: file.mimeType,
+                },
+            ]);
+        },
+        [isTextShared, validateFiles],
+    );
+
     const appState = useRef(AppState.currentState);
     const [isFileReady, setIsFileReady] = useState(false);
 
@@ -95,13 +121,14 @@ function ShareRootPage() {
                     } else {
                         setIsFileScannable(false);
                     }
+                    validateFileIfNecessary(tempFile);
                     setIsFileReady(true);
                 }
 
                 addTempShareFile(tempFile);
             }
         });
-    }, [receiptFileFormats, shareFileMimeTypes, translate, errorTitle]);
+    }, [errorTitle, shareFileMimeTypes, translate, receiptFileFormats, validateFileIfNecessary]);
 
     useEffect(() => {
         const subscription = AppState.addEventListener('change', (nextAppState) => {
@@ -120,7 +147,7 @@ function ShareRootPage() {
     useEffect(() => {
         clearShareData();
         handleProcessFiles();
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const shareTabInputRef = useRef<AnimatedTextInputRef | null>(null);
@@ -131,6 +158,7 @@ function ShareRootPage() {
     const onTabSelectFocusHandler = ({index}: {index: number}) => {
         // We runAfterInteractions since the function is called in the animate block on web-based
         // implementation, this fixes an animation glitch and matches the native internal delay
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             // Chat tab (0) / Room tab (1) according to OnyxTabNavigator (see below)
             if (index === 0) {
@@ -143,16 +171,15 @@ function ShareRootPage() {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnableKeyboardAvoidingView={false}
+            includeSafeAreaPaddingBottom
             shouldEnableMinHeight={canUseTouchScreen()}
-            testID={ShareRootPage.displayName}
+            testID="ShareRootPage"
         >
             <View style={[styles.flex1]}>
                 <HeaderWithBackButton
                     title={translate('share.shareToExpensify')}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.HOME)}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.INBOX)}
                 />
                 {isFileReady ? (
                     <OnyxTabNavigator
@@ -171,8 +198,6 @@ function ShareRootPage() {
         </ScreenWrapper>
     );
 }
-
-ShareRootPage.displayName = 'ShareRootPage';
 
 export default ShareRootPage;
 

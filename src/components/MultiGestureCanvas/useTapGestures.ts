@@ -2,7 +2,8 @@
 import {useCallback, useMemo} from 'react';
 import type {TapGesture} from 'react-native-gesture-handler';
 import {Gesture} from 'react-native-gesture-handler';
-import {runOnJS, withSpring} from 'react-native-reanimated';
+import {withSpring} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
 import {DOUBLE_TAP_SCALE, SPRING_CONFIG} from './constants';
 import type {MultiGestureCanvasVariables} from './types';
 import * as MultiGestureCanvasUtils from './utils';
@@ -140,7 +141,7 @@ const useTapGestures = ({
                 'worklet';
 
                 if (onScaleChanged != null) {
-                    runOnJS(onScaleChanged)(zoomScale.get());
+                    scheduleOnRN(onScaleChanged, zoomScale.get());
                 }
             };
 
@@ -168,7 +169,7 @@ const useTapGestures = ({
                 return;
             }
 
-            runOnJS(onTap)();
+            scheduleOnRN(onTap);
         });
 
     return {singleTapGesture, doubleTapGesture};

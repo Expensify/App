@@ -37,10 +37,10 @@ function DebugTransactionPage({
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {
         canBeMissing: true,
     });
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`, {
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`, {
         canBeMissing: true,
     });
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`, {
         canBeMissing: true,
     });
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
@@ -61,6 +61,7 @@ function DebugTransactionPage({
                     Navigation.goBack();
                     // We need to wait for navigation animations to finish before deleting a transaction,
                     // otherwise the user will see a not found page briefly.
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {
                         Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, null);
                     });
@@ -102,7 +103,7 @@ function DebugTransactionPage({
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
             shouldEnableMinHeight={canUseTouchScreen()}
-            testID={DebugTransactionPage.displayName}
+            testID="DebugTransactionPage"
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
@@ -119,7 +120,5 @@ function DebugTransactionPage({
         </ScreenWrapper>
     );
 }
-
-DebugTransactionPage.displayName = 'DebugTransactionPage';
 
 export default DebugTransactionPage;

@@ -4,7 +4,6 @@ description: Learn how to configure Xero import, export, and advanced sync setti
 keywords: [New Expensify, Xero configuration, set up Xero integration, import export Xero, Xero auto-sync]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Learn how to configure the settings for your Xero integration, including import preferences, export setup, and advanced sync features. These steps ensure your expense data flows smoothly and accurately between Expensify and Xero.
 
@@ -48,8 +47,8 @@ Export settings determine how Expensify sends data to Xero.
 1. Under the Xero connection, click **Export**.
 2. Configure the following:
 
-- **Preferred exporter** – Assign a Workspace Admin to automatically receive reports to export.  
-  - Other Workspace Admins can still export to Xero.  
+- **Preferred exporter** – Assign a Workspace Admin to automatically receive reports to export.
+  - Other Workspace Admins can still export to Xero.
   - If card-specific export settings are configured under your domain, the Preferred Exporter must be a Domain Admin.
 
 - **Export out-of-pocket expenses as** – All out-of-pocket expenses are exported as purchase bills (not editable).
@@ -95,4 +94,3 @@ Expensify warns you if the report has already been exported. If you proceed, it 
 - If a report was reimbursed via ACH, the Paid status syncs to Xero.
 - Reports not yet exported won’t be affected unless exported manually.
 
-</div>

@@ -1,24 +1,26 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import React, {useContext, useEffect} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/ButtonDisabledWhenOffline';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
+import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -27,12 +29,21 @@ import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setPolicyPreventSelfApproval} from '@libs/actions/Policy/Policy';
 import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
-import {getAllCardsForWorkspace, getCardFeedIcon, getCompanyFeeds, getPlaidInstitutionIconUrl, isExpensifyCardFullySetUp, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import {
+    getAllCardsForWorkspace,
+    getCardFeedIcon,
+    getCardFeedWithDomainID,
+    getCompanyFeeds,
+    getPlaidInstitutionIconUrl,
+    isExpensifyCardFullySetUp,
+    lastFourNumbersFromCardName,
+    maskCardNumber,
+} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
-import {getDefaultApprover, isControlPolicy} from '@libs/PolicyUtils';
+import {isControlPolicy} from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 import Navigation from '@navigation/Navigation';
@@ -41,23 +52,13 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
-import type {ListItemType} from '@pages/workspace/WorkspaceMemberRoleSelectionModal';
-import WorkspaceMemberDetailsRoleSelectionModal from '@pages/workspace/WorkspaceMemberRoleSelectionModal';
 import variables from '@styles/variables';
-import {setIssueNewCardStepAndData} from '@userActions/Card';
-import {
-    clearWorkspaceOwnerChangeFlow,
-    isApprover as isApproverUserAction,
-    openPolicyMemberProfilePage,
-    removeMembers,
-    requestWorkspaceOwnerChange,
-    updateWorkspaceMembersRole,
-} from '@userActions/Policy/Member';
+import {clearWorkspaceOwnerChangeFlow, isApprover as isApproverUserAction, openPolicyMemberProfilePage, removeMembers} from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeed, Card as MemberCard, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+import type {CompanyCardFeed, CompanyCardFeedWithDomainID, Card as MemberCard, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 
 type WorkspacePolicyOnyxProps = {
     /** Personal details of all users */
@@ -68,22 +69,27 @@ type WorkspaceMemberDetailsPageProps = Omit<WithPolicyAndFullscreenLoadingProps,
     WorkspacePolicyOnyxProps &
     PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_DETAILS>;
 
+function isNameValuePairsObject(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceMemberDetailsPageProps) {
     const policyID = route.params.policyID;
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
+    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Info', 'Transfer']);
     const styles = useThemeStyles();
     const {formatPhoneNumber, translate, localeCompare} = useLocalize();
     const StyleUtils = useStyleUtils();
     const illustrations = useThemeIllustrations();
+    const companyCardFeedIcons = useCompanyCardFeedIcons();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [cardFeeds] = useCardFeeds(policyID);
     const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: true});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
     const expensifyCardSettings = useExpensifyCardFeeds(policyID);
-
-    const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = useState(false);
-    const [isRoleSelectionModalVisible, setIsRoleSelectionModalVisible] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
 
     const accountID = Number(route.params.accountID);
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
@@ -96,103 +102,87 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
     const isCurrentUserAdmin = policy?.employeeList?.[personalDetails?.[currentUserPersonalDetails?.accountID]?.login ?? '']?.role === CONST.POLICY.ROLE.ADMIN;
     const isCurrentUserOwner = policy?.owner === currentUserPersonalDetails?.login;
-    const ownerDetails = useMemo(() => personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails), [personalDetails, policy?.ownerAccountID]);
+    const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
     const policyOwnerDisplayName = formatPhoneNumber(getDisplayNameOrDefault(ownerDetails)) ?? policy?.owner ?? '';
     const hasMultipleFeeds = Object.keys(getCompanyFeeds(cardFeeds, false, true)).length > 0;
-    const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds, expensifyCardSettings);
+    const {cardList: assignableCards, ...workspaceCards} = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds, expensifyCardSettings);
     const isSMSLogin = Str.isSMSLogin(memberLogin);
     const phoneNumber = getPhoneNumber(details);
+    const isReimburser = policy?.achAccount?.reimburser === memberLogin;
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
-    const {approvalWorkflows} = useMemo(
-        () =>
-            convertPolicyEmployeesToApprovalWorkflows({
-                employees: policy?.employeeList ?? {},
-                defaultApprover: getDefaultApprover(policy),
-                personalDetails: personalDetails ?? {},
-                localeCompare,
-            }),
-        [personalDetails, policy, localeCompare],
-    );
+    const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({
+        policy,
+        personalDetails: personalDetails ?? {},
+        localeCompare,
+    });
 
     useEffect(() => {
         openPolicyMemberProfilePage(policyID, accountID);
     }, [policyID, accountID]);
 
-    const memberCards = useMemo(() => {
-        if (!workspaceCards) {
-            return [];
-        }
-        return Object.values(workspaceCards ?? {}).filter((card) => card.accountID === accountID);
-    }, [accountID, workspaceCards]);
+    const memberCards = workspaceCards ? Object.values(workspaceCards).filter((card) => card.accountID === accountID) : [];
 
-    const confirmModalPrompt = useMemo(() => {
-        const isApprover = isApproverUserAction(policy, accountID);
-        if (!isApprover) {
-            return translate('workspace.people.removeMemberPrompt', {memberName: displayName});
-        }
-        return translate('workspace.people.removeMembersWarningPrompt', {
+    const isApprover = isApproverUserAction(policy, memberLogin);
+    const isTechnicalContact = policy?.technicalContact === details?.login;
+    const exporters = [
+        policy?.connections?.intacct?.config?.export?.exporter,
+        policy?.connections?.quickbooksDesktop?.config?.export?.exporter,
+        policy?.connections?.quickbooksOnline?.config?.export?.exporter,
+        policy?.connections?.xero?.config?.export?.exporter,
+        policy?.connections?.netsuite?.options?.config?.exporter,
+    ];
+    const isUserExporter = exporters.includes(details.login);
+
+    let confirmModalPrompt = translate('workspace.people.removeMembersWarningPrompt', displayName, policyOwnerDisplayName);
+
+    if (isTechnicalContact) {
+        confirmModalPrompt = translate('workspace.people.removeMemberPromptTechContact', {
             memberName: displayName,
-            ownerName: policyOwnerDisplayName,
+            workspaceOwner: policyOwnerDisplayName,
         });
-    }, [accountID, policy, displayName, policyOwnerDisplayName, translate]);
-
-    const roleItems: ListItemType[] = useMemo(
-        () => [
-            {
-                value: CONST.POLICY.ROLE.ADMIN,
-                text: translate('common.admin'),
-                alternateText: translate('workspace.common.adminAlternateText'),
-                isSelected: member?.role === CONST.POLICY.ROLE.ADMIN,
-                keyForList: CONST.POLICY.ROLE.ADMIN,
-            },
-            {
-                value: CONST.POLICY.ROLE.AUDITOR,
-                text: translate('common.auditor'),
-                alternateText: translate('workspace.common.auditorAlternateText'),
-                isSelected: member?.role === CONST.POLICY.ROLE.AUDITOR,
-                keyForList: CONST.POLICY.ROLE.AUDITOR,
-            },
-            {
-                value: CONST.POLICY.ROLE.USER,
-                text: translate('common.member'),
-                alternateText: translate('workspace.common.memberAlternateText'),
-                isSelected: member?.role === CONST.POLICY.ROLE.USER,
-                keyForList: CONST.POLICY.ROLE.USER,
-            },
-        ],
-        [member?.role, translate],
-    );
+    } else if (isReimburser) {
+        confirmModalPrompt = translate('workspace.people.removeMemberPromptReimburser', {
+            memberName: displayName,
+        });
+    } else if (isUserExporter) {
+        confirmModalPrompt = translate('workspace.people.removeMemberPromptExporter', {
+            memberName: displayName,
+            workspaceOwner: policyOwnerDisplayName,
+        });
+    } else if (!isApprover) {
+        confirmModalPrompt = translate('workspace.people.removeMemberPrompt', displayName);
+    } else if (isApprover) {
+        confirmModalPrompt = translate('workspace.people.removeMemberPromptApprover', {
+            approver: displayName,
+            workspaceOwner: policyOwnerDisplayName,
+        });
+    }
 
     useEffect(() => {
         if (!prevMember || prevMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || member?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             return;
         }
         navigateAfterInteraction(() => Navigation.goBack());
-    }, [member, prevMember]);
-
-    const askForConfirmationToRemove = () => {
-        setIsRemoveMemberConfirmModalVisible(true);
-    };
+    }, [member?.pendingAction, prevMember]);
 
     // Function to remove a member and close the modal
-    const removeMemberAndCloseModal = useCallback(() => {
-        removeMembers([accountID], policyID);
+    const removeMemberAndCloseModal = () => {
+        removeMembers(policy, [memberLogin], {[memberLogin]: accountID});
         const previousEmployeesCount = Object.keys(policy?.employeeList ?? {}).length;
         const remainingEmployeeCount = previousEmployeesCount - 1;
         if (remainingEmployeeCount === 1 && policy?.preventSelfApproval) {
             // We can't let the "Prevent Self Approvals" enabled if there's only one workspace user
-            setPolicyPreventSelfApproval(route.params.policyID, false);
+            setPolicyPreventSelfApproval(policyID, false);
         }
-        setIsRemoveMemberConfirmModalVisible(false);
-    }, [accountID, policy?.employeeList, policy?.preventSelfApproval, policyID, route.params.policyID]);
+    };
 
-    const removeUser = useCallback(() => {
+    const removeUser = () => {
         const ownerEmail = ownerDetails?.login;
         const removedApprover = personalDetails?.[accountID];
 
         // If the user is not an approver, proceed with member removal
-        if (!isApproverUserAction(policy, accountID) || !removedApprover?.login || !ownerEmail) {
+        if (!isApproverUserAction(policy, memberLogin) || !removedApprover?.login || !ownerEmail) {
             removeMemberAndCloseModal();
             return;
         }
@@ -204,76 +194,76 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             ownerDetails,
         });
 
-        updatedWorkflows.forEach((workflow) => {
+        for (const workflow of updatedWorkflows) {
             if (workflow?.removeApprovalWorkflow) {
                 const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
 
-                removeApprovalWorkflowAction(policyID, updatedWorkflow);
+                removeApprovalWorkflowAction(updatedWorkflow, policy);
             } else {
-                updateApprovalWorkflow(policyID, workflow, [], []);
+                updateApprovalWorkflow(workflow, [], [], policy);
             }
-        });
+        }
 
         // Remove the member and close the modal
         removeMemberAndCloseModal();
-    }, [accountID, approvalWorkflows, ownerDetails, personalDetails, policy, policyID, removeMemberAndCloseModal]);
+    };
 
-    const navigateToProfile = useCallback(() => {
-        Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));
-    }, [accountID]);
-
-    const navigateToDetails = useCallback(
-        (card: MemberCard) => {
-            if (card.bank === CONST.EXPENSIFY_CARD.BANK) {
-                Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, card.cardID.toString(), Navigation.getActiveRoute()));
-                return;
-            }
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, card.cardID.toString(), card.bank, Navigation.getActiveRoute()));
-        },
-        [policyID],
-    );
-
-    const handleIssueNewCard = useCallback(() => {
-        if (isAccountLocked) {
-            showLockedAccountModal();
-            return;
-        }
-
-        if (hasMultipleFeeds) {
-            Navigation.navigate(ROUTES.WORKSPACE_MEMBER_NEW_CARD.getRoute(policyID, accountID));
-            return;
-        }
-        const activeRoute = Navigation.getActiveRoute();
-
-        setIssueNewCardStepAndData({
-            step: CONST.EXPENSIFY_CARD.STEP.CARD_TYPE,
-            data: {
-                assigneeEmail: memberLogin,
-            },
-            isEditing: false,
-            isChangeAssigneeDisabled: true,
-            policyID,
+    const showRemoveMemberModal = async () => {
+        const result = await showConfirmModal({
+            danger: true,
+            title: translate('workspace.people.removeMemberTitle'),
+            prompt: confirmModalPrompt,
+            confirmText: translate('common.remove'),
+            cancelText: translate('common.cancel'),
         });
-        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, activeRoute));
-    }, [accountID, hasMultipleFeeds, memberLogin, policyID, isAccountLocked, showLockedAccountModal]);
 
-    const openRoleSelectionModal = useCallback(() => {
-        setIsRoleSelectionModalVisible(true);
-    }, []);
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+        removeUser();
+    };
 
-    const changeRole = useCallback(
-        ({value}: ListItemType) => {
-            setIsRoleSelectionModalVisible(false);
-            updateWorkspaceMembersRole(policyID, [accountID], value);
-        },
-        [accountID, policyID],
-    );
+    const askForConfirmationToRemove = () => {
+        if (isReimburser) {
+            showConfirmModal({
+                shouldShowCancelButton: false,
+                success: true,
+                title: translate('workspace.people.removeMemberTitle'),
+                prompt: confirmModalPrompt,
+                confirmText: translate('common.buttonConfirm'),
+                cancelText: translate('common.cancel'),
+            });
+            return;
+        }
+        showRemoveMemberModal();
+    };
 
-    const startChangeOwnershipFlow = useCallback(() => {
+    const navigateToProfile = () => {
+        Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));
+    };
+
+    const navigateToDetails = (card: MemberCard) => {
+        if (card.bank === CONST.EXPENSIFY_CARD.BANK) {
+            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, card.cardID.toString(), Navigation.getActiveRoute()));
+            return;
+        }
+        if (!card.fundID) {
+            return;
+        }
+        Navigation.navigate(
+            ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(
+                policyID,
+                getCardFeedWithDomainID(card.bank, card.fundID) as CompanyCardFeedWithDomainID,
+                card.cardID.toString(),
+                Navigation.getActiveRoute(),
+            ),
+        );
+    };
+
+    const startChangeOwnershipFlow = () => {
         clearWorkspaceOwnerChangeFlow(policyID);
-        requestWorkspaceOwnerChange(policyID);
         Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, accountID, 'amountOwed' as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));
-    }, [accountID, policyID]);
+    };
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
@@ -292,7 +282,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={WorkspaceMemberDetailsPage.displayName}
+                testID="WorkspaceMemberDetailsPage"
             >
                 <HeaderWithBackButton
                     title={displayName}
@@ -321,11 +311,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 </Text>
                             )}
                             {isSelectedMemberOwner && isCurrentUserAdmin && !isCurrentUserOwner ? (
-                                shouldRenderTransferOwnerButton() && (
+                                shouldRenderTransferOwnerButton(fundList) && (
                                     <ButtonDisabledWhenOffline
                                         text={translate('workspace.people.transferOwner')}
                                         onPress={startChangeOwnershipFlow}
-                                        icon={Expensicons.Transfer}
+                                        icon={icons.Transfer}
                                         style={styles.mb5}
                                     />
                                 )
@@ -334,20 +324,10 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     text={translate('workspace.people.removeWorkspaceMemberButtonTitle')}
                                     onPress={isAccountLocked ? showLockedAccountModal : askForConfirmationToRemove}
                                     isDisabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
-                                    icon={Expensicons.RemoveMembers}
+                                    icon={icons.RemoveMembers}
                                     style={styles.mb5}
                                 />
                             )}
-                            <ConfirmModal
-                                danger
-                                title={translate('workspace.people.removeMemberTitle')}
-                                isVisible={isRemoveMemberConfirmModalVisible}
-                                onConfirm={removeUser}
-                                onCancel={() => setIsRemoveMemberConfirmModalVisible(false)}
-                                prompt={confirmModalPrompt}
-                                confirmText={translate('common.remove')}
-                                cancelText={translate('common.cancel')}
-                            />
                         </View>
                         <View style={styles.w100}>
                             <MenuItemWithTopDescription
@@ -355,13 +335,14 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 copyValue={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : memberLogin}
                                 description={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
                                 interactive={false}
+                                copyable
                             />
                             <MenuItemWithTopDescription
                                 disabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
-                                title={translate(`workspace.common.roleName`, {role: member?.role})}
+                                title={translate(`workspace.common.roleName`, member?.role)}
                                 description={translate('common.role')}
                                 shouldShowRightIcon
-                                onPress={openRoleSelectionModal}
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.getRoute(policyID, accountID))}
                             />
                             {isControlPolicy(policy) && (
                                 <>
@@ -386,44 +367,43 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             <MenuItem
                                 style={styles.mb5}
                                 title={translate('common.profile')}
-                                icon={Expensicons.Info}
+                                icon={icons.Info}
                                 onPress={navigateToProfile}
                                 shouldShowRightIcon
                             />
-                            <WorkspaceMemberDetailsRoleSelectionModal
-                                isVisible={isRoleSelectionModalVisible}
-                                items={roleItems}
-                                onRoleChange={changeRole}
-                                onClose={() => setIsRoleSelectionModalVisible(false)}
-                            />
                             {shouldShowCardsSection && (
                                 <>
-                                    <View style={[styles.ph5, styles.pv3]}>
-                                        <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting])}>
-                                            {translate('walletPage.assignedCards')}
-                                        </Text>
-                                    </View>
+                                    {memberCards.length > 0 && (
+                                        <View style={[styles.ph5, styles.pv3]}>
+                                            <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting])}>
+                                                {translate('walletPage.assignedCards')}
+                                            </Text>
+                                        </View>
+                                    )}
                                     {memberCards.map((memberCard) => {
                                         const isCardDeleted = memberCard.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                                         const plaidUrl = getPlaidInstitutionIconUrl(memberCard?.bank);
+                                        const nameValuePairs = isNameValuePairsObject(memberCard.nameValuePairs) ? memberCard.nameValuePairs : null;
+                                        const unapprovedExpenseLimit = nameValuePairs?.unapprovedExpenseLimit;
+                                        const cardTitle = nameValuePairs?.cardTitle;
 
                                         return (
                                             <OfflineWithFeedback
-                                                key={`${memberCard.nameValuePairs?.cardTitle}_${memberCard.cardID}`}
+                                                key={`${cardTitle ?? ''}_${memberCard.cardID}`}
                                                 errorRowStyles={styles.ph5}
                                                 errors={memberCard.errors}
                                                 pendingAction={memberCard.pendingAction}
                                             >
                                                 <MenuItem
                                                     key={memberCard.cardID}
-                                                    title={
-                                                        memberCard.nameValuePairs?.cardTitle ??
-                                                        customCardNames?.[memberCard.cardID] ??
-                                                        maskCardNumber(memberCard?.cardName ?? '', memberCard.bank)
-                                                    }
+                                                    title={cardTitle ?? customCardNames?.[memberCard.cardID] ?? maskCardNumber(memberCard?.cardName ?? '', memberCard.bank)}
                                                     description={memberCard?.lastFourPAN ?? lastFourNumbersFromCardName(memberCard?.cardName)}
-                                                    badgeText={memberCard.bank === CONST.EXPENSIFY_CARD.BANK ? convertToDisplayString(memberCard.nameValuePairs?.unapprovedExpenseLimit) : ''}
-                                                    icon={getCardFeedIcon(memberCard.bank as CompanyCardFeed, illustrations)}
+                                                    badgeText={
+                                                        memberCard.bank === CONST.EXPENSIFY_CARD.BANK && unapprovedExpenseLimit !== undefined
+                                                            ? convertToDisplayString(unapprovedExpenseLimit)
+                                                            : ''
+                                                    }
+                                                    icon={getCardFeedIcon(memberCard.bank as CompanyCardFeed, illustrations, companyCardFeedIcons)}
                                                     plaidUrl={plaidUrl}
                                                     displayInDefaultIconColor
                                                     iconStyles={styles.cardIcon}
@@ -434,16 +414,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                     shouldRemoveHoverBackground={isCardDeleted}
                                                     disabled={isCardDeleted}
                                                     shouldShowRightIcon={!isCardDeleted}
-                                                    style={[isCardDeleted ? styles.offlineFeedback.deleted : {}]}
+                                                    style={[isCardDeleted ? styles.offlineFeedbackDeleted : {}]}
                                                 />
                                             </OfflineWithFeedback>
                                         );
                                     })}
-                                    <MenuItem
-                                        title={translate('workspace.expensifyCard.newCard')}
-                                        icon={Expensicons.Plus}
-                                        onPress={handleIssueNewCard}
-                                    />
                                 </>
                             )}
                         </View>
@@ -453,7 +428,5 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceMemberDetailsPage.displayName = 'WorkspaceMemberDetailsPage';
 
 export default withPolicyAndFullscreenLoading(WorkspaceMemberDetailsPage);

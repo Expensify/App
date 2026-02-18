@@ -5,7 +5,7 @@ import AttachmentCarouselPager from '@components/Attachments/AttachmentCarousel/
 import type {AttachmentCarouselPagerHandle} from '@components/Attachments/AttachmentCarousel/Pager';
 import type {AttachmentSource} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
@@ -23,13 +23,14 @@ function AttachmentCarouselView({
     setShouldShowArrows,
     onAttachmentError,
     onNavigate,
-    onClose,
+    onSwipeDown,
     setPage,
     attachmentID,
 }: AttachmentCarouselViewProps) {
     const {translate} = useLocalize();
     const canUseTouchScreen = canUseTouchScreenUtil();
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud']);
     const [activeAttachmentID, setActiveAttachmentID] = useState<AttachmentSource>(attachmentID ?? source);
 
     const pagerRef = useRef<AttachmentCarouselPagerHandle>(null);
@@ -80,7 +81,7 @@ function AttachmentCarouselView({
         >
             {page === -1 ? (
                 <BlockingView
-                    icon={Illustrations.ToddBehindCloud}
+                    icon={illustrations.ToddBehindCloud}
                     iconWidth={variables.modalTopIconWidth}
                     iconHeight={variables.modalTopIconHeight}
                     title={translate('notFound.notHere')}
@@ -103,7 +104,7 @@ function AttachmentCarouselView({
                         activeAttachmentID={activeAttachmentID}
                         setShouldShowArrows={setShouldShowArrows}
                         onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
-                        onClose={onClose}
+                        onSwipeDown={onSwipeDown}
                         ref={pagerRef}
                         reportID={report?.reportID}
                     />
@@ -112,7 +113,5 @@ function AttachmentCarouselView({
         </View>
     );
 }
-
-AttachmentCarouselView.displayName = 'AttachmentCarouselView';
 
 export default AttachmentCarouselView;

@@ -5,6 +5,7 @@ import {getMatchingFullScreenRoute, isFullScreenName} from '@libs/Navigation/hel
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
+import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import {shallowCompare} from '@libs/ObjectUtils';
 import getMatchingNewRoute from '@navigation/helpers/getMatchingNewRoute';
 import type {NavigationPartialRoute, ReportsSplitNavigatorParamList, RootNavigatorParamList, StackNavigationAction} from '@navigation/types';
@@ -36,8 +37,8 @@ function arePathAndBackToEqual(stateFromPath: PartialState<NavigationState<RootN
     if (!focusedRouteFromPath?.path || !('backTo' in params) || !params.backTo || typeof params.backTo !== 'string') {
         return false;
     }
-    let cleanedPath = focusedRouteFromPath.path.replace(/\?.*/, '');
-    let cleanedBackTo = params.backTo.replace(/\?.*/, '');
+    let cleanedPath = focusedRouteFromPath.path.replaceAll(/\?.*/g, '');
+    let cleanedBackTo = params.backTo.replaceAll(/\?.*/g, '');
     cleanedPath = cleanedPath.endsWith('/') ? cleanedPath.slice(0, -1) : cleanedPath;
     cleanedBackTo = cleanedBackTo.endsWith('/') ? cleanedBackTo.slice(0, -1) : cleanedBackTo;
 
@@ -49,7 +50,7 @@ function shouldCheckFullScreenRouteMatching(action: StackNavigationAction): acti
 }
 
 function isNavigatingToAttachmentScreen(focusedRouteName?: string) {
-    return focusedRouteName === SCREENS.ATTACHMENTS;
+    return focusedRouteName === SCREENS.REPORT_ATTACHMENTS;
 }
 
 function isNavigatingToReportWithSameReportID(currentRoute: NavigationPartialRoute, newRoute: NavigationPartialRoute) {
@@ -61,6 +62,47 @@ function isNavigatingToReportWithSameReportID(currentRoute: NavigationPartialRou
     const newParams = newRoute?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
 
     return currentParams?.reportID === newParams?.reportID;
+}
+
+function isRoutePreloaded(currentState: PlatformStackNavigationState<RootNavigatorParamList>, matchingFullScreenRoute: NavigationPartialRoute) {
+    const lastRouteInMatchingFullScreen = matchingFullScreenRoute.state?.routes?.at(-1);
+
+    const preloadedRoutes = currentState.preloadedRoutes;
+
+    return preloadedRoutes.some((preloadedRoute) => {
+        const isMatchingFullScreenRoute = preloadedRoute.name === matchingFullScreenRoute.name;
+
+        // If the matching fullscreen route does not have a last route, then we only need to compare the fullscreen route name
+        if (!lastRouteInMatchingFullScreen?.name) {
+            return isMatchingFullScreenRoute;
+        }
+
+        // Compare the last route of the preloadedRoute and the last route of the matchingFullScreenRoute to ensure the preloaded route is accepted when matching subroutes as well
+        const isMatchingLastRoute = preloadedRoute.params && 'screen' in preloadedRoute.params && preloadedRoute.params.screen === lastRouteInMatchingFullScreen.name;
+
+        return isMatchingFullScreenRoute && isMatchingLastRoute;
+    });
+}
+
+/**
+ * We will check whether we need to navigate with the target route along with the changes of the fullscreen route.
+ * When the fullscreen route needs to change, the background of the route will change according to the matchingFullScreenRoute.
+ */
+function shouldChangeToMatchingFullScreen(
+    newFocusedRoute: ReturnType<typeof findFocusedRoute>,
+    matchingFullScreenRoute: NavigationPartialRoute,
+    lastFullScreenRoute: NavigationPartialRoute,
+) {
+    if (matchingFullScreenRoute.name !== lastFullScreenRoute.name) {
+        return true;
+    }
+
+    const lastRouteInLastFullScreenRoute = lastFullScreenRoute?.state?.routes.at(-1);
+
+    // We always want the fullscreen route of SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD to be the SUBSCRIPTION tab of SCREENS.SETTINGS.
+    // The add payment card page can be opened via the Global create button from the create expense flow, so even when we are already on SCREENS.SETTINGS, with any tab currently open,
+    // the add payment card page can still be opened. Therefore, checking only the fullscreen name above is not sufficient, and the check below using the last route name is necessary.
+    return newFocusedRoute?.name === SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD && lastRouteInLastFullScreenRoute?.name !== SCREENS.SETTINGS.SUBSCRIPTION.ROOT;
 }
 
 export default function linkTo(navigation: NavigationContainerRef<RootNavigatorParamList> | null, path: Route, options?: LinkToOptions) {
@@ -78,7 +120,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     // It won't include the whole state that will be generated for this path but the focused route will be correct.
     // It is necessary because getActionFromState will generate RESET action for whole state generated with our custom getStateFromPath function.
     const stateFromPath = getStateFromPath(normalizedPathAfterRedirection) as PartialState<NavigationState<RootNavigatorParamList>>;
-    const currentState = navigation.getRootState() as NavigationState<RootNavigatorParamList>;
+    const currentState = navigation.getRootState() as PlatformStackNavigationState<RootNavigatorParamList>;
 
     const focusedRouteFromPath = findFocusedRoute(stateFromPath);
     const currentFocusedRoute = findFocusedRoute(currentState);
@@ -125,13 +167,17 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
             const matchingFullScreenRoute = getMatchingFullScreenRoute(newFocusedRoute);
 
             const lastFullScreenRoute = currentState.routes.findLast((route) => isFullScreenName(route.name));
-            if (matchingFullScreenRoute && lastFullScreenRoute && matchingFullScreenRoute.name !== lastFullScreenRoute.name) {
-                const lastRouteInMatchingFullScreen = matchingFullScreenRoute.state?.routes?.at(-1);
-                const additionalAction = StackActions.push(matchingFullScreenRoute.name, {
-                    screen: lastRouteInMatchingFullScreen?.name,
-                    params: lastRouteInMatchingFullScreen?.params,
-                });
-                navigation.dispatch(additionalAction);
+            if (matchingFullScreenRoute && lastFullScreenRoute && shouldChangeToMatchingFullScreen(newFocusedRoute, matchingFullScreenRoute, lastFullScreenRoute as NavigationPartialRoute)) {
+                if (isRoutePreloaded(currentState, matchingFullScreenRoute)) {
+                    navigation.dispatch(StackActions.push(matchingFullScreenRoute.name));
+                } else {
+                    const lastRouteInMatchingFullScreen = matchingFullScreenRoute.state?.routes?.at(-1);
+                    const additionalAction = StackActions.push(matchingFullScreenRoute.name, {
+                        screen: lastRouteInMatchingFullScreen?.name,
+                        params: lastRouteInMatchingFullScreen?.params,
+                    });
+                    navigation.dispatch(additionalAction);
+                }
             }
         }
     }

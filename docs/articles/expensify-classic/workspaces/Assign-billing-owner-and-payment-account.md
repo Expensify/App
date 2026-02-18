@@ -3,7 +3,6 @@ title: Assign Billing Owner and Payment Account
 description: Determine who will cover the cost of the workspace and link a payment method
 keywords: [Expensify Classic, billing owner, transfer billing, change payment account]
 ---
-<div id="expensify-classic" markdown="1">
 
 The person who creates a workspace is automatically responsible for its billing. However, the existing billing owner can transfer the workspace's billing ownership to any Admin on the workspace.
 
@@ -32,4 +31,3 @@ Once you take over billing for a workspace, you must add a payment method to you
 
 Once the billing transfer is complete, the new billing owner will manage payments and subscriptions for the workspace.
 
-</div>

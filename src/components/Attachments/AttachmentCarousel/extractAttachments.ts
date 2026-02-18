@@ -21,12 +21,20 @@ function extractAttachments(
         parentReportAction,
         reportActions,
         report,
-    }: {privateNotes?: Record<number, Note>; accountID?: number; parentReportAction?: OnyxEntry<ReportAction>; reportActions?: OnyxEntry<ReportActions>; report: OnyxEntry<Report>},
+        isReportArchived,
+    }: {
+        privateNotes?: Record<number, Note>;
+        accountID?: number;
+        parentReportAction?: OnyxEntry<ReportAction>;
+        reportActions?: OnyxEntry<ReportActions>;
+        report: OnyxEntry<Report>;
+        isReportArchived: boolean | undefined;
+    },
 ) {
     const targetNote = privateNotes?.[Number(accountID)]?.note ?? '';
     const description = report?.description ?? '';
     const attachments: Attachment[] = [];
-    const canUserPerformAction = canUserPerformWriteAction(report);
+    const canUserPerformAction = canUserPerformWriteAction(report, isReportArchived);
     let currentLink = '';
 
     const htmlParser = new HtmlParser({
@@ -108,9 +116,9 @@ function extractAttachments(
     }
 
     const actions = [...(parentReportAction ? [parentReportAction] : []), ...getSortedReportActions(Object.values(reportActions ?? {}))];
-    actions.forEach((action, key) => {
+    for (const [key, action] of actions.entries()) {
         if (!shouldReportActionBeVisible(action, key, canUserPerformAction) || isMoneyRequestAction(action)) {
-            return;
+            continue;
         }
 
         const decision = getReportActionMessage(action)?.moderationDecision?.decision;
@@ -119,7 +127,7 @@ function extractAttachments(
             .replaceAll('/>', `data-flagged="${hasBeenFlagged}" data-id="${action.reportActionID}"/>`)
             .replaceAll('<video ', `<video data-flagged="${hasBeenFlagged}" data-id="${action.reportActionID}" `);
         htmlParser.write(getHtmlWithAttachmentID(html, action.reportActionID));
-    });
+    }
     htmlParser.end();
 
     return attachments.reverse();

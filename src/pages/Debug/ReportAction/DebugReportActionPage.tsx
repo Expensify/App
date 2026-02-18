@@ -1,5 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -13,7 +14,7 @@ import DebugTabNavigator from '@libs/Navigation/DebugTabNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
-import {getLinkedTransactionID} from '@libs/ReportActionsUtils';
+import {getLinkedTransactionID, withDEWRoutedActionsObject} from '@libs/ReportActionsUtils';
 import DebugDetails from '@pages/Debug/DebugDetails';
 import DebugJSON from '@pages/Debug/DebugJSON';
 import Debug from '@userActions/Debug';
@@ -21,6 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {ReportAction, ReportActions} from '@src/types/onyx';
 import DebugReportActionPreview from './DebugReportActionPreview';
 
 type DebugReportActionPageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.REPORT_ACTION>;
@@ -32,10 +34,23 @@ function DebugReportActionPage({
 }: DebugReportActionPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [reportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        canEvict: false,
-        selector: (reportActions) => reportActions?.[reportActionID],
-    });
+
+    const getReportActionSelector = useCallback(
+        (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => {
+            return withDEWRoutedActionsObject(reportActions)?.[reportActionID];
+        },
+        [reportActionID],
+    );
+
+    const [reportAction] = useOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        {
+            canEvict: false,
+            selector: getReportActionSelector,
+            canBeMissing: true,
+        },
+        [getReportActionSelector],
+    );
     const transactionID = getLinkedTransactionID(reportAction);
 
     const DebugDetailsTab = useCallback(
@@ -50,6 +65,7 @@ function DebugReportActionPage({
                     Navigation.goBack();
                     // We need to wait for navigation animations to finish before deleting an action,
                     // otherwise the user will see a not found page briefly.
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {
                         Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: null});
                     });
@@ -97,7 +113,7 @@ function DebugReportActionPage({
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
             shouldEnableMinHeight={canUseTouchScreen()}
-            testID={DebugReportActionPage.displayName}
+            testID="DebugReportActionPage"
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
@@ -114,7 +130,5 @@ function DebugReportActionPage({
         </ScreenWrapper>
     );
 }
-
-DebugReportActionPage.displayName = 'DebugReportActionPage';
 
 export default DebugReportActionPage;

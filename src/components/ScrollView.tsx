@@ -48,8 +48,6 @@ function ScrollView({
     );
 }
 
-ScrollView.displayName = 'ScrollView';
-
 export type {ScrollViewProps};
 
 export default ScrollView;

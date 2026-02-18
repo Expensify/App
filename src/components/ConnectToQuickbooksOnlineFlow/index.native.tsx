@@ -26,7 +26,7 @@ function ConnectToQuickbooksOnlineFlow({policyID}: ConnectToQuickbooksOnlineFlow
         // Since QBO doesn't support Taxes, we should disable them from the LHN when connecting to QBO
         enablePolicyTaxes(policyID, false);
         setIsWebViewOpen(true);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (
@@ -35,7 +35,6 @@ function ConnectToQuickbooksOnlineFlow({policyID}: ConnectToQuickbooksOnlineFlow
             fullscreen
             isVisible={isWebViewOpen}
             type={CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
-            shouldUseReanimatedModal
         >
             <HeaderWithBackButton
                 title={translate('workspace.accounting.title')}
@@ -59,7 +58,5 @@ function ConnectToQuickbooksOnlineFlow({policyID}: ConnectToQuickbooksOnlineFlow
         </Modal>
     );
 }
-
-ConnectToQuickbooksOnlineFlow.displayName = 'ConnectToQuickbooksOnlineFlow';
 
 export default ConnectToQuickbooksOnlineFlow;

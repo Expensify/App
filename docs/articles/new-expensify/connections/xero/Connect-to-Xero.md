@@ -5,7 +5,6 @@ keywords: [New Expensify, Xero integration, connect Xero, accounting sync, Xero 
 order: 1
 ---
 
-<div id="new-expensify" markdown="1">
 
 Connect your Workspace to Xero to sync expense data directly into your accounting system. This article walks you through setup and disconnection steps.
 
@@ -54,4 +53,3 @@ This will import your Xero settings into Expensify.
 
 After disconnecting, data previously imported from Xero will no longer appear in your Workspace.
 
-</div>

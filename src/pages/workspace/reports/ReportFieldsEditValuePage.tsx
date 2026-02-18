@@ -41,20 +41,24 @@ function ReportFieldsEditValuePage({
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) =>
-            validateReportFieldListValueName(values[INPUT_IDS.NEW_VALUE_NAME].trim(), currentValueName, formDraft?.[INPUT_IDS.LIST_VALUES] ?? [], INPUT_IDS.NEW_VALUE_NAME),
-        [currentValueName, formDraft],
+            validateReportFieldListValueName(values[INPUT_IDS.NEW_VALUE_NAME].trim(), currentValueName, formDraft?.[INPUT_IDS.LIST_VALUES] ?? [], INPUT_IDS.NEW_VALUE_NAME, translate),
+        [currentValueName, formDraft, translate],
     );
 
     const editValue = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
             const valueName = values[INPUT_IDS.NEW_VALUE_NAME]?.trim();
             if (currentValueName !== valueName) {
-                renameReportFieldsListValue(valueIndex, valueName);
+                renameReportFieldsListValue({
+                    valueIndex,
+                    newValueName: valueName,
+                    listValues: formDraft?.[INPUT_IDS.LIST_VALUES] ?? [],
+                });
             }
             Keyboard.dismiss();
             Navigation.goBack();
         },
-        [currentValueName, valueIndex],
+        [currentValueName, formDraft, valueIndex],
     );
 
     return (
@@ -67,7 +71,7 @@ function ReportFieldsEditValuePage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={styles.defaultModalContainer}
-                testID={ReportFieldsEditValuePage.displayName}
+                testID="ReportFieldsEditValuePage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -98,7 +102,5 @@ function ReportFieldsEditValuePage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-ReportFieldsEditValuePage.displayName = 'ReportFieldsEditValuePage';
 
 export default withPolicyAndFullscreenLoading(ReportFieldsEditValuePage);

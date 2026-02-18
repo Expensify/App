@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
@@ -12,7 +12,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const POLICY_ID = 1;
@@ -72,22 +71,30 @@ const renderWorkspacePageWithSections = (props = {}) => {
 
 describe('WorkspacePageWithSections', () => {
     describe('FullScreenLoadingIndicator behavior', () => {
-        beforeAll(() => {
+        beforeAll(async () => {
             Onyx.init({
                 keys: ONYXKEYS,
             });
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
-            return waitForBatchedUpdates();
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
+                await waitForBatchedUpdatesWithAct();
+            });
         });
 
-        afterEach(() => {
+        afterEach(async () => {
             jest.clearAllMocks();
-            return Onyx.clear();
+            await act(async () => {
+                await Onyx.clear();
+                await waitForBatchedUpdatesWithAct();
+            });
         });
 
         it('should not display FullScreenLoadingIndicator when user is offline', async () => {
             // Given the network state is offline
-            await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: true});
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: true});
+                await waitForBatchedUpdatesWithAct();
+            });
 
             // When render the component with loading enabled
             renderWorkspacePageWithSections({
@@ -103,7 +110,10 @@ describe('WorkspacePageWithSections', () => {
 
         it('should display FullScreenLoadingIndicator when user is online and loading', async () => {
             // Given the network state is online
-            await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+                await waitForBatchedUpdatesWithAct();
+            });
 
             // When render the component with loading enabled
             renderWorkspacePageWithSections({

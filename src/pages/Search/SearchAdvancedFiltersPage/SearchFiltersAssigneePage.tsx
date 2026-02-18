@@ -19,7 +19,7 @@ function SearchFiltersAssigneePage() {
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersAssigneePage.displayName}
+            testID="SearchFiltersAssigneePage"
             includeSafeAreaPaddingBottom
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
@@ -28,7 +28,7 @@ function SearchFiltersAssigneePage() {
             <HeaderWithBackButton
                 title={translate('common.assignee')}
                 onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                 }}
             />
             <View style={[styles.flex1]}>
@@ -44,7 +44,5 @@ function SearchFiltersAssigneePage() {
         </ScreenWrapper>
     );
 }
-
-SearchFiltersAssigneePage.displayName = 'SearchFiltersAssigneePage';
 
 export default SearchFiltersAssigneePage;

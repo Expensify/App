@@ -1,10 +1,10 @@
 import React, {useCallback, useMemo} from 'react';
-import type {ForwardedRef} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import getAmountInputKeyboard from '@libs/getAmountInputKeyboard';
-import {replaceAllDigits, replaceCommasWithPeriod, stripSpacesFromAmount} from '@libs/MoneyRequestUtils';
+import {handleNegativeAmountFlipping, replaceAllDigits, replaceCommasWithPeriod, stripSpacesFromAmount} from '@libs/MoneyRequestUtils';
+import CONST from '@src/CONST';
 import TextInput from './TextInput';
-import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
+import type {BaseTextInputProps} from './TextInput/BaseTextInput/types';
 
 type AmountFormProps = {
     /** Amount supplied by the FormProvider */
@@ -15,12 +15,29 @@ type AmountFormProps = {
 
     /** Should we allow negative number as valid input */
     shouldAllowNegative?: boolean;
+
+    /** Whether to allow flipping the amount */
+    allowFlippingAmount?: boolean;
+
+    /** Function to toggle the amount to negative */
+    toggleNegative?: () => void;
 } & Partial<BaseTextInputProps>;
 
-function AmountWithoutCurrencyInput(
-    {value: amount, shouldAllowNegative = false, inputID, name, defaultValue, accessibilityLabel, role, label, onInputChange, ...rest}: AmountFormProps,
-    ref: ForwardedRef<BaseTextInputRef>,
-) {
+function AmountWithoutCurrencyInput({
+    value: amount,
+    shouldAllowNegative = false,
+    inputID,
+    name,
+    defaultValue,
+    accessibilityLabel,
+    role,
+    label,
+    onInputChange,
+    allowFlippingAmount,
+    toggleNegative,
+    ref,
+    ...rest
+}: AmountFormProps) {
     const {toLocaleDigit} = useLocalize();
     const separator = useMemo(
         () =>
@@ -39,10 +56,11 @@ function AmountWithoutCurrencyInput(
             // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
             // More info: https://github.com/Expensify/App/issues/16974
             const newAmountWithoutSpaces = stripSpacesFromAmount(newAmount);
-            const replacedCommasAmount = replaceCommasWithPeriod(newAmountWithoutSpaces);
+            const processedAmount = handleNegativeAmountFlipping(newAmountWithoutSpaces, allowFlippingAmount ?? false, toggleNegative);
+            const replacedCommasAmount = replaceCommasWithPeriod(processedAmount);
             onInputChange?.(replacedCommasAmount);
         },
-        [onInputChange],
+        [onInputChange, allowFlippingAmount, toggleNegative],
     );
 
     // Add custom notation for using '-' character in the mask.
@@ -72,10 +90,10 @@ function AmountWithoutCurrencyInput(
             keyboardType={keyboardType}
             inputMode={inputMode}
             type="mask"
-            mask={shouldAllowNegative ? `[~][99999999]${separator}[09]` : `[09999999]${separator}[09]`}
+            mask={shouldAllowNegative ? `[~][9999999999]${separator}[09]` : `[0999999999]${separator}[09]`}
             customNotations={customMask}
             allowedKeys="0123456789.,-"
-            validationRegex={'^-?(?!.*[.,].*[.,])\\d{0,8}(?:[.,]\\d{0,2})?$'}
+            validationRegex={`^-?(?!.*[.,].*[.,])\\d{0,${CONST.IOU.AMOUNT_MAX_LENGTH}}(?:[.,]\\d{0,2})?$`}
             // On android autoCapitalize="words" is necessary when keyboardType="decimal-pad" or inputMode="decimal" to prevent input lag.
             // See https://github.com/Expensify/App/issues/51868 for more information
             autoCapitalize="words"
@@ -85,6 +103,4 @@ function AmountWithoutCurrencyInput(
     );
 }
 
-AmountWithoutCurrencyInput.displayName = 'AmountWithoutCurrencyInput';
-
-export default React.forwardRef(AmountWithoutCurrencyInput);
+export default AmountWithoutCurrencyInput;

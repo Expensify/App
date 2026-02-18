@@ -1,9 +1,9 @@
 import type {ForwardedRef, ReactNode} from 'react';
-import React, {forwardRef, useContext, useEffect, useMemo, useRef} from 'react';
+import React, {useContext, useEffect, useMemo, useRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {Keyboard, PanResponder, View} from 'react-native';
 import {PickerAvoidingView} from 'react-native-picker-select';
-import {useInputBlurContext} from '@components/InputBlurContext';
+import {useInputBlurActions, useInputBlurState} from '@components/InputBlurContext';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import ModalContext from '@components/Modal/ModalContext';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
@@ -13,106 +13,111 @@ import useTackInputFocus from '@hooks/useTackInputFocus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isMobile, isMobileWebKit, isSafari} from '@libs/Browser';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import addViewportResizeListener from '@libs/VisualViewport';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 
-type ScreenWrapperContainerProps = React.PropsWithChildren<{
-    /** A unique ID to find the screen wrapper in tests */
-    testID: string;
+type ScreenWrapperContainerProps = ForwardedFSClassProps &
+    React.PropsWithChildren<{
+        /** A unique ID to find the screen wrapper in tests */
+        testID: string;
 
-    /** Additional styles to add */
-    style?: StyleProp<ViewStyle>;
+        /** Additional styles to add */
+        style?: StyleProp<ViewStyle>;
 
-    /** Content to display under the offline indicator */
-    bottomContent?: ReactNode;
+        /** Content to display under the offline indicator */
+        bottomContent?: ReactNode;
 
-    /** Additional styles for bottom content */
-    bottomContentStyle?: StyleProp<ViewStyle>;
+        /** Additional styles for bottom content */
+        bottomContentStyle?: StyleProp<ViewStyle>;
 
-    /** Whether the screen wrapper has finished the transition */
-    didScreenTransitionEnd?: boolean;
+        /** Whether the screen wrapper has finished the transition */
+        didScreenTransitionEnd?: boolean;
 
-    /** The behavior to pass to the KeyboardAvoidingView, requires some trial and error depending on the layout/devices used.
-     *  Search 'switch(behavior)' in ./node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js for more context */
-    keyboardAvoidingViewBehavior?: 'padding' | 'height' | 'position';
+        /** The behavior to pass to the KeyboardAvoidingView, requires some trial and error depending on the layout/devices used.
+         *  Search 'switch(behavior)' in ./node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js for more context */
+        keyboardAvoidingViewBehavior?: 'padding' | 'height' | 'position';
 
-    /** The vertical offset to pass to the KeyboardAvoidingView */
-    keyboardVerticalOffset?: number;
+        /** The vertical offset to pass to the KeyboardAvoidingView */
+        keyboardVerticalOffset?: number;
 
-    /** Whether KeyboardAvoidingView should be enabled. Use false for screens where this functionality is not necessary */
-    shouldEnableKeyboardAvoidingView?: boolean;
+        /** Whether KeyboardAvoidingView should be enabled. Use false for screens where this functionality is not necessary */
+        shouldEnableKeyboardAvoidingView?: boolean;
 
-    /** Whether picker modal avoiding should be enabled. Should be enabled when there's a picker at the bottom of a
-     *  scrollable form, gives a subtly better UX if disabled on non-scrollable screens with a submit button */
-    shouldEnablePickerAvoiding?: boolean;
+        /** Whether picker modal avoiding should be enabled. Should be enabled when there's a picker at the bottom of a
+         *  scrollable form, gives a subtly better UX if disabled on non-scrollable screens with a submit button */
+        shouldEnablePickerAvoiding?: boolean;
 
-    /**
-     * Whether the KeyboardAvoidingView should compensate for the bottom safe area padding.
-     * The KeyboardAvoidingView will use a negative keyboardVerticalOffset.
-     */
-    shouldKeyboardOffsetBottomSafeAreaPadding?: boolean;
+        /**
+         * Whether the KeyboardAvoidingView should compensate for the bottom safe area padding.
+         * The KeyboardAvoidingView will use a negative keyboardVerticalOffset.
+         */
+        shouldKeyboardOffsetBottomSafeAreaPadding?: boolean;
 
-    /** Whether to dismiss keyboard before leaving a screen */
-    shouldDismissKeyboardBeforeClose?: boolean;
+        /** Whether to dismiss keyboard before leaving a screen */
+        shouldDismissKeyboardBeforeClose?: boolean;
 
-    /** Whether to use the maxHeight (true) or use the 100% of the height (false) */
-    shouldEnableMaxHeight?: boolean;
+        /** Whether to use the maxHeight (true) or use the 100% of the height (false) */
+        shouldEnableMaxHeight?: boolean;
 
-    /** Whether to use the minHeight. Use true for screens where the window height are changing because of Virtual Keyboard */
-    shouldEnableMinHeight?: boolean;
+        /** Whether to use the minHeight. Use true for screens where the window height are changing because of Virtual Keyboard */
+        shouldEnableMinHeight?: boolean;
 
-    /** Whether to avoid scroll on virtual viewport */
-    shouldAvoidScrollOnVirtualViewport?: boolean;
+        /** Whether to avoid scroll on virtual viewport */
+        shouldAvoidScrollOnVirtualViewport?: boolean;
 
-    /** Whether to use cached virtual viewport height  */
-    shouldUseCachedViewportHeight?: boolean;
+        /** Whether to use cached virtual viewport height  */
+        shouldUseCachedViewportHeight?: boolean;
 
-    /** Whether to include padding bottom */
-    includeSafeAreaPaddingBottom?: boolean;
+        /** Whether to include padding bottom */
+        includeSafeAreaPaddingBottom?: boolean;
 
-    /** Whether to include padding top */
-    includePaddingTop?: boolean;
+        /** Whether to include padding top */
+        includePaddingTop?: boolean;
 
-    /** Whether to enable edge to edge bottom safe area padding */
-    enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
+        /** Whether to enable edge to edge bottom safe area padding */
+        enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
 
-    /**
-     * Whether the screen is focused. (Only passed if wrapped in ScreenWrapper)
-     */
-    isFocused?: boolean;
-}>;
+        /**
+         * Whether the screen is focused. (Only passed if wrapped in ScreenWrapper)
+         */
+        isFocused?: boolean;
 
-function ScreenWrapperContainer(
-    {
-        children,
-        style,
-        testID,
-        bottomContent,
-        bottomContentStyle: bottomContentStyleProp,
-        keyboardAvoidingViewBehavior = 'padding',
-        keyboardVerticalOffset,
-        shouldEnableKeyboardAvoidingView = true,
-        shouldEnableMaxHeight = false,
-        shouldEnableMinHeight = false,
-        shouldEnablePickerAvoiding = true,
-        shouldDismissKeyboardBeforeClose = true,
-        shouldAvoidScrollOnVirtualViewport = true,
-        shouldUseCachedViewportHeight = false,
-        shouldKeyboardOffsetBottomSafeAreaPadding: shouldKeyboardOffsetBottomSafeAreaPaddingProp,
-        enableEdgeToEdgeBottomSafeAreaPadding,
-        includePaddingTop = true,
-        includeSafeAreaPaddingBottom = false,
-        isFocused = true,
-    }: ScreenWrapperContainerProps,
-    ref: ForwardedRef<View>,
-) {
+        /** Reference to the outer element */
+        ref?: ForwardedRef<View>;
+    }>;
+
+function ScreenWrapperContainer({
+    children,
+    style,
+    testID,
+    bottomContent,
+    bottomContentStyle: bottomContentStyleProp,
+    keyboardAvoidingViewBehavior = 'padding',
+    keyboardVerticalOffset,
+    shouldEnableKeyboardAvoidingView = true,
+    shouldEnableMaxHeight = false,
+    shouldEnableMinHeight = false,
+    shouldEnablePickerAvoiding = true,
+    shouldDismissKeyboardBeforeClose = true,
+    shouldAvoidScrollOnVirtualViewport = true,
+    shouldUseCachedViewportHeight = false,
+    shouldKeyboardOffsetBottomSafeAreaPadding: shouldKeyboardOffsetBottomSafeAreaPaddingProp,
+    enableEdgeToEdgeBottomSafeAreaPadding,
+    includePaddingTop = true,
+    includeSafeAreaPaddingBottom = false,
+    isFocused = true,
+    ref,
+    forwardedFSClass,
+}: ScreenWrapperContainerProps) {
     const {windowHeight} = useWindowDimensions(shouldUseCachedViewportHeight);
     const {initialHeight} = useInitialDimensions();
     const styles = useThemeStyles();
     const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
     const minHeight = shouldEnableMinHeight && !isSafari() ? initialHeight : undefined;
-    const {isBlurred, setIsBlurred} = useInputBlurContext();
+    const {isBlurred} = useInputBlurState();
+    const {setIsBlurred} = useInputBlurActions();
     const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && isMobileWebKit());
 
     const isUsingEdgeToEdgeMode = enableEdgeToEdgeBottomSafeAreaPadding !== undefined;
@@ -199,15 +204,17 @@ function ScreenWrapperContainer(
     return (
         <View
             ref={ref}
-            style={[styles.flex1, {minHeight}]}
-            // eslint-disable-next-line react/jsx-props-no-spreading, react-compiler/react-compiler
+            // This style gives the background for the screens. Stack cards are transparent to make different width screens in RHP possible.
+            style={[styles.flex1, styles.appBG, styles.screenWrapperContainerMinHeight(minHeight)]}
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...panResponder.panHandlers}
             testID={testID}
+            fsClass={forwardedFSClass}
         >
             <View
-                fsClass={CONST.FULLSTORY.CLASS.UNMASK}
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
                 style={[style, paddingTopStyle]}
-                // eslint-disable-next-line react/jsx-props-no-spreading, react-compiler/react-compiler
+                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...keyboardDismissPanResponder.panHandlers}
             >
                 <KeyboardAvoidingView
@@ -231,7 +238,8 @@ function ScreenWrapperContainer(
         </View>
     );
 }
+
 ScreenWrapperContainer.displayName = 'ScreenWrapperContainer';
 
-export default React.memo(forwardRef(ScreenWrapperContainer));
+export default React.memo(ScreenWrapperContainer);
 export type {ScreenWrapperContainerProps};

@@ -1,9 +1,10 @@
-import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
-import React, {forwardRef, useEffect} from 'react';
+import type {ComponentType} from 'react';
+import React, {useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
@@ -52,20 +53,27 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.EDIT_REPORT
     | typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE
     | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_MAP
-    | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_MANUAL;
+    | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_GPS
+    | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_ODOMETER
+    | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_MANUAL
+    | typeof SCREENS.MONEY_REQUEST.STEP_TIME_RATE
+    | typeof SCREENS.MONEY_REQUEST.STEP_HOURS
+    | typeof SCREENS.MONEY_REQUEST.STEP_HOURS_EDIT;
 
 type WithWritableReportOrNotFoundProps<RouteName extends MoneyRequestRouteName> = WithWritableReportOrNotFoundOnyxProps & PlatformStackScreenProps<MoneyRequestNavigatorParamList, RouteName>;
 
-export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyRequestRouteName>, TRef>(
-    WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
+export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyRequestRouteName>>(
+    WrappedComponent: ComponentType<TProps>,
     shouldIncludeDeprecatedIOUType = false,
-): React.ComponentType<Omit<TProps & RefAttributes<TRef>, keyof WithWritableReportOrNotFoundOnyxProps>> {
+): React.ComponentType<Omit<TProps, keyof WithWritableReportOrNotFoundOnyxProps>> {
     // eslint-disable-next-line rulesdir/no-negated-variables
-    function WithWritableReportOrNotFound(props: Omit<TProps, keyof WithWritableReportOrNotFoundOnyxProps>, ref: ForwardedRef<TRef>) {
+    function WithWritableReportOrNotFound(props: Omit<TProps, keyof WithWritableReportOrNotFoundOnyxProps>) {
         const {route} = props;
         const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`, {canBeMissing: true});
         const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
         const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${route.params.reportID}`, {canBeMissing: true});
+        const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+        const isReportArchived = useReportIsArchived(report?.reportID);
 
         const iouTypeParamIsInvalid = !Object.values(CONST.IOU.TYPE)
             .filter((type) => shouldIncludeDeprecatedIOUType || (type !== CONST.IOU.TYPE.REQUEST && type !== CONST.IOU.TYPE.SEND))
@@ -76,15 +84,15 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
             if (!!report?.reportID || !route.params.reportID || !!reportDraft || !isEditing) {
                 return;
             }
-            openReport(route.params.reportID);
-            // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+            openReport(route.params.reportID, introSelected);
+            // eslint-disable-next-line react-hooks/exhaustive-deps
         }, []);
 
         if (isEditing && isLoadingApp) {
             return <FullScreenLoadingIndicator />;
         }
 
-        if (iouTypeParamIsInvalid || !canUserPerformWriteAction(report ?? {reportID: ''})) {
+        if (iouTypeParamIsInvalid || !canUserPerformWriteAction(report ?? {reportID: ''}, isReportArchived)) {
             return <FullPageNotFoundView shouldShow />;
         }
 
@@ -94,14 +102,13 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
                 {...(props as TProps)}
                 report={report}
                 reportDraft={reportDraft}
-                ref={ref}
             />
         );
     }
 
     WithWritableReportOrNotFound.displayName = `withWritableReportOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
 
-    return forwardRef(WithWritableReportOrNotFound);
+    return WithWritableReportOrNotFound;
 }
 
 export type {WithWritableReportOrNotFoundProps};

@@ -1,7 +1,7 @@
-import type {Meta, StoryFn} from '@storybook/react';
+import type {Meta, StoryFn} from '@storybook/react-webpack5';
 import React from 'react';
-import type {ValueOf} from 'type-fest';
 import ScreenWrapper from '@components/ScreenWrapper';
+import type {SearchColumnType} from '@components/Search/types';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesProvider';
 import TransactionItemRow from '@components/TransactionItemRow';
@@ -12,17 +12,17 @@ import {transactionWithOptionalSearchFields} from './objects/Transaction';
 type TransactionItemRowStory = StoryFn<typeof TransactionItemRow>;
 
 const allAvailableColumns = [
-    CONST.REPORT.TRANSACTION_LIST.COLUMNS.RECEIPT,
-    CONST.REPORT.TRANSACTION_LIST.COLUMNS.TYPE,
-    CONST.REPORT.TRANSACTION_LIST.COLUMNS.DATE,
-    CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT,
-    CONST.REPORT.TRANSACTION_LIST.COLUMNS.FROM,
-    CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO,
-    CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT,
-    CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY,
-    CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG,
-    CONST.REPORT.TRANSACTION_LIST.COLUMNS.TOTAL_AMOUNT,
-    CONST.REPORT.TRANSACTION_LIST.COLUMNS.ACTION,
+    CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
+    CONST.SEARCH.TABLE_COLUMNS.TYPE,
+    CONST.SEARCH.TABLE_COLUMNS.DATE,
+    CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+    CONST.SEARCH.TABLE_COLUMNS.FROM,
+    CONST.SEARCH.TABLE_COLUMNS.TO,
+    CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+    CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
+    CONST.SEARCH.TABLE_COLUMNS.TAG,
+    CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
+    CONST.SEARCH.TABLE_COLUMNS.ACTION,
 ];
 
 type TransactionItemRowProps = {
@@ -31,7 +31,7 @@ type TransactionItemRowProps = {
     isSelected: boolean;
     shouldShowTooltip: boolean;
     shouldShowCheckbox?: boolean;
-    columns?: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>;
+    columns?: SearchColumnType[];
 };
 
 const story: Meta<typeof TransactionItemRow> = {

@@ -1,24 +1,41 @@
-import type {CommonActions, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
-import {findFocusedRoute, StackRouter} from '@react-navigation/native';
+import {CommonActions, StackRouter} from '@react-navigation/native';
+import type {RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
-import * as Localize from '@libs/Localize';
-import {isFullScreenName, isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
+import {createGuardContext, evaluateGuards} from '@libs/Navigation/guards';
+import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
+import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
-import * as Welcome from '@userActions/Welcome';
+import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import {
     handleDismissModalAction,
     handleNavigatingToModalFromModal,
+    handleOpenDomainSplitAction,
     handleOpenWorkspaceSplitAction,
     handlePushFullscreenAction,
     handleReplaceReportsSplitNavigatorAction,
+    handleToggleSidePanelWithHistoryAction,
 } from './GetStateForActionHandlers';
 import syncBrowserHistory from './syncBrowserHistory';
-import type {DismissModalActionType, OpenWorkspaceSplitActionType, PushActionType, ReplaceActionType, RootStackNavigatorAction, RootStackNavigatorRouterOptions} from './types';
+import type {
+    DismissModalActionType,
+    OpenDomainSplitActionType,
+    OpenWorkspaceSplitActionType,
+    PreloadActionType,
+    PushActionType,
+    ReplaceActionType,
+    RootStackNavigatorAction,
+    RootStackNavigatorRouterOptions,
+    ToggleSidePanelWithHistoryActionType,
+} from './types';
 
 function isOpenWorkspaceSplitAction(action: RootStackNavigatorAction): action is OpenWorkspaceSplitActionType {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT;
+}
+
+function isOpenDomainSplitAction(action: RootStackNavigatorAction): action is OpenDomainSplitActionType {
+    return action.type === CONST.NAVIGATION.ACTION_TYPE.OPEN_DOMAIN_SPLIT;
 }
 
 function isPushAction(action: RootStackNavigatorAction): action is PushActionType {
@@ -33,20 +50,53 @@ function isDismissModalAction(action: RootStackNavigatorAction): action is Dismi
     return action.type === CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL;
 }
 
-function shouldPreventReset(state: StackNavigationState<ParamListBase>, action: CommonActions.Action | StackActionType) {
-    if (action.type !== CONST.NAVIGATION_ACTIONS.RESET || !action?.payload) {
-        return false;
-    }
-    const currentFocusedRoute = findFocusedRoute(state);
-    const targetFocusedRoute = findFocusedRoute(action?.payload);
+function isToggleSidePanelWithHistoryAction(action: RootStackNavigatorAction): action is ToggleSidePanelWithHistoryActionType {
+    return action.type === CONST.NAVIGATION.ACTION_TYPE.TOGGLE_SIDE_PANEL_WITH_HISTORY;
+}
 
-    // We want to prevent the user from navigating back to a non-onboarding screen if they are currently on an onboarding screen
-    if (isOnboardingFlowName(currentFocusedRoute?.name) && !isOnboardingFlowName(targetFocusedRoute?.name)) {
-        Welcome.setOnboardingErrorMessage(Localize.translateLocal('onboarding.purpose.errorBackButton'));
-        return true;
+function isPreloadAction(action: RootStackNavigatorAction): action is PreloadActionType {
+    return action.type === CONST.NAVIGATION.ACTION_TYPE.PRELOAD;
+}
+
+/**
+ * Evaluates navigation guards and handles BLOCK/REDIRECT results
+ *
+ * @param state - Current navigation state
+ * @param action - Navigation action being attempted
+ * @param configOptions - Router configuration options
+ * @param stackRouter - Stack router instance
+ * @returns Modified state if guard blocks/redirects, null if navigation should proceed
+ */
+function handleNavigationGuards(
+    state: StackNavigationState<ParamListBase>,
+    action: RootStackNavigatorAction,
+    configOptions: RouterConfigOptions,
+    stackRouter: ReturnType<typeof StackRouter>,
+): ReturnType<ReturnType<typeof StackRouter>['getStateForAction']> | null {
+    const guardContext = createGuardContext();
+    const guardResult = evaluateGuards(state, action, guardContext);
+
+    if (guardResult.type === 'BLOCK') {
+        syncBrowserHistory(state);
+        return state;
     }
 
-    return false;
+    if (guardResult.type === 'REDIRECT') {
+        const redirectState = getAdaptedStateFromPath(guardResult.route, linkingConfig.config);
+
+        if (!redirectState || !redirectState.routes) {
+            return null;
+        }
+
+        const resetAction = CommonActions.reset({
+            index: redirectState.index ?? redirectState.routes.length - 1,
+            routes: redirectState.routes,
+        });
+
+        return stackRouter.getStateForAction(state, resetAction, configOptions);
+    }
+
+    return null;
 }
 
 function isNavigatingToModalFromModal(state: StackNavigationState<ParamListBase>, action: CommonActions.Action | StackActionType): action is PushActionType {
@@ -67,8 +117,28 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
     return {
         ...stackRouter,
         getStateForAction(state: StackNavigationState<ParamListBase>, action: RootStackNavigatorAction, configOptions: RouterConfigOptions) {
+            // Evaluate navigation guards FIRST
+            const guardState = handleNavigationGuards(state, action, configOptions, stackRouter);
+            if (guardState) {
+                return guardState;
+            }
+
+            // Guards allowed navigation - continue with routing logic
+
+            if (isPreloadAction(action) && action.payload.name === state.routes.at(-1)?.name) {
+                return state;
+            }
+
+            if (isToggleSidePanelWithHistoryAction(action)) {
+                return handleToggleSidePanelWithHistoryAction(state, action);
+            }
+
             if (isOpenWorkspaceSplitAction(action)) {
                 return handleOpenWorkspaceSplitAction(state, action, configOptions, stackRouter);
+            }
+
+            if (isOpenDomainSplitAction(action)) {
+                return handleOpenDomainSplitAction(state, action, configOptions, stackRouter);
             }
 
             if (isDismissModalAction(action)) {
@@ -84,12 +154,6 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
             // options for WorkspaceSplitNavigator can be found in AuthScreens.tsx > getWorkspaceSplitNavigatorOptions
             if (isPushAction(action) && isFullScreenName(action.payload.name) && action.payload.name !== NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
                 return handlePushFullscreenAction(state, action, configOptions, stackRouter);
-            }
-
-            // Don't let the user navigate back to a non-onboarding screen if they are currently on an onboarding screen and it's not finished.
-            if (shouldPreventReset(state, action)) {
-                syncBrowserHistory(state);
-                return state;
             }
 
             if (isNavigatingToModalFromModal(state, action)) {

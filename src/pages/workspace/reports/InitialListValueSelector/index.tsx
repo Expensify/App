@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {MenuItemBaseProps} from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -18,9 +18,12 @@ type InitialListValueSelectorProps = Pick<MenuItemBaseProps, 'label' | 'rightLab
 
     /** Function to call when the user selects a value */
     onInputChange?: (value: string) => void;
+
+    /** Reference to the outer element */
+    ref: ForwardedRef<View>;
 };
 
-function InitialListValueSelector({value = '', label = '', rightLabel, subtitle = '', errorText = '', onInputChange}: InitialListValueSelectorProps, forwardedRef: ForwardedRef<View>) {
+function InitialListValueSelector({value = '', label = '', rightLabel, subtitle = '', errorText = '', onInputChange, ref}: InitialListValueSelectorProps) {
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {canBeMissing: true});
 
     const [isPickerVisible, setIsPickerVisible] = useState(false);
@@ -51,7 +54,7 @@ function InitialListValueSelector({value = '', label = '', rightLabel, subtitle 
     return (
         <View>
             <MenuItemWithTopDescription
-                ref={forwardedRef}
+                ref={ref}
                 shouldShowRightIcon
                 title={value}
                 description={label}
@@ -72,6 +75,4 @@ function InitialListValueSelector({value = '', label = '', rightLabel, subtitle 
     );
 }
 
-InitialListValueSelector.displayName = 'InitialListValueSelector';
-
-export default forwardRef(InitialListValueSelector);
+export default InitialListValueSelector;

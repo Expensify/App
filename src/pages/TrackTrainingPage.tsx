@@ -25,6 +25,4 @@ function TrackTrainingPage() {
     );
 }
 
-TrackTrainingPage.displayName = 'TrackTrainingPage';
-
 export default TrackTrainingPage;

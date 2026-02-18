@@ -42,10 +42,7 @@ function CategoryGLCodePage({route}: EditCategoryPageProps) {
             const value = values[INPUT_IDS.GL_CODE];
 
             if (value.length > CONST.MAX_LENGTH_256) {
-                errors[INPUT_IDS.GL_CODE] = translate('common.error.characterLimitExceedCounter', {
-                    length: value.length,
-                    limit: CONST.MAX_LENGTH_256,
-                });
+                errors[INPUT_IDS.GL_CODE] = translate('common.error.characterLimitExceedCounter', value.length, CONST.MAX_LENGTH_256);
             }
 
             return errors;
@@ -57,13 +54,13 @@ function CategoryGLCodePage({route}: EditCategoryPageProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             const newGLCode = values.glCode.trim();
             if (newGLCode !== glCode) {
-                setPolicyCategoryGLCode(policyID, categoryName, newGLCode);
+                setPolicyCategoryGLCode(policyID, categoryName, newGLCode, policyCategories);
             }
             Navigation.goBack(
                 isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyID, categoryName, backTo) : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName),
             );
         },
-        [categoryName, glCode, policyID, isQuickSettingsFlow, backTo],
+        [glCode, isQuickSettingsFlow, policyID, categoryName, backTo, policyCategories],
     );
 
     return (
@@ -75,7 +72,7 @@ function CategoryGLCodePage({route}: EditCategoryPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={CategoryGLCodePage.displayName}
+                testID="CategoryGLCodePage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -112,7 +109,5 @@ function CategoryGLCodePage({route}: EditCategoryPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-CategoryGLCodePage.displayName = 'CategoryGLCodePage';
 
 export default CategoryGLCodePage;

@@ -5,7 +5,6 @@ order: 1
 keywords: [Expensify Classic, QuickBooks Desktop connection]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 QuickBooks Desktop is an accounting software developed by Intuit, designed to support small and medium-sized businesses in managing financial and accounting tasks. Integrating Expensify with QuickBooks Desktop streamlines expense management for your organization.
 
@@ -72,6 +71,19 @@ Expensify supports the latest three versions of QuickBooks Desktop (US and Canad
   - Professional Services
   - Nonprofit
 
+## Where should QuickBooks Desktop and the Web Connector be installed with a Terminal Server?
+
+If you're using QuickBooks Desktop in a file server and client setup, it's important to install both QuickBooks Desktop and the **QuickBooks Web Connector** on the same computer where QuickBooks Desktop is actively being used.
+
+The Web Connector only works when it's running **alongside QuickBooks Desktop**, and the company file is **open**. The company files can be stored in a different location, but note that network speed may affect performance. 
+
+**Typical Setup**
+
+- **Server**: Stores the QuickBooks company file
+- **Client (or Remote Desktop)**: Runs QuickBooks Desktop - This is also where you need to install and run the Web Connector
+
+Note: You will need to run the install files as an admin for the initial install and setup.
+
 ## Can I install multiple QuickBooks Desktop connectors on one machine?
 Yes. Each connector corresponds to one company file, but multiple connectors can sync multiple company files from the same computer. Ensure you are logged into the correct company file during syncing.
 
@@ -80,4 +92,3 @@ Yes. Each connector corresponds to one company file, but multiple connectors can
   - The export type is **Check**, as the report’s total must be positive.
   - Non-reimbursable expenses are exported as debit card transactions (QuickBooks exports them as non-reimbursable checks, which cannot have negative amounts).
 
-</div>

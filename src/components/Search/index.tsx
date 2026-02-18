@@ -1,49 +1,83 @@
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
-import type {ContentStyle} from '@shopify/flash-list';
+import * as Sentry from '@sentry/react-native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
+import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
-import type {ReportActionListItemType, SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
+import SearchTableHeader from '@components/SelectionListWithSections/SearchTableHeader';
+import type {
+    ReportActionListItemType,
+    SearchListItem,
+    SelectionListHandle,
+    TransactionGroupListItemType,
+    TransactionListItemType,
+    TransactionReportGroupListItemType,
+} from '@components/SelectionListWithSections/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
+import {useWideRHPActions} from '@components/WideRHPContextProvider';
+import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
+import useConfirmModal from '@hooks/useConfirmModal';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useMultipleSnapshots from '@hooks/useMultipleSnapshots';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
+import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {openOldDotLink} from '@libs/actions/Link';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {openSearch, updateSearchResultsWithTransactionThreadReportID} from '@libs/actions/Search';
-import Timing from '@libs/actions/Timing';
+import type {TransactionPreviewData} from '@libs/actions/Search';
+import {openSearch, setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
+import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
-import {getIOUActionForTransactionID, isExportIntegrationAction, isIntegrationMessageAction} from '@libs/ReportActionsUtils';
-import {canEditFieldOfMoneyRequest, generateReportID, isArchivedReport} from '@libs/ReportUtils';
-import {buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
+import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
+import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
+    adjustTimeRangeToDateFilters,
+    createAndOpenSearchTransactionThread,
+    getColumnsToShow,
     getListItem,
     getSections,
     getSortedSections,
     getSuggestedSearches,
     getWideAmountIndicators,
+    isGroupedItemArray,
     isReportActionListItemType,
     isSearchDataLoaded,
     isSearchResultsEmpty as isSearchResultsEmptyUtil,
     isTaskListItemType,
+    isTransactionCardGroupListItemType,
+    isTransactionCategoryGroupListItemType,
     isTransactionGroupListItemType,
     isTransactionListItemType,
+    isTransactionMemberGroupListItemType,
+    isTransactionMerchantGroupListItemType,
+    isTransactionMonthGroupListItemType,
+    isTransactionQuarterGroupListItemType,
+    isTransactionReportGroupListItemType,
+    isTransactionTagGroupListItemType,
+    isTransactionWeekGroupListItemType,
+    isTransactionWithdrawalIDGroupListItemType,
+    isTransactionYearGroupListItemType,
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
-import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
-import {isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
+import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
@@ -52,86 +86,109 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {OutstandingReportsByPolicyIDDerivedValue, ReportAction} from '@src/types/onyx';
+import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
+import {isActionLoadingSetSelector} from '@src/selectors/ReportMetaData';
+import type {OutstandingReportsByPolicyIDDerivedValue, SaveSearch, Transaction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import arraysEqual from '@src/utils/arraysEqual';
+import SearchChartView from './SearchChartView';
 import {useSearchContext} from './SearchContext';
 import SearchList from './SearchList';
-import SearchScopeProvider from './SearchScopeProvider';
+import {SearchScopeProvider} from './SearchScopeProvider';
 import type {SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
 
 type SearchProps = {
     queryJSON: SearchQueryJSON;
     onSearchListScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
-    contentContainerStyle?: ContentStyle;
+    contentContainerStyle?: StyleProp<ViewStyle>;
     searchResults?: SearchResults;
     handleSearch: (value: SearchParams) => void;
+    onSortPressedCallback?: () => void;
     isMobileSelectionModeEnabled: boolean;
+    searchRequestResponseStatusCode?: number | null;
+    onDEWModalOpen?: () => void;
 };
 
 function mapTransactionItemToSelectedEntry(
     item: TransactionListItemType,
-    reportActions: ReportAction[],
+    itemTransaction: OnyxEntry<Transaction>,
+    originalItemTransaction: OnyxEntry<Transaction>,
+    currentUserLogin: string,
+    currentUserAccountID: number,
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
+    allowNegativeAmount = true,
 ): [string, SelectedTransactionInfo] {
+    const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy);
+    const canRejectRequest = item.report ? canRejectReportAction(currentUserLogin, item.report, item.policy) : false;
+    const amount = hasValidModifiedAmount(item) ? Number(item.modifiedAmount) : item.amount;
+
     return [
         item.keyForList,
         {
+            transaction: item,
             isSelected: true,
-            canDelete: item.canDelete,
-            canHold: item.canHold,
+            canReject: canRejectRequest,
+            canHold: canHoldRequest,
             isHeld: isOnHold(item),
-            canUnhold: item.canUnhold,
+            canUnhold: canUnholdRequest,
+            canSplit: isSplitAction(item.report, [itemTransaction], originalItemTransaction, currentUserLogin, currentUserAccountID, item.policy),
+            hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
             canChangeReport: canEditFieldOfMoneyRequest(
-                getIOUActionForTransactionID(reportActions, item.transactionID),
+                item.reportAction,
                 CONST.EDIT_REQUEST_FIELD.REPORT,
                 undefined,
                 undefined,
                 outstandingReportsByPolicyID,
+                item,
+                item.report,
+                item.policy,
             ),
             action: item.action,
+            groupCurrency: item.groupCurrency,
+            groupExchangeRate: item.groupExchangeRate,
             reportID: item.reportID,
             policyID: item.policyID,
-            amount: item.modifiedAmount ?? item.amount,
+            amount: allowNegativeAmount ? amount : Math.abs(amount),
+            groupAmount: item.groupAmount,
+            currency: item.currency,
+            isFromOneTransactionReport: isOneTransactionReport(item.report),
+            ownerAccountID: item.reportAction?.actorAccountID,
+            reportAction: item.reportAction,
+            report: item.report,
         },
     ];
 }
 
-function mapToTransactionItemWithAdditionalInfo(item: TransactionListItemType, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean, shouldAnimateInHighlight: boolean) {
-    return {...item, shouldAnimateInHighlight, isSelected: selectedTransactions[item.keyForList]?.isSelected && canSelectMultiple};
-}
-
-function mapToItemWithAdditionalInfo(item: SearchListItem, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean, shouldAnimateInHighlight: boolean) {
-    if (isTaskListItemType(item)) {
-        return {
-            ...item,
-            shouldAnimateInHighlight,
-        };
-    }
-
-    if (isReportActionListItemType(item)) {
-        return {
-            ...item,
-            shouldAnimateInHighlight,
-        };
-    }
-
-    return isTransactionListItemType(item)
-        ? mapToTransactionItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight)
-        : {
-              ...item,
-              shouldAnimateInHighlight,
-              transactions: item.transactions?.map((transaction) => mapToTransactionItemWithAdditionalInfo(transaction, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight)),
-              isSelected:
-                  item?.transactions?.length > 0 &&
-                  item.transactions?.filter((t) => !isTransactionPendingDelete(t)).every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected && canSelectMultiple),
-          };
+function mapEmptyReportToSelectedEntry(item: TransactionReportGroupListItemType): [string, SelectedTransactionInfo] {
+    return [
+        item.keyForList ?? '',
+        {
+            isFromOneTransactionReport: false,
+            isSelected: true,
+            canHold: false,
+            canSplit: false,
+            canReject: false,
+            hasBeenSplit: false,
+            isHeld: false,
+            canUnhold: false,
+            canChangeReport: false,
+            action: item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW,
+            reportID: item.reportID,
+            policyID: item.policyID ?? CONST.POLICY.ID_FAKE,
+            amount: 0,
+            currency: '',
+        },
+    ];
 }
 
 function prepareTransactionsList(
     item: TransactionListItemType,
+    itemTransaction: OnyxEntry<Transaction>,
+    originalItemTransaction: OnyxEntry<Transaction>,
     selectedTransactions: SelectedTransactions,
-    reportActions: ReportAction[],
+    currentUserLogin: string,
+    currentUserAccountID: number,
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
 ) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
@@ -140,40 +197,52 @@ function prepareTransactionsList(
         return transactions;
     }
 
+    const [key, selectedInfo] = mapTransactionItemToSelectedEntry(
+        item,
+        itemTransaction,
+        originalItemTransaction,
+        currentUserLogin,
+        currentUserAccountID,
+        outstandingReportsByPolicyID,
+        false,
+    );
+
     return {
         ...selectedTransactions,
-        [item.keyForList]: {
-            isSelected: true,
-            canDelete: item.canDelete,
-            canHold: item.canHold,
-            isHeld: isOnHold(item),
-            canUnhold: item.canUnhold,
-            canChangeReport: canEditFieldOfMoneyRequest(
-                getIOUActionForTransactionID(reportActions, item.transactionID),
-                CONST.EDIT_REQUEST_FIELD.REPORT,
-                undefined,
-                undefined,
-                outstandingReportsByPolicyID,
-            ),
-            action: item.action,
-            reportID: item.reportID,
-            policyID: item.policyID,
-            amount: Math.abs(item.modifiedAmount || item.amount),
-        },
+        [key]: selectedInfo,
     };
 }
 
-function Search({queryJSON, searchResults, onSearchListScroll, contentContainerStyle, handleSearch, isMobileSelectionModeEnabled}: SearchProps) {
+function Search({
+    queryJSON,
+    searchResults,
+    onSearchListScroll,
+    contentContainerStyle,
+    handleSearch,
+    isMobileSelectionModeEnabled,
+    onSortPressedCallback,
+    searchRequestResponseStatusCode,
+    onDEWModalOpen,
+}: SearchProps) {
+    const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy, view} = queryJSON;
+
     const {isOffline} = useNetwork();
+    const prevIsOffline = usePrevious(isOffline);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
+    const {showConfirmModal} = useConfirmModal();
+    const {isBetaEnabled} = usePermissions();
+    const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for enabling the selection mode on small screens only
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
+    const {markReportIDAsExpense} = useWideRHPActions();
     const {
+        currentSearchHash,
         setCurrentSearchHashAndKey,
+        setCurrentSearchQueryJSON,
         setSelectedTransactions,
         selectedTransactions,
         clearSelectedTransactions,
@@ -183,6 +252,9 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         shouldShowSelectAllMatchingItems,
         areAllMatchingItemsSelected,
         selectAllMatchingItems,
+        shouldResetSearchQuery,
+        setShouldResetSearchQuery,
+        shouldUseLiveData,
     } = useSearchContext();
     const [offset, setOffset] = useState(0);
 
@@ -190,102 +262,65 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
+    const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const {accountID, email, login} = useCurrentUserPersonalDetails();
+    const [isActionLoadingSet = CONST.EMPTY_SET] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
+    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA, {canBeMissing: true});
+    const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true, selector: columnsSelector});
+    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
 
-    const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
-        canBeMissing: true,
-        selector: (all): ArchivedReportsIDSet => {
-            const ids = new Set<string>();
-            if (!all) {
-                return ids;
-            }
+    const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+    const {markReportIDAsMultiTransactionExpense, unmarkReportIDAsMultiTransactionExpense} = useWideRHPActions();
 
-            const prefixLength = ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS.length;
-            for (const [key, value] of Object.entries(all)) {
-                if (isArchivedReport(value)) {
-                    const reportID = key.slice(prefixLength);
-                    ids.add(reportID);
-                }
-            }
-            return ids;
-        },
-    });
+    const archivedReportsIdSet = useArchivedReportsIdSet();
 
-    // Create a selector for only the reportActions needed to determine if a report has been exported or not, grouped by report
     const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         canEvict: false,
         canBeMissing: true,
-        selector: (allReportActions) => {
-            return Object.fromEntries(
-                Object.entries(allReportActions ?? {}).map(([reportID, reportActionsGroup]) => {
-                    const filteredReportActions = Object.values(reportActionsGroup ?? {}).filter((action) => isExportIntegrationAction(action) || isIntegrationMessageAction(action));
-                    return [reportID, filteredReportActions];
-                }),
-            );
-        },
+        selector: selectFilteredReportActions,
     });
+
+    const [cardFeeds, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+
     const {defaultCardFeed} = useCardFeedsForDisplay();
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (s) => s?.accountID});
-    const suggestedSearches = useMemo(() => getSuggestedSearches(defaultCardFeed?.id, accountID), [defaultCardFeed?.id, accountID]);
-
-    const {type, status, sortBy, sortOrder, hash, groupBy} = queryJSON;
-    const searchKey = useMemo(() => Object.values(suggestedSearches).find((search) => search.hash === hash)?.key, [suggestedSearches, hash]);
-
-    const shouldCalculateTotals = useMemo(() => {
-        if (offset !== 0) {
-            return false;
-        }
-        if (queryJSON.type !== CONST.SEARCH.DATA_TYPES.EXPENSE) {
-            return false;
-        }
-
-        let hasFeedFilter = false;
-        let hasPostedFilter = false;
-        let isReimbursable = false;
-
-        queryJSON.flatFilters.forEach((filter) => {
-            if (filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
-                hasFeedFilter = true;
-            } else if (filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED) {
-                hasPostedFilter = true;
-            } else if (filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE && filter.filters.at(0)?.value === CONST.SEARCH.BOOLEAN.YES) {
-                isReimbursable = true;
-            }
-        });
-
-        /**
-         * The total should be calculated for all accounting queries (statements, unapprovedCash and unapprovedCard)
-         * We can't use `searchKey` directly because we want to also match similar queries e.g. the statements suggested search query with a custom feed should be matched too.
-         */
-        const isStatementsLikeQuery = queryJSON.flatFilters.length === 2 && hasFeedFilter && hasPostedFilter;
-        const isUnapprovedCashLikeQuery =
-            queryJSON.flatFilters.length === 1 &&
-            isReimbursable &&
-            queryJSON.status[0] === CONST.SEARCH.STATUS.EXPENSE.DRAFTS &&
-            queryJSON.status[1] === CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING;
-        const isUnapprovedCardLikeQuery =
-            queryJSON.flatFilters.length === 1 &&
-            hasFeedFilter &&
-            queryJSON.status[0] === CONST.SEARCH.STATUS.EXPENSE.DRAFTS &&
-            queryJSON.status[1] === CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING;
-
-        return isStatementsLikeQuery || isUnapprovedCashLikeQuery || isUnapprovedCardLikeQuery;
-    }, [offset, queryJSON.flatFilters, queryJSON.type, queryJSON.status]);
+    const suggestedSearches = useMemo(() => getSuggestedSearches(accountID, defaultCardFeed?.id), [defaultCardFeed?.id, accountID]);
+    const searchKey = useMemo(() => Object.values(suggestedSearches).find((search) => search.similarSearchHash === similarSearchHash)?.key, [suggestedSearches, similarSearchHash]);
+    const searchDataType = useMemo(() => (shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type), [shouldUseLiveData, searchResults?.search?.type]);
+    const shouldCalculateTotals = useSearchShouldCalculateTotals(searchKey, hash, offset === 0);
 
     const previousReportActions = usePrevious(reportActions);
-    const reportActionsArray = useMemo(
-        () =>
-            Object.values(reportActions ?? {})
-                .filter((reportAction) => !!reportAction)
-                .flatMap((filteredReportActions) => Object.values(filteredReportActions ?? {})),
-        [reportActions],
-    );
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const searchListRef = useRef<SelectionListHandle | null>(null);
+
+    const savedSearchSelector = useCallback((searches: OnyxEntry<SaveSearch>) => searches?.[hash], [hash]);
+    const [savedSearch] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true, selector: savedSearchSelector});
+
+    const handleDEWModalOpen = useCallback(() => {
+        if (onDEWModalOpen) {
+            onDEWModalOpen();
+        } else {
+            showConfirmModal({
+                title: translate('customApprovalWorkflow.title'),
+                prompt: translate('customApprovalWorkflow.description'),
+                confirmText: translate('customApprovalWorkflow.goToExpensifyClassic'),
+                shouldShowCancelButton: false,
+            }).then((result) => {
+                if (result.action !== ModalActions.CONFIRM) {
+                    return;
+                }
+                openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+            });
+        }
+    }, [onDEWModalOpen, showConfirmModal, translate]);
 
     const clearTransactionsAndSetHashAndKey = useCallback(() => {
         clearSelectedTransactions(hash);
         setCurrentSearchHashAndKey(hash, searchKey);
-    }, [hash, searchKey, clearSelectedTransactions, setCurrentSearchHashAndKey]);
+        setCurrentSearchQueryJSON(queryJSON);
+    }, [hash, searchKey, clearSelectedTransactions, setCurrentSearchHashAndKey, setCurrentSearchQueryJSON, queryJSON]);
 
     useFocusEffect(clearTransactionsAndSetHashAndKey);
 
@@ -293,10 +328,22 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         clearTransactionsAndSetHashAndKey();
 
         // Trigger once on mount (e.g., on page reload), when RHP is open and screen is not focused
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults);
+    const validGroupBy = groupBy && Object.values(CONST.SEARCH.GROUP_BY).includes(groupBy) ? groupBy : undefined;
+    const prevValidGroupBy = usePrevious(validGroupBy);
+    const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults, validGroupBy);
+
+    // When grouping by card, we need cardFeeds to display feed names
+    const isCardFeedsLoading = validGroupBy === CONST.SEARCH.GROUP_BY.CARD && cardFeedsResult?.status === 'loading';
+
+    useEffect(() => {
+        if (prevValidGroupBy === validGroupBy) {
+            return;
+        }
+        clearSelectedTransactions();
+    }, [validGroupBy, prevValidGroupBy, clearSelectedTransactions]);
 
     useEffect(() => {
         if (!isFocused) {
@@ -309,7 +356,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         }
 
         // We don't want to run the effect on isFocused change as we only need it to early return when it is false.
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedTransactions, isMobileSelectionModeEnabled, shouldTurnOffSelectionMode]);
 
@@ -328,29 +374,23 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         if (selectedKeys.length > 0 && !isMobileSelectionModeEnabled && !isSearchResultsEmpty) {
             turnOnMobileSelectionMode();
         }
-        // eslint-disable-next-line react-compiler/react-compiler
+
+        // We only want this effect to handle the switching of mobile selection mode state when screen size changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isSmallScreenWidth, selectedTransactions, isMobileSelectionModeEnabled]);
+    }, [isSmallScreenWidth]);
 
     useEffect(() => {
-        const focusedRoute = findFocusedRoute(navigationRef.getRootState());
-        const isMigratedModalDisplayed = focusedRoute?.name === NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR || focusedRoute?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT;
-
-        if ((!isFocused && !isMigratedModalDisplayed) || isOffline) {
-            return;
-        }
-
-        handleSearch({queryJSON, searchKey, offset, shouldCalculateTotals});
-        // We don't need to run the effect on change of isFocused.
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [handleSearch, isOffline, offset, queryJSON, searchKey, shouldCalculateTotals]);
-
-    useEffect(() => {
-        openSearch();
+        openSearch({includePartiallySetupBankAccounts: true});
     }, []);
 
-    const {newSearchResultKey, handleSelectionListScroll} = useSearchHighlightAndScroll({
+    useEffect(() => {
+        if (!prevIsOffline || isOffline) {
+            return;
+        }
+        openSearch({includePartiallySetupBankAccounts: true});
+    }, [isOffline, prevIsOffline]);
+
+    const {newSearchResultKeys, handleSelectionListScroll, newTransactions} = useSearchHighlightAndScroll({
         searchResults,
         transactions,
         previousTransactions,
@@ -360,35 +400,198 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         shouldCalculateTotals,
         reportActions,
         previousReportActions,
+        shouldUseLiveData,
     });
 
     // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
     // we also need to check that the searchResults matches the type and status of the current search
-    const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
+    const isDataLoaded = shouldUseLiveData || isSearchDataLoaded(searchResults, queryJSON);
 
-    const shouldShowLoadingState = !isOffline && (!isDataLoaded || (!!searchResults?.search.isLoading && Array.isArray(searchResults?.data) && searchResults?.data.length === 0));
+    const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
+
+    // For to-do searches, we never show loading state since the data is always available locally from Onyx
+    const shouldShowLoadingState =
+        !shouldUseLiveData &&
+        !isOffline &&
+        (!isDataLoaded ||
+            (!!searchResults?.search.isLoading && Array.isArray(searchResults?.data) && searchResults?.data.length === 0) ||
+            (hasErrors && searchRequestResponseStatusCode === null) ||
+            isCardFeedsLoading);
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
-    const data = useMemo(() => {
+    const [baseFilteredData, filteredDataLength, allDataLength] = useMemo(() => {
         if (searchResults === undefined || !isDataLoaded) {
-            return [];
+            return [[], 0, 0];
         }
 
         // Group-by option cannot be used for chats or tasks
         const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
         const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
-        if (groupBy && (isChat || isTask)) {
-            return [];
+        if (validGroupBy && (isChat || isTask)) {
+            return [[], 0, 0];
         }
 
-        return getSections(type, searchResults.data, searchResults.search, accountID, formatPhoneNumber, groupBy, exportReportActions, searchKey, archivedReportsIdSet);
-    }, [searchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type, archivedReportsIdSet, formatPhoneNumber, accountID]);
+        const [filteredData1, allLength] = getSections({
+            type,
+            data: searchResults.data,
+            policies,
+            currentAccountID: accountID,
+            currentUserEmail: email ?? '',
+            translate,
+            formatPhoneNumber,
+            bankAccountList,
+            groupBy: validGroupBy,
+            reportActions: exportReportActions,
+            currentSearch: searchKey,
+            archivedReportsIDList: archivedReportsIdSet,
+            queryJSON,
+            isActionLoadingSet,
+            cardFeeds,
+            isOffline,
+            allTransactionViolations: violations,
+            customCardNames,
+            allReportMetadata,
+            cardList,
+        });
+        return [filteredData1, filteredData1.length, allLength];
+    }, [
+        searchKey,
+        isOffline,
+        exportReportActions,
+        validGroupBy,
+        isDataLoaded,
+        searchResults,
+        type,
+        archivedReportsIdSet,
+        translate,
+        formatPhoneNumber,
+        accountID,
+        queryJSON,
+        email,
+        isActionLoadingSet,
+        cardFeeds,
+        policies,
+        bankAccountList,
+        violations,
+        customCardNames,
+        allReportMetadata,
+        cardList,
+    ]);
+
+    // For group-by views, each grouped item has a transactionsQueryJSON with a hash pointing to a separate snapshot
+    // containing its individual transactions. We collect these hashes and fetch their snapshots to enrich the grouped items.
+    const groupByTransactionHashes = useMemo(() => {
+        if (!validGroupBy) {
+            return [];
+        }
+        return (baseFilteredData as TransactionGroupListItemType[])
+            .map((item) => (item.transactionsQueryJSON?.hash ? String(item.transactionsQueryJSON.hash) : undefined))
+            .filter((hashValue): hashValue is string => !!hashValue);
+    }, [validGroupBy, baseFilteredData]);
+
+    const groupByTransactionSnapshots = useMultipleSnapshots(groupByTransactionHashes);
+
+    const filteredData = useMemo(() => {
+        if (!validGroupBy || isExpenseReportType) {
+            return baseFilteredData;
+        }
+
+        const enriched = (baseFilteredData as TransactionGroupListItemType[]).map((item) => {
+            const snapshot = item.transactionsQueryJSON?.hash ? groupByTransactionSnapshots[String(item.transactionsQueryJSON.hash)] : undefined;
+            if (!snapshot?.data) {
+                return item;
+            }
+
+            const [transactions1] = getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: snapshot.data,
+                currentAccountID: accountID,
+                currentUserEmail: email ?? '',
+                bankAccountList,
+                translate,
+                formatPhoneNumber,
+                isActionLoadingSet,
+                cardFeeds,
+                allReportMetadata,
+                cardList,
+            });
+            return {...item, transactions: transactions1 as TransactionListItemType[]};
+        });
+
+        return enriched;
+    }, [
+        validGroupBy,
+        isExpenseReportType,
+        baseFilteredData,
+        groupByTransactionSnapshots,
+        accountID,
+        email,
+        translate,
+        formatPhoneNumber,
+        isActionLoadingSet,
+        cardFeeds,
+        bankAccountList,
+        allReportMetadata,
+        cardList,
+    ]);
+
+    const hasLoadedAllTransactions = useMemo(() => {
+        if (!validGroupBy) {
+            return true;
+        }
+        // For group-by views, check if all transactions in groups have been loaded
+        return (baseFilteredData as TransactionGroupListItemType[]).every((item) => {
+            const snapshot = item.transactionsQueryJSON?.hash || item.transactionsQueryJSON?.hash === 0 ? groupByTransactionSnapshots[String(item.transactionsQueryJSON.hash)] : undefined;
+            // If snapshot doesn't exist, the group hasn't been expanded yet (transactions not loaded)
+            // If snapshot exists and has hasMoreResults: true, not all transactions are loaded
+            return !!snapshot && !snapshot?.search?.hasMoreResults;
+        });
+    }, [validGroupBy, baseFilteredData, groupByTransactionSnapshots]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
         setShouldShowFiltersBarLoading(shouldShowLoadingState && lastSearchType !== type);
     }, [lastSearchType, setShouldShowFiltersBarLoading, shouldShowLoadingState, type]);
+
+    const shouldRetrySearchWithTotalsRef = useRef(false);
+
+    useEffect(() => {
+        const focusedRoute = findFocusedRoute(navigationRef.getRootState());
+        const isMigratedModalDisplayed = focusedRoute?.name === NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR || focusedRoute?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT;
+
+        const comingBackOnlineWithNoResults = prevIsOffline && !isOffline && isEmptyObject(searchResults?.data);
+        if (!comingBackOnlineWithNoResults && ((!isFocused && !isMigratedModalDisplayed) || isOffline)) {
+            return;
+        }
+
+        if (searchResults?.search?.isLoading) {
+            if (shouldCalculateTotals && searchResults?.search?.count === undefined) {
+                shouldRetrySearchWithTotalsRef.current = true;
+            }
+            return;
+        }
+
+        handleSearch({queryJSON, searchKey, offset, shouldCalculateTotals, prevReportsLength: filteredDataLength, isLoading: !!searchResults?.search?.isLoading});
+
+        // We don't need to run the effect on change of isFocused.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [handleSearch, isOffline, offset, queryJSON, searchKey, shouldCalculateTotals]);
+
+    useEffect(() => {
+        if (!shouldRetrySearchWithTotalsRef.current || searchResults?.search?.isLoading || !shouldCalculateTotals) {
+            return;
+        }
+
+        // If count is already present, the latest response already contains totals and we can skip the re-query.
+        if (searchResults?.search?.count !== undefined) {
+            shouldRetrySearchWithTotalsRef.current = false;
+            return;
+        }
+
+        shouldRetrySearchWithTotalsRef.current = false;
+        handleSearch({queryJSON, searchKey, offset, shouldCalculateTotals: true, prevReportsLength: filteredDataLength, isLoading: false});
+    }, [filteredDataLength, handleSearch, offset, queryJSON, searchKey, searchResults?.search?.count, searchResults?.search?.isLoading, shouldCalculateTotals]);
 
     // When new data load, selectedTransactions is updated in next effect. We use this flag to whether selection is updated
     const isRefreshingSelection = useRef(false);
@@ -402,74 +605,156 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return;
         }
         const newTransactionList: SelectedTransactions = {};
-        if (groupBy) {
-            data.forEach((transactionGroup) => {
+        if (validGroupBy || isExpenseReportType) {
+            for (const transactionGroup of filteredData) {
                 if (!Object.hasOwn(transactionGroup, 'transactions') || !('transactions' in transactionGroup)) {
-                    return;
+                    continue;
                 }
-                transactionGroup.transactions.forEach((transaction) => {
-                    if (!Object.keys(selectedTransactions).includes(transaction.transactionID) && !areAllMatchingItemsSelected) {
-                        return;
+
+                if (transactionGroup.transactions.length === 0 && isTransactionReportGroupListItemType(transactionGroup)) {
+                    const reportKey = transactionGroup.keyForList;
+                    if (transactionGroup.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                        continue;
                     }
-                    newTransactionList[transaction.transactionID] = {
-                        action: transaction.action,
-                        canHold: transaction.canHold,
-                        isHeld: isOnHold(transaction),
-                        canUnhold: transaction.canUnhold,
+                    if (reportKey && (reportKey in selectedTransactions || areAllMatchingItemsSelected)) {
+                        const [, emptyReportSelection] = mapEmptyReportToSelectedEntry(transactionGroup);
+                        newTransactionList[reportKey] = {
+                            ...emptyReportSelection,
+                            isSelected: areAllMatchingItemsSelected || selectedTransactions[reportKey]?.isSelected,
+                        };
+                    }
+                    continue;
+                }
+
+                // For expense reports: when ANY transaction is selected, we want ALL transactions in the report selected.
+                // This ensures report-level selection persists when new transactions are added.
+                // Also check if the report itself was selected (when it was empty) by checking the reportID key
+                const reportKey = transactionGroup.keyForList;
+                const wasReportSelected = reportKey && reportKey in selectedTransactions;
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                const hasAnySelected = isExpenseReportType && (wasReportSelected || transactionGroup.transactions.some((transaction) => transaction.transactionID in selectedTransactions));
+
+                for (const transactionItem of transactionGroup.transactions) {
+                    const isSelected = transactionItem.transactionID in selectedTransactions;
+
+                    // Include transaction if: already individually selected, part of select-all, or (for expense reports) part of a partially-selected report
+                    const shouldInclude = isSelected || areAllMatchingItemsSelected || (isExpenseReportType && hasAnySelected);
+                    if (!shouldInclude) {
+                        continue;
+                    }
+
+                    const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(
+                        transactionItem.report,
+                        transactionItem.reportAction,
+                        transactionItem.holdReportAction,
+                        transactionItem,
+                        transactionItem.policy,
+                    );
+                    const canRejectRequest = email && transactionItem.report ? canRejectReportAction(email, transactionItem.report, transactionItem.policy) : false;
+
+                    const itemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
+                    const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
+
+                    newTransactionList[transactionItem.transactionID] = {
+                        transaction: transactionItem,
+                        action: transactionItem.action,
+                        canHold: canHoldRequest,
+                        isHeld: isOnHold(transactionItem),
+                        canUnhold: canUnholdRequest,
+                        canSplit: isSplitAction(transactionItem.report, [itemTransaction], originalItemTransaction, login ?? '', accountID, transactionItem.policy),
+                        hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
                         canChangeReport: canEditFieldOfMoneyRequest(
-                            getIOUActionForTransactionID(reportActionsArray, transaction.transactionID),
+                            transactionItem.reportAction,
                             CONST.EDIT_REQUEST_FIELD.REPORT,
                             undefined,
                             undefined,
                             outstandingReportsByPolicyID,
+                            transactionItem,
+                            transactionItem.report,
+                            transactionItem.policy,
                         ),
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        isSelected: areAllMatchingItemsSelected || selectedTransactions[transaction.transactionID].isSelected,
-                        canDelete: transaction.canDelete,
-                        reportID: transaction.reportID,
-                        policyID: transaction.policyID,
-                        amount: transaction.modifiedAmount ?? transaction.amount,
+                        isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID]?.isSelected || isExpenseReportType,
+                        canReject: canRejectRequest,
+                        reportID: transactionItem.reportID,
+                        policyID: transactionItem.report?.policyID,
+                        amount: hasValidModifiedAmount(transactionItem) ? Number(transactionItem.modifiedAmount) : transactionItem.amount,
+                        groupAmount: transactionItem.groupAmount,
+                        groupCurrency: transactionItem.groupCurrency,
+                        groupExchangeRate: transactionItem.groupExchangeRate,
+                        currency: transactionItem.currency,
+                        ownerAccountID: transactionItem.reportAction?.actorAccountID,
+                        reportAction: transactionItem.reportAction,
+                        isFromOneTransactionReport: isOneTransactionReport(transactionItem.report),
+                        report: transactionItem.report,
                     };
-                });
-            });
+                }
+            }
         } else {
-            data.forEach((transaction) => {
-                if (!Object.hasOwn(transaction, 'transactionID') || !('transactionID' in transaction)) {
-                    return;
+            for (const transactionItem of filteredData) {
+                if (!Object.hasOwn(transactionItem, 'transactionID') || !('transactionID' in transactionItem)) {
+                    continue;
                 }
-                if (!Object.keys(selectedTransactions).includes(transaction.transactionID) && !areAllMatchingItemsSelected) {
-                    return;
+                if (!(transactionItem.transactionID in selectedTransactions) && !areAllMatchingItemsSelected) {
+                    continue;
                 }
-                newTransactionList[transaction.transactionID] = {
-                    action: transaction.action,
-                    canHold: transaction.canHold,
-                    isHeld: isOnHold(transaction),
-                    canUnhold: transaction.canUnhold,
+
+                const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(
+                    transactionItem.report,
+                    transactionItem.reportAction,
+                    transactionItem.holdReportAction,
+                    transactionItem,
+                    transactionItem.policy,
+                );
+                const canRejectRequest = email && transactionItem.report ? canRejectReportAction(email, transactionItem.report, transactionItem.policy) : false;
+
+                const itemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
+                const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
+
+                newTransactionList[transactionItem.transactionID] = {
+                    transaction: transactionItem,
+                    action: transactionItem.action,
+                    canHold: canHoldRequest,
+                    isHeld: isOnHold(transactionItem),
+                    canUnhold: canUnholdRequest,
+                    canSplit: isSplitAction(transactionItem.report, [itemTransaction], originalItemTransaction, login ?? '', accountID, transactionItem.policy),
+                    hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
                     canChangeReport: canEditFieldOfMoneyRequest(
-                        getIOUActionForTransactionID(reportActionsArray, transaction.transactionID),
+                        transactionItem.reportAction,
                         CONST.EDIT_REQUEST_FIELD.REPORT,
                         undefined,
                         undefined,
                         outstandingReportsByPolicyID,
+                        transactionItem,
+                        transactionItem.report,
+                        transactionItem.policy,
                     ),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    isSelected: areAllMatchingItemsSelected || selectedTransactions[transaction.transactionID].isSelected,
-                    canDelete: transaction.canDelete,
-                    reportID: transaction.reportID,
-                    policyID: transaction.policyID,
-                    amount: transaction.modifiedAmount ?? transaction.amount,
+                    isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID].isSelected,
+                    canReject: canRejectRequest,
+                    reportID: transactionItem.reportID,
+                    policyID: transactionItem.report?.policyID,
+                    amount: hasValidModifiedAmount(transactionItem) ? Number(transactionItem.modifiedAmount) : transactionItem.amount,
+                    groupAmount: transactionItem.groupAmount,
+                    groupCurrency: transactionItem.groupCurrency,
+                    groupExchangeRate: transactionItem.groupExchangeRate,
+                    currency: transactionItem.currency,
+                    ownerAccountID: transactionItem.reportAction?.actorAccountID,
+                    reportAction: transactionItem.reportAction,
+                    isFromOneTransactionReport: isOneTransactionReport(transactionItem.report),
+                    report: transactionItem.report,
                 };
-            });
+            }
         }
-        if (isEmptyObject(newTransactionList)) {
+        if (isEmptyObject(newTransactionList) && Object.keys(selectedTransactions).length === 0) {
             return;
         }
 
-        setSelectedTransactions(newTransactionList, data);
+        setSelectedTransactions(newTransactionList, filteredData);
 
         isRefreshingSelection.current = true;
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [data, setSelectedTransactions, areAllMatchingItemsSelected, isFocused, outstandingReportsByPolicyID]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filteredData, setSelectedTransactions, areAllMatchingItemsSelected, isFocused, outstandingReportsByPolicyID, isExpenseReportType]);
 
     useEffect(() => {
         if (!isSearchResultsEmpty || prevIsSearchResultEmpty) {
@@ -478,15 +763,27 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         turnOffMobileSelectionMode();
     }, [isSearchResultsEmpty, prevIsSearchResultEmpty]);
 
+    const isUnmounted = useRef(false);
+
     useEffect(
         () => () => {
-            if (isSearchTopmostFullScreenRoute()) {
+            isUnmounted.current = true;
+        },
+        [],
+    );
+
+    useEffect(
+        () => () => {
+            if (!isFocused && !isUnmounted.current) {
+                return;
+            }
+            if (isSearchTopmostFullScreenRoute() && currentSearchHash === hash) {
                 return;
             }
             clearSelectedTransactions();
             turnOffMobileSelectionMode();
         },
-        [isFocused, clearSelectedTransactions],
+        [isFocused, clearSelectedTransactions, hash, currentSearchHash],
     );
 
     // When selectedTransactions is updated, we confirm that selection is refreshed
@@ -494,28 +791,40 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         isRefreshingSelection.current = false;
     }, [selectedTransactions]);
 
-    useEffect(() => {
-        if (!isFocused) {
-            return;
-        }
+    const updateSelectAllMatchingItemsState = useCallback(
+        (updatedSelectedTransactions: SelectedTransactions) => {
+            if (!filteredData.length || isRefreshingSelection.current) {
+                return;
+            }
+            const areItemsGrouped = !!validGroupBy || type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+            const totalSelectableItemsCount = areItemsGrouped
+                ? (filteredData as TransactionGroupListItemType[]).reduce((count, item) => {
+                      // For empty reports, count the report itself as a selectable item
+                      if (item.transactions.length === 0 && isTransactionReportGroupListItemType(item)) {
+                          if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                              return count;
+                          }
+                          return count + 1;
+                      }
+                      // For regular reports, count all transactions except pending delete ones
+                      const selectableTransactions = item.transactions.filter((transaction) => !isTransactionPendingDelete(transaction));
+                      return count + selectableTransactions.length;
+                  }, 0)
+                : filteredData.length;
+            const areAllItemsSelected = totalSelectableItemsCount === Object.keys(updatedSelectedTransactions).length;
 
-        if (!data.length || isRefreshingSelection.current) {
-            return;
-        }
-        const areItemsGrouped = !!groupBy;
-        const flattenedItems = areItemsGrouped ? (data as TransactionGroupListItemType[]).flatMap((item) => item.transactions) : data;
-        const areAllItemsSelected = flattenedItems.length === Object.keys(selectedTransactions).length;
-
-        // If the user has selected all the expenses in their view but there are more expenses matched by the search
-        // give them the option to select all matching expenses
-        shouldShowSelectAllMatchingItems(!!(areAllItemsSelected && searchResults?.search?.hasMoreResults));
-        if (!areAllItemsSelected) {
-            selectAllMatchingItems(false);
-        }
-    }, [isFocused, data, searchResults?.search?.hasMoreResults, selectedTransactions, selectAllMatchingItems, shouldShowSelectAllMatchingItems, groupBy]);
+            // If the user has selected all the expenses in their view but there are more expenses matched by the search
+            // give them the option to select all matching expenses
+            shouldShowSelectAllMatchingItems(!!(areAllItemsSelected && searchResults?.search?.hasMoreResults));
+            if (!areAllItemsSelected) {
+                selectAllMatchingItems(false);
+            }
+        },
+        [filteredData, validGroupBy, type, searchResults?.search?.hasMoreResults, shouldShowSelectAllMatchingItems, selectAllMatchingItems],
+    );
 
     const toggleTransaction = useCallback(
-        (item: SearchListItem) => {
+        (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => {
             if (isReportActionListItemType(item)) {
                 return;
             }
@@ -529,284 +838,698 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 if (isTransactionPendingDelete(item)) {
                     return;
                 }
-                setSelectedTransactions(prepareTransactionsList(item, selectedTransactions, reportActionsArray, outstandingReportsByPolicyID), data);
+                const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`] as OnyxEntry<Transaction>;
+                const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
+                const updatedTransactions = prepareTransactionsList(
+                    item,
+                    itemTransaction,
+                    originalItemTransaction,
+                    selectedTransactions,
+                    email ?? '',
+                    accountID,
+                    outstandingReportsByPolicyID,
+                );
+                setSelectedTransactions(updatedTransactions, filteredData);
+                updateSelectAllMatchingItemsState(updatedTransactions);
                 return;
             }
 
-            if (item.transactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)) {
+            const currentTransactions = itemTransactions ?? item.transactions;
+
+            // Handle empty reports - treat the report itself as selectable
+            if (currentTransactions.length === 0 && isTransactionReportGroupListItemType(item)) {
+                const reportKey = item.keyForList;
+                if (!reportKey) {
+                    return;
+                }
+
+                if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                    return;
+                }
+
+                if (selectedTransactions[reportKey]?.isSelected) {
+                    // Deselect the empty report
+                    const reducedSelectedTransactions: SelectedTransactions = {...selectedTransactions};
+                    delete reducedSelectedTransactions[reportKey];
+                    setSelectedTransactions(reducedSelectedTransactions, filteredData);
+                    updateSelectAllMatchingItemsState(reducedSelectedTransactions);
+                    return;
+                }
+
+                const [, emptyReportSelection] = mapEmptyReportToSelectedEntry(item);
+                const updatedTransactions = {
+                    ...selectedTransactions,
+                    [reportKey]: emptyReportSelection,
+                };
+                setSelectedTransactions(updatedTransactions, filteredData);
+                updateSelectAllMatchingItemsState(updatedTransactions);
+                return;
+            }
+
+            if (currentTransactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)) {
                 const reducedSelectedTransactions: SelectedTransactions = {...selectedTransactions};
 
-                item.transactions.forEach((transaction) => {
+                for (const transaction of currentTransactions) {
                     delete reducedSelectedTransactions[transaction.keyForList];
-                });
+                }
 
-                setSelectedTransactions(reducedSelectedTransactions, data);
+                setSelectedTransactions(reducedSelectedTransactions, filteredData);
+                updateSelectAllMatchingItemsState(reducedSelectedTransactions);
                 return;
             }
 
-            setSelectedTransactions(
-                {
-                    ...selectedTransactions,
-                    ...Object.fromEntries(
-                        item.transactions
-                            .filter((t) => !isTransactionPendingDelete(t))
-                            .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID)),
-                    ),
-                },
-                data,
-            );
+            const updatedTransactions = {
+                ...selectedTransactions,
+                ...Object.fromEntries(
+                    currentTransactions
+                        .filter((t) => !isTransactionPendingDelete(t))
+                        .map((transactionItem) => {
+                            const itemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
+                            const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
+                            return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', accountID, outstandingReportsByPolicyID);
+                        }),
+                ),
+            };
+            setSelectedTransactions(updatedTransactions, filteredData);
+            updateSelectAllMatchingItemsState(updatedTransactions);
         },
-        [data, reportActionsArray, selectedTransactions, outstandingReportsByPolicyID, setSelectedTransactions],
+        [selectedTransactions, setSelectedTransactions, filteredData, updateSelectAllMatchingItemsState, transactions, email, accountID, outstandingReportsByPolicyID, searchResults?.data],
     );
 
-    const openReport = useCallback(
-        (item: SearchListItem) => {
+    const onSelectRow = useCallback(
+        (item: SearchListItem, transactionPreviewData?: TransactionPreviewData) => {
             if (isMobileSelectionModeEnabled) {
                 toggleTransaction(item);
                 return;
             }
 
-            const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
             const isTransactionItem = isTransactionListItemType(item);
+            const backTo = Navigation.getActiveRoute();
+            // If we're trying to open a transaction without a transaction thread, let's create the thread and navigate the user
+            if (isTransactionItem && !item?.reportAction?.childReportID) {
+                // If the report is unreported (self DM), we want to open the track expense thread instead of a report with an ID of 0
+                const shouldOpenTransactionThread = !isOneTransactionReport(item.report) || item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+                createAndOpenSearchTransactionThread(item, backTo, item?.reportAction?.childReportID, undefined, shouldOpenTransactionThread);
+                if (shouldOpenTransactionThread) {
+                    return;
+                }
+            }
 
-            const reportID =
-                isTransactionItem && (!item.isFromOneTransactionReport || isFromSelfDM) && item.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
-                    ? item.transactionThreadReportID
-                    : item.reportID;
+            if (isTransactionMemberGroupListItemType(item)) {
+                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM);
+                newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: item.accountID}]});
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+                const newQuery = buildSearchQueryString(newQueryJSON);
+                const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
+                if (!newQueryJSONWithHash) {
+                    return;
+                }
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
+                return;
+            }
+
+            if (isTransactionCardGroupListItemType(item)) {
+                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID);
+                newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: item.cardID}]});
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+                const newQuery = buildSearchQueryString(newQueryJSON);
+                const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
+                if (!newQueryJSONWithHash) {
+                    return;
+                }
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
+                return;
+            }
+
+            if (isTransactionWithdrawalIDGroupListItemType(item)) {
+                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID);
+                newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: item.entryID}]});
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+                const newQuery = buildSearchQueryString(newQueryJSON);
+                const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
+                if (!newQueryJSONWithHash) {
+                    return;
+                }
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
+                return;
+            }
+
+            if (isTransactionCategoryGroupListItemType(item)) {
+                const categoryValue = item.category === '' ? CONST.SEARCH.CATEGORY_EMPTY_VALUE : item.category;
+                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY);
+                newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: categoryValue}]});
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+                const newQuery = buildSearchQueryString(newQueryJSON);
+                const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
+                if (!newQueryJSONWithHash) {
+                    return;
+                }
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
+                return;
+            }
+
+            if (isTransactionMerchantGroupListItemType(item)) {
+                const merchantValue = item.merchant === '' ? CONST.SEARCH.MERCHANT_EMPTY_VALUE : item.merchant;
+                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT);
+                newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: merchantValue}]});
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+                const newQuery = buildSearchQueryString(newQueryJSON);
+                const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
+                if (!newQueryJSONWithHash) {
+                    return;
+                }
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
+                return;
+            }
+
+            if (isTransactionTagGroupListItemType(item)) {
+                const tagValue = item.tag === '' || item.tag === '(untagged)' ? CONST.SEARCH.TAG_EMPTY_VALUE : item.tag;
+                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG);
+                newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: tagValue}]});
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+                const newQuery = buildSearchQueryString(newQueryJSON);
+                const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
+                if (!newQueryJSONWithHash) {
+                    return;
+                }
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
+                return;
+            }
+
+            if (isTransactionMonthGroupListItemType(item)) {
+                // Extract the existing date filter to check for year-to-date or other date limits
+                const existingDateFilters = queryJSON.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
+                const {start: monthStart, end: monthEnd} = adjustTimeRangeToDateFilters(DateUtils.getMonthDateRange(item.year, item.month), existingDateFilters);
+                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
+                newFlatFilters.push({
+                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                    filters: [
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, value: monthStart},
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: monthEnd},
+                    ],
+                });
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+                const newQuery = buildSearchQueryString(newQueryJSON);
+                const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
+                if (!newQueryJSONWithHash) {
+                    return;
+                }
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
+                return;
+            }
+
+            if (isTransactionWeekGroupListItemType(item)) {
+                if (!item.week) {
+                    return;
+                }
+                // Extract the existing date filter to check for year-to-date or other date limits
+                const existingDateFilters = queryJSON.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
+                const {start: weekStart, end: weekEnd} = adjustTimeRangeToDateFilters(DateUtils.getWeekDateRange(item.week), existingDateFilters);
+                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
+                newFlatFilters.push({
+                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                    filters: [
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, value: weekStart},
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: weekEnd},
+                    ],
+                });
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+                const newQuery = buildSearchQueryString(newQueryJSON);
+                const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
+                if (!newQueryJSONWithHash) {
+                    return;
+                }
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
+                return;
+            }
+
+            if (isTransactionYearGroupListItemType(item)) {
+                const yearGroupItem = item;
+                if (yearGroupItem.year === undefined) {
+                    return;
+                }
+                // Extract the existing date filter to check for year-to-date or other date limits
+                const existingDateFilters = queryJSON.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
+                const {start: yearStart, end: yearEnd} = adjustTimeRangeToDateFilters(DateUtils.getYearDateRange(yearGroupItem.year), existingDateFilters);
+                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
+                newFlatFilters.push({
+                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                    filters: [
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, value: yearStart},
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: yearEnd},
+                    ],
+                });
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+                const newQuery = buildSearchQueryString(newQueryJSON);
+                const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
+                if (!newQueryJSONWithHash) {
+                    return;
+                }
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
+                return;
+            }
+
+            if (isTransactionQuarterGroupListItemType(item)) {
+                const quarterGroupItem = item;
+                if (quarterGroupItem.year === undefined || quarterGroupItem.quarter === undefined) {
+                    return;
+                }
+                // Extract the existing date filter to check for year-to-date or other date limits
+                const existingDateFilters = queryJSON.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
+                const {start: quarterStart, end: quarterEnd} = adjustTimeRangeToDateFilters(
+                    DateUtils.getQuarterDateRange(quarterGroupItem.year, quarterGroupItem.quarter),
+                    existingDateFilters,
+                );
+                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
+                newFlatFilters.push({
+                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                    filters: [
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, value: quarterStart},
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: quarterEnd},
+                    ],
+                });
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+                const newQuery = buildSearchQueryString(newQueryJSON);
+                const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
+                if (!newQueryJSONWithHash) {
+                    return;
+                }
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
+                return;
+            }
+
+            // After handling all group types, item should be TransactionListItemType, ReportActionListItemType, TaskListItemType, or TransactionGroupListItemType
+            if (!isTransactionItem && !isReportActionListItemType(item) && !isTaskListItemType(item) && !isTransactionGroupListItemType(item)) {
+                return;
+            }
+
+            const transactionItem = item as TransactionListItemType;
+            const reportActionItem = item as ReportActionListItemType;
+
+            let reportID = transactionItem.reportID ?? reportActionItem.reportID;
+            if (isTransactionItem && transactionItem?.reportAction?.childReportID) {
+                const isFromSelfDM = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+                const isFromOneTransactionReport = isOneTransactionReport(transactionItem.report);
+
+                if (isFromSelfDM || !isFromOneTransactionReport) {
+                    reportID = transactionItem?.reportAction?.childReportID;
+                }
+            }
 
             if (!reportID) {
                 return;
             }
 
             Performance.markStart(CONST.TIMING.OPEN_REPORT_SEARCH);
-            Timing.start(CONST.TIMING.OPEN_REPORT_SEARCH);
-
-            const backTo = Navigation.getActiveRoute();
+            startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`, {
+                name: 'Search',
+                op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
+            });
 
             if (isTransactionGroupListItemType(item)) {
-                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo}));
-                return;
-            }
+                const firstTransaction = item.transactions.at(0);
+                if (item.isOneTransactionReport && firstTransaction && transactionPreviewData) {
+                    if (!firstTransaction?.reportAction?.childReportID) {
+                        createAndOpenSearchTransactionThread(firstTransaction, backTo, firstTransaction?.reportAction?.childReportID, transactionPreviewData, false);
+                    } else {
+                        setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData, firstTransaction?.reportAction?.childReportID);
+                    }
+                }
 
-            // If we're trying to open a legacy transaction without a transaction thread, let's create the thread and navigate the user
-            if (isTransactionItem && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                const generatedReportID = generateReportID();
-                updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, generatedReportID);
-                Navigation.navigate(
-                    ROUTES.SEARCH_REPORT.getRoute({
-                        reportID: generatedReportID,
-                        backTo,
-                        moneyRequestReportActionID: item.moneyRequestReportActionID,
-                        transactionID: item.transactionID,
-                    }),
-                );
+                if (item.transactions.length > 1) {
+                    markReportIDAsMultiTransactionExpense(reportID);
+                } else {
+                    unmarkReportIDAsMultiTransactionExpense(reportID);
+                }
+
+                requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo})));
                 return;
             }
 
             if (isReportActionListItemType(item)) {
-                const reportActionID = item.reportActionID;
+                const reportActionID = reportActionItem.reportActionID;
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID, backTo}));
                 return;
             }
 
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
-        },
-        [hash, isMobileSelectionModeEnabled, toggleTransaction],
-    );
-
-    const onViewableItemsChanged = useCallback(
-        ({viewableItems}: {viewableItems: ViewToken[]}) => {
-            if (!isFocused) {
+            if (isTaskListItemType(item)) {
+                requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
                 return;
             }
 
-            const isFirstItemVisible = viewableItems.at(0)?.index === 1;
-            // If the user is still loading the search results, or if they are scrolling down, don't refresh the search results
-            if (shouldShowLoadingState || !isFirstItemVisible) {
-                return;
+            markReportIDAsExpense(reportID);
+
+            if (isTransactionItem && transactionPreviewData) {
+                setOptimisticDataForTransactionThreadPreview(transactionItem, transactionPreviewData, transactionItem?.reportAction?.childReportID);
             }
 
-            // This line makes sure the app refreshes the search results when the user scrolls to the top.
-            // The backend sends items in parts based on the offset, with a limit on the number of items sent (pagination).
-            // As a result, it skips some items, for example, if the offset is 100, it sends the next items without the first ones.
-            // Therefore, when the user scrolls to the top, we need to refresh the search results.
-            setOffset(0);
+            requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
         },
-        [shouldShowLoadingState, isFocused],
+        [
+            isMobileSelectionModeEnabled,
+            markReportIDAsExpense,
+            toggleTransaction,
+            queryJSON,
+            handleSearch,
+            searchKey,
+            markReportIDAsMultiTransactionExpense,
+            unmarkReportIDAsMultiTransactionExpense,
+        ],
     );
+
+    const currentColumns = useMemo(() => {
+        if (!searchResults?.data) {
+            return [];
+        }
+        return getColumnsToShow(accountID, searchResults?.data, visibleColumns, false, searchDataType, validGroupBy);
+    }, [accountID, searchResults?.data, searchDataType, visibleColumns, validGroupBy]);
+
+    const opacity = useSharedValue(1);
+    const animatedStyle = useAnimatedStyle(() => ({
+        opacity: opacity.get(),
+    }));
+
+    const previousColumns = usePrevious(currentColumns);
+    const [columnsToShow, setColumnsToShow] = useState<SearchColumnType[]>([]);
+
+    // If columns have changed, trigger an animation before settings columnsToShow to prevent
+    // new columns appearing before the fade out animation happens
+    useEffect(() => {
+        if ((previousColumns && currentColumns && arraysEqual(previousColumns, currentColumns)) || offset === 0 || isSmallScreenWidth) {
+            setColumnsToShow(currentColumns);
+            return;
+        }
+
+        opacity.set(
+            withTiming(0, {duration: CONST.SEARCH.ANIMATION.FADE_DURATION}, () => {
+                setColumnsToShow(currentColumns);
+                opacity.set(withTiming(1, {duration: CONST.SEARCH.ANIMATION.FADE_DURATION}));
+            }),
+        );
+    }, [previousColumns, currentColumns, setColumnsToShow, opacity, offset, isSmallScreenWidth]);
 
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
     const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled);
-    const ListItem = getListItem(type, status, groupBy);
-    const sortedSelectedData = useMemo(
+    const ListItem = getListItem(type, status, validGroupBy);
+
+    const sortedData = useMemo(
         () =>
-            getSortedSections(type, status, data, localeCompare, sortBy, sortOrder, groupBy).map((item) => {
+            getSortedSections(type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy).map((item) => {
                 const baseKey = isChat
                     ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(item as ReportActionListItemType).reportActionID}`
                     : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
 
-                // Check if the base key matches the newSearchResultKey (TransactionListItemType)
-                const isBaseKeyMatch = baseKey === newSearchResultKey;
+                const isBaseKeyMatch = !!newSearchResultKeys?.has(baseKey);
 
-                // Check if any transaction within the transactions array (TransactionGroupListItemType) matches the newSearchResultKey
                 const isAnyTransactionMatch =
                     !isChat &&
                     (item as TransactionGroupListItemType)?.transactions?.some((transaction) => {
                         const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
-                        return transactionKey === newSearchResultKey;
+                        return !!newSearchResultKeys?.has(transactionKey);
                     });
 
-                // Determine if either the base key or any transaction key matches
                 const shouldAnimateInHighlight = isBaseKeyMatch || isAnyTransactionMatch;
 
-                return mapToItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight);
+                if (item.shouldAnimateInHighlight === shouldAnimateInHighlight && item.hash === hash) {
+                    return item;
+                }
+
+                return {...item, shouldAnimateInHighlight, hash};
             }),
-        [type, status, data, sortBy, sortOrder, groupBy, isChat, newSearchResultKey, selectedTransactions, canSelectMultiple, localeCompare],
+        [type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy, isChat, newSearchResultKeys, hash],
     );
 
-    const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
+    useEffect(() => {
+        const currentRoute = Navigation.getActiveRouteWithoutParams();
+        if (hasErrors && (currentRoute === '/' || (shouldResetSearchQuery && currentRoute === '/search'))) {
+            // Use requestAnimationFrame to safely update navigation params without overriding the current route
+            requestAnimationFrame(() => {
+                // We want to explicitly clear stale rawQuery since it’s only used for manually typed-in queries.
+                Navigation.setParams({q: buildCannedSearchQuery(), rawQuery: undefined});
+            });
+            if (shouldResetSearchQuery) {
+                setShouldResetSearchQuery(false);
+            }
+        }
+    }, [hasErrors, queryJSON, searchResults, shouldResetSearchQuery, setShouldResetSearchQuery]);
 
     const fetchMoreResults = useCallback(() => {
-        if (!isFocused || !searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (!isFocused || !searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems || offset > allDataLength - CONST.SEARCH.RESULTS_PAGE_SIZE) {
             return;
         }
-        setOffset(offset + CONST.SEARCH.RESULTS_PAGE_SIZE);
-    }, [isFocused, offset, searchResults?.search?.hasMoreResults, shouldShowLoadingMoreItems, shouldShowLoadingState]);
+
+        setOffset((prev) => prev + CONST.SEARCH.RESULTS_PAGE_SIZE);
+    }, [isFocused, searchResults?.search?.hasMoreResults, shouldShowLoadingMoreItems, shouldShowLoadingState, offset, allDataLength]);
 
     const toggleAllTransactions = useCallback(() => {
-        const areItemsGrouped = !!groupBy;
+        const areItemsGrouped = !!validGroupBy || isExpenseReportType;
         const totalSelected = Object.keys(selectedTransactions).length;
 
         if (totalSelected > 0) {
             clearSelectedTransactions();
+            updateSelectAllMatchingItemsState({});
             return;
         }
 
+        let updatedTransactions: SelectedTransactions;
         if (areItemsGrouped) {
-            setSelectedTransactions(
-                Object.fromEntries(
-                    (data as TransactionGroupListItemType[]).flatMap((item) =>
-                        item.transactions
-                            .filter((t) => !isTransactionPendingDelete(t))
-                            .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID)),
-                    ),
-                ),
-                data,
+            const allSelections: Array<[string, SelectedTransactionInfo]> = (filteredData as TransactionGroupListItemType[]).flatMap((item) => {
+                if (item.transactions.length === 0 && isTransactionReportGroupListItemType(item) && item.keyForList) {
+                    if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                        return [];
+                    }
+                    return [mapEmptyReportToSelectedEntry(item)];
+                }
+                return item.transactions
+                    .filter((t) => !isTransactionPendingDelete(t))
+                    .map((transactionItem) => {
+                        const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
+                        const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
+                        return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', accountID, outstandingReportsByPolicyID);
+                    });
+            });
+            updatedTransactions = Object.fromEntries(allSelections);
+        } else {
+            // When items are not grouped, data is TransactionListItemType[] not TransactionGroupListItemType[]
+            updatedTransactions = Object.fromEntries(
+                (filteredData as TransactionListItemType[])
+                    .filter((t) => !isTransactionPendingDelete(t))
+                    .map((transactionItem) => {
+                        const itemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
+                        const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
+                        return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', accountID, outstandingReportsByPolicyID);
+                    }),
             );
+        }
+        setSelectedTransactions(updatedTransactions, filteredData);
+        updateSelectAllMatchingItemsState(updatedTransactions);
+    }, [
+        validGroupBy,
+        isExpenseReportType,
+        selectedTransactions,
+        setSelectedTransactions,
+        filteredData,
+        updateSelectAllMatchingItemsState,
+        clearSelectedTransactions,
+        transactions,
+        email,
+        accountID,
+        outstandingReportsByPolicyID,
+        searchResults?.data,
+    ]);
 
+    const onLayout = useCallback(() => {
+        endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB);
+        endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB_RENDER);
+        handleSelectionListScroll(sortedData, searchListRef.current);
+    }, [handleSelectionListScroll, sortedData]);
+
+    useEffect(() => {
+        if (shouldShowLoadingState) {
             return;
         }
 
-        setSelectedTransactions(
-            Object.fromEntries(
-                (data as TransactionListItemType[])
-                    .filter((t) => !isTransactionPendingDelete(t))
-                    .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID)),
-            ),
-            data,
-        );
-    }, [clearSelectedTransactions, data, groupBy, reportActionsArray, selectedTransactions, setSelectedTransactions, outstandingReportsByPolicyID]);
+        const renderSpanParent = getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB);
 
-    const onLayout = useCallback(() => handleSelectionListScroll(sortedSelectedData, searchListRef.current), [handleSelectionListScroll, sortedSelectedData]);
+        if (renderSpanParent) {
+            startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB_RENDER, {
+                name: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB_RENDER,
+                op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB_RENDER,
+                parentSpan: renderSpanParent,
+            }).setAttributes({
+                inputQuery: queryJSON?.inputQuery,
+            });
+        }
+
+        // Exclude `queryJSON?.inputQuery` since it’s only telemetry metadata and would cause the span to start multiple times.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [shouldShowLoadingState]);
+
+    const onLayoutSkeleton = useCallback(() => {
+        endSpan(CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS);
+    }, []);
 
     if (shouldShowLoadingState) {
         return (
-            <SearchRowSkeleton
-                shouldAnimate
-                containerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3}
-            />
+            <Animated.View
+                entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                style={[styles.flex1]}
+                onLayout={onLayoutSkeleton}
+            >
+                <SearchRowSkeleton
+                    shouldAnimate
+                    containerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3}
+                />
+            </Animated.View>
         );
     }
 
     if (searchResults === undefined) {
         Log.alert('[Search] Undefined search type');
+        cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB);
         return <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>;
     }
 
     if (hasErrors) {
+        const isInvalidQuery = searchRequestResponseStatusCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY;
+        cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB);
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
                 <FullPageErrorView
                     shouldShow
+                    containerStyle={styles.searchBlockingErrorViewContainer}
                     subtitleStyle={styles.textSupporting}
                     title={translate('errorPage.title', {isBreakLine: shouldUseNarrowLayout})}
-                    subtitle={translate('errorPage.subtitle')}
+                    subtitle={translate(isInvalidQuery ? 'errorPage.wrongTypeSubtitle' : 'errorPage.subtitle')}
                 />
             </View>
         );
     }
 
-    const visibleDataLength = data.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length;
-    if (shouldShowEmptyState(isDataLoaded, visibleDataLength, searchResults.search.type)) {
+    const visibleDataLength = filteredData.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length;
+    if (shouldShowEmptyState(isDataLoaded, visibleDataLength, searchDataType)) {
+        cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB);
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
                 <EmptySearchView
-                    hash={hash}
+                    similarSearchHash={similarSearchHash}
                     type={type}
-                    groupBy={groupBy}
-                    hasResults={searchResults.search.hasResults}
+                    hasResults={searchResults?.search?.hasResults}
+                    queryJSON={queryJSON}
                 />
             </View>
         );
     }
 
     const onSortPress = (column: SearchColumnType, order: SortOrder) => {
+        clearSelectedTransactions();
         const newQuery = buildSearchQueryString({...queryJSON, sortBy: column, sortOrder: order});
-        navigation.setParams({q: newQuery});
+        onSortPressedCallback?.();
+        // We want to explicitly clear stale rawQuery since it's only used for manually typed-in queries.
+        navigation.setParams({q: newQuery, rawQuery: undefined});
     };
 
-    const shouldShowYear = shouldShowYearUtil(searchResults?.data);
+    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported} = shouldShowYearUtil(
+        searchResults?.data,
+        isExpenseReportType ?? false,
+    );
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(searchResults?.data);
-    const shouldShowSorting = !groupBy;
     const shouldShowTableHeader = isLargeScreenWidth && !isChat;
+    const tableHeaderVisible = canSelectMultiple || shouldShowTableHeader;
+
+    const shouldShowChartView = (view === CONST.SEARCH.VIEW.BAR || view === CONST.SEARCH.VIEW.LINE) && !!validGroupBy;
+
+    if (shouldShowChartView && isGroupedItemArray(sortedData)) {
+        let chartTitle = translate(`search.chartTitles.${validGroupBy}`);
+        if (savedSearch) {
+            if (savedSearch.name !== savedSearch.query) {
+                chartTitle = savedSearch.name;
+            }
+        } else if (searchKey && suggestedSearches[searchKey]) {
+            chartTitle = translate(suggestedSearches[searchKey].translationPath);
+        }
+
+        return (
+            <SearchScopeProvider>
+                <SearchChartView
+                    queryJSON={queryJSON}
+                    view={view}
+                    groupBy={validGroupBy}
+                    data={sortedData}
+                    isLoading={shouldShowLoadingState}
+                    onScroll={onSearchListScroll}
+                    title={chartTitle}
+                />
+            </SearchScopeProvider>
+        );
+    }
 
     return (
-        <SearchScopeProvider isOnSearch>
-            <SearchList
-                ref={searchListRef}
-                data={sortedSelectedData}
-                ListItem={ListItem}
-                onSelectRow={openReport}
-                onCheckboxPress={toggleTransaction}
-                onAllCheckboxPress={toggleAllTransactions}
-                canSelectMultiple={canSelectMultiple}
-                shouldPreventLongPressRow={isChat || isTask}
-                SearchTableHeader={
-                    !shouldShowTableHeader ? undefined : (
-                        <SearchTableHeader
-                            canSelectMultiple={canSelectMultiple}
-                            data={searchResults?.data}
-                            metadata={searchResults?.search}
-                            onSortPress={onSortPress}
-                            sortOrder={sortOrder}
-                            sortBy={sortBy}
-                            shouldShowYear={shouldShowYear}
-                            isAmountColumnWide={shouldShowAmountInWideColumn}
-                            isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
-                            shouldShowSorting={shouldShowSorting}
-                        />
-                    )
-                }
-                contentContainerStyle={{...contentContainerStyle, ...styles.pb3}}
-                containerStyle={[styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3]}
-                shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                onScroll={onSearchListScroll}
-                onEndReachedThreshold={0.75}
-                onEndReached={fetchMoreResults}
-                ListFooterComponent={
-                    shouldShowLoadingMoreItems ? (
-                        <SearchRowSkeleton
-                            shouldAnimate
-                            fixedNumItems={5}
-                        />
-                    ) : undefined
-                }
-                queryJSON={queryJSON}
-                onViewableItemsChanged={onViewableItemsChanged}
-                onLayout={onLayout}
-                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-            />
+        <SearchScopeProvider>
+            <Animated.View style={[styles.flex1, animatedStyle]}>
+                <SearchList
+                    ref={searchListRef}
+                    data={sortedData}
+                    ListItem={ListItem}
+                    onSelectRow={onSelectRow}
+                    onCheckboxPress={toggleTransaction}
+                    onAllCheckboxPress={toggleAllTransactions}
+                    canSelectMultiple={canSelectMultiple}
+                    selectedTransactions={selectedTransactions}
+                    shouldPreventLongPressRow={isChat || isTask}
+                    onDEWModalOpen={handleDEWModalOpen}
+                    isDEWBetaEnabled={isDEWBetaEnabled}
+                    SearchTableHeader={
+                        !shouldShowTableHeader ? undefined : (
+                            <View style={[!isTask && styles.pr8, styles.flex1]}>
+                                <SearchTableHeader
+                                    canSelectMultiple={canSelectMultiple}
+                                    columns={columnsToShow}
+                                    type={type}
+                                    onSortPress={onSortPress}
+                                    sortOrder={sortOrder}
+                                    sortBy={sortBy}
+                                    shouldShowYear={shouldShowYearCreated}
+                                    shouldShowYearSubmitted={shouldShowYearSubmitted}
+                                    shouldShowYearApproved={shouldShowYearApproved}
+                                    shouldShowYearPosted={shouldShowYearPosted}
+                                    shouldShowYearExported={shouldShowYearExported}
+                                    isAmountColumnWide={shouldShowAmountInWideColumn}
+                                    isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
+                                    shouldShowSorting
+                                    groupBy={validGroupBy}
+                                />
+                            </View>
+                        )
+                    }
+                    contentContainerStyle={[styles.pb3, contentContainerStyle]}
+                    containerStyle={[styles.pv0, !tableHeaderVisible && !isSmallScreenWidth && styles.pt3]}
+                    shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                    onScroll={onSearchListScroll}
+                    onEndReachedThreshold={0.75}
+                    onEndReached={fetchMoreResults}
+                    ListFooterComponent={
+                        shouldShowLoadingMoreItems ? (
+                            <SearchRowSkeleton
+                                shouldAnimate
+                                fixedNumItems={5}
+                            />
+                        ) : undefined
+                    }
+                    queryJSON={queryJSON}
+                    columns={columnsToShow}
+                    violations={violations}
+                    onLayout={onLayout}
+                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                    shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
+                    newTransactions={newTransactions}
+                    hasLoadedAllTransactions={hasLoadedAllTransactions}
+                    customCardNames={customCardNames}
+                />
+            </Animated.View>
         </SearchScopeProvider>
     );
 }
@@ -814,4 +1537,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 Search.displayName = 'Search';
 
 export type {SearchProps};
-export default Search;
+const WrappedSearch = Sentry.withProfiler(Search) as typeof Search;
+WrappedSearch.displayName = 'Search';
+
+export default WrappedSearch;

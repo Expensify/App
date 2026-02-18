@@ -1,4 +1,5 @@
 import {NativeModules} from 'react-native';
+import type {OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import applyOnyxUpdatesReliably from '@libs/actions/applyOnyxUpdatesReliably';
 import Log from '@libs/Log';
@@ -12,12 +13,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 import PushNotification from '.';
-import type {PushNotificationData} from './NotificationType';
+import type {AnyPushNotificationData, PushNotificationData} from './NotificationType';
 
 /**
  * Manage push notification subscriptions on sign-in/sign-out.
  */
-Onyx.connect({
+// We do not depend on updates on the UI for notifications, so we can use `connectWithoutView` here.
+Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
     callback: (notificationID) => {
         if (notificationID) {
@@ -41,7 +43,8 @@ Onyx.connect({
 });
 
 let isSingleNewDotEntry: boolean | undefined;
-Onyx.connect({
+// Hybrid app config is not determined by changes in the UI, so we can use `connectWithoutView` here.
+Onyx.connectWithoutView({
     key: ONYXKEYS.HYBRID_APP,
     callback: (value) => {
         if (!value) {
@@ -51,7 +54,7 @@ Onyx.connect({
     },
 });
 
-function applyOnyxData({reportID, onyxData, lastUpdateID, previousUpdateID, hasPendingOnyxUpdates = false}: PushNotificationData): Promise<void> {
+function applyOnyxData<TKey extends OnyxKey>({reportID, onyxData, lastUpdateID, previousUpdateID, hasPendingOnyxUpdates = false}: PushNotificationData<TKey>): Promise<void> {
     Log.info(`[PushNotification] Applying onyx data in the ${Visibility.isVisible() ? 'foreground' : 'background'}`, false, {reportID, lastUpdateID});
 
     const logMissingOnyxDataInfo = (isDataMissing: boolean): boolean => {
@@ -64,7 +67,7 @@ function applyOnyxData({reportID, onyxData, lastUpdateID, previousUpdateID, hasP
         return true;
     };
 
-    let updates: OnyxUpdatesFromServer;
+    let updates: OnyxUpdatesFromServer<TKey>;
     if (hasPendingOnyxUpdates) {
         const isDataMissing = !lastUpdateID;
         logMissingOnyxDataInfo(isDataMissing);
@@ -105,10 +108,10 @@ function applyOnyxData({reportID, onyxData, lastUpdateID, previousUpdateID, hasP
      */
     return getLastUpdateIDAppliedToClient()
         .then((lastUpdateIDAppliedToClient) => applyOnyxUpdatesReliably(updates, {shouldRunSync: true, clientLastUpdateID: lastUpdateIDAppliedToClient}))
-        .then(() => NativeModules.PushNotificationBridge.finishBackgroundProcessing());
+        .then(() => NativeModules.PushNotificationBridge?.finishBackgroundProcessing());
 }
 
-function navigateToReport({reportID}: PushNotificationData): Promise<void> {
+function navigateToReport({reportID}: AnyPushNotificationData): Promise<void> {
     Log.info('[PushNotification] Navigating to report', false, {reportID});
 
     Navigation.waitForProtectedRoutes().then(() => {
@@ -133,7 +136,7 @@ function navigateToReport({reportID}: PushNotificationData): Promise<void> {
 
                 Log.info('[PushNotification] onSelected() - Navigation is ready. Navigating...', false, {reportID});
                 const backTo = Navigation.isActiveRoute(ROUTES.REPORT_WITH_ID.getRoute(String(reportID))) ? undefined : Navigation.getActiveRoute();
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(String(reportID), undefined, undefined, undefined, undefined, backTo));
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(String(reportID), undefined, undefined, backTo));
                 updateLastVisitedPath(ROUTES.REPORT_WITH_ID.getRoute(String(reportID)));
             } catch (error) {
                 let errorMessage = String(error);
@@ -151,7 +154,9 @@ function navigateToReport({reportID}: PushNotificationData): Promise<void> {
 
 function getLastUpdateIDAppliedToClient(): Promise<number> {
     return new Promise((resolve) => {
-        Onyx.connect({
+        // We do not depend on updates on the UI to determine the last update ID applied to the client
+        // So we can use `connectWithoutView` here.
+        Onyx.connectWithoutView({
             key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
             callback: (value) => resolve(value ?? CONST.DEFAULT_NUMBER_ID),
         });

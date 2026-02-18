@@ -10,7 +10,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PersonalDetails from '@userActions/PersonalDetails';
+import {updateAutomaticTimezone} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
@@ -26,19 +26,8 @@ function TimezoneInitialPage({currentUserPersonalDetails}: TimezoneInitialPagePr
 
     const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone as SelectedTimezone;
 
-    /**
-     * Updates setting for automatic timezone selection.
-     * Note: If we are updating automatically, we'll immediately calculate the user's timezone.
-     */
-    const updateAutomaticTimezone = (isAutomatic: boolean) => {
-        PersonalDetails.updateAutomaticTimezone({
-            automatic: isAutomatic,
-            selected: isAutomatic && !isEmptyObject(currentTimezone) ? currentTimezone : timezone.selected,
-        });
-    };
-
     return (
-        <ScreenWrapper testID={TimezoneInitialPage.displayName}>
+        <ScreenWrapper testID="TimezoneInitialPage">
             <HeaderWithBackButton
                 title={translate('timezonePage.timezone')}
                 onBackButtonPress={() => Navigation.goBack()}
@@ -51,7 +40,17 @@ function TimezoneInitialPage({currentUserPersonalDetails}: TimezoneInitialPagePr
                         <Switch
                             accessibilityLabel={translate('timezonePage.getLocationAutomatically')}
                             isOn={!!timezone.automatic}
-                            onToggle={updateAutomaticTimezone}
+                            onToggle={(isAutomatic: boolean) => {
+                                // Updates setting for automatic timezone selection.
+                                // Note: If we are updating automatically, we'll immediately calculate the user's timezone.
+                                updateAutomaticTimezone(
+                                    {
+                                        automatic: isAutomatic,
+                                        selected: isAutomatic && !isEmptyObject(currentTimezone) ? currentTimezone : timezone.selected,
+                                    },
+                                    currentUserPersonalDetails.accountID,
+                                );
+                            }}
                         />
                     </View>
                 </View>
@@ -66,7 +65,5 @@ function TimezoneInitialPage({currentUserPersonalDetails}: TimezoneInitialPagePr
         </ScreenWrapper>
     );
 }
-
-TimezoneInitialPage.displayName = 'TimezoneInitialPage';
 
 export default withCurrentUserPersonalDetails(TimezoneInitialPage);

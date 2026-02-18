@@ -1,13 +1,15 @@
 import {useRoute} from '@react-navigation/native';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import TestReceipt from '@assets/images/fake-test-drive-employee-receipt.jpg';
 import TextInput from '@components/TextInput';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import {
     initMoneyRequest,
     setMoneyRequestAmount,
@@ -20,9 +22,11 @@ import {
 import {verifyTestDriveRecipient} from '@libs/actions/Onboarding';
 import setTestReceipt from '@libs/actions/setTestReceipt';
 import type AccountExistsError from '@libs/Errors/AccountExistsError';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TestDriveModalNavigatorParamList} from '@libs/Navigation/types';
+import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import CONST from '@src/CONST';
@@ -36,11 +40,17 @@ function EmployeeTestDriveModal() {
     const reportID = generateReportID();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
+    const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
     const route = useRoute<PlatformStackRouteProp<TestDriveModalNavigatorParamList, typeof SCREENS.TEST_DRIVE_MODAL.ROOT>>();
     const [bossEmail, setBossEmail] = useState(route.params?.bossEmail ?? '');
     const [formError, setFormError] = useState<string | undefined>();
     const [isLoading, setIsLoading] = useState(false);
     const {testDrive} = useOnboardingMessages();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const personalPolicy = usePersonalPolicy();
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [draftTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
+    const hasOnlyPersonalPolicies = useMemo(() => hasOnlyPersonalPoliciesUtil(allPolicies), [allPolicies]);
 
     const onBossEmailChange = useCallback((value: string) => {
         setBossEmail(value);
@@ -48,6 +58,7 @@ function EmployeeTestDriveModal() {
     }, []);
 
     const navigate = () => {
+        Log.hmmm('[EmployeeTestDriveModal] Navigate function called', {bossEmail});
         const loginTrim = bossEmail.trim();
         if (!loginTrim || !Str.isValidEmail(loginTrim)) {
             setFormError(translate('common.error.email'));
@@ -58,6 +69,7 @@ function EmployeeTestDriveModal() {
 
         verifyTestDriveRecipient(bossEmail)
             .then(() => {
+                Log.hmmm('[EmployeeTestDriveModal] Test drive recipient verified');
                 setTestReceipt(
                     TestReceipt,
                     'jpg',
@@ -66,10 +78,15 @@ function EmployeeTestDriveModal() {
 
                         initMoneyRequest({
                             reportID,
+                            personalPolicy,
                             isFromGlobalCreate: false,
                             newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
                             report,
                             parentReport,
+                            currentDate,
+                            currentUserPersonalDetails,
+                            hasOnlyPersonalPolicies,
+                            draftTransactions,
                         });
 
                         setMoneyRequestReceipt(transactionID, source, filename, true, CONST.TEST_RECEIPT.FILE_TYPE, false, true);
@@ -87,18 +104,23 @@ function EmployeeTestDriveModal() {
                         setMoneyRequestMerchant(transactionID, testDrive.EMPLOYEE_FAKE_RECEIPT.MERCHANT, true);
                         setMoneyRequestCreated(transactionID, format(new Date(), CONST.DATE.FNS_FORMAT_STRING), true);
 
+                        Log.hmmm('[EmployeeTestDriveModal] Running after interactions');
+                        Navigation.goBack();
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         InteractionManager.runAfterInteractions(() => {
-                            Navigation.goBack();
+                            Log.hmmm('[EmployeeTestDriveModal] Calling Navigation.goBack() and Navigation.navigate()');
                             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
                         });
                     },
                     () => {
+                        Log.hmmm('[EmployeeTestDriveModal] Error setting test receipt');
                         setIsLoading(false);
                         setFormError(translate('common.genericErrorMessage'));
                     },
                 );
             })
             .catch((e: AccountExistsError) => {
+                Log.hmmm('[EmployeeTestDriveModal] Error verifying test drive recipient', {error: e});
                 setIsLoading(false);
                 setFormError(e.translationKey ? translate(e.translationKey) : 'common.genericErrorMessage');
             });
@@ -132,7 +154,5 @@ function EmployeeTestDriveModal() {
         </BaseTestDriveModal>
     );
 }
-
-EmployeeTestDriveModal.displayName = 'EmployeeTestDriveModal';
 
 export default EmployeeTestDriveModal;

@@ -4,7 +4,6 @@ description: Invite new members to your workspace and assign them a role
 keywords: [Expensify Classic, invite members, member roles]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 **Workspace Admins can invite new members to a workspace by:**
 - Enabling automatic access for members who sign up for Expensify using their domain email address (e.g., yourname@yourcompany.com)
@@ -82,4 +81,3 @@ To add members in bulk:
 
 **Note:** If you are utilizing the **Advanced Approval** feature, you can specify to whom each member should submit their expense reports and who an approver should send approved reports for the next step in the approval process. If someone is the final
 
-</div>

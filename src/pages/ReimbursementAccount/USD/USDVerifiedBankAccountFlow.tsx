@@ -1,6 +1,7 @@
 import React from 'react';
-import type {View} from 'react-native';
+import {View} from 'react-native';
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import BankInfo from './BankInfo/BankInfo';
@@ -30,11 +31,13 @@ function USDVerifiedBankAccountFlow({
     setUSDBankAccountStep,
     setShouldShowConnectedVerifiedBankAccount,
 }: USDVerifiedBankAccountFlowProps) {
+    const styles = useThemeStyles();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
 
+    let CurrentStep: React.JSX.Element | null;
     switch (USDBankAccountStep) {
         case CONST.BANK_ACCOUNT.STEP.COUNTRY:
-            return (
+            CurrentStep = (
                 <Country
                     onBackButtonPress={onBackButtonPress}
                     policyID={policyID}
@@ -42,41 +45,53 @@ function USDVerifiedBankAccountFlow({
                     stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
                 />
             );
+            break;
         case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
-            return (
+            CurrentStep = (
                 <BankInfo
                     onBackButtonPress={onBackButtonPress}
                     policyID={policyID}
                     setUSDBankAccountStep={setUSDBankAccountStep}
                 />
             );
+            break;
         case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
-            return (
+            CurrentStep = (
                 <RequestorStep
                     ref={requestorStepRef}
                     shouldShowOnfido={!!(onfidoToken && !reimbursementAccount?.achData?.isOnfidoSetupComplete)}
                     onBackButtonPress={onBackButtonPress}
                 />
             );
+            break;
         case CONST.BANK_ACCOUNT.STEP.COMPANY:
-            return <BusinessInfo onBackButtonPress={onBackButtonPress} />;
+            CurrentStep = <BusinessInfo onBackButtonPress={onBackButtonPress} />;
+            break;
         case CONST.BANK_ACCOUNT.STEP.BENEFICIAL_OWNERS:
-            return <BeneficialOwnersStep onBackButtonPress={onBackButtonPress} />;
+            CurrentStep = <BeneficialOwnersStep onBackButtonPress={onBackButtonPress} />;
+            break;
         case CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT:
-            return <CompleteVerification onBackButtonPress={onBackButtonPress} />;
+            CurrentStep = <CompleteVerification onBackButtonPress={onBackButtonPress} />;
+            break;
         case CONST.BANK_ACCOUNT.STEP.VALIDATION:
-            return (
+            CurrentStep = (
                 <ConnectBankAccount
                     onBackButtonPress={onBackButtonPress}
                     setUSDBankAccountStep={setUSDBankAccountStep}
                     setShouldShowConnectedVerifiedBankAccount={setShouldShowConnectedVerifiedBankAccount}
                 />
             );
+            break;
         default:
-            return null;
+            CurrentStep = null;
+            break;
     }
-}
 
-USDVerifiedBankAccountFlow.displayName = 'USDVerifiedBankAccountFlow';
+    if (CurrentStep) {
+        return <View style={styles.flex1}>{CurrentStep}</View>;
+    }
+
+    return null;
+}
 
 export default USDVerifiedBankAccountFlow;

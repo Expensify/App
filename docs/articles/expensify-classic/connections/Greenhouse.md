@@ -4,7 +4,6 @@ description: Learn how to integrate Greenhouse with Expensify to automatically s
 keywords: [Greenhouse, Expensify Classic, integration, candidate reimbursement]
 ---
 
-<div id="expensify-classic" markdown="1">
    
 Expensify's integration with Greenhouse allows you to automatically send candidate details from Greenhouse to Expensify for easy reimbursement. You can also set the candidate's recruiter or recruiting coordinator as their expense approver.
 
@@ -76,4 +75,3 @@ Yes. Contact **concierge@expensify.com** or your account manager to modify the d
 ## What if I want candidates to use different Categories or Tags than employees?
 We recommend setting up a **separate Expensify workspace** for candidates to configure a customized workflow.
 
-</div>

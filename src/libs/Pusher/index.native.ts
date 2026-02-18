@@ -13,7 +13,8 @@ import type {Args, ChunkedDataEvents, EventCallbackError, EventData, PusherEvent
 import type PusherModule from './types';
 
 let shouldForceOffline = false;
-Onyx.connect({
+// We have used `connectWithoutView` here because it is not connected to any UI
+Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
     callback: (network) => {
         if (!network) {
@@ -39,7 +40,9 @@ let channels: Record<string, ValueOf<typeof CONST.PUSHER.CHANNEL_STATUS>> = {};
  * Trigger each of the socket event callbacks with the event information
  */
 function callSocketEventCallbacks(eventName: SocketEventName, data?: EventCallbackError | States) {
-    socketEventCallbacks.forEach((cb) => cb(eventName, data));
+    for (const cb of socketEventCallbacks) {
+        cb(eventName, data);
+    }
 }
 
 /**
@@ -204,6 +207,7 @@ function subscribe<EventName extends PusherEventName>(
     return initPromise.then(
         () =>
             new Promise((resolve, reject) => {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     // We cannot call subscribe() before init(). Prevent any attempt to do this on dev.
                     if (!socket) {

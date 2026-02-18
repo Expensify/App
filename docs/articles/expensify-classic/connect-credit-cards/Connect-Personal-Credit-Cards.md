@@ -2,7 +2,6 @@
 Title: Connecting Personal Credit Cards to Expensify  
 Description: Learn how to connect or manually import your personal credit card expenses into Expensify for seamless tracking and reimbursement.
 ---
-<div id="expensify-classic" markdown="1">
 
 Connecting a personal credit card to Expensify makes it easy to track your expenses and get reimbursed all in one place. You can either set up a direct connection to automatically import transactions or manually upload a CSV file. These methods also merge your expenses with SmartScanned receipts and, if enabled, allow you to generate IRS-compliant eReceipts.
 
@@ -62,7 +61,7 @@ You can customize how imported card transactions appear:
 
 # Removing a Card
 
-**Important:** Removing a card deletes all unsubmitted expenses associated with it, so any card expenses on an Open report or left Unreported will be deleted. Card expenses that were submitted are unaffected (on reports that are Processing, Approved, Reimbursed, or Closed).
+**Important:** Removing a card deletes all unsubmitted expenses associated with it, so any card expenses on a Draft report or left Unreported will be deleted. Card expenses that were submitted are unaffected (on reports that are Outstanding, Approved, Paid, or Done).
 
 1. Go to **Settings > Account > Wallet**.
 2. Under **Imported Card Feeds**, click the red trashcan icon next to the card.
@@ -87,4 +86,3 @@ Use the filters on the **Expenses** page (e.g., Date filter) to locate missing e
   - Per diem, hourly, or mileage expenses.
 - **Non-Reimbursable**: Expenses paid using company funds, like a corporate card transaction, that require documentation but not reimbursement.
 
-</div>

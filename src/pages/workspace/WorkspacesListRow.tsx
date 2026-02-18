@@ -1,13 +1,14 @@
+import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React, {useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
+import Animated from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -16,13 +17,15 @@ import Tooltip from '@components/Tooltip';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import WorkspacesListRowDisplayName from '@components/WorkspacesListRowDisplayName';
+import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -74,23 +77,18 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
     /** Whether the bill is loading */
     isLoadingBill?: boolean;
 
+    /** Whether the list item is highlighted */
+    shouldAnimateInHighlight?: boolean;
+
     /** Function to reset loading spinner icon index */
     resetLoadingSpinnerIconIndex?: () => void;
+
+    /** Whether the list item is hovered */
+    isHovered?: boolean;
 };
 
 type BrickRoadIndicatorIconProps = {
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
-};
-
-const workspaceTypeIcon = (workspaceType: WorkspacesListRowProps['workspaceType']): IconAsset => {
-    switch (workspaceType) {
-        case CONST.POLICY.TYPE.CORPORATE:
-            return Illustrations.ShieldYellow;
-        case CONST.POLICY.TYPE.TEAM:
-            return Illustrations.Mailbox;
-        default:
-            return Illustrations.Mailbox;
-    }
 };
 
 function BrickRoadIndicatorIcon({brickRoadIndicator}: BrickRoadIndicatorIconProps) {
@@ -116,20 +114,46 @@ function WorkspacesListRow({
     rowStyles,
     style,
     brickRoadIndicator,
+    shouldAnimateInHighlight,
     shouldDisableThreeDotsMenu,
     isJoinRequestPending,
     policyID,
     isDefault,
     isLoadingBill,
     resetLoadingSpinnerIconIndex,
+    isHovered,
 }: WorkspacesListRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const theme = useTheme();
+    const isFocused = useIsFocused();
     const isNarrow = layoutWidth === CONST.LAYOUT_WIDTH.NARROW;
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Hourglass']);
+    const illustrations = useMemoizedLazyIllustrations(['Mailbox', 'ShieldYellow']);
+
+    const workspaceTypeIcon = useCallback(
+        (type: WorkspacesListRowProps['workspaceType']): IconAsset => {
+            switch (type) {
+                case CONST.POLICY.TYPE.CORPORATE:
+                    return illustrations.ShieldYellow;
+                case CONST.POLICY.TYPE.TEAM:
+                    return illustrations.Mailbox;
+                default:
+                    return illustrations.Mailbox;
+            }
+        },
+        [illustrations.Mailbox, illustrations.ShieldYellow],
+    );
 
     const ownerDetails = ownerAccountID && getPersonalDetailsByIDs({accountIDs: [ownerAccountID], currentUserAccountID: currentUserPersonalDetails.accountID}).at(0);
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}>(null);
+    const animatedHighlightStyle = useAnimatedHighlightStyle({
+        borderRadius: variables.componentBorderRadius,
+        shouldHighlight: !!shouldAnimateInHighlight,
+        highlightColor: theme.messageHighlightBG,
+        backgroundColor: theme.transparent,
+    });
 
     useEffect(() => {
         if (isLoadingBill) {
@@ -151,7 +175,7 @@ function WorkspacesListRow({
 
     const isWide = layoutWidth === CONST.LAYOUT_WIDTH.WIDE;
 
-    const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
+    const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedbackDeleted) : false;
 
     const ThreeDotMenuOrPendingIcon = (
         <View style={[styles.flexRow, !shouldUseNarrowLayout && styles.workspaceThreeDotMenu]}>
@@ -161,7 +185,7 @@ function WorkspacesListRow({
                         text={translate('workspace.common.requested')}
                         textStyles={styles.textStrong}
                         badgeStyles={[styles.alignSelfCenter, styles.badgeBordered]}
-                        icon={Expensicons.Hourglass}
+                        icon={icons.Hourglass}
                     />
                 </View>
             )}
@@ -186,6 +210,7 @@ function WorkspacesListRow({
                         <BrickRoadIndicatorIcon brickRoadIndicator={brickRoadIndicator} />
                     </View>
                     <ThreeDotsMenu
+                        isContainerFocused={isFocused}
                         shouldSelfPosition
                         menuItems={menuItems}
                         anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
@@ -200,83 +225,96 @@ function WorkspacesListRow({
     );
 
     return (
-        <View style={[styles.flexRow, styles.highlightBG, rowStyles, style, isWide && styles.gap5, styles.br3, styles.p5]}>
-            <View style={[isWide ? styles.flexRow : styles.flexColumn, styles.flex1, isWide && styles.gap5]}>
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.flex2, isNarrow && styles.mb3, styles.alignItemsCenter]}>
-                    <View style={[styles.flexRow, styles.gap3, styles.flex1, styles.alignItemsCenter]}>
-                        <Avatar
-                            imageStyles={[styles.alignSelfCenter]}
-                            size={CONST.AVATAR_SIZE.DEFAULT}
-                            source={workspaceIcon}
-                            fallbackIcon={fallbackWorkspaceIcon}
-                            avatarID={policyID}
-                            name={title}
-                            type={CONST.ICON_TYPE_WORKSPACE}
-                        />
-                        <TextWithTooltip
-                            text={title}
-                            shouldShowTooltip
-                            style={[styles.flex1, styles.flexGrow1, styles.textStrong, isDeleted ? styles.offlineFeedback.deleted : {}]}
-                        />
-                    </View>
-                    {isNarrow && ThreeDotMenuOrPendingIcon}
-                </View>
-                <View style={[styles.flexRow, isWide && styles.flex1, isWide && styles.workspaceOwnerSectionMinWidth, styles.gap2, styles.alignItemsCenter]}>
-                    {!!ownerDetails && (
-                        <>
+        <View style={[styles.flexRow, styles.highlightBG, rowStyles, style, styles.br3]}>
+            <Animated.View style={[styles.flex1, styles.flexRow, styles.bgTransparent, isWide && styles.gap5, styles.p5, styles.pr3, animatedHighlightStyle]}>
+                <View style={[isWide ? styles.flexRow : styles.flexColumn, styles.flex1, isWide && styles.gap5]}>
+                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.flex2, isNarrow && styles.mb3, styles.alignItemsCenter]}>
+                        <View style={[styles.flexRow, styles.gap3, styles.flex1, styles.alignItemsCenter]}>
                             <Avatar
-                                source={ownerDetails.avatar}
-                                avatarID={ownerDetails.accountID}
-                                type={CONST.ICON_TYPE_AVATAR}
-                                size={CONST.AVATAR_SIZE.SMALL}
-                                containerStyles={styles.workspaceOwnerAvatarWrapper}
+                                imageStyles={[styles.alignSelfCenter]}
+                                size={CONST.AVATAR_SIZE.DEFAULT}
+                                source={workspaceIcon}
+                                fallbackIcon={fallbackWorkspaceIcon}
+                                avatarID={policyID}
+                                name={title}
+                                type={CONST.ICON_TYPE_WORKSPACE}
                             />
-                            <View style={styles.flex1}>
-                                <WorkspacesListRowDisplayName
-                                    isDeleted={isDeleted}
-                                    ownerName={getDisplayNameOrDefault(ownerDetails)}
+                            <TextWithTooltip
+                                text={title}
+                                shouldShowTooltip
+                                style={[styles.flex1, styles.flexGrow1, styles.textStrong, isDeleted ? styles.offlineFeedbackDeleted : {}]}
+                            />
+                        </View>
+                        {isNarrow && ThreeDotMenuOrPendingIcon}
+                    </View>
+                    <View style={[styles.flexRow, isWide && styles.flex1, isWide && styles.workspaceOwnerSectionMinWidth, styles.gap2, styles.alignItemsCenter]}>
+                        {!!ownerDetails && (
+                            <>
+                                <Avatar
+                                    source={ownerDetails.avatar}
+                                    avatarID={ownerDetails.accountID}
+                                    type={CONST.ICON_TYPE_AVATAR}
+                                    size={CONST.AVATAR_SIZE.SMALL}
+                                    containerStyles={styles.workspaceOwnerAvatarWrapper}
                                 />
+                                <View style={styles.flex1}>
+                                    <WorkspacesListRowDisplayName
+                                        isDeleted={isDeleted}
+                                        ownerName={getDisplayNameOrDefault(ownerDetails)}
+                                    />
+                                    <Text
+                                        numberOfLines={1}
+                                        style={[styles.textMicro, styles.textSupporting, isDeleted ? styles.offlineFeedbackDeleted : {}]}
+                                    >
+                                        {Str.removeSMSDomain(ownerDetails?.login ?? '')}
+                                    </Text>
+                                </View>
+                            </>
+                        )}
+                    </View>
+                    <View style={[styles.flexRow, isWide && styles.flex1, styles.gap2, styles.alignItemsCenter]}>
+                        <Icon
+                            src={workspaceTypeIcon(workspaceType)}
+                            width={variables.workspaceTypeIconWidth}
+                            height={variables.workspaceTypeIconWidth}
+                            additionalStyles={styles.workspaceTypeWrapper}
+                        />
+                        <View>
+                            {!!workspaceType && (
                                 <Text
                                     numberOfLines={1}
-                                    style={[styles.textMicro, styles.textSupporting, isDeleted ? styles.offlineFeedback.deleted : {}]}
+                                    style={[styles.labelStrong, isDeleted ? styles.offlineFeedbackDeleted : {}]}
                                 >
-                                    {Str.removeSMSDomain(ownerDetails?.login ?? '')}
+                                    {getUserFriendlyWorkspaceType(workspaceType, translate)}
                                 </Text>
-                            </View>
-                        </>
-                    )}
-                </View>
-                <View style={[styles.flexRow, isWide && styles.flex1, styles.gap2, styles.alignItemsCenter]}>
-                    <Icon
-                        src={workspaceTypeIcon(workspaceType)}
-                        width={variables.workspaceTypeIconWidth}
-                        height={variables.workspaceTypeIconWidth}
-                        additionalStyles={styles.workspaceTypeWrapper}
-                    />
-                    <View>
-                        {!!workspaceType && (
+                            )}
                             <Text
                                 numberOfLines={1}
-                                style={[styles.labelStrong, isDeleted ? styles.offlineFeedback.deleted : {}]}
+                                style={[styles.textMicro, styles.textSupporting, isDeleted ? styles.offlineFeedbackDeleted : {}]}
                             >
-                                {getUserFriendlyWorkspaceType(workspaceType)}
+                                {translate('workspace.common.plan')}
                             </Text>
-                        )}
-                        <Text
-                            numberOfLines={1}
-                            style={[styles.textMicro, styles.textSupporting, isDeleted ? styles.offlineFeedback.deleted : {}]}
-                        >
-                            {translate('workspace.common.plan')}
-                        </Text>
+                        </View>
                     </View>
                 </View>
-            </View>
 
-            {!isNarrow && ThreeDotMenuOrPendingIcon}
+                <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                    {!isNarrow && ThreeDotMenuOrPendingIcon}
+                    {!isNarrow && (
+                        <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.touchableButtonImage]}>
+                            <Icon
+                                src={icons.ArrowRight}
+                                fill={theme.icon}
+                                additionalStyles={[styles.alignSelfCenter, !isHovered && styles.opacitySemiTransparent]}
+                                isButtonIcon
+                                medium
+                            />
+                        </View>
+                    )}
+                </View>
+            </Animated.View>
         </View>
     );
 }
-
-WorkspacesListRow.displayName = 'WorkspacesListRow';
 
 export default withCurrentUserPersonalDetails(WorkspacesListRow);

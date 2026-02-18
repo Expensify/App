@@ -1,17 +1,18 @@
 import React from 'react';
 import {View} from 'react-native';
+import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as UserUtils from '@libs/UserUtils';
+import {getSmallSizeAvatar} from '@libs/UserAvatarUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import Avatar from './Avatar';
 import AvatarSkeleton from './AvatarSkeleton';
-import * as Expensicons from './Icon/Expensicons';
 import Indicator from './Indicator';
 import Tooltip from './Tooltip';
 
 type AvatarWithIndicatorProps = {
     /** URL for the avatar */
-    source?: UserUtils.AvatarSource;
+    source?: AvatarSource;
 
     /** Account id if it's user avatar */
     accountID?: number;
@@ -20,13 +21,14 @@ type AvatarWithIndicatorProps = {
     tooltipText?: string;
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
-    fallbackIcon?: UserUtils.AvatarSource;
+    fallbackIcon?: AvatarSource;
 
     /** Indicates whether the avatar is loaded or not  */
     isLoading?: boolean;
 };
 
-function AvatarWithIndicator({source, accountID, tooltipText = '', fallbackIcon = Expensicons.FallbackAvatar, isLoading = true}: AvatarWithIndicatorProps) {
+function AvatarWithIndicator({source, accountID, tooltipText = '', fallbackIcon, isLoading = true}: AvatarWithIndicatorProps) {
+    const defaultAvatars = useDefaultAvatars();
     const styles = useThemeStyles();
 
     return (
@@ -38,8 +40,8 @@ function AvatarWithIndicator({source, accountID, tooltipText = '', fallbackIcon 
                     <>
                         <Avatar
                             size={CONST.AVATAR_SIZE.SMALL}
-                            source={UserUtils.getSmallSizeAvatar(source, accountID)}
-                            fallbackIcon={fallbackIcon}
+                            source={getSmallSizeAvatar({avatarSource: source, accountID, defaultAvatars})}
+                            fallbackIcon={fallbackIcon ?? defaultAvatars.FallbackAvatar}
                             avatarID={accountID}
                             type={CONST.ICON_TYPE_AVATAR}
                         />
@@ -50,7 +52,5 @@ function AvatarWithIndicator({source, accountID, tooltipText = '', fallbackIcon 
         </Tooltip>
     );
 }
-
-AvatarWithIndicator.displayName = 'AvatarWithIndicator';
 
 export default AvatarWithIndicator;

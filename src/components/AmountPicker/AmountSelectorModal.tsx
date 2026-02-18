@@ -48,12 +48,11 @@ function AmountSelectorModal({value, description = '', onValueSelected, isVisibl
             onClose={onClose}
             onModalHide={onClose}
             enableEdgeToEdgeBottomSafeAreaPadding
-            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 includePaddingTop={false}
-                testID={AmountSelectorModal.displayName}
+                testID="AmountSelectorModal"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -86,7 +85,5 @@ function AmountSelectorModal({value, description = '', onValueSelected, isVisibl
         </Modal>
     );
 }
-
-AmountSelectorModal.displayName = 'AmountSelectorModal';
 
 export default AmountSelectorModal;

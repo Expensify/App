@@ -60,6 +60,4 @@ function IncorporationCode({onNext, isEditing}: SubStepProps) {
     );
 }
 
-IncorporationCode.displayName = 'IncorporationCode';
-
 export default IncorporationCode;

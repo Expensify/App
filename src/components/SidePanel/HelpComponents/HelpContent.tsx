@@ -1,11 +1,9 @@
 import {findFocusedRoute} from '@react-navigation/native';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {ScrollView} from 'react-native-gesture-handler';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-// Importing from the react-native-gesture-handler package instead of the `components/ScrollView` to fix scroll issue:
-// https://github.com/react-native-modal/react-native-modal/issues/236
-import HeaderGap from '@components/HeaderGap';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import ActivityIndicator from '@components/ActivityIndicator';
+import ScrollView from '@components/ScrollView';
 import getHelpContent from '@components/SidePanel/getHelpContent';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
@@ -21,6 +19,8 @@ import {getExpenseType} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Screen} from '@src/SCREENS';
+import type {ReportAction, ReportActions} from '@src/types/onyx';
+import HelpHeader from './HelpHeader';
 
 type HelpContentProps = {
     closeSidePanel: (shouldUpdateNarrow?: boolean) => void;
@@ -34,6 +34,15 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
     const [expandedIndex, setExpandedIndex] = useState(0);
 
     const {params, routeName, currentState} = useRootNavigationState((rootState) => {
+        // Safe handling when navigation is not yet initialized
+        if (!rootState) {
+            return {
+                routeName: '' as Screen,
+                params: {} as Record<string, string>,
+                currentState: undefined,
+            };
+        }
+
         const focusedRoute = findFocusedRoute(rootState);
         setExpandedIndex(0);
         return {
@@ -44,16 +53,27 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
     });
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${params?.reportID || String(CONST.DEFAULT_NUMBER_ID)}`, {canBeMissing: true});
+    const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {canBeMissing: true});
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
-    const [parentIOUReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {
-        canBeMissing: true,
-        selector: (actions) =>
-            Object.values(actions ?? {})
+
+    const getParentIOUReportActionSelector = useCallback(
+        (actions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> => {
+            return Object.values(actions ?? {})
                 .filter((action) => action.reportActionID === report?.parentReportActionID)
-                .filter(isMoneyRequestAction)
-                .at(0),
-    });
+                .find(isMoneyRequestAction);
+        },
+        [report?.parentReportActionID],
+    );
+
+    const [parentIOUReportAction] = useOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`,
+        {
+            canBeMissing: true,
+            selector: getParentIOUReportActionSelector,
+        },
+        [getParentIOUReportActionSelector],
+    );
 
     const transactionID = useMemo(() => {
         const transactionThreadReportAction = getOneTransactionThreadReportAction(report, chatReport, reportActions ?? []);
@@ -70,7 +90,7 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
 
         const cleanedPath = path.replaceAll('?', '');
         const expenseType = getExpenseType(transaction);
-        const reportType = getHelpPaneReportType(report);
+        const reportType = getHelpPaneReportType(report, conciergeReportID);
 
         if (expenseType && reportType !== CONST.REPORT.HELP_TYPE.EXPENSE_REPORT) {
             return cleanedPath.replaceAll(':reportID', `:${CONST.REPORT.HELP_TYPE.EXPENSE}/:${expenseType}`);
@@ -81,7 +101,7 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
         }
 
         return cleanedPath;
-    }, [routeName, transaction, report]);
+    }, [routeName, transaction, report, conciergeReportID]);
 
     const wasPreviousNarrowScreen = useRef(!isExtraLargeScreenWidth);
     useEffect(() => {
@@ -99,21 +119,20 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
 
     return (
         <>
-            <HeaderGap />
-            <HeaderWithBackButton
+            <HelpHeader
                 title={translate('common.help')}
                 onBackButtonPress={() => closeSidePanel(false)}
                 onCloseButtonPress={() => closeSidePanel(false)}
                 shouldShowBackButton={!isExtraLargeScreenWidth}
                 shouldShowCloseButton={isExtraLargeScreenWidth}
-                shouldDisplayHelpButton={false}
             />
             {currentState === undefined ? (
-                <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                <View style={[styles.flex1, styles.fullScreenLoading]}>
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                </View>
             ) : (
                 <ScrollView
                     style={[styles.ph5, styles.pb5]}
-                    userSelect="auto"
                     scrollIndicatorInsets={{right: Number.MIN_VALUE}}
                 >
                     {getHelpContent(styles, route, isProduction, expandedIndex, setExpandedIndex)}
@@ -122,7 +141,5 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
         </>
     );
 }
-
-HelpContent.displayName = 'HelpContent';
 
 export default HelpContent;

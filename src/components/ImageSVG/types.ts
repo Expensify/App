@@ -4,7 +4,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 type ImageSVGProps = {
     /** The asset to render. */
-    src: IconAsset;
+    src: IconAsset | undefined;
 
     /** The width of the image. */
     width?: number | `${number}%` | 'auto';

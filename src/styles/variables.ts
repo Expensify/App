@@ -16,6 +16,7 @@ export default {
     contentHeaderHeight: getValueUsingPixelRatio(72, 100),
     contentHeaderDesktopHeight: getValueUsingPixelRatio(80, 100),
     componentSizeSmall: getValueUsingPixelRatio(28, 32),
+    componentSizeXSmall: getValueUsingPixelRatio(20, 24),
     componentSizeNormal: 40,
     componentSizeMedium: 48,
     inputComponentSizeNormal: 40,
@@ -33,6 +34,7 @@ export default {
     appModalAppIconSize: 48,
     buttonBorderRadius: 100,
     avatarSizeLargeBordered: 88,
+    avatarSizeXXLarge: 720,
     avatarSizeXLarge: 100,
     avatarSizeLarge: 80,
     avatarSizeMediumLarge: 60,
@@ -61,7 +63,7 @@ export default {
     fontSizeHeroXL: 72,
     fontSizeH1: 19,
     fontSizeH2: 19,
-    fontSizeXLarge: 22,
+    fontSizeXLarge: getValueUsingPixelRatio(22, 28),
     fontSizeXXLarge: 28,
     fontSizeXXXLarge: getValueUsingPixelRatio(32, 37),
     fontSizeNormalHeight: getValueUsingPixelRatio(20, 28),
@@ -100,10 +102,17 @@ export default {
     iosSafeAreaInsetsPercentage: 0.7,
     androidSafeAreaInsetsPercentage: 1,
     sideBarWidth: 375,
+    sidePanelWidth: 375,
+    receiptPaneRHPMaxWidth: 465,
+    homePageLeftColumnMaxWidth: 680,
+    homePageRightColumnMaxWidth: 488,
+    superWideRHPMaxWidth: 1260,
     minScanTooltipWidth: 320,
     uploadViewMargin: 20,
+    chooseFilesViewMargin: 8,
     sideBarWithLHBWidth: 320,
     navigationTabBarSize: 72,
+    popoverMargin: 18,
     pdfPageMaxWidth: 992,
     tooltipZIndex: 10050,
     gutterWidth: 12,
@@ -174,6 +183,7 @@ export default {
     signInLogoWidthPill: 132,
     tabSelectorButtonHeight: 40,
     tabSelectorButtonPadding: 12,
+    tabSelectorScrollMarginInline: 20,
     lhnLogoWidth: 95.09,
     lhnLogoHeight: 22.33,
     signInLogoWidthLargeScreenPill: 162,
@@ -218,11 +228,13 @@ export default {
     reportActionImagesMultipleImageHeight: 110,
     reportActionItemImagesMoreCornerTriangleWidth: 40,
     popoverZIndex: 10000,
+    modalBaseZIndex: 9999,
+    sidePanelZIndex: 9998,
+    modalRightDockedZIndex: 9997,
+    modalLowestZIndex: 9996,
     workspaceTypeIconWidth: 34,
     sectionMargin: 16,
     workspaceSectionMaxWidth: 680,
-    oldDotWireframeIconWidth: 263.38,
-    oldDotWireframeIconHeight: 143.28,
     sectionIllustrationHeight: 220,
     restrictedActionIllustrationHeight: 136,
     photoUploadPopoverWidth: 335,
@@ -282,10 +294,11 @@ export default {
 
     searchTypeColumnWidth: 52,
 
-    gbrTooltipShiftHorizontal: -15,
-    gbrTooltipShiftVertical: -10,
-    fabTooltipShiftHorizontal: -11,
-    lhbFabTooltipShiftHorizontal: 4,
+    gbrTooltipShiftHorizontal: -14,
+    gbrTooltipShiftVertical: -16,
+    lhbFabTooltipShiftHorizontal: 8,
+    lhbFabTooltipShiftVertical: 12,
+    lhbFabTooltipShiftVerticalMobile: 6,
     workspaceLHNTooltipShiftHorizontal: 23,
     savedSearchShiftHorizontal: -10,
     savedSearchShiftVertical: 6,
@@ -293,6 +306,8 @@ export default {
     accountSwitcherTooltipShiftVertical: 7,
     accountSwitcherTooltipShiftHorizontal: 4,
     expenseReportsTypeTooltipShiftHorizontal: 10,
+    inviteMemberListItemTooltipShiftVertical: -8,
+    inviteMemberListItemTooltipShiftHorizontal: 4,
 
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,
@@ -306,8 +321,14 @@ export default {
 
     scrollToNewTransactionOffset: 300,
 
+    searchAutocompleteInputSkeletonHeight: 8,
+    searchAutocompleteInputSkeletonWidth: 145,
+
     errorPageIconWidth: 116,
     errorPageIconHeight: 168,
+
+    companyCardsPageNotFoundIconWidth: 97,
+    companyCardsPageNotFoundIconHeight: 140,
 
     h20: 20,
     h28: 28,
@@ -317,6 +338,7 @@ export default {
     h112: 112,
     h172: 172,
     w12: 12,
+    w16: 16,
     w20: 20,
     w28: 28,
     w36: 36,
@@ -324,13 +346,14 @@ export default {
     w44: 44,
     w46: 46,
     w52: 52,
+    w72: 72,
     w80: 80,
     w92: 92,
     w96: 96,
     w130: 130,
     w184: 184,
     w191: 191,
-
+    w200: 200,
     // Transaction item row heights based on layout types
     // Wide screen (desktop) layout
     optionRowWideItemHeight: 64,
@@ -367,4 +390,25 @@ export default {
     // Chat-specific item heights (rounded to nearest integer). The values was measured on the screen
     searchChatReportPreviewHeight: 434,
     searchChatStandardItemHeight: 97,
+
+    // Uber employee invite button width
+    uberEmployeeInviteButtonWidth: 62,
+    uberEmptyListIconWidth: 190,
+    uberEmptyListIconHeight: 136,
+
+    // Report search header max width
+    reportSearchHeaderMaxWidth: 700,
+
+    // Split expense tabs
+    splitExpensePercentageWidth: 66,
+
+    // Multifactor Authentication illustrations size
+    openPadlockWidth: 140,
+    openPadlockHeight: 140,
+    runOutOfTimeWidth: 218,
+    runOutOfTimeHeight: 200,
+    humptyDumptyWidth: 245,
+    humptyDumptyHeight: 165,
+    magnifyingGlassSpyMouthClosedWidth: 161,
+    magnifyingGlassSpyMouthClosedHeight: 169,
 } as const;

@@ -4,7 +4,6 @@ description: Learn how to configure approval types and assign members to a trave
 keywords: [travel policy, approval type, soft approval, hard approval, add policy members, default approver, spotnana policy]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Expensify Travel policies give admins powerful tools to control booking behavior, define approval workflows, and group travelers under shared rules to simplify company-wide travel management.
 
@@ -70,4 +69,3 @@ We recommend configuring the system-provided **Default** policy with your baseli
 **What happens if no approvers are added to a Hard Approval policy?**  
 Travel bookings will be automatically canceled if no approver is assigned.
 
-</div>

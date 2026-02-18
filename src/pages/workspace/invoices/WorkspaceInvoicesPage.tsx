@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,6 +19,7 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const illustrations = useMemoizedLazyIllustrations(['InvoiceBlue']);
 
     return (
         <AccessOrNotFoundWrapper
@@ -32,7 +33,7 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
                 shouldShowOfflineIndicatorInWideScreen
                 shouldSkipVBBACall={false}
                 route={route}
-                icon={Illustrations.InvoiceBlue}
+                icon={illustrations.InvoiceBlue}
                 addBottomSafeAreaPadding
             >
                 {(_hasVBA?: boolean, policyID?: string) => (
@@ -46,7 +47,5 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceInvoicesPage.displayName = 'WorkspaceInvoicesPage';
 
 export default WorkspaceInvoicesPage;

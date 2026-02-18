@@ -4,7 +4,6 @@ description: Learn how to integrate Expensify with Google Apps SSO for seamless 
 keywords: [Google Apps SSO, Expensify Classic, Workspace invites, Google Admin]
 ---
 
-<div id="expensify-classic" markdown="1">
   
 Expensify offers **Single Sign-On (SSO)** integration with [Google Apps](https://cloud.google.com/architecture/identity/single-sign-on), allowing **one-click Workspace invites** for easier user management.
 
@@ -45,4 +44,3 @@ To automatically add your Google Apps users to an Expensify Workspace:
 
 **Important:** The connection does **not** auto-refresh. You must manually click **Sync G Suite Now** whenever you want to update users.
 
-</div>

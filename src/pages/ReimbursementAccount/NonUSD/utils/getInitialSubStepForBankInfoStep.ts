@@ -1,6 +1,7 @@
 import CONST from '@src/CONST';
 import type {ReimbursementAccountForm} from '@src/types/form';
 import type {CorpayFields, CorpayFormField} from '@src/types/onyx';
+import SafeString from '@src/utils/SafeString';
 import type {SubStepValues} from './getBankInfoStepValues';
 
 /**
@@ -20,7 +21,7 @@ function getInitialSubStepForBusinessInfoStep(data: SubStepValues<keyof Reimburs
         }
 
         if (field.validationRules && field.validationRules.length > 0) {
-            const strValue = String(value);
+            const strValue = SafeString(value);
             return field.validationRules.some((rule) => {
                 if (!rule.regEx) {
                     return false;

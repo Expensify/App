@@ -3,7 +3,6 @@ title: Expense Rules
 description: Customize and manage expense settings at the workspace level, including violations, reimbursable preferences, billable expenses, and mileage rates.
 keywords: [Expensify Classic, expenses, violations, reimbursable, billable, mileage, eReceipts, taxes, Concierge Receipt Audit, expense rules]
 ---
-<div id="expensify-classic" markdown="1">
 
 Expensify offers multiple ways to customize how expenses are created and managed at the workspace level. Whether you’re using an individual workspace or managing expenses in a group workspace, you can configure various settings to suit your needs.
 
@@ -53,7 +52,7 @@ If your **Group Workspace** integrates with Xero, QuickBooks Online, NetSuite, o
 Expensify generates **eReceipts**, which are digital replacements for receipts of **$75 or less** for credit card transactions.
 
 - **Enabled** – Expensify will generate eReceipts for all US-based card transactions up to $75.
-- **Disabled** – No eReceipts will be generated.
+- **Disabled** – No eReceipts will be generated. Disabling **eReceipts** after enabling them will hide existing eReceipts. Enable **eReceipts** again to restore them.
 
 **Note:** Expensify does not generate eReceipts for lodging expenses.
 
@@ -130,8 +129,10 @@ Expensify generates eReceipts for **Expensify Card purchases** of any amount in 
 - Taxis
 - Utilities
 
+## Can I disable SmartScan for my workspace?
+No, SmartScan can’t be disabled for group (paid) workspaces. It’s always enabled by default.
+
 ## Why didn’t my mileage rate update to the latest IRS rate?
 
 Expensify does not automatically update mileage rates based on IRS guidance. A **Workspace Admin** must manually update or create a new rate to reflect changes. This allows global customers to control rate adjustments and communicate changes internally.
 
-</div>

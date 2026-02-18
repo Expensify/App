@@ -1,23 +1,79 @@
+import type {FeedKeysWithAssignedCards} from '@selectors/Card';
 import {fromUnixTime, isBefore} from 'date-fns';
 import groupBy from 'lodash/groupBy';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
-import ExpensifyCardImage from '@assets/images/expensify-card.svg';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {TupleToUnion, ValueOf} from 'type-fest';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {CombinedCardFeed, CombinedCardFeeds} from '@hooks/useCardFeeds';
 import type IllustrationsType from '@styles/theme/illustrations/types';
 import * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, Card, CardFeeds, CardList, CompanyCardFeed, CurrencyList, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
-import type {FilteredCardList} from '@src/types/onyx/Card';
-import type {CardFeedData, CompanyCardFeedWithNumber, CompanyCardNicknames, CompanyFeeds, DirectCardFeedData} from '@src/types/onyx/CardFeeds';
+import type {
+    BankAccountList,
+    Card,
+    CardFeeds,
+    CardList,
+    CompanyCardFeed,
+    CurrencyList,
+    ExpensifyCardSettings,
+    PersonalDetailsList,
+    Policy,
+    PrivatePersonalDetails,
+    WorkspaceCardsList,
+} from '@src/types/onyx';
+import type {UnassignedCard} from '@src/types/onyx/Card';
+import type {
+    BankName,
+    CardFeed,
+    CardFeedData,
+    CardFeedWithDomainID,
+    CardFeedWithNumber,
+    CardTypeName,
+    CompanyCardFeedWithDomainID,
+    CompanyCardFeedWithNumber,
+    CompanyFeeds,
+} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {translateLocal} from './Localize';
 import {filterObject} from './ObjectUtils';
-import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {arePersonalDetailsMissing, getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import StringUtils from './StringUtils';
+
+const COMPANY_CARD_FEED_ICON_NAMES = [
+    'VisaCompanyCardDetailLarge',
+    'AmexCardCompanyCardDetailLarge',
+    'MasterCardCompanyCardDetailLarge',
+    'BankOfAmericaCompanyCardDetailLarge',
+    'CapitalOneCompanyCardDetailLarge',
+    'ChaseCompanyCardDetailLarge',
+    'CitibankCompanyCardDetailLarge',
+    'WellsFargoCompanyCardDetailLarge',
+    'BrexCompanyCardDetailLarge',
+    'StripeCompanyCardDetailLarge',
+    'PlaidCompanyCardDetailLarge',
+] as const;
+
+type CompanyCardFeedIconName = TupleToUnion<typeof COMPANY_CARD_FEED_ICON_NAMES>;
+type CompanyCardFeedIcons = Record<CompanyCardFeedIconName, IconAsset>;
+
+const COMPANY_CARD_BANK_ICON_NAMES = [
+    'AmexCardCompanyCardDetail',
+    'BankOfAmericaCompanyCardDetail',
+    'CapitalOneCompanyCardDetail',
+    'ChaseCompanyCardDetail',
+    'CitibankCompanyCardDetail',
+    'WellsFargoCompanyCardDetail',
+    'BrexCompanyCardDetail',
+    'StripeCompanyCardDetail',
+    'MasterCardCompanyCardDetail',
+    'VisaCompanyCardDetail',
+    'PlaidCompanyCardDetail',
+] as const;
+
+type CompanyCardBankIconName = TupleToUnion<typeof COMPANY_CARD_BANK_ICON_NAMES>;
+type CompanyCardBankIcons = Record<CompanyCardBankIconName, IconAsset>;
 
 /**
  * @returns string with a month in MM format
@@ -44,7 +100,8 @@ function getAssignedCardSortKey(card: Card): number {
 }
 
 /**
- * @param card
+ * Checks if the card is an Expensify card.
+ * @param card - The card to check.
  * @returns boolean
  */
 function isExpensifyCard(card?: Card) {
@@ -58,15 +115,16 @@ function isExpensifyCard(card?: Card) {
  * @param card
  * @returns string in format %<bank> - <lastFourPAN || Not Activated>%.
  */
-function getCardDescription(card?: Card) {
+function getCardDescription(card: Card | undefined, translate: LocalizedTranslate) {
     if (!card) {
         return '';
     }
     const isPlaid = !!getPlaidInstitutionId(card.bank);
-    const bankName = isPlaid ? card?.cardName : getBankName(card.bank as CompanyCardFeed);
-    const cardDescriptor = card.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED ? translateLocal('cardTransactions.notActivated') : card.lastFourPAN;
+    const isPersonal = isPersonalCard(card);
+    const bankName = isPlaid || isPersonal ? card?.cardName : getBankName(card.bank);
+    const cardDescriptor = card.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED ? translate('cardTransactions.notActivated') : card.lastFourPAN;
     const humanReadableBankName = card.bank === CONST.EXPENSIFY_CARD.BANK ? CONST.EXPENSIFY_CARD.BANK : bankName;
-    return cardDescriptor && !isPlaid ? `${humanReadableBankName} - ${cardDescriptor}` : `${humanReadableBankName}`;
+    return cardDescriptor && !isPlaid && !isPersonal ? `${humanReadableBankName} - ${cardDescriptor}` : `${humanReadableBankName}`;
 }
 
 /**
@@ -96,24 +154,24 @@ function isCardClosed(card: Card) {
     return card?.state === CONST.EXPENSIFY_CARD.STATE.CLOSED;
 }
 
-function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, WorkspaceCardsList | undefined>, cardList: CardList | undefined, shouldExcludeCardHiddenFromSearch = false) {
+function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, WorkspaceCardsList | undefined>, cardList: CardList | undefined, shouldFilterOutPersonalCards = false) {
     const feedCards: CardList = {};
-    Object.values(cardList ?? {}).forEach((card) => {
-        if (!isCard(card) || (shouldExcludeCardHiddenFromSearch && isCardHiddenFromSearch(card))) {
-            return;
+    for (const card of Object.values(cardList ?? {})) {
+        if (!isCard(card) || (shouldFilterOutPersonalCards && isPersonalCard(card))) {
+            continue;
         }
 
         feedCards[card.cardID] = card;
-    });
+    }
 
-    Object.values(workspaceFeeds ?? {}).forEach((currentCardFeed) => {
-        Object.values(currentCardFeed ?? {}).forEach((card) => {
-            if (!isCard(card) || (shouldExcludeCardHiddenFromSearch && isCardHiddenFromSearch(card))) {
-                return;
+    for (const currentCardFeed of Object.values(workspaceFeeds ?? {})) {
+        for (const card of Object.values(currentCardFeed ?? {})) {
+            if (!isCard(card)) {
+                continue;
             }
             feedCards[card.cardID] = card;
-        });
-    });
+        }
+    }
     return feedCards;
 }
 
@@ -147,9 +205,11 @@ function formatCardExpiration(expirationDateString: string) {
  * @param cardList - collection of assigned cards
  * @returns collection of assigned cards grouped by domain
  */
-function getDomainCards(cardList: OnyxEntry<CardList>): Record<string, Card[]> {
+function getDomainCards(cardsList: OnyxEntry<CardList>): Record<string, Card[]> {
+    const {cardList: assignableCards, ...assignedCards} = cardsList ?? {};
+
     // Check for domainName to filter out personal credit cards.
-    const activeCards = Object.values(cardList ?? {}).filter((card) => !!card?.domainName && CONST.EXPENSIFY_CARD.ACTIVE_STATES.some((element) => element === card.state));
+    const activeCards = Object.values(assignedCards).filter((card) => !!card?.domainName && CONST.EXPENSIFY_CARD.ACTIVE_STATES.some((element) => element === card.state));
 
     return groupBy(activeCards, (card) => card.domainName);
 }
@@ -170,7 +230,7 @@ function maskCard(lastFour = ''): string {
     const maskedString = '•'.repeat(maskedLength) + lastFour;
 
     // Insert space for every four symbols
-    return maskedString.replace(/(.{4})/g, '$1 ').trim();
+    return maskedString.replaceAll(/(.{4})/g, '$1 ').trim();
 }
 
 /**
@@ -186,22 +246,28 @@ function maskCardNumber(cardName?: string, feed?: string, showOriginalName?: boo
     if (!cardName || cardName === '') {
         return '';
     }
+
+    // CSV imported cards use user-provided display names, not card numbers - return as-is
+    if (feed === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD) {
+        return cardName;
+    }
+
     const hasSpace = /\s/.test(cardName);
-    const maskedString = cardName.replace(/X/g, '•');
+    const maskedString = cardName.replaceAll('X', '•');
     const isAmexBank = [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT].some((value) => value === feed);
 
     if (hasSpace) {
         if (showOriginalName) {
             return cardName;
         }
-        return cardName.replace(/ - \d{4}$/, '');
+        return cardName.replaceAll(/ - \d{4}$/g, '');
     }
 
     if (isAmexBank && maskedString.length === 15) {
-        return maskedString.replace(/(.{4})(.{6})(.{5})/, '$1 $2 $3');
+        return maskedString.replaceAll(/(.{4})(.{6})(.{5})/g, '$1 $2 $3');
     }
 
-    return maskedString.replace(/(.{4})/g, '$1 ').trim();
+    return maskedString.replaceAll(/(.{4})/g, '$1 ').trim();
 }
 
 /**
@@ -220,11 +286,52 @@ function lastFourNumbersFromCardName(cardName: string | undefined): string {
     return match[1];
 }
 
-function getMCardNumberString(cardNumber: string): string {
-    return cardNumber.replace(/\s/g, '');
+/**
+ * Checks if a card matches a given card identifier (encrypted card number or card name).
+ * Uses exact match for encrypted card numbers, and normalized string comparison
+ * for card names to handle special character differences from OAuth providers (e.g., ® vs no ®).
+ *
+ * @param card - The card to check
+ * @param encryptedCardNumber - The encrypted card number to match against
+ * @param cardName - The card name to match against
+ * @returns true if the card matches either identifier
+ */
+function isMatchingCard(card: Card, encryptedCardNumber: string, cardName: string): boolean {
+    if (card.encryptedCardNumber === encryptedCardNumber) {
+        return true;
+    }
+
+    if (!card.cardName || !cardName) {
+        return false;
+    }
+
+    return normalizeCardName(card.cardName) === normalizeCardName(cardName);
 }
 
-function getTranslationKeyForLimitType(limitType: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES> | undefined): TranslationPaths | '' {
+// Normalize both strings to remove special characters (®, ™, ©, etc.)
+// This handles differences between OAuth provider card names and stored card names
+function normalizeCardName(cardName: string): string {
+    return cardName.replaceAll(/[^\w\s-]/g, '').trim();
+}
+
+function getMCardNumberString(cardNumber: string): string {
+    return cardNumber.replaceAll(/\s/g, '');
+}
+
+/**
+ * Returns the default Expensify Card limit type based on policy approval workflow.
+ * When approvals are configured (not optional), defaults to SMART; otherwise MONTHLY.
+ */
+function getDefaultExpensifyCardLimitType(policy?: OnyxEntry<Policy>): ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES> {
+    let approvalMode = policy?.approvalMode ?? CONST.POLICY.APPROVAL_MODE.ADVANCED;
+    if (policy?.type === CONST.POLICY.TYPE.PERSONAL) {
+        approvalMode = CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    }
+    const areApprovalsConfigured = approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    return areApprovalsConfigured ? CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART : CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY;
+}
+
+function getTranslationKeyForLimitType(limitType: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES> | undefined): TranslationPaths {
     switch (limitType) {
         case CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART:
             return 'workspace.card.issueNewCard.smartLimit';
@@ -232,9 +339,18 @@ function getTranslationKeyForLimitType(limitType: ValueOf<typeof CONST.EXPENSIFY
             return 'workspace.card.issueNewCard.fixedAmount';
         case CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY:
             return 'workspace.card.issueNewCard.monthly';
+        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.SINGLE_USE:
+            return 'workspace.card.issueNewCard.singleUse';
         default:
-            return '';
+            return 'workspace.card.issueNewCard.smartLimit';
     }
+}
+
+function maskPin(pin = ''): string {
+    if (!pin) {
+        return '••••';
+    }
+    return pin;
 }
 
 function getEligibleBankAccountsForCard(bankAccountsList: OnyxEntry<BankAccountList>) {
@@ -242,6 +358,19 @@ function getEligibleBankAccountsForCard(bankAccountsList: OnyxEntry<BankAccountL
         return [];
     }
     return Object.values(bankAccountsList).filter((bankAccount) => bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && bankAccount?.accountData?.allowDebit);
+}
+
+function getEligibleBankAccountsForUkEuCard(bankAccountsList: OnyxEntry<BankAccountList>, outputCurrency?: string) {
+    if (!bankAccountsList || isEmptyObject(bankAccountsList)) {
+        return [];
+    }
+    return Object.values(bankAccountsList).filter(
+        (bankAccount) =>
+            bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
+            bankAccount?.accountData?.allowDebit &&
+            bankAccount?.bankCurrency === outputCurrency &&
+            (CONST.EXPENSIFY_UK_EU_SUPPORTED_COUNTRIES as unknown as string).includes(bankAccount?.bankCountry),
+    );
 }
 
 function getCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, policyMembersAccountIDs: number[]): Card[] {
@@ -273,33 +402,42 @@ function filterCardsByPersonalDetails(card: Card, searchQuery: string, personalD
     );
 }
 
-function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK, illustrations: IllustrationsType): IconAsset {
+function getCardFeedIcon(cardFeed: CardFeedWithNumber | CardFeedWithDomainID | undefined, illustrations: IllustrationsType, companyCardIllustrations: CompanyCardFeedIcons): IconAsset {
+    if (cardFeed === undefined) {
+        return illustrations.GenericCompanyCardLarge;
+    }
+
     const feedIcons = {
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: Illustrations.VisaCompanyCardDetailLarge,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX]: Illustrations.AmexCardCompanyCardDetailLarge,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: Illustrations.MasterCardCompanyCardDetailLarge,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT]: Illustrations.AmexCardCompanyCardDetailLarge,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.BANK_OF_AMERICA]: Illustrations.BankOfAmericaCompanyCardDetailLarge,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE]: Illustrations.CapitalOneCompanyCardDetailLarge,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE]: Illustrations.ChaseCompanyCardDetailLarge,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.CITIBANK]: Illustrations.CitibankCompanyCardDetailLarge,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.WELLS_FARGO]: Illustrations.WellsFargoCompanyCardDetailLarge,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.BREX]: Illustrations.BrexCompanyCardDetailLarge,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE]: Illustrations.StripeCompanyCardDetailLarge,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: companyCardIllustrations.VisaCompanyCardDetailLarge,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX]: companyCardIllustrations.AmexCardCompanyCardDetailLarge,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_1205]: companyCardIllustrations.AmexCardCompanyCardDetailLarge,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_FILE_DOWNLOAD]: companyCardIllustrations.AmexCardCompanyCardDetailLarge,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: companyCardIllustrations.MasterCardCompanyCardDetailLarge,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT]: companyCardIllustrations.AmexCardCompanyCardDetailLarge,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.BANK_OF_AMERICA]: companyCardIllustrations.BankOfAmericaCompanyCardDetailLarge,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE]: companyCardIllustrations.CapitalOneCompanyCardDetailLarge,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE]: companyCardIllustrations.ChaseCompanyCardDetailLarge,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.CITIBANK]: companyCardIllustrations.CitibankCompanyCardDetailLarge,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.WELLS_FARGO]: companyCardIllustrations.WellsFargoCompanyCardDetailLarge,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.BREX]: companyCardIllustrations.BrexCompanyCardDetailLarge,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE]: companyCardIllustrations.StripeCompanyCardDetailLarge,
         [CONST.COMPANY_CARD.FEED_BANK_NAME.CSV]: illustrations.GenericCSVCompanyCardLarge,
-        [CONST.EXPENSIFY_CARD.BANK]: ExpensifyCardImage,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.PEX]: illustrations.GenericCompanyCardLarge,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.MOCK_BANK]: illustrations.GenericCompanyCardLarge,
+        [CONST.EXPENSIFY_CARD.BANK]: Illustrations.ExpensifyCardImage,
     };
 
     if (cardFeed.startsWith(CONST.EXPENSIFY_CARD.BANK)) {
-        return ExpensifyCardImage;
+        return Illustrations.ExpensifyCardImage;
     }
 
-    if (feedIcons[cardFeed]) {
-        return feedIcons[cardFeed];
+    const feedIcon = feedIcons[cardFeed as keyof typeof feedIcons];
+    if (feedIcon) {
+        return feedIcon;
     }
 
     // In existing OldDot setups other variations of feeds could exist, ex: vcf2, vcf3, cdfbmo
-    const feedKey = (Object.keys(feedIcons) as CompanyCardFeed[]).find((feed) => cardFeed.startsWith(feed));
+    const feedKey = (Object.keys(feedIcons) as Array<keyof typeof feedIcons>).find((feed) => cardFeed.startsWith(feed));
 
     if (feedKey) {
         return feedIcons[feedKey];
@@ -315,44 +453,129 @@ function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD
 /**
  * Verify if the feed is a custom feed. Those are also referred to as commercial feeds.
  */
-function isCustomFeed(feed: CompanyCardFeedWithNumber): boolean {
+function isCustomFeed(feed: string | undefined): boolean {
+    if (!feed) {
+        return false;
+    }
+
     return [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX].some((value) => feed.startsWith(value));
 }
 
-function getCompanyFeeds(cardFeeds: OnyxEntry<CardFeeds>, shouldFilterOutRemovedFeeds = false, shouldFilterOutPendingFeeds = false): CompanyFeeds {
+/**
+ * Checks if a feed key represents a CSV feed or Expensify Card.
+ * CSV feeds from Classic and Expensify Cards should not count toward the feed limit for Collect plan workspaces.
+ */
+function isCSVFeedOrExpensifyCard(feedKey: string): boolean {
+    const lowerFeedKey = feedKey.toLowerCase();
+    return lowerFeedKey.startsWith('csv') || lowerFeedKey.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV) || feedKey === CONST.EXPENSIFY_CARD.BANK;
+}
+
+/**
+ * Checks if a feed is a direct feed (OAuth or Plaid based).
+ * Mirrors the backend's Card::isOAuthBank and Card::isPlaidBank logic.
+ */
+function isDirectFeed(feed: string | undefined): boolean {
+    if (!feed) {
+        return false;
+    }
+    const lowerFeed = feed.toLowerCase();
+    return lowerFeed.startsWith('oauth') || lowerFeed.startsWith('plaid');
+}
+
+/**
+ * Checks whether a feed has any assigned cards using a precomputed lightweight map.
+ * This is used as a validity signal: direct feeds use it as a fallback when oAuthAccountDetails is missing,
+ * and "gray zone" feeds (neither commercial nor direct) use it as the sole visibility criterion.
+ * The feedKeysWithCards map is produced by feedKeysWithAssignedCardsSelector in selectors/Card.ts.
+ */
+function feedHasCards(feedName: string, domainID: number, feedKeysWithCards: FeedKeysWithAssignedCards | undefined): boolean {
+    if (!feedKeysWithCards || !domainID) {
+        return false;
+    }
+
+    return feedKeysWithCards[`${domainID}_${feedName}`] === true;
+}
+
+/**
+ * Returns company feeds from cardFeeds, filtering out pending/deleted feeds, Expensify Card, stale direct feeds,
+ * and "gray zone" feeds with no assigned cards.
+ *
+ * Feed visibility rules (when feedKeysWithCards is provided):
+ * - Commercial feeds (isCustomFeed): always shown
+ * - Direct feeds (isDirectFeed): shown if they have oAuthAccountDetails OR assigned cards
+ * - Gray zone feeds (everything else): shown only if they have assigned cards
+ */
+function getOriginalCompanyFeeds(cardFeeds: OnyxEntry<CardFeeds>, feedKeysWithCards?: FeedKeysWithAssignedCards, domainID?: number): CompanyFeeds {
+    const oAuthAccountDetails = cardFeeds?.settings?.oAuthAccountDetails;
+    const resolvedDomainID = domainID ?? CONST.DEFAULT_NUMBER_ID;
     return Object.fromEntries(
         Object.entries(cardFeeds?.settings?.companyCards ?? {}).filter(([key, value]) => {
+            if (value?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || value?.pending) {
+                return false;
+            }
+            if (key === CONST.EXPENSIFY_CARD.BANK) {
+                return false;
+            }
+
+            // When we don't have card data, we can't make informed filtering decisions - show all feeds.
+            if (!feedKeysWithCards) {
+                return true;
+            }
+
+            // A direct feed is stale if it has no oAuthAccountDetails AND no assigned cards.
+            if (isDirectFeed(key) && !oAuthAccountDetails?.[key as CompanyCardFeed] && !feedHasCards(key, resolvedDomainID, feedKeysWithCards)) {
+                return false;
+            }
+
+            // "Gray zone" feeds (not commercial AND not direct) are only shown when they have assigned cards.
+            if (!isCustomFeed(key) && !isDirectFeed(key) && !feedHasCards(key, resolvedDomainID, feedKeysWithCards)) {
+                return false;
+            }
+
+            return true;
+        }),
+    );
+}
+
+function getCompanyFeeds(cardFeeds: OnyxEntry<CombinedCardFeeds>, shouldFilterOutRemovedFeeds = false, shouldFilterOutPendingFeeds = false): CombinedCardFeeds {
+    return Object.fromEntries(
+        Object.entries(cardFeeds ?? {}).filter(([, value]) => {
             if (shouldFilterOutRemovedFeeds && value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 return false;
             }
             if (shouldFilterOutPendingFeeds && value.pending) {
                 return false;
             }
-            return key !== CONST.EXPENSIFY_CARD.BANK;
+            return !value.feed.includes(CONST.EXPENSIFY_CARD.BANK);
         }),
     );
 }
 
-function getBankName(feedType: CompanyCardFeed): string {
+function getBankName(feedType: CardFeedWithNumber | CardFeedWithDomainID): string {
     const feedNamesMapping = {
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: 'Visa',
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: 'Mastercard',
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX]: 'American Express',
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE]: 'Stripe',
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT]: 'American Express',
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.BANK_OF_AMERICA]: 'Bank of America',
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE]: 'Capital One',
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE]: 'Chase',
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.CITIBANK]: 'Citibank',
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.WELLS_FARGO]: 'Wells Fargo',
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.BREX]: 'Brex',
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.CSV]: CONST.COMPANY_CARDS.CARD_TYPE.CSV,
-    };
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.CSV]: CONST.COMPANY_CARDS.CARD_TYPE_NAMES.CSV,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: CONST.COMPANY_CARDS.CARD_TYPE_NAMES.VISA,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: CONST.COMPANY_CARDS.CARD_TYPE_NAMES.MASTERCARD,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX]: CONST.COMPANY_CARDS.BANKS.AMEX,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE]: CONST.COMPANY_CARDS.BANKS.STRIPE,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT]: CONST.COMPANY_CARDS.BANKS.AMEX,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.BANK_OF_AMERICA]: CONST.COMPANY_CARDS.BANKS.BANK_OF_AMERICA,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE]: CONST.COMPANY_CARDS.BANKS.CAPITAL_ONE,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE]: CONST.COMPANY_CARDS.BANKS.CHASE,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.CITIBANK]: CONST.COMPANY_CARDS.BANKS.CITI_BANK,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.WELLS_FARGO]: CONST.COMPANY_CARDS.BANKS.WELLS_FARGO,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.BREX]: CONST.COMPANY_CARDS.BANKS.BREX,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_1205]: CONST.COMPANY_CARDS.BANKS.AMEX,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_FILE_DOWNLOAD]: CONST.COMPANY_CARDS.BANKS.AMEX,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.PEX]: CONST.COMPANY_CARDS.BANKS.PEX,
+        [CONST.EXPENSIFY_CARD.BANK]: CONST.COMPANY_CARDS.BANKS.AMEX,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.MOCK_BANK]: CONST.COMPANY_CARDS.BANKS.MOCK_BANK,
+    } satisfies Partial<Record<CardFeed, BankName | CardTypeName>>;
 
     // In existing OldDot setups other variations of feeds could exist, ex: vcf2, vcf3, oauth.americanexpressfdx.com 2003
-    const feedKey = (Object.keys(feedNamesMapping) as CompanyCardFeed[]).find((feed) => feedType.startsWith(feed));
+    const feedKey = (Object.keys(feedNamesMapping) as Array<keyof typeof feedNamesMapping>).find((feed) => feedType?.startsWith(feed));
 
-    if (feedType.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)) {
+    if (feedType?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)) {
         return CONST.COMPANY_CARDS.CARD_TYPE.CSV;
     }
 
@@ -363,39 +586,111 @@ function getBankName(feedType: CompanyCardFeed): string {
     return feedNamesMapping[feedKey];
 }
 
-const getBankCardDetailsImage = (bank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>, illustrations: IllustrationsType): IconAsset => {
+const getBankCardDetailsImage = (bank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>, illustrations: IllustrationsType, companyCardIllustrations: CompanyCardBankIcons): IconAsset => {
     const iconMap: Record<ValueOf<typeof CONST.COMPANY_CARDS.BANKS>, IconAsset> = {
-        [CONST.COMPANY_CARDS.BANKS.AMEX]: Illustrations.AmexCardCompanyCardDetail,
-        [CONST.COMPANY_CARDS.BANKS.BANK_OF_AMERICA]: Illustrations.BankOfAmericaCompanyCardDetail,
-        [CONST.COMPANY_CARDS.BANKS.CAPITAL_ONE]: Illustrations.CapitalOneCompanyCardDetail,
-        [CONST.COMPANY_CARDS.BANKS.CHASE]: Illustrations.ChaseCompanyCardDetail,
-        [CONST.COMPANY_CARDS.BANKS.CITI_BANK]: Illustrations.CitibankCompanyCardDetail,
-        [CONST.COMPANY_CARDS.BANKS.WELLS_FARGO]: Illustrations.WellsFargoCompanyCardDetail,
-        [CONST.COMPANY_CARDS.BANKS.BREX]: Illustrations.BrexCompanyCardDetail,
-        [CONST.COMPANY_CARDS.BANKS.STRIPE]: Illustrations.StripeCompanyCardDetail,
+        [CONST.COMPANY_CARDS.BANKS.AMEX]: companyCardIllustrations.AmexCardCompanyCardDetail,
+        [CONST.COMPANY_CARDS.BANKS.BANK_OF_AMERICA]: companyCardIllustrations.BankOfAmericaCompanyCardDetail,
+        [CONST.COMPANY_CARDS.BANKS.CAPITAL_ONE]: companyCardIllustrations.CapitalOneCompanyCardDetail,
+        [CONST.COMPANY_CARDS.BANKS.CHASE]: companyCardIllustrations.ChaseCompanyCardDetail,
+        [CONST.COMPANY_CARDS.BANKS.CITI_BANK]: companyCardIllustrations.CitibankCompanyCardDetail,
+        [CONST.COMPANY_CARDS.BANKS.WELLS_FARGO]: companyCardIllustrations.WellsFargoCompanyCardDetail,
+        [CONST.COMPANY_CARDS.BANKS.BREX]: companyCardIllustrations.BrexCompanyCardDetail,
+        [CONST.COMPANY_CARDS.BANKS.STRIPE]: companyCardIllustrations.StripeCompanyCardDetail,
+        [CONST.COMPANY_CARDS.BANKS.MOCK_BANK]: illustrations.GenericCompanyCard,
+        [CONST.COMPANY_CARDS.BANKS.PEX]: illustrations.GenericCompanyCard,
+        [CONST.COMPANY_CARDS.BANKS.EXPENSIFY]: Illustrations.ExpensifyCardImage,
         [CONST.COMPANY_CARDS.BANKS.OTHER]: illustrations.GenericCompanyCard,
     };
     return iconMap[bank];
 };
 
-function getCustomOrFormattedFeedName(feed?: CompanyCardFeed, companyCardNicknames?: CompanyCardNicknames, shouldAddCardsSuffix = true): string | undefined {
+function getCustomOrFormattedFeedName(
+    translate: LocalizedTranslate,
+    feed?: CardFeedWithNumber | CardFeedWithDomainID,
+    customFeedName?: string,
+    shouldAddCardsSuffix = true,
+): string | undefined {
     if (!feed) {
         return;
     }
-
-    const customFeedName = companyCardNicknames?.[feed];
 
     if (customFeedName && typeof customFeedName !== 'string') {
         return '';
     }
 
     const feedName = getBankName(feed);
-    const formattedFeedName = shouldAddCardsSuffix ? translateLocal('workspace.companyCards.feedName', {feedName}) : feedName;
+    const formattedFeedName = feedName && shouldAddCardsSuffix ? translate('workspace.companyCards.feedName', feedName) : feedName;
 
-    return customFeedName ?? formattedFeedName;
+    // Custom feed name can be empty. Fallback to default feed name
+    // Fallback to feed key name for unknown feeds
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return customFeedName || formattedFeedName || feed;
 }
 
-function getPlaidInstitutionIconUrl(feedName?: string) {
+/**
+ * Check if a card feed exists in the card feeds collection.
+ */
+function doesCardFeedExist(feed: CompanyCardFeed | undefined, cardFeeds: OnyxCollection<CardFeeds> | undefined): boolean {
+    if (!feed || !cardFeeds) {
+        return false;
+    }
+
+    for (const feedData of Object.values(cardFeeds)) {
+        const companyFeeds = getOriginalCompanyFeeds(feedData);
+        if (feed in companyFeeds) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Retrieve the custom nickname for a feed from the card feeds collection.
+ */
+function getCustomFeedNameFromFeeds(cardFeeds: OnyxCollection<CardFeeds> | undefined, feed: CompanyCardFeed | undefined): string | undefined {
+    if (!feed || !cardFeeds) {
+        return undefined;
+    }
+
+    for (const feedData of Object.values(cardFeeds)) {
+        const nickname = feedData?.settings?.companyCardNicknames?.[feed];
+        if (nickname) {
+            return nickname;
+        }
+    }
+
+    return undefined;
+}
+
+/**
+ * Get the feed name for display purposes.
+ * Returns "Deleted Feed" if the feed doesn't exist, otherwise returns the formatted feed name.
+ */
+function getFeedNameForDisplay(
+    translate: LocaleContextProps['translate'],
+    feed: CompanyCardFeed | undefined,
+    cardFeeds: OnyxCollection<CardFeeds> | undefined,
+    customFeedName?: string,
+    shouldAddCardsSuffix = true,
+): string {
+    // If feed is undefined or cardFeeds is not available, return empty string to avoid showing incorrect state
+    if (!feed || !cardFeeds) {
+        return '';
+    }
+
+    const feedExists = doesCardFeedExist(feed, cardFeeds);
+
+    if (!feedExists) {
+        return translate('workspace.companyCards.deletedFeed');
+    }
+
+    const customName = customFeedName ?? getCustomFeedNameFromFeeds(cardFeeds, feed);
+
+    return getCustomOrFormattedFeedName(translate, feed, customName, shouldAddCardsSuffix) ?? '';
+}
+
+function getPlaidInstitutionIconUrl(feedName?: CardFeedWithNumber | CardFeedWithDomainID) {
     const institutionId = getPlaidInstitutionId(feedName);
     if (!institutionId) {
         return '';
@@ -403,8 +698,9 @@ function getPlaidInstitutionIconUrl(feedName?: string) {
     return `${CONST.COMPANY_CARD_PLAID}${institutionId}.png`;
 }
 
-function getPlaidInstitutionId(feedName?: string) {
-    const feed = feedName?.split('.');
+function getPlaidInstitutionId(feedName?: CardFeedWithNumber | CardFeedWithDomainID) {
+    const feedNameWithoutDomainID = getCompanyCardFeed(feedName);
+    const feed = feedNameWithoutDomainID?.split('.');
     if (!feed || feed?.at(0) !== CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
         return '';
     }
@@ -437,39 +733,6 @@ function getPlaidCountry(outputCurrency?: string, currencyList?: CurrencyList, c
     return country ?? '';
 }
 
-// We will simplify the logic below once we have #50450 #50451 implemented
-const getCorrectStepForSelectedBank = (selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>) => {
-    const banksWithFeedType = [
-        CONST.COMPANY_CARDS.BANKS.BANK_OF_AMERICA,
-        CONST.COMPANY_CARDS.BANKS.CAPITAL_ONE,
-        CONST.COMPANY_CARDS.BANKS.CHASE,
-        CONST.COMPANY_CARDS.BANKS.CITI_BANK,
-        CONST.COMPANY_CARDS.BANKS.WELLS_FARGO,
-    ];
-
-    if (selectedBank === CONST.COMPANY_CARDS.BANKS.STRIPE) {
-        return CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS;
-    }
-
-    if (selectedBank === CONST.COMPANY_CARDS.BANKS.AMEX) {
-        return CONST.COMPANY_CARDS.STEP.AMEX_CUSTOM_FEED;
-    }
-
-    if (selectedBank === CONST.COMPANY_CARDS.BANKS.BREX) {
-        return CONST.COMPANY_CARDS.STEP.BANK_CONNECTION;
-    }
-
-    if (selectedBank === CONST.COMPANY_CARDS.BANKS.OTHER) {
-        return CONST.COMPANY_CARDS.STEP.CARD_TYPE;
-    }
-
-    if (banksWithFeedType.includes(selectedBank)) {
-        return CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE;
-    }
-
-    return CONST.COMPANY_CARDS.STEP.CARD_TYPE;
-};
-
 function getCorrectStepForPlaidSelectedBank(selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>) {
     if (selectedBank === CONST.COMPANY_CARDS.BANKS.STRIPE) {
         return CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS;
@@ -482,49 +745,93 @@ function getCorrectStepForPlaidSelectedBank(selectedBank: ValueOf<typeof CONST.C
     return CONST.COMPANY_CARDS.STEP.BANK_CONNECTION;
 }
 
-function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeed>, cardFeeds: OnyxEntry<CardFeeds>): CompanyCardFeed | undefined {
-    const defaultFeed = Object.keys(getCompanyFeeds(cardFeeds, true)).at(0) as CompanyCardFeed | undefined;
-    return lastSelectedFeed ?? defaultFeed;
+function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeedWithDomainID>, cardFeeds: OnyxEntry<CombinedCardFeeds>): CompanyCardFeedWithDomainID | undefined {
+    const availableFeeds = getCompanyFeeds(cardFeeds, true);
+    const defaultFeed = Object.keys(availableFeeds).at(0) as CompanyCardFeedWithDomainID | undefined;
+    const isValidLastFeed = !!lastSelectedFeed && lastSelectedFeed.includes(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR) && availableFeeds[lastSelectedFeed];
+
+    return isValidLastFeed ? lastSelectedFeed : defaultFeed;
 }
 
-function isSelectedFeedExpired(directFeed: DirectCardFeedData | undefined): boolean {
-    if (!directFeed || !directFeed.expiration) {
-        return false;
+function getCardFeedWithDomainID(feedName: CardFeedWithNumber, domainID: number | string): CardFeedWithDomainID {
+    return `${feedName}${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${domainID}`;
+}
+
+function splitCardFeedWithDomainID(feedName: CardFeedWithNumber | CardFeedWithDomainID | undefined): {feedName: CardFeedWithNumber; domainID: number | undefined} | undefined {
+    if (!feedName) {
+        return;
     }
 
-    return isBefore(fromUnixTime(directFeed.expiration), new Date());
+    const feedNameParts = feedName.split(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR);
+
+    if (feedNameParts.length !== 2) {
+        return;
+    }
+
+    const feedNamePart = feedNameParts.at(0);
+    const domainIDPart = feedNameParts.at(1);
+    const domainID = Number(domainIDPart);
+
+    if (!feedNamePart || Number.isNaN(domainID)) {
+        return;
+    }
+
+    return {feedName: feedNamePart as CompanyCardFeedWithNumber, domainID};
 }
 
-/** Returns list of cards which can be assigned */
-function getFilteredCardList(list: WorkspaceCardsList | undefined, directFeed: DirectCardFeedData | undefined, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>) {
+function isSelectedFeedExpired(cardFeed: CombinedCardFeed | undefined): boolean {
+    return cardFeed?.expiration ? isBefore(fromUnixTime(cardFeed.expiration), new Date()) : false;
+}
+
+/**
+ * Returns list of unassigned cards that can be assigned.
+ *
+ * This function normalizes the difference between:
+ * - Direct feeds (Plaid/OAuth): cards stored as string[] in accountList
+ * - Commercial feeds (Visa/Mastercard/Amex): cards stored as Record<displayName, encryptedValue> in cardList
+ *
+ * @returns Array of UnassignedCard objects with consistent displayName and cardIdentifier properties
+ */
+function getFilteredCardList(list: WorkspaceCardsList | undefined, accountList: string[] | undefined, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>): UnassignedCard[] {
     const {cardList: customFeedCardsToAssign, ...cards} = list ?? {};
-    const assignedCards = Object.values(cards).map((card) => card.cardName);
+    const assignedCards = new Set(Object.values(cards).map((card) => card.cardName));
 
     // Get cards assigned across all workspaces
     const allWorkspaceAssignedCards = new Set<string>();
-    Object.values(workspaceCardFeeds ?? {}).forEach((workspaceCards) => {
+    for (const workspaceCards of Object.values(workspaceCardFeeds ?? {})) {
         if (!workspaceCards) {
-            return;
+            continue;
         }
         const {cardList, ...workspaceCardItems} = workspaceCards;
-        Object.values(workspaceCardItems).forEach((card) => {
+        for (const card of Object.values(workspaceCardItems)) {
             if (!card?.cardName) {
-                return;
+                continue;
             }
             allWorkspaceAssignedCards.add(card.cardName);
-        });
-    });
-
-    if (directFeed) {
-        const unassignedDirectFeedCards = directFeed.accountList.filter((cardNumber) => !assignedCards.includes(cardNumber) && !allWorkspaceAssignedCards.has(cardNumber));
-        return Object.fromEntries(unassignedDirectFeedCards.map((cardNumber) => [cardNumber, cardNumber]));
+        }
     }
 
-    return Object.fromEntries(Object.entries(customFeedCardsToAssign ?? {}).filter(([cardNumber]) => !assignedCards.includes(cardNumber) && !allWorkspaceAssignedCards.has(cardNumber)));
+    // For direct feeds (Plaid/OAuth): displayName === cardIdentifier
+    if (accountList) {
+        return accountList
+            .filter((cardName) => !assignedCards.has(cardName) && !allWorkspaceAssignedCards.has(cardName))
+            .map((cardName) => ({
+                cardName,
+                cardID: cardName,
+            }));
+    }
+
+    // For commercial feeds: displayName is the key, cardIdentifier is the encrypted value
+    return Object.entries(customFeedCardsToAssign ?? {})
+        .filter(([cardName]) => !assignedCards.has(cardName) && !allWorkspaceAssignedCards.has(cardName))
+        .map(([cardName, encryptedCardNumber]) => ({
+            cardName,
+            cardID: encryptedCardNumber,
+        }));
 }
 
-function hasOnlyOneCardToAssign(list: FilteredCardList) {
-    return Object.keys(list).length === 1;
+function hasOnlyOneCardToAssign(list: UnassignedCard[]) {
+    return list.length === 1;
 }
 
 function getDefaultCardName(cardholder?: string) {
@@ -540,48 +847,69 @@ function checkIfNewFeedConnected(prevFeedsData: CompanyFeeds, currentFeedsData: 
 
     return {
         isNewFeedConnected: currentFeeds.length > prevFeeds.length || (plaidBank && currentFeeds.includes(`${CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID}.${plaidBank}`)),
-        newFeed: currentFeeds.find((feed) => !prevFeeds.includes(feed)) as CompanyCardFeed | undefined,
+        newFeed: currentFeeds.find((feed) => !prevFeeds.includes(feed)) as CompanyCardFeedWithDomainID | undefined,
     };
 }
 
-function filterInactiveCards(cards: CardList | undefined): CardList {
-    const closedStates: number[] = [CONST.EXPENSIFY_CARD.STATE.CLOSED, CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED, CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED];
-    return filterObject(cards ?? {}, (key, card) => !closedStates.includes(card.state));
+function filterAllInactiveCards(cards: CardList | undefined) {
+    if (!cards) {
+        return {};
+    }
+
+    const closedStates = new Set<number>([CONST.EXPENSIFY_CARD.STATE.CLOSED, CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED, CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED]);
+    const filteredCards = filterObject(cards, (_key, card) => !closedStates.has(card.state));
+
+    return filteredCards;
+}
+
+function filterInactiveCards(cardsList: WorkspaceCardsList | undefined) {
+    const {cardList, ...assignedCards} = cardsList ?? {};
+    const filteredAssignedCards = filterAllInactiveCards(assignedCards);
+
+    return {
+        ...(cardList ? {cardList} : {}),
+        ...filteredAssignedCards,
+    } as WorkspaceCardsList;
 }
 
 function getAllCardsForWorkspace(
     workspaceAccountID: number,
     allCardList: OnyxCollection<WorkspaceCardsList>,
-    cardFeeds?: CardFeeds,
+    cardFeeds?: CombinedCardFeeds,
     expensifyCardSettings?: OnyxCollection<ExpensifyCardSettings>,
 ): CardList {
-    const cards = {};
-    const companyCardsDomainFeeds = Object.entries(cardFeeds?.settings?.companyCards ?? {}).map(([feedName, feedData]) => ({domainID: feedData.domainID, feedName}));
+    const cards: CardList = {};
+    const companyCardsDomainFeeds = Object.entries(cardFeeds ?? {}).map(([feedName, feedData]) => ({domainID: feedData.domainID, feedName}));
     const expensifyCardsDomainIDs = Object.keys(expensifyCardSettings ?? {})
         .map((key) => key.split('_').at(-1))
         .filter((id): id is string => !!id);
+
     for (const [key, values] of Object.entries(allCardList ?? {})) {
         const isWorkspaceAccountCards = workspaceAccountID !== CONST.DEFAULT_NUMBER_ID && key.includes(workspaceAccountID.toString());
         const isCompanyDomainCards = companyCardsDomainFeeds?.some((domainFeed) => domainFeed.domainID && key.includes(domainFeed.domainID.toString()) && key.includes(domainFeed.feedName));
         const isExpensifyDomainCards = expensifyCardsDomainIDs.some((domainID) => key.includes(domainID.toString()) && key.includes(CONST.EXPENSIFY_CARD.BANK));
         if ((isWorkspaceAccountCards || isCompanyDomainCards || isExpensifyDomainCards) && values) {
-            const {cardList, ...rest} = values;
-            const filteredCards = filterInactiveCards(rest);
+            const {cardList: assignableCards, ...assignedCards} = values ?? {};
+            const filteredCards = filterInactiveCards(assignedCards);
             Object.assign(cards, filteredCards);
         }
     }
     return cards;
 }
 
-function isSmartLimitEnabled(cards: CardList) {
-    return Object.values(cards).some((card) => card.nameValuePairs?.limitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
+function isSmartLimitEnabled(cardsList: CardList) {
+    const {cardList, ...assignedCards} = cardsList ?? {};
+
+    return Object.values(assignedCards).some((card) => card.nameValuePairs?.limitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
 }
 
 const CUSTOM_FEEDS = [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX];
 
-function getFeedType(feedKey: CompanyCardFeed, cardFeeds: OnyxEntry<CardFeeds>): CompanyCardFeedWithNumber {
+function getFeedType(feedKey: CompanyCardFeed, cardFeeds: OnyxEntry<CombinedCardFeeds>): CompanyCardFeedWithNumber {
     if (CUSTOM_FEEDS.some((feed) => feed === feedKey)) {
-        const filteredFeeds = Object.keys(cardFeeds?.settings?.companyCards ?? {}).filter((str) => str.includes(feedKey));
+        const filteredFeeds = Object.keys(cardFeeds ?? {})
+            .filter((str) => str.includes(feedKey))
+            .map((str) => getCompanyCardFeed(str as CompanyCardFeedWithDomainID));
 
         const feedNumbers = filteredFeeds.map((str) => parseInt(str.replace(feedKey, ''), 10)).filter(Boolean);
         feedNumbers.sort((a, b) => a - b);
@@ -600,21 +928,34 @@ function getFeedType(feedKey: CompanyCardFeed, cardFeeds: OnyxEntry<CardFeeds>):
 }
 
 /**
+ * Filter out the Expensify cards from the list of cards
+ *
+ * @param cards the list of cards to filter
+ * @returns the list of cards without Expensify cards
+ */
+function filterCardsByNonExpensify(cards: CardList | undefined): CardList {
+    if (!cards) {
+        return {};
+    }
+
+    return Object.fromEntries(Object.entries(cards).filter(([key]) => !key.includes(CONST.EXPENSIFY_CARD.BANK)));
+}
+
+/**
  * Takes the list of cards divided by workspaces and feeds and returns the flattened non-Expensify cards related to the provided workspace
  *
  * @param allCardsList the list where cards split by workspaces and feeds and stored under `card_${workspaceAccountID}_${feedName}` keys
  * @param workspaceAccountID the workspace account id we want to get cards for
  * @param domainIDs the domain ids we want to get cards for
  */
-function flatAllCardsList(allCardsList: OnyxCollection<WorkspaceCardsList>, workspaceAccountID: number, domainIDs?: number[]): Record<string, Card> | undefined {
+function flattenWorkspaceCardsList(allCardsList: OnyxCollection<WorkspaceCardsList>, workspaceAccountID: number): CardList | undefined {
     if (!allCardsList) {
         return;
     }
 
     return Object.entries(allCardsList).reduce((acc, [key, cards]) => {
-        const isWorkspaceAccountCards = key.includes(workspaceAccountID.toString());
-        const isDomainCards = domainIDs?.some((domainID) => key.includes(domainID.toString()));
-        if ((!isWorkspaceAccountCards && !isDomainCards) || key.includes(CONST.EXPENSIFY_CARD.BANK)) {
+        const isWorkspaceAccountCard = key.includes(workspaceAccountID.toString());
+        if (!isWorkspaceAccountCard || key.includes(CONST.EXPENSIFY_CARD.BANK)) {
             return acc;
         }
         const {cardList, ...feedCards} = cards ?? {};
@@ -625,17 +966,13 @@ function flatAllCardsList(allCardsList: OnyxCollection<WorkspaceCardsList>, work
 }
 
 /**
- * Check if any card from the provided feed(s) has a broken connection
+ * Check if the card has a broken connection
  *
- * @param feedCards the list of the cards, related to one or several feeds
- * @param [feedToExclude] the feed to ignore during the check, it's useful for checking broken connection error only in the feeds other than the selected one
+ * @param card the card to check
+ * @returns true if the card has a broken connection, false otherwise
  */
-function checkIfFeedConnectionIsBroken(feedCards: Record<string, Card> | undefined, feedToExclude?: string): boolean {
-    if (!feedCards || isEmptyObject(feedCards)) {
-        return false;
-    }
-
-    return Object.values(feedCards).some((card) => !isEmptyObject(card) && card.bank !== feedToExclude && card.lastScrapeResult !== 200);
+function isCardConnectionBroken(card: Card): boolean {
+    return !!card.lastScrapeResult && !CONST.COMPANY_CARDS.BROKEN_CONNECTION_IGNORED_STATUSES.includes(card.lastScrapeResult);
 }
 
 /**
@@ -653,6 +990,51 @@ function isExpensifyCardFullySetUp(policy?: OnyxEntry<Policy>, cardSettings?: On
     return !!(policy?.areExpensifyCardsEnabled && cardSettings?.paymentBankAccountID);
 }
 
+function isCardPendingIssue(card?: Card) {
+    return card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED;
+}
+
+function isCardPendingActivate(card?: Card) {
+    return card?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED;
+}
+
+/**
+ * Check if a card has potential fraud that needs review.
+ * Returns true if the card has fraud type 'domain' or 'individual'.
+ */
+function isCardWithPotentialFraud(card: Card): boolean {
+    return card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL || !!card.nameValuePairs?.possibleFraud;
+}
+
+function isCardPendingReplace(card?: Card) {
+    return (
+        (isCardPendingActivate(card) || isCardPendingIssue(card)) &&
+        !!card?.nameValuePairs?.terminationReason &&
+        card?.nameValuePairs?.statusChanges?.at(-1)?.status === CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED
+    );
+}
+
+function isExpensifyCardPendingAction(card?: Card, privatePersonalDetails?: PrivatePersonalDetails): boolean {
+    return (
+        card?.bank === CONST.EXPENSIFY_CARD.BANK &&
+        !card.nameValuePairs?.isVirtual &&
+        (isCardPendingIssue(card) || isCardPendingActivate(card) || isCardPendingReplace(card) || arePersonalDetailsMissing(privatePersonalDetails)) &&
+        (!card.lastScrapeResult || CONST.COMPANY_CARDS.BROKEN_CONNECTION_IGNORED_STATUSES.includes(card.lastScrapeResult))
+    );
+}
+
+function hasPendingExpensifyCardAction(cards: CardList | undefined, privatePersonalDetails?: PrivatePersonalDetails) {
+    const {cardList, ...assignedCards} = cards ?? {};
+    return Object.values(assignedCards).some((card) => isExpensifyCardPendingAction(card, privatePersonalDetails));
+}
+const isCurrencySupportedForECards = (currency?: string) => {
+    if (!currency) {
+        return false;
+    }
+    const supportedCurrencies: string[] = [CONST.CURRENCY.GBP, CONST.CURRENCY.EUR];
+    return supportedCurrencies.includes(currency);
+};
+
 function getFundIdFromSettingsKey(key: string) {
     const prefix = ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS;
     if (!key?.startsWith(prefix)) {
@@ -664,8 +1046,128 @@ function getFundIdFromSettingsKey(key: string) {
     return Number.isNaN(fundID) ? CONST.DEFAULT_NUMBER_ID : fundID;
 }
 
+/**
+ * Get card which has a broken connection
+ *
+ * @param feedCards the list of the cards, related to one or several feeds
+ * @param [feedToExclude] the feed to ignore during the check, it's useful for checking broken connection error only in the feeds other than the selected one
+ */
+function getFeedConnectionBrokenCard(feedCards: CardList | undefined, feedToExclude?: string): Card | undefined {
+    if (!feedCards || isEmptyObject(feedCards)) {
+        return undefined;
+    }
+
+    return Object.values(feedCards).find((card) => !isEmptyObject(card) && card.bank !== feedToExclude && card.lastScrapeResult !== 200);
+}
+
+/** Extract feed from feed with domainID */
+function getCompanyCardFeed(feedWithDomainID: CardFeedWithNumber | CardFeedWithDomainID | undefined): CompanyCardFeedWithNumber {
+    if (!feedWithDomainID) {
+        return '' as CompanyCardFeedWithNumber;
+    }
+
+    const [feed] = feedWithDomainID.split(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR);
+    return feed as CompanyCardFeedWithNumber;
+}
+
+/**
+ * Check if the given card is a personal card.
+ * Personal cards have no fundID, fundID === '0', or are CSV imported cards.
+ *
+ * @param card the card which needs to be checked
+ * @returns true if the card is a personal card, false otherwise
+ */
+function isPersonalCard(card?: Card) {
+    return !card?.fundID || card.fundID === '0' || card?.bank === CONST.PERSONAL_CARD.BANK_NAME.CSV;
+}
+
+type SplitMaskedCardNumberResult = {
+    firstDigits?: string;
+    lastDigits?: string;
+};
+
+/**
+ * Split masked card number into first and last digits
+ *
+ * @param cardNumber the card number to split
+ * @param maskChar the character used to mask the card number
+ * @returns the first and last digits of the card number
+ */
+function splitMaskedCardNumber(cardNumber: string | undefined, maskChar: string = CONST.COMPANY_CARD.CARD_NUMBER_MASK_CHAR): SplitMaskedCardNumberResult {
+    if (!cardNumber) {
+        return {
+            firstDigits: undefined,
+            lastDigits: undefined,
+        };
+    }
+    const parts = cardNumber.split(maskChar);
+    return {
+        firstDigits: parts.at(0),
+        lastDigits: parts.at(-1),
+    };
+}
+
+function isCardAlreadyAssigned(cardNumberToCheck: string, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>, domainOrWorkspaceAccountID: number): boolean {
+    if (!cardNumberToCheck || !workspaceCardFeeds) {
+        return false;
+    }
+
+    return Object.entries(workspaceCardFeeds).some(([key, workspaceCards]) => {
+        if (!workspaceCards) {
+            return false;
+        }
+
+        const cardFeedKeyParts = key.split('_');
+        const feedDomainID = Number(cardFeedKeyParts.at(1));
+        if (cardFeedKeyParts.length !== 3 || cardFeedKeyParts.at(0) !== ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST || Number.isNaN(feedDomainID)) {
+            return false;
+        }
+
+        if (feedDomainID !== domainOrWorkspaceAccountID) {
+            return false;
+        }
+
+        const {cardList, ...assignedCards} = workspaceCards;
+        return Object.values(assignedCards).some(
+            (card) => card && card.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isMatchingCard(card, cardNumberToCheck, cardNumberToCheck),
+        );
+    });
+}
+
+/**
+ * Generate a random cardID up to 53 bits aka 9,007,199,254,740,991 (Number.MAX_SAFE_INTEGER).
+ * There were approximately 24,000,000 reports with sequential IDs generated before we started using this approach, those make up roughly 0.25 billionth of the space for these numbers,
+ * so we live with the 1 in 4 billion chance of a collision with an older ID until we can switch to 64-bit IDs.
+ *
+ */
+function generateCardID(): number {
+    return Math.floor(Math.random() * 2 ** 21) * 2 ** 32 + Math.floor(Math.random() * 2 ** 32);
+}
+
+/**
+ * Check if there are any assigned cards that should be displayed in the wallet page.
+ * This includes active Expensify cards, company cards (domain), and personal cards.
+ */
+function hasDisplayableAssignedCards(cardList: CardList | undefined): boolean {
+    if (!cardList) {
+        return false;
+    }
+
+    return Object.values(cardList).some(
+        (card) =>
+            CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0) &&
+            (isExpensifyCard(card) || !!card.domainName || isPersonalCard(card)) &&
+            card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH,
+    );
+}
+
+function isCardFrozen(card?: OnyxEntry<Card>): boolean {
+    return card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED && card?.nameValuePairs?.frozen != null;
+}
+
 export {
     getAssignedCardSortKey,
+    getDefaultExpensifyCardLimitType,
     isExpensifyCard,
     getDomainCards,
     formatCardExpiration,
@@ -676,18 +1178,23 @@ export {
     getCardDescription,
     getMCardNumberString,
     getTranslationKeyForLimitType,
+    maskPin,
     getEligibleBankAccountsForCard,
     sortCardsByCardholderName,
+    isCurrencySupportedForECards,
     getCardFeedIcon,
     getBankName,
     isSelectedFeedExpired,
     getCompanyFeeds,
     isCustomFeed,
+    isCSVFeedOrExpensifyCard,
     getBankCardDetailsImage,
     getSelectedFeed,
-    getCorrectStepForSelectedBank,
     getPlaidCountry,
     getCustomOrFormattedFeedName,
+    doesCardFeedExist,
+    getCustomFeedNameFromFeeds,
+    getFeedNameForDisplay,
     isCardClosed,
     isPlaidSupportedCountry,
     getFilteredCardList,
@@ -697,21 +1204,49 @@ export {
     getDomainOrWorkspaceAccountID,
     mergeCardListWithWorkspaceFeeds,
     isCard,
+    filterCardsByNonExpensify,
     getAllCardsForWorkspace,
     isCardHiddenFromSearch,
     getFeedType,
-    flatAllCardsList,
-    checkIfFeedConnectionIsBroken,
+    flattenWorkspaceCardsList,
+    isCardConnectionBroken,
     isSmartLimitEnabled,
     lastFourNumbersFromCardName,
+    isMatchingCard,
+    normalizeCardName,
     hasIssuedExpensifyCard,
     isExpensifyCardFullySetUp,
+    filterAllInactiveCards,
     filterInactiveCards,
+    isCardPendingIssue,
+    isCardPendingActivate,
+    hasPendingExpensifyCardAction,
+    isExpensifyCardPendingAction,
     getFundIdFromSettingsKey,
+    isCardPendingReplace,
     getCardsByCardholderName,
     filterCardsByPersonalDetails,
     getCompanyCardDescription,
     getPlaidInstitutionIconUrl,
     getPlaidInstitutionId,
+    getFeedConnectionBrokenCard,
     getCorrectStepForPlaidSelectedBank,
+    isDirectFeed,
+    feedHasCards,
+    getOriginalCompanyFeeds,
+    getCompanyCardFeed,
+    getCardFeedWithDomainID,
+    splitCardFeedWithDomainID,
+    getEligibleBankAccountsForUkEuCard,
+    isPersonalCard,
+    COMPANY_CARD_FEED_ICON_NAMES,
+    COMPANY_CARD_BANK_ICON_NAMES,
+    splitMaskedCardNumber,
+    isCardAlreadyAssigned,
+    generateCardID,
+    hasDisplayableAssignedCards,
+    isCardFrozen,
+    isCardWithPotentialFraud,
 };
+
+export type {CompanyCardFeedIcons, CompanyCardBankIcons};

@@ -1,5 +1,4 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent, NativeSyntheticEvent} from 'react-native';
 import type {TextInput} from 'react-native-gesture-handler';
@@ -8,7 +7,6 @@ import BigNumberPad from '@components/BigNumberPad';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Text from '@components/Text';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
@@ -19,10 +17,6 @@ import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen as canUseTouchScreenDeviceCapabilities} from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import setCursorPosition from './setCursorPosition';
-
-type TimePickerRefName = 'hourRef' | 'minuteRef' | 'secondRef' | 'millisecondRef';
-
-type TimePickerRef = Record<TimePickerRefName, TextInput | null>;
 
 type TimePickerProps = {
     /** Default value for the inputs */
@@ -121,10 +115,7 @@ function clearSelectedValue(
     setSelection({start: newCursorPosition, end: newCursorPosition});
 }
 
-function TimePicker(
-    {defaultValue = '', onSubmit, onInputChange = () => {}, shouldValidate = true, shouldValidateFutureTime = true, showFullFormat = false}: TimePickerProps,
-    ref: ForwardedRef<TimePickerRef>,
-) {
+function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shouldValidate = true, shouldValidateFutureTime = true, showFullFormat = false}: TimePickerProps) {
     const {numberFormat, translate} = useLocalize();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -132,17 +123,18 @@ function TimePicker(
     const value = DateUtils.extractTime12Hour(defaultValue, showFullFormat);
     const canUseTouchScreen = canUseTouchScreenDeviceCapabilities();
 
-    const [isError, setError] = useState(false);
-    const [errorMessage, setErrorMessage] = useState('');
-    const [selectionHour, setSelectionHour] = useState({start: 0, end: 0});
-    const [selectionMinute, setSelectionMinute] = useState(showFullFormat ? {start: 0, end: 0} : {start: 2, end: 2}); // we focus it by default so need  to have selection on the end
-    const [selectionSecond, setSelectionSecond] = useState({start: 0, end: 0});
-    const [selectionMillisecond, setSelectionMillisecond] = useState(showFullFormat ? {start: 6, end: 6} : {start: 0, end: 0});
     const [hours, setHours] = useState(() => DateUtils.get12HourTimeObjectFromDate(value, showFullFormat).hour);
     const [minutes, setMinutes] = useState(() => DateUtils.get12HourTimeObjectFromDate(value, showFullFormat).minute);
     const [seconds, setSeconds] = useState(() => DateUtils.get12HourTimeObjectFromDate(value, showFullFormat).seconds);
     const [milliseconds, setMilliseconds] = useState(() => DateUtils.get12HourTimeObjectFromDate(value, showFullFormat).milliseconds);
     const [amPmValue, setAmPmValue] = useState(() => DateUtils.get12HourTimeObjectFromDate(value, showFullFormat).period);
+
+    const [isError, setError] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+    const [selectionHour, setSelectionHour] = useState({start: 0, end: 0});
+    const [selectionMinute, setSelectionMinute] = useState(showFullFormat ? {start: 0, end: 0} : {start: minutes.length, end: minutes.length}); // we focus it by default so need to have selection on the end
+    const [selectionSecond, setSelectionSecond] = useState({start: 0, end: 0});
+    const [selectionMillisecond, setSelectionMillisecond] = useState(showFullFormat ? {start: milliseconds.length, end: milliseconds.length} : {start: 0, end: 0});
 
     const lastPressedKey = useRef('');
     const hourInputRef = useRef<TextInput | null>(null);
@@ -207,7 +199,7 @@ function TimePicker(
     // The valid format is HH(from 00 to 12). If the user input 9, it will be 09. If user try to change 09 to 19 it would skip the first character
     const handleHourChange = (text: string) => {
         // Replace spaces with 0 to implement the following digit removal by pressing space
-        const trimmedText = text.replace(/ /g, '0');
+        const trimmedText = text.replaceAll(' ', '0');
         if (!trimmedText) {
             resetHours();
             return;
@@ -323,7 +315,7 @@ function TimePicker(
     */
     const handleMinutesChange = (text: string) => {
         // Replace spaces with 0 to implement the following digit removal by pressing space
-        const trimmedText = text.replace(/ /g, '0');
+        const trimmedText = text.replaceAll(' ', '0');
         if (!trimmedText) {
             resetMinutes();
             return;
@@ -402,7 +394,7 @@ function TimePicker(
     */
     const handleSecondsChange = (text: string) => {
         // Replace spaces with 0 to implement the following digit removal by pressing space
-        const trimmedText = text.replace(/ /g, '0');
+        const trimmedText = text.replaceAll(' ', '0');
         if (!trimmedText) {
             resetSeconds();
             return;
@@ -481,7 +473,7 @@ function TimePicker(
     */
     const handleMillisecondsChange = (text: string) => {
         // Replace spaces with 0 to implement the following digit removal by pressing space
-        const trimmedText = text.replace(/ /g, '0');
+        const trimmedText = text.replaceAll(' ', '0');
         if (!trimmedText) {
             resetMilliseconds();
             return;
@@ -603,7 +595,7 @@ function TimePicker(
                 }
                 return;
             }
-            const trimmedKey = key.replace(/[^0-9]/g, '');
+            const trimmedKey = key.replaceAll(/[^0-9]/g, '');
 
             if (isHourFocused) {
                 handleHourChange(insertAtPosition(hours, trimmedKey, selectionHour.start, selectionHour.end));
@@ -615,7 +607,7 @@ function TimePicker(
                 handleMillisecondsChange(insertAtPosition(milliseconds, trimmedKey, selectionMillisecond.start, selectionMillisecond.end));
             }
         },
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [minutes, hours, seconds, milliseconds, selectionMinute, selectionHour, selectionSecond, selectionMillisecond],
     );
 
@@ -650,8 +642,8 @@ function TimePicker(
                 focusSecondInputOnLastCharacter();
             }
         },
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [selectionHour, selectionMinute],
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [selectionHour, selectionMinute.start],
     );
     const arrowRightCallback = useCallback(
         (e?: GestureResponderEvent | KeyboardEvent) => {
@@ -671,8 +663,8 @@ function TimePicker(
                 focusMillisecondInputOnFirstCharacter();
             }
         },
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [selectionHour, selectionMinute, selectionSecond, selectionMillisecond],
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [selectionHour.start, selectionMinute.start, selectionSecond.start, selectionMillisecond],
     );
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT, arrowLeftCallback, arrowConfig);
@@ -696,7 +688,7 @@ function TimePicker(
                 focusSecondInputOnLastCharacter();
             }
         },
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [
             selectionMinute.start,
             selectionMinute.end,
@@ -727,7 +719,7 @@ function TimePicker(
 
     useEffect(() => {
         onInputChange(showFullFormat ? `${hours}:${minutes}:${seconds}.${milliseconds} ${amPmValue}` : `${hours}:${minutes} ${amPmValue}`);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [hours, minutes, amPmValue]);
 
     const handleSubmit = () => {
@@ -736,22 +728,6 @@ function TimePicker(
 
         if (isValid) {
             onSubmit(time);
-        }
-    };
-
-    const updateRefs = (refName: TimePickerRefName, updatedRef: BaseTextInputRef | null) => {
-        const updatedRefs = {
-            hourRef: hourInputRef.current,
-            minuteRef: minuteInputRef.current,
-            secondRef: secondInputRef.current,
-            millisecondRef: millisecondInputRef.current,
-            [refName]: updatedRef,
-        };
-        if (typeof ref === 'function') {
-            ref(updatedRefs);
-        } else if (ref && 'current' in ref) {
-            // eslint-disable-next-line no-param-reassign
-            ref.current = updatedRefs;
         }
     };
 
@@ -802,8 +778,6 @@ function TimePicker(
                         }}
                         onChangeAmount={handleHourChange}
                         ref={(textInputRef) => {
-                            updateRefs('hourRef', textInputRef);
-                            // eslint-disable-next-line react-compiler/react-compiler
                             hourInputRef.current = textInputRef as TextInput | null;
                         }}
                         onSelectionChange={(e) => {
@@ -813,6 +787,7 @@ function TimePicker(
                         containerStyle={[styles.iouAmountTextInputContainer]}
                         touchableInputWrapperStyle={!showFullFormat && styles.timePickerHeight100}
                         selection={selectionHour}
+                        testID="hourInput"
                     />
                     <Text style={[styles.timePickerSemiDot, showFullFormat && [styles.textXXLarge, {height: undefined}]]}>{CONST.COLON}</Text>
                     <AmountTextInput
@@ -824,7 +799,6 @@ function TimePicker(
                         }}
                         onChangeAmount={handleMinutesChange}
                         ref={(textInputRef) => {
-                            updateRefs('minuteRef', textInputRef);
                             minuteInputRef.current = textInputRef as TextInput | null;
                             if (!showFullFormat) {
                                 inputCallbackRef(textInputRef as TextInput | null);
@@ -837,6 +811,7 @@ function TimePicker(
                         containerStyle={[styles.iouAmountTextInputContainer]}
                         touchableInputWrapperStyle={!showFullFormat && styles.timePickerHeight100}
                         selection={selectionMinute}
+                        testID="minuteInput"
                     />
                     {showFullFormat && (
                         <>
@@ -850,7 +825,6 @@ function TimePicker(
                                 }}
                                 onChangeAmount={handleSecondsChange}
                                 ref={(textInputRef) => {
-                                    updateRefs('secondRef', textInputRef);
                                     secondInputRef.current = textInputRef as TextInput | null;
                                 }}
                                 onSelectionChange={(e) => {
@@ -860,6 +834,7 @@ function TimePicker(
                                 containerStyle={[styles.iouAmountTextInputContainer]}
                                 touchableInputWrapperStyle={!showFullFormat && styles.timePickerHeight100}
                                 selection={selectionSecond}
+                                testID="secondInput"
                             />
                             <Text style={[styles.timePickerSemiDot, showFullFormat && [styles.textXXLarge, {height: undefined}]]}>{CONST.COLON}</Text>
                             <AmountTextInput
@@ -871,7 +846,6 @@ function TimePicker(
                                 }}
                                 onChangeAmount={handleMillisecondsChange}
                                 ref={(textInputRef) => {
-                                    updateRefs('millisecondRef', textInputRef);
                                     millisecondInputRef.current = textInputRef as TextInput | null;
                                     if (showFullFormat) {
                                         inputCallbackRef(textInputRef as TextInput | null);
@@ -884,6 +858,7 @@ function TimePicker(
                                 containerStyle={[styles.iouAmountTextInputContainer]}
                                 touchableInputWrapperStyle={!showFullFormat && styles.timePickerHeight100}
                                 selection={selectionMillisecond}
+                                testID="millisecondInput"
                             />
                         </>
                     )}
@@ -919,6 +894,6 @@ function TimePicker(
     );
 }
 
-TimePicker.displayName = 'TimePicker';
+export default TimePicker;
 
-export default React.forwardRef(TimePicker);
+export type {TimePickerProps};

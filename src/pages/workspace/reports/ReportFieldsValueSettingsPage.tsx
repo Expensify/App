@@ -61,14 +61,18 @@ function ReportFieldsValueSettingsPage({
     const hasAccountingConnections = hasAccountingConnectionsUtil(policy);
     const oldValueName = usePrevious(currentValueName);
 
-    if ((!currentValueName && !oldValueName) || hasAccountingConnections) {
+    if (!currentValueName && !oldValueName) {
         return <NotFoundPage />;
     }
     const deleteListValueAndHideModal = () => {
         if (reportFieldID) {
-            removeReportFieldListValue(policyID, reportFieldID, [valueIndex]);
+            removeReportFieldListValue({policy, reportFieldID, valueIndexes: [valueIndex]});
         } else {
-            deleteReportFieldsListValue([valueIndex]);
+            deleteReportFieldsListValue({
+                valueIndexes: [valueIndex],
+                listValues: formDraft?.listValues ?? [],
+                disabledListValues: formDraft?.disabledListValues ?? [],
+            });
         }
         setIsDeleteTagModalOpen(false);
         Navigation.goBack();
@@ -76,11 +80,15 @@ function ReportFieldsValueSettingsPage({
 
     const updateListValueEnabled = (value: boolean) => {
         if (reportFieldID) {
-            updateReportFieldListValueEnabled(policyID, reportFieldID, [Number(valueIndex)], value);
+            updateReportFieldListValueEnabled({policy, reportFieldID, valueIndexes: [Number(valueIndex)], enabled: value});
             return;
         }
 
-        setReportFieldsListValueEnabled([valueIndex], value);
+        setReportFieldsListValueEnabled({
+            valueIndexes: [valueIndex],
+            enabled: value,
+            disabledListValues: formDraft?.disabledListValues ?? [],
+        });
     };
 
     const navigateToEditValue = () => {
@@ -96,7 +104,7 @@ function ReportFieldsValueSettingsPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={styles.defaultModalContainer}
-                testID={ReportFieldsValueSettingsPage.displayName}
+                testID="ReportFieldsValueSettingsPage"
             >
                 <HeaderWithBackButton
                     title={currentValueName ?? oldValueName}
@@ -104,7 +112,7 @@ function ReportFieldsValueSettingsPage({
                 />
                 <ConfirmModal
                     title={translate('workspace.reportFields.deleteValue')}
-                    isVisible={isDeleteTagModalOpen}
+                    isVisible={isDeleteTagModalOpen && !hasAccountingConnections}
                     onConfirm={deleteListValueAndHideModal}
                     onCancel={() => setIsDeleteTagModalOpen(false)}
                     shouldSetModalVisibility={false}
@@ -131,17 +139,17 @@ function ReportFieldsValueSettingsPage({
                         interactive={!reportFieldID}
                         onPress={navigateToEditValue}
                     />
-                    <MenuItem
-                        icon={Expensicons.Trashcan}
-                        title={translate('common.delete')}
-                        onPress={() => setIsDeleteTagModalOpen(true)}
-                    />
+                    {!hasAccountingConnections && (
+                        <MenuItem
+                            icon={Expensicons.Trashcan}
+                            title={translate('common.delete')}
+                            onPress={() => setIsDeleteTagModalOpen(true)}
+                        />
+                    )}
                 </View>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }
-
-ReportFieldsValueSettingsPage.displayName = 'ReportFieldsValueSettingsPage';
 
 export default withPolicyAndFullscreenLoading(ReportFieldsValueSettingsPage);

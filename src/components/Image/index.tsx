@@ -1,5 +1,5 @@
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import LoadingIndicator from '@components/LoadingIndicator';
 import {useSession} from '@components/OnyxListItemProvider';
 import {isExpiredSession} from '@libs/actions/Session';
 import activateReauthenticator from '@libs/actions/Session/AttachmentImageReauthenticator';
@@ -10,12 +10,14 @@ import type {ImageOnLoadEvent, ImageProps} from './types';
 
 function Image({
     source: propsSource,
+    shouldCalculateAspectRatioForWideImage = false,
     isAuthTokenRequired = false,
     onLoad,
     objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL,
     style,
     loadingIconSize,
     loadingIndicatorStyles,
+    imageWidthToCalculateHeight,
     ...forwardedProps
 }: ImageProps) {
     const [aspectRatio, setAspectRatio] = useState<string | number | null>(null);
@@ -24,20 +26,35 @@ function Image({
 
     const {shouldSetAspectRatioInStyle} = useContext(ImageBehaviorContext);
 
+    const aspectRatioStyle = useMemo(() => {
+        if (!shouldSetAspectRatioInStyle || !aspectRatio) {
+            return {};
+        }
+
+        if (!!imageWidthToCalculateHeight && typeof aspectRatio === 'number') {
+            return {
+                width: '100%',
+                height: imageWidthToCalculateHeight / aspectRatio,
+            };
+        }
+
+        return {aspectRatio, height: 'auto'};
+    }, [shouldSetAspectRatioInStyle, aspectRatio, imageWidthToCalculateHeight]);
+
     const updateAspectRatio = useCallback(
         (width: number, height: number) => {
             if (!isObjectPositionTop) {
                 return;
             }
 
-            if (width > height) {
+            if (width > height && !shouldCalculateAspectRatioForWideImage) {
                 setAspectRatio(1);
                 return;
             }
 
             setAspectRatio(height ? width / height : 'auto');
         },
-        [isObjectPositionTop],
+        [isObjectPositionTop, shouldCalculateAspectRatioForWideImage],
     );
 
     const handleLoad = useCallback(
@@ -84,7 +101,7 @@ function Image({
             return session.creationDate;
         }
         return undefined;
-    }, [session, isAuthTokenRequired, isAcceptedSession]);
+    }, [session?.creationDate, isAuthTokenRequired, isAcceptedSession]);
     useEffect(() => {
         if (!isAuthTokenRequired) {
             return;
@@ -121,7 +138,7 @@ function Image({
         // The session prop is not required, as it causes the image to reload whenever the session changes. For more information, please refer to issue #26034.
         // but we still need the image to reload sometimes (example : when the current session is expired)
         // by forcing a recalculation of the source (which value could indeed change) through the modification of the variable validSessionAge
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [propsSource, isAuthTokenRequired, validSessionAge]);
     useEffect(() => {
         if (!isAuthTokenRequired || source !== undefined) {
@@ -140,29 +157,27 @@ function Image({
     }
     if (source === undefined) {
         return (
-            <FullScreenLoadingIndicator
+            <LoadingIndicator
                 iconSize={loadingIconSize}
                 style={loadingIndicatorStyles}
             />
         );
     }
+
     return (
         <BaseImage
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...forwardedProps}
             onLoad={handleLoad}
-            style={[style, shouldSetAspectRatioInStyle && aspectRatio ? {aspectRatio, height: 'auto'} : {}, shouldOpacityBeZero && {opacity: 0}]}
+            style={[style, aspectRatioStyle, shouldOpacityBeZero && {opacity: 0}]}
             source={source}
         />
     );
 }
 
-function imagePropsAreEqual(prevProps: ImageProps, nextProps: ImageProps) {
-    return prevProps.source === nextProps.source;
-}
+Image.displayName = 'Image';
 
-const ImageWithOnyx = React.memo(Image, imagePropsAreEqual);
-
-ImageWithOnyx.displayName = 'Image';
-
-export default ImageWithOnyx;
+export default React.memo(
+    Image,
+    (prevProps: ImageProps, nextProps: ImageProps) => prevProps.source === nextProps.source && prevProps.imageWidthToCalculateHeight === nextProps.imageWidthToCalculateHeight,
+);

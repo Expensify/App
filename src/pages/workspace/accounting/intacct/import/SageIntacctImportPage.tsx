@@ -66,7 +66,7 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
 
     return (
         <ConnectionLayout
-            displayName={SageIntacctImportPage.displayName}
+            displayName="SageIntacctImportPage"
             headerTitle="workspace.accounting.import"
             headerSubtitle={getCurrentSageIntacctEntityName(policy, translate('workspace.common.topLevel'))}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -147,7 +147,5 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
         </ConnectionLayout>
     );
 }
-
-SageIntacctImportPage.displayName = 'SageIntacctImportPage';
 
 export default withPolicy(SageIntacctImportPage);

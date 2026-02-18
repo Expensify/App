@@ -6,12 +6,15 @@ import type CONST from '@src/CONST';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 type PaymentType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.REPORT_ACTION_TYPE>;
 
 type WorkspaceMemberBulkActionType = DeepValueOf<typeof CONST.POLICY.MEMBERS_BULK_ACTION_TYPES>;
 
 type RoomMemberBulkActionType = DeepValueOf<typeof CONST.REPORT.ROOM_MEMBERS_BULK_ACTION_TYPES>;
+
+type DomainMemberBulkActionType = DeepValueOf<typeof CONST.DOMAIN.MEMBERS.BULK_ACTION_TYPES>;
 
 type WorkspaceDistanceRatesBulkActionType = DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>;
 
@@ -21,7 +24,7 @@ type ReportExportType = DeepValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>;
 
 type OnboardingHelpType = DeepValueOf<typeof CONST.ONBOARDING_HELP>;
 
-type DropdownOption<TValueType> = {
+type DropdownOption<TValueType> = WithSentryLabel & {
     value: TValueType;
     text: string;
     icon?: IconAsset;
@@ -30,12 +33,12 @@ type DropdownOption<TValueType> = {
     iconHeight?: number;
     iconDescription?: string;
     additionalIconStyles?: StyleProp<ViewStyle>;
-    onSelected?: () => void;
+    onSelected?: () => void | Promise<void>;
     disabled?: boolean;
     iconFill?: string;
     interactive?: boolean;
     numberOfLinesTitle?: number;
-    titleStyle?: ViewStyle;
+    titleStyle?: StyleProp<TextStyle>;
     shouldCloseModalOnSelect?: boolean;
     description?: string;
     descriptionTextStyle?: StyleProp<TextStyle>;
@@ -51,7 +54,7 @@ type DropdownOption<TValueType> = {
     shouldShowLoadingSpinnerIcon?: boolean;
 };
 
-type ButtonWithDropdownMenuProps<TValueType> = {
+type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {
     /** The custom text to display on the main button instead of selected option */
     customText?: string;
 
@@ -79,8 +82,14 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     /** The size of button size */
     buttonSize?: ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
 
+    /** Render button in extra-small size */
+    extraSmall?: boolean;
+
     /** Should the confirmation button be disabled? */
     isDisabled?: boolean;
+
+    /** Whether the button should stay visually normal even when disabled. */
+    shouldStayNormalOnDisable?: boolean;
 
     /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;
@@ -94,14 +103,6 @@ type ButtonWithDropdownMenuProps<TValueType> = {
 
     /** The anchor alignment of the popover menu */
     anchorAlignment?: AnchorAlignment;
-
-    /**
-     * Determines how the popover menu should be horizontally positioned relative to the button.
-     * - 'right': Anchors to the right edge of the button (default)
-     * - 'left': Anchors to the left edge of the button
-     * - 'center': Anchors to the center of the button
-     */
-    popoverHorizontalOffsetType?: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL>;
 
     /* ref for the button */
     buttonRef?: RefObject<View | null>;
@@ -123,9 +124,6 @@ type ButtonWithDropdownMenuProps<TValueType> = {
 
     /** Whether to use keyboard shortcuts for confirmation or not */
     useKeyboardShortcuts?: boolean;
-
-    /** Determines if a style utility function should be used for calculating the PopoverMenu anchor position. */
-    shouldUseStyleUtilityForAnchorPosition?: boolean;
 
     /** Decides which index in menuItems should be selected */
     defaultSelectedIndex?: number;
@@ -159,11 +157,19 @@ type ButtonWithDropdownMenuProps<TValueType> = {
 
     /** Whether to display the option icon when only one option is available */
     shouldUseOptionIcon?: boolean;
+
+    /** Reference to the outer element */
+    ref?: React.Ref<ButtonWithDropdownMenuRef>;
+};
+
+type ButtonWithDropdownMenuRef = {
+    setIsMenuVisible: (visible: boolean) => void;
 };
 
 export type {
     PaymentType,
     WorkspaceMemberBulkActionType,
+    DomainMemberBulkActionType,
     RoomMemberBulkActionType,
     WorkspaceDistanceRatesBulkActionType,
     DropdownOption,
@@ -171,4 +177,5 @@ export type {
     WorkspaceTaxRatesBulkActionType,
     ReportExportType,
     OnboardingHelpType,
+    ButtonWithDropdownMenuRef,
 };

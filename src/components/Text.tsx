@@ -8,6 +8,7 @@ import {containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import type {FontUtilsType} from '@styles/utils/FontUtils';
 import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {CustomStylesForChildrenContext} from './CustomStylesForChildrenProvider';
 
@@ -54,7 +55,7 @@ function Text({color, fontSize = variables.fontSizeNormal, textAlign = 'left', c
 
     const isOnlyCustomEmoji = useMemo(() => {
         if (typeof children === 'string') {
-            return containsOnlyCustomEmoji(children);
+            return containsOnlyCustomEmoji(children.replace(CONST.UNICODE.LTR, ''));
         }
         if (Array.isArray(children)) {
             return children.every((child) => {
@@ -80,8 +81,6 @@ function Text({color, fontSize = variables.fontSizeNormal, textAlign = 'left', c
         </RNText>
     );
 }
-
-Text.displayName = 'Text';
 
 export default Text;
 export type {TextProps};

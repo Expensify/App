@@ -37,7 +37,7 @@ function Size({onNext}: SizeProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM> => {
-            const errors = getFieldRequiredErrors(values, [INPUT_IDS.SUBSCRIPTION_SIZE]);
+            const errors = getFieldRequiredErrors(values, [INPUT_IDS.SUBSCRIPTION_SIZE], translate);
             if (values[INPUT_IDS.SUBSCRIPTION_SIZE] && !isValidSubscriptionSize(values[INPUT_IDS.SUBSCRIPTION_SIZE])) {
                 errors.subscriptionSize = translate('subscription.subscriptionSize.error.size');
             }
@@ -72,6 +72,7 @@ function Size({onNext}: SizeProps) {
                     role={CONST.ROLE.PRESENTATION}
                     defaultValue={defaultValues[INPUT_IDS.SUBSCRIPTION_SIZE]}
                     shouldSaveDraft
+                    inputMode={CONST.INPUT_MODE.NUMERIC}
                 />
                 <Text style={[styles.formHelp, styles.mt2]}>{translate('subscription.subscriptionSize.eachMonth')}</Text>
                 <Text style={[styles.formHelp, styles.mt2]}>{translate('subscription.subscriptionSize.note')}</Text>
@@ -79,7 +80,5 @@ function Size({onNext}: SizeProps) {
         </FormProvider>
     );
 }
-
-Size.displayName = 'SizeStep';
 
 export default Size;

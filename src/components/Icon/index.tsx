@@ -1,22 +1,31 @@
 import type {ImageContentFit} from 'expo-image';
-import React, {useCallback, useContext, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import {PixelRatio, StyleSheet, View} from 'react-native';
 import {useSharedValue} from 'react-native-reanimated';
-import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+import type {SharedValue} from 'react-native-reanimated';
+import type {AttachmentCarouselPagerStateContextType} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+import {useAttachmentCarouselPagerActions, useAttachmentCarouselPagerState} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import ImageSVG from '@components/ImageSVG';
 import MultiGestureCanvas, {DEFAULT_ZOOM_RANGE} from '@components/MultiGestureCanvas';
-import type {CanvasSize, ContentSize} from '@components/MultiGestureCanvas/types';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import variables from '@styles/variables';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {Dimensions} from '@src/types/utils/Layout';
 import IconWrapperStyles from './IconWrapperStyles';
+
+type IconCarouselPagerProps = {
+    pagerRef: AttachmentCarouselPagerStateContextType['pagerRef'];
+    isScrollEnabled: SharedValue<boolean>;
+    onTap: () => void;
+    onSwipeDown: () => void;
+};
 
 type IconProps = {
     /** The asset to render. */
-    src: IconAsset;
+    src: IconAsset | undefined;
 
     /** The width of the icon. */
     width?: number;
@@ -28,6 +37,7 @@ type IconProps = {
     fill?: string;
 
     /** Is small icon */
+    extraSmall?: boolean;
     small?: boolean;
 
     /** Is large icon */
@@ -66,6 +76,7 @@ function Icon({
     width = variables.iconSizeNormal,
     height = variables.iconSizeNormal,
     fill = undefined,
+    extraSmall = false,
     small = false,
     large = false,
     medium = false,
@@ -80,10 +91,10 @@ function Icon({
 }: IconProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
-    const {width: iconWidth, height: iconHeight} = StyleUtils.getIconWidthAndHeightStyle(small, medium, large, width, height, isButtonIcon);
+    const {width: iconWidth, height: iconHeight} = StyleUtils.getIconWidthAndHeightStyle(extraSmall, small, medium, large, width, height, isButtonIcon);
     const iconStyles = [StyleUtils.getWidthAndHeightStyle(width ?? 0, height), IconWrapperStyles, styles.pAbsolute, additionalStyles];
-    const contentSize: ContentSize = {width: iconWidth as number, height: iconHeight as number};
-    const [canvasSize, setCanvasSize] = useState<CanvasSize>();
+    const contentSize: Dimensions = {width: iconWidth as number, height: iconHeight as number};
+    const [canvasSize, setCanvasSize] = useState<Dimensions>();
     const isCanvasLoading = canvasSize === undefined;
     const updateCanvasSize = useCallback(
         ({
@@ -95,14 +106,29 @@ function Icon({
     );
 
     const isScrollingEnabledFallback = useSharedValue(false);
-    const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
-    const {onTap, onSwipeDown, pagerRef, isScrollEnabled} = useMemo(() => {
-        if (attachmentCarouselPagerContext === null) {
-            return {pagerRef: undefined, isScrollEnabled: isScrollingEnabledFallback, onTap: () => {}, onSwipeDown: () => {}};
-        }
+    const state = useAttachmentCarouselPagerState();
+    const actions = useAttachmentCarouselPagerActions();
 
-        return {...attachmentCarouselPagerContext};
-    }, [attachmentCarouselPagerContext, isScrollingEnabledFallback]);
+    const {onTap, onSwipeDown, pagerRef, isScrollEnabled}: IconCarouselPagerProps = useMemo((): IconCarouselPagerProps => {
+        if (state === null || actions === null) {
+            return {
+                pagerRef: undefined,
+                isScrollEnabled: isScrollingEnabledFallback,
+                onTap: () => {},
+                onSwipeDown: () => {},
+            };
+        }
+        return {
+            pagerRef: state.pagerRef,
+            isScrollEnabled: state.isScrollEnabled,
+            onTap: actions.onTap ?? (() => {}),
+            onSwipeDown: actions.onSwipeDown ?? (() => {}),
+        };
+    }, [state, actions, isScrollingEnabledFallback]);
+
+    if (!src) {
+        return null;
+    }
 
     if (inline) {
         return (
@@ -167,6 +193,9 @@ function Icon({
         <View
             testID={testID}
             style={additionalStyles}
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+            accessible={false}
         >
             <ImageSVG
                 src={src}
@@ -181,6 +210,5 @@ function Icon({
     );
 }
 
-Icon.displayName = 'Icon';
-
 export default Icon;
+export type {IconProps};
