@@ -828,7 +828,8 @@
         "pgrep",
         "skia",
         "canvaskit",
-        "Invoicify"
+        "Invoicify",
+        "sharee"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
