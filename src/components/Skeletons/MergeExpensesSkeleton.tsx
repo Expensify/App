@@ -37,12 +37,16 @@ function MergeExpensesSkeleton({fixedNumItems, speed, reasonAttributes}: MergeEx
                     transform={[{translateX: 66}, {translateY: 22}]}
                     width={longBarWidth}
                     height={barHeight}
+                    rx={4}
+                    ry={4}
                 />
 
                 <Rect
                     transform={[{translateX: 66}, {translateY: 36}]}
                     width={mediumBarWidth}
                     height={barHeight}
+                    rx={4}
+                    ry={4}
                 />
 
                 <Rect
@@ -50,6 +54,8 @@ function MergeExpensesSkeleton({fixedNumItems, speed, reasonAttributes}: MergeEx
                     transform={[{translateX: pageWidth - 12 - mediumBarWidth}, {translateY: 22}]}
                     width={mediumBarWidth}
                     height={barHeight}
+                    rx={4}
+                    ry={4}
                 />
 
                 <Rect
@@ -57,6 +63,8 @@ function MergeExpensesSkeleton({fixedNumItems, speed, reasonAttributes}: MergeEx
                     transform={[{translateX: pageWidth - 12 - shortBarWidth}, {translateY: 36}]}
                     width={shortBarWidth}
                     height={barHeight}
+                    rx={4}
+                    ry={4}
                 />
             </>
         );

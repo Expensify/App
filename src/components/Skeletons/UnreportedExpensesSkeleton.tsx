@@ -65,11 +65,15 @@ function UnreportedExpensesSkeleton({fixedNumberOfItems, reasonAttributes}: Unre
                         transform={[{translateX: 92}, {translateY: 26}]}
                         width={getMessageSkeletonWidth(args.itemIndex)}
                         height={12}
+                        rx={4}
+                        ry={4}
                     />
                     <Rect
                         transform={[{translateX: pageWidth - 12 - getExpenseAmountSkeletonWidth(args.itemIndex)}, {translateY: 26}]}
                         width={getExpenseAmountSkeletonWidth(args.itemIndex)}
                         height={12}
+                        rx={4}
+                        ry={4}
                     />
                 </>
             );

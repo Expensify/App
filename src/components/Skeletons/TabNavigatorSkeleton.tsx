@@ -29,6 +29,8 @@ function TabNavigatorSkeleton({reasonAttributes}: TabNavigatorSkeletonProps = {}
                     transform={[{translateX: '20%'}, {translateY: 13}]}
                     width="60%"
                     height={14}
+                    rx={4}
+                    ry={4}
                 />
             </SkeletonViewContentLoader>
             <SkeletonViewContentLoader
@@ -42,6 +44,8 @@ function TabNavigatorSkeleton({reasonAttributes}: TabNavigatorSkeletonProps = {}
                     transform={[{translateX: '20%'}, {translateY: 13}]}
                     width="60%"
                     height={14}
+                    rx={4}
+                    ry={4}
                 />
             </SkeletonViewContentLoader>
         </View>

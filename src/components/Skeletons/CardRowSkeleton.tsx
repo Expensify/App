@@ -47,12 +47,16 @@ function CardRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEn
                         transform={[{translateX: 66}, {translateY: 22}]}
                         width={longBarWidth}
                         height={barHeight}
+                        rx={4}
+                        ry={4}
                     />
 
                     <Rect
                         transform={[{translateX: 66}, {translateY: 36}]}
                         width={shortBarWidth}
                         height={barHeight}
+                        rx={4}
+                        ry={4}
                     />
 
                     {!shouldUseNarrowLayout && (
@@ -67,6 +71,8 @@ function CardRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEn
                                 ]}
                                 width={20}
                                 height={barHeight}
+                                rx={4}
+                                ry={4}
                             />
 
                             <Rect
@@ -79,6 +85,8 @@ function CardRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEn
                                 ]}
                                 width={50}
                                 height={barHeight}
+                                rx={4}
+                                ry={4}
                             />
                         </>
                     )}

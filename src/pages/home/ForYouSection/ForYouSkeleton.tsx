@@ -83,7 +83,7 @@ function ForYouSkeleton() {
             <ItemListSkeletonView
                 itemViewHeight={ITEM_HEIGHT}
                 shouldAnimate
-                fixedNumItems={3}
+                fixedNumItems={2}
                 renderSkeletonItem={skeletonItem}
             />
         </View>

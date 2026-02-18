@@ -44,11 +44,15 @@ function TableListItemSkeleton({shouldAnimate = true, fixedNumItems, gradientOpa
                         transform={[{translateX: rectX}, {translateY: rectY1}]}
                         width={longBarWidth}
                         height={barHeight}
+                        rx={4}
+                        ry={4}
                     />
                     <Rect
                         transform={[{translateX: rectX}, {translateY: rectY2}]}
                         width={shortBarWidth}
                         height={barHeight}
+                        rx={4}
+                        ry={4}
                     />
                 </>
             )}

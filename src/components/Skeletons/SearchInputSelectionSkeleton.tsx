@@ -28,6 +28,8 @@ function SearchInputSelectionSkeleton({reasonAttributes}: SearchInputSelectionSk
                 <Rect
                     width={variables.searchAutocompleteInputSkeletonWidth}
                     height={variables.searchAutocompleteInputSkeletonHeight}
+                    rx={4}
+                    ry={4}
                 />
             </SkeletonViewContentLoader>
         </View>

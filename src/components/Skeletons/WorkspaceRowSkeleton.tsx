@@ -48,11 +48,15 @@ function WorkspaceRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpac
                         transform={[{translateX: 66}, {translateY: 22}]}
                         width={longBarWidth}
                         height={barHeight}
+                        rx={4}
+                        ry={4}
                     />
                     <Rect
                         transform={[{translateX: 66}, {translateY: 36}]}
                         width={shortBarWidth}
                         height={barHeight}
+                        rx={4}
+                        ry={4}
                     />
                     {!shouldUseNarrowLayout && (
                         <>
@@ -60,21 +64,29 @@ function WorkspaceRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpac
                                 transform={[{translateX: 66 + partWidth}, {translateY: 22}]}
                                 width={longBarWidth}
                                 height={barHeight}
+                                rx={4}
+                                ry={4}
                             />
                             <Rect
                                 transform={[{translateX: 66 + partWidth}, {translateY: 36}]}
                                 width={shortBarWidth}
                                 height={barHeight}
+                                rx={4}
+                                ry={4}
                             />
                             <Rect
                                 transform={[{translateX: 66 + partWidth * 2}, {translateY: 22}]}
                                 width={longBarWidth}
                                 height={barHeight}
+                                rx={4}
+                                ry={4}
                             />
                             <Rect
                                 transform={[{translateX: 66 + partWidth * 2}, {translateY: 36}]}
                                 width={shortBarWidth}
                                 height={barHeight}
+                                rx={4}
+                                ry={4}
                             />
                         </>
                     )}
