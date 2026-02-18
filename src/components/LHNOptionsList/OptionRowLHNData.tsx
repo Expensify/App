@@ -14,7 +14,8 @@ import type {OptionRowLHNDataProps} from './types';
 import {getOneTransactionThreadReportID, getOriginalMessage, getSortedReportActionsForDisplay, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import useNetwork from '@hooks/useNetwork';
 import useReportAttributes from '@hooks/useReportAttributes';
-import {getIOUReportIDOfLastAction} from '@libs/OptionsListUtils';
+import {getIOUReportIDOfLastAction, getLastMessageTextForReport} from '@libs/OptionsListUtils';
+import {PersonalDetails} from '@src/types/onyx';
 
 /*
  * This component gets the data from onyx for the actual
@@ -38,6 +39,8 @@ function OptionRowLHNData({
     localeCompare,
     translate,
     currentUserAccountID,
+    policyForMovingExpensesID,
+    firstReportIDWithGBRorRBR,
     ...propsToForward
 }: OptionRowLHNDataProps) {
     const item = fullReport;
@@ -88,33 +91,30 @@ function OptionRowLHNData({
     const [lastReportActionTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${lastReportActionTransactionID}`, {canBeMissing: true});
 
     // SidebarUtils.getOptionData in OptionRowLHNData does not get re-evaluated when the linked task report changes, so we have the lastMessageTextFromReport evaluation logic here
-    //             let lastActorDetails: Partial<PersonalDetails> | null = item?.lastActorAccountID && personalDetails?.[item.lastActorAccountID] ? personalDetails[item.lastActorAccountID] : null;
-    //             if (!lastActorDetails && lastReportAction) {
-    //                 const lastActorDisplayName = lastReportAction?.person?.[0]?.text;
-    //                 lastActorDetails = lastActorDisplayName
-    //                     ? {
-    //                           displayName: lastActorDisplayName,
-    //                           accountID: item?.lastActorAccountID,
-    //                       }
-    //                     : null;
-    //             }
-    //             const movedFromReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastReportAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
-    //             const movedToReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastReportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
-    //             const itemReportMetadata = reportMetadataCollection?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`];
-    //             const lastMessageTextFromReport = getLastMessageTextForReport({
-    //                 translate,
-    //                 report: item,
-    //                 lastActorDetails,
-    //                 movedFromReport,
-    //                 movedToReport,
-    //                 policy: itemPolicy,
-    //                 isReportArchived: !!itemReportNameValuePairs?.private_isArchived,
-    //                 policyForMovingExpensesID,
-    //                 reportMetadata: itemReportMetadata,
-    //                 reportAttributesDerived: reportAttributes,
-    //             });
+    let lastActorDetails: Partial<PersonalDetails> | null = item?.lastActorAccountID && personalDetails?.[item.lastActorAccountID] ? personalDetails[item.lastActorAccountID] : null;
+    if (!lastActorDetails && lastReportAction) {
+        const lastActorDisplayName = lastReportAction?.person?.at(0)?.text;
+        lastActorDetails = lastActorDisplayName ? {displayName: lastActorDisplayName, accountID: item?.lastActorAccountID} : null;
+    }
 
-    //             const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
+    const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastReportAction, CONST.REPORT.MOVE_TYPE.FROM)}`, {canBeMissing: true});
+    const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastReportAction, CONST.REPORT.MOVE_TYPE.TO)}`, {canBeMissing: true});
+    const [itemReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {canBeMissing: true});
+
+    const lastMessageTextFromReport = getLastMessageTextForReport({
+        translate,
+        report: item,
+        lastActorDetails,
+        movedFromReport,
+        movedToReport,
+        policy: itemPolicy,
+        isReportArchived: !!itemReportNameValuePairs?.private_isArchived,
+        policyForMovingExpensesID,
+        reportMetadata: itemReportMetadata,
+        reportAttributesDerived,
+    });
+
+    const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
 
     //             let lastAction: ReportAction | undefined;
     //             if (!itemReportActions || !item) {
@@ -140,8 +140,6 @@ function OptionRowLHNData({
     const isReportFocused = isOptionFocused && currentReportIDValue === reportID;
     const optionItemRef = useRef<OptionData | undefined>(undefined);
 
-    const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.FROM)}`, {canBeMissing: true});
-    const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}`, {canBeMissing: true});
     // Check the report errors equality to avoid re-rendering when there are no changes
     const prevReportErrors = usePrevious(reportAttributes?.reportErrors);
     const areReportErrorsEqual = useMemo(() => deepEqual(prevReportErrors, reportAttributes?.reportErrors), [prevReportErrors, reportAttributes?.reportErrors]);

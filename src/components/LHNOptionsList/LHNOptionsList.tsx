@@ -196,6 +196,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     localeCompare={localeCompare}
                     translate={translate}
                     testID={index}
+                    firstReportIDWithGBRorRBR={firstReportIDWithGBRorRBR}
                     currentUserAccountID={currentUserAccountID}
                 />
             );

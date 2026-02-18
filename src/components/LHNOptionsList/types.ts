@@ -51,6 +51,11 @@ type OptionRowLHNDataProps = {
     /** Whether row should be focused */
     isOptionFocused?: boolean;
 
+    firstReportIDWithGBRorRBR?: string;
+
+    /** The ID of the policy to move expenses to */
+    policyForMovingExpensesID?: string;
+
     /** List of users' personal details */
     personalDetails?: PersonalDetailsList;
 
