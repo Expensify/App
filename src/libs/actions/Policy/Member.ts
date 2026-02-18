@@ -1358,8 +1358,8 @@ function buildFilteredMembersCSV(employeeList: PolicyEmployeeList, policyOwner: 
             escapeCSVField(employee.role ?? ''),
             escapeCSVField(employee.submitsTo ?? ''),
             escapeCSVField(employee.forwardsTo ?? ''),
-            escapeCSVField(employee.employeeUserID ?? ''),
-            escapeCSVField(employee.employeePayrollID ?? ''),
+            escapeCSVField(employee.employeeUserID ? String(employee.employeeUserID) : ''),
+            escapeCSVField(employee.employeePayrollID ? String(employee.employeePayrollID) : ''),
             escapeCSVField(employee.approvalLimit != null ? String(employee.approvalLimit) : ''),
             escapeCSVField(employee.overLimitForwardsTo ?? ''),
         ];
