@@ -5,7 +5,6 @@ import {FlashList} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {BlockingViewProps} from '@components/BlockingViews/BlockingView';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Icon from '@components/Icon';
@@ -26,23 +25,11 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
-import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
-import {getIOUReportIDOfLastAction, getLastMessageTextForReport} from '@libs/OptionsListUtils';
-import {
-    getOneTransactionThreadReportID,
-    getOriginalMessage,
-    getSortedReportActions,
-    getSortedReportActionsForDisplay,
-    isInviteOrRemovedAction,
-    isMoneyRequestAction,
-    shouldReportActionBeVisibleAsLastAction,
-} from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction as canUserPerformWriteActionUtil} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, Report, ReportAction} from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import OptionRowLHNData from './OptionRowLHNData';
 import OptionRowRendererComponent from './OptionRowRendererComponent';
@@ -232,43 +219,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         ],
     );
 
-    const extraData = useMemo(
-        () => [
-            reportActions,
-            reports,
-            reportAttributes,
-            reportNameValuePairs,
-            transactionViolations,
-            policy,
-            personalDetails,
-            data.length,
-            draftComments,
-            optionMode,
-            preferredLocale,
-            transactions,
-            isOffline,
-            isScreenFocused,
-            isReportsSplitNavigatorLast,
-        ],
-        [
-            reportActions,
-            reports,
-            reportAttributes,
-            reportNameValuePairs,
-            transactionViolations,
-            policy,
-            personalDetails,
-            data.length,
-            draftComments,
-            optionMode,
-            preferredLocale,
-            transactions,
-            isOffline,
-            isScreenFocused,
-            isReportsSplitNavigatorLast,
-        ],
-    );
-
     const previousOptionMode = usePrevious(optionMode);
 
     useEffect(() => {
@@ -351,7 +301,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     testID="lhn-options-list"
                     keyExtractor={keyExtractor}
                     renderItem={renderItem}
-                    extraData={extraData}
                     showsVerticalScrollIndicator={false}
                     onLayout={onLayout}
                     onScroll={onScroll}

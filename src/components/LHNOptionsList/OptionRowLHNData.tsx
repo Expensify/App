@@ -21,10 +21,8 @@ import {
     shouldReportActionBeVisibleAsLastAction,
 } from '@libs/ReportActionsUtils';
 import useNetwork from '@hooks/useNetwork';
-import useReportAttributes from '@hooks/useReportAttributes';
 import {getIOUReportIDOfLastAction, getLastMessageTextForReport} from '@libs/OptionsListUtils';
 import {PersonalDetails, ReportAction} from '@src/types/onyx';
-import {OnyxEntry} from 'react-native-onyx';
 
 /*
  * This component gets the data from onyx for the actual
@@ -56,18 +54,18 @@ function OptionRowLHNData({
     const reportID = propsToForward.reportID;
     const {isOffline} = useNetwork();
 
-    const [itemPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${item?.policyID}`, {canBeMissing: true});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${item?.policyID}`, {canBeMissing: true});
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${item?.chatReportID}`, {canBeMissing: true});
-    const [itemReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canBeMissing: true});
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canBeMissing: true});
     const [itemParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${item?.parentReportID}`, {canBeMissing: true});
-    const [itemReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {canBeMissing: true});
-    const [itemParentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${item?.parentReportID}`, {canBeMissing: true});
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {canBeMissing: true});
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${item?.parentReportID}`, {canBeMissing: true});
 
-    const oneTransactionThreadReportID = getOneTransactionThreadReportID(item, chatReport, itemReportActions, isOffline);
-    const [itemOneTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`, {canBeMissing: true});
+    const oneTransactionThreadReportID = getOneTransactionThreadReportID(item, chatReport, reportActions, isOffline);
+    const [oneTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`, {canBeMissing: true});
 
-    const itemParentReportAction = item?.parentReportActionID ? itemParentReportActions?.[item?.parentReportActionID] : undefined;
-    const itemReportAttributes = reportAttributesDerived?.[reportID];
+    const reportAttributes = reportAttributesDerived?.[reportID];
+    const parentReportAction = item?.parentReportActionID ? parentReportActions?.[item?.parentReportActionID] : undefined;
 
     let invoiceReceiverPolicyID = '-1';
     if (item?.invoiceReceiver && 'policyID' in item.invoiceReceiver) {
@@ -78,18 +76,18 @@ function OptionRowLHNData({
     }
 
     const iouReportIDOfLastAction = getIOUReportIDOfLastAction(item);
-    const [itemInvoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`, {canBeMissing: true});
-    const [itemIouReportReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportIDOfLastAction}`, {canBeMissing: true});
+    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`, {canBeMissing: true});
+    const [iouReportReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportIDOfLastAction}`, {canBeMissing: true});
 
-    const transactionID = isMoneyRequestAction(itemParentReportAction) ? (getOriginalMessage(itemParentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
-    const [itemTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
+    const transactionID = isMoneyRequestAction(parentReportAction) ? (getOriginalMessage(parentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
     const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, {canBeMissing: true});
 
     const hasDraftComment = !!draftComment && !draftComment.match(CONST.REGEX.EMPTY_COMMENT);
 
-    const isReportArchived = !!itemReportNameValuePairs?.private_isArchived;
+    const isReportArchived = !!reportNameValuePairs?.private_isArchived;
     const canUserPerformWrite = canUserPerformWriteAction(item, isReportArchived);
-    const sortedReportActions = getSortedReportActionsForDisplay(itemReportActions, canUserPerformWrite);
+    const sortedReportActions = getSortedReportActionsForDisplay(reportActions, canUserPerformWrite);
     const lastReportAction = sortedReportActions.at(0);
 
     // Get the transaction for the last report action
@@ -116,8 +114,8 @@ function OptionRowLHNData({
         lastActorDetails,
         movedFromReport,
         movedToReport,
-        policy: itemPolicy,
-        isReportArchived: !!itemReportNameValuePairs?.private_isArchived,
+        policy: policy,
+        isReportArchived: !!reportNameValuePairs?.private_isArchived,
         policyForMovingExpensesID,
         reportMetadata: itemReportMetadata,
         reportAttributesDerived,
@@ -126,11 +124,11 @@ function OptionRowLHNData({
     const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
 
     let lastAction: ReportAction | undefined;
-    if (!itemReportActions || !item) {
+    if (!reportActions || !item) {
         lastAction = undefined;
     } else {
         const canUserPerformWrite = canUserPerformWriteAction(item, isReportArchived);
-        const actionsArray = getSortedReportActions(Object.values(itemReportActions));
+        const actionsArray = getSortedReportActions(Object.values(reportActions));
         const reportActionsForDisplay = actionsArray.filter(
             (reportAction) => shouldReportActionBeVisibleAsLastAction(reportAction, canUserPerformWrite) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
         );
