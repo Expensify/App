@@ -7,10 +7,9 @@ import usePrevious from '@hooks/usePrevious';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import {getMovedReportID} from '@src/libs/ModifiedExpenseMessage';
-import {canUserPerformWriteAction, type OptionData} from '@src/libs/ReportUtils';
+import {canUserPerformWriteAction} from '@src/libs/ReportUtils';
+import type {OptionData} from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import OptionRowLHN from './OptionRowLHN';
-import type {OptionRowLHNDataProps} from './types';
 import {
     getOneTransactionThreadReportID,
     getOriginalMessage,
@@ -22,7 +21,9 @@ import {
 } from '@libs/ReportActionsUtils';
 import useNetwork from '@hooks/useNetwork';
 import {getIOUReportIDOfLastAction, getLastMessageTextForReport} from '@libs/OptionsListUtils';
-import {PersonalDetails, ReportAction} from '@src/types/onyx';
+import type {PersonalDetails, ReportAction} from '@src/types/onyx';
+import type {OptionRowLHNDataProps} from './types';
+import OptionRowLHN from './OptionRowLHN';
 
 /*
  * This component gets the data from onyx for the actual
