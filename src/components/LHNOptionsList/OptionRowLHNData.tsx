@@ -11,11 +11,20 @@ import {canUserPerformWriteAction, type OptionData} from '@src/libs/ReportUtils'
 import ONYXKEYS from '@src/ONYXKEYS';
 import OptionRowLHN from './OptionRowLHN';
 import type {OptionRowLHNDataProps} from './types';
-import {getOneTransactionThreadReportID, getOriginalMessage, getSortedReportActionsForDisplay, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {
+    getOneTransactionThreadReportID,
+    getOriginalMessage,
+    getSortedReportActions,
+    getSortedReportActionsForDisplay,
+    isInviteOrRemovedAction,
+    isMoneyRequestAction,
+    shouldReportActionBeVisibleAsLastAction,
+} from '@libs/ReportActionsUtils';
 import useNetwork from '@hooks/useNetwork';
 import useReportAttributes from '@hooks/useReportAttributes';
 import {getIOUReportIDOfLastAction, getLastMessageTextForReport} from '@libs/OptionsListUtils';
-import {PersonalDetails} from '@src/types/onyx';
+import {PersonalDetails, ReportAction} from '@src/types/onyx';
+import {OnyxEntry} from 'react-native-onyx';
 
 /*
  * This component gets the data from onyx for the actual
@@ -116,23 +125,20 @@ function OptionRowLHNData({
 
     const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
 
-    //             let lastAction: ReportAction | undefined;
-    //             if (!itemReportActions || !item) {
-    //                 lastAction = undefined;
-    //             } else {
-    //                 const canUserPerformWriteAction = canUserPerformWriteActionUtil(item, isReportArchived);
-    //                 const actionsArray = getSortedReportActions(Object.values(itemReportActions));
-    //                 const reportActionsForDisplay = actionsArray.filter(
-    //                     (reportAction) => shouldReportActionBeVisibleAsLastAction(reportAction, canUserPerformWriteAction) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
-    //                 );
-    //                 lastAction = reportActionsForDisplay.at(-1);
-    //             }
+    let lastAction: ReportAction | undefined;
+    if (!itemReportActions || !item) {
+        lastAction = undefined;
+    } else {
+        const canUserPerformWrite = canUserPerformWriteAction(item, isReportArchived);
+        const actionsArray = getSortedReportActions(Object.values(itemReportActions));
+        const reportActionsForDisplay = actionsArray.filter(
+            (reportAction) => shouldReportActionBeVisibleAsLastAction(reportAction, canUserPerformWrite) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
+        );
+        lastAction = reportActionsForDisplay.at(-1);
+    }
 
-    //             let lastActionReport: OnyxEntry<Report> | undefined;
-    //             if (isInviteOrRemovedAction(lastAction)) {
-    //                 const lastActionOriginalMessage = lastAction?.actionName ? getOriginalMessage(lastAction) : null;
-    //                 lastActionReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${lastActionOriginalMessage?.reportID}`];
-    //             }
+    const lastActionReportID = isInviteOrRemovedAction(lastAction) && lastAction?.actionName ? getOriginalMessage(lastAction)?.reportID : undefined;
+    const [lastActionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${lastActionReportID}`, {canBeMissing: true});
 
     // =====================
     // START OLD CODE
