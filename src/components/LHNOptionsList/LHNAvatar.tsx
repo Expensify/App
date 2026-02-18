@@ -1,15 +1,11 @@
 import React from 'react';
 import type {ColorValue, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import Avatar from '@components/Avatar';
-import {WorkspaceBuilding} from '@components/Icon/WorkspaceDefaultAvatars';
-import UserDetailsTooltip from '@components/UserDetailsTooltip';
+import ReportActionAvatar from '@components/ReportActionAvatars/ReportActionAvatar';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
-import LHNAvatarDiagonal from './LHNAvatarDiagonal';
-import LHNAvatarSubscript from './LHNAvatarSubscript';
 
 type LHNAvatarProps = {
     icons: Icon[];
@@ -23,8 +19,8 @@ type LHNAvatarProps = {
 };
 
 /**
- * Lightweight avatar component for LHN rows. Renders pre-computed icons
- * directly using Avatar, avoiding the heavy hooks in ReportActionAvatars.
+ * Lightweight avatar component for LHN rows. Reuses ReportActionAvatar sub-components
+ * with pre-computed icons, avoiding the heavy hooks in ReportActionAvatars.
  */
 function LHNAvatar({
     icons,
@@ -37,6 +33,7 @@ function LHNAvatar({
     shouldShowTooltip = false,
 }: LHNAvatarProps) {
     const theme = useTheme();
+    const StyleUtils = useStyleUtils();
 
     const primaryIcon = icons.at(0);
     const secondaryIcon = icons.at(1);
@@ -48,34 +45,23 @@ function LHNAvatar({
     // Single avatar
     if (icons.length === 1 || !secondaryIcon) {
         return (
-            <UserDetailsTooltip
+            <ReportActionAvatar.Single
                 accountID={Number(primaryIcon.id ?? CONST.DEFAULT_NUMBER_ID)}
-                icon={primaryIcon}
-                fallbackUserDetails={{displayName: primaryIcon.name}}
-                shouldRender={shouldShowTooltip}
-            >
-                <View>
-                    <Avatar
-                        containerStyles={singleAvatarContainerStyle}
-                        source={primaryIcon.source ?? WorkspaceBuilding}
-                        size={size}
-                        name={primaryIcon.name}
-                        type={primaryIcon.type ?? CONST.ICON_TYPE_AVATAR}
-                        avatarID={primaryIcon.id}
-                        fallbackIcon={primaryIcon.fallbackIcon}
-                        fill={primaryIcon.fill}
-                    />
-                </View>
-            </UserDetailsTooltip>
+                avatar={primaryIcon}
+                shouldShowTooltip={shouldShowTooltip}
+                size={size}
+                containerStyles={singleAvatarContainerStyle}
+                fallbackIcon={primaryIcon.fallbackIcon}
+            />
         );
     }
 
     // Subscript avatar (workspace + user)
     if (shouldShowSubscript) {
         return (
-            <LHNAvatarSubscript
-                primaryIcon={primaryIcon}
-                secondaryIcon={secondaryIcon}
+            <ReportActionAvatar.Subscript
+                primaryAvatar={primaryIcon}
+                secondaryAvatar={secondaryIcon}
                 size={size}
                 subscriptAvatarBorderColor={subscriptAvatarBorderColor ?? theme.componentBG}
                 shouldShowTooltip={shouldShowTooltip}
@@ -84,14 +70,16 @@ function LHNAvatar({
     }
 
     // Diagonal avatar (two overlapping avatars)
+    const secondaryAvatarContainerStyle = secondaryAvatarBackgroundColor ? StyleUtils.getBackgroundAndBorderStyle(secondaryAvatarBackgroundColor) : undefined;
+
     return (
-        <LHNAvatarDiagonal
-            primaryIcon={primaryIcon}
-            secondaryIcon={secondaryIcon}
+        <ReportActionAvatar.Multiple.Diagonal
+            icons={[primaryIcon, secondaryIcon]}
             size={size}
-            secondaryAvatarBackgroundColor={secondaryAvatarBackgroundColor}
-            useMidSubscriptSize={useMidSubscriptSize}
             shouldShowTooltip={shouldShowTooltip}
+            useMidSubscriptSize={useMidSubscriptSize ?? false}
+            secondaryAvatarContainerStyle={secondaryAvatarContainerStyle}
+            isInReportAction={false}
         />
     );
 }
