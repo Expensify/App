@@ -1113,8 +1113,7 @@ function getOptionData({
         result.phoneNumber = personalDetail?.phoneNumber ?? '';
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportName = getReportName(report, policy, undefined, undefined, invoiceReceiverPolicy, undefined, undefined, isReportArchived);
+    const reportName = getReportName(report, reportAttributesDerived);
 
     result.text = reportName;
     result.subtitle = subtitle;

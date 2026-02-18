@@ -8570,10 +8570,6 @@ const CONST = {
         NEW_CHAT: {
             SELECT_PARTICIPANT: 'NewChat-SelectParticipant',
         },
-        AVATAR_WITH_DISPLAY_NAME: {
-            AVATAR: 'AvatarWithDisplayName-Avatar',
-            DETAILS_BUTTON: 'AvatarWithDisplayName-DetailsButton',
-        },
         WORKSPACE_EXPENSIFY_CARD: {
             CARD_LIST_ROW: 'WorkspaceExpensifyCard-CardListRow',
         },
