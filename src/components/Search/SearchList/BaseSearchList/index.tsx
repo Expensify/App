@@ -52,7 +52,7 @@ function BaseSearchList({
         onFocusedIndexChange: (index: number) => {
             scrollToIndex?.(index);
         },
-        ...(!hasKeyBeenPressed.current && {setHasKeyBeenPressed}),
+        setHasKeyBeenPressed,
         isFocused,
         captureOnInputs: false,
     });
@@ -105,8 +105,8 @@ function BaseSearchList({
     }, [setHasKeyBeenPressed]);
 
     const extraData = useMemo(
-        () => [focusedIndex, columns, newTransactions, selectedTransactions, customCardNames],
-        [focusedIndex, columns, newTransactions, selectedTransactions, customCardNames],
+        () => [columns, newTransactions, selectedTransactions, customCardNames],
+        [columns, newTransactions, selectedTransactions, customCardNames],
     );
 
     return (
