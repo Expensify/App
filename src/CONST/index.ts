@@ -289,27 +289,6 @@ const CONST = {
         MAX_FILE_LIMIT: 30,
     },
 
-    FILE_VALIDATION_ERRORS: {
-        SINGLE_FILE: {
-            NO_FILE_PROVIDED: 'noFileProvided',
-            FILE_INVALID: 'fileInvalid',
-            WRONG_FILE_TYPE: 'wrongFileType',
-            FILE_TOO_LARGE: 'fileTooLarge',
-            FILE_TOO_SMALL: 'fileTooSmall',
-            FILE_CORRUPTED: 'fileCorrupted',
-            PROTECTED_FILE: 'protectedFile',
-            FOLDER_NOT_ALLOWED: 'folderNotAllowed',
-            HEIC_OR_HEIF_IMAGE: 'heicOrHeifImage',
-            IMAGE_DIMENSIONS_TOO_LARGE: 'imageDimensionsTooLarge',
-        },
-        MULTIPLE_FILES: {
-            WRONG_FILE_TYPE: 'multipleAttachmentsWrongFileType',
-            FILE_TOO_LARGE: 'multipleAttachmentsFileTooLarge',
-            FOLDER_NOT_ALLOWED: 'multipleAttachmentsFolderNotAllowed',
-            MAX_FILE_LIMIT_EXCEEDED: 'multipleAttachmentsMaxFileLimitExceeded',
-        },
-    },
-
     // Allowed extensions for spreadsheets import
     ALLOWED_SPREADSHEET_EXTENSIONS: ['xls', 'xlsx', 'csv', 'txt'],
 
@@ -2289,6 +2268,40 @@ const CONST = {
         IMAGE: /\.(jpg|jpeg|png|webp|gif|tiff|bmp|heic|heif)$/,
         // Video MimeTypes allowed by iOS photos app.
         VIDEO: /\.(mov|mp4)$/,
+    },
+
+    FILE_VALIDATION_ERRORS: {
+        SINGLE_FILE: {
+            NO_FILE_PROVIDED: 'noFileProvided',
+            FILE_INVALID: 'fileInvalid',
+            WRONG_FILE_TYPE: 'wrongFileType',
+            FILE_TOO_LARGE: 'fileTooLarge',
+            FILE_TOO_SMALL: 'fileTooSmall',
+            FILE_CORRUPTED: 'fileCorrupted',
+            PROTECTED_FILE: 'protectedFile',
+            FOLDER_NOT_ALLOWED: 'folderNotAllowed',
+            HEIC_OR_HEIF_IMAGE: 'heicOrHeifImage',
+            IMAGE_DIMENSIONS_TOO_LARGE: 'imageDimensionsTooLarge',
+        },
+        MULTIPLE_FILES: {
+            WRONG_FILE_TYPE: 'multipleAttachmentsWrongFileType',
+            FILE_TOO_LARGE: 'multipleAttachmentsFileTooLarge',
+            FOLDER_NOT_ALLOWED: 'multipleAttachmentsFolderNotAllowed',
+            MAX_FILE_LIMIT_EXCEEDED: 'multipleAttachmentsMaxFileLimitExceeded',
+        },
+    },
+
+    IOS_CAMERA_ROLL_ACCESS_ERROR: 'Access to photo library was denied',
+    ADD_PAYMENT_MENU_POSITION_Y: 226,
+    ADD_PAYMENT_MENU_POSITION_X: 356,
+    EMOJI_PICKER_ITEM_TYPES: {
+        HEADER: 'header',
+        EMOJI: 'emoji',
+        SPACER: 'spacer',
+    },
+    EMOJI_PICKER_SIZE: {
+        WIDTH: 320,
+        HEIGHT: 416,
     },
     SEARCH_ITEM_LIMIT: 15,
     CATEGORY_SHORTCUT_BAR_HEIGHT: 32,
