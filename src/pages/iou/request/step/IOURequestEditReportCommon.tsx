@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import MenuItem from '@components/MenuItem';
@@ -117,8 +117,14 @@ function IOURequestEditReportCommon({
     const shouldShowRemoveFromReport =
         !!(selectedReportID && selectedReportID !== CONST.REPORT.UNREPORTED_REPORT_ID && selectedReport) && isEditing && isOwner && !isReportIOU && !isCardTransaction;
 
+    const hasFetchedOutstandingReportsRef = useRef(false);
+
     // Fetch all outstanding reports
     useEffect(() => {
+        if (hasFetchedOutstandingReportsRef.current) {
+            return;
+        }
+        hasFetchedOutstandingReportsRef.current = true;
         fetchOutstandingReports();
     }, []);
 
