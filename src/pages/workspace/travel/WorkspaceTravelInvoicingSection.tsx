@@ -1,6 +1,5 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
 import ConfirmModal from '@components/ConfirmModal';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -13,6 +12,7 @@ import {
     clearToggleTravelInvoicingErrors,
     clearTravelInvoicingSettlementAccountErrors,
     clearTravelInvoicingSettlementFrequencyErrors,
+    payTravelInvoicingSpend,
     toggleTravelInvoicing,
 } from '@libs/actions/TravelInvoicing';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
@@ -36,6 +36,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import CentralInvoicingLearnHow from './CentralInvoicingLearnHow';
 import CentralInvoicingSubtitleWrapper from './CentralInvoicingSubtitleWrapper';
+import Button from '@components/Button';
 
 type WorkspaceTravelInvoicingSectionProps = {
     /** The ID of the policy */
@@ -51,7 +52,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const {translate} = useLocalize();
     const workspaceAccountID = useWorkspaceAccountID(policyID);
 
-    // Modal states
+    const [isPayingBalance, setIsPayingBalance] = useState(false);
     const [isDisableConfirmModalVisible, setIsDisableConfirmModalVisible] = useState(false);
     const [isOutstandingBalanceModalVisible, setIsOutstandingBalanceModalVisible] = useState(false);
 
@@ -106,6 +107,16 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
 
     // Determine if Travel Invoicing is enabled based on isEnabled field
     const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(cardSettings);
+
+    /**
+     * Handles the payment of the outstanding travel balance.
+     */
+    const handlePayBalance = () => {
+        setIsPayingBalance(true);
+        payTravelInvoicingSpend(workspaceAccountID).finally(() => {
+            setIsPayingBalance(false);
+        });
+    };
 
     /**
      * Handle toggle change for Central Invoicing.
@@ -181,21 +192,17 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                     descriptionTextStyle={styles.textLabelSupportingNormal}
                     interactive={false}
                 />
-                <View style={[styles.wFitContent]}>
-                    <AnimatedSubmitButton
-                        text={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.currentTravelSpendCta')}
-                        success={false}
-                        onPress={() => {}}
-                        isSubmittingAnimationRunning={false}
-                        onAnimationFinish={() => {}}
-                        // TODO: Release 7.2 - Pay balance
-                        // isSubmittingAnimationRunning={isSubmittingAnimationRunning}
-                        // onAnimationFinish={stopAnimation}
-                        // isDisabled={shouldBlockSubmit}
-                    />
-                </View>
+                    <View style={[styles.wFitContent]}>
+                        <Button
+                            success={false}
+                            text={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.currentTravelSpendCta')}
+                            onPress={handlePayBalance}
+                            isLoading={isPayingBalance}
+                            isDisabled={isPayingBalance || travelSpend === 0}
+                        />
+                    </View>
             </View>
-            <MenuItemWithTopDescription
+                <MenuItemWithTopDescription
                 description={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.currentTravelLimitLabel')}
                 title={formattedLimit}
                 wrapperStyle={[styles.sectionMenuItemTopDescription]}

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {act, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
@@ -57,6 +57,13 @@ jest.mock('@libs/Navigation/Navigation', () => ({
         getActiveRoute: jest.fn(() => ''),
     },
 }));
+
+jest.mock('@libs/actions/TravelInvoicing', () => ({
+    ...jest.requireActual('@libs/actions/TravelInvoicing'),
+    payTravelInvoicingSpend: jest.fn().mockResolvedValue(undefined),
+}));
+
+import {payTravelInvoicingSpend} from '@libs/actions/TravelInvoicing';
 
 const mockPolicy: Policy = {
     ...createRandomPolicy(parseInt(POLICY_ID, 10) || 1),
@@ -312,6 +319,73 @@ describe('WorkspaceTravelInvoicingSection', () => {
             renderWorkspaceTravelInvoicingSection();
             await waitForBatchedUpdatesWithAct();
             expect(screen.queryByTestId('activity-indicator')).toBeNull();
+        });
+    });
+
+    describe('Pay Balance Button', () => {
+        const cardSettingsKey = getTravelInvoicingCardSettingsKey(WORKSPACE_ACCOUNT_ID);
+
+        it('should show Pay Balance button when user is admin, invoicing is enabled, and there is a balance', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
+                await Onyx.merge(cardSettingsKey, {
+                    isEnabled: true,
+                    paymentBankAccountID: 12345,
+                    currentBalance: 5000, // Positive balance
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            renderWorkspaceTravelInvoicingSection();
+            await waitForBatchedUpdatesWithAct();
+
+            const payButton = screen.queryByText('Pay balance');
+            expect(payButton).toBeTruthy();
+        });
+
+        it('should disable Pay Balance button when balance is zero', async () => {
+            const travelInvoicingKey = getTravelInvoicingCardSettingsKey(WORKSPACE_ACCOUNT_ID);
+            
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
+                await Onyx.set(travelInvoicingKey, {
+                    isEnabled: true,
+                    paymentBankAccountID: 12345,
+                    currentBalance: 0,
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            renderWorkspaceTravelInvoicingSection();
+            await waitForBatchedUpdatesWithAct();
+
+            const payButton = screen.getByText('Pay balance');
+            fireEvent.press(payButton);
+            
+            expect(payTravelInvoicingSpend).not.toHaveBeenCalled();
+        });
+
+        it('should call payTravelInvoicingSpend when button is clicked', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
+                await Onyx.merge(cardSettingsKey, {
+                    isEnabled: true,
+                    paymentBankAccountID: 12345,
+                    currentBalance: 5000,
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            renderWorkspaceTravelInvoicingSection();
+            await waitForBatchedUpdatesWithAct();
+
+            const payButton = screen.getByText('Pay balance');
+            await act(async () => {
+                fireEvent.press(payButton);
+                await waitForBatchedUpdatesWithAct();
+            });
+            
+            expect(payTravelInvoicingSpend).toHaveBeenCalledWith(WORKSPACE_ACCOUNT_ID);
         });
     });
 });

@@ -2,7 +2,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
-import type {OpenPolicyTravelPageParams, SetTravelInvoicingSettlementAccountParams, ToggleTravelInvoicingParams, UpdateTravelInvoicingSettlementFrequencyParams} from '@libs/API/parameters';
+import type {OpenPolicyTravelPageParams, PayTravelInvoicingSpendParams, SetTravelInvoicingSettlementAccountParams, ToggleTravelInvoicingParams, UpdateTravelInvoicingSettlementFrequencyParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import {getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
@@ -311,6 +311,17 @@ function clearToggleTravelInvoicingErrors(workspaceAccountID: number) {
     });
 }
 
+/**
+ * Pays the outstanding Travel Invoicing balance for a workspace.
+ */
+function payTravelInvoicingSpend(workspaceAccountID: number) {
+    const params: PayTravelInvoicingSpendParams = {
+        domainAccountID: workspaceAccountID,
+    };
+
+    return API.write(WRITE_COMMANDS.PAY_TRAVEL_INVOICING_SPEND, params);
+}
+
 export {
     openPolicyTravelPage,
     setTravelInvoicingSettlementAccount,
@@ -318,5 +329,6 @@ export {
     clearTravelInvoicingSettlementFrequencyErrors,
     updateTravelInvoiceSettlementFrequency,
     toggleTravelInvoicing,
+    payTravelInvoicingSpend,
     clearToggleTravelInvoicingErrors,
 };

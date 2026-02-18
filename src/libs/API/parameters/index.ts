@@ -384,6 +384,7 @@ export type {default as UpdateCardSettlementFrequencyParams} from './UpdateCardS
 export type {default as UpdateCardSettlementAccountParams} from './UpdateCardSettlementAccountParams';
 export type {default as ToggleTravelInvoicingParams} from './ToggleTravelInvoicingParams';
 export type {default as SetTravelInvoicingSettlementAccountParams} from './SetTravelInvoicingSettlementAccountParams';
+export type {default as PayTravelInvoicingSpendParams} from './PayTravelInvoicingSpendParams';
 export type {default as SetCompanyCardFeedName} from './SetCompanyCardFeedName';
 export type {default as DeleteCompanyCardFeed} from './DeleteCompanyCardFeed';
 export type {default as SetCompanyCardTransactionLiability} from './SetCompanyCardTransactionLiability';
