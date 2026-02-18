@@ -170,10 +170,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     };
 
     const removeUser = () => {
-        // The backend now handles approval workflow updates when removing a member
-        // who is an approver. This follows the 1:1:1 philosophy: one user action -> one API call.
-        // Previously, we made separate UpdateWorkspaceApproval/RemoveWorkspaceApproval calls
-        // which could partially fail, leaving the workspace in an inconsistent state.
         removeMemberAndCloseModal();
     };
 
