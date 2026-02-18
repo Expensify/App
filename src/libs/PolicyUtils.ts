@@ -429,6 +429,11 @@ function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | und
 
     const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
     const isReimburser = policy.reimburser === currentUserLogin;
+    const hasVBBA = !!policy.achAccount?.bankAccountID && policy.achAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
+
+    if (!hasVBBA) {
+        return false;
+    }
 
     if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
         return policy.reimburser ? isReimburser : isAdmin;

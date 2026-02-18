@@ -2767,20 +2767,24 @@ function isPayer(
     const reimbursementChoice = policy?.reimbursementChoice;
 
     if (isPaidGroupPolicy(iouReport)) {
+        // Check if the current user has access to the business bank account
+        const bankAccountID = policy?.achAccount?.bankAccountID;
+        const bankAccount = bankAccountID ? bankAccountList?.[bankAccountID] : null;
+        const hasVBBA = !!bankAccountID && policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
+        const hasAccessToBankAccount = currentUserEmailParam && bankAccount?.accountData?.sharees ? bankAccount.accountData.sharees.includes(currentUserEmailParam) : false;
+
+        if (!hasVBBA && !hasAccessToBankAccount) {
+            return false;
+        }
+
         if (reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
             if (!policy?.achAccount?.reimburser) {
-                return isAdmin;
+                return isAdmin && hasAccessToBankAccount;
             }
 
-            // If user is the reimburser, or a policy admin with access to the business bank account via sharees, they can pay.
             const isReimburser = currentUserEmailParam === policy?.achAccount?.reimburser;
 
-            // Check if the current user has access to the bank account via sharees
-            const bankAccountID = policy?.achAccount?.bankAccountID;
-            const bankAccount = bankAccountID ? bankAccountList?.[bankAccountID] : null;
-            const hasAccessToBankAccount = currentUserEmailParam && bankAccount?.accountData?.sharees ? bankAccount.accountData.sharees.includes(currentUserEmailParam) : false;
-
-            return isReimburser || (isAdmin && hasAccessToBankAccount);
+            return (isReimburser && !!bankAccount) || (isAdmin && hasAccessToBankAccount);
         }
         if (reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL || onlyShowPayElsewhere) {
             return isAdmin;
