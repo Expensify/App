@@ -18,20 +18,17 @@ function MoneyRequestSkeletonView() {
             foregroundColor={theme.skeletonLHNOut}
         >
             <SkeletonRect
-                x="16"
-                y="20"
+                transform={[{translateX: 16}, {translateY: 20}]}
                 width="40"
                 height="8"
             />
             <SkeletonRect
-                x="16"
-                y="46"
+                transform={[{translateX: 16}, {translateY: 46}]}
                 width="120"
                 height="20"
             />
             <SkeletonRect
-                x="16"
-                y="78"
+                transform={[{translateX: 16}, {translateY: 78}]}
                 width="80"
                 height="8"
             />

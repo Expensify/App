@@ -30,29 +30,25 @@ function SkeletonViewLines({numberOfRows, shouldAnimate = true}: SkeletonViewLin
                 r="20"
             />
             <SkeletonRect
-                x="72"
-                y="11"
+                transform={[{translateX: 72}, {translateY: 11}]}
                 width="20%"
                 height="8"
             />
             <SkeletonRect
-                x="72"
-                y="31"
+                transform={[{translateX: 72}, {translateY: 31}]}
                 width="100%"
                 height="8"
             />
             {numberOfRows > 1 && (
                 <SkeletonRect
-                    x="72"
-                    y="51"
+                    transform={[{translateX: 72}, {translateY: 51}]}
                     width="50%"
                     height="8"
                 />
             )}
             {numberOfRows > 2 && (
                 <SkeletonRect
-                    x="72"
-                    y="71"
+                    transform={[{translateX: 72}, {translateY: 71}]}
                     width="50%"
                     height="8"
                 />

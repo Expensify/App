@@ -6,7 +6,7 @@ const BORDER_RADIUS_SMALL = 3; // text bars (height <= 8)
 const BORDER_RADIUS_MEDIUM = 4; // content blocks (height > 8)
 const HEIGHT_THRESHOLD = 8;
 
-type SkeletonRectProps = Omit<RectProps, 'rx' | 'ry'> & {
+type SkeletonRectProps = Omit<RectProps, 'rx' | 'ry' | 'x' | 'y'> & {
     /** Sets both rx and ry. Auto-derived from height when omitted. */
     borderRadius?: number;
 };

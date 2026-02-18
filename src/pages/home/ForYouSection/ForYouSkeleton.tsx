@@ -46,21 +46,18 @@ function ForYouSkeleton() {
             return (
                 <>
                     <SkeletonRect
-                        x={iconX}
-                        y={iconY}
+                        transform={[{translateX: iconX}, {translateY: iconY}]}
                         width={40}
                         height={40}
                         borderRadius={8}
                     />
                     <SkeletonRect
-                        x={titleX}
-                        y={26}
+                        transform={[{translateX: titleX}, {translateY: 26}]}
                         width={titleWidth}
                         height={12}
                     />
                     <SkeletonRect
-                        x={buttonX}
-                        y={buttonY}
+                        transform={[{translateX: buttonX}, {translateY: buttonY}]}
                         width={buttonWidth}
                         height={buttonHeight}
                         borderRadius={14}
