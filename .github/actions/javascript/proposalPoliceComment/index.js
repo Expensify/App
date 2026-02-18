@@ -11651,13 +11651,18 @@ async function run() {
         let didFindDuplicate = false;
         let originalProposal;
         for (const previousProposal of commentsResponse) {
-            const isProposal = !!previousProposal.body?.includes(CONST_1.default.PROPOSAL_KEYWORD);
+            const body = previousProposal.body ?? '';
+            const lowerCaseBody = body.toLowerCase() ?? '';
+            const isProposal = !!body.includes(CONST_1.default.PROPOSAL_KEYWORD) && !!lowerCaseBody.includes(CONST_1.default.PROPOSAL_HEADER_A) && !!lowerCaseBody.includes(CONST_1.default.PROPOSAL_HEADER_B);
             const previousProposalCreatedAt = new Date(previousProposal.created_at).getTime();
             // Early continue if not a proposal or previous comment is newer than current one
             if (!isProposal || previousProposalCreatedAt >= newProposalCreatedAt) {
                 continue;
             }
-            const isAuthorBot = previousProposal.user?.login === CONST_1.default.COMMENT.NAME_GITHUB_ACTIONS || previousProposal.user?.type === CONST_1.default.COMMENT.TYPE_BOT;
+            const isAuthorBot = previousProposal.user?.login === CONST_1.default.COMMENT.NAME_MELVIN ||
+                previousProposal.user?.login === CONST_1.default.COMMENT.NAME_CODEX ||
+                previousProposal.user?.login === CONST_1.default.COMMENT.NAME_GITHUB_ACTIONS ||
+                previousProposal.user?.type === CONST_1.default.COMMENT.TYPE_BOT;
             // Skip prompting if comment author is the GH bot
             if (isAuthorBot) {
                 continue;
@@ -11665,6 +11670,7 @@ async function run() {
             const duplicateCheckPrompt = proposalPolice_1.default.getPromptForNewProposalDuplicateCheck(previousProposal.body, newProposalBody);
             const duplicateCheckResponse = await openAI.promptAssistant(assistantID, duplicateCheckPrompt);
             let similarityPercentage = 0;
+            // eslint-disable-next-line @typescript-eslint/no-deprecated -- TODO: refactor `parseAssistantResponse` to use `promptResponses` instead
             const parsedDuplicateCheckResponse = openAI.parseAssistantResponse(duplicateCheckResponse);
             core.startGroup('Parsed Duplicate Check Response');
             console.log('parsedDuplicateCheckResponse: ', parsedDuplicateCheckResponse);
@@ -11702,6 +11708,7 @@ async function run() {
         ? proposalPolice_1.default.getPromptForNewProposalTemplateCheck(payload.comment?.body)
         : proposalPolice_1.default.getPromptForEditedProposal(payload.changes.body?.from, payload.comment?.body);
     const assistantResponse = await openAI.promptAssistant(assistantID, prompt);
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- TODO: refactor `parseAssistantResponse` to use `promptResponses` instead
     const parsedAssistantResponse = openAI.parseAssistantResponse(assistantResponse);
     core.startGroup('Parsed Assistant Response');
     console.log('parsedAssistantResponse: ', parsedAssistantResponse);
@@ -11864,6 +11871,8 @@ const CONST = {
     },
     COMMENT: {
         TYPE_BOT: 'Bot',
+        NAME_MELVIN: 'melvin-bot',
+        NAME_CODEX: 'chatgpt-codex-connector',
         NAME_GITHUB_ACTIONS: 'github-actions',
     },
     ACTIONS: {
@@ -11889,6 +11898,8 @@ const CONST = {
     TEST_WORKFLOW_NAME: 'Jest Unit Tests',
     TEST_WORKFLOW_PATH: '.github/workflows/test.yml',
     PROPOSAL_KEYWORD: 'Proposal',
+    PROPOSAL_HEADER_A: 'what is the root cause of that problem?',
+    PROPOSAL_HEADER_B: 'what changes do you think we should make in order to solve the problem?',
     DATE_FORMAT_STRING: 'yyyy-MM-dd',
     PULL_REQUEST_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`),
     ISSUE_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/issues/([0-9]+).*`),

@@ -215,13 +215,6 @@ Onyx.connect({
     },
 });
 
-let allPolicies: OnyxCollection<Policy> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (val) => (allPolicies = val),
-});
-
 let allReports: OnyxCollection<Report>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -2523,6 +2516,7 @@ type SearchOptionsConfig = {
     shouldShowGBR?: boolean;
     shouldUnreadBeBold?: boolean;
     loginList: OnyxEntry<Login>;
+    policyCollection: OnyxCollection<Policy>;
     currentUserAccountID: number;
     currentUserEmail: string;
     personalDetails?: OnyxEntry<PersonalDetailsList>;
@@ -2548,6 +2542,7 @@ function getSearchOptions({
     shouldShowGBR = false,
     shouldUnreadBeBold = false,
     loginList,
+    policyCollection,
     currentUserAccountID,
     currentUserEmail,
     reportAttributesDerived,
@@ -2557,7 +2552,7 @@ function getSearchOptions({
 
     const optionList = getValidOptions(
         options,
-        allPolicies,
+        policyCollection,
         draftComments,
         nvpDismissedProductTraining,
         loginList,

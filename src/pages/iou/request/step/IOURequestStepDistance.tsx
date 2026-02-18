@@ -1,4 +1,3 @@
-import reportsSelector from '@selectors/Attributes';
 import {deepEqual} from 'fast-equals';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -20,6 +19,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useReportAttributes from '@hooks/useReportAttributes';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
@@ -115,10 +115,10 @@ function IOURequestStepDistance({
         );
     }, [optimisticWaypoints, transactionWaypoints, areTransactionWaypointsEmpty]);
 
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const [chatReportInvoiceReceiverPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`, {canBeMissing: true, selector: getInvoiceReceiverPolicyID});
     const [chatReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${chatReportInvoiceReceiverPolicyID}`, {canBeMissing: true});
     const [receiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getInvoiceReceiverPolicyID(report)}`, {canBeMissing: true});
+    const reportAttributesDerived = useReportAttributes();
 
     const backupWaypoints = transactionBackup?.pendingFields?.waypoints ? transactionBackup?.comment?.waypoints : undefined;
     // When online, fetch the backup route to ensure the map is populated even if the user does not save the transaction.

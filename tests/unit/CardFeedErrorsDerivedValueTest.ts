@@ -506,6 +506,9 @@ describe('CardFeedErrors Derived Value', () => {
                                     errors: {error: 'Feed error'},
                                 },
                             },
+                            oAuthAccountDetails: {
+                                [cardFeed.feedName]: {accountList: ['CREDIT CARD...1234'], credentials: 'xxxxx', expiration: 1730998958},
+                            },
                         },
                     },
                 };

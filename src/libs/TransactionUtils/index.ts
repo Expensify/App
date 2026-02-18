@@ -418,7 +418,7 @@ function isPartialTransaction(transaction: OnyxEntry<Transaction>): boolean {
         return true;
     }
 
-    if (getAmount(transaction) === 0 && isScanRequest(transaction) && isReceiptBeingScanned(transaction)) {
+    if (isAmountMissing(transaction) && isScanRequest(transaction)) {
         return true;
     }
 

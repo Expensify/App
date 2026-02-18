@@ -215,7 +215,7 @@ describe('SubscriptionUtils', () => {
         });
 
         it("should return false if the user isn't a workspace's owner or isn't a member of any past due billing workspace", () => {
-            expect(shouldRestrictUserBillableActions('1')).toBeFalsy();
+            expect(shouldRestrictUserBillableActions('1', undefined)).toBeFalsy();
         });
 
         it('should return false if the user is a non-owner of a workspace that is not in the shared NVP collection', async () => {
@@ -223,17 +223,20 @@ describe('SubscriptionUtils', () => {
             const ownerAccountID = 2001;
 
             await Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}` as const]: {
-                    ...billingGraceEndPeriod,
-                    value: getUnixTime(subDays(new Date(), 3)), // past due
-                },
                 [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
                     ...createRandomPolicy(Number(policyID)),
                     ownerAccountID: 2002, // owner not in the shared NVP collection
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID)).toBeFalsy();
+            expect(
+                shouldRestrictUserBillableActions(policyID, {
+                    [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}`]: {
+                        ...billingGraceEndPeriod,
+                        value: getUnixTime(subDays(new Date(), 3)), // past due
+                    },
+                }),
+            ).toBeFalsy();
         });
 
         it("should return false if the user is a workspace's non-owner that is not past due billing", async () => {
@@ -241,17 +244,20 @@ describe('SubscriptionUtils', () => {
             const ownerAccountID = 2001;
 
             await Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}` as const]: {
-                    ...billingGraceEndPeriod,
-                    value: getUnixTime(addDays(new Date(), 3)), // not past due
-                },
                 [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
                     ...createRandomPolicy(Number(policyID)),
                     ownerAccountID, // owner in the shared NVP collection
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID)).toBeFalsy();
+            expect(
+                shouldRestrictUserBillableActions(policyID, {
+                    [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}` as const]: {
+                        ...billingGraceEndPeriod,
+                        value: getUnixTime(addDays(new Date(), 3)), // not past due
+                    },
+                }),
+            ).toBeFalsy();
         });
 
         it("should return true if the user is a workspace's non-owner that is past due billing", async () => {
@@ -259,17 +265,20 @@ describe('SubscriptionUtils', () => {
             const ownerAccountID = 2001;
 
             await Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}` as const]: {
-                    ...billingGraceEndPeriod,
-                    value: getUnixTime(subDays(new Date(), 3)), // past due
-                },
                 [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
                     ...createRandomPolicy(Number(policyID)),
                     ownerAccountID, // owner in the shared NVP collection
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID)).toBeTruthy();
+            expect(
+                shouldRestrictUserBillableActions(policyID, {
+                    [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}` as const]: {
+                        ...billingGraceEndPeriod,
+                        value: getUnixTime(subDays(new Date(), 3)), // past due
+                    },
+                }),
+            ).toBeTruthy();
         });
 
         it("should return false if the user is the workspace's owner but is not past due billing", async () => {
@@ -285,7 +294,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID, undefined)).toBeFalsy();
         });
 
         it("should return false if the user is the workspace's owner that is past due billing but isn't owning any amount", async () => {
@@ -302,7 +311,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID, undefined)).toBeFalsy();
         });
 
         it("should return true if the user is the workspace's owner that is past due billing and is owning some amount", async () => {
@@ -319,7 +328,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID)).toBeTruthy();
+            expect(shouldRestrictUserBillableActions(policyID, undefined)).toBeTruthy();
         });
 
         it("should return false if the user is past due billing but is not the workspace's owner", async () => {
@@ -336,7 +345,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID, undefined)).toBeFalsy();
         });
     });
 
