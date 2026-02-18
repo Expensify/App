@@ -56,11 +56,15 @@ function AccountSwitcherSkeletonView({shouldAnimate = true, avatarSize = CONST.A
                     transform={[{translateX: rectXTranslation}, {translateY: 6}]}
                     width="45%"
                     height="8"
+                    rx={2}
+                    ry={2}
                 />
                 <Rect
                     transform={[{translateX: rectXTranslation}, {translateY: 26}]}
                     width="55%"
                     height="8"
+                    rx={2}
+                    ry={2}
                 />
             </SkeletonViewContentLoader>
         </View>

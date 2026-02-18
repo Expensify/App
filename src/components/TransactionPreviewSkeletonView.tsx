@@ -36,16 +36,22 @@ function TransactionPreviewSkeletonView({transactionPreviewWidth, reasonAttribut
                     transform={[{translateY: 4}]}
                     width="64"
                     height="8"
+                    rx={2}
+                    ry={2}
                 />
                 <Rect
                     transform={[{translateY: 24}]}
                     width={widthOfTheLeftSkeleton}
                     height="20"
+                    rx={4}
+                    ry={4}
                 />
                 <Rect
                     transform={[{translateY: 54.75}]}
                     width="80"
                     height="7"
+                    rx={2}
+                    ry={2}
                 />
             </SkeletonViewContentLoader>
             <View style={[styles.r0, styles.b0, styles.p4, styles.mtn1, styles.pAbsolute]}>
@@ -59,6 +65,8 @@ function TransactionPreviewSkeletonView({transactionPreviewWidth, reasonAttribut
                         transform={[{translateY: 24}]}
                         width={widthOfTheRightSkeleton}
                         height="20"
+                        rx={4}
+                        ry={4}
                     />
                 </SkeletonViewContentLoader>
             </View>

@@ -22,18 +22,24 @@ function MoneyRequestSkeletonView() {
                 y="20"
                 width="40"
                 height="8"
+                rx={2}
+                ry={2}
             />
             <Rect
                 x="16"
                 y="46"
                 width="120"
                 height="20"
+                rx={4}
+                ry={4}
             />
             <Rect
                 x="16"
                 y="78"
                 width="80"
                 height="8"
+                rx={2}
+                ry={2}
             />
         </SkeletonViewContentLoader>
     );

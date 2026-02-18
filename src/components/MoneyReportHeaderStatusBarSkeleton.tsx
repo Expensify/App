@@ -27,11 +27,15 @@ function MoneyReportHeaderStatusBarSkeleton({reasonAttributes}: MoneyReportHeade
                     transform={[{translateY: 12}]}
                     width={16}
                     height={8}
+                    rx={2}
+                    ry={2}
                 />
                 <Rect
                     transform={[{translateX: 24}, {translateY: 12}]}
                     width={120}
                     height={8}
+                    rx={2}
+                    ry={2}
                 />
             </SkeletonViewContentLoader>
         </View>

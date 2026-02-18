@@ -63,6 +63,8 @@ function SuggestedSearchSkeleton() {
                     transform={[{translateX: icon.xVal}, {translateY: icon.yVal}]}
                 />
                 <Rect
+                    rx={2}
+                    ry={2}
                     width={label.w}
                     height={label.h}
                     transform={[{translateX: label.xVal}, {translateY: label.yVal}]}
@@ -83,6 +85,8 @@ function SuggestedSearchSkeleton() {
                 style={[styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
             >
                 <Rect
+                    rx={2}
+                    ry={2}
                     width={LHN.header.w}
                     height={LHN.header.h}
                     transform={[{translateX: LHN.header.xVal}, {translateY: LHN.header.yVal}]}

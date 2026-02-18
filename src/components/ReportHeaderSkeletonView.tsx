@@ -65,11 +65,15 @@ function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () 
                         transform={[{translateX: 55}, {translateY: circleTopY + 8}]}
                         width="30%"
                         height="8"
+                        rx={2}
+                        ry={2}
                     />
                     <Rect
                         transform={[{translateX: 55}, {translateY: circleBottomY - 12}]}
                         width="40%"
                         height="8"
+                        rx={2}
+                        ry={2}
                     />
                 </SkeletonViewContentLoader>
             </View>

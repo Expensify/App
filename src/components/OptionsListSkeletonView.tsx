@@ -54,11 +54,15 @@ function OptionsListSkeletonView({shouldAnimate = true, shouldStyleAsTable = fal
                             transform={[{translateX: textStartX}, {translateY: 18}]}
                             width="20%"
                             height="8"
+                            rx={2}
+                            ry={2}
                         />
                         <Rect
                             transform={[{translateX: textStartX}, {translateY: 38}]}
                             width={shouldStyleAsTable ? '10%' : lineWidth}
                             height="8"
+                            rx={2}
+                            ry={2}
                         />
                     </>
                 );

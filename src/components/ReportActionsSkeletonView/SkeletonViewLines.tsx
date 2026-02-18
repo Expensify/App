@@ -33,12 +33,16 @@ function SkeletonViewLines({numberOfRows, shouldAnimate = true}: SkeletonViewLin
                 y="11"
                 width="20%"
                 height="8"
+                rx={2}
+                ry={2}
             />
             <Rect
                 x="72"
                 y="31"
                 width="100%"
                 height="8"
+                rx={2}
+                ry={2}
             />
             {numberOfRows > 1 && (
                 <Rect
@@ -46,6 +50,8 @@ function SkeletonViewLines({numberOfRows, shouldAnimate = true}: SkeletonViewLin
                     y="51"
                     width="50%"
                     height="8"
+                    rx={2}
+                    ry={2}
                 />
             )}
             {numberOfRows > 2 && (
@@ -54,6 +60,8 @@ function SkeletonViewLines({numberOfRows, shouldAnimate = true}: SkeletonViewLin
                     y="71"
                     width="50%"
                     height="8"
+                    rx={2}
+                    ry={2}
                 />
             )}
         </SkeletonViewContentLoader>
