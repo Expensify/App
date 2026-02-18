@@ -51,6 +51,11 @@
         <div class="ai-header">
             <img src="/assets/images/concierge-avatar.svg" class="ai-avatar" />
             <span class="ai-title">Concierge AI summary:</span>
+            <button class="ai-copy-button" onclick="copyAIResponse(this)" aria-label="Copy AI summary">
+                <img src="/assets/images/copy.svg" class="base-icon ai-copy-icon" />
+                <img src="/assets/images/checkmark.svg" class="base-icon ai-copied-icon hidden" />
+                <span class="ai-copy-label">Copy</span>
+            </button>
         </div>
         <div class="ai-content"></div>
         <button class="ai-show-more hidden">

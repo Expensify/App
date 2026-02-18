@@ -1182,6 +1182,32 @@ button {
         color: var(--color-text);
     }
 
+    .ai-copy-button {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        background: var(--color-button-background);
+        border: none;
+        border-radius: 9999px;
+        padding: 6px 12px;
+        cursor: pointer;
+        color: var(--color-text);
+        font-size: 13px;
+        font-weight: 700;
+
+        &:hover {
+            opacity: 0.8;
+        }
+
+        .hidden {
+            display: none;
+        }
+    }
+
+    .ai-copy-label {
+        white-space: nowrap;
+    }
 
     .ai-content {
         font-size: 15px;

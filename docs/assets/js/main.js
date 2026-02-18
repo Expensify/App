@@ -210,6 +210,31 @@ function askHelpsiteAI(query) {
         });
 }
 
+function copyAIResponse(button) {
+    const panel = button.closest('.ai-panel');
+    const content = panel.querySelector('.ai-content');
+    if (!content) {
+        return;
+    }
+
+    const text = content.innerText;
+    navigator.clipboard.writeText(text).then(() => {
+        const copyIcon = button.querySelector('.ai-copy-icon');
+        const copiedIcon = button.querySelector('.ai-copied-icon');
+        const label = button.querySelector('.ai-copy-label');
+
+        copyIcon.classList.add('hidden');
+        copiedIcon.classList.remove('hidden');
+        label.textContent = 'Copied';
+
+        setTimeout(() => {
+            copyIcon.classList.remove('hidden');
+            copiedIcon.classList.add('hidden');
+            label.textContent = 'Copy';
+        }, 2000);
+    });
+}
+
 function initSearchPage() {
     const searchForm = document.getElementById('search-page-form');
     if (!searchForm) {
