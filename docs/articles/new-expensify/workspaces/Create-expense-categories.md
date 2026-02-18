@@ -43,7 +43,7 @@ To delete a category:
 
 ---
 
-## Enable or disable categories
+## How to enable or disable categories
 
 Once categories are added (manually or via import), they can be toggled on or off.
 
@@ -73,6 +73,32 @@ To edit these fields:
 6. Click **Save**.
 
 ![In the Workspace > Categories setting, the right-hand panel is open and the GL and Payroll code setting is highlighted.]({{site.url}}/assets/images/NewExpensify_ManageCategories_2.png){:width="100%"}
+
+---
+
+# How to configure Category Rules
+
+Category Rules let you control how specific categories behave. You can require additional information, assign approvers, or set spending thresholds for individual categories.
+
+To manage Category Rules:
+
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
+2. Click your **workspace name**.
+3. Click **Categories**.
+4. Select a category to open its settings panel.
+
+Available Category Rule options include:
+
+- **Approver** – Assign a specific approver for expenses in this category.
+- **Default tax rate** – Set a default tax percentage ([Taxes](https://help.expensify.com/articles/new-expensify/workspaces/Track-Taxes) must be enabled on the workspace).
+- **Flag amounts over** - Set a spending cap for this category.
+- **Require receipts over** – Set a threshold for when receipts are required.
+- **Require itemized receipts over** – Require itemized receipts for expenses over a specific amount.
+- **Require fields** - Require specific fields be completed for this category. The options are:
+   - **Require description** - Force members to enter a reason when using the category.
+   - **Require attendees** - Force members to add additional attendees when using the category.
+
+Category Rules apply to all members who use that category. If both a Category Rule and a Workspace Rule apply to the same expense, the Category Rule takes priority.
 
 ---
 
