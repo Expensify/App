@@ -14,7 +14,6 @@ import TextBlock from '@components/TextBlock';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportAttributes from '@hooks/useReportAttributes';
@@ -40,28 +39,23 @@ const keyExtractor = (item: Report) => `report_${item.reportID}`;
 
 function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions = false, onFirstItemRendered = () => {}}: LHNOptionsListProps) {
     const {saveScrollOffset, getScrollOffset, saveScrollIndex, getScrollIndex} = useContext(ScrollOffsetContext);
-    const {isOffline} = useNetwork();
     const flashListRef = useRef<FlashListRef<Report>>(null);
     const route = useRoute();
     const isScreenFocused = useIsFocused();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
 
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const reportAttributes = useReportAttributes();
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
-    const [reportMetadataCollection] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA, {canBeMissing: true});
+    const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: false});
     const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
-    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: false});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: false});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
     const [isFullscreenVisible] = useOnyx(ONYXKEYS.FULLSCREEN_VISIBILITY, {canBeMissing: true});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -183,23 +177,17 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     localeCompare={localeCompare}
                     translate={translate}
                     testID={index}
+                    policyForMovingExpensesID={policyForMovingExpensesID}
                     firstReportIDWithGBRorRBR={firstReportIDWithGBRorRBR}
                     currentUserAccountID={currentUserAccountID}
                 />
             );
         },
         [
-            reports,
-            reportNameValuePairs,
-            reportActions,
-            reportMetadataCollection,
-            isOffline,
-            reportAttributes,
-            policy,
-            transactions,
-            draftComments,
-            personalDetails,
             policyForMovingExpensesID,
+            reportAttributes,
+            transactions,
+            personalDetails,
             firstReportIDWithGBRorRBR,
             optionMode,
             shouldDisableFocusOptions,
@@ -270,7 +258,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     useEffect(() => {
         if (shouldShowEmptyLHN) {
             Log.info('Woohoo! All caught up. Was rendered', false, {
-                reportsCount: Object.keys(reports ?? {}).length,
                 reportActionsCount: Object.keys(reportActions ?? {}).length,
                 policyCount: Object.keys(policy ?? {}).length,
                 personalDetailsCount: Object.keys(personalDetails ?? {}).length,
@@ -278,7 +265,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 reportsIDsFromUseReportsCount: data.length,
             });
         }
-    }, [data.length, shouldShowEmptyLHN, route, reports, reportActions, policy, personalDetails]);
+    }, [data.length, shouldShowEmptyLHN, route, reportActions, policy, personalDetails]);
 
     return (
         <View style={[style ?? styles.flex1, shouldShowEmptyLHN ? styles.emptyLHNWrapper : undefined]}>

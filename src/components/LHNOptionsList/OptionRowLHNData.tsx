@@ -36,6 +36,7 @@ import {PersonalDetails, ReportAction} from '@src/types/onyx';
  * hasDraftComment, shouldShowRBRorGBRTooltip, isReportArchived, lastAction, lastActionReport
  */
 function OptionRowLHNData({
+    reportID,
     isOptionFocused = false,
     fullReport,
     reportAttributesDerived,
@@ -51,7 +52,6 @@ function OptionRowLHNData({
     ...propsToForward
 }: OptionRowLHNDataProps) {
     const item = fullReport;
-    const reportID = propsToForward.reportID;
     const {isOffline} = useNetwork();
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${item?.policyID}`, {canBeMissing: true});
@@ -218,6 +218,7 @@ function OptionRowLHNData({
             isOptionFocused={isReportFocused}
             optionItem={optionItem}
             report={fullReport}
+            reportID={reportID}
         />
     );
 }
