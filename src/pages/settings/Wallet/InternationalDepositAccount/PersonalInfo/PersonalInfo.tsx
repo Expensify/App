@@ -23,6 +23,7 @@ const bodyContentWithPlaid: Array<React.ComponentType<SubStepProps>> = [PlaidBan
 const bodyContentWithManualSetup: Array<React.ComponentType<SubStepProps>> = [ManualBankAccountDetails, ...bodyContentInfoSet];
 
 const DEFAULT_OBJECT = {};
+const ACCOUNT_OWNERSHIP_ERROR_SUBSTRING = 'account ownership';
 
 function PersonalInfoPage() {
     const {translate} = useLocalize();
@@ -93,7 +94,7 @@ function PersonalInfoPage() {
         if (!error) {
             return;
         }
-        if (error.includes('account ownership')) {
+        if (error.includes(ACCOUNT_OWNERSHIP_ERROR_SUBSTRING)) {
             confirmedOwnershipDetails.current = true;
         }
         return () => {
