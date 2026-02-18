@@ -11,6 +11,9 @@ import type {OptionData} from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import OptionRowLHN from './OptionRowLHN';
 import type {OptionRowLHNDataProps} from './types';
+import {getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
+import useNetwork from '@hooks/useNetwork';
+import useReportAttributes from '@hooks/useReportAttributes';
 
 /*
  * This component gets the data from onyx for the actual
@@ -38,23 +41,29 @@ function OptionRowLHNData({
 }: OptionRowLHNDataProps) {
     const item = fullReport;
     const reportID = propsToForward.reportID;
-    //             const itemParentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.parentReportID}`];
-    //             const itemReportNameValuePairs = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
-    //             const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.chatReportID}`];
-    //             const itemReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
-    //             const itemOneTransactionThreadReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getOneTransactionThreadReportID(item, chatReport, itemReportActions, isOffline)}`];
-    //             const itemParentReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${item?.parentReportID}`];
-    //             const itemParentReportAction = item?.parentReportActionID ? itemParentReportActions?.[item?.parentReportActionID] : undefined;
-    //             const itemReportAttributes = reportAttributes?.[reportID];
+    const {isOffline} = useNetwork();
 
-    //             let invoiceReceiverPolicyID = '-1';
-    //             if (item?.invoiceReceiver && 'policyID' in item.invoiceReceiver) {
-    //                 invoiceReceiverPolicyID = item.invoiceReceiver.policyID;
-    //             }
-    //             if (itemParentReport?.invoiceReceiver && 'policyID' in itemParentReport.invoiceReceiver) {
-    //                 invoiceReceiverPolicyID = itemParentReport.invoiceReceiver.policyID;
-    //             }
-    //             const itemInvoiceReceiverPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`];
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${item?.chatReportID}`, {canBeMissing: true});
+    const [itemReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canBeMissing: true});
+    const [itemParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${item?.parentReportID}`, {canBeMissing: true});
+    const [itemReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {canBeMissing: true});
+    const [itemParentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${item?.parentReportID}`, {canBeMissing: true});
+
+    const oneTransactionThreadReportID = getOneTransactionThreadReportID(item, chatReport, itemReportActions, isOffline);
+    const [itemOneTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`, {canBeMissing: true});
+
+    const itemParentReportAction = item?.parentReportActionID ? itemParentReportActions?.[item?.parentReportActionID] : undefined;
+    const itemReportAttributes = reportAttributesDerived?.[reportID];
+
+    let invoiceReceiverPolicyID = '-1';
+    if (item?.invoiceReceiver && 'policyID' in item.invoiceReceiver) {
+        invoiceReceiverPolicyID = item.invoiceReceiver.policyID;
+    }
+    if (itemParentReport?.invoiceReceiver && 'policyID' in itemParentReport.invoiceReceiver) {
+        invoiceReceiverPolicyID = itemParentReport.invoiceReceiver.policyID;
+    }
+
+    const [itemInvoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`, {canBeMissing: true});
 
     //             const iouReportIDOfLastAction = getIOUReportIDOfLastAction(item);
     //             const itemIouReportReportActions = iouReportIDOfLastAction ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportIDOfLastAction}`] : undefined;
