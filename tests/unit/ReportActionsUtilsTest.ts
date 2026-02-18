@@ -975,6 +975,55 @@ describe('ReportActionsUtils', () => {
 
             expect(result).toStrictEqual(expectedOutput);
         });
+
+        it('should filter out ACTIONABLE_MENTION_WHISPER when its parent comment was deleted', () => {
+            // Given an ADD_COMMENT and an ACTIONABLE_MENTION_WHISPER whose originalMessage.deleted is set
+            // (indicating the parent comment was deleted and the backend cascade-deleted the whisper)
+            const input: ReportAction[] = [
+                {
+                    created: '2024-11-19 08:04:13.728',
+                    reportActionID: '1607371725956675966',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    originalMessage: {
+                        html: '<mention-user accountID="18414674"/>',
+                        whisperedTo: [],
+                        lastModified: '2024-11-19 08:04:13.728',
+                    },
+                    message: [
+                        {
+                            html: '<mention-user accountID="18414674"/>',
+                            text: '@someone',
+                            type: 'COMMENT',
+                            whisperedTo: [],
+                        },
+                    ],
+                },
+                {
+                    created: '2024-11-19 08:04:13.730',
+                    reportActionID: '6401435781022176',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+                    originalMessage: {
+                        inviteeAccountIDs: [18414674],
+                        lastModified: '2024-11-19 08:04:25.813',
+                        whisperedTo: [18301266],
+                        deleted: '2024-11-19 08:04:27.000',
+                    },
+                    message: [
+                        {
+                            html: "Heads up, <mention-user accountID=18414674></mention-user> isn't a member of this room.",
+                            text: "Heads up,  isn't a member of this room.",
+                            type: 'COMMENT',
+                        },
+                    ],
+                },
+            ];
+
+            // When sorted for display with write access enabled
+            const result = ReportActionsUtils.getSortedReportActionsForDisplay(input, true);
+
+            // Then the whisper with deleted set should be filtered out, leaving only the ADD_COMMENT
+            expect(result).toStrictEqual([input[0]]);
+        });
     });
 
     describe('hasRequestFromCurrentAccount', () => {
