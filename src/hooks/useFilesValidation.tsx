@@ -27,11 +27,13 @@ type ValidationOptions = {
     isValidatingReceipts?: boolean;
 };
 
+type OnFilesValidated = (files: File | FileObject[], dataTransferItems: DataTransferItem[]) => void;
+
 const sortFilesByOriginalOrder = (files: FileObject[], orderMap: Map<string, number>) => {
     return files.sort((a, b) => (orderMap.get(a.uri ?? '') ?? 0) - (orderMap.get(b.uri ?? '') ?? 0));
 };
 
-function useFilesValidation(onFilesValidated: (files: File | FileObject[], dataTransferItems: DataTransferItem[]) => void, onSourceChanged?: (source: string | undefined) => void) {
+function useFilesValidation(onFilesValidated: OnFilesValidated) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -315,7 +317,6 @@ function useFilesValidation(onFilesValidated: (files: File | FileObject[], dataT
 
             validateMultipleAttachmentFiles(files, items).then((result) => {
                 if (result.isValid) {
-                    onSourceChanged?.(result.validatedFiles.at(0)?.source);
                     onFilesValidated(result.validatedFiles, dataTransferItemList.current);
                     return;
                 }
@@ -339,7 +340,6 @@ function useFilesValidation(onFilesValidated: (files: File | FileObject[], dataT
 
         validateAttachmentFile(files, items?.at(0)).then((result) => {
             if (result.isValid) {
-                onSourceChanged?.(result.validatedFile.source);
                 onFilesValidated([result.validatedFile.file], dataTransferItemList.current);
                 return;
             }

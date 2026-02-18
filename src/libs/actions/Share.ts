@@ -29,8 +29,9 @@ function addTempShareFile(file: ShareTempFile) {
  *
  * @param file Array of validated file objects to be saved
  */
-function addValidatedShareFile(file: FileObject[]) {
-    Onyx.set(ONYXKEYS.VALIDATED_FILE_OBJECT, file.at(0));
+function addValidatedShareFile(file: FileObject | FileObject[]) {
+    const fileItems = Array.isArray(file) ? file : [file];
+    Onyx.set(ONYXKEYS.VALIDATED_FILE_OBJECT, fileItems.at(0));
 }
 
 /**

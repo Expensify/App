@@ -39,7 +39,7 @@ function useReceiptScanDrop() {
 
     const hasOnlyPersonalPolicies = useMemo(() => hasOnlyPersonalPoliciesUtil(policies), [policies]);
 
-    const saveFileAndInitMoneyRequest = (files: FileObject[]) => {
+    const saveFileAndInitMoneyRequest = (files: FileObject | FileObject[]) => {
         const initialTransaction = initMoneyRequest({
             isFromGlobalCreate: true,
             isFromFloatingActionButton: true,
@@ -56,7 +56,9 @@ function useReceiptScanDrop() {
 
         const newReceiptFiles: ReceiptFile[] = [];
 
-        for (const [index, file] of files.entries()) {
+        const fileItems = Array.isArray(files) ? files : [files];
+
+        for (const [index, file] of fileItems.entries()) {
             const source = URL.createObjectURL(file as Blob);
             const transaction =
                 index === 0

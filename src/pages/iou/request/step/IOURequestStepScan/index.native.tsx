@@ -385,15 +385,16 @@ function IOURequestStepScan({
     /**
      * Sets the Receipt objects and navigates the user to the next page
      */
-    const setReceiptFilesAndNavigate = (files: FileObject[]) => {
-        if (files.length === 0) {
+    const setReceiptFilesAndNavigate = (files: FileObject | FileObject[]) => {
+        const fileItems = Array.isArray(files) ? files : [files];
+        if (fileItems.length === 0) {
             return;
         }
         // Store the receipt on the transaction object in Onyx
         const newReceiptFiles: ReceiptFile[] = [];
 
         if (isEditing) {
-            const file = files.at(0);
+            const file = fileItems.at(0);
             if (!file) {
                 return;
             }
@@ -406,7 +407,7 @@ function IOURequestStepScan({
             removeDraftTransactions(true);
         }
 
-        for (const [index, file] of files.entries()) {
+        for (const [index, file] of fileItems.entries()) {
             const transaction = shouldReuseInitialTransaction(initialTransaction, shouldAcceptMultipleFiles, index, isMultiScanEnabled, transactions)
                 ? (initialTransaction as Partial<Transaction>)
                 : buildOptimisticTransactionAndCreateDraft({
@@ -422,7 +423,7 @@ function IOURequestStepScan({
 
         if (shouldSkipConfirmation) {
             setReceiptFiles(newReceiptFiles);
-            const gpsRequired = initialTransaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && files.length;
+            const gpsRequired = initialTransaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && fileItems.length;
             if (gpsRequired) {
                 const beginLocationPermissionFlow = shouldStartLocationPermissionFlow();
 
