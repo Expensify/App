@@ -27,6 +27,17 @@
        - `_renderDescription`, `hideListView`, `isNewFocusInAutocompleteResultList`,
          `_onBlur`, `_onFocus` moved before `_onPress` (which calls them).
        - `debounceData` moved before `_onChangeText` (which calls it).
+
+    4. v2.6.4 added `hideListView(true)` at the start of `_onPress` in the
+       `fetchDetails` branch. This immediately hides the entire FlatList
+       before `_enableRowLoader` can display the per-row loading spinner,
+       causing the loading indicator to be invisible during place detail
+       fetches. Fix: remove `hideListView(true)` from the `fetchDetails`
+       branch of `_onPress`, restoring v2.5.6 behavior where the list
+       stays visible with the row spinner until the detail request completes.
+       The `hideListView(true)` calls in the `isCurrentLocation` and
+       predefined-place branches are left intact since those don't need
+       to show a row-level loading indicator.
     ```
 
 - Upstream PR/issue: 🛑, library is unmaintained (https://github.com/FaridSafi/react-native-google-places-autocomplete/issues/978)

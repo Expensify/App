@@ -86,7 +86,15 @@ index 9fedd7e..b3c4d5e 100644
 
    const _onPress = (rowData) => {
      if (rowData.isPredefinedPlace !== true && fetchDetails === true) {
-@@ -776,6 +822,11 @@
+@@ -670,7 +716,6 @@
+         return;
+       }
+
+-      hideListView(true);
+       Keyboard.dismiss();
+
+       _abortRequests();
+@@ -776,6 +821,11 @@
      }
    };
 
@@ -98,7 +106,7 @@ index 9fedd7e..b3c4d5e 100644
    const _onChangeText = (text) => {
      setListWasDismissed(false);
      setStateText(text);
-@@ -792,56 +843,10 @@
+@@ -792,56 +842,10 @@
      }
    };
 
@@ -155,7 +163,7 @@ index 9fedd7e..b3c4d5e 100644
    const _getRowLoader = () => {
      return <ActivityIndicator animating={true} size='small' />;
    };
-@@ -1078,11 +1083,6 @@
+@@ -1078,11 +1082,6 @@
    // Keep requestRef updated
    requestRef.current = _request;
 
