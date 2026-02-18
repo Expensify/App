@@ -1074,8 +1074,12 @@ const supportedActionTypes = new Set<ReportActionName>([...Object.values(otherAc
  */
 function isResolvedActionableWhisper(reportAction: OnyxEntry<ReportAction>): boolean {
     const originalMessage = getOriginalMessage(reportAction);
-    const resolution = originalMessage && typeof originalMessage === 'object' && 'resolution' in originalMessage ? originalMessage?.resolution : null;
-    return !!resolution;
+    if (!originalMessage || typeof originalMessage !== 'object') {
+        return false;
+    }
+    const resolution = 'resolution' in originalMessage ? originalMessage?.resolution : null;
+    const deleted = 'deleted' in originalMessage ? originalMessage?.deleted : null;
+    return !!resolution || !!deleted;
 }
 
 /**
