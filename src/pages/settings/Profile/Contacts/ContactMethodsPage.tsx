@@ -2,7 +2,7 @@ import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useCallback, useContext, useMemo} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
@@ -32,7 +32,8 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const navigateBackTo = route?.params?.backTo;
 
-    const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const {isActingAsDelegate} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: false});
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 

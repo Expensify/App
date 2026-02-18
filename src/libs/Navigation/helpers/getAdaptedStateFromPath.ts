@@ -1,19 +1,16 @@
+import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
+import {RHP_TO_DOMAIN, RHP_TO_HOME, RHP_TO_SEARCH, RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE, RHP_TO_WORKSPACES_LIST} from '@libs/Navigation/linkingConfig/RELATIONS';
+import type {NavigationPartialRoute, RootNavigatorParamList} from '@libs/Navigation/types';
+import {getReportOrDraftReport} from '@libs/ReportUtils';
+import {getSearchParamFromPath} from '@libs/Url';
 import type {NavigationState, PartialState, getStateFromPath as RNGetStateFromPath, Route} from '@react-navigation/native';
 import {findFocusedRoute} from '@react-navigation/native';
-import pick from 'lodash/pick';
-import type {OnyxCollection} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
-import {RHP_TO_DOMAIN, RHP_TO_SEARCH, RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE, RHP_TO_WORKSPACES_LIST} from '@libs/Navigation/linkingConfig/RELATIONS';
-import type {NavigationPartialRoute, RootNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
-import {getSearchParamFromPath} from '@src/libs/Url';
 import NAVIGATORS from '@src/NAVIGATORS';
-import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {Route as RoutePath} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Report} from '@src/types/onyx';
+import pick from 'lodash/pick';
 import getLastSuffixFromPath from './getLastSuffixFromPath';
 import getMatchingNewRoute from './getMatchingNewRoute';
 import getParamsFromRoute from './getParamsFromRoute';
@@ -23,15 +20,6 @@ import isDynamicRouteSuffix from './isDynamicRouteSuffix';
 import {isFullScreenName} from './isNavigatorName';
 import normalizePath from './normalizePath';
 import replacePathInNestedState from './replacePathInNestedState';
-
-let allReports: OnyxCollection<Report>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        allReports = value;
-    },
-});
 
 type GetAdaptedStateReturnType = ReturnType<typeof getStateFromPath>;
 
@@ -152,6 +140,13 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
         });
     }
 
+    if (RHP_TO_HOME[route.name]) {
+        return {
+            name: SCREENS.HOME,
+            path: normalizePath(ROUTES.HOME),
+        };
+    }
+
     if (RHP_TO_WORKSPACES_LIST[route.name]) {
         return {
             name: SCREENS.WORKSPACES_LIST,
@@ -216,7 +211,8 @@ function getDefaultFullScreenRoute(route?: NavigationPartialRoute) {
     if (route && isRouteWithReportID(route)) {
         const reportID = route.params.reportID;
 
-        if (!allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID) {
+        // Only allReports should be checked here
+        if (!getReportOrDraftReport(reportID, undefined, undefined, {})) {
             return {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR};
         }
 
@@ -252,7 +248,6 @@ function getOnboardingAdaptedState(state: PartialState<NavigationState>): Partia
 
 function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamList>>): GetAdaptedStateReturnType {
     const fullScreenRoute = state.routes.find((route) => isFullScreenName(route.name));
-    const onboardingNavigator = state.routes.find((route) => route.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR);
     const isWorkspaceSplitNavigator = fullScreenRoute?.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR;
 
     if (isWorkspaceSplitNavigator) {
@@ -278,6 +273,8 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
             }
         }
 
+        const onboardingNavigator = state.routes.find((route) => route.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR);
+
         // The onboarding flow consists of several screens. If we open any of the screens, the previous screens from that flow should be in the state.
         if (onboardingNavigator?.state) {
             const adaptedOnboardingNavigator = {
@@ -286,6 +283,12 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
             };
 
             return getRoutesWithIndex([{name: SCREENS.HOME}, adaptedOnboardingNavigator]);
+        }
+
+        const isRightModalNavigator = state.routes.find((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
+
+        if (isRightModalNavigator) {
+            return getRoutesWithIndex([{name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}, ...state.routes]);
         }
 
         const defaultFullScreenRoute = getDefaultFullScreenRoute(focusedRoute);
@@ -304,12 +307,11 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
  * see the NAVIGATION.md documentation.
  *
  * @param path - The path to generate state from
- * @param options - Extra options kept for react-navigation compatibility
- * @param shouldReplacePathInNestedState - Whether to replace the path in nested state (if passing this arg, pass `undefined` for `options`, otherwise omit both)
+ * @param options - Extra options to fine-tune how to parse the path
+ * @param shouldReplacePathInNestedState - Whether to replace the path in nested state
  * @returns The adapted navigation state
  * @throws Error if unable to get state from path
  */
-// We keep `options` in the signature for `linkingConfig` compatibility with react-navigation.
 const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldReplacePathInNestedState = true) => {
     let normalizedPath = !path.startsWith('/') ? `/${path}` : path;
     normalizedPath = getRedirectedPath(normalizedPath);

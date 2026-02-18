@@ -5,9 +5,10 @@ import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import Performance from '@libs/Performance';
 import PusherUtils from '@libs/PusherUtils';
+import {trackExpenseApiError} from '@libs/telemetry/trackExpenseCreationError';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxUpdateEvent, OnyxUpdatesFromServer, Request} from '@src/types/onyx';
+import type {AnyOnyxUpdatesFromServer, OnyxUpdateEvent, OnyxUpdatesFromServer, Request} from '@src/types/onyx';
 import type Response from '@src/types/onyx/Response';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {queueOnyxUpdates} from './QueuedOnyxUpdates';
@@ -55,6 +56,14 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(request: Request<TKey>, res
                     Log.info('[OnyxUpdateManager] Received 460 status code, not applying failure data');
                     return Promise.resolve();
                 }
+
+                trackExpenseApiError({
+                    command: request.command,
+                    jsonCode: response.jsonCode ?? 0,
+                    message: response.message,
+                    requestData: request.data,
+                });
+
                 return updateHandler(request.failureData);
             }
             return Promise.resolve();
@@ -124,7 +133,7 @@ function apply<TKey extends OnyxKey>({
     request,
     response,
     updates,
-}: Merge<OnyxUpdatesFromServer<TKey>, {request: Request<TKey>; response: Response<TKey>; type: 'https'}>): Promise<Response>;
+}: Merge<OnyxUpdatesFromServer<TKey>, {request: Request<TKey>; response: Response<TKey>; type: 'https'}>): Promise<Response<TKey>>;
 function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, updates}: OnyxUpdatesFromServer<TKey>): Promise<Response<TKey>>;
 function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, updates}: OnyxUpdatesFromServer<TKey>): Promise<void | Response<TKey>> | undefined {
     Log.info(`[OnyxUpdateManager] Applying update type: ${type} with lastUpdateID: ${lastUpdateID}`, false, {command: request?.command});
@@ -175,7 +184,7 @@ function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, upd
  * @param [updateParams.response] Exists if updateParams.type === 'https'
  * @param [updateParams.updates] Exists if updateParams.type === 'pusher'
  */
-function saveUpdateInformation<TKey extends OnyxKey = OnyxKey>(updateParams: OnyxUpdatesFromServer<TKey>) {
+function saveUpdateInformation<TKey extends OnyxKey>(updateParams: OnyxUpdatesFromServer<TKey>) {
     let modifiedUpdateParams = updateParams;
     // We don't want to store the data in the updateParams if it's a HTTPS update since it is useless anyways
     // and it causes serialization issues when storing in Onyx
@@ -183,7 +192,8 @@ function saveUpdateInformation<TKey extends OnyxKey = OnyxKey>(updateParams: Ony
         modifiedUpdateParams = {...modifiedUpdateParams, request: {...updateParams.request, data: {apiRequestType: updateParams.request?.data?.apiRequestType}}};
     }
     // Always use set() here so that the updateParams are never merged and always unique to the request that came in
-    Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, modifiedUpdateParams as OnyxUpdatesFromServer);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, modifiedUpdateParams as AnyOnyxUpdatesFromServer);
 }
 
 type DoesClientNeedToBeUpdatedParams = {

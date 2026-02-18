@@ -40,8 +40,8 @@ jobs:
       MOBILE_PR_NUMBER: ${{ steps.extractMobilePRNumber.outputs.PR_NUMBER }}
     steps:
       - name: Checkout
-        # v4
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        # v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
       - name: Validate that user is an Expensify employee
         uses: ./.github/actions/composite/validateActor
@@ -78,7 +78,6 @@ jobs:
           echo "PR_NUMBER=$PR_NUMBER" >> "$GITHUB_OUTPUT"
 
       - name: Check if App pull request number is correct
-        if: ${{ github.event_name == 'workflow_dispatch' }}
         id: getHeadRef
         run: |
           set -e
@@ -98,15 +97,19 @@ jobs:
     steps:
       - name: Check if author specified Expensify/Mobile-Expensify PR
         id: mobileExpensifyPR
-        # v7
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+        # v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
         with:
           github-token: ${{ github.token }}
           result-encoding: string
           script: |
-            if ('${{ needs.prep.outputs.MOBILE_PR_NUMBER }}') return '${{ needs.prep.outputs.MOBILE_PR_NUMBER }}';
+            if ('${{ needs.prep.outputs.MOBILE_PR_NUMBER }}') {
+              return '${{ needs.prep.outputs.MOBILE_PR_NUMBER }}';
+            }
 
-            if (!'${{ needs.prep.outputs.APP_PR_NUMBER }}') return '';
+            if (!'${{ needs.prep.outputs.APP_PR_NUMBER }}') {
+              return '';
+            }
 
             const pullRequest = await github.rest.pulls.get({
               owner: context.repo.owner,
@@ -127,8 +130,8 @@ jobs:
         MOBILE_EXPENSIFY_REF: ${{ steps.getHeadRef.outputs.REF || 'main' }}
       steps:
         - name: Checkout
-          # v4
-          uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+          # v6
+          uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
         - name: Check if Expensify/Mobile-Expensify pull request number is correct
           id: getHeadRef
@@ -143,365 +146,16 @@ jobs:
           env:
             GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-  postGitHubCommentBuildStarted:
-    name: Post build started comment
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+  buildApps:
     needs: [prep, getMobileExpensifyPR, getMobileExpensifyRef]
-    steps:
-      - name: Add build start comment to Expensify/App PR
-        if: ${{ needs.prep.outputs.APP_PR_NUMBER != '' }}
-        # v7
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
-        with:
-          github-token: ${{ github.token }}
-          script: |
-              const workflowURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
-              github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: ${{ needs.prep.outputs.APP_PR_NUMBER }},
-              body: `🚧 @${{ github.actor }} has triggered a test Expensify/App build. You can view the [workflow run here](${workflowURL}).`
-              });
-
-      - name: Add build start comment to Expensify/Mobile-Expensify PR
-        if: ${{ needs.getMobileExpensifyPR.outputs.MOBILE_EXPENSIFY_PR != '' }}
-        # v7
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
-        with:
-          github-token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          script: |
-              const workflowURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
-              github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: 'Mobile-Expensify',
-              issue_number: ${{ needs.getMobileExpensifyPR.outputs.MOBILE_EXPENSIFY_PR }},
-              body: `🚧 @${{ github.actor }} has triggered a test Expensify/Mobile-Expensify build. You can view the [workflow run here](${workflowURL}).`
-              });
-
-  web:
-    name: Build and deploy Web
-    if: ${{ inputs.WEB && needs.prep.outputs.APP_PR_NUMBER }}
-    needs: [prep]
-    runs-on: blacksmith-16vcpu-ubuntu-2404
-    env:
-      PULL_REQUEST_NUMBER: ${{ needs.prep.outputs.APP_PR_NUMBER }}
-    steps:
-      - name: Checkout
-        # v4
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
-        with:
-          ref: ${{ needs.prep.outputs.APP_REF }}
-
-      - name: Create .env.adhoc file based on staging
-        run: |
-          cp .env.staging .env.adhoc
-          sed -i 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
-
-      - name: Inject CI data into JS bundle
-        run: ./.github/scripts/inject-ci-data.sh PULL_REQUEST_NUMBER="$PULL_REQUEST_NUMBER"
-
-      - name: Setup Node
-        uses: ./.github/actions/composite/setupNode
-
-      - name: Configure AWS Credentials
-        # v4
-        uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-
-      - name: Build web for testing
-        run: npm run build-adhoc
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-
-      - name: Deploy to S3 for internal testing
-        run: aws s3 cp --recursive --acl public-read "$GITHUB_WORKSPACE"/dist s3://ad-hoc-expensify-cash/web/"$PULL_REQUEST_NUMBER"
-
-  androidHybrid:
-    name: Build Android HybridApp
-    if: ${{ inputs.ANDROID }}
-    needs: [prep, getMobileExpensifyPR, getMobileExpensifyRef]
-    runs-on: blacksmith-16vcpu-ubuntu-2404
-    env:
-      PULL_REQUEST_NUMBER: ${{ needs.prep.outputs.APP_PR_NUMBER }}
-    outputs:
-      ROCK_ANDROID_ADHOC_INDEX_URL: ${{ steps.set-artifact-url.outputs.ARTIFACT_URL }}
-    steps:
-      - name: Checkout
-        # v4
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
-        with:
-          submodules: true
-          ref: ${{ needs.prep.outputs.APP_REF }}
-          token: ${{ secrets.OS_BOTIFY_TOKEN }}
-
-      - name: Checkout Mobile-Expensify to specified branch or commit
-        if: ${{ needs.getMobileExpensifyRef.outputs.MOBILE_EXPENSIFY_REF != '' }}
-        run: |
-          cd Mobile-Expensify
-          git fetch origin ${{ needs.getMobileExpensifyRef.outputs.MOBILE_EXPENSIFY_REF }}
-          git checkout ${{ needs.getMobileExpensifyRef.outputs.MOBILE_EXPENSIFY_REF }}
-          echo "Building from https://github.com/Expensify/Mobile-Expensify/pull/${{ needs.getMobileExpensifyPR.outputs.MOBILE_EXPENSIFY_PR }}"
-
-      - name: Configure MapBox SDK
-        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
-
-      - name: Setup Node
-        id: setup-node
-        uses: ./.github/actions/composite/setupNode
-        with:
-          IS_HYBRID_BUILD: 'true'
-
-      - name: Run grunt build
-        run: |
-            cd Mobile-Expensify
-            npm run grunt:build:shared
-
-      - name: Create .env.adhoc file based on staging
-        run: |
-          cp .env.staging .env.adhoc
-          sed -i 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
-
-      - name: Inject CI data into JS bundle
-        run: ./.github/scripts/inject-ci-data.sh PULL_REQUEST_NUMBER="$PULL_REQUEST_NUMBER"
-
-      - name: Setup 1Password CLI and certificates
-        uses: Expensify/GitHub-Actions/setup-certificate-1p@main
-        with:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          SHOULD_LOAD_SSL_CERTIFICATES: 'false'
-
-      - name: Load files from 1Password
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        run: |
-          op read "op://${{ vars.OP_VAULT }}/upload-key.keystore/upload-key.keystore" --force --out-file ./upload-key.keystore
-          op read "op://${{ vars.OP_VAULT }}/android-fastlane-json-key.json/android-fastlane-json-key.json" --force --out-file ./android-fastlane-json-key.json
-
-          # Copy the keystore to the Android directory for Fullstory
-          cp ./upload-key.keystore Mobile-Expensify/Android
-
-      - name: Load Android upload keystore credentials from 1Password
-        id: load-credentials
-        # v2
-        uses: 1password/load-secrets-action@581a835fb51b8e7ec56b71cf2ffddd7e68bb25e0
-        with:
-          export-env: false
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          ANDROID_UPLOAD_KEYSTORE_PASSWORD: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_PASSWORD
-          ANDROID_UPLOAD_KEYSTORE_ALIAS: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_ALIAS
-          ANDROID_UPLOAD_KEY_PASSWORD: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEY_PASSWORD
-
-      - name: Configure AWS Credentials
-        # v4
-        uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-
-      - name: Rock Remote Build - Android
-        id: rock-remote-build-android
-        uses: callstackincubator/android@2177ac62cabe662aa49a2bc6f3154070705dd8f5
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          IS_HYBRID_APP: true
-        with:
-          variant: 'Adhoc'
-          sign: true
-          re-sign: true
-          ad-hoc: true
-          keystore-file: './upload-key.keystore'
-          keystore-store-file: 'upload-key.keystore'
-          keystore-store-password: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
-          keystore-key-alias: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }}
-          keystore-key-password: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
-          # Specify the path (relative to the Android source directory) where the keystore should be placed.
-          keystore-path: '../tools/buildtools/upload-key.keystore'
-          comment-bot: false
-          rock-build-extra-params: '--extra-params "-PreactNativeArchitectures=arm64-v8a,x86_64 --profile"'
-          custom-ref: ${{ needs.prep.outputs.APP_REF }}
-
-      - name: Upload Gradle profile report
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: gradle-profile-report
-          path: Mobile-Expensify/Android/build/reports/profile/
-          if-no-files-found: ignore
-
-      - name: Set artifact URL output
-        id: set-artifact-url
-        run: echo "ARTIFACT_URL=$ARTIFACT_URL" >> "$GITHUB_OUTPUT"
-
-  iosHybrid:
-    name: Build and deploy iOS for testing
-    if: ${{ inputs.IOS }}
-    needs: [prep, getMobileExpensifyPR, getMobileExpensifyRef]
-    env:
-      DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
-      PULL_REQUEST_NUMBER: ${{ needs.prep.outputs.APP_PR_NUMBER }}
-    runs-on: macos-15-xlarge
-    outputs:
-      ROCK_IOS_ADHOC_INDEX_URL: ${{ steps.set-artifact-url.outputs.ARTIFACT_URL }}
-    steps:
-      - name: Checkout
-        # v4
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
-        with:
-          submodules: true
-          ref: ${{ needs.prep.outputs.APP_REF }}
-          token: ${{ secrets.OS_BOTIFY_TOKEN }}
-
-      - name: Checkout Mobile-Expensify to specified branch or commit
-        if: ${{ needs.getMobileExpensifyRef.outputs.MOBILE_EXPENSIFY_REF != '' }}
-        run: |
-          cd Mobile-Expensify
-          git fetch origin ${{ needs.getMobileExpensifyRef.outputs.MOBILE_EXPENSIFY_REF }}
-          git checkout ${{ needs.getMobileExpensifyRef.outputs.MOBILE_EXPENSIFY_REF }}
-          echo "Building from https://github.com/Expensify/Mobile-Expensify/pull/${{ needs.getMobileExpensifyPR.outputs.MOBILE_EXPENSIFY_PR }}"
-
-      - name: Configure MapBox SDK
-        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
-
-      - name: Setup Node
-        id: setup-node
-        uses: ./.github/actions/composite/setupNode
-        with:
-          IS_HYBRID_BUILD: 'true'
-
-      - name: Create .env.adhoc file based on staging
-        run: |
-          cp .env.staging .env.adhoc
-          sed -i '' 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
-
-      - name: Inject CI data into JS bundle
-        run: ./.github/scripts/inject-ci-data.sh PULL_REQUEST_NUMBER="$PULL_REQUEST_NUMBER"
-
-      - name: Setup 1Password CLI and certificates
-        uses: Expensify/GitHub-Actions/setup-certificate-1p@main
-        with:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          SHOULD_LOAD_SSL_CERTIFICATES: 'false'
-
-      - name: Load files from 1Password
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        run: |
-          op read "op://${{ vars.OP_VAULT }}/OldApp_AdHoc/OldApp_AdHoc.mobileprovision" --force --out-file ./OldApp_AdHoc.mobileprovision
-          op read "op://${{ vars.OP_VAULT }}/OldApp_AdHoc_Share_Extension/OldApp_AdHoc_Share_Extension.mobileprovision" --force --out-file ./OldApp_AdHoc_Share_Extension.mobileprovision
-          op read "op://${{ vars.OP_VAULT }}/OldApp_AdHoc_Notification_Service/OldApp_AdHoc_Notification_Service.mobileprovision" --force --out-file ./OldApp_AdHoc_Notification_Service.mobileprovision
-          op read "op://${{ vars.OP_VAULT }}/New Expensify Distribution Certificate/Certificates.p12" --force --out-file ./Certificates.p12
-
-      - name: Create ExportOptions.plist
-        run: |
-          cat > Mobile-Expensify/iOS/ExportOptions.plist << 'EOF'
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-            <key>method</key>
-            <string>ad-hoc</string>
-            <key>provisioningProfiles</key>
-            <dict>
-              <key>com.expensify.expensifylite.adhoc</key>
-              <string>(OldApp) AdHoc</string>
-              <key>com.expensify.expensifylite.adhoc.SmartScanExtension</key>
-              <string>(OldApp) AdHoc: Share Extension</string>
-              <key>com.expensify.expensifylite.adhoc.NotificationServiceExtension</key>
-              <string>(OldApp) AdHoc: Notification Service</string>
-            </dict>
-          </dict>
-          </plist>
-          EOF
-
-      - name: Configure AWS Credentials
-        # v4
-        uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-
-      - name: Rock Remote Build - iOS
-        id: rock-remote-build-ios
-        uses: callstackincubator/ios@d638bd25c764655baeeced3232c692f1698cf72b
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          IS_HYBRID_APP: true
-        with:
-          destination: device
-          re-sign: true
-          ad-hoc: true
-          scheme: 'Expensify AdHoc'
-          configuration: 'AdHoc'
-          certificate-file: './Certificates.p12'
-          provisioning-profiles: |
-            [
-              {
-                "name": "(OldApp) AdHoc",
-                "file": "./OldApp_AdHoc.mobileprovision"
-              },
-              {
-                "name": "(OldApp) AdHoc: Share Extension",
-                "file": "./OldApp_AdHoc_Share_Extension.mobileprovision"
-              },
-              {
-                "name": "(OldApp) AdHoc: Notification Service",
-                "file": "./OldApp_AdHoc_Notification_Service.mobileprovision"
-              }
-            ]
-          comment-bot: false
-          custom-ref: ${{ needs.prep.outputs.APP_REF }}
-
-      - name: Set artifact URL output
-        id: set-artifact-url
-        run: echo "ARTIFACT_URL=$ARTIFACT_URL" >> "$GITHUB_OUTPUT"
-
-  postGithubComment:
-    runs-on: blacksmith-4vcpu-ubuntu-2404
-    if: always()
-    name: Post a GitHub comment with app download links for testing
-    needs: [prep, getMobileExpensifyPR, web, androidHybrid, iosHybrid]
-    steps:
-      - name: Checkout
-        # v4
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
-        with:
-          ref: ${{ needs.prep.outputs.APP_REF }}
-
-      - name: Download Artifact
-        # v4
-        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e
-
-      - name: Publish links to apps for download on Expensify/App PR
-        if: ${{ needs.prep.outputs.APP_PR_NUMBER || (!needs.prep.outputs.APP_PR_NUMBER && !needs.getMobileExpensifyPR.outputs.MOBILE_EXPENSIFY_PR) }}
-        uses: ./.github/actions/javascript/postTestBuildComment
-        with:
-          REPO: App
-          APP_PR_NUMBER: ${{ needs.prep.outputs.APP_PR_NUMBER }}
-          MOBILE_EXPENSIFY_PR_NUMBER: ${{ needs.getMobileExpensifyPR.outputs.MOBILE_EXPENSIFY_PR }}
-          GITHUB_TOKEN: ${{ github.token }}
-          ANDROID: ${{ needs.androidHybrid.result }}
-          IOS: ${{ needs.iosHybrid.result }}
-          WEB: ${{ needs.web.result }}
-          ANDROID_LINK: ${{ needs.androidHybrid.outputs.ROCK_ANDROID_ADHOC_INDEX_URL }}
-          IOS_LINK: ${{ needs.iosHybrid.outputs.ROCK_IOS_ADHOC_INDEX_URL }}
-          WEB_LINK: https://${{ needs.prep.outputs.APP_PR_NUMBER }}.pr-testing.expensify.com
-
-      - name: Publish links to apps for download on Expensify/Mobile-Expensify PR
-        if: ${{ needs.getMobileExpensifyPR.outputs.MOBILE_EXPENSIFY_PR }}
-        uses: ./.github/actions/javascript/postTestBuildComment
-        with:
-          REPO: Mobile-Expensify
-          MOBILE_EXPENSIFY_PR_NUMBER: ${{ needs.getMobileExpensifyPR.outputs.MOBILE_EXPENSIFY_PR }}
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          ANDROID: ${{ needs.androidHybrid.result }}
-          IOS: ${{ needs.iosHybrid.result }}
-          ANDROID_LINK: ${{ needs.androidHybrid.outputs.ROCK_ANDROID_ADHOC_INDEX_URL }}
-          IOS_LINK: ${{ needs.iosHybrid.outputs.ROCK_IOS_ADHOC_INDEX_URL }}
+    uses: ./.github/workflows/buildAdHoc.yml
+    with:
+      APP_REF: ${{ needs.prep.outputs.APP_REF }}
+      APP_PR_NUMBER: ${{ needs.prep.outputs.APP_PR_NUMBER }}
+      MOBILE_EXPENSIFY_REF: ${{ needs.getMobileExpensifyRef.outputs.MOBILE_EXPENSIFY_REF }}
+      MOBILE_EXPENSIFY_PR: ${{ needs.getMobileExpensifyPR.outputs.MOBILE_EXPENSIFY_PR }}
+      BUILD_WEB: ${{ inputs.WEB && 'true' || 'false' }}
+      BUILD_IOS: ${{ inputs.IOS && 'true' || 'false' }}
+      BUILD_ANDROID: ${{ inputs.ANDROID && 'true' || 'false' }}
+      TRIGGER_ACTOR: ${{ github.actor }}
+    secrets: inherit
