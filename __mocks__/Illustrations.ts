@@ -93,6 +93,7 @@ const CompanyCardsPendingState = 'CompanyCardsPendingState';
 const VisaCompanyCardDetail = 'VisaCompanyCardDetail';
 const MasterCardCompanyCardDetail = 'MasterCardCompanyCardDetail';
 const AmexCardCompanyCardDetail = 'AmexCardCompanyCardDetail';
+const TravelCVV = 'TravelCVV';
 const TurtleInShell = 'TurtleInShell';
 const BankOfAmericaCompanyCardDetail = 'BankOfAmericaCompanyCardDetail';
 const BrexCompanyCardDetail = 'BrexCompanyCardDetail';
@@ -212,6 +213,7 @@ export {
     VisaCompanyCardDetail,
     MasterCardCompanyCardDetail,
     AmexCardCompanyCardDetail,
+    TravelCVV,
     TurtleInShell,
     BankOfAmericaCompanyCardDetail,
     BrexCompanyCardDetail,

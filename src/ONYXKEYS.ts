@@ -376,9 +376,6 @@ const ONYXKEYS = {
     /** Is the test tools modal open? */
     IS_TEST_TOOLS_MODAL_OPEN: 'isTestToolsModalOpen',
 
-    /** Is app in profiling mode */
-    APP_PROFILING_IN_PROGRESS: 'isProfilingInProgress',
-
     /** Stores information about active wallet transfer amount, selectedAccountID, status, etc */
     WALLET_TRANSFER: 'walletTransfer',
 
@@ -460,18 +457,6 @@ const ONYXKEYS = {
 
     /** Indicates whether an forced reset is required. Used in emergency situations where we must completely erase the Onyx data in the client because it is in a bad state. This will clear Onyx data without signing the user out. */
     RESET_REQUIRED: 'resetRequired',
-
-    /** Stores the logs of the app for debugging purposes */
-    LOGS: 'logs',
-
-    /** Indicates whether we should store logs or not */
-    SHOULD_STORE_LOGS: 'shouldStoreLogs',
-
-    /** Indicates whether we should record troubleshoot data or not */
-    SHOULD_RECORD_TROUBLESHOOT_DATA: 'shouldRecordTroubleshootData',
-
-    /** Timestamp when troubleshoot recording was started (for auto-off after 10 minutes) */
-    TROUBLESHOOT_RECORDING_START_TIME: 'troubleshootRecordingStartTime',
 
     /** Indicates whether we should mask fragile user data while exporting onyx state or not */
     SHOULD_MASK_ONYX_STATE: 'shouldMaskOnyxState',
@@ -942,6 +927,8 @@ const ONYXKEYS = {
         NEW_CHAT_NAME_FORM_DRAFT: 'newChatNameFormDraft',
         SUBSCRIPTION_SIZE_FORM: 'subscriptionSizeForm',
         SUBSCRIPTION_SIZE_FORM_DRAFT: 'subscriptionSizeFormDraft',
+        SUBSCRIPTION_EXPENSIFY_CODE_FORM: 'subscriptionExpensifyCodeForm',
+        SUBSCRIPTION_EXPENSIFY_CODE_FORM_DRAFT: 'subscriptionExpensifyCodeFormDraft',
         ISSUE_NEW_EXPENSIFY_CARD_FORM: 'issueNewExpensifyCard',
         ISSUE_NEW_EXPENSIFY_CARD_FORM_DRAFT: 'issueNewExpensifyCardDraft',
         ADD_NEW_CARD_FEED_FORM: 'addNewCardFeed',
@@ -1004,6 +991,12 @@ const ONYXKEYS = {
         WORKSPACE_PER_DIEM_FORM_DRAFT: 'workspacePerDiemFormDraft',
         ENABLE_GLOBAL_REIMBURSEMENTS: 'enableGlobalReimbursementsForm',
         ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT: 'enableGlobalReimbursementsFormDraft',
+        SEARCH_EDIT_MULTIPLE_DESCRIPTION_FORM: 'searchEditMultipleDescriptionForm',
+        SEARCH_EDIT_MULTIPLE_DESCRIPTION_FORM_DRAFT: 'searchEditMultipleDescriptionFormDraft',
+        SEARCH_EDIT_MULTIPLE_MERCHANT_FORM: 'searchEditMultipleMerchantForm',
+        SEARCH_EDIT_MULTIPLE_MERCHANT_FORM_DRAFT: 'searchEditMultipleMerchantFormDraft',
+        SEARCH_EDIT_MULTIPLE_DATE_FORM: 'searchEditMultipleDateForm',
+        SEARCH_EDIT_MULTIPLE_DATE_FORM_DRAFT: 'searchEditMultipleDateFormDraft',
         CREATE_DOMAIN_FORM: 'createDomainForm',
         CREATE_DOMAIN_FORM_DRAFT: 'createDomainFormDraft',
         SPLIT_EXPENSE_EDIT_DATES: 'splitExpenseEditDates',
@@ -1020,6 +1013,7 @@ const ONYXKEYS = {
         REPORT_TRANSACTIONS_AND_VIOLATIONS: 'reportTransactionsAndViolations',
         OUTSTANDING_REPORTS_BY_POLICY_ID: 'outstandingReportsByPolicyID',
         NON_PERSONAL_AND_WORKSPACE_CARD_LIST: 'nonPersonalAndWorkspaceCardList',
+        PERSONAL_AND_WORKSPACE_CARD_LIST: 'personalAndWorkspaceCardList',
         CARD_FEED_ERRORS: 'cardFeedErrors',
         TODOS: 'todos',
     },
@@ -1106,6 +1100,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.WORKSPACE_TIME_TRACKING_DEFAULT_RATE_FORM]: FormTypes.WorkspaceTimeTrackingDefaultRateForm;
     [ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM]: FormTypes.NewChatNameForm;
     [ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM]: FormTypes.SubscriptionSizeForm;
+    [ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM]: FormTypes.SubscriptionExpensifyCodeForm;
     [ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM]: FormTypes.IssueNewExpensifyCardForm;
     [ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM]: FormTypes.AddNewCardFeedForm;
     [ONYXKEYS.FORMS.ASSIGN_CARD_FORM]: FormTypes.AssignCardForm;
@@ -1137,6 +1132,9 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM]: FormTypes.InternationalBankAccountForm;
     [ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM]: FormTypes.WorkspacePerDiemForm;
     [ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS]: FormTypes.EnableGlobalReimbursementsForm;
+    [ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_DESCRIPTION_FORM]: FormTypes.SearchEditMultipleDescriptionForm;
+    [ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_MERCHANT_FORM]: FormTypes.SearchEditMultipleMerchantForm;
+    [ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_DATE_FORM]: FormTypes.SearchEditMultipleDateForm;
     [ONYXKEYS.FORMS.CREATE_DOMAIN_FORM]: FormTypes.CreateDomainForm;
     [ONYXKEYS.FORMS.SPLIT_EXPENSE_EDIT_DATES]: FormTypes.SplitExpenseEditDateForm;
     [ONYXKEYS.FORMS.EXPENSE_RULE_FORM]: FormTypes.ExpenseRuleForm;
@@ -1321,7 +1319,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW]: boolean;
     [ONYXKEYS.IS_LOADING_REPORT_DATA]: boolean;
     [ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN]: boolean;
-    [ONYXKEYS.APP_PROFILING_IN_PROGRESS]: boolean;
     [ONYXKEYS.IS_LOADING_APP]: boolean;
     [ONYXKEYS.HAS_LOADED_APP]: boolean;
     [ONYXKEYS.WALLET_TRANSFER]: OnyxTypes.WalletTransfer;
@@ -1354,10 +1351,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.RESET_REQUIRED]: boolean;
     [ONYXKEYS.PLAID_CURRENT_EVENT]: string;
     [ONYXKEYS.NVP_PRIVATE_TAX_EXEMPT]: boolean;
-    [ONYXKEYS.LOGS]: OnyxTypes.CapturedLogs;
-    [ONYXKEYS.SHOULD_STORE_LOGS]: boolean;
-    [ONYXKEYS.SHOULD_RECORD_TROUBLESHOOT_DATA]: boolean;
-    [ONYXKEYS.TROUBLESHOOT_RECORDING_START_TIME]: number | null;
     [ONYXKEYS.SHOULD_MASK_ONYX_STATE]: boolean;
     [ONYXKEYS.SHOULD_USE_STAGING_SERVER]: boolean;
     [ONYXKEYS.IS_DEBUG_MODE_ENABLED]: boolean;
@@ -1442,6 +1435,7 @@ type OnyxDerivedValuesMapping = {
     [ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS]: OnyxTypes.ReportTransactionsAndViolationsDerivedValue;
     [ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID]: OnyxTypes.OutstandingReportsByPolicyIDDerivedValue;
     [ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST]: OnyxTypes.NonPersonalAndWorkspaceCardListDerivedValue;
+    [ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST]: OnyxTypes.PersonalAndWorkspaceCardListDerivedValue;
     [ONYXKEYS.DERIVED.CARD_FEED_ERRORS]: OnyxTypes.CardFeedErrorsDerivedValue;
     [ONYXKEYS.DERIVED.TODOS]: OnyxTypes.TodosDerivedValue;
 };

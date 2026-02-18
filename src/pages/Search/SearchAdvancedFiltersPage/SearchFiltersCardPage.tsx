@@ -1,4 +1,3 @@
-import {filterOutPersonalCards} from '@selectors/Card';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -28,7 +27,7 @@ function SearchFiltersCardPage() {
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
 
-    const [userCardList, userCardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterOutPersonalCards, canBeMissing: true});
+    const [userCardList, userCardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [workspaceCardFeeds, workspaceCardFeedsMetadata] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const [policies, policiesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -156,7 +155,6 @@ function SearchFiltersCardPage() {
                             showLoadingPlaceholder={
                                 isLoadingOnyxValue(userCardListMetadata, workspaceCardFeedsMetadata, searchAdvancedFiltersFormMetadata, policiesMetadata) || !didScreenTransitionEnd
                             }
-                            disableMaintainingScrollPosition
                             shouldStopPropagation
                             canSelectMultiple
                         />

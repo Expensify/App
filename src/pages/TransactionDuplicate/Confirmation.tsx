@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -110,10 +110,12 @@ function Confirmation() {
 
     const doesTransactionBelongToReport = reviewDuplicates?.transactionID === transactionID || (transactionID && reviewDuplicates?.duplicates.includes(transactionID));
 
+    const isDismissingRef = useRef(false);
+
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
         isEmptyObject(report) ||
-        !ReportUtils.isValidReport(report) ||
+        (!ReportUtils.isValidReport(report) && !isDismissingRef.current) ||
         ReportUtils.isReportNotFound(report) ||
         (reviewDuplicatesResult.status === 'loaded' && (!newTransaction?.transactionID || !doesTransactionBelongToReport));
 
@@ -162,6 +164,7 @@ function Confirmation() {
                             text={translate('common.confirm')}
                             success
                             onPress={() => {
+                                isDismissingRef.current = true;
                                 if (!isReportOwner) {
                                     handleResolveDuplicates();
                                     return;
