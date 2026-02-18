@@ -27,7 +27,7 @@ type RemoveCachedAttachmentProps = {
     /** Attachment ID based on the data-attachment-id attribute */
     attachmentID: string;
 
-    /** Local source of the attachment (native-only) */
+    /** Local source of the attachment (for-native-only) */
     localSource?: string;
 };
 

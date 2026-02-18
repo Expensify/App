@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import {isLocalAttachment} from '@libs/AttachmentUtils';
+import {getImageCacheFileExtension, isLocalAttachment} from '@libs/AttachmentUtils';
 import CacheAPI from '@libs/CacheAPI';
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
@@ -9,67 +9,72 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CacheAttachmentProps, GetCachedAttachmentProps, RemoveCachedAttachmentProps} from './types';
 
-function cacheAttachment({attachmentID, uri}: CacheAttachmentProps) {
+async function cacheAttachment({attachmentID, uri}: CacheAttachmentProps): Promise<void> {
     const attachmentURL = isLocalAttachment(uri) ? addEncryptedAuthTokenToURL(tryResolveUrlFromApiRoot(uri)) : uri;
 
-    return fetch(attachmentURL)
-        .then((response) => {
-            if (!response.ok) {
-                return;
-            }
-            CacheAPI.put(CONST.CACHE_API_KEYS.ATTACHMENTS, attachmentID, response)
-                .then(() => {
-                    Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
-                        attachmentID,
-                        remoteSource: isLocalFile(uri) ? '' : uri,
-                    });
-                })
-                .catch(() => {
-                    Log.warn('Failed to cache attachment');
-                });
-        })
-        .catch(() => {
-            Log.warn('Failed to fetch attachment');
-        });
+    try {
+        const response = await fetch(attachmentURL);
+        if (!response.ok) {
+            return;
+        }
+
+        const contentType = response.headers.get('content-type') ?? '';
+        const fileType = getImageCacheFileExtension(contentType);
+
+        // If the image file type doesn't exist in our list, then we need to exit
+        if (!fileType) {
+            return;
+        }
+
+        try {
+            await CacheAPI.put(CONST.CACHE_API_KEYS.ATTACHMENTS, attachmentID, response);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
+                attachmentID,
+                remoteSource: isLocalFile(uri) ? '' : uri,
+            });
+        } catch (error) {
+            Log.warn('[AttachmentCache] Failed to cache attachment', {error});
+        }
+    } catch (error) {
+        Log.warn('[AttachmentCache] Failed to fetch attachment', {error});
+    }
 }
 
-function getCachedAttachment({attachmentID, attachment, currentSource}: GetCachedAttachmentProps) {
-    if (!attachment || (attachment?.remoteSource && attachment.remoteSource !== currentSource)) {
+async function getCachedAttachment({attachmentID, attachment, currentSource}: GetCachedAttachmentProps): Promise<string> {
+    const cachedAttachment = await CacheAPI.get(CONST.CACHE_API_KEYS.ATTACHMENTS, attachmentID);
+    const isUncachedOrStale = !attachment || !cachedAttachment || (attachment?.remoteSource && attachment.remoteSource !== currentSource);
+
+    if (isUncachedOrStale) {
         cacheAttachment({attachmentID, uri: currentSource});
-        return Promise.resolve(currentSource);
+        return currentSource;
     }
 
-    return CacheAPI.get(CONST.CACHE_API_KEYS.ATTACHMENTS, attachment.attachmentID)?.then((response) => {
-        return response
-            ?.blob()
-            .then((attachmentFile) => {
-                const source = URL.createObjectURL(attachmentFile);
-                return source;
-            })
-            .catch(() => {
-                Log.warn('Failed to get attachment');
-            });
-    });
+    try {
+        const attachmentFile = await cachedAttachment.blob();
+        return URL.createObjectURL(attachmentFile);
+    } catch (error) {
+        Log.warn('[AttachmentCache] Failed to get attachment', {error});
+        cacheAttachment({attachmentID, uri: currentSource});
+        return currentSource;
+    }
 }
 
-function removeCachedAttachment({attachmentID}: RemoveCachedAttachmentProps) {
-    CacheAPI.remove(CONST.CACHE_API_KEYS.ATTACHMENTS, attachmentID)
-        .then(() => {
-            Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, null);
-        })
-        .catch(() => {
-            Log.warn('Failed to remove cached attachment');
-        });
+async function removeCachedAttachment({attachmentID}: RemoveCachedAttachmentProps) {
+    try {
+        await CacheAPI.remove(CONST.CACHE_API_KEYS.ATTACHMENTS, attachmentID);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, null);
+    } catch (error) {
+        Log.warn('[AttachmentCache] Failed to remove cached attachment', {error});
+    }
 }
 
-function clearCachedAttachments() {
-    CacheAPI.clear(CONST.CACHE_API_KEYS.ATTACHMENTS)
-        .then(() => {
-            Onyx.setCollection(ONYXKEYS.COLLECTION.ATTACHMENT, {});
-        })
-        .catch(() => {
-            Log.warn('Failed to clear cached attachments');
-        });
+async function clearCachedAttachments() {
+    try {
+        await CacheAPI.clear(CONST.CACHE_API_KEYS.ATTACHMENTS);
+        await Onyx.setCollection(ONYXKEYS.COLLECTION.ATTACHMENT, {});
+    } catch (error) {
+        Log.warn('[AttachmentCache] Failed to clear cached attachments', {error});
+    }
 }
 
 export {cacheAttachment, getCachedAttachment, removeCachedAttachment, clearCachedAttachments};
