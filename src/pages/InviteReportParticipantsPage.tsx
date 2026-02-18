@@ -205,7 +205,6 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
                 showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
                 footerContent={footerContent}
                 onEndReached={onListEndReached}
-                disableMaintainingScrollPosition
             />
         </ScreenWrapper>
     );

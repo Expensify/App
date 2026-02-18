@@ -1,5 +1,5 @@
-import React, {useCallback, useContext, useEffect, useMemo} from 'react';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import React, {useCallback, useEffect, useMemo} from 'react';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchContext} from '@components/Search/SearchContext';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -41,7 +41,8 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
         return context.selectedTransactions;
     }, [route.name, reportID, context.selectedTransactionIDs, context.selectedTransactions]);
 
-    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const onSubmit = useCallback(
         ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
             if (isDelegateAccessRestricted) {

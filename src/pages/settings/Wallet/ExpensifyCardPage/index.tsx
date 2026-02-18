@@ -2,7 +2,6 @@ import {useFocusEffect} from '@react-navigation/native';
 import {filterOutPersonalCards} from '@selectors/Card';
 import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AddToWalletButton from '@components/AddToWalletButton/index';
 import Button from '@components/Button';
@@ -14,25 +13,26 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import useCurrencyList from '@hooks/useCurrencyList';
+import {useCurrencyListState} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {resetValidateActionCodeSent} from '@libs/actions/User';
-import {formatCardExpiration, getDomainCards, getTranslationKeyForLimitType, maskCard, maskPin} from '@libs/CardUtils';
+import {formatCardExpiration, getDomainCards, getTranslationKeyForLimitType, isCardFrozen, maskCard, maskPin} from '@libs/CardUtils';
 import {convertToDisplayString, getCurrencyKeyByCountryCode} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DomainCardNavigatorParamList, SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {arePersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
+import {shouldShowMissingDetailsPage} from '@libs/PersonalDetailsUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import RedDotCardSection from '@pages/settings/Wallet/RedDotCardSection';
@@ -43,7 +43,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Card, PrivatePersonalDetails} from '@src/types/onyx';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import {useExpensifyCardActions, useExpensifyCardState} from './ExpensifyCardContextProvider';
 
@@ -57,17 +56,6 @@ type LimitTypeTranslationKeys = {
     limitNameKey: TranslationPaths | undefined;
     limitTitleKey: PossibleTitles | undefined;
 };
-
-/**
- * Determines if the user should be redirected to the missing details page
- * before revealing their card details (for UK/EU cards only).
- */
-function shouldShowMissingDetailsPage(card: OnyxEntry<Card>, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): boolean {
-    const isUKOrEUCard = card?.nameValuePairs?.feedCountry === 'GB';
-    const hasMissingDetails = arePersonalDetailsMissing(privatePersonalDetails);
-
-    return hasMissingDetails && isUKOrEUCard;
-}
 
 function getLimitTypeTranslationKeys(limitType: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES> | undefined): LimitTypeTranslationKeys {
     switch (limitType) {
@@ -103,7 +91,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterOutPersonalCards, canBeMissing: false});
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: false});
-    const {currencyList} = useCurrencyList();
+    const {currencyList} = useCurrencyListState();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -115,7 +103,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const pageTitle = shouldDisplayCardDomain ? expensifyCardTitle : (cardList?.[cardID]?.nameValuePairs?.cardTitle ?? expensifyCardTitle);
     const {displayName} = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Flag', 'MoneySearch']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Flag', 'MoneySearch', 'FreezeCard']);
 
     const [isNotFound, setIsNotFound] = useState(false);
     const cardsToShow = useMemo(() => {
@@ -164,6 +152,11 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const {limitNameKey, limitTitleKey} = getLimitTypeTranslationKeys(currentCard?.nameValuePairs?.limitType);
 
     const isSignedInAsDelegate = !!account?.delegatedAccess?.delegate || false;
+
+    const session = useSession();
+    const isCardHolder = currentCard?.accountID === session?.accountID;
+
+    const {isBetaEnabled} = usePermissions();
 
     if (isNotFound) {
         return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)} />;
@@ -416,6 +409,13 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                 );
                             }}
                         />
+                        {isBetaEnabled(CONST.BETAS.FREEZE_CARD) && isCardHolder && !!currentCard && !isCardFrozen(currentCard) && (
+                            <MenuItem
+                                icon={expensifyIcons.FreezeCard}
+                                title={translate('cardPage.freezeCard')}
+                                disabled={isOffline}
+                            />
+                        )}
                     </>
                 )}
                 {cardToAdd !== undefined && (
