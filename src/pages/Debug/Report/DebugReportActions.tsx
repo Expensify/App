@@ -80,7 +80,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
 
             if (isCreatedAction(reportAction)) {
                 return formatReportLastMessageText(
-                    SidebarUtils.getWelcomeMessage(report, policy, invoiceReceiverPolicy, participantPersonalDetailList, translate, localeCompare, isReportArchived).messageText ??
+                    SidebarUtils.getWelcomeMessage({report, policy, invoiceReceiverPolicy, participantPersonalDetailList, translate, localeCompare, isReportArchived}).messageText ??
                         translate('report.noActivityYet'),
                 );
             }

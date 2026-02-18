@@ -971,7 +971,14 @@ describe('SidebarUtils', () => {
                         }),
                     )
                     .then(() => {
-                        const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, undefined, participantPersonalDetailList, translateLocal, localeCompare);
+                        const result = SidebarUtils.getWelcomeMessage({
+                            report: MOCK_REPORT,
+                            policy: undefined,
+                            invoiceReceiverPolicy: undefined,
+                            participantPersonalDetailList,
+                            translate: translateLocal,
+                            localeCompare,
+                        });
                         expect(result.messageHtml).toContain('This chat is with');
                         expect(result.messageHtml).toContain('<user-details accountid="1">');
                         expect(result.messageHtml).toContain('<user-details accountid="2">');
@@ -997,7 +1004,14 @@ describe('SidebarUtils', () => {
                 });
             });
 
-            const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, undefined, participantPersonalDetailList, translateLocal, localeCompare);
+            const result = SidebarUtils.getWelcomeMessage({
+                report: MOCK_REPORT,
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                participantPersonalDetailList,
+                translate: translateLocal,
+                localeCompare,
+            });
             expect(result.messageText).toBe('This chat is with Email One.');
             expect(result.messageHtml).toContain('<user-details accountid="1">Email One</user-details>');
         });
@@ -1020,7 +1034,14 @@ describe('SidebarUtils', () => {
                 });
             });
 
-            const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, undefined, participantPersonalDetailList, translateLocal, localeCompare);
+            const result = SidebarUtils.getWelcomeMessage({
+                report: MOCK_REPORT,
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                participantPersonalDetailList,
+                translate: translateLocal,
+                localeCompare,
+            });
             expect(result.messageText).toMatch(/^This chat is with .+ and .+\.$/);
             expect(result.messageText).toContain(' and ');
             expect(result.messageText).not.toContain('<user-details');
@@ -1045,7 +1066,14 @@ describe('SidebarUtils', () => {
                 });
             });
 
-            const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, undefined, participantPersonalDetailList, translateLocal, localeCompare);
+            const result = SidebarUtils.getWelcomeMessage({
+                report: MOCK_REPORT,
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                participantPersonalDetailList,
+                translate: translateLocal,
+                localeCompare,
+            });
             expect(result.messageText).toMatch(/^This chat is with .+, .+, and .+\.$/);
             expect(result.messageText).toContain(', and ');
             expect(result.messageText).not.toContain('<user-details');
@@ -1080,7 +1108,15 @@ describe('SidebarUtils', () => {
                     .then(() => {
                         // Simulate how components call getWelcomeMessage() by using the hook useReportIsArchived() to see if the report is archived
                         const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-                        return SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, undefined, participantPersonalDetailList, translateLocal, localeCompare, isReportArchived.current);
+                        return SidebarUtils.getWelcomeMessage({
+                            report: MOCK_REPORT,
+                            policy: undefined,
+                            invoiceReceiverPolicy: undefined,
+                            participantPersonalDetailList,
+                            translate: translateLocal,
+                            localeCompare,
+                            isReportArchived: isReportArchived.current,
+                        });
                     })
 
                     // Then the welcome message should indicate the report is archived
@@ -1110,7 +1146,15 @@ describe('SidebarUtils', () => {
                     .then(() => {
                         // Simulate how components call getWelcomeMessage() by using the hook useReportIsArchived() to see if the report is archived
                         const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-                        return SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, undefined, participantPersonalDetailList, translateLocal, localeCompare, isReportArchived.current);
+                        return SidebarUtils.getWelcomeMessage({
+                            report: MOCK_REPORT,
+                            policy: undefined,
+                            invoiceReceiverPolicy: undefined,
+                            participantPersonalDetailList,
+                            translate: translateLocal,
+                            localeCompare,
+                            isReportArchived: isReportArchived.current,
+                        });
                     })
 
                     // Then the welcome message should explain the purpose of the room
@@ -1143,7 +1187,14 @@ describe('SidebarUtils', () => {
                 },
             };
 
-            const result = SidebarUtils.getWelcomeMessage(invoiceRoom, senderPolicy, invoiceReceiverPolicy, [], translateLocal, localeCompare);
+            const result = SidebarUtils.getWelcomeMessage({
+                report: invoiceRoom,
+                policy: senderPolicy,
+                invoiceReceiverPolicy,
+                participantPersonalDetailList: [],
+                translate: translateLocal,
+                localeCompare,
+            });
 
             expect(result.messageText).toContain('Client Corporation');
             expect(result.messageText).toContain('Vendor Workspace');
@@ -1171,7 +1222,14 @@ describe('SidebarUtils', () => {
                 },
             };
 
-            const result = SidebarUtils.getWelcomeMessage(invoiceRoom, senderPolicy, undefined, [], translateLocal, localeCompare);
+            const result = SidebarUtils.getWelcomeMessage({
+                report: invoiceRoom,
+                policy: senderPolicy,
+                invoiceReceiverPolicy: undefined,
+                participantPersonalDetailList: [],
+                translate: translateLocal,
+                localeCompare,
+            });
 
             // When invoiceReceiverPolicy is undefined (individual payer), it should handle gracefully
             expect(result.messageText).toBeTruthy();
@@ -1199,7 +1257,7 @@ describe('SidebarUtils', () => {
                 policyName: policy.name,
             };
 
-            const result = SidebarUtils.getWelcomeMessage(regularRoom, policy, invoiceReceiverPolicy, [], translateLocal, localeCompare);
+            const result = SidebarUtils.getWelcomeMessage({report: regularRoom, policy, invoiceReceiverPolicy, participantPersonalDetailList: [], translate: translateLocal, localeCompare});
 
             // Should not contain invoice-specific messaging
             expect(result.messageText).not.toContain('Some Policy');
@@ -1232,16 +1290,16 @@ describe('SidebarUtils', () => {
                 },
             };
 
-            const result = SidebarUtils.getWelcomeMessage(
-                archivedInvoiceRoom,
-                senderPolicy,
+            const result = SidebarUtils.getWelcomeMessage({
+                report: archivedInvoiceRoom,
+                policy: senderPolicy,
                 invoiceReceiverPolicy,
-                [],
-                translateLocal,
+                participantPersonalDetailList: [],
+                translate: translateLocal,
                 localeCompare,
-                true, // isReportArchived
-                'https://example.com/report',
-            );
+                isReportArchived: true,
+                reportDetailsLink: 'https://example.com/report',
+            });
 
             // Should show archived message
             expect(result.messageText).toContain('You missed the party');
@@ -1267,14 +1325,14 @@ describe('SidebarUtils', () => {
                 },
             };
 
-            const result = SidebarUtils.getWelcomeMessage(
-                invoiceRoom,
-                senderPolicy,
-                undefined, // invoiceReceiverPolicy is undefined
-                [],
-                translateLocal,
+            const result = SidebarUtils.getWelcomeMessage({
+                report: invoiceRoom,
+                policy: senderPolicy,
+                invoiceReceiverPolicy: undefined,
+                participantPersonalDetailList: [],
+                translate: translateLocal,
                 localeCompare,
-            );
+            });
 
             // Should still return a message, even if invoiceReceiverPolicy is missing
             expect(result.messageText).toBeTruthy();

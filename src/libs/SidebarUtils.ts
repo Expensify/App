@@ -1081,19 +1081,16 @@ function getOptionData({
 
             if (!result.alternateText) {
                 result.alternateText = formatReportLastMessageText(
-                    getWelcomeMessage(
+                    getWelcomeMessage({
                         report,
                         policy,
                         invoiceReceiverPolicy,
-                        participantPersonalDetailListExcludeCurrentUser,
+                        participantPersonalDetailList: participantPersonalDetailListExcludeCurrentUser,
                         translate,
                         localeCompare,
                         isReportArchived,
-                        '',
-                        false,
-                        '',
                         reportAttributesDerived,
-                    ).messageText ?? translate('report.noActivityYet'),
+                    }).messageText ?? translate('report.noActivityYet'),
                 );
             }
         }
@@ -1101,20 +1098,16 @@ function getOptionData({
     } else {
         if (!lastMessageText) {
             lastMessageText = formatReportLastMessageText(
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                getWelcomeMessage(
+                getWelcomeMessage({
                     report,
                     policy,
                     invoiceReceiverPolicy,
-                    participantPersonalDetailListExcludeCurrentUser,
+                    participantPersonalDetailList: participantPersonalDetailListExcludeCurrentUser,
                     translate,
                     localeCompare,
                     isReportArchived,
-                    '',
-                    false,
-                    '',
                     reportAttributesDerived,
-                ).messageText || translate('report.noActivityYet'),
+                }).messageText ?? translate('report.noActivityYet'),
             );
         }
         if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID) && !isReportArchived) {
@@ -1166,26 +1159,40 @@ function getOptionData({
     return result;
 }
 
-function getWelcomeMessage(
-    report: OnyxEntry<Report>,
-    policy: OnyxEntry<Policy>,
-    invoiceReceiverPolicy: OnyxEntry<Policy>,
-    participantPersonalDetailList: PersonalDetails[],
-    translate: LocalizedTranslate,
-    localeCompare: LocaleContextProps['localeCompare'],
+type GetWelcomeMessageOptions = {
+    report: OnyxEntry<Report>;
+    policy: OnyxEntry<Policy>;
+    invoiceReceiverPolicy: OnyxEntry<Policy>;
+    participantPersonalDetailList: PersonalDetails[];
+    translate: LocalizedTranslate;
+    localeCompare: LocaleContextProps['localeCompare'];
+    isReportArchived?: boolean;
+    reportDetailsLink?: string;
+    shouldShowUsePlusButtonText?: boolean;
+    additionalText?: string;
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
+};
+
+function getWelcomeMessage({
+    report,
+    policy,
+    invoiceReceiverPolicy,
+    participantPersonalDetailList,
+    translate,
+    localeCompare,
     isReportArchived = false,
     reportDetailsLink = '',
     shouldShowUsePlusButtonText = false,
     additionalText = '',
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
-): WelcomeMessage {
+    reportAttributesDerived,
+}: GetWelcomeMessageOptions): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {};
     if (isChatThread(report) || isTaskReport(report)) {
         return welcomeMessage;
     }
 
     if (isChatRoom(report)) {
-        return getRoomWelcomeMessage(translate, report, invoiceReceiverPolicy, isReportArchived, reportDetailsLink, reportAttributesDerived);
+        return getRoomWelcomeMessage(translate, report, invoiceReceiverPolicy, {isReportArchived, reportDetailsLink, reportAttributesDerived});
     }
 
     if (isPolicyExpenseChat(report)) {
@@ -1244,9 +1251,7 @@ function getRoomWelcomeMessage(
     translate: LocalizedTranslate,
     report: OnyxEntry<Report>,
     invoiceReceiverPolicy: OnyxEntry<Policy>,
-    isReportArchived = false,
-    reportDetailsLink = '',
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
+    {isReportArchived = false, reportDetailsLink = '', reportAttributesDerived}: Pick<GetWelcomeMessageOptions, 'isReportArchived' | 'reportDetailsLink' | 'reportAttributesDerived'> = {},
 ): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {};
     const workspaceName = getPolicyName({report});
