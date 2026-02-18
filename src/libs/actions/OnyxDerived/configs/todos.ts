@@ -1,4 +1,5 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {hasVerifiedBusinessBankAccount} from '@libs/PolicyUtils';
 import {isApproveAction, isExportAction, isPrimaryPayAction, isSubmitAction} from '@libs/ReportPrimaryActionUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import CONST from '@src/CONST';
@@ -67,7 +68,7 @@ const createTodosReportsAndTransactions = ({
         if (isPrimaryPayAction(report, currentUserAccountID, login, bankAccountList, policy, reportNameValuePair)) {
             const isPaidGroupPolicyReport = policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE;
             if (isPaidGroupPolicyReport) {
-                const hasVBBA = !!policy?.achAccount?.bankAccountID && policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
+                const hasVBBA = hasVerifiedBusinessBankAccount(policy);
                 const bankAccountID = policy?.achAccount?.bankAccountID;
                 const bankAccount = bankAccountID ? bankAccountList?.[bankAccountID] : null;
                 const hasAccessToBankAccount = login && bankAccount?.accountData?.sharees ? bankAccount.accountData.sharees.includes(login) : false;

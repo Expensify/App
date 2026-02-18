@@ -103,6 +103,7 @@ import {
     getCommaSeparatedTagNameWithSanitizedColons,
     getGroupPaidPoliciesWithExpenseChatEnabled,
     getSubmitToAccountID,
+    hasVerifiedBusinessBankAccount,
     isPaidGroupPolicy,
     isPolicyPayer,
 } from './PolicyUtils';
@@ -882,7 +883,7 @@ function getSuggestedSearchesVisibility(
             return hasSynchronizationErrorMessage(policy, connection, false);
         });
         const isPaymentEnabled = arePaymentsEnabled(policy);
-        const hasVBBA = !!policy.achAccount?.bankAccountID && policy.achAccount.state === CONST.BANK_ACCOUNT.STATE.OPEN;
+        const hasVBBA = hasVerifiedBusinessBankAccount(policy);
         const hasReimburser = !!policy.achAccount?.reimburser;
         const isECardEnabled = !!policy.areExpensifyCardsEnabled;
         const isSubmittedTo = Object.values(policy.employeeList ?? {}).some((employee) => {

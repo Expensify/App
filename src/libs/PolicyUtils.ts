@@ -422,6 +422,10 @@ function isPolicyMemberWithoutPendingDelete(currentUserLogin: string | undefined
     return !!policyEmployee && policyEmployee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
+function hasVerifiedBusinessBankAccount(policy: OnyxInputOrEntry<Policy>): boolean {
+    return !!policy?.achAccount?.bankAccountID && policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
+}
+
 function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | undefined): boolean {
     if (!policy) {
         return false;
@@ -429,9 +433,8 @@ function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | und
 
     const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
     const isReimburser = policy.reimburser === currentUserLogin;
-    const hasVBBA = !!policy.achAccount?.bankAccountID && policy.achAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
 
-    if (!hasVBBA) {
+    if (!hasVerifiedBusinessBankAccount(policy)) {
         return false;
     }
 
@@ -2064,6 +2067,7 @@ export {
     getTagNamesFromTagsLists,
     getTagApproverRule,
     getDomainNameForPolicy,
+    hasVerifiedBusinessBankAccount,
     hasUnsupportedIntegration,
     hasSupportedOnlyOnOldDotIntegration,
     getWorkflowApprovalsUnavailable,

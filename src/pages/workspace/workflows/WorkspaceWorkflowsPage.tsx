@@ -45,6 +45,7 @@ import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalD
 import {
     getCorrectedAutoReportingFrequency,
     hasDynamicExternalWorkflow,
+    hasVerifiedBusinessBankAccount,
     isControlPolicy,
     isPaidGroupPolicy as isPaidGroupPolicyUtil,
     isPolicyAdmin as isPolicyAdminUtil,
@@ -214,7 +215,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const isDEWEnabled = hasDynamicExternalWorkflow(policy);
 
     const optionItems: ToggleSettingOptionRowProps[] = useMemo(() => {
-        const isBankAccountFullySetup = policy?.achAccount && policy?.achAccount.state === CONST.BANK_ACCOUNT.STATE.OPEN;
+        const isBankAccountFullySetup = hasVerifiedBusinessBankAccount(policy);
         const bankAccountConnectedToWorkspace = Object.values(bankAccountList ?? {}).find((account) => account?.accountData?.additionalData?.policyID === policy?.id);
         const bankName = isBankAccountFullySetup ? (policy?.achAccount?.bankName ?? '') : (bankAccountConnectedToWorkspace?.accountData?.additionalData?.bankName ?? '');
         const addressName = isBankAccountFullySetup ? (policy?.achAccount?.addressName ?? '') : (bankAccountConnectedToWorkspace?.accountData?.addressName ?? '');
