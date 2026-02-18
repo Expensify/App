@@ -396,6 +396,12 @@ function removeMembers(policy: OnyxEntry<Policy>, selectedMemberEmails: string[]
         };
     }
 
+    // APPROVAL WORKFLOW UPDATE:
+    // When removing a member who is an approver, the backend (SharePolicy command in Auth)
+    // now handles updating all approval workflows within the same database transaction.
+    // This prevents the bug where approval updates succeed but member deletion fails, leaving
+    // the workspace in an inconsistent state. The frontend optimistic data below mirrors what
+    // the backend will do, ensuring a smooth user experience while following the 1:1:1 philosophy.
     for (const employeeEmail of Object.keys(policy?.employeeList ?? {})) {
         const employee = policy?.employeeList?.[employeeEmail];
         optimisticMembersState[employeeEmail] = optimisticMembersState[employeeEmail] ?? {};
