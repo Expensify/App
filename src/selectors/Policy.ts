@@ -3,11 +3,6 @@ import {getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy, shoul
 import CONST from '@src/CONST';
 import type {Policy, PolicyReportField} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
-
-type PolicySelector<T> = (policy: OnyxEntry<Policy>) => T;
-
-const createPoliciesSelector = <T>(policies: OnyxCollection<Policy>, policySelector: PolicySelector<T>) => mapOnyxCollectionItems(policies, policySelector);
 
 const activePolicySelector = (policy: OnyxEntry<Policy>) => (policy?.type !== CONST.POLICY.TYPE.PERSONAL ? policy : undefined);
 
@@ -92,7 +87,6 @@ const groupPaidPoliciesWithExpenseChatEnabledSelector = (policies: OnyxCollectio
 
 export {
     activePolicySelector,
-    createPoliciesSelector,
     createAllPolicyReportFieldsSelector,
     ownerPoliciesSelector,
     activeAdminPoliciesSelector,

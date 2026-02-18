@@ -196,9 +196,9 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
     const renderOption = useCallback(
         (item: OnboardingListItem) => (
             <PressableWithoutFeedback
+                sentryLabel="OnboardingAccounting-integrationOption"
                 key={item.keyForList ?? ''}
                 onPress={() => handleIntegrationSelect(item.keyForList)}
-                accessibilityLabel={item.text}
                 accessible={false}
                 hoverStyle={!item.isSelected ? styles.hoveredComponentBG : undefined}
                 style={[styles.onboardingAccountingItem, isSmallScreenWidth && styles.flexBasis100, item.isSelected && styles.activeComponentBG]}
@@ -206,6 +206,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
                 <RadioButtonWithLabel
                     isChecked={!!item.isSelected}
                     onPress={() => handleIntegrationSelect(item.keyForList)}
+                    accessibilityLabel={item.text}
                     style={[styles.flexRowReverse]}
                     wrapperStyle={[styles.ml0]}
                     labelElement={

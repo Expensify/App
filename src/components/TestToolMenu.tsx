@@ -16,7 +16,7 @@ import {setIsDebugModeEnabled, setShouldUseStagingServer} from '@userActions/Use
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {hasBiometricsRegisteredSelector} from '@src/selectors/Account';
+import {hasBiometricsRegisteredSelector, isAccountLoadingSelector} from '@src/selectors/Account';
 import Button from './Button';
 import SoftKillTestToolRow from './SoftKillTestToolRow';
 import Switch from './Switch';
@@ -33,6 +33,7 @@ function TestToolMenu() {
     const {translate} = useLocalize();
     const {clearLHNCache} = useSidebarOrderedReports();
     const [hasBiometricsRegistered = false] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true, selector: hasBiometricsRegisteredSelector});
+    const [isAccountLoading = false] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true, selector: isAccountLoadingSelector});
 
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
@@ -119,8 +120,9 @@ function TestToolMenu() {
                             {hasBiometricsRegistered && (
                                 <Button
                                     danger
+                                    isLoading={isAccountLoading}
                                     small
-                                    text={translate('multifactorAuthentication.revoke.remove')}
+                                    text={translate('multifactorAuthentication.revoke.revoke')}
                                     onPress={() => {
                                         revokeMultifactorAuthenticationCredentials();
                                     }}
