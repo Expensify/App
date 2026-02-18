@@ -14,7 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {DeviceBiometrics} from '@src/types/onyx';
-import {useMultifactorAuthenticationState} from './State';
+import {useMultifactorAuthenticationActions, useMultifactorAuthenticationState} from './State';
 import useNativeBiometrics from './useNativeBiometrics';
 import type {AuthorizeResult, RegisterResult} from './useNativeBiometrics';
 
@@ -65,7 +65,8 @@ function getChallengeType(challenge: unknown): ChallengeType | undefined {
 }
 
 function MultifactorAuthenticationContextProvider({children}: MultifactorAuthenticationContextProviderProps) {
-    const {state, dispatch} = useMultifactorAuthenticationState();
+    const state = useMultifactorAuthenticationState();
+    const {dispatch} = useMultifactorAuthenticationActions();
 
     const biometrics = useNativeBiometrics();
     const {isOffline} = useNetwork();

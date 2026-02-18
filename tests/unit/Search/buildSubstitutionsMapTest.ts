@@ -51,11 +51,13 @@ const cardListMock = {
     '11223344': {
         state: 1,
         bank: 'vcf',
+        fundID: 1,
         lastFourPAN: '1234',
     },
     '10203040': {
         state: 1,
         bank: CONST.EXPENSIFY_CARD.BANK,
+        fundID: 2,
         lastFourPAN: '1234',
     },
 } as unknown as OnyxTypes.CardList;

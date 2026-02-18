@@ -100,9 +100,10 @@ function createCardFilterItem(
     const cardName = card?.nameValuePairs?.cardTitle;
     const text = personalDetails?.displayName ?? cardName;
     const plaidUrl = getPlaidInstitutionIconUrl(card?.bank);
+    const isCSVImportCard = card?.bank === CONST.PERSONAL_CARD.BANK_NAME.CSV;
 
     return {
-        lastFourPAN: card.lastFourPAN,
+        lastFourPAN: isCSVImportCard ? card?.cardName : card.lastFourPAN,
         isVirtual: card?.nameValuePairs?.isVirtual,
         shouldShowOwnersAvatar: true,
         cardName,

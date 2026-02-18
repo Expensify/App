@@ -22,9 +22,9 @@ const AUTH_TYPE_TRANSLATION_KEY = {
 function AuthenticationMethodDescription() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {state} = useMultifactorAuthenticationState();
+    const {authenticationMethod} = useMultifactorAuthenticationState();
 
-    const authType = translate(AUTH_TYPE_TRANSLATION_KEY[state.authenticationMethod?.name ?? SECURE_STORE_VALUES.AUTH_TYPE.UNKNOWN.NAME]);
+    const authType = translate(AUTH_TYPE_TRANSLATION_KEY[authenticationMethod?.name ?? SECURE_STORE_VALUES.AUTH_TYPE.UNKNOWN.NAME]);
 
     return <Text style={[styles.textAlignCenter, styles.textSupporting]}>{translate('multifactorAuthentication.biometricsTest.successfullyAuthenticatedUsing', {authType})}</Text>;
 }

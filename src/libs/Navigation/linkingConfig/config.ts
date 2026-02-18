@@ -41,14 +41,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         },
 
         [SCREENS.NOT_FOUND]: '*',
-        [NAVIGATORS.PUBLIC_RIGHT_MODAL_NAVIGATOR]: {
-            screens: {
-                [SCREENS.PUBLIC_CONSOLE_DEBUG]: {
-                    path: ROUTES.PUBLIC_CONSOLE_DEBUG.route,
-                    exact: true,
-                },
-            },
-        },
         [NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR]: {
             screens: {
                 [SCREENS.FEATURE_TRAINING_ROOT]: {
@@ -325,6 +317,14 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS.route,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.WALLET.TRAVEL_CVV]: {
+                            path: ROUTES.SETTINGS_WALLET_TRAVEL_CVV,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.WALLET.TRAVEL_CVV_VERIFY_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_WALLET_TRAVEL_CVV_VERIFY_ACCOUNT,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.ADD_DEBIT_CARD]: {
                             path: ROUTES.SETTINGS_ADD_DEBIT_CARD,
                             exact: true,
@@ -360,7 +360,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.RULES.ADD_MERCHANT]: ROUTES.SETTINGS_RULES_ADD.getRoute(CONST.EXPENSE_RULES.FIELDS.MERCHANT),
                         [SCREENS.SETTINGS.RULES.ADD_RENAME_MERCHANT]: ROUTES.SETTINGS_RULES_ADD.getRoute(CONST.EXPENSE_RULES.FIELDS.RENAME_MERCHANT),
                         [SCREENS.SETTINGS.RULES.ADD_CATEGORY]: ROUTES.SETTINGS_RULES_ADD.getRoute(CONST.EXPENSE_RULES.FIELDS.CATEGORY),
-                        [SCREENS.SETTINGS.RULES.ADD_TAG]: ROUTES.SETTINGS_RULES_ADD.getRoute(CONST.EXPENSE_RULES.FIELDS.TAG),
+                        [SCREENS.SETTINGS.RULES.ADD_TAG]: {
+                            path: ROUTES.SETTINGS_RULES_ADD.getRoute(CONST.EXPENSE_RULES.FIELDS.TAG, -1),
+                            parse: {
+                                index: Number,
+                            },
+                        },
                         [SCREENS.SETTINGS.RULES.ADD_TAX]: ROUTES.SETTINGS_RULES_ADD.getRoute(CONST.EXPENSE_RULES.FIELDS.TAX),
                         [SCREENS.SETTINGS.RULES.ADD_DESCRIPTION]: ROUTES.SETTINGS_RULES_ADD.getRoute(CONST.EXPENSE_RULES.FIELDS.DESCRIPTION),
                         [SCREENS.SETTINGS.RULES.ADD_REIMBURSABLE]: ROUTES.SETTINGS_RULES_ADD.getRoute(CONST.EXPENSE_RULES.FIELDS.REIMBURSABLE),
@@ -373,7 +378,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.RULES.EDIT_MERCHANT]: ROUTES.SETTINGS_RULES_EDIT.getRoute(undefined, CONST.EXPENSE_RULES.FIELDS.MERCHANT),
                         [SCREENS.SETTINGS.RULES.EDIT_RENAME_MERCHANT]: ROUTES.SETTINGS_RULES_EDIT.getRoute(undefined, CONST.EXPENSE_RULES.FIELDS.RENAME_MERCHANT),
                         [SCREENS.SETTINGS.RULES.EDIT_CATEGORY]: ROUTES.SETTINGS_RULES_EDIT.getRoute(undefined, CONST.EXPENSE_RULES.FIELDS.CATEGORY),
-                        [SCREENS.SETTINGS.RULES.EDIT_TAG]: ROUTES.SETTINGS_RULES_EDIT.getRoute(undefined, CONST.EXPENSE_RULES.FIELDS.TAG),
+                        [SCREENS.SETTINGS.RULES.EDIT_TAG]: {
+                            path: ROUTES.SETTINGS_RULES_EDIT.getRoute(undefined, CONST.EXPENSE_RULES.FIELDS.TAG, -1),
+                            parse: {
+                                index: Number,
+                            },
+                        },
                         [SCREENS.SETTINGS.RULES.EDIT_TAX]: ROUTES.SETTINGS_RULES_EDIT.getRoute(undefined, CONST.EXPENSE_RULES.FIELDS.TAX),
                         [SCREENS.SETTINGS.RULES.EDIT_DESCRIPTION]: ROUTES.SETTINGS_RULES_EDIT.getRoute(undefined, CONST.EXPENSE_RULES.FIELDS.DESCRIPTION),
                         [SCREENS.SETTINGS.RULES.EDIT_REIMBURSABLE]: ROUTES.SETTINGS_RULES_EDIT.getRoute(undefined, CONST.EXPENSE_RULES.FIELDS.REIMBURSABLE),
@@ -399,11 +409,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_APP_DOWNLOAD_LINKS,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.CONSOLE]: {
-                            path: ROUTES.SETTINGS_CONSOLE.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.SHARE_LOG]: ROUTES.SETTINGS_SHARE_LOG.route,
                         [SCREENS.SETTINGS.DYNAMIC_VERIFY_ACCOUNT]: DYNAMIC_ROUTES.VERIFY_ACCOUNT.path,
                         [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: {
                             path: ROUTES.SETTINGS_CONTACT_METHODS.route,
@@ -1217,6 +1222,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.RULES_MERCHANT_TAG]: {
                             path: ROUTES.RULES_MERCHANT_TAG.route,
+                            parse: {
+                                orderWeight: Number,
+                            },
                         },
                         [SCREENS.WORKSPACE.RULES_MERCHANT_TAX]: {
                             path: ROUTES.RULES_MERCHANT_TAX.route,
@@ -1847,6 +1855,16 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             exact: true,
                         },
                         [SCREENS.SEARCH.SEARCH_REJECT_REASON_RHP]: ROUTES.SEARCH_REJECT_REASON_RHP,
+                        [SCREENS.SEARCH.EDIT_MULTIPLE_TRANSACTIONS_RHP]: ROUTES.SEARCH_EDIT_MULTIPLE_TRANSACTIONS_RHP,
+                        [SCREENS.SEARCH.EDIT_MULTIPLE_AMOUNT_RHP]: ROUTES.SEARCH_EDIT_MULTIPLE_AMOUNT_RHP,
+                        [SCREENS.SEARCH.EDIT_MULTIPLE_DESCRIPTION_RHP]: ROUTES.SEARCH_EDIT_MULTIPLE_DESCRIPTION_RHP,
+                        [SCREENS.SEARCH.EDIT_MULTIPLE_MERCHANT_RHP]: ROUTES.SEARCH_EDIT_MULTIPLE_MERCHANT_RHP,
+                        [SCREENS.SEARCH.EDIT_MULTIPLE_DATE_RHP]: ROUTES.SEARCH_EDIT_MULTIPLE_DATE_RHP,
+                        [SCREENS.SEARCH.EDIT_MULTIPLE_CATEGORY_RHP]: ROUTES.SEARCH_EDIT_MULTIPLE_CATEGORY_RHP,
+                        [SCREENS.SEARCH.EDIT_MULTIPLE_TAG_RHP]: ROUTES.SEARCH_EDIT_MULTIPLE_TAG_RHP.route,
+                        [SCREENS.SEARCH.EDIT_MULTIPLE_BILLABLE_RHP]: ROUTES.SEARCH_EDIT_MULTIPLE_BILLABLE_RHP,
+                        [SCREENS.SEARCH.EDIT_MULTIPLE_REIMBURSABLE_RHP]: ROUTES.SEARCH_EDIT_MULTIPLE_REIMBURSABLE_RHP,
+                        [SCREENS.SEARCH.EDIT_MULTIPLE_TAX_RHP]: ROUTES.SEARCH_EDIT_MULTIPLE_TAX_RHP,
                         [SCREENS.SEARCH.TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP]: {
                             path: ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP.route,
                             exact: true,

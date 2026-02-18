@@ -1,9 +1,9 @@
 import {Str} from 'expensify-common';
-import React, {memo, useContext, useEffect, useState} from 'react';
+import React, {memo, useEffect, useState} from 'react';
 import type {GestureResponderEvent, ImageURISource, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+import {useAttachmentCarouselPagerActions} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import Button from '@components/Button';
 import DistanceEReceipt from '@components/DistanceEReceipt';
@@ -138,8 +138,8 @@ function AttachmentView({
     const {currentlyPlayingURL} = usePlaybackStateContext();
     const {updateCurrentURLAndReportID, playVideo} = usePlaybackActionsContext();
 
-    const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
-    const {onAttachmentError, onTap} = attachmentCarouselPagerContext ?? {};
+    const actions = useAttachmentCarouselPagerActions();
+    const {onAttachmentError, onTap} = actions ?? {};
     const theme = useTheme();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const styles = useThemeStyles();
