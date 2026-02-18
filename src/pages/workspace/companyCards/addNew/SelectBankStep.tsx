@@ -70,6 +70,10 @@ function SelectBankStep() {
             if (bank === CONST.COMPANY_CARDS.BANKS.MOCK_BANK) {
                 return CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.PRODUCTION;
             }
+            // Hide Pex option until it's fully supported in NewDot
+            if (bank === CONST.COMPANY_CARDS.BANKS.PEX) {
+                return false;
+            }
             return true;
         })
         .map((bank) => ({
