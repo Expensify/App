@@ -31,7 +31,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
 
     const selectedTransactionsList = Object.values(context.selectedTransactions);
-    const isApprover = report ? !isCurrentUserSubmitter(report) : selectedTransactionsList.length > 0 && !selectedTransactionsList.every((t) => t.ownerAccountID === currentUserAccountID);
+    const isSubmitter = report ? isCurrentUserSubmitter(report) : selectedTransactionsList.length === 0 || selectedTransactionsList.every((t) => t.ownerAccountID === currentUserAccountID);
 
     const ancestors = useAncestors(report);
 
@@ -83,7 +83,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
             validate={validate}
             expenseCount={expenseCount}
             backTo={backTo}
-            isApprover={isApprover}
+            isSubmitter={isSubmitter}
         />
     );
 }

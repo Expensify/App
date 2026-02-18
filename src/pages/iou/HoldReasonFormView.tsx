@@ -28,11 +28,11 @@ type HoldReasonFormViewProps = {
     /** Number of expenses being held (defaults to 1) */
     expenseCount?: number;
 
-    /** Whether the current user is an approver (not the submitter) */
-    isApprover?: boolean;
+    /** Whether the current user is the submitter of the expense */
+    isSubmitter?: boolean;
 };
 
-function HoldReasonFormView({backTo, validate, onSubmit, expenseCount = 1, isApprover = false}: HoldReasonFormViewProps) {
+function HoldReasonFormView({backTo, validate, onSubmit, expenseCount = 1, isSubmitter = true}: HoldReasonFormViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -56,7 +56,7 @@ function HoldReasonFormView({backTo, validate, onSubmit, expenseCount = 1, isApp
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
             >
-                <Text style={styles.mb6}>{translate(isApprover ? 'iou.explainHoldApprover' : 'iou.explainHold', {count: expenseCount})}</Text>
+                <Text style={styles.mb6}>{translate(isSubmitter ? 'iou.explainHold' : 'iou.explainHoldApprover', {count: expenseCount})}</Text>
                 <View>
                     <InputWrapper
                         InputComponent={TextInput}

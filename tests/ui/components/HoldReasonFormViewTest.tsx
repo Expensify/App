@@ -52,14 +52,14 @@ describe('HoldReasonFormView', () => {
         expect(holdExpenseElements.length).toBeGreaterThanOrEqual(2); // Title and button
     });
 
-    it('renders submitter copy when isApprover is false', () => {
+    it('renders submitter copy when isSubmitter is true', () => {
         render(
             <LocaleContextProvider>
                 <HoldReasonFormView
                     onSubmit={onSubmit}
                     validate={validate}
                     backTo={backTo}
-                    isApprover={false}
+                    isSubmitter
                 />
             </LocaleContextProvider>,
         );
@@ -67,14 +67,14 @@ describe('HoldReasonFormView', () => {
         expect(screen.getByText(translateLocal('iou.explainHold', {count: 1}))).toBeTruthy();
     });
 
-    it('renders approver copy when isApprover is true', () => {
+    it('renders approver copy when isSubmitter is false', () => {
         render(
             <LocaleContextProvider>
                 <HoldReasonFormView
                     onSubmit={onSubmit}
                     validate={validate}
                     backTo={backTo}
-                    isApprover
+                    isSubmitter={false}
                 />
             </LocaleContextProvider>,
         );
@@ -82,14 +82,14 @@ describe('HoldReasonFormView', () => {
         expect(screen.getByText(translateLocal('iou.explainHoldApprover', {count: 1}))).toBeTruthy();
     });
 
-    it('renders approver plural copy when isApprover is true with multiple expenses', () => {
+    it('renders approver plural copy when isSubmitter is false with multiple expenses', () => {
         render(
             <LocaleContextProvider>
                 <HoldReasonFormView
                     onSubmit={onSubmit}
                     validate={validate}
                     backTo={backTo}
-                    isApprover
+                    isSubmitter={false}
                     expenseCount={3}
                 />
             </LocaleContextProvider>,
@@ -98,7 +98,7 @@ describe('HoldReasonFormView', () => {
         expect(screen.getByText(translateLocal('iou.explainHoldApprover', {count: 3}))).toBeTruthy();
     });
 
-    it('defaults to submitter copy when isApprover is not provided', () => {
+    it('defaults to submitter copy when isSubmitter is not provided', () => {
         render(
             <LocaleContextProvider>
                 <HoldReasonFormView
