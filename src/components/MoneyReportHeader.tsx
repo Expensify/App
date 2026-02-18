@@ -317,7 +317,7 @@ function MoneyReportHeader({
 
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactions.map((t) => t.transactionID));
     const {deleteTransactions} = useDeleteTransactions({report: chatReport, reportActions, policy});
-    const isExported = useMemo(() => isExportedUtils(reportActions, moneyRequestReport), [reportActions, moneyRequestReport]);
+    const isExported = useMemo(() => isExportedUtils(reportActions), [reportActions]);
     // wrapped in useMemo to improve performance because this is an operation on array
     const integrationNameFromExportMessage = useMemo(() => {
         if (!isExported) {

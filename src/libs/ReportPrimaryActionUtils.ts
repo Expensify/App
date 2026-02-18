@@ -246,7 +246,7 @@ function isExportAction(report: Report, currentUserLogin: string, policy?: Polic
     }
 
     const syncEnabled = hasIntegrationAutoSync(policy, connectedIntegration);
-    const isExported = isExportedUtil(reportActions, report);
+    const isExported = isExportedUtil(reportActions);
     if (isExported) {
         return false;
     }

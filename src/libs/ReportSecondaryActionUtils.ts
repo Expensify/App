@@ -601,7 +601,7 @@ function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy
     }
 
     const reportPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-    return hasAvailablePolicies && canEditReportPolicy(report, reportPolicy) && !isExportedUtils(reportActions, report);
+    return hasAvailablePolicies && canEditReportPolicy(report, reportPolicy) && !isExportedUtils(reportActions);
 }
 
 function isDeleteAction(report: Report, reportTransactions: Transaction[], reportActions: ReportAction[]): boolean {
@@ -859,7 +859,7 @@ function getSecondaryReportActions({
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
-    const isExported = isExportedUtils(reportActions, report);
+    const isExported = isExportedUtils(reportActions);
     const hasExportError = hasExportErrorUtils(reportActions, report);
     const didExportFail = !isExported && hasExportError;
 
