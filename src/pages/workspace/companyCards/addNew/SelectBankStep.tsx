@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -39,6 +39,13 @@ function SelectBankStep() {
     const bankSelected = localBankSelected ?? addNewCard?.data.selectedBank;
     const [hasError, setHasError] = useState(false);
     const isOtherBankSelected = bankSelected === CONST.COMPANY_CARDS.BANKS.OTHER;
+
+    useEffect(() => {
+        if (addNewCard?.data.selectedBank !== CONST.COMPANY_CARDS.BANKS.PEX) {
+            return;
+        }
+        setAddNewCompanyCardStepAndData({data: {selectedBank: null}});
+    }, [addNewCard?.data.selectedBank]);
 
     const submit = useCallback(() => {
         if (!bankSelected) {
