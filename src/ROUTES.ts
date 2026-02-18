@@ -178,6 +178,19 @@ const ROUTES = {
         },
     },
     SEARCH_REJECT_REASON_RHP: 'search/reject',
+    SEARCH_EDIT_MULTIPLE_TRANSACTIONS_RHP: 'search/edit-multiple-transactions',
+    SEARCH_EDIT_MULTIPLE_AMOUNT_RHP: 'search/edit-multiple/amount',
+    SEARCH_EDIT_MULTIPLE_DESCRIPTION_RHP: 'search/edit-multiple/description',
+    SEARCH_EDIT_MULTIPLE_MERCHANT_RHP: 'search/edit-multiple/merchant',
+    SEARCH_EDIT_MULTIPLE_DATE_RHP: 'search/edit-multiple/date',
+    SEARCH_EDIT_MULTIPLE_CATEGORY_RHP: 'search/edit-multiple/category',
+    SEARCH_EDIT_MULTIPLE_TAG_RHP: {
+        route: 'search/edit-multiple/tag/:tagListIndex',
+        getRoute: (tagListIndex = 0) => `search/edit-multiple/tag/${tagListIndex}` as const,
+    },
+    SEARCH_EDIT_MULTIPLE_BILLABLE_RHP: 'search/edit-multiple/billable',
+    SEARCH_EDIT_MULTIPLE_REIMBURSABLE_RHP: 'search/edit-multiple/reimbursable',
+    SEARCH_EDIT_MULTIPLE_TAX_RHP: 'search/edit-multiple/tax',
     MOVE_TRANSACTIONS_SEARCH_RHP: {
         route: 'search/move-transactions/search/:backTo?',
         getRoute: (backTo?: string) => {
@@ -270,12 +283,6 @@ const ROUTES = {
     BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT: {
         route: 'bank-account/connect-existing-business-bank-account',
         getRoute: (policyID: string) => `bank-account/connect-existing-business-bank-account?policyID=${policyID}` as const,
-    },
-    PUBLIC_CONSOLE_DEBUG: {
-        route: 'troubleshoot/console',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`troubleshoot/console`, backTo),
     },
     SETTINGS: 'settings',
     SETTINGS_PROFILE: {
@@ -490,6 +497,8 @@ const ROUTES = {
         route: 'settings/wallet/card/:cardID/activate',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}/activate` as const,
     },
+    SETTINGS_WALLET_TRAVEL_CVV: 'settings/wallet/travel-cvv',
+    SETTINGS_WALLET_TRAVEL_CVV_VERIFY_ACCOUNT: `settings/wallet/travel-cvv/${VERIFY_ACCOUNT}`,
     SETTINGS_RULES: 'settings/rules',
     SETTINGS_RULES_ADD: {
         route: 'settings/rules/new/:field?/:index?',
@@ -592,16 +601,6 @@ const ROUTES = {
     SETTINGS_STATUS_CLEAR_AFTER_TIME: 'settings/profile/status/clear-after/time',
     SETTINGS_VACATION_DELEGATE: 'settings/profile/status/vacation-delegate',
     SETTINGS_TROUBLESHOOT: 'settings/troubleshoot',
-    SETTINGS_CONSOLE: {
-        route: 'settings/troubleshoot/console',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`settings/troubleshoot/console`, backTo),
-    },
-    SETTINGS_SHARE_LOG: {
-        route: 'settings/troubleshoot/console/share-log',
-        getRoute: (source: string) => `settings/troubleshoot/console/share-log?source=${encodeURI(source)}` as const,
-    },
 
     SETTINGS_EXIT_SURVEY_REASON: 'settings/exit-survey/reason',
 

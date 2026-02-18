@@ -780,6 +780,7 @@ const CONST = {
         PAY_INVOICE_VIA_EXPENSIFY: 'payInvoiceViaExpensify',
         PERSONAL_CARD_IMPORT: 'personalCardImport',
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
+        FREEZE_CARD: 'freezeCard',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1329,6 +1330,7 @@ const CONST = {
                 REIMBURSEMENT_SETUP_REQUESTED: 'REIMBURSEMENTSETUPREQUESTED', // Deprecated OldDot Action
                 REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED: 'DIRECTORINFORMATIONREQUIRED',
                 REJECTED: 'REJECTED',
+                REJECTED_TO_SUBMITTER: 'REJECTEDTOSUBMITTER',
                 REMOVED_FROM_APPROVAL_CHAIN: 'REMOVEDFROMAPPROVALCHAIN',
                 DEMOTED_FROM_WORKSPACE: 'DEMOTEDFROMWORKSPACE',
                 RENAMED: 'RENAMED',
@@ -1342,6 +1344,7 @@ const CONST = {
                 STRIPE_PAID: 'STRIPEPAID', // OldDot Action
                 SUBMITTED: 'SUBMITTED',
                 SUBMITTED_AND_CLOSED: 'SUBMITTEDCLOSED',
+                ACTION_DELEGATE_SUBMIT: 'DELEGATESUBMIT',
                 TAKE_CONTROL: 'TAKECONTROL', // OldDot Action
                 TASK_CANCELLED: 'TASKCANCELLED',
                 TASK_COMPLETED: 'TASKCOMPLETED',
@@ -1765,6 +1768,8 @@ const CONST = {
         TAG_ACTIVE_POLICY: 'active_policy_id',
         TAG_POLICIES_COUNT: 'policies_count',
         TAG_REPORTS_COUNT: 'reports_count',
+        TAG_PERSONAL_DETAILS_COUNT: 'personal_details_count',
+        TAG_USER_ROLE: 'user_role',
         TAG_NUDGE_MIGRATION_COHORT: 'nudge_migration_cohort',
         TAG_AUTHENTICATION_FUNCTION: 'authentication_function',
         TAG_AUTHENTICATION_ERROR_TYPE: 'authentication_error_type',
@@ -3027,6 +3032,8 @@ const CONST = {
         QUANTITY_MAX_LENGTH: 12,
         // This is the transactionID used when going through the create expense flow so that it mimics a real transaction (like the edit flow)
         OPTIMISTIC_TRANSACTION_ID: '1',
+        // This is the transactionID used when bulk editing multiple expenses
+        OPTIMISTIC_BULK_EDIT_TRANSACTION_ID: 'optimisticBulkEditTransactionID',
         // Note: These payment types are used when building IOU reportAction message values in the server and should
         // not be changed.
         LOCATION_PERMISSION_PROMPT_THRESHOLD_DAYS: 7,
@@ -4239,6 +4246,7 @@ const CONST = {
         TAX_RATE: 'taxRate',
         TAX_AMOUNT: 'taxAmount',
         REIMBURSABLE: 'reimbursable',
+        BILLABLE: 'billable',
         REPORT: 'report',
     },
     FOOTER: {
@@ -6175,15 +6183,6 @@ const CONST = {
         WIDTH: 130,
     },
 
-    DEBUG_CONSOLE: {
-        LEVELS: {
-            INFO: 'INFO',
-            ERROR: 'ERROR',
-            RESULT: 'RESULT',
-            DEBUG: 'DEBUG',
-        },
-    },
-
     // We need to store this server side error in order to not show the blocking screen when the error is for invalid code
     MERGE_ACCOUNT_INVALID_CODE_ERROR: '401 Not authorized - Invalid validateCode',
     REIMBURSEMENT_ACCOUNT: {
@@ -7013,6 +7012,7 @@ const CONST = {
             TAG: 'tag',
         },
         BULK_ACTION_TYPES: {
+            EDIT: 'edit',
             EXPORT: 'export',
             APPROVE: 'approve',
             PAY: 'pay',
@@ -7579,7 +7579,6 @@ const CONST = {
         SEARCH_CONTEXT_GENERAL: 'general',
         SEARCH_CONTEXT_SEARCH: 'search',
         SEARCH_CONTEXT_MEMBER_INVITE: 'memberInvite',
-        SEARCH_CONTEXT_SHARE_LOG: 'shareLog',
         SEARCH_CONTEXT_SHARE_DESTINATION: 'shareDestination',
         SEARCH_CONTEXT_ATTENDEES: 'attendees',
     },

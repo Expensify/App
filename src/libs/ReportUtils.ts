@@ -4766,6 +4766,57 @@ function canEditReportPolicy(report: OnyxEntry<Report>, reportPolicy: OnyxEntry<
 }
 
 /**
+ * Checks if the user can edit multiple transactions
+ */
+function canEditMultipleTransactions(
+    selectedTransactions: Transaction[],
+    reportActions: OnyxCollection<ReportActions>,
+    reports: OnyxCollection<Report>,
+    policies: OnyxCollection<Policy>,
+    areReportsSelected = false,
+): boolean {
+    if (areReportsSelected) {
+        return false;
+    }
+
+    if (selectedTransactions.length < 2) {
+        return false;
+    }
+
+    for (const transaction of selectedTransactions) {
+        const reportAction = getIOUActionForTransactionID(Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`] ?? {}), transaction.transactionID);
+        const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+        const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+
+        const isApproved = isReportApproved({report});
+
+        if (isApproved || isSettled(report)) {
+            return false;
+        }
+
+        const fieldsToCheck = [
+            CONST.EDIT_REQUEST_FIELD.AMOUNT,
+            CONST.EDIT_REQUEST_FIELD.MERCHANT,
+            CONST.EDIT_REQUEST_FIELD.CATEGORY,
+            CONST.EDIT_REQUEST_FIELD.TAG,
+            CONST.EDIT_REQUEST_FIELD.DESCRIPTION,
+            CONST.EDIT_REQUEST_FIELD.DATE,
+            CONST.EDIT_REQUEST_FIELD.BILLABLE,
+            CONST.EDIT_REQUEST_FIELD.REIMBURSABLE,
+            CONST.EDIT_REQUEST_FIELD.TAX_RATE,
+        ];
+
+        const isTransactionEditable = fieldsToCheck.some((field) => canEditFieldOfMoneyRequest(reportAction, field, undefined, undefined, undefined, transaction, report, policy));
+
+        if (!isTransactionEditable) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
  * Checks if the current user can edit the provided property of an expense
  *
  */
@@ -4790,6 +4841,7 @@ function canEditFieldOfMoneyRequest(
         CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE,
         CONST.EDIT_REQUEST_FIELD.REIMBURSABLE,
         CONST.EDIT_REQUEST_FIELD.REPORT,
+        CONST.EDIT_REQUEST_FIELD.BILLABLE,
     ];
 
     if (!isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction, isChatReportArchived, report, policy, linkedTransaction)) {
@@ -4804,6 +4856,10 @@ function canEditFieldOfMoneyRequest(
     const iouMessage = getOriginalMessage(reportAction);
     const moneyRequestReport = report ?? (iouMessage?.IOUReportID ? (getReport(iouMessage?.IOUReportID, allReports) ?? ({} as Report)) : ({} as Report));
     const transaction = linkedTransaction ?? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${iouMessage?.IOUTransactionID}`] ?? ({} as Transaction);
+
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.BILLABLE && isInvoiceReport(moneyRequestReport) && isReportApproved({report: moneyRequestReport})) {
+        return false;
+    }
 
     if (isSettled(String(moneyRequestReport.reportID)) || isReportIDApproved(String(moneyRequestReport.reportID))) {
         return false;
@@ -12228,31 +12284,41 @@ function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[], re
         return false;
     }
 
-    let exportIntegrationActionsCount = 0;
-    let integrationMessageActionsCount = 0;
-
     const reportActionList = Array.isArray(reportActions) ? reportActions : Object.values(reportActions);
+
+    // Actions that reset the approval state and invalidate previous exports
+    const resetApprovalActionTypes = new Set<string>([
+        CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER,
+        CONST.REPORT.ACTIONS.TYPE.RETRACTED,
+        CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+        CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT,
+        CONST.REPORT.ACTIONS.TYPE.REOPENED,
+        CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
+    ]);
+    const validExportLabels = new Set<string>(Object.values(CONST.EXPORT_LABELS));
+
+    let lastResetCreated = '';
+    let lastSuccessfulExportCreated = '';
+
     for (const action of reportActionList) {
-        if (isExportIntegrationAction(action)) {
-            const originalMessage = getOriginalMessage(action);
-            // We consider any reports marked manually as exported to be exported, so we shortcut here.
-            if (originalMessage?.markedManually) {
-                return true;
-            }
-            // exportTemplate type is a CSV export, so we don't count it as an export integration action
-            if (originalMessage?.type !== CONST.EXPORT_TEMPLATE) {
-                exportIntegrationActionsCount++;
+        if (resetApprovalActionTypes.has(action.actionName)) {
+            if (action.created > lastResetCreated) {
+                lastResetCreated = action.created;
             }
         }
-        if (isIntegrationMessageAction(action)) {
-            integrationMessageActionsCount++;
+        if (isExportIntegrationAction(action)) {
+            const originalMessage = getOriginalMessage(action);
+            const label = originalMessage?.label;
+            // It's possible for originalMessage?.markedManually to be `false`, but the report is still has a valid automatic export.
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            const isValidExport = originalMessage?.markedManually || (label && validExportLabels.has(label) && originalMessage?.type !== CONST.EXPORT_TEMPLATE);
+            if (isValidExport && action.created > lastSuccessfulExportCreated) {
+                lastSuccessfulExportCreated = action.created;
+            }
         }
     }
 
-    // We need to make sure that there was at least one successful export to consider the report exported.
-    // We add one EXPORT_INTEGRATION action to the report when we start exporting it (with pendingAction: 'add') and then another EXPORT_INTEGRATION when the export finishes successfully.
-    // If the export fails, we add an INTEGRATIONS_MESSAGE action to the report, but the initial EXPORT_INTEGRATION action is still present, so we compare the counts of these two actions to determine if the report was exported successfully.
-    return exportIntegrationActionsCount > integrationMessageActionsCount;
+    return lastSuccessfulExportCreated > lastResetCreated;
 }
 
 function hasExportError(reportActions: OnyxEntry<ReportActions> | ReportAction[], report?: OnyxEntry<Report>) {
@@ -12909,6 +12975,7 @@ export {
     canHoldUnholdReportAction,
     canEditReportPolicy,
     canEditFieldOfMoneyRequest,
+    canEditMultipleTransactions,
     canEditMoneyRequest,
     canEditReportAction,
     canEditReportDescription,
