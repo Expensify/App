@@ -63,6 +63,8 @@ function ProgressBar({duration, position, seekPosition}: ProgressBarProps) {
         // Pressable does not receive it (which would toggle controls and hide the progress bar).
         .minDistance(0)
         .runOnJS(true)
+        // Prevent the gesture from being cancelled when moving outside the view bounds
+        .shouldCancelWhenOutside(false)
         .onBegin((event) => {
             setIsSliderPressed(true);
             checkIfVideoIsPlaying(onCheckIfVideoIsPlaying);
@@ -90,6 +92,9 @@ function ProgressBar({duration, position, seekPosition}: ProgressBarProps) {
             playVideo();
         });
 
+    // Wrap pan gesture in Exclusive to block touch events from reaching parent Pressable
+    const gesture = Gesture.Exclusive(pan);
+
     useEffect(() => {
         if (isSliderPressed) {
             return;
@@ -104,7 +109,7 @@ function ProgressBar({duration, position, seekPosition}: ProgressBarProps) {
     const progressBarTouchStyle = Platform.OS === 'android' ? {minHeight: 44} : undefined;
 
     return (
-        <GestureDetector gesture={pan}>
+        <GestureDetector gesture={gesture}>
             <Animated.View style={[styles.w100, styles.h100, styles.pv2, styles.cursorPointer, styles.flex1, styles.justifyContentCenter, progressBarTouchStyle]}>
                 <Animated.View
                     style={styles.progressBarOutline}
