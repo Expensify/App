@@ -6707,10 +6707,12 @@ describe('ReportUtils', () => {
     describe('getMoneyReportPreviewName', () => {
         beforeAll(async () => {
             await Onyx.clear();
+            initOnyxDerivedValues();
             await Onyx.multiSet({
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
                 [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
             });
+            await waitForBatchedUpdates();
         });
 
         afterAll(async () => {
@@ -6747,12 +6749,15 @@ describe('ReportUtils', () => {
             expect(result).toBe(report.reportName);
         });
 
-        it('should return policy name when the chat type is invoice', () => {
+        it('should return policy name when the chat type is invoice', async () => {
             const action: ReportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
             };
             const report: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.INVOICE);
+            const reportName = computeReportName(report, undefined, undefined, undefined, undefined, participantsPersonalDetails);
+            await Onyx.merge(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {reports: {[report.reportID]: {reportName}}});
+            await waitForBatchedUpdates();
             const result = getMoneyReportPreviewName(action, report);
             // Policies are empty, so the policy name is "Unavailable workspace"
             expect(result).toBe('Unavailable workspace');
@@ -6760,47 +6765,56 @@ describe('ReportUtils', () => {
 
         it('should return the report name when the chat type is policy admins', () => {
             const action: ReportAction = {
-                ...createRandomReportAction(1),
+                ...createRandomReportAction(2),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
             };
-            const report: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS);
+            const report: Report = createRandomReport(2, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS);
             const result = getMoneyReportPreviewName(action, report);
             expect(result).toBe(report.reportName);
         });
 
         it('should return the report name when the chat type is policy announce', () => {
             const action: ReportAction = {
-                ...createRandomReportAction(1),
+                ...createRandomReportAction(3),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
             };
-            const report: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE);
+            const report: Report = createRandomReport(3, CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE);
             const result = getMoneyReportPreviewName(action, report);
             expect(result).toBe(report.reportName);
         });
 
-        it('should return the owner name expenses when the chat type is policy expense chat', () => {
+        it('should return the owner name expenses when the chat type is policy expense chat', async () => {
             const action: ReportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
             };
             const report: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+            const reportName = computeReportName(report, undefined, undefined, undefined, undefined, participantsPersonalDetails);
+            await Onyx.merge(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {reports: {[report.reportID]: {reportName}}});
+            await waitForBatchedUpdates();
             const result = getMoneyReportPreviewName(action, report);
             // Report with ownerAccountID: 1 corresponds to "Ragnar Lothbrok"
             expect(result).toBe("Ragnar Lothbrok's expenses");
         });
 
-        it('should return the display name of the current user when the chat type is self dm', () => {
+        it('should return the display name of the current user when the chat type is self dm', async () => {
             const action: ReportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
             };
-            const report: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM);
+            const report: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                ownerAccountID: currentUserAccountID,
+            };
+            const reportName = computeReportName(report, undefined, undefined, undefined, undefined, participantsPersonalDetails);
+            await Onyx.merge(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {reports: {[report.reportID]: {reportName}}});
+            await waitForBatchedUpdates();
             const result = getMoneyReportPreviewName(action, report);
             // currentUserAccountID: 5 corresponds to "Lagertha Lothbrok"
             expect(result).toBe('Lagertha Lothbrok (you)');
         });
 
-        it('should return the participant name when the chat type is system', () => {
+        it('should return the participant name when the chat type is system', async () => {
             const action: ReportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
@@ -6811,12 +6825,15 @@ describe('ReportUtils', () => {
                     1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
                 },
             };
+            const reportName = computeReportName(report, undefined, undefined, undefined, undefined, participantsPersonalDetails);
+            await Onyx.merge(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {reports: {[report.reportID]: {reportName}}});
+            await waitForBatchedUpdates();
             const result = getMoneyReportPreviewName(action, report);
             // participant accountID: 1 corresponds to "Ragnar Lothbrok"
             expect(result).toBe('Ragnar Lothbrok');
         });
 
-        it('should return the participant names when the chat type is trip room', () => {
+        it('should return the participant names when the chat type is trip room', async () => {
             const action: ReportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
@@ -6828,6 +6845,9 @@ describe('ReportUtils', () => {
                     2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
+            const reportName = computeReportName(report, undefined, undefined, undefined, undefined, participantsPersonalDetails);
+            await Onyx.merge(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {reports: {[report.reportID]: {reportName}}});
+            await waitForBatchedUpdates();
             const result = getMoneyReportPreviewName(action, report);
             // participant accountID: 1, 2 corresponds to "Ragnar", "floki@vikings.net"
             expect(result).toBe('Ragnar, floki@vikings.net');
