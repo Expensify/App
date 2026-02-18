@@ -1730,9 +1730,9 @@ function getReportNameValuePairsFromKey(data: OnyxTypes.SearchResults['data'], r
  * @private
  * Extracts all reports from the search data.
  */
-function getReportsFromData(data: OnyxTypes.SearchResults['data']): OnyxCollection<OnyxTypes.Report> {
+function getReportsFromData(data: OnyxTypes.SearchResults['data'], keys: string[]): OnyxCollection<OnyxTypes.Report> {
     const reports: Record<string, OnyxTypes.Report> = {};
-    for (const key of Object.keys(data)) {
+    for (const key of keys) {
         if (isReportEntry(key)) {
             reports[key] = data[key];
         }
@@ -1744,9 +1744,9 @@ function getReportsFromData(data: OnyxTypes.SearchResults['data']): OnyxCollecti
  * @private
  * Extracts all policies from the search data.
  */
-function getPoliciesFromData(data: OnyxTypes.SearchResults['data']): OnyxCollection<OnyxTypes.Policy> {
+function getPoliciesFromData(data: OnyxTypes.SearchResults['data'], keys: string[]): OnyxCollection<OnyxTypes.Policy> {
     const policies: Record<string, OnyxTypes.Policy> = {};
-    for (const key of Object.keys(data)) {
+    for (const key of keys) {
         if (isPolicyEntry(key)) {
             policies[key] = data[key];
         }
@@ -1758,9 +1758,9 @@ function getPoliciesFromData(data: OnyxTypes.SearchResults['data']): OnyxCollect
  * @private
  * Extracts all transactions from the search data.
  */
-function getTransactionsFromData(data: OnyxTypes.SearchResults['data']): OnyxCollection<OnyxTypes.Transaction> {
+function getTransactionsFromData(data: OnyxTypes.SearchResults['data'], keys: string[]): OnyxCollection<OnyxTypes.Transaction> {
     const transactions: Record<string, OnyxTypes.Transaction> = {};
-    for (const key of Object.keys(data)) {
+    for (const key of keys) {
         if (isTransactionEntry(key)) {
             transactions[key] = data[key];
         }
@@ -1772,9 +1772,9 @@ function getTransactionsFromData(data: OnyxTypes.SearchResults['data']): OnyxCol
  * @private
  * Extracts all report name value pairs from the search data.
  */
-function getReportNameValuePairsFromData(data: OnyxTypes.SearchResults['data']): OnyxCollection<OnyxTypes.ReportNameValuePairs> {
+function getReportNameValuePairsFromData(data: OnyxTypes.SearchResults['data'], keys: string[]): OnyxCollection<OnyxTypes.ReportNameValuePairs> {
     const reportNameValuePairs: Record<string, OnyxTypes.ReportNameValuePairs> = {};
-    for (const key of Object.keys(data)) {
+    for (const key of keys) {
         if (isReportNameValuePairsEntry(key)) {
             reportNameValuePairs[key] = data[key];
         }
@@ -1786,9 +1786,9 @@ function getReportNameValuePairsFromData(data: OnyxTypes.SearchResults['data']):
  * @private
  * Extracts all report actions from the search data.
  */
-function getReportActionsFromData(data: OnyxTypes.SearchResults['data']): OnyxCollection<OnyxTypes.ReportActions> {
+function getReportActionsFromData(data: OnyxTypes.SearchResults['data'], keys: string[]): OnyxCollection<OnyxTypes.ReportActions> {
     const reportActions: Record<string, OnyxTypes.ReportActions> = {};
-    for (const key of Object.keys(data)) {
+    for (const key of keys) {
         if (isReportActionEntry(key)) {
             reportActions[key] = data[key];
         }
@@ -2039,11 +2039,12 @@ function createAndOpenSearchTransactionThread(
 function getReportActionsSections(data: OnyxTypes.SearchResults['data']): [ReportActionListItemType[], number] {
     const reportActionItems: ReportActionListItemType[] = [];
 
-    const transactionsFromData = getTransactionsFromData(data);
-    const reportsFromData = getReportsFromData(data);
-    const policiesFromData = getPoliciesFromData(data);
-    const reportNameValuePairsFromData = getReportNameValuePairsFromData(data);
-    const reportActionsFromData = getReportActionsFromData(data);
+    const dataKeys = Object.keys(data);
+    const transactionsFromData = getTransactionsFromData(data, dataKeys);
+    const reportsFromData = getReportsFromData(data, dataKeys);
+    const policiesFromData = getPoliciesFromData(data, dataKeys);
+    const reportNameValuePairsFromData = getReportNameValuePairsFromData(data, dataKeys);
+    const reportActionsFromData = getReportActionsFromData(data, dataKeys);
 
     let n = 0;
 
