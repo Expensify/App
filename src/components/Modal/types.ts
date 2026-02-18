@@ -18,6 +18,7 @@ type PopoverAnchorPosition = {
 
 type WindowState = {
     shouldGoBack: boolean;
+    modalHistoryId?: number;
 };
 
 type BaseModalProps = Partial<ReanimatedModalProps> &
