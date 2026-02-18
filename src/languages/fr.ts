@@ -1631,7 +1631,7 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `En attente que <strong>vous</strong> ajoutiez des dépenses.`;
+                        return `En attente de <strong>vous</strong> pour ajouter des dépenses.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `En attente que <strong>${actor}</strong> ajoute des dépenses.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
@@ -1662,13 +1662,13 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: ({actor, actorType, eta, etaType}: NextStepParams) => {
                 let formattedETA = '';
                 if (eta) {
-                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `le ${eta}` : ` ${eta}`;
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` le ${eta} de chaque mois` : ` ${eta}`;
                 }
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `En attente de la soumission automatique de <strong>vos</strong> dépenses${formattedETA}.`;
+                        return `En attente que <strong>vos</strong> dépenses soient automatiquement soumises${formattedETA}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `En attente de la soumission automatique des dépenses de <strong>${actor}</strong>${formattedETA}.`;
+                        return `En attente que les dépenses de <strong>${actor}</strong> soient automatiquement soumises${formattedETA}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `En attente de la soumission automatique des dépenses d’un administrateur${formattedETA}.`;
                 }
@@ -1686,7 +1686,7 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `En attente de <strong>votre</strong> approbation des dépenses.`;
+                        return `En attente que <strong>vous</strong> approuviez des dépenses.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `En attente de l’approbation des dépenses par <strong>${actor}</strong>.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
@@ -1708,7 +1708,7 @@ const translations: TranslationDeepObject<typeof en> = {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `En attente que <strong>vous</strong> payiez les dépenses.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `En attente que <strong>${actor}</strong> rembourse les dépenses.`;
+                        return `En attente que <strong>${actor}</strong> paie les dépenses.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `En attente qu’un administrateur paie les dépenses.`;
                 }
@@ -1716,9 +1716,9 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `En attente que <strong>vous</strong> ayez terminé la configuration d’un compte bancaire professionnel.`;
+                        return `En attente que <strong>vous</strong> terminiez la configuration d’un compte bancaire professionnel.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `En attente que <strong>${actor}</strong> termine la configuration d’un compte bancaire professionnel.`;
+                        return `En attente que <strong>${actor}</strong> ait fini de configurer un compte bancaire professionnel.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `En attente qu’un administrateur termine la configuration d’un compte bancaire professionnel.`;
                 }
@@ -1726,12 +1726,12 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: ({eta, etaType}: NextStepParams) => {
                 let formattedETA = '';
                 if (eta) {
-                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `d’ici ${eta}` : ` ${eta}`;
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` le ${eta}` : ` ${eta}`;
                 }
                 return `En attente de la finalisation du paiement${formattedETA}.`;
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (_: NextStepParams) =>
-                `Oups ! Il semble que vous soumettiez cette note de frais à <strong>vous-même</strong>. L’approbation de vos propres notes de frais est <strong>interdite</strong> par votre espace de travail. Veuillez soumettre cette note de frais à quelqu’un d’autre ou contacter votre administrateur pour modifier la personne à qui vous la soumettez.`,
+                `Oups ! On dirait que vous soumettez cette note de frais à <strong>vous-même</strong>. Approuver vos propres notes de frais est <strong>interdit</strong> par votre espace de travail. Veuillez soumettre cette note de frais à quelqu’un d’autre ou contacter votre administrateur pour changer la personne à qui vous la soumettez.`,
         },
         eta: {
             [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: 'bientôt',
@@ -1867,8 +1867,6 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         troubleshoot: {
             clearCacheAndRestart: 'Vider le cache et redémarrer',
-            viewConsole: 'Afficher la console de débogage',
-            debugConsole: 'Console de débogage',
             description:
                 '<muted-text>Utilisez les outils ci-dessous pour vous aider à diagnostiquer les problèmes avec Expensify. Si vous rencontrez des problèmes, veuillez <concierge-link>soumettre un bug</concierge-link>.</muted-text>',
             confirmResetDescription: 'Tous les brouillons de messages non envoyés seront perdus, mais le reste de vos données est en sécurité.',
@@ -1900,24 +1898,12 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidateWithDelay: 'Invalider avec délai',
             leftHandNavCache: 'Cache de la navigation de gauche',
             clearleftHandNavCache: 'Effacer',
-            recordTroubleshootData: 'Enregistrer les données de diagnostic',
             softKillTheApp: 'Arrêter l’application en douceur',
             kill: 'Tuer',
             sentryDebug: 'Débogage Sentry',
             sentryDebugDescription: 'Journaliser les requêtes Sentry dans la console',
             sentryHighlightedSpanOps: 'Noms de segments surlignés',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.clic, navigation, ui.chargement',
-        },
-        debugConsole: {
-            saveLog: 'Enregistrer le journal',
-            shareLog: 'Partager le journal',
-            enterCommand: 'Saisissez la commande',
-            execute: 'Exécuter',
-            noLogsAvailable: 'Aucun journal disponible',
-            logSizeTooLarge: (size: number) =>
-                `La taille du journal dépasse la limite de ${size} Mo. Veuillez utiliser « Enregistrer le journal » pour télécharger le fichier journal à la place.`,
-            logs: 'Journaux',
-            viewConsole: 'Afficher la console',
         },
         security: 'Sécurité',
         signOut: 'Se déconnecter',
@@ -2197,6 +2183,11 @@ const translations: TranslationDeepObject<typeof en> = {
         unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} perdra l’accès à ce compte bancaire professionnel. Nous terminerons tout de même les paiements en cours.`,
         reachOutForHelp: 'Elle est utilisée avec la carte Expensify. <concierge-link>Contactez Concierge</concierge-link> si vous devez arrêter de la partager.',
         unshareErrorModalTitle: 'Impossible d’annuler le partage du compte bancaire',
+        travelCVV: {
+            title: 'Cryptogramme visuel de la carte de voyage (CVV)',
+            subtitle: 'À utiliser lors de la réservation de voyages',
+            description: 'Utilisez cette carte pour vos réservations Expensify Travel. Elle apparaîtra comme “Travel Card” lors du paiement.',
+        },
         chaseAccountNumberDifferent: 'Pourquoi mon numéro de compte est-il différent ?',
     },
     cardPage: {
@@ -2268,6 +2259,7 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${amount} pour ${merchant} - ${date}`,
         },
+        freezeCard: 'Geler la carte',
     },
     workflowsPage: {
         workflowTitle: 'Dépense',
@@ -2279,6 +2271,7 @@ ${amount} pour ${merchant} - ${date}`,
         addApprovalsTitle: 'Approbations',
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `dépenses de ${members}, et l'approbateur est ${approvers}`,
         addApprovalButton: 'Ajouter un workflow d’approbation',
+        findWorkflow: 'Rechercher un flux de travail',
         addApprovalTip: 'Ce workflow par défaut s’applique à tous les membres, sauf si un workflow plus spécifique existe.',
         approver: 'Approbateur',
         addApprovalsDescription: 'Exiger une approbation supplémentaire avant d’autoriser un paiement.',
@@ -5442,8 +5435,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             editTags: 'Modifier les tags',
             findTag: 'Trouver un tag',
             subtitle: 'Les tags ajoutent des moyens plus détaillés de classer les coûts.',
-            dependentMultiLevelTagsSubtitle: (importSpreadsheetLink: string) =>
-                `<muted-text>Vous utilisez des <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">tags dépendants</a>. Vous pouvez <a href="${importSpreadsheetLink}">réimporter une feuille de calcul</a> pour mettre à jour vos tags.</muted-text>`,
+            subtitleWithDependentTags: (importSpreadsheetLink: string) =>
+                `<muted-text>Les tags ajoutent des moyens plus détaillés de classer les coûts. Vous utilisez des <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">tags dépendants</a>. Vous pouvez <a href="${importSpreadsheetLink}">réimporter une feuille de calcul</a> pour mettre à jour vos tags.</muted-text>`,
             emptyTags: {
                 title: 'Vous n’avez créé aucun tag',
                 subtitle: 'Ajoutez un tag pour suivre les projets, les lieux, les services et plus encore.',
@@ -7154,6 +7147,9 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         topMerchants: 'Commerçants principaux',
         groupedExpenses: 'dépenses groupées',
         bulkActions: {
+            editMultiple: 'Modifier plusieurs',
+            editMultipleTitle: 'Modifier plusieurs dépenses',
+            editMultipleDescription: 'Les modifications seront appliquées à toutes les dépenses sélectionnées et remplaceront toutes les valeurs précédemment définies.',
             approve: 'Approuver',
             pay: 'Payer',
             delete: 'Supprimer',

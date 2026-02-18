@@ -1671,7 +1671,7 @@ const translations = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: ({actor, actorType, eta, etaType}: NextStepParams) => {
                 let formattedETA = '';
                 if (eta) {
-                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` on ${eta}` : ` ${eta}`;
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` on the ${eta} of each month` : ` ${eta}`;
                 }
 
                 // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
@@ -1892,8 +1892,6 @@ const translations = {
         },
         troubleshoot: {
             clearCacheAndRestart: 'Clear cache and restart',
-            viewConsole: 'View debug console',
-            debugConsole: 'Debug console',
             description:
                 '<muted-text>Use the tools below to help troubleshoot the Expensify experience. If you encounter any issues, please <concierge-link>submit a bug</concierge-link>.</muted-text>',
             confirmResetDescription: 'All unsent draft messages will be lost, but the rest of your data is safe.',
@@ -1925,23 +1923,12 @@ const translations = {
             invalidateWithDelay: 'Invalidate with delay',
             leftHandNavCache: 'Left Hand Nav cache',
             clearleftHandNavCache: 'Clear',
-            recordTroubleshootData: 'Record Troubleshoot Data',
             softKillTheApp: 'Soft kill the app',
             kill: 'Kill',
             sentryDebug: 'Sentry debug',
             sentryDebugDescription: 'Log Sentry requests to console',
             sentryHighlightedSpanOps: 'Highlighted span names',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
-        },
-        debugConsole: {
-            saveLog: 'Save log',
-            shareLog: 'Share log',
-            enterCommand: 'Enter command',
-            execute: 'Execute',
-            noLogsAvailable: 'No logs available',
-            logSizeTooLarge: (size: number) => `Log size exceeds the limit of ${size} MB. Please use "Save log" to download the log file instead.`,
-            logs: 'Logs',
-            viewConsole: 'View console',
         },
         security: 'Security',
         signOut: 'Sign out',
@@ -2219,6 +2206,11 @@ const translations = {
         unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} will lose access to this business bank account. We’ll still complete any payments in process.`,
         reachOutForHelp: 'It’s being used with the Expensify Card. <concierge-link>Reach out to Concierge</concierge-link> if you need to unshare it.',
         unshareErrorModalTitle: `Can't unshare bank account`,
+        travelCVV: {
+            title: 'Travel CVV',
+            subtitle: 'Use this when booking travel',
+            description: "Use this card for your Expensify Travel bookings. It'll show as “Travel Card” at checkout.",
+        },
         chaseAccountNumberDifferent: 'Why is my account number different?',
     },
     cardPage: {
@@ -2276,6 +2268,7 @@ const translations = {
             alertMessage: ({cardLastFour, amount, merchant, date}: {cardLastFour: string; amount: string; merchant: string; date: string}) =>
                 `identified suspicious activity on card ending in ${cardLastFour}. Do you recognize this charge?\n\n${amount} for ${merchant} - ${date}`,
         },
+        freezeCard: 'Freeze card',
     },
     workflowsPage: {
         workflowTitle: 'Spend',
@@ -2287,6 +2280,7 @@ const translations = {
         addApprovalsTitle: 'Approvals',
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `expenses from ${members}, and the approver is ${approvers}`,
         addApprovalButton: 'Add approval workflow',
+        findWorkflow: 'Find workflow',
         addApprovalTip: 'This default workflow applies to all members, unless a more specific workflow exists.',
         approver: 'Approver',
         addApprovalsDescription: 'Require additional approval before authorizing a payment.',
@@ -5377,8 +5371,8 @@ const translations = {
             findTag: 'Find tag',
             subtitle: 'Tags add more detailed ways to classify costs.',
             // TODO: Add a actual link to the help article https://github.com/Expensify/App/issues/63612
-            dependentMultiLevelTagsSubtitle: (importSpreadsheetLink: string) =>
-                `<muted-text>You are using <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">dependent tags</a>. You can <a href="${importSpreadsheetLink}">reimport a spreadsheet</a> to update your tags.</muted-text>`,
+            subtitleWithDependentTags: (importSpreadsheetLink: string) =>
+                `<muted-text>Tags add more detailed ways to classify costs. You are using <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">dependent tags</a>. You can <a href="${importSpreadsheetLink}">reimport a spreadsheet</a> to update your tags.</muted-text>`,
             emptyTags: {
                 title: "You haven't created any tags",
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
@@ -7075,6 +7069,10 @@ const translations = {
         spendOverTime: 'Spend over time',
         groupedExpenses: 'grouped expenses',
         bulkActions: {
+            editMultiple: 'Edit multiple',
+            editMultipleTitle: 'Edit multiple expenses',
+            // cspell:disable
+            editMultipleDescription: "Changes will be set for all selected expenses and will override any previously set values. Just sayin'.",
             approve: 'Approve',
             pay: 'Pay',
             delete: 'Delete',

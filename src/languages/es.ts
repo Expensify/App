@@ -1463,7 +1463,7 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: ({actor, actorType, eta, etaType}) => {
                 let formattedETA = '';
                 if (eta) {
-                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` el ${eta}` : ` ${eta}`;
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` el ${eta} de cada mes` : ` ${eta}`;
                 }
 
                 // eslint-disable-next-line default-case
@@ -1678,8 +1678,6 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         troubleshoot: {
             clearCacheAndRestart: 'Borrar caché y reiniciar',
-            viewConsole: 'Ver la consola de depuración',
-            debugConsole: 'Consola de depuración',
             description:
                 '<muted-text>Utilice las herramientas que aparecen a continuación para solucionar los problemas de Expensify. Si tiene algún problema, por favor <concierge-link>envíe un informe de error</concierge-link>.</muted-text>',
             confirmResetDescription: 'Todos los borradores no enviados se perderán, pero el resto de tus datos estarán a salvo.',
@@ -1711,23 +1709,12 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidateWithDelay: 'Invalidar con retraso',
             leftHandNavCache: 'Caché del menú de navegación izquierdo',
             clearleftHandNavCache: 'borrar',
-            recordTroubleshootData: 'Registrar datos de resolución de problemas',
             softKillTheApp: 'Desactivar la aplicación',
             kill: 'Matar',
             sentryDebug: 'Depuración de Sentry',
             sentryDebugDescription: 'Registrar las solicitudes de Sentry en la consola',
             sentryHighlightedSpanOps: 'Nombres de spans resaltados',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
-        },
-        debugConsole: {
-            saveLog: 'Guardar registro',
-            shareLog: 'Compartir registro',
-            enterCommand: 'Introducir comando',
-            execute: 'Ejecutar',
-            noLogsAvailable: 'No hay registros disponibles',
-            logSizeTooLarge: (size) => `El tamaño del registro excede el límite de ${size} MB. Utilice "Guardar registro" para descargar el archivo de registro.`,
-            logs: 'Logs',
-            viewConsole: 'Ver consola',
         },
         security: 'Seguridad',
         restoreStashed: 'Restablecer login guardado',
@@ -2003,6 +1990,11 @@ const translations: TranslationDeepObject<typeof en> = {
         unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} perderá el acceso a esta cuenta bancaria comercial. Seguiremos completando los pagos en proceso.`,
         reachOutForHelp: 'Se está usando con la tarjeta Expensify. <concierge-link>Contacte con Concierge</concierge-link> si necesita dejar de compartirla.',
         unshareErrorModalTitle: 'No se puede dejar de compartir la cuenta bancaria',
+        travelCVV: {
+            title: 'CVV de viaje',
+            subtitle: 'Úsalo al reservar viajes',
+            description: 'Usa esta tarjeta para tus reservas de Expensify Travel. Aparecerá como “Travel Card” al pagar.',
+        },
         chaseAccountNumberDifferent: '¿Por qué es diferente el número de mi cuenta?',
     },
     cardPage: {
@@ -2060,6 +2052,7 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${amount} para ${merchant} - ${date}`,
         },
+        freezeCard: 'Congelar tarjeta',
     },
     workflowsPage: {
         workflowTitle: 'Gasto',
@@ -2071,6 +2064,7 @@ ${amount} para ${merchant} - ${date}`,
         addApprovalsTitle: 'Aprobaciones',
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `gastos de ${members}, y el aprobador es ${approvers}`,
         addApprovalButton: 'Añadir flujo de aprobación',
+        findWorkflow: 'Buscar flujo de trabajo',
         addApprovalTip: 'Este flujo de trabajo por defecto se aplica a todos los miembros, a menos que exista un flujo de trabajo más específico.',
         approver: 'Aprobador',
         addApprovalsDescription: 'Requiere una aprobación adicional antes de autorizar un pago.',
@@ -5189,8 +5183,8 @@ ${amount} para ${merchant} - ${date}`,
             editTags: 'Editar etiquetas',
             findTag: 'Encontrar etiquetas',
             subtitle: 'Las etiquetas añaden formas más detalladas de clasificar los costos.',
-            dependentMultiLevelTagsSubtitle: (importSpreadsheetLink) =>
-                `<muted-text>Estás usando <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">etiquetas dependientes</a>. Puedes <a href="${importSpreadsheetLink}">reimportar una hoja de cálculo</a> para actualizar tus etiquetas.</muted-text>`,
+            subtitleWithDependentTags: (importSpreadsheetLink) =>
+                `<muted-text>Las etiquetas añaden formas más detalladas de clasificar los costos. Estás usando <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">etiquetas dependientes</a>. Puedes <a href="${importSpreadsheetLink}">reimportar una hoja de cálculo</a> para actualizar tus etiquetas.</muted-text>`,
             emptyTags: {
                 title: 'No has creado ninguna etiqueta',
                 subtitle: 'Añade una etiqueta para realizar el seguimiento de proyectos, ubicaciones, departamentos y otros.',
@@ -6893,6 +6887,9 @@ ${amount} para ${merchant} - ${date}`,
         deleteSavedSearchConfirm: '¿Estás seguro de que quieres eliminar esta búsqueda?',
         groupedExpenses: 'gastos agrupados',
         bulkActions: {
+            editMultiple: 'Editar múltiples',
+            editMultipleTitle: 'Editar múltiples gastos',
+            editMultipleDescription: 'Los cambios se aplicarán a todos los gastos seleccionados y anularán cualquier valor previamente establecido.',
             approve: 'Aprobar',
             pay: 'Pagar',
             delete: 'Eliminar',

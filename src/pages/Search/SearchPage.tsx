@@ -5,7 +5,7 @@ import Animated from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import DecisionModal from '@components/DecisionModal';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
@@ -38,6 +38,7 @@ import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotal
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {initBulkEditDraftTransaction} from '@libs/actions/IOU';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {deleteAppReport, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, searchInServer} from '@libs/actions/Report';
 import {
@@ -68,6 +69,7 @@ import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
+    canEditMultipleTransactions,
     getReportOrDraftReport,
     isBusinessInvoiceRoom,
     isCurrentUserSubmitter,
@@ -101,7 +103,8 @@ function SearchPage({route}: SearchPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
-    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {
         selectedTransactions,
         clearSelectedTransactions,
@@ -117,6 +120,7 @@ function SearchPage({route}: SearchPageProps) {
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
     const allTransactions = useAllTransactions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: false});
     const selfDMReport = useSelfDMReport();
     const [lastPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
@@ -162,6 +166,7 @@ function SearchPage({route}: SearchPageProps) {
         'SmartScan',
         'MoneyBag',
         'ArrowSplit',
+        'Pencil',
     ] as const);
 
     const lastNonEmptySearchResults = useRef<SearchResults | undefined>(undefined);
@@ -725,6 +730,28 @@ function SearchPage({route}: SearchPageProps) {
         const isAnyTransactionOnHold = Object.values(selectedTransactions).some((transaction) => transaction.isHeld);
 
         const typeExpenseReport = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+        const isExpenseReportSearch = typeExpenseReport || searchResults?.search.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+        const selectedTransactionsList = Object.values(selectedTransactions)
+            .map((transaction) => transaction.transaction)
+            .filter((transaction): transaction is Transaction => !!transaction);
+        const canEditMultiple = canEditMultipleTransactions(selectedTransactionsList, allReportActions, allReports, policies, isExpenseReportSearch);
+
+        if (canEditMultiple) {
+            options.push({
+                icon: expensifyIcons.Pencil,
+                text: translate('search.bulkActions.editMultiple'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.EDIT,
+                shouldCloseModalOnSelect: true,
+                onSelected: () => {
+                    const selectedTransactionIDs = Object.keys(selectedTransactions).filter((transactionID) => {
+                        const selectedTransaction = selectedTransactions[transactionID];
+                        return !!selectedTransaction?.transaction?.transactionID || !!allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+                    });
+                    initBulkEditDraftTransaction(selectedTransactionIDs);
+                    Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_TRANSACTIONS_RHP);
+                },
+            });
+        }
 
         // Gets the list of options for the export sub-menu
         // Gets the list of options for the export sub-menu
@@ -1074,6 +1101,7 @@ function SearchPage({route}: SearchPageProps) {
         queryJSON?.type,
         selectedPolicyIDs,
         policies,
+        allReportActions,
         integrationsExportTemplates,
         csvExportLayouts,
         clearSelectedTransactions,
@@ -1095,6 +1123,7 @@ function SearchPage({route}: SearchPageProps) {
         expensifyIcons.Exclamation,
         expensifyIcons.Export,
         expensifyIcons.MoneyBag,
+        expensifyIcons.Pencil,
         expensifyIcons.Send,
         expensifyIcons.Stopwatch,
         expensifyIcons.Table,

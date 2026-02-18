@@ -15,7 +15,7 @@ import Text from '@components/Text';
 import ViolationMessages from '@components/ViolationMessages';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useActiveRoute from '@hooks/useActiveRoute';
-import useCurrencyList from '@hooks/useCurrencyList';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -74,7 +74,7 @@ import {
     isTrackExpenseReportNew,
     shouldEnableNegative,
 } from '@libs/ReportUtils';
-import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
+import {hasEnabledTags, shouldShowDependentTagList} from '@libs/TagsOptionsListUtils';
 import {
     getBillable,
     getCurrency,
@@ -84,7 +84,6 @@ import {
     getOriginalAmountForDisplay,
     getOriginalTransactionWithSplitInfo,
     getReimbursable,
-    getTagArrayFromName,
     getTagForDisplay,
     getTaxName,
     hasMissingSmartscanFields,
@@ -92,6 +91,7 @@ import {
     hasRoute as hasRouteTransactionUtils,
     isFromCreditCardImport as isCardTransactionTransactionUtils,
     isCategoryBeingAnalyzed,
+    isCustomUnitRateIDForP2P,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isDistanceTypeRequest,
     isExpenseUnreported as isExpenseUnreportedTransactionUtils,
@@ -174,7 +174,7 @@ function MoneyRequestView({
     const {isOffline} = useNetwork();
     const {environmentURL} = useEnvironment();
     const {translate, toLocaleDigit} = useLocalize();
-    const {getCurrencySymbol} = useCurrencyList();
+    const {getCurrencySymbol} = useCurrencyListActions();
     const {getReportRHPActiveRoute} = useActiveRoute();
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
 
@@ -247,7 +247,7 @@ function MoneyRequestView({
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-
+    const isP2PDistanceRequest = isCustomUnitRateIDForP2P(transaction);
     const moneyRequestReport = parentReport;
     const isApproved = isReportApproved({report: moneyRequestReport});
     const isInvoice = isInvoiceReport(moneyRequestReport);
@@ -349,16 +349,18 @@ function MoneyRequestView({
     const canEditDate =
         isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE, undefined, isChatReportArchived, undefined, transaction, moneyRequestReport, policy);
 
+    const canEditDistanceOrRate = isPolicyAccessible(policy, currentUserEmailParam) || isP2PDistanceRequest;
+
     const canEditDistance =
         !isGPSDistanceRequest &&
         isEditable &&
         canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE, undefined, isChatReportArchived, undefined, transaction, moneyRequestReport, policy) &&
-        isPolicyAccessible(policy, currentUserEmailParam);
+        canEditDistanceOrRate;
 
     const canEditDistanceRate =
         isEditable &&
         canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE, undefined, isChatReportArchived, undefined, transaction, moneyRequestReport, policy) &&
-        isPolicyAccessible(policy, currentUserEmailParam);
+        canEditDistanceOrRate;
 
     const canEditReport =
         isEditable &&
@@ -707,30 +709,7 @@ function MoneyRequestView({
         const tagForDisplay = getTagForDisplay(updatedTransaction ?? transaction, index);
         let shouldShow = false;
         if (hasDependentTags) {
-            if (index === 0) {
-                shouldShow = true;
-            } else {
-                const prevTagValue = getTagForDisplay(transaction, index - 1);
-                if (!prevTagValue) {
-                    shouldShow = false;
-                } else {
-                    const parentTag = getTagArrayFromName(transactionTag ?? '')
-                        .slice(0, index)
-                        .join(':');
-
-                    const availableTags = Object.values(tags).filter((policyTag) => {
-                        const filterRegex = policyTag.rules?.parentTagsFilter;
-                        if (!filterRegex) {
-                            return true;
-                        }
-
-                        const regex = new RegExp(filterRegex);
-                        return regex.test(parentTag ?? '');
-                    });
-
-                    shouldShow = availableTags.some((tag) => tag.enabled);
-                }
-            }
+            shouldShow = shouldShowDependentTagList(index, transactionTag, tags);
         } else {
             shouldShow = !!tagForDisplay || (canEdit && hasEnabledOptions(tags));
         }

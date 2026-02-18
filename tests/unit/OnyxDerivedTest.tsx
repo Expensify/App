@@ -530,6 +530,87 @@ describe('OnyxDerived', () => {
         });
     });
 
+    describe('personalAndWorkspaceCardList', () => {
+        beforeAll(async () => {
+            onyxDerivedTestSetup();
+        });
+
+        it('merges cardList and workspaceCardFeeds when dependencies are set', async () => {
+            // Non-personal cards (fundID !== '0') from cardList are kept, workspace cards are always included
+            const nonPersonalCard1 = createRandomExpensifyCard(1, {fundID: '123'});
+            const nonPersonalCard2 = createRandomExpensifyCard(2, {fundID: '456'});
+            const personalCard = createRandomExpensifyCard(3, {fundID: '0'});
+            const workspaceCard3 = createRandomCompanyCard(4, {bank: 'vcf'});
+
+            await Onyx.set(ONYXKEYS.CARD_LIST, {
+                '1': nonPersonalCard1,
+                '2': nonPersonalCard2,
+                '3': personalCard,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}workspace_123`, {
+                '4': workspaceCard3,
+            });
+            await waitForBatchedUpdates();
+            const derivedCardList = await OnyxUtils.get(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
+
+            expect(derivedCardList).toMatchObject({
+                '1': expect.objectContaining({cardID: 1}),
+                '2': expect.objectContaining({cardID: 2}),
+                '3': expect.objectContaining({cardID: 3}),
+                '4': expect.objectContaining({cardID: 4}),
+            });
+        });
+
+        it('handles empty cardList when workspaceCardFeeds are set', async () => {
+            const workspaceCard = createRandomCompanyCard(1, {bank: 'vcf'});
+
+            await Onyx.set(ONYXKEYS.CARD_LIST, {});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}workspace_123`, {
+                '1': workspaceCard,
+            });
+            await waitForBatchedUpdates();
+            const derivedCardList = await OnyxUtils.get(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
+
+            expect(derivedCardList).toMatchObject({
+                '1': expect.objectContaining({cardID: 1}),
+            });
+        });
+
+        it('handles empty workspaceCardFeeds when cardList is set', async () => {
+            const nonPersonalCard = createRandomExpensifyCard(1, {fundID: '123'});
+
+            await Onyx.set(ONYXKEYS.CARD_LIST, {
+                '1': nonPersonalCard,
+            });
+            await waitForBatchedUpdates();
+            const derivedCardList = await OnyxUtils.get(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
+
+            expect(derivedCardList).toMatchObject({
+                '1': expect.objectContaining({cardID: 1}),
+            });
+        });
+
+        it('includes cards from multiple workspace feeds when dependencies are set', async () => {
+            const card1 = createRandomCompanyCard(1, {bank: 'vcf'});
+            const card2 = createRandomCompanyCard(2, {bank: 'stripe'});
+
+            await Onyx.set(ONYXKEYS.CARD_LIST, {});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}workspace_123`, {
+                '1': card1,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}workspace_456`, {
+                '2': card2,
+            });
+            await waitForBatchedUpdates();
+            const derivedCardList = await OnyxUtils.get(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
+
+            expect(derivedCardList).toMatchObject({
+                '1': expect.objectContaining({cardID: 1}),
+                '2': expect.objectContaining({cardID: 2}),
+            });
+        });
+    });
+
     describe('todos', () => {
         beforeAll(async () => {
             onyxDerivedTestSetup();
