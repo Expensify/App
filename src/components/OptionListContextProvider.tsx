@@ -45,15 +45,17 @@ const isEqualPersonalDetail = (prevPersonalDetail: PersonalDetails, personalDeta
     prevPersonalDetail?.displayName === personalDetail?.displayName;
 
 function OptionsListContextProvider({children}: OptionsListProviderProps) {
-    // On native, defer expensive computations so they don't block SplashScreenHider from mounting.
-    // On web, activate immediately since there's no splash screen to unblock.
-    const [isActivated, setIsActivated] = useState(Platform.OS === 'web');
+    // On native, defer expensive computations so they don't block SplashScreenHider from mounting
+    // during the initial app load or OD→ND transition (when isLoadingApp is true).
+    // On warm restarts (isLoadingApp persisted as false), start fully activated.
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [isActivated, setIsActivated] = useState(() => Platform.OS === 'web' || isLoadingApp === false);
     useEffect(() => {
-        if (Platform.OS === 'web') {
+        if (isActivated) {
             return;
         }
         startTransition(() => setIsActivated(true));
-    }, []);
+    }, [isActivated]);
 
     const areOptionsInitialized = useRef(false);
     const [options, setOptions] = useState<OptionList>({

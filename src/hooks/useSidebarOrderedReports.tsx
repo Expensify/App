@@ -82,15 +82,18 @@ function SidebarOrderedReportsContextProvider({
     const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue;
     const prevDerivedCurrentReportID = usePrevious(derivedCurrentReportID);
 
-    // On native, defer expensive computations so they don't block SplashScreenHider from mounting.
-    // On web, activate immediately since there's no splash screen to unblock.
-    const [isActivated, setIsActivated] = useState(Platform.OS === 'web');
+    // On native, defer expensive computations so they don't block SplashScreenHider from mounting
+    // during the initial app load or OD→ND transition (when isLoadingApp is true).
+    // On warm restarts (isLoadingApp persisted as false), start fully activated to avoid
+    // a brief flash of the "All caught up" empty state.
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [isActivated, setIsActivated] = useState(() => Platform.OS === 'web' || isLoadingApp === false);
     useEffect(() => {
-        if (Platform.OS === 'web') {
+        if (isActivated) {
             return;
         }
         startTransition(() => setIsActivated(true));
-    }, []);
+    }, [isActivated]);
 
     // we need to force reportsToDisplayInLHN to re-compute when we clear currentReportsToDisplay, but the way it currently works relies on not having currentReportsToDisplay as a memo dependency, so we just need something we can change to trigger it
     // I don't like it either, but clearing the cache is only a hack for the debug modal and I will endeavor to make it better as I work to improve the cache correctness of the LHN more broadly
