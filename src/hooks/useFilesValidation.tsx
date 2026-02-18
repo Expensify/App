@@ -193,8 +193,8 @@ function useFilesValidation(onFilesValidated: (files: File | FileObject[], dataT
             const otherFiles = filteredResults.filter((file) => !Str.isPDF(file.name ?? ''));
 
             // Group invalid results by error type for efficient processing
-            const heicOrHeifResults = invalidResults.filter((result) => result.error === CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.HEIC_OR_HEIF_IMAGE);
-            const fileTooLargeResults = invalidResults.filter((result) => result.error === CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_LARGE);
+            const heicOrHeifResults = invalidResults.filter((result) => result.error === CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.HEIC_OR_HEIF_IMAGE);
+            const fileTooLargeResults = invalidResults.filter((result) => result.error === CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_LARGE);
 
             // Get files that need conversion (HEIC/HEIF)
             const filesToConvert = heicOrHeifResults.map((result) => result.file);
@@ -320,7 +320,7 @@ function useFilesValidation(onFilesValidated: (files: File | FileObject[], dataT
                     return;
                 }
 
-                if (result.error === CONST.ATTACHMENT_VALIDATION_ERRORS.MULTIPLE_FILES.MAX_FILE_LIMIT_EXCEEDED) {
+                if (result.error === CONST.FILE_VALIDATION_ERRORS.MULTIPLE_FILES.MAX_FILE_LIMIT_EXCEEDED) {
                     filesToValidate.current = files.slice(0, CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT);
                     if (items) {
                         dataTransferItemList.current = items.slice(0, CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT);
@@ -352,7 +352,7 @@ function useFilesValidation(onFilesValidated: (files: File | FileObject[], dataT
     };
 
     const onConfirmError = () => {
-        if (fileError === CONST.ATTACHMENT_VALIDATION_ERRORS.MULTIPLE_FILES.MAX_FILE_LIMIT_EXCEEDED) {
+        if (fileError === CONST.FILE_VALIDATION_ERRORS.MULTIPLE_FILES.MAX_FILE_LIMIT_EXCEEDED) {
             setIsErrorModalVisible(false);
             convertAndResizeFiles(invalidFileResults.current, filesToValidate.current);
             return;
@@ -406,7 +406,7 @@ function useFilesValidation(onFilesValidated: (files: File | FileObject[], dataT
                   onPassword={() => {
                       validatedPDFs.current.push(file);
                       if (isValidatingReceipts) {
-                          collectedErrors.current.push({error: CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.PROTECTED_FILE});
+                          collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.PROTECTED_FILE});
                       } else {
                           validFiles.current.push(file);
                       }
@@ -414,7 +414,7 @@ function useFilesValidation(onFilesValidated: (files: File | FileObject[], dataT
                   }}
                   onLoadError={() => {
                       validatedPDFs.current.push(file);
-                      collectedErrors.current.push({error: CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.FILE_CORRUPTED});
+                      collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_CORRUPTED});
                       checkIfAllValidatedAndProceed();
                   }}
               />
@@ -426,7 +426,7 @@ function useFilesValidation(onFilesValidated: (files: File | FileObject[], dataT
             return '';
         }
         const prompt = getFileValidationErrorText(translate, fileError, {fileType: invalidFileExtension}, isValidatingReceipts).reason;
-        if (fileError === CONST.ATTACHMENT_VALIDATION_ERRORS.MULTIPLE_FILES.WRONG_FILE_TYPE || fileError === CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.WRONG_FILE_TYPE) {
+        if (fileError === CONST.FILE_VALIDATION_ERRORS.MULTIPLE_FILES.WRONG_FILE_TYPE || fileError === CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.WRONG_FILE_TYPE) {
             return (
                 <Text>
                     {prompt}

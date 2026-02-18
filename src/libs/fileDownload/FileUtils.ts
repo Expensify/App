@@ -526,7 +526,7 @@ const calculateScaledDimensions = (width: number, height: number): {width: numbe
     const totalPixels = width * height;
 
     if (totalPixels > CONST.MAX_IMAGE_PIXEL_COUNT) {
-        throw new Error(CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.IMAGE_DIMENSIONS_TOO_LARGE);
+        throw new Error(CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.IMAGE_DIMENSIONS_TOO_LARGE);
     }
 
     const scaleFactor = CONST.MAX_IMAGE_DIMENSION / (width < height ? height : width);
@@ -681,17 +681,17 @@ const getFileValidationErrorText = (
     }
     const maxSize = isValidatingReceipt ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
     switch (validationError) {
-        case CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.WRONG_FILE_TYPE:
+        case CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.WRONG_FILE_TYPE:
             return {
                 title: translate('attachmentPicker.wrongFileType'),
                 reason: translate('attachmentPicker.notAllowedExtension'),
             };
-        case CONST.ATTACHMENT_VALIDATION_ERRORS.MULTIPLE_FILES.WRONG_FILE_TYPE:
+        case CONST.FILE_VALIDATION_ERRORS.MULTIPLE_FILES.WRONG_FILE_TYPE:
             return {
                 title: translate('attachmentPicker.someFilesCantBeUploaded'),
                 reason: translate('attachmentPicker.unsupportedFileType', additionalData.fileType ?? ''),
             };
-        case CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_LARGE:
+        case CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_LARGE:
             return {
                 title: translate('attachmentPicker.attachmentTooLarge'),
                 reason: isValidatingReceipt
@@ -700,39 +700,39 @@ const getFileValidationErrorText = (
                       })
                     : translate('attachmentPicker.sizeExceeded'),
             };
-        case CONST.ATTACHMENT_VALIDATION_ERRORS.MULTIPLE_FILES.FILE_TOO_LARGE:
+        case CONST.FILE_VALIDATION_ERRORS.MULTIPLE_FILES.FILE_TOO_LARGE:
             return {
                 title: translate('attachmentPicker.someFilesCantBeUploaded'),
                 reason: translate('attachmentPicker.sizeLimitExceeded', {
                     maxUploadSizeInMB: additionalData.maxUploadSizeInMB ?? maxSize / 1024 / 1024,
                 }),
             };
-        case CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_SMALL:
+        case CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_SMALL:
             return {
                 title: translate('attachmentPicker.attachmentTooSmall'),
                 reason: translate('attachmentPicker.sizeNotMet'),
             };
-        case CONST.ATTACHMENT_VALIDATION_ERRORS.MULTIPLE_FILES.FOLDER_NOT_ALLOWED:
+        case CONST.FILE_VALIDATION_ERRORS.MULTIPLE_FILES.FOLDER_NOT_ALLOWED:
             return {
                 title: translate('attachmentPicker.attachmentError'),
                 reason: translate('attachmentPicker.folderNotAllowedMessage'),
             };
-        case CONST.ATTACHMENT_VALIDATION_ERRORS.MULTIPLE_FILES.MAX_FILE_LIMIT_EXCEEDED:
+        case CONST.FILE_VALIDATION_ERRORS.MULTIPLE_FILES.MAX_FILE_LIMIT_EXCEEDED:
             return {
                 title: translate('attachmentPicker.someFilesCantBeUploaded'),
                 reason: translate('attachmentPicker.maxFileLimitExceeded'),
             };
-        case CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.FILE_CORRUPTED:
+        case CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_CORRUPTED:
             return {
                 title: translate('attachmentPicker.attachmentError'),
                 reason: translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'),
             };
-        case CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.PROTECTED_FILE:
+        case CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.PROTECTED_FILE:
             return {
                 title: translate('attachmentPicker.attachmentError'),
                 reason: translate('attachmentPicker.protectedPDFNotSupported'),
             };
-        case CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.IMAGE_DIMENSIONS_TOO_LARGE:
+        case CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.IMAGE_DIMENSIONS_TOO_LARGE:
             return {
                 title: translate('attachmentPicker.attachmentError'),
                 reason: translate('attachmentPicker.imageDimensionsTooLarge'),

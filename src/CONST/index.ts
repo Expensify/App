@@ -289,7 +289,7 @@ const CONST = {
         MAX_FILE_LIMIT: 30,
     },
 
-    ATTACHMENT_VALIDATION_ERRORS: {
+    FILE_VALIDATION_ERRORS: {
         SINGLE_FILE: {
             NO_FILE_PROVIDED: 'noFileProvided',
             FILE_INVALID: 'fileInvalid',
