@@ -9,6 +9,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import type Navigation from '@libs/Navigation/Navigation';
 import {buildOptimisticCreatedReportForUnapprovedAction} from '@libs/ReportUtils';
 import HeaderView from '@pages/inbox/HeaderView';
+import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {joinRoom} from '@userActions/Report';
 // eslint-disable-next-line no-restricted-syntax
 import type * as ReportType from '@userActions/Report';
@@ -49,6 +50,7 @@ describe('HeaderView', () => {
 
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
+        initOnyxDerivedValues();
     });
 
     it('should update invoice room title when the invoice receiver detail is updated', async () => {
@@ -64,6 +66,7 @@ describe('HeaderView', () => {
             },
         };
         await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
                 [accountID]: {
                     displayName,
@@ -97,6 +100,7 @@ describe('HeaderView', () => {
                 },
             });
         });
+        await waitForBatchedUpdatesWithAct();
 
         // Then the header title should be updated using the new display name
         expect(screen.getByTestId('DisplayNames')).toHaveTextContent(displayName);

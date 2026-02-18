@@ -32,6 +32,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
@@ -148,8 +149,9 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const parentNavigationReport = isParentOneTransactionThread ? parentReport : reportHeaderData;
     const isReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.reportID);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const reportAttributesDerivedValue = useReportAttributes();
     // Use sorted display names for the title for group chats on native small screen widths
-    const title = getReportName(reportHeaderData);
+    const title = getReportName(reportHeaderData, reportAttributesDerivedValue);
     const subtitle = getChatRoomSubtitle(reportHeaderData, false, isReportHeaderDataArchived);
     // This is used to get the status badge for invoice report subtitle.
     const statusTextForInvoiceReport = isParentInvoiceAndIsChatThread
