@@ -143,7 +143,6 @@ function getFakeReport(participantAccountIDs = [1, 2], millisecondsInThePast = 0
     return {
         type: CONST.REPORT.TYPE.CHAT,
         reportID: `${++lastFakeReportID}`,
-        reportName: 'Report',
         lastVisibleActionCreated,
         lastReadTime: isUnread ? DateUtils.subtractMillisecondsFromDateTime(lastVisibleActionCreated, 1) : lastVisibleActionCreated,
         participants,
