@@ -170,6 +170,7 @@ import VirtualCard from '@assets/images/simple-illustrations/simple-illustration
 import WalletAlt2 from '@assets/images/simple-illustrations/simple-illustration__wallet-alt2.svg';
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
+import TravelCVV from '@assets/images/travel-cvv.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
 
 // Create the illustrations object with all imported illustrations
@@ -259,6 +260,7 @@ const Illustrations = {
     RunningTurtle,
     Shutter,
     ExpensifyApprovedLogo,
+    TravelCVV,
     TurtleInShell,
 
     // Simple Illustrations
