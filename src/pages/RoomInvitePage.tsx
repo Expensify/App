@@ -294,7 +294,6 @@ function RoomInvitePage({
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     showLoadingPlaceholder={!areOptionsInitialized}
                     isLoadingNewOptions={!!isSearchingForReports}
-                    disableMaintainingScrollPosition
                     shouldShowTextInput
                     canSelectMultiple
                 />

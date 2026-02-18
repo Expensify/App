@@ -3,7 +3,7 @@ import {format} from 'date-fns';
 import {fastMerge, Str} from 'expensify-common';
 import clone from 'lodash/clone';
 import isEmpty from 'lodash/isEmpty';
-import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
@@ -1396,7 +1396,7 @@ function getFirstVisibleReportActionID(sortedReportActions: ReportAction[] = [],
 /**
  * @returns The latest report action in the `onyxData` or `null` if one couldn't be found
  */
-function getLatestReportActionFromOnyxData(onyxData: OnyxUpdate[] | null): NonNullable<OnyxEntry<ReportAction>> | null {
+function getLatestReportActionFromOnyxData<TKey extends OnyxKey>(onyxData: Array<OnyxUpdate<TKey>> | null): NonNullable<OnyxEntry<ReportAction>> | null {
     const reportActionUpdate = onyxData?.find((onyxUpdate) => onyxUpdate.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS));
 
     if (!reportActionUpdate) {
@@ -2460,7 +2460,7 @@ function getPolicyChangeLogAddEmployeeMessage(translate: LocalizedTranslate, rep
 
     const originalMessage = getOriginalMessage(reportAction);
     const email = originalMessage?.email ?? '';
-    const role = translate('workspace.common.roleName', {role: originalMessage?.role ?? ''}).toLowerCase();
+    const role = translate('workspace.common.roleName', originalMessage?.role ?? '').toLowerCase();
     const formattedEmail = formatPhoneNumber(email);
     return translate('report.actions.type.addEmployee', formattedEmail, role);
 }
@@ -2487,8 +2487,8 @@ function buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(translate: Localiz
         });
     }
 
-    const newRole = translate('workspace.common.roleName', {role: stringNewValue}).toLowerCase();
-    const oldRole = translate('workspace.common.roleName', {role: stringOldValue}).toLowerCase();
+    const newRole = translate('workspace.common.roleName', stringNewValue).toLowerCase();
+    const oldRole = translate('workspace.common.roleName', stringOldValue).toLowerCase();
     return translate('report.actions.type.updateRole', {email, newRole, currentRole: oldRole});
 }
 
@@ -3492,7 +3492,7 @@ function getPolicyChangeLogDeleteMemberMessage(translate: LocalizedTranslate, re
     }
     const originalMessage = getOriginalMessage(reportAction);
     const email = formatPhoneNumber(originalMessage?.email ?? '');
-    const role = translate('workspace.common.roleName', {role: originalMessage?.role ?? ''}).toLowerCase();
+    const role = translate('workspace.common.roleName', originalMessage?.role ?? '').toLowerCase();
     return translate('report.actions.type.removeMember', email, role);
 }
 
@@ -3605,7 +3605,7 @@ function getActionableCardFraudAlertMessage(
 function getDemotedFromWorkspaceMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEMOTED_FROM_WORKSPACE>>) {
     const originalMessage = getOriginalMessage(reportAction);
     const policyName = originalMessage?.policyName ?? translate('workspace.common.workspace');
-    const oldRole = translate('workspace.common.roleName', {role: originalMessage?.oldRole}).toLowerCase();
+    const oldRole = translate('workspace.common.roleName', originalMessage?.oldRole).toLowerCase();
     return translate('workspaceActions.demotedFromWorkspace', policyName, oldRole);
 }
 
@@ -3938,7 +3938,7 @@ function getDynamicExternalWorkflowRoutedMessage(
     action: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED>>,
     translate: LocaleContextProps['translate'],
 ) {
-    return translate('iou.routedDueToDEW', {to: getOriginalMessage(action)?.to ?? ''});
+    return translate('iou.routedDueToDEW', getOriginalMessage(action)?.to ?? '');
 }
 
 function getSettlementAccountLockedMessage(translate: LocalizedTranslate, action: OnyxEntry<ReportAction>): string {

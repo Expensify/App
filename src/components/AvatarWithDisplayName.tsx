@@ -1,4 +1,3 @@
-import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {ColorValue, StyleProp, TextStyle, ViewStyle} from 'react-native';
@@ -6,6 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -181,7 +181,7 @@ function AvatarWithDisplayName({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportsSelector, canBeMissing: true});
+    const reportAttributes = useReportAttributes();
     const isReportArchived = useReportIsArchived(report?.reportID);
     const title = getReportName(report);
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
@@ -257,6 +257,7 @@ function AvatarWithDisplayName({
                     <View accessibilityLabel={title}>
                         {shouldEnableAvatarNavigation ? (
                             <PressableWithoutFeedback
+                                sentryLabel={CONST.SENTRY_LABEL.AVATAR_WITH_DISPLAY_NAME.SHOW_ACTOR_DETAILS}
                                 onPress={showActorDetails}
                                 accessibilityLabel={title}
                                 role={getButtonRole(true)}
@@ -317,6 +318,7 @@ function AvatarWithDisplayName({
 
     return (
         <PressableWithoutFeedback
+            sentryLabel={CONST.SENTRY_LABEL.AVATAR_WITH_DISPLAY_NAME.GO_TO_DETAILS_PAGE}
             onPress={goToDetailsPage}
             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
             accessibilityLabel={title}

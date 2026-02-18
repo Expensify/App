@@ -1,4 +1,3 @@
-import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -7,6 +6,7 @@ import SelectionListWithSections from '@components/SelectionList/SelectionListWi
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import memoize from '@libs/memoize';
@@ -83,7 +83,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         shouldInitialize: didScreenTransitionEnd,
     });
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: false, initWithStoredValues: false});
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
+    const reportAttributesDerived = useReportAttributes();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -229,7 +229,6 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             chatOptions.currentUserOption.text = formattedName;
 
             newSections.push({
-                title: '',
                 data: [chatOptions.currentUserOption],
                 sectionIndex: 0,
             });
@@ -245,13 +244,11 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         );
 
         newSections.push({
-            title: '',
             data: filteredRecentReports,
             sectionIndex: 1,
         });
 
         newSections.push({
-            title: '',
             data: chatOptions.personalDetails,
             sectionIndex: 2,
         });

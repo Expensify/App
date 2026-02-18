@@ -117,6 +117,7 @@ import {
     getReportOrDraftReport,
     getReportPreviewMessage,
     getReportSubtitlePrefix,
+    getReportTransactions,
     getUnreportedTransactionMessage,
     hasIOUWaitingOnCurrentUserBankAccount,
     isArchivedNonExpenseReport,
@@ -144,6 +145,7 @@ import {
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils';
+import {isScanning} from '@libs/TransactionUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -211,13 +213,6 @@ Onyx.connect({
 
         policies[key] = policy;
     },
-});
-
-let allPolicies: OnyxCollection<Policy> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (val) => (allPolicies = val),
 });
 
 let allReports: OnyxCollection<Report>;
@@ -849,6 +844,19 @@ function getLastMessageTextForReport({
     // If the last action is AddComment and no last message text was determined yet, use getLastVisibleMessage to get the preview text
     if (reportID && !lastMessageTextFromReport && isAddCommentAction(lastReportAction)) {
         lastMessageTextFromReport = lastVisibleMessage?.lastMessageText;
+    }
+
+    if (reportID && !lastMessageTextFromReport && reportUtilsIsMoneyRequestReport(report)) {
+        const transactions = getReportTransactions(reportID);
+        const scanningTransactions = transactions.filter((transaction) => isScanning(transaction));
+
+        if (scanningTransactions.length > 0) {
+            lastMessageTextFromReport = translate('iou.receiptScanning', {count: scanningTransactions.length});
+        } else if (report?.transactionCount && report?.transactionCount > 0 && report?.currency) {
+            lastMessageTextFromReport = lastVisibleMessage?.lastMessageText;
+        } else if (report?.transactionCount === 0) {
+            lastMessageTextFromReport = translate('report.noActivityYet');
+        }
     }
 
     // If the last action differs from last original action, it means there's a hidden action (like a whisper), then use getLastVisibleMessage to get the preview text
@@ -2489,6 +2497,7 @@ type SearchOptionsConfig = {
     shouldShowGBR?: boolean;
     shouldUnreadBeBold?: boolean;
     loginList: OnyxEntry<Login>;
+    policyCollection: OnyxCollection<Policy>;
     currentUserAccountID: number;
     currentUserEmail: string;
     personalDetails?: OnyxEntry<PersonalDetailsList>;
@@ -2514,6 +2523,7 @@ function getSearchOptions({
     shouldShowGBR = false,
     shouldUnreadBeBold = false,
     loginList,
+    policyCollection,
     currentUserAccountID,
     currentUserEmail,
     reportAttributesDerived,
@@ -2523,7 +2533,7 @@ function getSearchOptions({
 
     const optionList = getValidOptions(
         options,
-        allPolicies,
+        policyCollection,
         draftComments,
         nvpDismissedProductTraining,
         loginList,

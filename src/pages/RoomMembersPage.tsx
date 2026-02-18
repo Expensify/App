@@ -467,7 +467,6 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
                         showLoadingPlaceholder={!isPersonalDetailsReady(personalDetails) || !didLoadRoomMembers}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         onTurnOnSelectionMode={(item) => item && toggleUser(item)}
-                        style={{listHeaderWrapperStyle: [styles.ph9, styles.mt3]}}
                         onSelectAll={() => toggleAllUsers(data)}
                         canSelectMultiple={canSelectMultiple}
                         customListHeader={customListHeader}

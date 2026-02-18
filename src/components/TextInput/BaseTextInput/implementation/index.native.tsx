@@ -313,7 +313,6 @@ function BaseTextInput({
                         !isMultiline && styles.componentHeightLarge,
                         touchableInputWrapperStyle,
                     ]}
-                    sentryLabel={sentryLabel}
                 >
                     <View
                         style={[

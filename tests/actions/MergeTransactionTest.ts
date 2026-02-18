@@ -313,6 +313,7 @@ describe('mergeTransactionRequest', () => {
             currentUserAccountIDParam: 123,
             currentUserEmailParam: 'user@example.com',
             isASAPSubmitBetaEnabled: false,
+            selfDMReport: undefined,
         });
 
         await mockFetch?.resume?.();

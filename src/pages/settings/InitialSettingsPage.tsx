@@ -462,7 +462,9 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     <AccountSwitcher isScreenFocused={isScreenFocused} />
                     <Tooltip text={translate('statusPage.status')}>
                         <PressableWithFeedback
-                            accessibilityLabel={emojiCode ? `${translate('statusPage.status')}: ${emojiCode}` : translate('statusPage.status')}
+                            accessibilityLabel={
+                                emojiCode ? `${translate('statusPage.status')}: ${emojiCode}` : `${translate('statusPage.status')}, ${translate('emojiPicker.emojiNotSelected')}`
+                            }
                             accessibilityRole="button"
                             accessible
                             sentryLabel={CONST.SENTRY_LABEL.ACCOUNT.STATUS_PICKER}
