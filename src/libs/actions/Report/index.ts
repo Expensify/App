@@ -5952,6 +5952,25 @@ function buildOptimisticChangePolicyData(
     const reportIDToThreadsReportIDsMap = buildReportIDToThreadsReportIDsMap();
     updatePolicyIdForReportAndThreads(reportID, policy.id, reportIDToThreadsReportIDsMap, optimisticData, failureData);
 
+    const newManagerAccountID = getNextApproverAccountID({...report, policyID: policy.id});
+    if (isProcessingReport(report) && newManagerAccountID !== report.managerID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                managerID: newManagerAccountID,
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                managerID: report.managerID,
+            },
+        });
+    }
+
     // We reopen and reassign the report if the report is open/submitted and the manager is not a member of the new policy. This is to prevent the old manager from seeing a report that they can't action on.
     let newStatusNum = report?.statusNum;
     const isOpenOrSubmitted = isOpenExpenseReport(report) || isProcessingReport(report);
