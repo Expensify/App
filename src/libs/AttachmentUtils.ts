@@ -110,7 +110,7 @@ function isLocalAttachment(url: string) {
  * Returns image cache file extension based from mime type
  */
 function getImageCacheFileExtension(contentType: string) {
-    const imageCacheFileTypes = Object.keys(CONST.IMAGE_CACHE_FILE_TYPES);
+    const imageCacheFileTypes: string[] = Object.values(CONST.IMAGE_CACHE_FILE_TYPES);
     return imageCacheFileTypes.includes(contentType);
 }
 

@@ -2200,6 +2200,9 @@ const CONST = {
     IMAGE_CACHE_FILE_TYPES: {
         JPEG: 'image/jpeg',
         JPG: 'image/jpg',
+        PNG: 'image/png',
+        GIF: 'image/gif',
+        WEBP: 'image/webp',
     },
 
     SHARE_FILE_MIMETYPE: {
