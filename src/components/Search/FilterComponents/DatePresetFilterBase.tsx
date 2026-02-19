@@ -268,7 +268,17 @@ function DatePresetFilterBase({
                 return updatedValues;
             },
         }),
-        [selectedDateModifier, defaultDateValues, ephemeralDateValue, rangeEphemeralValues.from, rangeEphemeralValues.to, setDateValue, updateDateValues, validate, onRangeValidationErrorChange],
+        [
+            selectedDateModifier,
+            defaultDateValues,
+            ephemeralDateValue,
+            rangeEphemeralValues.from,
+            rangeEphemeralValues.to,
+            setDateValue,
+            updateDateValues,
+            validate,
+            onRangeValidationErrorChange,
+        ],
     );
 
     const rangeBoundaries = getRangeBoundariesFromFormValue(
