@@ -233,7 +233,7 @@ jobs:
           comment-bot: false
           rock-build-extra-params: '--extra-params "-PreactNativeArchitectures=arm64-v8a,x86_64 --profile"'
           custom-identifier: ${{ steps.computeIdentifier.outputs.IDENTIFIER }}
-          validate-elf-alignment: false
+          validate-elf-alignment: true
 
       - name: Upload Gradle profile report
         if: always()
