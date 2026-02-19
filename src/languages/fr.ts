@@ -2223,6 +2223,8 @@ ${amount} pour ${merchant} - ${date}`,
         freezeDescription: 'Une carte gelée ne peut pas être utilisée pour des achats ni des transactions. Vous pouvez la dégeler à tout moment.',
         unfreezeDescription:
             'Dégeler cette carte permettra à nouveau les achats et les transactions. Continuez uniquement si vous êtes sûr(e) que la carte peut être utilisée en toute sécurité.',
+        youFroze: ({date}: {date: string}) => `Vous avez gelé cette carte le ${date}.`,
+        frozenBy: ({person, date}: {person: string; date: string}) => `${person} a gelé cette carte le ${date}.`,
     },
     workflowsPage: {
         workflowTitle: 'Dépense',
@@ -5533,6 +5535,11 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             reimbursementAccount: 'compte de remboursement',
             welcomeNote: 'Veuillez commencer à utiliser mon nouvel espace de travail',
             delayedSubmission: 'soumission retardée',
+            merchantRules: 'Règles de commerçant',
+            merchantRulesCount: () => ({
+                one: '1 règle de commerçant',
+                other: (count: number) => `${count} règles de commerçant`,
+            }),
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `Vous êtes sur le point de créer et de partager ${newWorkspaceName ?? ''} avec ${totalMembers ?? 0} membres de l’espace de travail d’origine.`,
             error: 'Une erreur s’est produite lors de la duplication de votre nouvel espace de travail. Veuillez réessayer.',

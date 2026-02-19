@@ -2198,6 +2198,8 @@ ${date} の ${merchant} への ${amount}`,
         unfreezeCard: 'カードの一時停止を解除',
         freezeDescription: '一時停止したカードは購入や取引に使用できません。いつでも再開できます。',
         unfreezeDescription: 'このカードの一時停止を解除すると、購入と取引が再び可能になります。カードが安全に使用できると確信できる場合にのみ続行してください。',
+        youFroze: ({date}: {date: string}) => `${date}にこのカードを一時停止しました。`,
+        frozenBy: ({person, date}: {person: string; date: string}) => `${person}が${date}にこのカードを一時停止しました。`,
     },
     workflowsPage: {
         workflowTitle: '支出',
@@ -5448,6 +5450,11 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             reimbursementAccount: '精算口座',
             welcomeNote: '私の新しいワークスペースを使い始めてください',
             delayedSubmission: '遅延提出',
+            merchantRules: '販売者ルール',
+            merchantRulesCount: () => ({
+                one: '1 販売者ルール',
+                other: (count: number) => `${count} 販売者ルール`,
+            }),
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `元のワークスペースから ${totalMembers ?? 0} 人のメンバーと一緒に、${newWorkspaceName ?? ''} を作成して共有しようとしています。`,
             error: '新しいワークスペースの複製中にエラーが発生しました。もう一度お試しください。',

@@ -2230,6 +2230,8 @@ const translations = {
         unfreezeCard: 'Unfreeze card',
         freezeDescription: 'A frozen card cannot be used for purchases and transactions. You can unfreeze it at any time.',
         unfreezeDescription: "Unfreezing this card will start allowing purchases and transactions again. Only proceed if you're sure the card is safe to use.",
+        youFroze: ({date}: {date: string}) => `You froze this card on ${date}.`,
+        frozenBy: ({person, date}: {person: string; date: string}) => `${person} froze this card on ${date}.`,
     },
     workflowsPage: {
         workflowTitle: 'Spend',
@@ -5468,6 +5470,11 @@ const translations = {
             reimbursementAccount: 'reimbursement account',
             welcomeNote: 'Please start using my new workspace',
             delayedSubmission: 'delayed submission',
+            merchantRules: 'Merchant rules',
+            merchantRulesCount: () => ({
+                one: '1 merchant rule',
+                other: (count: number) => `${count} merchant rules`,
+            }),
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `You’re about to create and share ${newWorkspaceName ?? ''} with ${totalMembers ?? 0} members from the original workspace.`,
             error: 'An error occurred while duplicating your new workspace. Please try again.',

@@ -293,8 +293,8 @@ const ROUTES = {
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/subscription', backTo),
     },
     SETTINGS_SUBSCRIPTION_SIZE: {
-        route: 'settings/subscription/subscription-size',
-        getRoute: (canChangeSize: 0 | 1) => `settings/subscription/subscription-size?canChangeSize=${canChangeSize as number}` as const,
+        route: 'settings/subscription/subscription-size/:subPage',
+        getRoute: (subPage: string) => `settings/subscription/subscription-size/${subPage}` as const,
     },
     SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS: 'settings/subscription/details',
     SETTINGS_SUBSCRIPTION_EXPENSIFY_CODE: 'settings/subscription/details/expensify-code',
