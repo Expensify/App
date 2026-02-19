@@ -317,7 +317,8 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
 
             validateMultipleAttachmentFiles(files, items, validationOptions?.isValidatingReceipts).then((result) => {
                 if (result.isValid) {
-                    onFilesValidated(result.validatedFiles, dataTransferItemList.current);
+                    const fileObjects = result.validatedFiles.map((file) => file.file);
+                    onFilesValidated(fileObjects, dataTransferItemList.current);
                     return;
                 }
 
