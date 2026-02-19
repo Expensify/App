@@ -192,9 +192,10 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 offset: isRefresh ? 0 : (transactionsSnapshot?.search?.offset ?? 0) + pageSize,
                 shouldCalculateTotals: false,
                 isLoading: !!transactionsSnapshot?.search?.isLoading,
+                isOffline,
             });
         },
-        [groupItem.transactionsQueryJSON, transactionsSnapshot?.search?.offset, transactionsSnapshot?.search?.isLoading],
+        [groupItem.transactionsQueryJSON, isOffline, transactionsSnapshot?.search?.offset, transactionsSnapshot?.search?.isLoading],
     );
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
@@ -263,6 +264,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const onExpandIconPress = useCallback(() => {
         if (isEmpty && !shouldDisplayEmptyView) {
             onPress();
+            // onPress handles handleToggle() for us, so we return early to avoid calling it twice
+            return;
         }
         handleToggle();
     }, [isEmpty, shouldDisplayEmptyView, handleToggle, onPress]);

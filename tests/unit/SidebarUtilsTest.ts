@@ -347,6 +347,7 @@ describe('SidebarUtils', () => {
                 policy: undefined,
                 invoiceReceiverPolicy: undefined,
                 parentReportAction: undefined,
+                conciergeReportID: '',
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
@@ -365,6 +366,7 @@ describe('SidebarUtils', () => {
                 policy: undefined,
                 invoiceReceiverPolicy: undefined,
                 parentReportAction: undefined,
+                conciergeReportID: '',
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
@@ -1332,6 +1334,7 @@ describe('SidebarUtils', () => {
                 policy: undefined,
                 invoiceReceiverPolicy: undefined,
                 parentReportAction: undefined,
+                conciergeReportID: '',
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
@@ -1396,6 +1399,7 @@ describe('SidebarUtils', () => {
                 policy: undefined,
                 invoiceReceiverPolicy: undefined,
                 parentReportAction: undefined,
+                conciergeReportID: '',
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
@@ -1463,6 +1467,7 @@ describe('SidebarUtils', () => {
                 policy: undefined,
                 invoiceReceiverPolicy: undefined,
                 parentReportAction: undefined,
+                conciergeReportID: '',
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
@@ -1514,6 +1519,7 @@ describe('SidebarUtils', () => {
                     policy,
                     invoiceReceiverPolicy: undefined,
                     parentReportAction: undefined,
+                    conciergeReportID: '',
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
                     card: undefined,
@@ -1556,6 +1562,7 @@ describe('SidebarUtils', () => {
                     policy,
                     invoiceReceiverPolicy: undefined,
                     parentReportAction: undefined,
+                    conciergeReportID: '',
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
                     card: undefined,
@@ -1596,6 +1603,7 @@ describe('SidebarUtils', () => {
                     policy,
                     invoiceReceiverPolicy: undefined,
                     parentReportAction: undefined,
+                    conciergeReportID: '',
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
                     card: undefined,
@@ -1735,6 +1743,7 @@ describe('SidebarUtils', () => {
                     policy,
                     invoiceReceiverPolicy: undefined,
                     parentReportAction: undefined,
+                    conciergeReportID: '',
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     lastAction: undefined,
@@ -1779,6 +1788,7 @@ describe('SidebarUtils', () => {
                     policy,
                     invoiceReceiverPolicy: undefined,
                     parentReportAction: undefined,
+                    conciergeReportID: '',
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
                     card: undefined,
@@ -1853,6 +1863,7 @@ describe('SidebarUtils', () => {
                     policy: undefined,
                     invoiceReceiverPolicy: undefined,
                     parentReportAction: undefined,
+                    conciergeReportID: '',
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     translate: translateLocal,
@@ -1915,6 +1926,7 @@ describe('SidebarUtils', () => {
                     policy: undefined,
                     invoiceReceiverPolicy: undefined,
                     parentReportAction: undefined,
+                    conciergeReportID: '',
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     translate: translateLocal,
@@ -1967,6 +1979,7 @@ describe('SidebarUtils', () => {
                     policy: undefined,
                     invoiceReceiverPolicy: undefined,
                     parentReportAction: undefined,
+                    conciergeReportID: '',
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     translate: translateLocal,
@@ -2046,6 +2059,7 @@ describe('SidebarUtils', () => {
                     policy: undefined,
                     invoiceReceiverPolicy: undefined,
                     parentReportAction: undefined,
+                    conciergeReportID: '',
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     translate: translateLocal,
@@ -2166,6 +2180,7 @@ describe('SidebarUtils', () => {
                     policy: undefined,
                     invoiceReceiverPolicy: undefined,
                     parentReportAction: undefined,
+                    conciergeReportID: '',
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     translate: translateLocal,
@@ -2253,6 +2268,7 @@ describe('SidebarUtils', () => {
                     policy: undefined,
                     invoiceReceiverPolicy: undefined,
                     parentReportAction: undefined,
+                    conciergeReportID: '',
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     translate: translateLocal,
@@ -2352,6 +2368,7 @@ describe('SidebarUtils', () => {
                     policy: undefined,
                     invoiceReceiverPolicy: undefined,
                     parentReportAction: undefined,
+                    conciergeReportID: '',
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     lastAction: lastReportPreviewAction,
@@ -2452,6 +2469,7 @@ describe('SidebarUtils', () => {
                     policy: undefined,
                     invoiceReceiverPolicy: undefined,
                     parentReportAction: undefined,
+                    conciergeReportID: '',
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     lastAction: lastReportPreviewAction,
@@ -2464,6 +2482,100 @@ describe('SidebarUtils', () => {
 
                 const reportPreviewMessage = getReportPreviewMessage(iouReport, iouAction, true, true, null, true, lastReportPreviewAction);
                 expect(result?.alternateText).toBe(reportPreviewMessage);
+            });
+        });
+
+        describe('conciergeReportID parameter', () => {
+            it('returns isConciergeChat as true when conciergeReportID matches the report reportID', () => {
+                // Given a report with a specific reportID
+                const MOCK_REPORT: OnyxEntry<Report> = {
+                    reportID: '123456',
+                };
+                const conciergeReportID = '123456';
+
+                // When getOptionData is called with matching conciergeReportID
+                const result = SidebarUtils.getOptionData({
+                    report: MOCK_REPORT,
+                    reportAttributes: undefined,
+                    reportNameValuePairs: {},
+                    personalDetails: {},
+                    policy: undefined,
+                    parentReportAction: undefined,
+                    conciergeReportID,
+                    oneTransactionThreadReport: undefined,
+                    card: undefined,
+                    translate: translateLocal,
+                    localeCompare,
+                    lastAction: undefined,
+                    lastActionReport: undefined,
+                    invoiceReceiverPolicy: undefined,
+                    isReportArchived: undefined,
+                    currentUserAccountID: 0,
+                });
+
+                // Then isConciergeChat should be true
+                expect(result?.isConciergeChat).toBe(true);
+            });
+
+            it('returns isConciergeChat as false when conciergeReportID does not match the report reportID', () => {
+                // Given a report with a specific reportID
+                const MOCK_REPORT: OnyxEntry<Report> = {
+                    reportID: '123456',
+                };
+                const conciergeReportID = '999999';
+
+                // When getOptionData is called with non-matching conciergeReportID
+                const result = SidebarUtils.getOptionData({
+                    report: MOCK_REPORT,
+                    reportAttributes: undefined,
+                    reportNameValuePairs: {},
+                    personalDetails: {},
+                    policy: undefined,
+                    parentReportAction: undefined,
+                    conciergeReportID,
+                    oneTransactionThreadReport: undefined,
+                    card: undefined,
+                    translate: translateLocal,
+                    localeCompare,
+                    lastAction: undefined,
+                    lastActionReport: undefined,
+                    invoiceReceiverPolicy: undefined,
+                    isReportArchived: undefined,
+                    currentUserAccountID: 0,
+                });
+
+                // Then isConciergeChat should be false
+                expect(result?.isConciergeChat).toBe(false);
+            });
+
+            it('returns isConciergeChat as false when conciergeReportID is empty string', () => {
+                // Given a report with a specific reportID
+                const MOCK_REPORT: OnyxEntry<Report> = {
+                    reportID: '123456',
+                };
+
+                // When getOptionData is called with empty conciergeReportID
+                const result = SidebarUtils.getOptionData({
+                    report: MOCK_REPORT,
+                    reportAttributes: undefined,
+                    reportNameValuePairs: {},
+                    personalDetails: {},
+                    policy: undefined,
+                    parentReportAction: undefined,
+                    conciergeReportID: '',
+                    oneTransactionThreadReport: undefined,
+                    card: undefined,
+                    translate: translateLocal,
+                    localeCompare,
+                    lastAction: undefined,
+                    lastActionReport: undefined,
+                    invoiceReceiverPolicy: undefined,
+                    isReportArchived: undefined,
+                    currentUserAccountID: 0,
+                });
+
+                // Then isConciergeChat should be false
+                expect(result?.isConciergeChat).toBe(false);
             });
         });
     });
@@ -2479,7 +2591,7 @@ describe('SidebarUtils', () => {
                 };
 
                 // When the reports are categorized
-                const result = SidebarUtils.categorizeReportsForLHN(reports, reportsDrafts, reportNameValuePairs);
+                const result = SidebarUtils.categorizeReportsForLHN(reports, reportsDrafts, '', reportNameValuePairs);
 
                 // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(1);
@@ -2506,7 +2618,7 @@ describe('SidebarUtils', () => {
                 ]);
 
                 // When the reports are categorized
-                const result = SidebarUtils.categorizeReportsForLHN(reports, undefined, undefined);
+                const result = SidebarUtils.categorizeReportsForLHN(reports, undefined, '', undefined);
 
                 // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(1);
@@ -2533,7 +2645,7 @@ describe('SidebarUtils', () => {
                 };
 
                 // When the reports are categorized
-                const result = SidebarUtils.categorizeReportsForLHN(reports, {});
+                const result = SidebarUtils.categorizeReportsForLHN(reports, {}, '');
 
                 // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(0);
@@ -2547,7 +2659,7 @@ describe('SidebarUtils', () => {
 
             it('should handle empty reports object', () => {
                 // Given the reports are empty
-                const result = SidebarUtils.categorizeReportsForLHN({}, {});
+                const result = SidebarUtils.categorizeReportsForLHN({}, {}, '');
 
                 // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(0);
@@ -2784,7 +2896,7 @@ describe('SidebarUtils', () => {
                 const priorityMode = CONST.PRIORITY_MODE.DEFAULT;
 
                 // When the reports are sorted
-                const result = SidebarUtils.sortReportsToDisplayInLHN(reports, priorityMode, mockLocaleCompare, undefined);
+                const result = SidebarUtils.sortReportsToDisplayInLHN(reports, priorityMode, mockLocaleCompare, undefined, undefined, '');
 
                 // Then the reports are sorted in the correct order
                 expect(result).toEqual(['0', '1', '2']); // Pinned first, Error second, Normal third
@@ -2810,10 +2922,10 @@ describe('SidebarUtils', () => {
                 const mockLocaleCompare = (a: string, b: string) => a.localeCompare(b);
 
                 // When the reports are sorted in default mode
-                const defaultResult = SidebarUtils.sortReportsToDisplayInLHN(reports, CONST.PRIORITY_MODE.DEFAULT, mockLocaleCompare, undefined);
+                const defaultResult = SidebarUtils.sortReportsToDisplayInLHN(reports, CONST.PRIORITY_MODE.DEFAULT, mockLocaleCompare, undefined, undefined, '');
 
                 // When the reports are sorted in GSD mode
-                const gsdResult = SidebarUtils.sortReportsToDisplayInLHN(reports, CONST.PRIORITY_MODE.GSD, mockLocaleCompare, undefined);
+                const gsdResult = SidebarUtils.sortReportsToDisplayInLHN(reports, CONST.PRIORITY_MODE.GSD, mockLocaleCompare, undefined, undefined, '');
 
                 // Then the reports are sorted in the correct order
                 expect(defaultResult).toEqual(['1', '0']); // Most recent first (index 1 has later date)
