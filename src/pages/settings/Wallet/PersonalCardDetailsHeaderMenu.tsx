@@ -67,16 +67,6 @@ function PersonalCardDetailsHeaderMenu({
                 />
             )}
 
-            <MenuItem
-                label={translate('workspace.moreFeatures.companyCards.cardholder')}
-                title={displayName}
-                titleStyle={styles.mt1}
-                iconStyles={styles.mt1}
-                icon={cardholder?.avatar ?? expensifyIcons.FallbackAvatar}
-                iconType={CONST.ICON_TYPE_AVATAR}
-                description={cardholder?.login ?? ''}
-                interactive={false}
-            />
             <OfflineWithFeedback
                 pendingAction={card?.nameValuePairs?.pendingFields?.cardTitle}
                 errorRowStyles={[styles.ph5, styles.mb3]}

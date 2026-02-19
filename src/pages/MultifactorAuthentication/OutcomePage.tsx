@@ -1,98 +1,36 @@
 import React from 'react';
-import {View} from 'react-native';
-import BlockingView from '@components/BlockingViews/BlockingView';
-import Button from '@components/Button';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {loadIllustration} from '@components/Icon/IllustrationLoader';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import {MULTIFACTOR_AUTHENTICATION_OUTCOME_MAP} from '@components/MultifactorAuthentication/config';
-import {getOutcomePath} from '@components/MultifactorAuthentication/config/outcomePaths';
+import {DefaultClientFailureScreen} from '@components/MultifactorAuthentication/components/OutcomeScreen';
 import {useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
-import ScreenWrapper from '@components/ScreenWrapper';
-import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {MultifactorAuthenticationParamList} from '@libs/Navigation/types';
+import type {ErrorState} from '@components/MultifactorAuthentication/Context/State';
 import CONST from '@src/CONST';
-import type {MultifactorAuthenticationTranslationParams} from '@src/languages/params';
-import type {TranslationPaths} from '@src/languages/types';
-import type SCREENS from '@src/SCREENS';
 
-type MultifactorAuthenticationOutcomePageProps = PlatformStackScreenProps<MultifactorAuthenticationParamList, typeof SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME>;
+function isServerError(error: ErrorState): boolean {
+    return (
+        error.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.UNKNOWN_RESPONSE || (error.httpStatusCode !== undefined && error.httpStatusCode >= 500 && error.httpStatusCode < 600)
+    );
+}
 
-type MultifactorAuthenticationLocalize = LocaleContextProps & {
-    translate: <TPath extends TranslationPaths>(path: TPath, params: MultifactorAuthenticationTranslationParams) => string;
-};
+function MultifactorAuthenticationOutcomePage() {
+    const {scenario, error} = useMultifactorAuthenticationState();
 
-function MultifactorAuthenticationOutcomePage({route}: MultifactorAuthenticationOutcomePageProps) {
-    const {translate} = useLocalize() as MultifactorAuthenticationLocalize;
-    const styles = useThemeStyles();
-    const {state} = useMultifactorAuthenticationState();
-    const onGoBackPress = () => {
-        Navigation.closeRHPFlow();
-    };
-
-    let outcomePath = route.params.outcomeType;
-
-    switch (state.error?.reason) {
-        case CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_ELIGIBLE_METHODS:
-            outcomePath = getOutcomePath(state.scenario, 'no-eligible-methods');
-            break;
-        case CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.UNSUPPORTED_DEVICE:
-            outcomePath = getOutcomePath(state.scenario, 'unsupported-device');
-            break;
-        default:
-            break;
+    if (!scenario) {
+        return <DefaultClientFailureScreen />;
     }
 
-    const data = MULTIFACTOR_AUTHENTICATION_OUTCOME_MAP[outcomePath];
+    if (!error) {
+        return scenario.successScreen;
+    }
 
-    const {asset: icon} = useMemoizedLazyAsset(() => loadIllustration(data?.illustration ?? 'HumptyDumpty'));
+    const reasonScreen = scenario.failureScreens?.[error.reason];
+    if (reasonScreen) {
+        return reasonScreen;
+    }
 
-    // Get text values from outcome config and translate them
-    const headerTitle = translate(data.headerTitle ?? 'multifactorAuthentication.biometricsTest.biometricsAuthentication');
-    const title = translate(data.title ?? 'multifactorAuthentication.oops');
+    if (isServerError(error)) {
+        return scenario.defaultServerFailureScreen;
+    }
 
-    const description = translate(data.description ?? 'multifactorAuthentication.biometricsTest.yourAttemptWasUnsuccessful', {authType: state.authenticationMethod?.name, registered: false});
-
-    const CustomDescription = data?.customDescription;
-    const CustomSubtitle = CustomDescription ? <CustomDescription /> : undefined;
-
-    return (
-        <ScreenWrapper testID={MultifactorAuthenticationOutcomePage.displayName}>
-            <HeaderWithBackButton
-                title={headerTitle}
-                onBackButtonPress={onGoBackPress}
-                shouldShowBackButton
-            />
-            <View style={styles.flex1}>
-                <BlockingView
-                    icon={icon}
-                    contentFitImage="fill"
-                    iconWidth={data?.iconWidth}
-                    iconHeight={data?.iconHeight}
-                    title={title}
-                    titleStyles={styles.mb2}
-                    subtitle={description}
-                    CustomSubtitle={CustomSubtitle}
-                    subtitleStyle={styles.textSupporting}
-                    containerStyle={styles.ph5}
-                    testID={MultifactorAuthenticationOutcomePage.displayName}
-                />
-            </View>
-            <View style={[styles.flexRow, styles.m5, styles.mt0]}>
-                <Button
-                    large
-                    success
-                    style={styles.flex1}
-                    onPress={onGoBackPress}
-                    text={translate('common.buttonConfirm')}
-                />
-            </View>
-        </ScreenWrapper>
-    );
+    return scenario.defaultClientFailureScreen;
 }
 
 MultifactorAuthenticationOutcomePage.displayName = 'MultifactorAuthenticationOutcomePage';
