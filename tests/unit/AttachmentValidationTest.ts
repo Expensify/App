@@ -10,6 +10,9 @@ const createMockFile = (name: string, size: number) => ({
 });
 
 describe('AttachmentValidation', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
     describe('validateAttachmentFile', () => {
         it('should not return SINGLE_FILE.FILE_TOO_SMALL when validating small attachment', async () => {
             const file = createMockFile('file.csv', CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE - 1);
@@ -114,7 +117,8 @@ describe('AttachmentValidation', () => {
         });
 
         it('should return SINGLE_FILE.FILE_TOO_LARGE for large image receipt', async () => {
-            const file = createMockFile('receipt.jpg', CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE + 1);
+            // Note: Image receipts are checked against MAX_SIZE (24MB) in isFileCorrupted, not RECEIPT_MAX_SIZE (10MB)
+            const file = createMockFile('receipt.jpg', CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE + 1);
             const result = await validateAttachmentFile(file, undefined, true);
 
             if (result.isValid) {
@@ -170,8 +174,8 @@ describe('AttachmentValidation', () => {
             expect(result.isValid).toBe(true);
         });
 
-        it('should accept valid non-image receipt (txt)', async () => {
-            const file = createMockFile('receipt.txt', CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE - 1);
+        it('should accept valid non-image receipt (text)', async () => {
+            const file = createMockFile('receipt.text', CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE - 1);
             const result = await validateAttachmentFile(file, undefined, true);
 
             expect(result.isValid).toBe(true);
@@ -217,7 +221,11 @@ describe('AttachmentValidation', () => {
             const result = await validateAttachmentFile(file, undefined, true);
 
             // File without name should still validate (name is optional)
-            expect(result.isValid).toBe(true);
+            if (result.isValid) {
+                throw new Error('validateAttachmentFile should return an invalid result');
+            }
+
+            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_INVALID);
         });
 
         it('should handle file with no size', async () => {
@@ -225,7 +233,11 @@ describe('AttachmentValidation', () => {
             const result = await validateAttachmentFile(file, undefined, true);
 
             // File without size should still validate (size is optional)
-            expect(result.isValid).toBe(true);
+            if (result.isValid) {
+                throw new Error('validateAttachmentFile should return an invalid result');
+            }
+
+            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_INVALID);
         });
 
         it('should return SINGLE_FILE.FOLDER_NOT_ALLOWED when DataTransferItem is a directory', async () => {

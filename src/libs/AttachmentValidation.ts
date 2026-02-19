@@ -33,22 +33,25 @@ function validateAttachmentFile(file: FileObject, item?: DataTransferItem, isVal
         return Promise.resolve({isValid: false, error: CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.NO_FILE_PROVIDED, file});
     }
 
+    if (!file.name || file.size == null) {
+        return Promise.resolve({isValid: false, error: CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_INVALID, file});
+    }
+
     if (isValidatingReceipts && !isValidReceiptExtension(file)) {
         return Promise.resolve({isValid: false, error: CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.WRONG_FILE_TYPE, file});
     }
 
-    const isImage = Str.isImage(file.name ?? '');
-
-    if (isImage && hasHeicOrHeifExtension(file)) {
+    if (hasHeicOrHeifExtension(file)) {
         return Promise.resolve({isValid: false, error: CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.HEIC_OR_HEIF_IMAGE, file});
     }
 
+    const isImage = Str.isImage(file.name);
     const maxFileSize = isValidatingReceipts ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
-    if (!isImage && !hasHeicOrHeifExtension(file) && (file?.size ?? 0) > maxFileSize) {
+    if (!isImage && !hasHeicOrHeifExtension(file) && file.size > maxFileSize) {
         return Promise.resolve({isValid: false, error: CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_LARGE, file});
     }
 
-    if (isValidatingReceipts && (file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+    if (isValidatingReceipts && file.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
         return Promise.resolve({isValid: false, error: CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_SMALL, file});
     }
 
