@@ -42,7 +42,7 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
     const [isValidatingMultipleFiles, setIsValidatingMultipleFiles] = useState(false);
 
     const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
-    const [fileError, setFileError] = useState<SingleAttachmentValidationError | MultipleAttachmentsValidationError>();
+    const [fileError, setFileError] = useState<SingleAttachmentValidationError | MultipleAttachmentsValidationError | null>(null);
     const [pdfFilesToRender, setPdfFilesToRender] = useState<FileObject[]>([]);
     const [validFilesToUpload, setValidFilesToUpload] = useState<FileObject[]>([]);
     const [invalidFileExtension, setInvalidFileExtension] = useState('');
@@ -85,7 +85,7 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
         setPdfFilesToRender([]);
         setIsLoaderVisible(false);
         setValidFilesToUpload([]);
-        setFileError(undefined);
+        setFileError(null);
         setInvalidFileExtension('');
         setErrorQueue([]);
         setCurrentErrorIndex(0);

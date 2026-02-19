@@ -666,7 +666,7 @@ type TranslationAdditionalData = {
 
 const getFileValidationErrorText = (
     translate: LocalizedTranslate,
-    validationError: SingleAttachmentValidationError | MultipleAttachmentsValidationError | undefined,
+    validationError: SingleAttachmentValidationError | MultipleAttachmentsValidationError | null,
     additionalData: TranslationAdditionalData = {},
     isValidatingReceipt = false,
 ): {
