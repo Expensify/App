@@ -5489,6 +5489,21 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.translucentNavigationBarBackgroundColor,
         },
 
+        descriptionBadge: {
+            backgroundColor: theme.border,
+            borderRadius: variables.componentBorderRadiusXLarge,
+            paddingHorizontal: 8,
+            height: 16,
+            justifyContent: 'center' as const,
+            alignItems: 'center' as const,
+        },
+
+        descriptionBadgeText: {
+            fontSize: variables.fontSizeExtraSmall,
+            lineHeight: 12,
+            color: theme.text,
+        },
+
         todoBadge: {
             width: variables.w36,
             alignItems: 'center',

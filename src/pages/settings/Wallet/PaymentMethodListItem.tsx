@@ -127,11 +127,8 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
         if (isInSetupState) {
             return translate('common.actionRequired');
         }
-        if (item.isSuspended) {
-            return translate('walletPage.cardInactive');
-        }
         return shouldShowDefaultBadge ? translate('paymentMethodList.defaultPaymentMethod') : undefined;
-    }, [isInSetupState, item.isSuspended, shouldShowDefaultBadge, translate]);
+    }, [isInSetupState, shouldShowDefaultBadge, translate]);
 
     return (
         <OfflineWithFeedback
@@ -145,6 +142,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 onPress={handleRowPress}
                 title={item.title}
                 description={item.description}
+                descriptionBadgeText={item.isSuspended ? translate('walletPage.cardInactive') : undefined}
                 icon={item.icon}
                 plaidUrl={item.plaidUrl}
                 disabled={item.disabled}

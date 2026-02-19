@@ -171,6 +171,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** A description text to show under the title */
         description?: string;
 
+        /** Small pill badge text to show before the description */
+        descriptionBadgeText?: string;
+
         /** Text to show below menu item. This text is not interactive */
         helperText?: string;
 
@@ -486,6 +489,7 @@ function MenuItem({
     furtherDetailsStyle,
     furtherDetailsComponent,
     description,
+    descriptionBadgeText,
     helperText,
     helperTextStyle,
     errorText,
@@ -937,13 +941,22 @@ function MenuItem({
                                                                 )}
                                                             </View>
                                                         )}
-                                                        {!!description && !shouldShowDescriptionOnTop && (
-                                                            <Text
-                                                                style={descriptionTextStyles}
-                                                                numberOfLines={numberOfLinesDescription}
-                                                            >
-                                                                {description}
-                                                            </Text>
+                                                        {!shouldShowDescriptionOnTop && (!!description || !!descriptionBadgeText) && (
+                                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
+                                                                {!!descriptionBadgeText && (
+                                                                    <View style={styles.descriptionBadge}>
+                                                                        <Text style={[styles.textStrong, styles.descriptionBadgeText]}>{descriptionBadgeText}</Text>
+                                                                    </View>
+                                                                )}
+                                                                {!!description && (
+                                                                    <Text
+                                                                        style={[descriptionTextStyles, styles.flexShrink1]}
+                                                                        numberOfLines={numberOfLinesDescription}
+                                                                    >
+                                                                        {description}
+                                                                    </Text>
+                                                                )}
+                                                            </View>
                                                         )}
                                                         {!!furtherDetails && (
                                                             <View style={[styles.flexRow, styles.mt1, styles.alignItemsCenter]}>
