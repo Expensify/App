@@ -28,7 +28,7 @@ function isSingleAttachmentValidationResult(result: unknown): result is SingleAt
     return typeof result === 'object' && result !== null && 'isValid' in result && typeof result.isValid === 'boolean' && ('validatedFile' in result || 'error' in result);
 }
 
-function validateAttachmentFile(file: FileObject, item?: DataTransferItem, isValidatingReceipts = false): Promise<SingleAttachmentValidationResult> {
+async function validateAttachmentFile(file: FileObject, item?: DataTransferItem, isValidatingReceipts = false): Promise<SingleAttachmentValidationResult> {
     if (!file) {
         return Promise.resolve({isValid: false, error: CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.NO_FILE_PROVIDED, file});
     }
@@ -73,42 +73,38 @@ function validateAttachmentFile(file: FileObject, item?: DataTransferItem, isVal
         }
     }
 
-    return isFileCorrupted(fileObject, isValidatingReceipts).then((corruptionResult) => {
-        if (!corruptionResult.isValid) {
-            return corruptionResult;
+    const corruptionResult = await isFileCorrupted(fileObject, isValidatingReceipts);
+    if (!corruptionResult.isValid) {
+        return corruptionResult;
+    }
+    const corruptionFreeFile = corruptionResult.validatedFile.file;
+    if (corruptionFreeFile instanceof File) {
+        /**
+         * Cleaning file name, done here so that it covers all cases:
+         * upload, drag and drop, copy-paste
+         */
+        let updatedFile = corruptionFreeFile;
+        const cleanName = cleanFileName(updatedFile.name);
+        if (updatedFile.name !== cleanName) {
+            updatedFile = new File([updatedFile], cleanName, {type: updatedFile.type});
         }
-
-        const corruptionFreeFile = corruptionResult.validatedFile.file;
-        if (corruptionFreeFile instanceof File) {
-            /**
-             * Cleaning file name, done here so that it covers all cases:
-             * upload, drag and drop, copy-paste
-             */
-            let updatedFile = corruptionFreeFile;
-            const cleanName = cleanFileName(updatedFile.name);
-            if (updatedFile.name !== cleanName) {
-                updatedFile = new File([updatedFile], cleanName, {type: updatedFile.type});
-            }
-            const inputSource = URL.createObjectURL(updatedFile);
-            updatedFile.uri = inputSource;
-
-            const validatedFile: ValidatedFile = {
-                fileType: 'file',
-                source: inputSource,
-                file: updatedFile,
-            };
-
-            return {isValid: true, validatedFile};
-        }
+        const inputSource = URL.createObjectURL(updatedFile);
+        updatedFile.uri = inputSource;
 
         const validatedFile: ValidatedFile = {
-            fileType: 'uri',
-            source: corruptionFreeFile.uri ?? '',
-            file: corruptionFreeFile,
+            fileType: 'file',
+            source: inputSource,
+            file: updatedFile,
         };
 
         return {isValid: true, validatedFile};
-    });
+    }
+    const validatedFile: ValidatedFile = {
+        fileType: 'uri',
+        source: corruptionFreeFile.uri ?? '',
+        file: corruptionFreeFile,
+    };
+    return {isValid: true, validatedFile};
 }
 
 type MultipleAttachmentsValidResult = {
@@ -129,7 +125,7 @@ function isMultipleAttachmentsValidationResult(result: unknown): result is Multi
     return typeof result === 'object' && result !== null && 'isValid' in result && typeof result.isValid === 'boolean' && ('validatedFiles' in result || 'fileResults' in result);
 }
 
-function validateMultipleAttachmentFiles(files: FileObject[], items?: DataTransferItem[], isValidatingReceipts = false): Promise<MultipleAttachmentsValidationResult> {
+async function validateMultipleAttachmentFiles(files: FileObject[], items?: DataTransferItem[], isValidatingReceipts = false): Promise<MultipleAttachmentsValidationResult> {
     if (!files?.length || files.some((f) => isDirectory(f))) {
         return Promise.resolve({isValid: false, error: CONST.FILE_VALIDATION_ERRORS.MULTIPLE_FILES.FOLDER_NOT_ALLOWED, fileResults: [], files});
     }
@@ -138,20 +134,18 @@ function validateMultipleAttachmentFiles(files: FileObject[], items?: DataTransf
         return Promise.resolve({isValid: false, error: CONST.FILE_VALIDATION_ERRORS.MULTIPLE_FILES.MAX_FILE_LIMIT_EXCEEDED, fileResults: [], files});
     }
 
-    return Promise.all(files.map((f, index) => validateAttachmentFile(f, items?.at(index), isValidatingReceipts))).then((results) => {
-        if (results.every((result) => result.isValid)) {
-            return {
-                isValid: true,
-                validatedFiles: results.map((result) => result.validatedFile),
-            };
-        }
-
+    const results = await Promise.all(files.map((f, index) => validateAttachmentFile(f, items?.at(index), isValidatingReceipts)));
+    if (results.every((result) => result.isValid)) {
         return {
-            isValid: false,
-            fileResults: results,
-            files,
+            isValid: true,
+            validatedFiles: results.map((r) => r.validatedFile),
         };
-    });
+    }
+    return {
+        isValid: false,
+        fileResults: results,
+        files,
+    };
 }
 
 function isFileCorrupted(fileObject: FileObject, isValidatingReceipts?: boolean): Promise<SingleAttachmentValidationResult> {
