@@ -71,12 +71,6 @@ type ReportActionItemParentActionProps = {
     /** Personal details list */
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 
-    /** All draft messages collection */
-    allDraftMessages?: OnyxCollection<OnyxTypes.ReportActionsDrafts>;
-
-    /** All emoji reactions collection */
-    allEmojiReactions?: OnyxCollection<OnyxTypes.ReportActionReactions>;
-
     /** Linked transaction route error */
     linkedTransactionRouteError?: OnyxEntry<Errors>;
 
@@ -104,8 +98,6 @@ function ReportActionItemParentAction({
     userWalletTierName,
     isUserValidated,
     personalDetails,
-    allDraftMessages,
-    allEmojiReactions,
     linkedTransactionRouteError,
     userBillingFundID,
     isTryNewDotNVPDismissed = false,
@@ -156,6 +148,48 @@ function ReportActionItemParentAction({
         },
         [ancestors],
     );
+
+    const ancestorReportIDs = ancestors.map((ancestor) => ancestor.report.reportID);
+    const ancestorActionIDs = ancestors.map((ancestor) => ancestor.reportAction.reportActionID);
+
+    const ancestorDraftsSelector = useCallback(
+        (allDrafts: OnyxCollection<OnyxTypes.ReportActionsDrafts>) => {
+            if (!allDrafts || ancestorReportIDs.length === 0) {
+                return undefined;
+            }
+            const result: OnyxCollection<OnyxTypes.ReportActionsDrafts> = {};
+            for (const reportID of ancestorReportIDs) {
+                const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`;
+                if (key in allDrafts) {
+                    result[key] = allDrafts[key];
+                }
+            }
+            return result;
+        },
+        [ancestorReportIDs],
+    );
+
+    const [ancestorDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS, {canBeMissing: true, selector: ancestorDraftsSelector}, [ancestors]);
+
+    const ancestorReactionsSelector = useCallback(
+        (allReactions: OnyxCollection<OnyxTypes.ReportActionReactions>) => {
+            if (!allReactions || ancestorActionIDs.length === 0) {
+                return undefined;
+            }
+            const result: OnyxCollection<OnyxTypes.ReportActionReactions> = {};
+            for (const actionID of ancestorActionIDs) {
+                const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${actionID}`;
+                if (key in allReactions) {
+                    result[key] = allReactions[key];
+                }
+            }
+            return result;
+        },
+        [ancestorActionIDs],
+    );
+
+    const [ancestorReactions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS, {canBeMissing: true, selector: ancestorReactionsSelector}, [ancestors]);
+
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
 
     return (
@@ -180,10 +214,10 @@ function ReportActionItemParentAction({
                         ancestorReportAction,
                         ancestorsReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReport.reportID}`],
                     );
-                    const reportDraftMessages = originalReportID ? allDraftMessages?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`] : undefined;
+                    const reportDraftMessages = originalReportID ? ancestorDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`] : undefined;
                     const matchingDraftMessage = reportDraftMessages?.[ancestorReportAction.reportActionID];
                     const matchingDraftMessageString = matchingDraftMessage?.message;
-                    const actionEmojiReactions = allEmojiReactions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${ancestorReportAction.reportActionID}`];
+                    const actionEmojiReactions = ancestorReactions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${ancestorReportAction.reportActionID}`];
 
                     return (
                         <OfflineWithFeedback
