@@ -157,6 +157,7 @@ import {
     isHiddenForCurrentUser,
     isInvoiceReport,
     isInvoiceRoom,
+    isTripRoom,
     isIOUOwnedByCurrentUser,
     isJoinRequestInAdminRoom,
     isMoneyRequestReport,
@@ -759,7 +760,9 @@ function getOptionData({
     result.isPolicyExpenseChat = isPolicyExpenseChat(report);
     result.isExpenseRequest = isExpenseRequest(report);
     result.isMoneyRequestReport = isMoneyRequestReport(report);
-    result.shouldShowSubscript = shouldReportShowSubscript(report, isReportArchived);
+    // Chat threads (non-expense-request) should not show subscript in LHN even if shouldReportShowSubscript
+    // returns true — the workspace icon is suppressed to show only the actor avatar.
+    result.shouldShowSubscript = shouldReportShowSubscript(report, isReportArchived) && !(isChatThread(report) && !isTripRoom(report) && !isExpenseRequest(report));
     result.pendingAction = report.pendingFields?.addWorkspaceRoom ?? report.pendingFields?.createChat;
     result.brickRoadIndicator = reportAttributes?.brickRoadStatus;
     result.ownerAccountID = report.ownerAccountID;
@@ -1140,6 +1143,18 @@ function getOptionData({
         invoiceReceiverPolicy,
         isReportArchived,
     );
+
+    // When subscript is not shown and icons are a mixed person+workspace pair,
+    // trim to a single icon (e.g. workspace chat threads show only the actor avatar, not actor+workspace).
+    // Same-type pairs (person+person or workspace+workspace) are kept for diagonal rendering.
+    if (!result.shouldShowSubscript && result.icons.length > 1) {
+        const primaryIcon = result.icons.at(0);
+        const secondaryIcon = result.icons.at(1);
+        if (primaryIcon?.type !== secondaryIcon?.type) {
+            result.icons = result.icons.slice(0, 1);
+        }
+    }
+
     result.displayNamesWithTooltips = displayNamesWithTooltips;
 
     if (status) {
