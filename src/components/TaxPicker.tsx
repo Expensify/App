@@ -40,25 +40,9 @@ type TaxPickerProps = {
      * If enabled, the content will have a bottom padding equal to account for the safe bottom area inset.
      */
     addBottomSafeAreaPadding?: boolean;
-
-    /**
-     * If enabled, allows deselecting the currently selected tax rate by tapping it again.
-     * When disabled (default), tapping the selected tax rate will dismiss the picker without calling onSubmit.
-     */
-    allowDeselect?: boolean;
 };
 
-function TaxPicker({
-    selectedTaxRate = '',
-    policyID,
-    transactionID,
-    onSubmit,
-    action,
-    iouType,
-    onDismiss = Navigation.goBack,
-    addBottomSafeAreaPadding,
-    allowDeselect = false,
-}: TaxPickerProps) {
+function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, action, iouType, onDismiss = Navigation.goBack, addBottomSafeAreaPadding}: TaxPickerProps) {
     const {translate, localeCompare} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
@@ -105,8 +89,7 @@ function TaxPicker({
     const selectedOptionKey = sections?.at(0)?.data?.find((taxRate) => taxRate.searchText === selectedTaxRate)?.keyForList;
 
     const handleSelectRow = (newSelectedOption: TaxRatesOption) => {
-        // If deselection is not allowed and the same option is selected, just dismiss
-        if (!allowDeselect && selectedOptionKey === newSelectedOption.keyForList) {
+        if (selectedOptionKey === newSelectedOption.keyForList) {
             onDismiss();
             return;
         }
