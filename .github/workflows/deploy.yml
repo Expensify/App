@@ -175,6 +175,15 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
+      - name: Upload Android build to Sentry for size analysis
+        if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
+        continue-on-error: true
+        timeout-minutes: 5
+        # TODO: Remove --log-level debug before merging
+        run: npx sentry-cli build upload ${{ env.aabPath }} --org expensify --project app --build-configuration Release --log-level debug
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+
       - name: Upload Android app to Google Play
         if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
         run: bundle exec fastlane android ${{ vars.ANDROID_UPLOAD_COMMAND }}
@@ -391,6 +400,15 @@ jobs:
           APPLE_SHARE_PROVISIONING_PROFILE_NAME: ${{ vars.APPLE_SHARE_PROVISIONING_PROFILE_NAME }}
           APPLE_NOTIFICATION_PROVISIONING_PROFILE_FILE: ${{ vars.APPLE_NOTIFICATION_PROVISIONING_PROFILE_FILE }}
           APPLE_NOTIFICATION_PROVISIONING_PROFILE_NAME: ${{ vars.APPLE_NOTIFICATION_PROVISIONING_PROFILE_NAME }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+
+      - name: Upload iOS build to Sentry for size analysis
+        if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
+        continue-on-error: true
+        timeout-minutes: 5
+        # TODO: Remove --log-level debug before merging
+        run: npx sentry-cli build upload ${{ env.ipaPath }} --org expensify --project app --build-configuration Release --log-level debug
+        env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - name: Upload release build to TestFlight
