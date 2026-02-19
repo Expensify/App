@@ -138,6 +138,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                     icon={Plus}
                     text={translate('workspace.expensifyCard.issueCard')}
                     style={shouldChangeLayout && styles.flex1}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_BUTTON}
                 />
             )}
             <ButtonWithDropdownMenu
@@ -148,6 +149,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 isSplitButton={false}
                 shouldUseOptionIcon
                 wrapperStyle={isEmptyObject(cardsList) ? styles.flexGrow1 : styles.flexGrow0}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.MORE_DROPDOWN}
             />
         </View>
     );

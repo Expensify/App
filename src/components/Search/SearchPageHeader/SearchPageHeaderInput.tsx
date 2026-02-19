@@ -1,5 +1,4 @@
 import {useIsFocused} from '@react-navigation/native';
-import {feedKeysWithAssignedCardsSelector} from '@selectors/Card';
 import {accountIDSelector} from '@selectors/Session';
 import {deepEqual} from 'fast-equals';
 import isEmpty from 'lodash/isEmpty';
@@ -21,6 +20,7 @@ import type {SelectionListWithSectionsHandle} from '@components/SelectionList/Se
 import type {SearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
 import {isSearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
 import SidePanelButton from '@components/SidePanel/SidePanelButton';
+import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -67,7 +67,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
     const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true});
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
-    const [feedKeysWithCards] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {selector: feedKeysWithAssignedCardsSelector, canBeMissing: true});
+    const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const {inputQuery: originalInputQuery} = queryJSON;
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
     const queryText = buildUserReadableQueryString({
