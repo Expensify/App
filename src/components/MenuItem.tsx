@@ -725,7 +725,6 @@ function MenuItem({
     };
 
     const isIDPassed = !!iconReportID || !!iconAccountID || iconAccountID === CONST.DEFAULT_NUMBER_ID;
-    const iconSize = hasSubMenuItems ? variables.iconSizeNormal : variables.iconSizeSmall;
 
     return (
         <View
@@ -1049,8 +1048,8 @@ function MenuItem({
                                                         <Icon
                                                             src={iconRight ?? icons.ArrowRight}
                                                             fill={StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive))}
-                                                            width={iconSize}
-                                                            height={iconSize}
+                                                            width={variables.iconSizeNormal}
+                                                            height={variables.iconSizeNormal}
                                                         />
                                                     </View>
                                                 )}
