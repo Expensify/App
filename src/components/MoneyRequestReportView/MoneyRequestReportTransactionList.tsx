@@ -16,6 +16,7 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchCustomColumnIds, SortOrder} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
@@ -32,6 +33,7 @@ import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {setOptimisticTransactionThread} from '@libs/actions/Report';
 import {getReportLayoutGroupBy, setReportLayoutGroupBy} from '@libs/actions/ReportLayout';
@@ -68,8 +70,6 @@ import {
 } from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
-import ScrollView from '@components/ScrollView';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import {createTransactionThreadReport} from '@userActions/Report';
@@ -315,19 +315,19 @@ function MoneyRequestReportTransactionList({
     const minTableWidth = getTableMinWidth(columnsToShow);
     const shouldScrollHorizontally = !shouldUseNarrowLayout && minTableWidth > windowWidth;
     const horizontalScrollViewRef = useRef<RNScrollView>(null);
-    const [horizontalScrollOffset, setHorizontalScrollOffset] = useState(0);
+    const horizontalScrollOffsetRef = useRef(0);
 
     const handleHorizontalScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        setHorizontalScrollOffset(event.nativeEvent.contentOffset.x);
+        horizontalScrollOffsetRef.current = event.nativeEvent.contentOffset.x;
     }, []);
 
-    // Restore horizontal scroll position synchronously before paint
+    // Restore horizontal scroll position synchronously before paint when transactions change
     useLayoutEffect(() => {
-        if (!shouldScrollHorizontally || horizontalScrollOffset <= 0) {
+        if (!shouldScrollHorizontally || horizontalScrollOffsetRef.current <= 0) {
             return;
         }
-        horizontalScrollViewRef.current?.scrollTo({x: horizontalScrollOffset, animated: false});
-    }, [sortedTransactions, shouldScrollHorizontally, horizontalScrollOffset]);
+        horizontalScrollViewRef.current?.scrollTo({x: horizontalScrollOffsetRef.current, animated: false});
+    }, [sortedTransactions, shouldScrollHorizontally]);
 
     const currentGroupBy = getReportLayoutGroupBy(reportLayoutGroupBy);
 
@@ -639,7 +639,6 @@ function MoneyRequestReportTransactionList({
                     showsHorizontalScrollIndicator
                     style={styles.flex1}
                     contentContainerStyle={{width: minTableWidth}}
-                    contentOffset={{x: horizontalScrollOffset, y: 0}}
                     onScroll={handleHorizontalScroll}
                     scrollEventThrottle={16}
                 >

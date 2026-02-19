@@ -66,11 +66,10 @@ function setReportDetailsColumns(columns: SearchCustomColumnIds[], previousValue
     ];
 
     const parameters = {
-        name: 'reportDetailsColumns',
-        value: JSON.stringify(columns),
+        columns: JSON.stringify(columns),
     };
 
-    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.SET_REPORT_DETAILS_COLUMNS, parameters, {optimisticData, failureData});
 }
 
 export {setReportLayoutGroupBy, getReportLayoutGroupBy, setReportDetailsColumns};
