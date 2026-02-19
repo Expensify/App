@@ -6,9 +6,8 @@ import moveAccessibilityFocus from './moveAccessibilityFocus';
 
 type HitSlop = {x: number; y: number};
 
-const useScreenReaderStatus = (): boolean | null => {
-    // null = status not yet known (async check still pending)
-    const [isScreenReaderEnabled, setIsScreenReaderEnabled] = useState<boolean | null>(null);
+const useScreenReaderStatus = (): boolean => {
+    const [isScreenReaderEnabled, setIsScreenReaderEnabled] = useState<boolean>(false);
     useEffect(() => {
         let isMounted = true;
 
