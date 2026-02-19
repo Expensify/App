@@ -7640,7 +7640,6 @@ const CONST = {
         NONE: 'none',
     },
     EMPTY_STATE_MEDIA: {
-        ANIMATION: 'animation',
         ILLUSTRATION: 'illustration',
         VIDEO: 'video',
     },

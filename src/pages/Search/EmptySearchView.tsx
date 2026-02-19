@@ -75,7 +75,6 @@ type EmptySearchViewItem = {
     subtitle?: string;
     headerContentStyles: Array<Pick<ViewStyle, 'width' | 'height'>>;
     buttons?: EmptyStateButton[];
-    headerStyles?: ViewStyle;
     titleStyles?: TextStyle;
     subtitleStyle?: TextStyle;
     children?: React.ReactNode;
@@ -253,7 +252,7 @@ function EmptySearchViewContent({
     };
 
     const typeMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
-    const todoMenuItems = typeMenuSections.filter((section) => section.translationPath === 'common.todo').flatMap((section) => section.menuItems);
+    const todoMenuItems = new Set(typeMenuSections.filter((section) => section.translationPath === 'common.todo').flatMap((section) => section.menuItems));
 
     const onLongPress = (event: GestureResponderEvent | MouseEvent) => {
         if (!contextMenuAnchor) {
@@ -334,7 +333,7 @@ function EmptySearchViewContent({
     // if it exists. Use fireworks only for To-do items, folder for everything else.
     for (const menuItem of typeMenuItems) {
         if (menuItem.similarSearchHash === similarSearchHash && menuItem.emptyState) {
-            const isTodoItem = todoMenuItems.includes(menuItem);
+            const isTodoItem = todoMenuItems.has(menuItem);
             content = {
                 ...(isTodoItem ? defaultViewItemHeader.fireworks : defaultViewItemHeader.folder),
                 title: translate(menuItem.emptyState.title),
@@ -355,7 +354,7 @@ function EmptySearchViewContent({
                 content = {
                     headerMediaType: CONST.EMPTY_STATE_MEDIA.ILLUSTRATION,
                     headerMedia: illustrations.EmptyStateTravel,
-                    headerContentStyles: [styles.tripEmptyStateLottieWebView],
+                    headerContentStyles: [styles.tripEmptyStateIllustration],
                     title: translate('travel.title'),
                     titleStyles: {...styles.textAlignLeft},
                     children: tripViewChildren,

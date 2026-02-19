@@ -1929,11 +1929,6 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: -20,
         },
 
-        emptyWorkspaceListLottieIllustrationStyle: {
-            marginTop: 12,
-            marginBottom: -20,
-            height: '100%',
-        },
         emptyWorkspaceListStaticIllustrationStyle: {
             width: 203,
             height: 166,
@@ -3341,11 +3336,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         emptyLHNWrapper: {
             marginBottom: variables.bottomTabHeight,
-        },
-
-        emptyLHNAnimation: {
-            width: 180,
-            height: 180,
         },
 
         mfaBlockingViewAnimation: {
@@ -5314,24 +5304,9 @@ const staticStyles = (theme: ThemeColors) =>
             height: 100,
         },
 
-        emptyStateFolderWebStyles: {
-            ...sizing.w100,
-            minWidth: 400,
-            ...flex.alignItemsCenter,
-            ...flex.justifyContentCenter,
-            ...display.dFlex,
-        },
-
         emptyStateFolderStaticIllustration: {
             width: 184,
             height: 112,
-        },
-
-        emptyStateFireworksWebStyles: {
-            width: 250,
-            ...flex.alignItemsCenter,
-            ...flex.justifyContentCenter,
-            ...display.dFlex,
         },
 
         emptyStateFireworksStaticIllustration: {
@@ -5339,7 +5314,7 @@ const staticStyles = (theme: ThemeColors) =>
             height: 148,
         },
 
-        tripEmptyStateLottieWebView: {
+        tripEmptyStateIllustration: {
             width: 335,
             height: 220,
         },
