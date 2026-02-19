@@ -970,10 +970,10 @@ const staticStyles = (theme: ThemeColors) =>
             height: 140,
         },
         defaultBadge: {
-            backgroundColor: theme.transparent,
+            backgroundColor: theme.badgeDefaultBG,
             borderWidth: 1,
             borderRadius: variables.buttonBorderRadius,
-            borderColor: theme.buttonHoveredBG,
+            borderColor: theme.transparent,
             paddingHorizontal: 12,
             minHeight: 28,
             height: variables.iconSizeNormal,
@@ -1001,7 +1001,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         badgeSuccess: {
-            borderColor: theme.success,
+            backgroundColor: theme.badgeSuccessBG,
+            borderColor: theme.badgeSuccessBG,
         },
 
         badgeEnvironmentSuccess: {
@@ -1009,7 +1010,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         badgeSuccessPressed: {
-            borderColor: theme.successHover,
+            backgroundColor: theme.badgeSuccessBG,
+            borderColor: theme.badgeSuccessBG,
         },
 
         badgeAdHocSuccess: {
@@ -1022,7 +1024,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         badgeDanger: {
-            borderColor: theme.danger,
+            backgroundColor: theme.badgeDangerBG,
+            borderColor: theme.badgeDangerBG,
         },
 
         badgeEnvironmentDanger: {
@@ -1030,14 +1033,13 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         badgeDangerPressed: {
-            borderColor: theme.dangerPressed,
+            backgroundColor: theme.badgeDangerBG,
+            borderColor: theme.badgeDangerBG,
         },
 
         badgeBordered: {
-            backgroundColor: theme.transparent,
             borderWidth: 1,
             borderRadius: variables.buttonBorderRadius,
-            borderColor: theme.border,
             paddingHorizontal: 12,
             minHeight: 28,
         },

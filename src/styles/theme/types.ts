@@ -88,6 +88,9 @@ type ThemeColors = {
     fallbackIconColor: Color;
     reactionActiveBackground: Color;
     reactionActiveText: Color;
+    badgeDefaultBG: Color;
+    badgeSuccessBG: Color;
+    badgeDangerBG: Color;
     badgeAdHoc: Color;
     badgeAdHocHover: Color;
     mentionText: Color;
