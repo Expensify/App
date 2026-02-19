@@ -348,8 +348,12 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
 
         const invalidResults = result.fileResults.filter((r) => r.isValid === false);
         invalidFileResults.current = invalidResults;
-        collectedErrors.current.push({error: result.error});
-        setErrorAndOpenModal(result.error);
+
+        if (result.error) {
+            collectedErrors.current.push({error: result.error});
+            setErrorAndOpenModal(result.error);
+        }
+
         convertAndResizeFiles(invalidResults, files);
     };
 
@@ -361,8 +365,12 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
         }
 
         invalidFileResults.current = [result];
-        collectedErrors.current.push({error: result.error});
-        setErrorAndOpenModal(result.error);
+
+        if (result.error) {
+            collectedErrors.current.push({error: result.error});
+            setErrorAndOpenModal(result.error);
+        }
+
         convertAndResizeFiles(invalidFileResults.current, [file]);
     };
 
@@ -387,16 +395,12 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
             for (const [index, file] of files.entries()) {
                 originalFileOrder.current.set(file.uri ?? '', index);
             }
-            validateMultipleAttachmentFiles(files, items, isReceiptValidation).then((result) => {
-                handleMultipleFilesResult(result, files, items);
-            });
+            validateMultipleAttachmentFiles(files, items, isReceiptValidation).then((result) => handleMultipleFilesResult(result, files, items));
             return;
         }
 
         originalFileOrder.current.set(files.uri ?? '', 0);
-        validateAttachmentFile(files, items?.at(0), isReceiptValidation).then((result) => {
-            handleSingleFileResult(result, files);
-        });
+        validateAttachmentFile(files, items?.at(0), isReceiptValidation).then((result) => handleSingleFileResult(result, files));
     };
 
     const onConfirmError = () => {
@@ -469,12 +473,14 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
           ))
         : undefined;
 
+    const fileValidationErrorText = getFileValidationErrorText(translate, fileError, {fileType: invalidFileExtension}, isValidatingReceipts);
+
     const getModalPrompt = () => {
         if (!fileError) {
             return '';
         }
-        const prompt = getFileValidationErrorText(translate, fileError, {fileType: invalidFileExtension}, isValidatingReceipts).reason;
-        if (fileError === CONST.FILE_VALIDATION_ERRORS.MULTIPLE_FILES.WRONG_FILE_TYPE || fileError === CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.WRONG_FILE_TYPE) {
+        const prompt = fileValidationErrorText.reason;
+        if (fileError === CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.WRONG_FILE_TYPE) {
             return (
                 <Text>
                     {prompt}
@@ -487,7 +493,7 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
 
     const ErrorModal = (
         <ConfirmModal
-            title={getFileValidationErrorText(translate, fileError, {fileType: invalidFileExtension}, isValidatingReceipts === true).title}
+            title={fileValidationErrorText.title}
             onConfirm={onConfirmError}
             onCancel={hideModalAndReset}
             isVisible={isErrorModalVisible}

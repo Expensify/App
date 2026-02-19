@@ -97,7 +97,13 @@ describe('AttachmentValidation', () => {
                 fail('validateMultipleAttachmentFiles should return an invalid result');
             }
 
-            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.WRONG_FILE_TYPE);
+            const firstFileResult = result.fileResults.at(0);
+
+            if (!firstFileResult || firstFileResult.isValid) {
+                fail('firstFileResult should be defined and valid');
+            }
+
+            expect(firstFileResult.error).toEqual(CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.WRONG_FILE_TYPE);
         });
     });
 });

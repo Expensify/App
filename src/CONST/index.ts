@@ -2280,8 +2280,6 @@ const CONST = {
             IMAGE_DIMENSIONS_TOO_LARGE: 'imageDimensionsTooLarge',
         },
         MULTIPLE_FILES: {
-            WRONG_FILE_TYPE: 'multipleAttachmentsWrongFileType',
-            FILE_TOO_LARGE: 'multipleAttachmentsFileTooLarge',
             FOLDER_NOT_ALLOWED: 'multipleAttachmentsFolderNotAllowed',
             MAX_FILE_LIMIT_EXCEEDED: 'multipleAttachmentsMaxFileLimitExceeded',
         },
