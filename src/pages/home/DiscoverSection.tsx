@@ -86,7 +86,6 @@ function DiscoverSection() {
                 wrapperStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                 numberOfLinesTitle={MAX_NUMBER_OF_LINES_TITLE}
                 hasSubMenuItems
-                shouldUseNormalIconSize
                 viewMode={CONST.OPTION_MODE.COMPACT}
                 rightIconWrapperStyle={styles.pl2}
             />

@@ -380,9 +380,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Should selected item be marked with checkmark */
         shouldShowSelectedItemCheck?: boolean;
 
-        /** Should use normal icon size */
-        shouldUseNormalIconSize?: boolean;
-
         /** Should use auto width for the icon container. */
         shouldIconUseAutoWidthStyle?: boolean;
 
@@ -551,7 +548,6 @@ function MenuItem({
     avatarID,
     shouldRenderTooltip = false,
     shouldHideOnScroll = false,
-    shouldUseNormalIconSize = false,
     tooltipAnchorAlignment,
     tooltipWrapperStyle = {},
     tooltipShiftHorizontal = 0,
@@ -729,7 +725,7 @@ function MenuItem({
     };
 
     const isIDPassed = !!iconReportID || !!iconAccountID || iconAccountID === CONST.DEFAULT_NUMBER_ID;
-    const iconSize = shouldUseNormalIconSize ? variables.iconSizeNormal : variables.iconSizeSmall;
+    const iconSize = hasSubMenuItems ? variables.iconSizeNormal : variables.iconSizeSmall;
 
     return (
         <View
