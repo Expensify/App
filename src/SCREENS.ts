@@ -117,8 +117,6 @@ const SCREENS = {
         REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
         REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE: 'Settings_ReportCardLostOrDamaged_ConfirmMagicCode',
         TROUBLESHOOT: 'Settings_Troubleshoot',
-        CONSOLE: 'Settings_Console',
-        SHARE_LOG: 'Share_Log',
         DYNAMIC_VERIFY_ACCOUNT: 'Dynamic_Verify_Account',
 
         PROFILE: {
@@ -201,6 +199,8 @@ const SCREENS = {
             UNSHARE_BANK_ACCOUNT: 'Settings_Wallet_Unshare_Bank_Account',
             ENABLE_GLOBAL_REIMBURSEMENTS: 'Settings_Wallet_Enable_Global_Reimbursements',
             SHARE_BANK_ACCOUNT: 'Settings_Wallet_Share_Bank_Account',
+            TRAVEL_CVV: 'Settings_Wallet_Travel_CVV',
+            TRAVEL_CVV_VERIFY_ACCOUNT: 'Settings_Wallet_Travel_CVV_VerifyAccount',
             PERSONAL_CARD_DETAILS: 'Settings_Wallet_Personal_Card_Details',
             PERSONAL_CARD_EDIT_NAME: 'Settings_Wallet_Personal_Card_Edit_Name',
             PERSONAL_CARD_EDIT_TRANSACTION_START_DATE: 'Settings_Wallet_Personal_Card_Edit_Transaction_Start_Date',
@@ -234,6 +234,7 @@ const SCREENS = {
         SUBSCRIPTION: {
             ROOT: 'Settings_Subscription',
             SIZE: 'Settings_Subscription_Size',
+            EXPENSIFY_CODE: 'Settings_Subscription_ExpensifyCode',
             SETTINGS_DETAILS: 'Settings_Subscription_Details',
             ADD_PAYMENT_CARD: 'Settings_Subscription_Add_Payment_Card',
             DISABLE_AUTO_RENEW_SURVEY: 'Settings_Subscription_DisableAutoRenewSurvey',
@@ -314,7 +315,6 @@ const SCREENS = {
         MULTIFACTOR_AUTHENTICATION: 'MultifactorAuthentication',
     },
     REPORT_CARD_ACTIVATE: 'Report_Card_Activate_Root',
-    PUBLIC_CONSOLE_DEBUG: 'Console_Debug',
     SAML_SIGN_IN: 'SAMLSignIn',
     WORKSPACE_JOIN_USER: 'WorkspaceJoinUser',
     REQUIRE_TWO_FACTOR_AUTH: 'RequireTwoFactorAuth',
@@ -951,7 +951,8 @@ const SCREENS = {
     MULTIFACTOR_AUTHENTICATION: {
         MAGIC_CODE: 'Multifactor_Authentication_Magic_Code',
         BIOMETRICS_TEST: 'Multifactor_Authentication_Biometrics_Test',
-        OUTCOME: 'Multifactor_Authentication_Outcome',
+        OUTCOME_SUCCESS: 'Multifactor_Authentication_Outcome_Success',
+        OUTCOME_FAILURE: 'Multifactor_Authentication_Outcome_Failure',
         PROMPT: 'Multifactor_Authentication_Prompt',
         NOT_FOUND: 'Multifactor_Authentication_Not_Found',
         REVOKE: 'Multifactor_Authentication_Revoke',

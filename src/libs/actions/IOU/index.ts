@@ -193,7 +193,7 @@ import {
     updateOptimisticParentReportAction,
     updateReportPreview,
 } from '@libs/ReportUtils';
-import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getSuggestedSearches} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -6161,34 +6161,40 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
 /**
  * Move multiple tracked expenses from self-DM to an IOU report
  */
-function convertBulkTrackedExpensesToIOU(
-    transactionIDs: string[],
-    targetReportID: string,
-    isASAPSubmitBetaEnabled: boolean,
-    currentUserAccountIDParam: number,
-    currentUserEmailParam: string,
-    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
-    policyRecentlyUsedCurrencies: string[],
-    quickAction: OnyxEntry<OnyxTypes.QuickAction>,
-    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
-    betas: OnyxEntry<OnyxTypes.Beta[]>,
-) {
-    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`];
+function convertBulkTrackedExpensesToIOU({
+    transactionIDs,
+    iouReport,
+    chatReport,
+    isASAPSubmitBetaEnabled,
+    currentUserAccountIDParam,
+    currentUserEmailParam,
+    transactionViolations,
+    policyRecentlyUsedCurrencies,
+    quickAction,
+    personalDetails,
+    betas,
+}: {
+    transactionIDs: string[];
+    iouReport: OnyxEntry<OnyxTypes.Report>;
+    chatReport: OnyxEntry<OnyxTypes.Report>;
+    isASAPSubmitBetaEnabled: boolean;
+    currentUserAccountIDParam: number;
+    currentUserEmailParam: string;
+    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    policyRecentlyUsedCurrencies: string[];
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+}) {
+    const iouReportID = iouReport?.reportID;
 
     if (!iouReport || !isMoneyRequestReportReportUtils(iouReport)) {
-        Log.warn('[convertBulkTrackedExpensesToIOU] Invalid IOU report', {targetReportID});
+        Log.warn('[convertBulkTrackedExpensesToIOU] Invalid IOU report', {iouReportID});
         return;
     }
 
-    const chatReportID = iouReport.chatReportID;
-    if (!chatReportID) {
-        Log.warn('[convertBulkTrackedExpensesToIOU] No chat report found for IOU', {targetReportID});
-        return;
-    }
-
-    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
-    if (!chatReport) {
-        Log.warn('[convertBulkTrackedExpensesToIOU] Chat report not found', {chatReportID});
+    if (!chatReport?.reportID) {
+        Log.warn('[convertBulkTrackedExpensesToIOU] No chat report found for IOU', {iouReportID});
         return;
     }
 
@@ -6196,7 +6202,7 @@ function convertBulkTrackedExpensesToIOU(
     const payerAccountID = participantAccountIDs.at(0);
 
     if (!payerAccountID) {
-        Log.warn('[convertBulkTrackedExpensesToIOU] No payer found', {targetReportID, participantAccountIDs});
+        Log.warn('[convertBulkTrackedExpensesToIOU] No payer found', {iouReportID, participantAccountIDs});
         return;
     }
 
@@ -6285,7 +6291,7 @@ function convertBulkTrackedExpensesToIOU(
             parentChatReport: chatReport,
             participantParams,
             transactionParams,
-            moneyRequestReportID: targetReportID,
+            moneyRequestReportID: iouReportID,
             existingTransactionID: transactionID,
             existingTransaction: transaction,
             isASAPSubmitBetaEnabled,
@@ -11641,25 +11647,9 @@ function submitReport(
         });
     }
 
-    const submitToAccountID = getSubmitToAccountID(policy, expenseReport);
-    const managerAccountIDParam = submitToAccountID ?? expenseReport.managerID;
-    Log.info('[submitReport] Submitting report with approval chain diagnostic', false, {
-        reportID: expenseReport.reportID,
-        policyID: expenseReport.policyID,
-        reportOwnerAccountID: expenseReport.ownerAccountID,
-        reportExistingManagerID: expenseReport.managerID,
-        getSubmitToAccountIDResult: submitToAccountID,
-        managerAccountIDSentToAPI: managerAccountIDParam,
-        optimisticManagerID: managerID,
-        approvalChainFromGetApprovalChain: approvalChain,
-        policyApprovalMode: policy?.approvalMode,
-        policyOwner: policy?.owner,
-        policyApprover: policy?.approver,
-        isDEWPolicy,
-    });
     const parameters: SubmitReportParams = {
         reportID: expenseReport.reportID,
-        managerAccountID: managerAccountIDParam,
+        managerAccountID: getSubmitToAccountID(policy, expenseReport) ?? expenseReport.managerID,
         reportActionID: optimisticSubmittedReportAction.reportActionID,
     };
 
@@ -11915,6 +11905,7 @@ function completePaymentOnboarding(
         wasInvited: true,
         shouldSkipTestDriveModal: true,
         companySize: introSelected?.companySize as OnboardingCompanySize,
+        introSelected,
     });
 }
 
@@ -12289,16 +12280,7 @@ function getMoneyRequestParticipantsFromReport(report: OnyxEntry<OnyxTypes.Repor
     let participants: Participant[] = [];
 
     if (isPolicyExpenseChat || shouldAddAsReport) {
-        participants = [
-            {
-                accountID: 0,
-                reportID: chatReport?.reportID,
-                isPolicyExpenseChat,
-                selected: true,
-                policyID: isPolicyExpenseChat ? chatReport?.policyID : undefined,
-                isSelfDM: shouldAddAsReport,
-            },
-        ];
+        participants = [{accountID: 0, reportID: chatReport?.reportID, isPolicyExpenseChat, selected: true, policyID: isPolicyExpenseChat ? chatReport?.policyID : undefined}];
     } else if (isInvoiceRoom(chatReport)) {
         participants = [
             {reportID: chatReport?.reportID, selected: true},
@@ -12546,41 +12528,80 @@ function getSearchOnyxUpdate({
                     },
                 });
             }
-            return {
-                optimisticData: [
-                    {
-                        onyxMethod: Onyx.METHOD.MERGE,
-                        key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
-                        value: {
-                            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                            data: {
-                                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
-                                    [toAccountID]: {
-                                        accountID: toAccountID,
-                                        displayName: participant?.displayName,
-                                        login: participant?.login,
-                                    },
-                                    [fromAccountID]: {
-                                        accountID: fromAccountID,
-                                        avatar: deprecatedCurrentUserPersonalDetails?.avatar,
-                                        displayName: deprecatedCurrentUserPersonalDetails?.displayName,
-                                        login: deprecatedCurrentUserPersonalDetails?.login,
-                                    },
-                                },
-                                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: {
-                                    accountID: fromAccountID,
-                                    managerID: toAccountID,
-                                    ...(transactionThreadReportID && {transactionThreadReportID}),
-                                    ...(isFromOneTransactionReport && {isFromOneTransactionReport}),
-                                    ...transaction,
-                                },
-                                ...(policy && {[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy}),
-                                ...(iouReport && {[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport}),
-                                ...(iouReport && iouAction && {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: {[iouAction.reportActionID]: iouAction}}),
-                            },
-                        },
+            const snapshotData = {
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    [toAccountID]: {
+                        accountID: toAccountID,
+                        displayName: participant?.displayName,
+                        login: participant?.login,
                     },
-                ],
+                    [fromAccountID]: {
+                        accountID: fromAccountID,
+                        avatar: deprecatedCurrentUserPersonalDetails?.avatar,
+                        displayName: deprecatedCurrentUserPersonalDetails?.displayName,
+                        login: deprecatedCurrentUserPersonalDetails?.login,
+                    },
+                },
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: {
+                    accountID: fromAccountID,
+                    managerID: toAccountID,
+                    ...(transactionThreadReportID && {transactionThreadReportID}),
+                    ...(isFromOneTransactionReport && {isFromOneTransactionReport}),
+                    ...transaction,
+                },
+                ...(policy && {[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy}),
+                ...(iouReport && {[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport}),
+                ...(iouReport && iouAction && {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: {[iouAction.reportActionID]: iouAction}}),
+            };
+
+            const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
+                    value: {
+                        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+                        data: snapshotData,
+                    },
+                },
+            ];
+
+            if (currentSearchQueryJSON.groupBy === CONST.SEARCH.GROUP_BY.FROM) {
+                const newFlatFilters = currentSearchQueryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM);
+                newFlatFilters.push({
+                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                    filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: fromAccountID}],
+                });
+
+                const groupTransactionsQueryJSON = buildSearchQueryJSON(
+                    buildSearchQueryString({
+                        ...currentSearchQueryJSON,
+                        groupBy: undefined,
+                        flatFilters: newFlatFilters,
+                    }),
+                );
+
+                if (groupTransactionsQueryJSON?.hash) {
+                    optimisticData.push({
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${groupTransactionsQueryJSON.hash}` as const,
+                        value: {
+                            search: {
+                                type: groupTransactionsQueryJSON.type,
+                                status: groupTransactionsQueryJSON.status,
+                                offset: 0,
+                                hasMoreResults: false,
+                                hasResults: true,
+                                isLoading: false,
+                            },
+                            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+                            data: snapshotData,
+                        },
+                    });
+                }
+            }
+
+            return {
+                optimisticData,
                 successData,
             };
         }
