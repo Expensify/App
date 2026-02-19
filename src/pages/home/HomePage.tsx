@@ -63,7 +63,6 @@ function HomePage() {
                 <TopBar
                     breadcrumbLabel={translate('common.home')}
                     shouldShowLoadingBar={isForYouLoading}
-                    shouldDisableAutoLoadingBar
                 />
                 <ScrollView
                     contentContainerStyle={styles.homePageContentContainer}

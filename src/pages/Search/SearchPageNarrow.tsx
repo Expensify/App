@@ -21,6 +21,7 @@ import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHead
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {BankAccountMenuItem, SearchParams, SearchQueryJSON} from '@components/Search/types';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
+import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -82,6 +83,7 @@ function SearchPageNarrow({
     const {clearSelectedTransactions} = useSearchContext();
     const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
     const {isOffline} = useNetwork();
+    const shouldShowLoadingBarForReports = useLoadingBarVisibility();
     // Controls the visibility of the educational tooltip based on user scrolling.
     // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
     const triggerScrollEvent = useScrollEventEmitter();
@@ -194,7 +196,7 @@ function SearchPageNarrow({
                     <View style={[StyleUtils.getSearchPageNarrowHeaderStyles(), searchRouterListVisible && styles.flex1, styles.mh100]}>
                         <View style={[styles.zIndex10, styles.appBG]}>
                             <TopBar
-                                shouldShowLoadingBar={shouldShowLoadingState}
+                                shouldShowLoadingBar={shouldShowLoadingState || shouldShowLoadingBarForReports}
                                 breadcrumbLabel={translate('common.reports')}
                                 shouldDisplaySearch={false}
                                 cancelSearch={shouldDisplayCancelSearch ? cancelSearchCallback : undefined}
