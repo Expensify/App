@@ -37,7 +37,6 @@ import {openOldDotLink} from '@libs/actions/Link';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {openSearch, setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
-import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -45,9 +44,8 @@ import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNa
 import Performance from '@libs/Performance';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
-import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
-    adjustTimeRangeToDateFilters,
     createAndOpenSearchTransactionThread,
     getColumnsToShow,
     getListItem,
@@ -60,19 +58,9 @@ import {
     isSearchDataLoaded,
     isSearchResultsEmpty as isSearchResultsEmptyUtil,
     isTaskListItemType,
-    isTransactionCardGroupListItemType,
-    isTransactionCategoryGroupListItemType,
     isTransactionGroupListItemType,
     isTransactionListItemType,
-    isTransactionMemberGroupListItemType,
-    isTransactionMerchantGroupListItemType,
-    isTransactionMonthGroupListItemType,
-    isTransactionQuarterGroupListItemType,
     isTransactionReportGroupListItemType,
-    isTransactionTagGroupListItemType,
-    isTransactionWeekGroupListItemType,
-    isTransactionWithdrawalIDGroupListItemType,
-    isTransactionYearGroupListItemType,
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
@@ -120,7 +108,7 @@ function mapTransactionItemToSelectedEntry(
     allowNegativeAmount = true,
 ): [string, SelectedTransactionInfo] {
     const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy);
-    const canRejectRequest = item.report ? canRejectReportAction(currentUserLogin, item.report, item.policy) : false;
+    const canRejectRequest = item.report ? canRejectReportAction(currentUserLogin, item.report) : false;
     const amount = hasValidModifiedAmount(item) ? Number(item.modifiedAmount) : item.amount;
 
     return [
@@ -554,7 +542,7 @@ function Search({
         setShouldShowFiltersBarLoading(shouldShowLoadingState && lastSearchType !== type);
     }, [lastSearchType, setShouldShowFiltersBarLoading, shouldShowLoadingState, type]);
 
-    const shouldRetrySearchWithTotalsRef = useRef(false);
+    const shouldRetrySearchWithTotalsOrGroupedRef = useRef(false);
 
     useEffect(() => {
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
@@ -566,8 +554,8 @@ function Search({
         }
 
         if (searchResults?.search?.isLoading) {
-            if (shouldCalculateTotals && searchResults?.search?.count === undefined) {
-                shouldRetrySearchWithTotalsRef.current = true;
+            if (validGroupBy || (shouldCalculateTotals && searchResults?.search?.count === undefined)) {
+                shouldRetrySearchWithTotalsOrGroupedRef.current = true;
             }
             return;
         }
@@ -576,22 +564,23 @@ function Search({
 
         // We don't need to run the effect on change of isFocused.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [handleSearch, isOffline, offset, queryJSON, searchKey, shouldCalculateTotals]);
+    }, [handleSearch, isOffline, offset, queryJSON, searchKey, shouldCalculateTotals, validGroupBy]);
 
     useEffect(() => {
-        if (!shouldRetrySearchWithTotalsRef.current || searchResults?.search?.isLoading || !shouldCalculateTotals) {
+        if (!shouldRetrySearchWithTotalsOrGroupedRef.current || searchResults?.search?.isLoading || (!shouldCalculateTotals && !validGroupBy)) {
             return;
         }
 
         // If count is already present, the latest response already contains totals and we can skip the re-query.
-        if (searchResults?.search?.count !== undefined) {
-            shouldRetrySearchWithTotalsRef.current = false;
+        // If we show grouped values we want to retry search either way, the data may be outdated e.g. after deleting an expense.
+        if (!validGroupBy && searchResults?.search?.count !== undefined) {
+            shouldRetrySearchWithTotalsOrGroupedRef.current = false;
             return;
         }
 
-        shouldRetrySearchWithTotalsRef.current = false;
+        shouldRetrySearchWithTotalsOrGroupedRef.current = false;
         handleSearch({queryJSON, searchKey, offset, shouldCalculateTotals: true, prevReportsLength: filteredDataLength, isLoading: false});
-    }, [filteredDataLength, handleSearch, offset, queryJSON, searchKey, searchResults?.search?.count, searchResults?.search?.isLoading, shouldCalculateTotals]);
+    }, [filteredDataLength, handleSearch, offset, queryJSON, searchKey, searchResults?.search?.count, searchResults?.search?.isLoading, shouldCalculateTotals, validGroupBy]);
 
     // When new data load, selectedTransactions is updated in next effect. We use this flag to whether selection is updated
     const isRefreshingSelection = useRef(false);
@@ -650,7 +639,7 @@ function Search({
                         transactionItem,
                         transactionItem.policy,
                     );
-                    const canRejectRequest = email && transactionItem.report ? canRejectReportAction(email, transactionItem.report, transactionItem.policy) : false;
+                    const canRejectRequest = email && transactionItem.report ? canRejectReportAction(email, transactionItem.report) : false;
 
                     const itemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                     const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
@@ -706,7 +695,7 @@ function Search({
                     transactionItem,
                     transactionItem.policy,
                 );
-                const canRejectRequest = email && transactionItem.report ? canRejectReportAction(email, transactionItem.report, transactionItem.policy) : false;
+                const canRejectRequest = email && transactionItem.report ? canRejectReportAction(email, transactionItem.report) : false;
 
                 const itemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                 const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
@@ -935,190 +924,11 @@ function Search({
                 }
             }
 
-            if (isTransactionMemberGroupListItemType(item)) {
-                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM);
-                newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: item.accountID}]});
-                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
-                const newQuery = buildSearchQueryString(newQueryJSON);
-                const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
-                if (!newQueryJSONWithHash) {
-                    return;
-                }
-                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
+            if (isTransactionGroupListItemType(item) && !isTransactionReportGroupListItemType(item) && item.transactionsQueryJSON) {
+                handleSearch({queryJSON: item.transactionsQueryJSON, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
                 return;
             }
 
-            if (isTransactionCardGroupListItemType(item)) {
-                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID);
-                newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: item.cardID}]});
-                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
-                const newQuery = buildSearchQueryString(newQueryJSON);
-                const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
-                if (!newQueryJSONWithHash) {
-                    return;
-                }
-                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
-                return;
-            }
-
-            if (isTransactionWithdrawalIDGroupListItemType(item)) {
-                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID);
-                newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: item.entryID}]});
-                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
-                const newQuery = buildSearchQueryString(newQueryJSON);
-                const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
-                if (!newQueryJSONWithHash) {
-                    return;
-                }
-                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
-                return;
-            }
-
-            if (isTransactionCategoryGroupListItemType(item)) {
-                const categoryValue = item.category === '' ? CONST.SEARCH.CATEGORY_EMPTY_VALUE : item.category;
-                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY);
-                newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: categoryValue}]});
-                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
-                const newQuery = buildSearchQueryString(newQueryJSON);
-                const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
-                if (!newQueryJSONWithHash) {
-                    return;
-                }
-                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
-                return;
-            }
-
-            if (isTransactionMerchantGroupListItemType(item)) {
-                const merchantValue = item.merchant === '' ? CONST.SEARCH.MERCHANT_EMPTY_VALUE : item.merchant;
-                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT);
-                newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: merchantValue}]});
-                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
-                const newQuery = buildSearchQueryString(newQueryJSON);
-                const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
-                if (!newQueryJSONWithHash) {
-                    return;
-                }
-                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
-                return;
-            }
-
-            if (isTransactionTagGroupListItemType(item)) {
-                const tagValue = item.tag === '' || item.tag === '(untagged)' ? CONST.SEARCH.TAG_EMPTY_VALUE : item.tag;
-                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG);
-                newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: tagValue}]});
-                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
-                const newQuery = buildSearchQueryString(newQueryJSON);
-                const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
-                if (!newQueryJSONWithHash) {
-                    return;
-                }
-                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
-                return;
-            }
-
-            if (isTransactionMonthGroupListItemType(item)) {
-                // Extract the existing date filter to check for year-to-date or other date limits
-                const existingDateFilters = queryJSON.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
-                const {start: monthStart, end: monthEnd} = adjustTimeRangeToDateFilters(DateUtils.getMonthDateRange(item.year, item.month), existingDateFilters);
-                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
-                newFlatFilters.push({
-                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
-                    filters: [
-                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, value: monthStart},
-                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: monthEnd},
-                    ],
-                });
-                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
-                const newQuery = buildSearchQueryString(newQueryJSON);
-                const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
-                if (!newQueryJSONWithHash) {
-                    return;
-                }
-                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
-                return;
-            }
-
-            if (isTransactionWeekGroupListItemType(item)) {
-                if (!item.week) {
-                    return;
-                }
-                // Extract the existing date filter to check for year-to-date or other date limits
-                const existingDateFilters = queryJSON.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
-                const {start: weekStart, end: weekEnd} = adjustTimeRangeToDateFilters(DateUtils.getWeekDateRange(item.week), existingDateFilters);
-                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
-                newFlatFilters.push({
-                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
-                    filters: [
-                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, value: weekStart},
-                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: weekEnd},
-                    ],
-                });
-                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
-                const newQuery = buildSearchQueryString(newQueryJSON);
-                const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
-                if (!newQueryJSONWithHash) {
-                    return;
-                }
-                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
-                return;
-            }
-
-            if (isTransactionYearGroupListItemType(item)) {
-                const yearGroupItem = item;
-                if (yearGroupItem.year === undefined) {
-                    return;
-                }
-                // Extract the existing date filter to check for year-to-date or other date limits
-                const existingDateFilters = queryJSON.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
-                const {start: yearStart, end: yearEnd} = adjustTimeRangeToDateFilters(DateUtils.getYearDateRange(yearGroupItem.year), existingDateFilters);
-                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
-                newFlatFilters.push({
-                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
-                    filters: [
-                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, value: yearStart},
-                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: yearEnd},
-                    ],
-                });
-                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
-                const newQuery = buildSearchQueryString(newQueryJSON);
-                const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
-                if (!newQueryJSONWithHash) {
-                    return;
-                }
-                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
-                return;
-            }
-
-            if (isTransactionQuarterGroupListItemType(item)) {
-                const quarterGroupItem = item;
-                if (quarterGroupItem.year === undefined || quarterGroupItem.quarter === undefined) {
-                    return;
-                }
-                // Extract the existing date filter to check for year-to-date or other date limits
-                const existingDateFilters = queryJSON.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
-                const {start: quarterStart, end: quarterEnd} = adjustTimeRangeToDateFilters(
-                    DateUtils.getQuarterDateRange(quarterGroupItem.year, quarterGroupItem.quarter),
-                    existingDateFilters,
-                );
-                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
-                newFlatFilters.push({
-                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
-                    filters: [
-                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, value: quarterStart},
-                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: quarterEnd},
-                    ],
-                });
-                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
-                const newQuery = buildSearchQueryString(newQueryJSON);
-                const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
-                if (!newQueryJSONWithHash) {
-                    return;
-                }
-                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
-                return;
-            }
-
-            // After handling all group types, item should be TransactionListItemType, ReportActionListItemType, TaskListItemType, or TransactionGroupListItemType
             if (!isTransactionItem && !isReportActionListItemType(item) && !isTaskListItemType(item) && !isTransactionGroupListItemType(item)) {
                 return;
             }
@@ -1185,16 +995,7 @@ function Search({
 
             requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
         },
-        [
-            isMobileSelectionModeEnabled,
-            markReportIDAsExpense,
-            toggleTransaction,
-            queryJSON,
-            handleSearch,
-            searchKey,
-            markReportIDAsMultiTransactionExpense,
-            unmarkReportIDAsMultiTransactionExpense,
-        ],
+        [isMobileSelectionModeEnabled, markReportIDAsExpense, toggleTransaction, handleSearch, searchKey, markReportIDAsMultiTransactionExpense, unmarkReportIDAsMultiTransactionExpense],
     );
 
     const currentColumns = useMemo(() => {

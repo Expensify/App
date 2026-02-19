@@ -51,7 +51,7 @@ function Confirmation({onNext, isEditing}: ConfirmationProps) {
             <MenuItemWithTopDescription
                 interactive={false}
                 description={translate('subscription.subscriptionSize.subscriptionSize')}
-                title={translate('subscription.subscriptionSize.activeMembers', {size: subscriptionSize})}
+                title={translate('subscription.subscriptionSize.activeMembers', subscriptionSize)}
             />
             <MenuItemWithTopDescription
                 interactive={false}

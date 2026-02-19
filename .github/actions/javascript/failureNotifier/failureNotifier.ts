@@ -2,7 +2,6 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 import type {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods';
-import dedent from '@libs/StringUtils/dedent';
 
 type WorkflowRun = RestEndpointMethodTypes['actions']['listWorkflowRuns']['response']['data']['workflow_runs'][number];
 
@@ -102,27 +101,28 @@ async function run() {
         }
 
         const issueTitle = `Investigate workflow job failing on main: ${job.name}`;
-        const issueBody = dedent(`
-            🚨 **Failure Summary** 🚨:
 
-            - **📋 Job Name**: [${job.name}](${job.html_url})
-            - **🔧 Failure in Workflow**: Process new code merged to main
-            - **🔗 Triggered by PR**: [PR Link](${prLink})
-            - **👤 PR Author**: @${prAuthor}
-            - **🤝 Merged by**: @${prMerger}
-            - **🐛 Error Message**: \n ${errorMessage}
+        // This template literal intentionally starts at column 0. GitHub Markdown renders
+        // 4+ leading spaces as a code block, so any indentation would break issue formatting.
+        const issueBody = `🚨 **Failure Summary** 🚨:
 
-            ⚠️ **Action Required** ⚠️:
+- **📋 Job Name**: [${job.name}](${job.html_url})
+- **🔧 Failure in Workflow**: Process new code merged to main
+- **🔗 Triggered by PR**: [PR Link](${prLink})
+- **👤 PR Author**: @${prAuthor}
+- **🤝 Merged by**: @${prMerger}
+- **🐛 Error Message**:
+${errorMessage}
+⚠️ **Action Required** ⚠️:
 
-            🛠️ A recent merge appears to have caused a failure in the job named [${job.name}](${job.html_url}).
-            🔍 This issue has been automatically created and labeled with \`${failureLabel}\` for investigation.
+🛠️ A recent merge appears to have caused a failure in the job named [${job.name}](${job.html_url}).
+🔍 This issue has been automatically created and labeled with \`${failureLabel}\` for investigation.
 
-            **👀 Please look into the following:**
-            1. **Why the PR caused the job to fail?**
-            2. **Address any underlying issues.**
+**👀 Please look into the following:**
+1. **Why the PR caused the job to fail?**
+2. **Address any underlying issues.**
 
-            **🐛 We appreciate your help in squashing this bug!**
-        `);
+**🐛 We appreciate your help in squashing this bug!**`;
 
         await octokit.rest.issues.create({
             owner,

@@ -74,7 +74,6 @@ import {
     getIconsForParticipants,
     getIndicatedMissingPaymentMethod,
     getIOUReportActionDisplayMessage,
-    getMoneyReportPreviewName,
     getMostRecentlyVisitedReport,
     getOriginalReportID,
     getOutstandingChildRequest,
@@ -1641,6 +1640,44 @@ describe('ReportUtils', () => {
             };
             test('should handle concierge chat report', () => {
                 const reportName = computeReportName(conciergeReport);
+                expect(reportName).toBe(CONST.CONCIERGE_DISPLAY_NAME);
+            });
+
+            test('should return Concierge display name when explicit conciergeReportID matches report ID', () => {
+                const explicitConciergeReportID = 'explicit-concierge-456';
+                const report: Report = {
+                    reportID: explicitConciergeReportID,
+                    participants: buildParticipantsFromAccountIDs([currentUserAccountID, CONST.ACCOUNT_ID.CONCIERGE]),
+                };
+
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                const reportName = getReportNameDeprecated(report, policy, undefined, participantsPersonalDetails, undefined, undefined, [], false, [], [], explicitConciergeReportID);
+                expect(reportName).toBe(CONST.CONCIERGE_DISPLAY_NAME);
+            });
+
+            test('should not return Concierge display name when explicit conciergeReportID does not match report ID', () => {
+                const explicitConciergeReportID = 'explicit-concierge-456';
+                const report: Report = {
+                    reportID: 'different-report-789',
+                    participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
+                };
+
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                const reportName = getReportNameDeprecated(report, policy, undefined, participantsPersonalDetails, undefined, undefined, [], false, [], [], explicitConciergeReportID);
+                expect(reportName).not.toBe(CONST.CONCIERGE_DISPLAY_NAME);
+                // Should generate name from participants instead
+                expect(reportName).toBe('Ragnar Lothbrok');
+            });
+
+            test('should use Onyx-connected conciergeReportID when explicit parameter is undefined', () => {
+                // conciergeReportID is already set in beforeAll to 'concierge-123'
+                const report: Report = {
+                    reportID: conciergeReportID,
+                    participants: buildParticipantsFromAccountIDs([currentUserAccountID, CONST.ACCOUNT_ID.CONCIERGE]),
+                };
+
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                const reportName = getReportNameDeprecated(report, policy, undefined, participantsPersonalDetails);
                 expect(reportName).toBe(CONST.CONCIERGE_DISPLAY_NAME);
             });
         });
@@ -6740,146 +6777,6 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('getMoneyReportPreviewName', () => {
-        beforeAll(async () => {
-            await Onyx.clear();
-            await Onyx.multiSet({
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
-                [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
-            });
-        });
-
-        afterAll(async () => {
-            await Onyx.clear();
-        });
-
-        it('should return the report name when the chat type is policy room', () => {
-            const action: ReportAction = {
-                ...createRandomReportAction(1),
-                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-            };
-            const report: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_ROOM);
-            const result = getMoneyReportPreviewName(action, report);
-            expect(result).toBe(report.reportName);
-        });
-
-        it('should return the report name when the chat type is domain all', () => {
-            const action: ReportAction = {
-                ...createRandomReportAction(1),
-                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-            };
-            const report: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.DOMAIN_ALL);
-            const result = getMoneyReportPreviewName(action, report);
-            expect(result).toBe(report.reportName);
-        });
-
-        it('should return the report name when the chat type is group', () => {
-            const action: ReportAction = {
-                ...createRandomReportAction(1),
-                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-            };
-            const report: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.GROUP);
-            const result = getMoneyReportPreviewName(action, report);
-            expect(result).toBe(report.reportName);
-        });
-
-        it('should return policy name when the chat type is invoice', () => {
-            const action: ReportAction = {
-                ...createRandomReportAction(1),
-                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-            };
-            const report: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.INVOICE);
-            const result = getMoneyReportPreviewName(action, report);
-            // Policies are empty, so the policy name is "Unavailable workspace"
-            expect(result).toBe('Unavailable workspace');
-        });
-
-        it('should return the report name when the chat type is policy admins', () => {
-            const action: ReportAction = {
-                ...createRandomReportAction(1),
-                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-            };
-            const report: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS);
-            const result = getMoneyReportPreviewName(action, report);
-            expect(result).toBe(report.reportName);
-        });
-
-        it('should return the report name when the chat type is policy announce', () => {
-            const action: ReportAction = {
-                ...createRandomReportAction(1),
-                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-            };
-            const report: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE);
-            const result = getMoneyReportPreviewName(action, report);
-            expect(result).toBe(report.reportName);
-        });
-
-        it('should return the owner name expenses when the chat type is policy expense chat', () => {
-            const action: ReportAction = {
-                ...createRandomReportAction(1),
-                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-            };
-            const report: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
-            const result = getMoneyReportPreviewName(action, report);
-            // Report with ownerAccountID: 1 corresponds to "Ragnar Lothbrok"
-            expect(result).toBe("Ragnar Lothbrok's expenses");
-        });
-
-        it('should return the display name of the current user when the chat type is self dm', () => {
-            const action: ReportAction = {
-                ...createRandomReportAction(1),
-                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-            };
-            const report: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM);
-            const result = getMoneyReportPreviewName(action, report);
-            // currentUserAccountID: 5 corresponds to "Lagertha Lothbrok"
-            expect(result).toBe('Lagertha Lothbrok (you)');
-        });
-
-        it('should return the participant name when the chat type is system', () => {
-            const action: ReportAction = {
-                ...createRandomReportAction(1),
-                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-            };
-            const report: Report = {
-                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SYSTEM),
-                participants: {
-                    1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
-                },
-            };
-            const result = getMoneyReportPreviewName(action, report);
-            // participant accountID: 1 corresponds to "Ragnar Lothbrok"
-            expect(result).toBe('Ragnar Lothbrok');
-        });
-
-        it('should return the participant names when the chat type is trip room', () => {
-            const action: ReportAction = {
-                ...createRandomReportAction(1),
-                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-            };
-            const report: Report = {
-                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.TRIP_ROOM),
-                participants: {
-                    1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
-                    2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-                },
-            };
-            const result = getMoneyReportPreviewName(action, report);
-            // participant accountID: 1, 2 corresponds to "Ragnar", "floki@vikings.net"
-            expect(result).toBe('Ragnar, floki@vikings.net');
-        });
-
-        it('should return the child report name when the report name is not present', () => {
-            const action: ReportAction = {
-                ...createRandomReportAction(1),
-                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-                childReportName: 'Child Report',
-            };
-            const result = getMoneyReportPreviewName(action, undefined);
-            expect(result).toBe('Child Report');
-        });
-    });
-
     describe('canAddTransaction', () => {
         it('should return true for a non-archived report', async () => {
             // Given a non-archived expense report
@@ -9947,14 +9844,10 @@ describe('ReportUtils', () => {
                 type: CONST.REPORT.TYPE.EXPENSE,
                 managerID: 1,
             };
-            const reportPolicy: Policy = {
-                ...createRandomPolicy(0),
-                approver,
-            };
             await Onyx.merge(ONYXKEYS.SESSION, {
                 accountID: 2,
             });
-            expect(canRejectReportAction(approver, expenseReport, reportPolicy)).toBe(false);
+            expect(canRejectReportAction(approver, expenseReport)).toBe(false);
         });
     });
 

@@ -1,5 +1,5 @@
 ---
-title: TriNet-Integration
+title: TriNet
 description: Learn how to integrate TriNet with Expensify to automatically sync employees and manage approvals.
 keywords: [Expensify Classic, TriNet, Zenefits, Expensify, HR integration, employee sync, approval workflow]
 ---
