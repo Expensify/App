@@ -198,6 +198,7 @@ function WorkspacesListRow({
                 >
                     <View>
                         <Badge
+                            success
                             text={translate('common.default')}
                             textStyles={styles.textStrong}
                             badgeStyles={[styles.alignSelfCenter, styles.badgeBordered, styles.badgeSuccess]}

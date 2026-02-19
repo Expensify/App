@@ -1084,6 +1084,14 @@ const staticStyles = (theme: ThemeColors) =>
             color: colors.white,
         },
 
+        badgeSuccessText: {
+            color: theme.success,
+        },
+
+        badgeDangerText: {
+            color: theme.danger,
+        },
+
         condensedBadgeText: {
             fontSize: variables.fontSizeExtraSmall,
         },

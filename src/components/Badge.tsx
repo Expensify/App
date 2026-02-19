@@ -131,6 +131,8 @@ function Badge({
                     styles.badgeText,
                     styles.textStrong,
                     isCondensed && styles.condensedBadgeText,
+                    !isStrong && success && styles.badgeSuccessText,
+                    !isStrong && error && styles.badgeDangerText,
                     isStrong && (success || error) && styles.badgeStrongText,
                     textStyles,
                     isDeleted ? styles.offlineFeedbackDeleted : {},
