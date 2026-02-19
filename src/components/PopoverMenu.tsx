@@ -640,35 +640,6 @@ function BasePopoverMenu({
         </PopoverWithMeasuredContent>
     );
 }
-BasePopoverMenu.displayName = 'BasePopoverMenu';
-
-function PopoverMenuContent({
-    shouldUseScrollView,
-    contentContainerStyle,
-    children,
-    addBottomSafeAreaPadding,
-}: {
-    shouldUseScrollView: boolean;
-    contentContainerStyle: StyleProp<ViewStyle>;
-    children: ReactNode;
-    addBottomSafeAreaPadding?: boolean;
-}): React.JSX.Element {
-    const style = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding, style: contentContainerStyle});
-
-    if (shouldUseScrollView) {
-        return (
-            <ScrollView
-                contentContainerStyle={contentContainerStyle}
-                addBottomSafeAreaPadding={addBottomSafeAreaPadding}
-            >
-                {children}
-            </ScrollView>
-        );
-    }
-    // eslint-disable-next-line react/jsx-no-useless-fragment
-    return <View style={style}>{children}</View>;
-}
-PopoverMenuContent.displayName = 'PopoverMenuContent';
 
 export default React.memo(
     PopoverMenu,
