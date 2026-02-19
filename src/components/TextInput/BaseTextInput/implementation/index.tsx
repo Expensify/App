@@ -2,7 +2,7 @@ import {Str} from 'expensify-common';
 import type {RefObject} from 'react';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
-import {StyleSheet, View} from 'react-native';
+import {Platform, StyleSheet, View} from 'react-native';
 import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Checkbox from '@components/Checkbox';
@@ -326,6 +326,20 @@ function BaseTextInput({
     // If we need some other inputMode (eg. 'decimal'), then the autocomplete bar will show, but we can do nothing about it as it's a known Chrome bug.
     const inputMode = inputProps.inputMode ?? (isMobileChrome() ? 'search' : undefined);
     const accessibilityLabel = [label, hint, errorText ? translate('common.yourReviewIsRequired') : ''].filter(Boolean).join(', ');
+    const inputNativeID = inputProps.nativeID ?? inputProps.id ?? inputID;
+    const errorMessageID = errorText && inputNativeID ? `${inputNativeID}-error` : undefined;
+    const ariaDescribedBy = 'aria-describedby';
+    const ariaErrorMessage = 'aria-errormessage';
+    const ariaInvalid = 'aria-invalid';
+    const webDescribedByProps =
+        Platform.OS === CONST.PLATFORM.WEB && errorMessageID
+            ? {
+                  [ariaDescribedBy]: errorMessageID,
+                  [ariaErrorMessage]: errorMessageID,
+                  [ariaInvalid]: true,
+              }
+            : {};
+
     return (
         <>
             <View
@@ -380,7 +394,7 @@ function BaseTextInput({
                                     label={label}
                                     labelTranslateY={labelTranslateY}
                                     labelScale={labelScale}
-                                    for={inputProps.nativeID}
+                                    for={inputNativeID}
                                     isMultiline={isMultiline}
                                 />
                             </>
@@ -448,6 +462,7 @@ function BaseTextInput({
                                 autoCorrect={inputProps.secureTextEntry ? false : autoCorrect}
                                 placeholder={newPlaceholder}
                                 placeholderTextColor={placeholderTextColor ?? theme.placeholderText}
+                                nativeID={inputNativeID}
                                 underlineColorAndroid="transparent"
                                 style={[
                                     styles.flex1,
@@ -488,6 +503,8 @@ function BaseTextInput({
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}
                                 accessibilityLabel={inputProps.accessibilityLabel}
+                                // eslint-disable-next-line react/jsx-props-no-spreading
+                                {...webDescribedByProps}
                             />
                             {!!suffixCharacter && (
                                 <View style={[styles.textInputSuffixWrapper, suffixContainerStyle]}>
@@ -562,6 +579,7 @@ function BaseTextInput({
                     <FormHelpMessage
                         isError={!!errorText}
                         message={inputHelpText}
+                        messageID={errorMessageID}
                     />
                 )}
             </View>

@@ -31,9 +31,21 @@ type FormHelpMessageProps = {
 
     /** Whether to show information icon */
     isInfo?: boolean;
+
+    /** Native ID used to associate help/error text with an input */
+    messageID?: string;
 };
 
-function FormHelpMessage({message = '', children, isError = true, style, shouldShowRedDotIndicator = true, shouldRenderMessageAsHTML = false, isInfo = false}: FormHelpMessageProps) {
+function FormHelpMessage({
+    message = '',
+    children,
+    isError = true,
+    style,
+    shouldShowRedDotIndicator = true,
+    shouldRenderMessageAsHTML = false,
+    isInfo = false,
+    messageID,
+}: FormHelpMessageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Exclamation']);
@@ -72,7 +84,10 @@ function FormHelpMessage({message = '', children, isError = true, style, shouldS
                     additionalStyles={[styles.mr1]}
                 />
             )}
-            <View style={[styles.flex1, isError && shouldShowRedDotIndicator ? styles.ml2 : {}]}>
+            <View
+                style={[styles.flex1, isError && shouldShowRedDotIndicator ? styles.ml2 : {}]}
+                nativeID={messageID}
+            >
                 {children ?? (shouldRenderMessageAsHTML ? <RenderHTML html={HTMLMessage} /> : <Text style={[isError ? styles.formError : styles.formHelp, styles.mb0]}>{message}</Text>)}
             </View>
         </View>
