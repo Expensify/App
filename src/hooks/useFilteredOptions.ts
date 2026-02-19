@@ -103,15 +103,11 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
         if (!options || isLoadingMore) {
             return;
         }
-
-        const hasMoreToLoad = options.reports.length < totalReports;
-        if (hasMoreToLoad) {
-            setIsLoadingMore(true);
-            setReportsLimit((prev) => prev + batchSize);
-        }
+        setIsLoadingMore(true);
+        setReportsLimit((prev) => prev + batchSize);
     };
 
-    const hasMore = options ? options.reports.length < totalReports : false;
+    const hasMore = options ? reportsLimit < totalReports : false;
 
     return {
         options,
