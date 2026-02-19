@@ -254,7 +254,7 @@ function useSelectedTransactionsActions({
 
         const hasNoRejectedTransaction = selectedTransactionIDs.every((id) => !hasTransactionBeenRejected(allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + id] ?? []));
         const canRejectTransactions =
-            selectedTransactionsList.length > 0 && isMoneyRequestReport && !!session?.email && !!report && canRejectReportAction(session.email, report, policy) && hasNoRejectedTransaction;
+            selectedTransactionsList.length > 0 && isMoneyRequestReport && !!session?.email && !!report && canRejectReportAction(session.email, report) && hasNoRejectedTransaction;
         if (canRejectTransactions) {
             options.push({
                 text: translate('search.bulkActions.reject'),

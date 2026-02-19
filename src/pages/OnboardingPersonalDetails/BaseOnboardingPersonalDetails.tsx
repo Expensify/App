@@ -219,7 +219,12 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 shouldTrimValues={false}
             >
                 <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
-                    <Text style={styles.textHeadlineH1}>{translate('onboarding.whatsYourName')}</Text>
+                    <Text
+                        style={styles.textHeadlineH1}
+                        accessibilityRole={CONST.ROLE.HEADER}
+                    >
+                        {translate('onboarding.whatsYourName')}
+                    </Text>
                 </View>
                 <View style={styles.mb4}>
                     <InputWrapper

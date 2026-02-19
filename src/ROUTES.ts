@@ -293,8 +293,8 @@ const ROUTES = {
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/subscription', backTo),
     },
     SETTINGS_SUBSCRIPTION_SIZE: {
-        route: 'settings/subscription/subscription-size',
-        getRoute: (canChangeSize: 0 | 1) => `settings/subscription/subscription-size?canChangeSize=${canChangeSize as number}` as const,
+        route: 'settings/subscription/subscription-size/:subPage',
+        getRoute: (subPage: string) => `settings/subscription/subscription-size/${subPage}` as const,
     },
     SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS: 'settings/subscription/details',
     SETTINGS_SUBSCRIPTION_EXPENSIFY_CODE: 'settings/subscription/details/expensify-code',
@@ -366,7 +366,12 @@ const ROUTES = {
     },
     SETTINGS_WALLET_PERSONAL_CARD_DETAILS: {
         route: 'settings/wallet/personal-card/:cardID',
-        getRoute: (cardID: string) => `settings/wallet/personal-card/${cardID}` as const,
+        getRoute: (cardID: string | undefined) => {
+            if (!cardID) {
+                Log.warn('Invalid cardID is used to build the SETTINGS_WALLET_PERSONAL_CARD_DETAILS route');
+            }
+            return `settings/wallet/personal-card/${cardID}` as const;
+        },
     },
     SETTINGS_WALLET_PERSONAL_CARD_EDIT_NAME: {
         route: 'settings/wallet/personal-card/:cardID/edit/name',

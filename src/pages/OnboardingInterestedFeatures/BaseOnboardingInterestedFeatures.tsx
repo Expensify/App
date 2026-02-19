@@ -374,7 +374,12 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 shouldDisplayHelpButton={false}
             />
             <View style={[onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
-                <Text style={[styles.textHeadlineH1, styles.mb5]}>{translate('onboarding.interestedFeatures.title')}</Text>
+                <Text
+                    style={[styles.textHeadlineH1, styles.mb5]}
+                    accessibilityRole={CONST.ROLE.HEADER}
+                >
+                    {translate('onboarding.interestedFeatures.title')}
+                </Text>
             </View>
 
             <ScrollView
@@ -395,6 +400,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                     isDisabled={isOffline}
                     isLoading={isLoading}
                     pressOnEnter
+                    sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CONTINUE}
                 />
             </FixedFooter>
         </ScreenWrapper>

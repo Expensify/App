@@ -856,6 +856,7 @@
         "assets/emojis/common.ts",
         "assets/emojis/en.ts",
         "assets/emojis/es.ts",
+        "contributingGuides/HOW_TO_AUDIT_TRANSLATIONS.md",
         "patches/**",
         "docs/assets/Files/**",
         "docs/sitemap.xml",

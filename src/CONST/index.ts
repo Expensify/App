@@ -1141,6 +1141,7 @@ const CONST = {
         INBOX: 'inbox',
         POLICY_CONNECTIONS_URL: (policyID: string) => `policy?param={"policyID":"${policyID}"}#connections`,
         POLICY_CONNECTIONS_URL_ENCODED: (policyID: string) => `policy?param=%7B%22policyID%22%3A%22${policyID}%22%7D#connections`,
+        SETTINGS_WALLET_URL: 'settings?param={%22section%22:%22creditcards%22}',
         SIGN_OUT: 'signout',
         SUPPORTAL_RESTORE_STASHED_LOGIN: '_support/index?action=restoreStashedLogin',
     },
@@ -1281,6 +1282,7 @@ const CONST = {
                 CARD_REPLACED_VIRTUAL: 'CARDREPLACEDVIRTUAL',
                 CARD_REPLACED: 'CARDREPLACED',
                 CARD_ASSIGNED: 'CARDASSIGNED',
+                PERSONAL_CARD_CONNECTION_BROKEN: 'PERSONALCARDCONNECTIONBROKEN',
                 CHANGE_FIELD: 'CHANGEFIELD', // OldDot Action
                 CHANGE_POLICY: 'CHANGEPOLICY',
                 CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS: 'CREATEDREPORTFORUNAPPROVEDTRANSACTIONS',
@@ -2813,6 +2815,14 @@ const CONST = {
             CONFIRM: 'confirm',
         },
     },
+
+    SUBSCRIPTION_SIZE: {
+        PAGE_NAME: {
+            SIZE: 'size',
+            CONFIRM: 'confirm',
+        },
+    },
+
     MISSING_PERSONAL_DETAILS_INDEXES: {
         MAPPING: {
             LEGAL_NAME: 0,
@@ -3996,8 +4006,10 @@ const CONST = {
 
         ONLY_PRIVATE_USER_AREA: /^[\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]+$/u,
 
-        // Regex pattern to match a digit followed by an emoji (used for Safari ZWNJ insertion)
-        DIGIT_FOLLOWED_BY_EMOJI: /(\d)([\u{1F300}-\u{1FAFF}\u{1F000}-\u{1F9FF}\u2600-\u27BF])/gu,
+        // Regex pattern to match a digit (#, *, or 0-9) followed by an emoji (used for Safari FE0E insertion to prevent keycap corruption)
+        DIGIT_OR_SYMBOL_FOLLOWED_BY_EMOJI: /([\d#*])([\u{1F300}-\u{1FAFF}\u{1F000}-\u{1F9FF}\u2600-\u27BF])/gu,
+        // Regex pattern to match a corrupted keycap sequence followed by an emoji
+        CORRUPTED_KEYCAP_FOLLOWED_BY_EMOJI: /([\d#*])\uFE0F?\u20E3([\u{1F300}-\u{1FAFF}\u{1F000}-\u{1F9FF}\u2600-\u27BF])/gu,
 
         TAX_ID: /^\d{9}$/,
         NON_NUMERIC: /\D/g,
@@ -5659,6 +5671,8 @@ const CONST = {
         GRID: 'grid',
         /** Use for section headers or titles. */
         HEADING: 'heading',
+        /** Use for elements that serve as a page or section header (e.g. top bar title). */
+        HEADER: 'header',
         /** Use for image elements. */
         IMG: 'img',
         /** Use for elements that navigate to other pages or content. */
@@ -8100,7 +8114,8 @@ const CONST = {
          * The Travel Invoicing feed type constant.
          * This feed is used for Travel Invoicing cards which are separate from regular Expensify Cards.
          */
-        PROGRAM_TRAVEL_US: 'PROGRAM_TRAVEL_US',
+        PROGRAM_TRAVEL_US: 'TRAVEL_US',
+        MONTHLY_SETTLEMENT_DATE: 'monthlySettlementDate',
     },
     LAST_PAYMENT_METHOD: {
         LAST_USED: 'lastUsed',
@@ -8221,6 +8236,12 @@ const CONST = {
             ROTATE_BUTTON: 'Header-RotateButton',
             CLOSE_BUTTON: 'Header-CloseButton',
             MORE_BUTTON: 'Header-MoreButton',
+        },
+        TOP_BAR: {
+            CANCEL_BUTTON: 'TopBar-CancelButton',
+        },
+        COLLAPSIBLE_SECTION: {
+            TOGGLE: 'CollapsibleSection-Toggle',
         },
         VIDEO_PLAYER: {
             PLAY_PAUSE_BUTTON: 'VideoPlayer-PlayPauseButton',
@@ -8343,9 +8364,12 @@ const CONST = {
         },
         SELECTION_LIST: {
             BASE_LIST_ITEM: 'SelectionList-BaseListItem',
+            SPLIT_LIST_ITEM_EDIT_BUTTON: 'SplitListItem-EditButton',
+            LIST_HEADER_SELECT_ALL: 'SelectionList-ListHeader-SelectAll',
         },
         SELECTION_LIST_WITH_SECTIONS: {
             BASE_LIST_ITEM: 'SelectionListWithSections-BaseListItem',
+            SELECT_ALL: 'SelectionList-SelectAll',
         },
         CONTEXT_MENU: {
             REPLY_IN_THREAD: 'ContextMenu-ReplyInThread',
@@ -8436,6 +8460,12 @@ const CONST = {
         TRANSACTION_PREVIEW: {
             CARD: 'TransactionPreview-Card',
         },
+        TRANSACTION_ITEM_ROW: {
+            ARROW_RIGHT: 'TransactionItemRow-ArrowRight',
+        },
+        PAYMENT_METHOD_LIST_ITEM: {
+            CHASE_ACCOUNT_HELP: 'PaymentMethodListItem-ChaseAccountHelp',
+        },
         EMOJI_PICKER: {
             BUTTON: 'EmojiPicker-Button',
             BUTTON_DROPDOWN: 'EmojiPicker-ButtonDropdown',
@@ -8473,6 +8503,10 @@ const CONST = {
         },
         DISCOVER_SECTION: {
             TEST_DRIVE: 'DiscoverSection-TestDrive',
+        },
+        TEST_DRIVE_MODAL: {
+            SKIP: 'TestDriveModal-Skip',
+            START: 'TestDriveModal-Start',
         },
         HOME_PAGE: {
             WIDGET_ITEM: 'HomePage-WidgetItem',
@@ -8567,7 +8601,9 @@ const CONST = {
         },
         WORKSPACE: {
             TOGGLE_SETTINGS_ROW: 'Workspace-ToggleSettingsRow',
+            DUPLICATE_SELECT_FEATURES_SELECT_ALL: 'WorkspaceDuplicate-SelectFeaturesSelectAll',
             WORKSPACE_MENU_ITEM: 'Workspace-WorkspaceMenuItem',
+            INVITE_MESSAGE_PRIVACY_LINK: 'WorkspaceInviteMessage-PrivacyLink',
             COMPANY_CARDS: {
                 TABLE_ITEM: 'Workspace-CompanyCards-TableItem',
                 MORE_DROPDOWN: 'WorkspaceCompanyCards-MoreDropdown',
@@ -8704,6 +8740,12 @@ const CONST = {
         },
         ONBOARDING: {
             INTERESTED_FEATURES_ITEM: 'Onboarding-InterestedFeaturesItem',
+            ACCOUNTING_SELECT_INTEGRATION: 'OnboardingAccounting-SelectIntegration',
+            PURPOSE_ITEM: 'Onboarding-PurposeItem',
+            CONTINUE: 'Onboarding-Continue',
+            SKIP: 'Onboarding-Skip',
+            JOIN_WORKSPACE: 'Onboarding-JoinWorkspace',
+            CREATE_WORKSPACE: 'Onboarding-CreateWorkspace',
         },
         REPORT_HEADER_SKELETON: {
             GO_BACK: 'ReportHeaderSkeleton-GoBack',
@@ -8716,6 +8758,8 @@ const CONST = {
         VALIDATE_CODE: {
             RESEND_CODE: 'ValidateCode-ResendCode',
             RECOVERY_CODE: 'ValidateCode-RecoveryCode',
+            SKIP: 'ValidateCode-Skip',
+            VERIFY: 'ValidateCode-Verify',
         },
         INTERACTIVE_STEP_SUB_HEADER: {
             STEP_BUTTON: 'InteractiveStepSubHeader-StepButton',
@@ -8725,6 +8769,18 @@ const CONST = {
         },
         SOCIALS: {
             LINK: 'Socials',
+        },
+        SIGN_IN: {
+            CONTINUE: 'SignIn-Continue',
+            SIGN_IN_BUTTON: 'SignIn-SignInButton',
+            JOIN: 'SignIn-Join',
+            SSO: 'SignIn-SSO',
+            MAGIC_CODE: 'SignIn-MagicCode',
+            UNLINK: 'SignIn-Unlink',
+            GO_BACK: 'SignIn-GoBack',
+            VALIDATE: 'SignIn-Validate',
+            SEND: 'SignIn-Send',
+            CONFIRM: 'SignIn-Confirm',
         },
     },
 

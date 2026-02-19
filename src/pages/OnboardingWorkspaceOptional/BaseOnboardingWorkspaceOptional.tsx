@@ -88,7 +88,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
             lastName: currentUserPersonalDetails.lastName,
             adminsChatReportID: onboardingAdminsChatReportID,
             onboardingPolicyID,
-            shouldSkipTestDriveModal: !!onboardingPolicyID && !onboardingAdminsChatReportID,
+            shouldSkipTestDriveModal: (!!onboardingPolicyID && !onboardingAdminsChatReportID) || onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
             introSelected,
         });
 
@@ -131,7 +131,12 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
             />
             <View style={[styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
                 <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb3]}>
-                    <Text style={styles.textHeadlineH1}>{translate('onboarding.workspace.title')}</Text>
+                    <Text
+                        style={styles.textHeadlineH1}
+                        accessibilityRole={CONST.ROLE.HEADER}
+                    >
+                        {translate('onboarding.workspace.title')}
+                    </Text>
                 </View>
                 <View style={styles.mb2}>
                     <Text style={[styles.textNormal, styles.colorMuted]}>{translate('onboarding.workspace.subtitle')}</Text>
@@ -168,6 +173,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
                         large
                         text={translate('common.skip')}
                         onPress={() => completeOnboarding()}
+                        sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.SKIP}
                     />
                 </View>
                 {!isRestrictedPolicyCreation && (
@@ -180,6 +186,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
                                 setOnboardingErrorMessage(null);
                                 Navigation.navigate(ROUTES.ONBOARDING_WORKSPACE_CONFIRMATION.getRoute());
                             }}
+                            sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CREATE_WORKSPACE}
                         />
                     </View>
                 )}

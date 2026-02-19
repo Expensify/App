@@ -24,6 +24,7 @@ import type {
     AddedOrDeletedPolicyReportFieldParams,
     AddOrDeletePolicyCustomUnitRateParams,
     ChangeFieldParams,
+    ConciergeBrokenCardConnectionParams,
     ConnectionNameParams,
     CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
@@ -130,7 +131,6 @@ import type {
     ZipCodeExampleFormatParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
-
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -187,6 +187,7 @@ const translations: TranslationDeepObject<typeof en> = {
         workspaces: 'Espaces de travail',
         home: 'Accueil',
         inbox: 'Boîte de réception',
+        yourReviewIsRequired: 'Votre révision est requise',
         success: 'Réussi',
         group: 'Groupe',
         profile: 'Profil',
@@ -963,6 +964,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: ({integrationName}: {integrationName: string}) => `Corriger la connexion ${integrationName}`,
                 defaultSubtitle: 'Espace de travail > Comptabilité',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Comptabilité`,
+            },
+            fixPersonalCardConnection: {
+                title: ({cardName}: {cardName?: string}) => (cardName ? `Réparer la connexion de la carte personnelle ${cardName}` : 'Corriger la connexion de la carte personnelle'),
+                subtitle: 'Portefeuille > Cartes assignées',
             },
         },
         announcements: 'Annonces',
@@ -2086,6 +2091,14 @@ const translations: TranslationDeepObject<typeof en> = {
             password: 'Veuillez saisir votre mot de passe Expensify',
         },
     },
+    personalCard: {
+        fixCard: 'Réparer la carte',
+        brokenConnection: 'La connexion de votre carte est rompue.',
+        conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
+            connectionLink
+                ? `La connexion de votre carte ${cardName} est rompue. <a href="${connectionLink}">Connectez-vous à votre banque</a> pour corriger la carte.`
+                : `La connexion de votre carte ${cardName} est rompue. Connectez-vous à votre banque pour corriger la carte.`,
+    },
     walletPage: {
         balance: 'Solde',
         paymentMethodsTitle: 'Moyens de paiement',
@@ -2222,6 +2235,9 @@ ${amount} pour ${merchant} - ${date}`,
         freezeDescription: 'Une carte gelée ne peut pas être utilisée pour des achats ni des transactions. Vous pouvez la dégeler à tout moment.',
         unfreezeDescription:
             'Dégeler cette carte permettra à nouveau les achats et les transactions. Continuez uniquement si vous êtes sûr(e) que la carte peut être utilisée en toute sécurité.',
+        frozen: 'Gelée',
+        youFroze: ({date}: {date: string}) => `Vous avez gelé cette carte le ${date}.`,
+        frozenBy: ({person, date}: {person: string; date: string}) => `${person} a gelé cette carte le ${date}.`,
     },
     workflowsPage: {
         workflowTitle: 'Dépense',
@@ -5140,6 +5156,11 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     },
                 },
                 travelInvoicing: {
+                    travelBookingSection: {
+                        title: 'Réservation de voyage',
+                        subtitle: 'Félicitations ! Vous êtes prêt à réserver et gérer des voyages sur cet espace de travail.',
+                        manageTravelLabel: 'Gérer les déplacements',
+                    },
                     centralInvoicingSection: {
                         title: 'Facturation centralisée',
                         subtitle: 'Centralisez toutes les dépenses de voyage dans une facture mensuelle au lieu de payer au moment de l’achat.',
@@ -5153,6 +5174,16 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                             settlementFrequencyDescription:
                                 'Fréquence à laquelle Expensify prélèvera sur votre compte bancaire professionnel pour régler les transactions récentes d’Expensify Travel.',
                         },
+                    },
+                    disableModal: {
+                        title: 'Désactiver la facturation de voyage?',
+                        body: "Les prochaines réservations d'hôtel et de location de voiture devront peut-être être réservées à nouveau avec un autre mode de paiement pour éviter une annulation.",
+                        confirm: 'Désactiver',
+                    },
+                    outstandingBalanceModal: {
+                        title: 'Impossible de désactiver la facturation Voyage',
+                        body: 'Vous avez encore un solde de voyage impayé. Veuillez d’abord régler ce solde.',
+                        confirm: 'Compris',
                     },
                 },
             },
@@ -5209,8 +5240,10 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 updateCard: 'Mettre à jour la carte',
                 unassignCard: 'Retirer l’assignation de la carte',
                 unassign: "Retirer l'assignation",
-                unassignCardDescription:
-                    "Retirer l'assignation de cette carte supprimera toutes les transactions figurant sur les notes de frais en brouillon du compte du titulaire de la carte.",
+                unassignCardDescription: "Retirer l'assignation de cette carte supprimera toutes les transactions non soumises.",
+                removeCard: 'Supprimer la carte',
+                remove: 'Supprimer',
+                removeCardDescription: 'La suppression de cette carte effacera toutes les transactions non soumises.',
                 assignCard: 'Assigner une carte',
                 cardFeedName: 'Nom du flux de carte',
                 cardFeedNameDescription: 'Donnez au flux de carte un nom unique afin de pouvoir le distinguer des autres.',
@@ -5517,6 +5550,11 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             reimbursementAccount: 'compte de remboursement',
             welcomeNote: 'Veuillez commencer à utiliser mon nouvel espace de travail',
             delayedSubmission: 'soumission retardée',
+            merchantRules: 'Règles de commerçant',
+            merchantRulesCount: () => ({
+                one: '1 règle de commerçant',
+                other: (count: number) => `${count} règles de commerçant`,
+            }),
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `Vous êtes sur le point de créer et de partager ${newWorkspaceName ?? ''} avec ${totalMembers ?? 0} membres de l’espace de travail d’origine.`,
             error: 'Une erreur s’est produite lors de la duplication de votre nouvel espace de travail. Veuillez réessayer.',
@@ -7746,17 +7784,25 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Examen requis',
-        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL}: ViolationsRterParams) => {
+        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL, connectionLink, isPersonalCard, isMarkAsCash}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
-                return 'Impossible d’associer automatiquement le reçu en raison d’une connexion bancaire interrompue';
+                return 'Impossible d’apparier automatiquement le reçu en raison d’une connexion bancaire rompue.';
+            }
+            if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
+                if (!connectionLink) {
+                    return 'Impossible d’apparier automatiquement le reçu en raison d’une connexion bancaire rompue.';
+                }
+                return isMarkAsCash
+                    ? `Impossible d'associer automatiquement le reçu en raison d'une connexion de carte défectueuse. Marquez-le comme paiement en espèces pour l'ignorer, ou <a href="${connectionLink}">corrigez la carte</a> pour associer le reçu.`
+                    : `Impossible d'associer automatiquement le reçu en raison d'une connexion de carte rompue. <a href="${connectionLink}">Réparez la carte</a> pour faire correspondre le reçu.`;
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
                     ? `Connexion bancaire rompue. <a href="${companyCardPageURL}">Reconnectez-vous pour faire correspondre le reçu</a>`
-                    : 'Connexion bancaire rompue. Demandez à un administrateur de la reconnecter pour faire correspondre le reçu.';
+                    : 'Connexion bancaire interrompue. Demandez à un administrateur de la reconnecter pour faire correspondre le reçu.';
             }
             if (!isTransactionOlderThan7Days) {
-                return isAdmin ? `Demandez à ${member} de marquer comme espèce ou attendez 7 jours et réessayez` : 'En attente de fusion avec la transaction par carte.';
+                return isAdmin ? `Demandez à ${member} de marquer comme paiement en espèces ou attendez 7 jours et réessayez` : 'En attente de fusion avec la transaction par carte.';
             }
             return '';
         },

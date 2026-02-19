@@ -85,6 +85,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
             iconStyles: [styles.mh3],
             wrapperStyle: [styles.purposeMenuItem],
             numberOfLinesTitle: 0,
+            sentryLabel: CONST.SENTRY_LABEL.ONBOARDING.PURPOSE_ITEM,
             onPress: () => {
                 setOnboardingPurposeSelected(choice);
                 setOnboardingErrorMessage(null);
@@ -146,7 +147,12 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
             <ScrollView style={[styles.flex1, styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, paddingHorizontal]}>
                 <View style={styles.flex1}>
                     <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
-                        <Text style={styles.textHeadlineH1}>{translate('onboarding.purpose.title')} </Text>
+                        <Text
+                            style={styles.textHeadlineH1}
+                            accessibilityRole={CONST.ROLE.HEADER}
+                        >
+                            {translate('onboarding.purpose.title')}
+                        </Text>
                     </View>
                     <MenuItemList
                         menuItems={menuItems}

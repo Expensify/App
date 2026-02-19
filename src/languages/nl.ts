@@ -24,6 +24,7 @@ import type {
     AddedOrDeletedPolicyReportFieldParams,
     AddOrDeletePolicyCustomUnitRateParams,
     ChangeFieldParams,
+    ConciergeBrokenCardConnectionParams,
     ConnectionNameParams,
     CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
@@ -130,7 +131,6 @@ import type {
     ZipCodeExampleFormatParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
-
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -187,6 +187,7 @@ const translations: TranslationDeepObject<typeof en> = {
         workspaces: 'Werkruimtes',
         home: 'Home',
         inbox: 'Inbox',
+        yourReviewIsRequired: 'Uw beoordeling is vereist',
         success: 'Gelukt',
         group: 'Groep',
         profile: 'Profiel',
@@ -958,6 +959,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: ({integrationName}: {integrationName: string}) => `Verbinding met ${integrationName} repareren`,
                 defaultSubtitle: 'Werkruimte > Boekhouding',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Boekhouding`,
+            },
+            fixPersonalCardConnection: {
+                title: ({cardName}: {cardName?: string}) => (cardName ? `Verbinding van persoonlijke kaart ${cardName} herstellen` : 'Verbinding persoonlijke kaart herstellen'),
+                subtitle: 'Wallet > Toegewezen kaarten',
             },
         },
         announcements: 'Aankondigingen',
@@ -2075,6 +2080,14 @@ const translations: TranslationDeepObject<typeof en> = {
             password: 'Voer je Expensify-wachtwoord in',
         },
     },
+    personalCard: {
+        fixCard: 'Kaart herstellen',
+        brokenConnection: 'Je kaartkoppeling is verbroken.',
+        conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
+            connectionLink
+                ? `Je verbinding met de kaart ${cardName} is verbroken. <a href="${connectionLink}">Log in bij je bank</a> om de kaart te herstellen.`
+                : `Je verbinding met de kaart ${cardName} is verbroken. Log in bij je bank om de kaart te herstellen.`,
+    },
     walletPage: {
         balance: 'Saldo',
         paymentMethodsTitle: 'Betaalmethoden',
@@ -2211,6 +2224,9 @@ ${amount} voor ${merchant} - ${date}`,
         unfreezeCard: 'Kaart deblokkeren',
         freezeDescription: 'Een geblokkeerde kaart kan niet worden gebruikt voor aankopen en transacties. Je kunt deze op elk moment deblokkeren.',
         unfreezeDescription: 'Door deze kaart te deblokkeren worden aankopen en transacties weer toegestaan. Ga alleen verder als je zeker weet dat de kaart veilig is om te gebruiken.',
+        frozen: 'Geblokkeerd',
+        youFroze: ({date}: {date: string}) => `Je hebt deze kaart op ${date} geblokkeerd.`,
+        frozenBy: ({person, date}: {person: string; date: string}) => `${person} heeft deze kaart op ${date} geblokkeerd.`,
     },
     workflowsPage: {
         workflowTitle: 'Uitgaven',
@@ -5099,6 +5115,11 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                     autoAddTripName: {title: 'Reisnamen aan uitgaven toevoegen', subtitle: 'Voeg automatisch reisnamen toe aan onkostomemo’s voor reizen die in Expensify zijn geboekt.'},
                 },
                 travelInvoicing: {
+                    travelBookingSection: {
+                        title: 'Reisboeking',
+                        subtitle: 'Gefeliciteerd! Je bent helemaal klaar om reizen in deze workspace te boeken en te beheren.',
+                        manageTravelLabel: 'Reizen beheren',
+                    },
                     centralInvoicingSection: {
                         title: 'Gecentraliseerde facturatie',
                         subtitle: 'Centraliseer alle reiskosten op één maandelijkse factuur in plaats van bij aankoop te betalen.',
@@ -5112,6 +5133,12 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                             settlementFrequencyDescription: 'Hoe vaak Expensify geld van uw zakelijke bankrekening zal incasseren om recente Expensify Travel-transacties te vereffenen.',
                         },
                     },
+                    disableModal: {
+                        title: 'Reisfacturatie uitschakelen?',
+                        body: 'Toekomstige hotel en autoverhuurreserveringen moeten mogelijk opnieuw worden geboekt met een andere betaalmethode om annulering te voorkomen.',
+                        confirm: 'Uitschakelen',
+                    },
+                    outstandingBalanceModal: {title: 'Kan Reiskostenfacturatie niet uitschakelen', body: 'Je hebt nog een openstaand reissaldo. Betaal eerst je saldo.', confirm: 'Begrepen'},
                 },
             },
             expensifyCard: {
@@ -5166,7 +5193,10 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 updateCard: 'Kaart bijwerken',
                 unassignCard: 'Kaart loskoppelen',
                 unassign: 'Toewijzen ongedaan maken',
-                unassignCardDescription: 'Deze kaart loskoppelen verwijdert alle transacties op conceptrapporten uit de rekening van de kaarthouder.',
+                unassignCardDescription: 'Het loskoppelen van deze kaart verwijdert alle niet-ingediende transacties.',
+                removeCard: 'Kaart verwijderen',
+                remove: 'Verwijderen',
+                removeCardDescription: 'Als je deze kaart verwijdert, worden alle niet-ingediende transacties verwijderd.',
                 assignCard: 'Kaart toewijzen',
                 cardFeedName: 'Naam van kaartfeed',
                 cardFeedNameDescription: 'Geef de kaartfeed een unieke naam zodat je deze kunt onderscheiden van de andere.',
@@ -5471,6 +5501,11 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             reimbursementAccount: 'vergoedingsrekening',
             welcomeNote: 'Begin alsjeblieft mijn nieuwe werkruimte te gebruiken',
             delayedSubmission: 'vertraagde indiening',
+            merchantRules: 'Handelaarsregels',
+            merchantRulesCount: () => ({
+                one: '1 handelaarsregel',
+                other: (count: number) => `${count} handelaarsregels`,
+            }),
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `Je staat op het punt ${newWorkspaceName ?? ''} te maken en te delen met ${totalMembers ?? 0} leden van de oorspronkelijke werkruimte.`,
             error: 'Er is een fout opgetreden bij het dupliceren van je nieuwe werkruimte. Probeer het opnieuw.',
@@ -7692,17 +7727,25 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Beoordeling vereist',
-        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL}: ViolationsRterParams) => {
+        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL, connectionLink, isPersonalCard, isMarkAsCash}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
-                return 'Kan bon niet automatisch koppelen vanwege een verbroken bankverbinding';
+                return 'Bon kan automatisch aan bon koppelen vanwege verbroken bankverbinding.';
+            }
+            if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
+                if (!connectionLink) {
+                    return 'Bon kan automatisch aan bon koppelen vanwege verbroken bankverbinding.';
+                }
+                return isMarkAsCash
+                    ? `Kan bon niet automatisch koppelen vanwege een verbroken kaartverbinding. Markeer als contant om te negeren, of <a href="${connectionLink}">repareer de kaart</a> om de bon te koppelen.`
+                    : `Kan bon automatisch koppelen aan bon vanwege verbroken kaartverbinding. <a href="${connectionLink}">Herstel de kaart</a> om de bon te koppelen.`;
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
-                    ? `Bankkoppeling verbroken. <a href="${companyCardPageURL}">Opnieuw verbinden om bon te matchen</a>`
-                    : 'Bankverbinding verbroken. Vraag een beheerder om opnieuw te verbinden om het met de bon te matchen.';
+                    ? `Bankkoppeling verbroken. <a href="${companyCardPageURL}">Opnieuw verbinden om bon te koppelen</a>`
+                    : 'Bankkoppeling verbroken. Vraag een beheerder om de verbinding opnieuw te maken om de bon te laten overeenkomen.';
             }
             if (!isTransactionOlderThan7Days) {
-                return isAdmin ? `Vraag ${member} om het als contant te markeren of wacht 7 dagen en probeer het opnieuw` : 'In afwachting van samenvoeging met kaarttransactie.';
+                return isAdmin ? `Vraag ${member} om het als contant te markeren of wacht 7 dagen en probeer het opnieuw` : 'In afwachting van koppeling met kaarttransactie.';
             }
             return '';
         },
