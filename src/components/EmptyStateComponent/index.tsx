@@ -96,7 +96,7 @@ function EmptyStateComponent({
                             ))}
                         {children}
                         {!isEmpty(buttons) && (
-                            <View style={[styles.gap2, styles.mt5, styles.flexRow, styles.justifyContentCenter]}>
+                            <View style={[styles.gap2, styles.mt6, styles.flexRow, styles.justifyContentCenter]}>
                                 {buttons?.map(({buttonText, buttonAction, success, icon, isDisabled, style, dropDownOptions}) =>
                                     dropDownOptions ? (
                                         <ButtonWithDropdownMenu

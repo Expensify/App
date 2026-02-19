@@ -27,7 +27,7 @@ function WorkspaceCompanyCardsFeedAddedEmptyPage({shouldShowGBDisclaimer}: Works
                 headerMedia={illustrations.LaptopAssignCard}
                 containerStyles={styles.mt5}
                 headerStyles={styles.emptyStateCardIllustrationContainer}
-                headerContentStyles={styles.emptyStateCardIllustration}
+                headerContentStyles={styles.pendingStateCardIllustration}
                 title={translate('workspace.moreFeatures.companyCards.emptyAddedFeedTitle')}
                 subtitle={translate('workspace.moreFeatures.companyCards.emptyAddedFeedDescription')}
             />

@@ -516,7 +516,7 @@ function EmptySearchViewContent({
                 <GenericEmptyStateComponent
                     headerMediaType={content.headerMediaType}
                     headerMedia={content.headerMedia}
-                    headerStyles={[styles.emptyStateCardIllustrationContainer, styles.overflowHidden]}
+                    headerStyles={styles.emptyStateCardIllustrationContainer}
                     title={content.title}
                     titleStyles={content.titleStyles}
                     subtitle={content.subtitle}

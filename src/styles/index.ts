@@ -5197,11 +5197,6 @@ const staticStyles = (theme: ThemeColors) =>
             height: 190,
         },
 
-        emptyStateCardIllustration: {
-            width: 164,
-            height: 190,
-        },
-
         expensifyCardEmptyIllustration: {
             width: 280,
             height: 172,

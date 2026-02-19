@@ -24,7 +24,7 @@ function WorkspaceCompanyCardsFeedPendingPage() {
                 headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
                 headerMedia={LaptopReviewCard}
                 headerStyles={styles.emptyStateCardIllustrationContainer}
-                headerContentStyles={styles.emptyStateCardIllustration}
+                headerContentStyles={styles.pendingStateCardIllustration}
                 title={translate('workspace.moreFeatures.companyCards.pendingFeedTitle')}
             >
                 <Text>

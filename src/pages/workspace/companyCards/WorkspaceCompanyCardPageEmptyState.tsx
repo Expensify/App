@@ -83,7 +83,7 @@ function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer}: 
                 ctaAccessibilityLabel={translate('workspace.companyCards.addCards')}
                 onCtaPress={handleCtaPress}
                 illustration={illustrations.LaptopAssignCard}
-                illustrationStyle={styles.emptyStateCardIllustration}
+                illustrationStyle={styles.pendingStateCardIllustration}
                 illustrationContainerStyle={styles.emptyStateCardIllustrationContainer}
                 titleStyles={styles.textHeadlineH1}
                 isButtonDisabled={workspaceAccountID === CONST.DEFAULT_NUMBER_ID}
