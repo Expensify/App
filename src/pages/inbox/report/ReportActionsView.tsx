@@ -74,6 +74,9 @@ type ReportActionsViewProps = {
 
     /** Whether the current user has sent a message in this side panel session */
     hasUserSentMessage?: boolean;
+
+    /** Set of reportActionIDs that existed when the side panel session started (from ReportScreen) */
+    sessionStartActionIDs?: Set<string> | null;
 };
 
 let listOldID = Math.round(Math.random() * 100);
@@ -89,6 +92,7 @@ function ReportActionsView({
     isReportTransactionThread,
     isConciergeSidePanel = false,
     hasUserSentMessage = false,
+    sessionStartActionIDs = null,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
@@ -97,15 +101,17 @@ function ReportActionsView({
     const isReportArchived = useReportIsArchived(report?.reportID);
     const canPerformWriteAction = useMemo(() => canUserPerformWriteAction(report, isReportArchived), [report, isReportArchived]);
 
-    // Capture action IDs present when this side-panel session started.
-    // Uses allReportActions (the prop) because the derived `reportActions` is declared later.
-    // Initialized once per mount; resets naturally when the panel closes (component unmounts).
-    const sessionStartActionIDs = useRef<Set<string> | null>(null);
-    if (isConciergeSidePanel && sessionStartActionIDs.current === null && allReportActions) {
-        sessionStartActionIDs.current = new Set(allReportActions.map((action) => action.reportActionID));
-    }
-
     const [showFullHistory, setShowFullHistory] = useState(false);
+
+    // Reset showFullHistory when the session resets (hasUserSentMessage transitions true → false,
+    // e.g. the side panel was closed and reopened).
+    const prevHasUserSentMessage = usePrevious(hasUserSentMessage);
+    useEffect(() => {
+        if (!prevHasUserSentMessage || hasUserSentMessage) {
+            return;
+        }
+        setShowFullHistory(false);
+    }, [prevHasUserSentMessage, hasUserSentMessage]);
 
     const getTransactionThreadReportActions = useCallback(
         (reportActions: OnyxEntry<OnyxTypes.ReportActions>): OnyxTypes.ReportAction[] => {
@@ -250,12 +256,11 @@ function ReportActionsView({
     );
 
     const hasPreviousMessages = useMemo(() => {
-        const startIDs = sessionStartActionIDs.current;
-        if (!isConciergeSidePanel || !startIDs) {
+        if (!isConciergeSidePanel || !sessionStartActionIDs) {
             return false;
         }
-        return visibleReportActions.some((action) => !isCreatedAction(action) && startIDs.has(action.reportActionID));
-    }, [isConciergeSidePanel, visibleReportActions]);
+        return visibleReportActions.some((action) => !isCreatedAction(action) && sessionStartActionIDs.has(action.reportActionID));
+    }, [isConciergeSidePanel, visibleReportActions, sessionStartActionIDs]);
 
     const showConciergeSidePanelWelcome = isConciergeSidePanel && !hasUserSentMessage && !showFullHistory;
 
@@ -263,17 +268,16 @@ function ReportActionsView({
     // Used as a cutoff so automated Concierge replies that arrived between panel-open
     // and the user's first message are also hidden.
     const firstUserMessageCreated = useMemo(() => {
-        if (!isConciergeSidePanel || !hasUserSentMessage) {
+        if (!isConciergeSidePanel || !hasUserSentMessage || !sessionStartActionIDs) {
             return undefined;
         }
-        const startIDs = sessionStartActionIDs.current;
         return reportActions.reduce<string | undefined>((earliest, action) => {
-            if (isCreatedAction(action) || startIDs?.has(action.reportActionID) || action.actorAccountID !== currentUserAccountID) {
+            if (isCreatedAction(action) || sessionStartActionIDs.has(action.reportActionID) || action.actorAccountID !== currentUserAccountID) {
                 return earliest;
             }
             return !earliest || action.created < earliest ? action.created : earliest;
         }, undefined);
-    }, [isConciergeSidePanel, hasUserSentMessage, reportActions, currentUserAccountID]);
+    }, [isConciergeSidePanel, hasUserSentMessage, sessionStartActionIDs, reportActions, currentUserAccountID]);
 
     // Whether an action belongs to the current session (not in the session-start set
     // and created on or after the user's first message).
@@ -282,9 +286,11 @@ function ReportActionsView({
             if (!firstUserMessageCreated) {
                 return false;
             }
-            return !sessionStartActionIDs.current?.has(action.reportActionID) && action.created >= firstUserMessageCreated;
+            // Always include the CREATED action so the report welcome header is shown
+            // once the user sends their first message.
+            return isCreatedAction(action) || (!sessionStartActionIDs?.has(action.reportActionID) && action.created >= firstUserMessageCreated);
         },
-        [firstUserMessageCreated],
+        [firstUserMessageCreated, sessionStartActionIDs],
     );
 
     const conciergeSidePanelFilteredVisibleActions = useMemo(() => {
@@ -341,7 +347,8 @@ function ReportActionsView({
 
     const handleShowPreviousMessages = useCallback(() => {
         setShowFullHistory(true);
-    }, []);
+        loadOlderChats(true);
+    }, [loadOlderChats]);
 
     /**
      * Runs when the FlatList finishes laying out

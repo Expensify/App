@@ -708,42 +708,60 @@ function ReportActionsList({
             const transaction = transactionID ? transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] : undefined;
             const actionLinkedTransactionRouteError = transaction?.errorFields?.route ?? undefined;
 
+            const showPreviousMessagesButton =
+                reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && !!isConciergeSidePanel && !!showHiddenHistory && !!hasPreviousMessages;
+
             return (
-                <ReportActionsListItemRenderer
-                    allReports={allReports}
-                    policies={policies}
-                    reportAction={reportAction}
-                    parentReportAction={parentReportAction}
-                    parentReportActionForTransactionThread={parentReportActionForTransactionThread}
-                    index={index}
-                    report={report}
-                    transactionThreadReport={transactionThreadReport}
-                    linkedReportActionID={linkedReportActionID}
-                    displayAsGroup={
-                        !isConsecutiveChronosAutomaticTimerAction(sortedVisibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID)) &&
-                        isConsecutiveActionMadeByPreviousActor(sortedVisibleReportActions, index)
-                    }
-                    mostRecentIOUReportActionID={mostRecentIOUReportActionID}
-                    shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-                    shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
-                    shouldDisplayReplyDivider={sortedVisibleReportActions.length > 1}
-                    isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
-                    shouldUseThreadDividerLine={shouldUseThreadDividerLine}
-                    transactions={Object.values(transactions ?? {})}
-                    userWalletTierName={userWalletTierName}
-                    isUserValidated={isUserValidated}
-                    personalDetails={personalDetailsList}
-                    draftMessage={matchingDraftMessageString}
-                    emojiReactions={actionEmojiReactions}
-                    allDraftMessages={draftMessage}
-                    allEmojiReactions={emojiReactions}
-                    isReportArchived={isReportArchived}
-                    linkedTransactionRouteError={actionLinkedTransactionRouteError}
-                    userBillingFundID={userBillingFundID}
-                    isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
-                    reportNameValuePairsOrigin={reportNameValuePairs?.origin}
-                    reportNameValuePairsOriginalID={reportNameValuePairs?.originalID}
-                />
+                <>
+                    {showPreviousMessagesButton && (
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.pv3, styles.mh5]}>
+                            <View style={[styles.threadDividerLine, styles.ml0, styles.mr0, styles.flexGrow1]} />
+                            <View>
+                                <Button
+                                    small
+                                    text={translate('common.concierge.showPreviousMessages')}
+                                    onPress={onShowPreviousMessages}
+                                />
+                            </View>
+                            <View style={[styles.threadDividerLine, styles.ml0, styles.mr0, styles.flexGrow1]} />
+                        </View>
+                    )}
+                    <ReportActionsListItemRenderer
+                        allReports={allReports}
+                        policies={policies}
+                        reportAction={reportAction}
+                        parentReportAction={parentReportAction}
+                        parentReportActionForTransactionThread={parentReportActionForTransactionThread}
+                        index={index}
+                        report={report}
+                        transactionThreadReport={transactionThreadReport}
+                        linkedReportActionID={linkedReportActionID}
+                        displayAsGroup={
+                            !isConsecutiveChronosAutomaticTimerAction(sortedVisibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID)) &&
+                            isConsecutiveActionMadeByPreviousActor(sortedVisibleReportActions, index)
+                        }
+                        mostRecentIOUReportActionID={mostRecentIOUReportActionID}
+                        shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                        shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
+                        shouldDisplayReplyDivider={sortedVisibleReportActions.length > 1}
+                        isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
+                        shouldUseThreadDividerLine={shouldUseThreadDividerLine}
+                        transactions={Object.values(transactions ?? {})}
+                        userWalletTierName={userWalletTierName}
+                        isUserValidated={isUserValidated}
+                        personalDetails={personalDetailsList}
+                        draftMessage={matchingDraftMessageString}
+                        emojiReactions={actionEmojiReactions}
+                        allDraftMessages={draftMessage}
+                        allEmojiReactions={emojiReactions}
+                        isReportArchived={isReportArchived}
+                        linkedTransactionRouteError={actionLinkedTransactionRouteError}
+                        userBillingFundID={userBillingFundID}
+                        isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
+                        reportNameValuePairsOrigin={reportNameValuePairs?.origin}
+                        reportNameValuePairsOriginalID={reportNameValuePairs?.originalID}
+                    />
+                </>
             );
         },
         [
@@ -772,6 +790,12 @@ function ReportActionsList({
             reportNameValuePairs?.origin,
             reportNameValuePairs?.originalID,
             reportActionsFromOnyx,
+            isConciergeSidePanel,
+            showHiddenHistory,
+            hasPreviousMessages,
+            onShowPreviousMessages,
+            styles,
+            translate,
         ],
     );
 
@@ -823,24 +847,12 @@ function ReportActionsList({
     const shouldShowSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
 
     const listFooterComponent = useMemo(() => {
-        if (isConciergeSidePanel && showHiddenHistory && hasPreviousMessages) {
-            return (
-                <View style={[styles.alignItemsCenter, styles.pv3]}>
-                    <Button
-                        small
-                        text={translate('common.concierge.showPreviousMessages')}
-                        onPress={onShowPreviousMessages}
-                    />
-                </View>
-            );
-        }
-
         if (!shouldShowSkeleton) {
             return;
         }
 
         return <ReportActionsSkeletonView shouldAnimate={false} />;
-    }, [shouldShowSkeleton, isConciergeSidePanel, showHiddenHistory, hasPreviousMessages, onShowPreviousMessages, styles, translate]);
+    }, [shouldShowSkeleton]);
 
     const renderTopReportActions = useCallback(() => {
         const previewItems = sortedVisibleReportActions.slice(initialNumToRender ? -initialNumToRender : 0).reverse();

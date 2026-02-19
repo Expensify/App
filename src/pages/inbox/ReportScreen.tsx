@@ -39,6 +39,7 @@ import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelActions from '@hooks/useSidePanelActions';
+import useSidePanelState from '@hooks/useSidePanelState';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
@@ -319,11 +320,24 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     // Concierge side-panel session state — shared with ReportActionsView (filtering) and ReportFooter (status indicators).
     const isConciergeSidePanel = isInSidePanel && isConciergeChatReport(report, conciergeReportID);
 
+    // Detect panel reopen so we can reset the session even if the component didn't unmount
+    // (e.g. panel was quickly toggled before the close animation finished).
+    const {shouldHideSidePanel} = useSidePanelState();
+    const prevShouldHideSidePanel = usePrevious(shouldHideSidePanel);
+
     // Capture action IDs present when this side-panel session started.
     // We compare IDs (not timestamps) because the server can update an offline message's
-    // `created` field on sync. Initialized once per mount; resets when the panel closes.
+    // `created` field on sync. Initialized once per mount; resets when the panel closes
+    // (component unmounts) or when a quick toggle is detected (explicit reset below).
     const sessionStartActionIDs = useRef<Set<string> | null>(null);
-    if (isConciergeSidePanel && sessionStartActionIDs.current === null) {
+
+    // Reset on panel reopen (was hidden → now visible) to start a fresh session.
+    if (isConciergeSidePanel && prevShouldHideSidePanel && !shouldHideSidePanel) {
+        sessionStartActionIDs.current = null;
+    }
+
+    // Initialize the set once per session — only when there are actions to capture.
+    if (isConciergeSidePanel && sessionStartActionIDs.current === null && reportActions.length > 0) {
         sessionStartActionIDs.current = new Set(reportActions.map((action) => action.reportActionID));
     }
 
@@ -1101,6 +1115,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                                 isReportTransactionThread={isTransactionThreadView}
                                                 isConciergeSidePanel={isConciergeSidePanel}
                                                 hasUserSentMessage={hasUserSentMessage}
+                                                sessionStartActionIDs={sessionStartActionIDs.current}
                                             />
                                         ) : null}
                                         {!!report && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
