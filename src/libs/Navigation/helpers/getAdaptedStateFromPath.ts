@@ -56,7 +56,8 @@ function getSearchScreenNameForRoute(route: NavigationPartialRoute): string {
 function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
     // Check for backTo param. One screen with different backTo value may need different screens visible under the overlay.
     if (isRouteWithBackToParam(route)) {
-        const stateForBackTo = getStateFromPath(route.params.backTo as RoutePath);
+        const normalizedBackTo = normalizePath(route.params.backTo);
+        const stateForBackTo = getStateFromPath(normalizedBackTo as RoutePath);
 
         // This may happen if the backTo url is invalid.
         const lastRoute = stateForBackTo?.routes.at(-1);
