@@ -377,6 +377,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                                         title={item.title}
                                         titleStyle={styles.flex1}
                                         shouldRenderAsHTML={item.shouldRenderAsHTML}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                                     />
                                 ))}
                         </View>
@@ -389,6 +390,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                     message={errorMessage}
                     onSubmit={handleSubmit}
                     enabledWhenOffline
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SAVE}
                     shouldRenderFooterAboveSubmit
                     footerContent={
                         <>
@@ -405,6 +407,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                                 onPress={previewMatches}
                                 style={[styles.mb4]}
                                 large
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_PREVIEW_MATCHES}
                             />
                             {isEditing && (
                                 <Button
@@ -412,6 +415,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                                     onPress={handleDelete}
                                     style={[styles.mb4]}
                                     large
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_DELETE}
                                 />
                             )}
                         </>

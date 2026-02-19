@@ -410,6 +410,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             success={false}
             onPress={() => {}}
             shouldAlwaysShowDropdownMenu
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.MORE_DROPDOWN}
             customText={translate('common.more')}
             options={options}
             isSplitButton={false}
@@ -448,6 +449,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             text: translate('common.share'),
             icon: expensifyIcons.QrCode,
             onSelected: isAccountLocked ? showLockedAccountModal : onPressShare,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.SHARE,
         });
         if (isOwner) {
             secondaryActions.push({
@@ -485,6 +487,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                     <Button
                         success
                         text={translate('common.invite')}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.INVITE_BUTTON}
                         icon={expensifyIcons.UserPlus}
                         onPress={handleInvitePress}
                         medium
@@ -598,6 +601,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 deleteWorkspaceAvatar(policyID);
                             }}
                             editorMaskImage={expensifyIcons.ImageCropSquareMask}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.AVATAR}
                             pendingAction={policy?.pendingFields?.avatarURL}
                             errors={policy?.errorFields?.avatarURL}
                             onErrorClose={() => {
@@ -615,12 +619,14 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 title={policyName}
                                 titleStyle={styles.workspaceTitleStyle}
                                 description={translate('workspace.common.workspaceName')}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.NAME}
                                 shouldShowRightIcon={!readOnly}
                                 interactive={!readOnly}
                                 wrapperStyle={[styles.sectionMenuItemTopDescription, shouldUseNarrowLayout ? styles.mt3 : {}]}
                                 onPress={onPressName}
                                 shouldBreakWord
                                 numberOfLinesTitle={0}
+                                titleAccessibilityRole={CONST.ROLE.HEADER}
                             />
                         </OfflineWithFeedback>
                         {(!StringUtils.isEmptyString(policy?.description ?? '') || !readOnly || (prevIsPendingDelete && !isPendingDelete)) && (
@@ -637,6 +643,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 <MenuItemWithTopDescription
                                     title={policyDescription}
                                     description={translate('workspace.editor.descriptionInputLabel')}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.DESCRIPTION}
                                     shouldShowRightIcon={!readOnly}
                                     interactive={!readOnly}
                                     wrapperStyle={styles.sectionMenuItemTopDescription}
@@ -660,6 +667,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 <MenuItemWithTopDescription
                                     title={formattedCurrency}
                                     description={translate('workspace.editor.currencyInputLabel')}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.CURRENCY}
                                     shouldShowRightIcon={hasVBA ? false : !currencyReadOnly}
                                     interactive={hasVBA ? false : !currencyReadOnly}
                                     wrapperStyle={styles.sectionMenuItemTopDescription}
@@ -679,6 +687,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                     <MenuItemWithTopDescription
                                         title={formattedAddress}
                                         description={translate('common.companyAddress')}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.ADDRESS}
                                         shouldShowRightIcon={!readOnly}
                                         interactive={!readOnly}
                                         wrapperStyle={styles.sectionMenuItemTopDescription}
@@ -696,6 +705,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                     <MenuItemWithTopDescription
                                         title={getUserFriendlyWorkspaceType(policy.type, translate)}
                                         description={translate('workspace.common.planType')}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.PLAN_TYPE}
                                         shouldShowRightIcon
                                         wrapperStyle={styles.sectionMenuItemTopDescription}
                                         onPress={onPressPlanType}
@@ -718,6 +728,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 <MenuItemWithTopDescription
                                     title={policy?.customRules ?? ''}
                                     description={translate('workspace.editor.policy')}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.CUSTOM_RULES}
                                     shouldShowRightIcon={!readOnly}
                                     interactive={!readOnly}
                                     wrapperStyle={styles.sectionMenuItemTopDescription}

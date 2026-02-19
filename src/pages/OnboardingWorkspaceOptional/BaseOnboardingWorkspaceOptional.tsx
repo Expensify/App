@@ -42,6 +42,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
     const [conciergeChatReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const {onboardingMessages} = useOnboardingMessages();
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
     // When we merge public email with work email, we now want to navigate to the
     // concierge chat report of the new work email and not the last accessed report.
@@ -87,7 +88,8 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
             lastName: currentUserPersonalDetails.lastName,
             adminsChatReportID: onboardingAdminsChatReportID,
             onboardingPolicyID,
-            shouldSkipTestDriveModal: !!onboardingPolicyID && !onboardingAdminsChatReportID,
+            shouldSkipTestDriveModal: (!!onboardingPolicyID && !onboardingAdminsChatReportID) || onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
+            introSelected,
         });
 
         setOnboardingAdminsChatReportID();
@@ -113,6 +115,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
         isSmallScreenWidth,
         isBetaEnabled,
         mergedAccountConciergeReportID,
+        introSelected,
         conciergeChatReportID,
     ]);
 
@@ -128,7 +131,12 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
             />
             <View style={[styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
                 <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb3]}>
-                    <Text style={styles.textHeadlineH1}>{translate('onboarding.workspace.title')}</Text>
+                    <Text
+                        style={styles.textHeadlineH1}
+                        accessibilityRole={CONST.ROLE.HEADER}
+                    >
+                        {translate('onboarding.workspace.title')}
+                    </Text>
                 </View>
                 <View style={styles.mb2}>
                     <Text style={[styles.textNormal, styles.colorMuted]}>{translate('onboarding.workspace.subtitle')}</Text>
