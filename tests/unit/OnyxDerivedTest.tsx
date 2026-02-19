@@ -38,8 +38,11 @@ describe('OnyxDerived', () => {
     });
 
     describe('reportAttributes', () => {
-        beforeAll(() => {
+        beforeAll(async () => {
             onyxDerivedTestSetup();
+            // Initialize a dependency key so Onyx.clear() in beforeEach triggers derived value recomputation
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {});
+            await waitForBatchedUpdates();
         });
 
         const mockReport: Report = {
@@ -428,6 +431,9 @@ describe('OnyxDerived', () => {
     describe('nonPersonalAndWorkspaceCardList', () => {
         beforeAll(async () => {
             onyxDerivedTestSetup();
+            // Initialize dependency keys so Onyx.clear() in beforeEach triggers derived value recomputation
+            await Onyx.set(ONYXKEYS.CARD_LIST, {});
+            await waitForBatchedUpdates();
         });
 
         it('returns empty object when dependencies are not set', async () => {

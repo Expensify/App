@@ -1,5 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
+import type {OnyxMultiSetInput} from 'react-native-onyx';
 import useAncestors from '@hooks/useAncestors';
 import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
@@ -50,9 +51,9 @@ describe('useAncestors', () => {
         });
 
         Onyx.multiSet({
-            [ONYXKEYS.COLLECTION.REPORT]: mockReports,
-            [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: mockReportActions,
-        });
+            ...mockReports,
+            ...mockReportActions,
+        } as unknown as OnyxMultiSetInput);
         return waitForBatchedUpdates();
     });
 

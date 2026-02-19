@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import DateUtils from '@libs/DateUtils';
 import {
@@ -241,22 +241,18 @@ describe('PolicyUtils', () => {
                 workspaceAccountID: 0,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}2`, policy);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}`, {
-                [`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}18441278`]: {
-                    currentBalance: 0,
-                    domainName: 'expensify-policy8fe6324c4897.exfy',
-                    earnedCashback: 0,
-                    isLoading: false,
-                    isMonthlySettlementAllowed: false,
-                    limit: 0,
-                    marqetaBusinessToken: 18441278,
-                    ownerEmail: 'user@gmail.com',
-                    paymentBankAccountAddressName: 'Alberta Bobbeth Charleson',
-                    paymentBankAccountID: 3288123,
-                    paymentBankAccountNumber: 'XXXXXXXXXXXX1111',
-                    preferredPolicy: '2',
-                    remainingLimit: 0,
-                },
+            await Onyx.set(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}18441278`, {
+                currentBalance: 0,
+                domainName: 'expensify-policy8fe6324c4897.exfy',
+                earnedCashback: 0,
+                isLoading: false,
+                isMonthlySettlementAllowed: false,
+                marqetaBusinessToken: 18441278,
+                paymentBankAccountAddressName: 'Alberta Bobbeth Charleson',
+                paymentBankAccountID: 3288123,
+                paymentBankAccountNumber: 'XXXXXXXXXXXX1111',
+                preferredPolicy: '2',
+                remainingLimit: 0,
             });
             const {result} = renderHook(() => useDefaultFundID(policy.id));
 
@@ -553,11 +549,9 @@ describe('PolicyUtils', () => {
                     reportID: expenseReport.reportID,
                 };
                 await Onyx.multiSet({
-                    [ONYXKEYS.COLLECTION.TRANSACTION]: {
-                        [transaction1.transactionID]: transaction1,
-                        [transaction2.transactionID]: transaction2,
-                    },
-                });
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+                } as unknown as OnyxMultiSetInput);
                 expect(getSubmitToAccountID(policy, expenseReport)).toBe(categoryApprover1AccountID);
             });
             it('should return default approver if rule approver is submitter and prevent self approval is enabled', async () => {
@@ -614,11 +608,9 @@ describe('PolicyUtils', () => {
                     reportID: expenseReport.reportID,
                 };
                 await Onyx.multiSet({
-                    [ONYXKEYS.COLLECTION.TRANSACTION]: {
-                        [transaction1.transactionID]: transaction1,
-                        [transaction2.transactionID]: transaction2,
-                    },
-                });
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+                } as unknown as OnyxMultiSetInput);
                 expect(getSubmitToAccountID(policy, expenseReport)).toBe(categoryApprover2AccountID);
             });
             it('should return the first rule approver who is not the current submitter', async () => {
@@ -661,12 +653,10 @@ describe('PolicyUtils', () => {
                 };
 
                 await Onyx.multiSet({
-                    [ONYXKEYS.COLLECTION.TRANSACTION]: {
-                        [transaction1.transactionID]: transaction1,
-                        [transaction2.transactionID]: transaction2,
-                        [transaction3.transactionID]: transaction3,
-                    },
-                });
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction3.transactionID}`]: transaction3,
+                } as unknown as OnyxMultiSetInput);
 
                 expect(getSubmitToAccountID(policy, expenseReport)).toBe(tagApprover1AccountID);
             });
@@ -700,10 +690,10 @@ describe('PolicyUtils', () => {
                         created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
                         reportID: expenseReport.reportID,
                     };
-                    await Onyx.set(ONYXKEYS.COLLECTION.TRANSACTION, {
-                        [transaction1.transactionID]: transaction1,
-                        [transaction2.transactionID]: transaction2,
-                    });
+                    await Onyx.multiSet({
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+                    } as unknown as OnyxMultiSetInput);
                     expect(getSubmitToAccountID(policy, expenseReport)).toBe(tagApprover1AccountID);
                 });
                 it('should return the tag approver of the first transaction sorted by created if we have many transaction tags match with the tag approver rule', async () => {
@@ -735,10 +725,10 @@ describe('PolicyUtils', () => {
                         created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
                         reportID: expenseReport.reportID,
                     };
-                    await Onyx.set(ONYXKEYS.COLLECTION.TRANSACTION, {
-                        [transaction1.transactionID]: transaction1,
-                        [transaction2.transactionID]: transaction2,
-                    });
+                    await Onyx.multiSet({
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+                    } as unknown as OnyxMultiSetInput);
                     expect(getSubmitToAccountID(policy, expenseReport)).toBe(tagApprover2AccountID);
                 });
             });
