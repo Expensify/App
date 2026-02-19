@@ -2115,6 +2115,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: 'Portemonnee inschakelen',
         addBankAccountToSendAndReceive: 'Voeg een bankrekening toe om betalingen te doen of te ontvangen.',
         addDebitOrCreditCard: 'Debet- of creditcard toevoegen',
+        cardInactive: 'Inactive',
         assignedCards: 'Toegewezen kaarten',
         assignedCardsDescription: 'Transacties van deze kaarten worden automatisch gesynchroniseerd.',
         expensifyCard: 'Expensify Card',

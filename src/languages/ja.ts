@@ -2107,6 +2107,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: 'ウォレットを有効にする',
         addBankAccountToSendAndReceive: '支払いや入金を行うには銀行口座を追加してください。',
         addDebitOrCreditCard: 'デビットカードまたはクレジットカードを追加',
+        cardInactive: 'Inactive',
         assignedCards: '割り当て済みカード',
         assignedCardsDescription: 'これらのカードからの取引は自動的に同期されます。',
         expensifyCard: 'Expensify カード',

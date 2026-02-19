@@ -296,6 +296,7 @@ function PaymentMethodList({
                         iconWidth: variables.cardIconWidth,
                         iconHeight: variables.cardIconHeight,
                         isMethodActive: activePaymentMethodID === card.cardID,
+                        isSuspended: card.state === CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED,
                         onPress: cardOnPress,
                     });
                     continue;
@@ -359,6 +360,7 @@ function PaymentMethodList({
                     iconStyles: [styles.cardIcon],
                     iconWidth: variables.cardIconWidth,
                     iconHeight: variables.cardIconHeight,
+                    isSuspended: card.state === CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED,
                 });
             }
 
