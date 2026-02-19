@@ -6,7 +6,7 @@ import {cleanFileName, hasHeicOrHeifExtension, isValidReceiptExtension, normaliz
 
 type ValidatedFile = {
     fileType: 'file' | 'uri';
-    source: string;
+    source?: string;
     file: FileObject;
 };
 
@@ -33,7 +33,9 @@ function validateAttachmentFile(file: FileObject, item?: DataTransferItem, isVal
         return Promise.resolve({isValid: false, error: CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.NO_FILE_PROVIDED, file});
     }
 
-    const maxFileSize = isValidatingReceipts ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
+    if (isValidatingReceipts && !isValidReceiptExtension(file)) {
+        return Promise.resolve({isValid: false, error: CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.WRONG_FILE_TYPE, file});
+    }
 
     const isImage = Str.isImage(file.name ?? '');
 
@@ -41,16 +43,13 @@ function validateAttachmentFile(file: FileObject, item?: DataTransferItem, isVal
         return Promise.resolve({isValid: false, error: CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.HEIC_OR_HEIF_IMAGE, file});
     }
 
+    const maxFileSize = isValidatingReceipts ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
     if (!isImage && !hasHeicOrHeifExtension(file) && (file?.size ?? 0) > maxFileSize) {
         return Promise.resolve({isValid: false, error: CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_LARGE, file});
     }
 
     if (isValidatingReceipts && (file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
         return Promise.resolve({isValid: false, error: CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_SMALL, file});
-    }
-
-    if (isValidatingReceipts && !isValidReceiptExtension(file)) {
-        return Promise.resolve({isValid: false, error: CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.WRONG_FILE_TYPE, file});
     }
 
     let fileObject = file;
@@ -71,19 +70,18 @@ function validateAttachmentFile(file: FileObject, item?: DataTransferItem, isVal
         }
     }
 
-    return isFileCorrupted(fileObject).then((corruptionResult) => {
+    return isFileCorrupted(fileObject, isValidatingReceipts).then((corruptionResult) => {
         if (!corruptionResult.isValid) {
             return corruptionResult;
         }
 
-        let validatedFile: ValidatedFile;
-
-        if (fileObject instanceof File) {
+        const corruptionFreeFile = corruptionResult.validatedFile.file;
+        if (corruptionFreeFile instanceof File) {
             /**
              * Cleaning file name, done here so that it covers all cases:
              * upload, drag and drop, copy-paste
              */
-            let updatedFile = fileObject;
+            let updatedFile = corruptionFreeFile;
             const cleanName = cleanFileName(updatedFile.name);
             if (updatedFile.name !== cleanName) {
                 updatedFile = new File([updatedFile], cleanName, {type: updatedFile.type});
@@ -91,7 +89,7 @@ function validateAttachmentFile(file: FileObject, item?: DataTransferItem, isVal
             const inputSource = URL.createObjectURL(updatedFile);
             updatedFile.uri = inputSource;
 
-            validatedFile = {
+            const validatedFile: ValidatedFile = {
                 fileType: 'file',
                 source: inputSource,
                 file: updatedFile,
@@ -100,10 +98,10 @@ function validateAttachmentFile(file: FileObject, item?: DataTransferItem, isVal
             return {isValid: true, validatedFile};
         }
 
-        validatedFile = {
+        const validatedFile: ValidatedFile = {
             fileType: 'uri',
-            source: fileObject.uri ?? '',
-            file: fileObject,
+            source: corruptionFreeFile.uri ?? '',
+            file: corruptionFreeFile,
         };
 
         return {isValid: true, validatedFile};
@@ -118,7 +116,7 @@ type MultipleAttachmentsValidResult = {
 type MultipleAttachmentsValidationError = ValueOf<typeof CONST.FILE_VALIDATION_ERRORS.MULTIPLE_FILES>;
 type MultipleAttachmentsInvalidResult = {
     isValid: false;
-    error: MultipleAttachmentsValidationError;
+    error?: MultipleAttachmentsValidationError;
     fileResults: SingleAttachmentValidationResult[];
     files: FileObject[];
 };
@@ -147,14 +145,13 @@ function validateMultipleAttachmentFiles(files: FileObject[], items?: DataTransf
 
         return {
             isValid: false,
-            error: CONST.FILE_VALIDATION_ERRORS.MULTIPLE_FILES.WRONG_FILE_TYPE,
             fileResults: results,
             files,
         };
     });
 }
 
-function isFileCorrupted(fileObject: FileObject): Promise<SingleAttachmentValidationResult> {
+function isFileCorrupted(fileObject: FileObject, isValidatingReceipts?: boolean): Promise<SingleAttachmentValidationResult> {
     return normalizeFileObject(fileObject).then((normalizedFile) => {
         return validateImageForCorruption(normalizedFile)
             .then(() => {
@@ -165,7 +162,7 @@ function isFileCorrupted(fileObject: FileObject): Promise<SingleAttachmentValida
                     } as SingleAttachmentInvalidResult;
                 }
 
-                if (normalizedFile.size && normalizedFile.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+                if (isValidatingReceipts !== false && normalizedFile.size && normalizedFile.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
                     return {
                         isValid: false,
                         error: CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_SMALL,
@@ -174,6 +171,10 @@ function isFileCorrupted(fileObject: FileObject): Promise<SingleAttachmentValida
 
                 return {
                     isValid: true,
+                    validatedFile: {
+                        fileType: 'file',
+                        file: normalizedFile,
+                    },
                 } as SingleAttachmentValidResult;
             })
             .catch(() => {

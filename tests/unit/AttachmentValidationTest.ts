@@ -9,53 +9,95 @@ const createMockFile = (name: string, size: number) => ({
 });
 
 describe('AttachmentValidation', () => {
-    describe('validateAttachment', () => {
-        it('should not return SINGLE_FILE.FILE_TOO_SMALL when validating small attachment', () => {
+    describe('validateAttachmentFile', () => {
+        it('should not return SINGLE_FILE.FILE_TOO_SMALL when validating small attachment', async () => {
             const file = createMockFile('file.csv', CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE - 1);
-            const error = validateAttachmentFile(file);
-            expect(error).not.toBe(CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_SMALL);
+            const result = await validateAttachmentFile(file);
+
+            expect(result.isValid).toBe(true);
         });
 
-        it('should return SINGLE_FILE.FILE_TOO_SMALL when validating small receipt', () => {
+        it('should return SINGLE_FILE.FILE_TOO_SMALL when validating small receipt', async () => {
             const file = createMockFile('receipt.jpg', CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE - 1);
-            const error = validateAttachmentFile(file, undefined, true);
-            expect(error).toBe(CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_SMALL);
+            const result = await validateAttachmentFile(file, undefined, true);
+
+            if (result.isValid) {
+                fail('validateAttachmentFile should return an invalid result');
+            }
+
+            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_SMALL);
         });
 
-        it('should return SINGLE_FILE.FILE_TOO_LARGE for large non-image file', () => {
+        it('should return SINGLE_FILE.FILE_TOO_LARGE for large non-image file', async () => {
             const file = createMockFile('file.pdf', CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE + 1);
-            const error = validateAttachmentFile(file);
-            expect(error).toBe(CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_LARGE);
+            const result = await validateAttachmentFile(file);
+
+            if (result.isValid) {
+                fail('validateAttachmentFile should return an invalid result');
+            }
+
+            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_LARGE);
         });
 
-        it('should return MULTIPLE_FILES.FILE_TOO_LARGE when checking multiple files', () => {
-            const file = createMockFile('file.pdf', CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE + 1);
-            const error = validateAttachmentFile(file, undefined, false);
-            expect(error).toBe(CONST.FILE_VALIDATION_ERRORS.MULTIPLE_FILES.FILE_TOO_LARGE);
-        });
-
-        it('should return SINGLE_FILE.WRONG_FILE_TYPE for invalid receipt extension', () => {
+        it('should return SINGLE_FILE.WRONG_FILE_TYPE for invalid receipt extension', async () => {
             const file = createMockFile('receipt.exe', CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE - 1);
-            const error = validateAttachmentFile(file, undefined, true);
-            expect(error).toBe(CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.WRONG_FILE_TYPE);
+            const result = await validateAttachmentFile(file, undefined, true);
+
+            if (result.isValid) {
+                fail('validateAttachmentFile should return an invalid result');
+            }
+
+            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.WRONG_FILE_TYPE);
         });
 
-        it('should prioritize SINGLE_FILE.WRONG_FILE_TYPE over SINGLE_FILE.FILE_TOO_LARGE for receipts', () => {
+        it('should prioritize SINGLE_FILE.WRONG_FILE_TYPE over SINGLE_FILE.FILE_TOO_LARGE for receipts', async () => {
             const file = createMockFile('receipt.exe', CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE + 10);
-            const error = validateAttachmentFile(file, undefined, true);
-            expect(error).toBe(CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.WRONG_FILE_TYPE);
+            const result = await validateAttachmentFile(file, undefined, true);
+
+            if (result.isValid) {
+                fail('validateAttachmentFile should return an invalid result');
+            }
+
+            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.WRONG_FILE_TYPE);
         });
 
-        it('should return WRONG_FILE_TYPE_MULTIPLE when checking multiple invalid receipt files', () => {
-            const file = createMockFile('receipt.exe', CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE + 10);
-            const error = validateMultipleAttachmentFiles([file], undefined, true);
-            expect(error).toBe(CONST.FILE_VALIDATION_ERRORS.MULTIPLE_FILES.WRONG_FILE_TYPE);
-        });
-
-        it('should return empty string for valid image receipt', () => {
+        it('should return empty string for valid image receipt', async () => {
             const file = createMockFile('receipt.jpg', CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE - 1);
-            const error = validateAttachmentFile(file, undefined, true);
-            expect(error).toBe('');
+            const result = await validateAttachmentFile(file, undefined, true);
+
+            expect(result.isValid).toBe(true);
+        });
+    });
+
+    describe('validateMultipleAttachmentFiles', () => {
+        it('should return MULTIPLE_FILES.FILE_TOO_LARGE when checking multiple files', async () => {
+            const file = createMockFile('file.pdf', CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE + 1);
+            const result = await validateMultipleAttachmentFiles([file], undefined, false);
+
+            if (result.isValid) {
+                fail('validateMultipleAttachmentFiles should return an invalid result');
+            }
+
+            expect(result.error).toEqual(undefined);
+
+            const firstFileResult = result.fileResults.at(0);
+
+            if (!firstFileResult || firstFileResult.isValid) {
+                fail('firstFileResult should be defined and valid');
+            }
+
+            expect(firstFileResult.error).toEqual(CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_LARGE);
+        });
+
+        it('should return WRONG_FILE_TYPE_MULTIPLE when checking multiple invalid receipt files', async () => {
+            const file = createMockFile('receipt.exe', CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE + 10);
+            const result = await validateMultipleAttachmentFiles([file], undefined, true);
+
+            if (result.isValid) {
+                fail('validateMultipleAttachmentFiles should return an invalid result');
+            }
+
+            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.WRONG_FILE_TYPE);
         });
     });
 });
