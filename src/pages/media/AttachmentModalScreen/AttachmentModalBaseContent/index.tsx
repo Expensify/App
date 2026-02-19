@@ -3,7 +3,8 @@ import {View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import Animated, {FadeIn, LayoutAnimationConfig, useSharedValue} from 'react-native-reanimated';
 import AttachmentCarousel from '@components/Attachments/AttachmentCarousel';
-import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+import {AttachmentCarouselPagerActionsContext, AttachmentCarouselPagerStateContext} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+import type {AttachmentCarouselPagerActionsContextType, AttachmentCarouselPagerStateContextType} from '@components/Attachments/AttachmentCarousel/Pager/types';
 import AttachmentView from '@components/Attachments/AttachmentView';
 import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttachmentErrors';
 import type {Attachment} from '@components/Attachments/types';
@@ -206,19 +207,25 @@ function AttachmentModalBaseContent({
 
     // We need to pass a shared value of type boolean to the context, so `falseSV` acts as a default value.
     const falseSV = useSharedValue(false);
-    const context = useMemo(
+    const stateValue = useMemo<AttachmentCarouselPagerStateContextType>(
         () => ({
             pagerItems: [{source: sourceForAttachmentView, index: 0, isActive: true}],
             activePage: 0,
             pagerRef: undefined,
             isPagerScrolling: falseSV,
             isScrollEnabled: falseSV,
+        }),
+        [falseSV, sourceForAttachmentView],
+    );
+
+    const actionsValue = useMemo<AttachmentCarouselPagerActionsContextType>(
+        () => ({
             onTap: () => {},
             onScaleChanged: () => {},
             onAttachmentError: setAttachmentError,
             ...(shouldCloseOnSwipeDown ? {onSwipeDown: onClose} : {}),
         }),
-        [falseSV, sourceForAttachmentView, setAttachmentError, shouldCloseOnSwipeDown, onClose],
+        [setAttachmentError, shouldCloseOnSwipeDown, onClose],
     );
 
     const shouldDisplayContent = !shouldShowNotFoundPage && !isLoading;
@@ -246,30 +253,33 @@ function AttachmentModalBaseContent({
             />
         ) : (
             !!sourceForAttachmentView && (
-                <AttachmentCarouselPagerContext.Provider value={context}>
-                    <AttachmentView
-                        containerStyles={[styles.mh5]}
-                        source={sourceForAttachmentView}
-                        isAuthTokenRequired={isAuthTokenRequiredState}
-                        file={fileToDisplay}
-                        onToggleKeyboard={setIsConfirmButtonDisabled}
-                        isWorkspaceAvatar={isWorkspaceAvatar}
-                        maybeIcon={maybeIcon}
-                        fallbackSource={fallbackSource}
-                        isUsedInAttachmentModal
-                        transactionID={transaction?.transactionID}
-                        transaction={transaction}
-                        isUploaded={!isEmptyObject(report)}
-                        reportID={reportID ?? (!isEmptyObject(report) ? report.reportID : undefined)}
-                    />
-                </AttachmentCarouselPagerContext.Provider>
+                <AttachmentCarouselPagerStateContext.Provider value={stateValue}>
+                    <AttachmentCarouselPagerActionsContext.Provider value={actionsValue}>
+                        <AttachmentView
+                            containerStyles={[styles.mh5]}
+                            source={sourceForAttachmentView}
+                            isAuthTokenRequired={isAuthTokenRequiredState}
+                            file={fileToDisplay}
+                            onToggleKeyboard={setIsConfirmButtonDisabled}
+                            isWorkspaceAvatar={isWorkspaceAvatar}
+                            maybeIcon={maybeIcon}
+                            fallbackSource={fallbackSource}
+                            isUsedInAttachmentModal
+                            transactionID={transaction?.transactionID}
+                            transaction={transaction}
+                            isUploaded={!isEmptyObject(report)}
+                            reportID={reportID ?? (!isEmptyObject(report) ? report.reportID : undefined)}
+                        />
+                    </AttachmentCarouselPagerActionsContext.Provider>
+                </AttachmentCarouselPagerStateContext.Provider>
             )
         );
     }, [
         AttachmentContent,
         accountID,
         attachmentID,
-        context,
+        stateValue,
+        actionsValue,
         currentAttachmentLink,
         fallbackSource,
         fileToDisplay,

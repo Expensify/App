@@ -326,6 +326,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                     }
                                     popoverAnchorRefs.current[integration].current = ref;
                                 }}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SETUP_BUTTON}
                             />
                         ),
                     };
@@ -428,6 +429,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                         }}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.THREE_DOT_MENU}
                     />
                 ),
             },
@@ -504,6 +506,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                 }
                                 popoverAnchorRefs.current[integration].current = r;
                             }}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SETUP_BUTTON}
                         />
                     ),
                     interactive: false,

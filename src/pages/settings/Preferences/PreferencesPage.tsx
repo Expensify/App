@@ -7,7 +7,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
-import useCurrencyList from '@hooks/useCurrencyList';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -27,7 +27,7 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import usePreferencesSectionIllustration from './usePreferencesSectionIllustration';
 
 function PreferencesPage() {
-    const {getCurrencySymbol} = useCurrencyList();
+    const {getCurrencySymbol} = useCurrencyListActions();
     const illustrations = useMemoizedLazyIllustrations(['Gears']);
     const preferencesIllustration = usePreferencesSectionIllustration();
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {canBeMissing: true});

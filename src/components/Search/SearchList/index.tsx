@@ -546,6 +546,7 @@ function SearchList({
                                 onAllCheckboxPress();
                             }}
                             disabled={totalItems === 0}
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH.SELECT_ALL_CHECKBOX}
                         />
                     )}
 
@@ -597,6 +598,7 @@ function SearchList({
                     title={translate('common.select')}
                     icon={expensifyIcons.CheckSquare}
                     onPress={turnOnSelectionMode}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.SELECTION_MODE_MENU_ITEM}
                 />
             </Modal>
         </View>

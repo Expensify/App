@@ -84,6 +84,8 @@ function BaseTextInput({
     shouldUseDefaultLineHeightForPrefix = true,
     ref,
     sentryLabel,
+
+    role,
     ...inputProps
 }: BaseTextInputProps) {
     const InputComponent = InputComponentMap.get(type) ?? RNTextInput;
@@ -323,7 +325,7 @@ function BaseTextInput({
     // This is workaround for https://github.com/Expensify/App/issues/47939: in case when user is using Chrome on Android we set inputMode to 'search' to disable autocomplete bar above the keyboard.
     // If we need some other inputMode (eg. 'decimal'), then the autocomplete bar will show, but we can do nothing about it as it's a known Chrome bug.
     const inputMode = inputProps.inputMode ?? (isMobileChrome() ? 'search' : undefined);
-    const accessibilityLabel = [label, hint].filter(Boolean).join(', ');
+    const accessibilityLabel = [label, hint, errorText ? translate('common.yourReviewIsRequired') : ''].filter(Boolean).join(', ');
     return (
         <>
             <View
@@ -440,6 +442,9 @@ function BaseTextInput({
                                 }}
                                 // eslint-disable-next-line
                                 {...inputProps}
+                                // Filter out role="presentation" so it doesn't strip the native
+                                // semantics of the <input>. Other roles (e.g. searchbox) are preserved.
+                                role={role === CONST.ROLE.PRESENTATION ? undefined : role}
                                 autoCorrect={inputProps.secureTextEntry ? false : autoCorrect}
                                 placeholder={newPlaceholder}
                                 placeholderTextColor={placeholderTextColor ?? theme.placeholderText}

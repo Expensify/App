@@ -239,6 +239,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                     >
                         <MenuItemWithTopDescription
                             shouldShowRightIcon
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.INDIVIDUAL_EXPENSES_MENU_ITEM}
                             title={item.title}
                             description={translate(item.descriptionTranslationKey)}
                             onPress={item.action}

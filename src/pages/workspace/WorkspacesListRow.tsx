@@ -218,6 +218,7 @@ function WorkspacesListRow({
                         disabled={shouldDisableThreeDotsMenu}
                         isNested
                         threeDotsMenuRef={threeDotsMenuRef}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.THREE_DOT_MENU}
                     />
                 </View>
             )}

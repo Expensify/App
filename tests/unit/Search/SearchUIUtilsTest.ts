@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import {renderHook} from '@testing-library/react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -1850,6 +1851,21 @@ const transactionTagGroupListItems: TransactionTagGroupListItemType[] = [
     },
 ];
 
+const cardListMock = {
+    [cardID]: {
+        state: 1,
+        bank: 'vcf',
+        fundID: '5555',
+        lastFourPAN: '1234',
+    },
+    [cardID2]: {
+        state: 1,
+        bank: CONST.EXPENSIFY_CARD.BANK,
+        fundID: '5555',
+        lastFourPAN: '1234',
+    },
+} as unknown as OnyxTypes.CardList;
+
 const transactionMerchantGroupListItemsSorted: TransactionMerchantGroupListItemType[] = [
     {
         merchant: merchantName1,
@@ -2603,6 +2619,7 @@ describe('SearchUIUtils', () => {
                     bankAccountList: {},
                     groupBy: CONST.SEARCH.GROUP_BY.CARD,
                     cardFeeds: mockCardFeeds,
+                    cardList: cardListMock,
                     allReportMetadata: {},
                 })[0],
             ).toStrictEqual(transactionCardGroupListItems);
@@ -4253,7 +4270,7 @@ describe('SearchUIUtils', () => {
             );
         });
 
-        it('should return getSortedMemberData result when type is EXPENSE and groupBy is member', () => {
+        it('should sort member group data when type is EXPENSE and groupBy is member', () => {
             expect(
                 SearchUIUtils.getSortedSections(
                     CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -4268,13 +4285,13 @@ describe('SearchUIUtils', () => {
             ).toStrictEqual(transactionMemberGroupListItemsSorted);
         });
 
-        it('should return getSortedCardData result when type is EXPENSE and groupBy is card', () => {
+        it('should sort card group data when type is EXPENSE and groupBy is card', () => {
             expect(
                 SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, '', transactionCardGroupListItems, localeCompare, translateLocal, 'date', 'asc', CONST.SEARCH.GROUP_BY.CARD),
             ).toStrictEqual(transactionCardGroupListItemsSorted);
         });
 
-        it('should return getSortedWithdrawalIDData result when type is EXPENSE and groupBy is withdrawal-id', () => {
+        it('should sort withdrawal-id group data when type is EXPENSE and groupBy is withdrawal-id', () => {
             expect(
                 SearchUIUtils.getSortedSections(
                     CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -4289,7 +4306,7 @@ describe('SearchUIUtils', () => {
             ).toStrictEqual(transactionWithdrawalIDGroupListItemsSorted);
         });
 
-        it('should return getSortedCategoryData result when type is EXPENSE and groupBy is category', () => {
+        it('should sort category group data when type is EXPENSE and groupBy is category', () => {
             expect(
                 SearchUIUtils.getSortedSections(
                     CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -4392,7 +4409,7 @@ describe('SearchUIUtils', () => {
         });
 
         // Merchant sorting tests
-        it('should return getSortedMerchantData result when type is EXPENSE and groupBy is merchant', () => {
+        it('should sort merchant group data when type is EXPENSE and groupBy is merchant', () => {
             expect(
                 SearchUIUtils.getSortedSections(
                     CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -4547,7 +4564,7 @@ describe('SearchUIUtils', () => {
         });
 
         // Tag sorting tests
-        it('should return getSortedTagData result when type is EXPENSE and groupBy is tag', () => {
+        it('should sort tag group data when type is EXPENSE and groupBy is tag', () => {
             expect(
                 SearchUIUtils.getSortedSections(
                     CONST.SEARCH.DATA_TYPES.EXPENSE,

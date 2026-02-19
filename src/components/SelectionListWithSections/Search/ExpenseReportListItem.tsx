@@ -1,11 +1,11 @@
-import React, {useCallback, useContext, useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 // We need direct access to useOnyx to fetch live policy data at render time
 // without triggering the wrapper's additional logic, ensuring violations
 // sync immediately when category settings change
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
 import {useSearchContext} from '@components/Search/SearchContext';
 import BaseListItem from '@components/SelectionListWithSections/BaseListItem';
@@ -118,7 +118,8 @@ function ExpenseReportListItem<TItem extends ListItem>({
         });
     }, [reportItem, policyCategories, policyForViolations, reportForViolations, currentUserDetails]);
 
-    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
     const handleOnButtonPress = useCallback(() => {
         handleActionButtonPress({
