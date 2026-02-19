@@ -236,7 +236,7 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
                 return resizedFiles;
             })
             .catch((error) => {
-                console.error('Error resizing files:', error);
+                Log.alert('Error resizing files:', {error});
                 setIsLoaderVisible(false);
                 return files;
             });
