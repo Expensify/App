@@ -7,6 +7,7 @@ import useTodos from '@hooks/useTodos';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
 import {getSuggestedSearches, isTodoSearch, isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
+import {hasValidModifiedAmount} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchResults} from '@src/types/onyx';
@@ -174,15 +175,20 @@ function SearchContextProvider({children}: ChildrenProps) {
         } else if (data.length && data.every(isTransactionListItemType)) {
             selectedReports = data
                 .filter(({keyForList}) => !!keyForList && selectedTransactions[keyForList]?.isSelected)
-                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, amount: total = CONST.DEFAULT_NUMBER_ID, policyID, allActions = [action], currency, report}) => ({
-                    reportID,
-                    action,
-                    total,
-                    policyID,
-                    allActions,
-                    currency,
-                    chatReportID: report?.chatReportID,
-                }));
+                .map((item) => {
+                    const total = hasValidModifiedAmount(item) ? Number(item.modifiedAmount) : (item.amount ?? CONST.DEFAULT_NUMBER_ID);
+                    const action = item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW;
+
+                    return {
+                        reportID: item.reportID,
+                        action,
+                        total,
+                        policyID: item.policyID,
+                        allActions: item.allActions ?? [action],
+                        currency: item.currency,
+                        chatReportID: item.report?.chatReportID,
+                    };
+                });
         }
 
         setSearchContextData((prevState) => ({

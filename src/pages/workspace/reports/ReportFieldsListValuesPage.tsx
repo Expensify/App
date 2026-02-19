@@ -395,7 +395,6 @@ function ReportFieldsListValuesPage({
                         selectedItems={selectedValuesArray}
                         onSelectAll={filteredListValues.length > 0 ? toggleAllValues : undefined}
                         onTurnOnSelectionMode={(item) => item && toggleValue(item)}
-                        style={{listHeaderWrapperStyle: [styles.ph9, styles.pv3, styles.pb5]}}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         shouldUseDefaultRightHandSideCheckmark={false}
                         customListHeader={getCustomListHeader()}

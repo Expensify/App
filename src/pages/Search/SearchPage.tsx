@@ -5,7 +5,7 @@ import Animated from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import DecisionModal from '@components/DecisionModal';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
@@ -22,8 +22,8 @@ import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/Playbac
 import useAllTransactions from '@hooks/useAllTransactions';
 import useBulkPayOptions from '@hooks/useBulkPayOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useFilesValidation from '@hooks/useFilesValidation';
 import useFilterFormValues from '@hooks/useFilterFormValues';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -32,13 +32,14 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
+import useReceiptScanDrop from '@hooks/useReceiptScanDrop';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {confirmReadyToOpenApp} from '@libs/actions/App';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
-import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, searchInServer} from '@libs/actions/Report';
+import {deleteAppReport, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, searchInServer} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
     bulkDeleteReports,
@@ -59,41 +60,33 @@ import {
     unholdMoneyRequestOnSearch,
     updateAdvancedFilters,
 } from '@libs/actions/Search';
-import {setTransactionReport} from '@libs/actions/Transaction';
 import {setNameValuePair} from '@libs/actions/User';
-import {navigateToParticipantPage} from '@libs/IOUUtils';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import {getActiveAdminWorkspaces, hasDynamicExternalWorkflow, hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
-    generateReportID,
-    getPolicyExpenseChat,
     getReportOrDraftReport,
     isBusinessInvoiceRoom,
     isCurrentUserSubmitter,
     isExpenseReport as isExpenseReportUtil,
     isInvoiceReport,
     isIOUReport as isIOUReportUtil,
-    isSelfDM,
 } from '@libs/ReportUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
-import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {hasTransactionBeenRejected} from '@libs/TransactionUtils';
-import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import variables from '@styles/variables';
-import {canIOUBePaid, dismissRejectUseExplanation, initMoneyRequest, initSplitExpense, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
+import {canIOUBePaid, dismissRejectUseExplanation} from '@userActions/IOU';
+import {initSplitExpense} from '@userActions/IOU/Split';
 import {openOldDotLink} from '@userActions/Link';
-import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Report, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
-import type {FileObject} from '@src/types/utils/Attachment';
 import SearchPageNarrow from './SearchPageNarrow';
 import SearchPageWide from './SearchPageWide';
 
@@ -108,29 +101,31 @@ function SearchPage({route}: SearchPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
-    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
-    const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, areAllMatchingItemsSelected, selectAllMatchingItems, currentSearchResults} =
-        useSearchContext();
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {
+        selectedTransactions,
+        clearSelectedTransactions,
+        selectedReports,
+        lastSearchType,
+        setLastSearchType,
+        areAllMatchingItemsSelected,
+        selectAllMatchingItems,
+        currentSearchKey,
+        currentSearchResults,
+    } = useSearchContext();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
     const allTransactions = useAllTransactions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const selfDMReport = useSelfDMReport();
     const [lastPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
-    const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
-    const newReportID = generateReportID();
-
-    const [newReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newReportID}`, {canBeMissing: true});
-    const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newReport?.parentReportID}`, {canBeMissing: true});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
-    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
-    const [personalPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`, {canBeMissing: true});
-    const [draftTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const {accountID} = useCurrentUserPersonalDetails();
 
@@ -151,8 +146,8 @@ function SearchPage({route}: SearchPageProps) {
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
 
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q, route.params.rawQuery), [route.params.q, route.params.rawQuery]);
+    const isExpenseReportType = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
-    const activeAdminPolicies = getActiveAdminWorkspaces(policies, currentUserPersonalDetails?.accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Export',
         'Table',
@@ -185,7 +180,6 @@ function SearchPage({route}: SearchPageProps) {
         .map((report) => report.reportID)
         .filter((reportID) => reportID !== undefined);
     const isCurrencySupportedBulkWallet = isCurrencySupportWalletBulkPay(selectedReports, selectedTransactions);
-    const hasOnlyPersonalPolicies = useMemo(() => hasOnlyPersonalPoliciesUtil(policies), [policies]);
 
     // Collate a list of policyIDs from the selected transactions
     const selectedPolicyIDs = useMemo(
@@ -219,7 +213,6 @@ function SearchPage({route}: SearchPageProps) {
     const {bulkPayButtonOptions, latestBankItems} = useBulkPayOptions({
         selectedPolicyID: selectedPolicyIDs.at(0),
         selectedReportID: selectedTransactionReportIDs.at(0) ?? selectedReportIDs.at(0),
-        activeAdminPolicies,
         isCurrencySupportedWallet: isCurrencySupportedBulkWallet,
         currency: selectedBulkCurrency,
         formattedAmount: totalFormattedAmount,
@@ -233,9 +226,7 @@ function SearchPage({route}: SearchPageProps) {
         updateAdvancedFilters(formValues, true);
     }, [formValues]);
 
-    useEffect(() => {
-        confirmReadyToOpenApp();
-    }, []);
+    useConfirmReadyToOpenApp();
 
     useEffect(() => {
         if (!currentSearchResults?.search?.type) {
@@ -372,7 +363,7 @@ function SearchPage({route}: SearchPageProps) {
             {
                 query: status,
                 jsonQuery: JSON.stringify(queryJSON),
-                reportIDList: selectedReports?.map((report) => report?.reportID).filter((reportID) => reportID !== undefined) ?? [],
+                reportIDList: selectedReports.length > 0 ? selectedReportIDs : selectedTransactionReportIDs,
                 transactionIDList: selectedTransactionsKeys,
             },
             () => {
@@ -486,11 +477,6 @@ function SearchPage({route}: SearchPageProps) {
     const deleteModalPrompt = isDeletingOnlyExpenses ? translate('iou.deleteConfirmation', {count: expenseCount}) : translate('iou.deleteReportConfirmation', {count: deleteCount});
 
     const handleDeleteSelectedTransactions = useCallback(async () => {
-        if (isOffline) {
-            setIsOfflineModalVisible(true);
-            return;
-        }
-
         if (!hash) {
             return;
         }
@@ -510,28 +496,43 @@ function SearchPage({route}: SearchPageProps) {
             }
             // Translations copy for delete modal depends on amount of selected items,
             // We need to wait for modal to fully disappear before clearing them to avoid translation flicker between singular vs plural
+            const validTransactions = Object.fromEntries(Object.entries(allTransactions ?? {}).filter((entry): entry is [string, Transaction] => entry[1] !== undefined));
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
-                const reportTransactions = allTransactions ? Object.fromEntries(Object.entries(allTransactions).filter((entry): entry is [string, Transaction] => !!entry[1])) : {};
-                const transactionsViolations = allTransactionViolations
-                    ? Object.fromEntries(Object.entries(allTransactionViolations).filter((entry): entry is [string, TransactionViolations] => !!entry[1]))
-                    : {};
-                bulkDeleteReports(
-                    allReports,
-                    selfDMReport,
-                    hash,
-                    selectedTransactions,
-                    currentUserPersonalDetails.email ?? '',
-                    accountID,
-                    reportTransactions,
-                    transactionsViolations,
-                    bankAccountList,
-                );
+                if (isExpenseReportType) {
+                    for (const reportID of selectedReportIDs) {
+                        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                        deleteAppReport(
+                            report,
+                            selfDMReport,
+                            currentUserPersonalDetails?.email ?? '',
+                            currentUserPersonalDetails?.accountID,
+                            validTransactions,
+                            allTransactionViolations,
+                            bankAccountList,
+                        );
+                    }
+                } else {
+                    const transactionsViolations = allTransactionViolations
+                        ? Object.fromEntries(Object.entries(allTransactionViolations).filter((entry): entry is [string, TransactionViolations] => !!entry[1]))
+                        : {};
+                    bulkDeleteReports(
+                        allReports,
+                        selfDMReport,
+                        hash,
+                        selectedTransactions,
+                        currentUserPersonalDetails.email ?? '',
+                        accountID,
+                        validTransactions,
+                        transactionsViolations,
+                        bankAccountList,
+                        transactions,
+                    );
+                }
                 clearSelectedTransactions();
             });
         });
     }, [
-        isOffline,
         hash,
         showConfirmModal,
         deleteModalTitle,
@@ -541,11 +542,15 @@ function SearchPage({route}: SearchPageProps) {
         allTransactionViolations,
         accountID,
         selectedTransactions,
-        currentUserPersonalDetails.email,
         bankAccountList,
         clearSelectedTransactions,
+        transactions,
         allReports,
         selfDMReport,
+        currentUserPersonalDetails?.email,
+        currentUserPersonalDetails?.accountID,
+        isExpenseReportType,
+        selectedReportIDs,
     ]);
 
     const onBulkPaySelected = useCallback(
@@ -955,16 +960,16 @@ function SearchPage({route}: SearchPageProps) {
         }
 
         if (selectedTransactionsKeys.length < 3 && searchResults?.search.type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && searchResults?.data) {
-            const {transactions, reports, policies: transactionPolicies} = getTransactionsAndReportsFromSearch(searchResults, selectedTransactionsKeys);
+            const {transactions: searchedTransactions, reports, policies: transactionPolicies} = getTransactionsAndReportsFromSearch(searchResults, selectedTransactionsKeys);
 
-            if (isMergeActionForSelectedTransactions(transactions, reports, transactionPolicies, currentUserPersonalDetails.accountID)) {
-                const transactionID = transactions.at(0)?.transactionID;
+            if (isMergeActionForSelectedTransactions(searchedTransactions, reports, transactionPolicies, currentUserPersonalDetails.accountID)) {
+                const transactionID = searchedTransactions.at(0)?.transactionID;
                 if (transactionID) {
                     options.push({
                         text: translate('common.merge'),
                         icon: expensifyIcons.ArrowCollapse,
                         value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE,
-                        onSelected: () => setupMergeTransactionDataAndNavigate(transactionID, transactions, localeCompare, reports, false, true),
+                        onSelected: () => setupMergeTransactionDataAndNavigate(transactionID, searchedTransactions, localeCompare, reports, false, true),
                     });
                 }
             }
@@ -1021,7 +1026,7 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
-        if (shouldShowDeleteOption(selectedTransactions, currentSearchResults?.data, isOffline, selectedReports, queryJSON?.type)) {
+        if (shouldShowDeleteOption(selectedTransactions, currentSearchResults?.data, selectedReports, queryJSON?.type)) {
             options.push({
                 icon: expensifyIcons.Trashcan,
                 text: translate('search.bulkActions.delete'),
@@ -1108,86 +1113,13 @@ function SearchPage({route}: SearchPageProps) {
         personalPolicyID,
     ]);
 
-    const saveFileAndInitMoneyRequest = (files: FileObject[]) => {
-        const initialTransaction = initMoneyRequest({
-            isFromGlobalCreate: true,
-            isFromFloatingActionButton: true,
-            reportID: newReportID,
-            personalPolicy,
-            newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
-            report: newReport,
-            parentReport: newParentReport,
-            currentDate,
-            currentUserPersonalDetails,
-            hasOnlyPersonalPolicies,
-            draftTransactions,
-        });
-
-        const newReceiptFiles: ReceiptFile[] = [];
-
-        for (const [index, file] of files.entries()) {
-            const source = URL.createObjectURL(file as Blob);
-            const transaction =
-                index === 0
-                    ? (initialTransaction as Partial<Transaction>)
-                    : buildOptimisticTransactionAndCreateDraft({
-                          initialTransaction: initialTransaction as Partial<Transaction>,
-                          currentUserPersonalDetails,
-                          reportID: newReportID,
-                      });
-            const transactionID = transaction.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
-            newReceiptFiles.push({
-                file,
-                source,
-                transactionID,
-            });
-            setMoneyRequestReceipt(transactionID, source, file.name ?? '', true, file.type);
-        }
-
-        if (isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id)) {
-            const shouldAutoReport = !!activePolicy?.autoReporting || !!personalPolicy?.autoReporting;
-            const report = shouldAutoReport ? getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id) : selfDMReport;
-            const transactionReportID = isSelfDM(report) ? CONST.REPORT.UNREPORTED_REPORT_ID : report?.reportID;
-            const iouTypeTrackOrSubmit = transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
-            const setParticipantsPromises = newReceiptFiles.map((receiptFile) => {
-                setTransactionReport(receiptFile.transactionID, {reportID: transactionReportID}, true);
-                return setMoneyRequestParticipantsFromReport(receiptFile.transactionID, report, currentUserPersonalDetails.accountID);
-            });
-            Promise.all(setParticipantsPromises).then(() =>
-                Navigation.navigate(
-                    ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
-                        CONST.IOU.ACTION.CREATE,
-                        iouTypeTrackOrSubmit,
-                        initialTransaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                        report?.reportID,
-                    ),
-                ),
-            );
-        } else {
-            navigateToParticipantPage(CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, newReportID);
-        }
-    };
-
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(saveFileAndInitMoneyRequest);
-
-    const initScanRequest = (e: DragEvent) => {
-        const files = Array.from(e?.dataTransfer?.files ?? []);
-
-        if (files.length === 0) {
-            return;
-        }
-        for (const file of files) {
-            // eslint-disable-next-line no-param-reassign
-            file.uri = URL.createObjectURL(file);
-        }
-
-        validateFiles(files, Array.from(e.dataTransfer?.items ?? []));
-    };
+    const {initScanRequest, PDFValidationComponent, ErrorModal} = useReceiptScanDrop();
 
     const {resetVideoPlayerData} = usePlaybackActionsContext();
 
     const metadata = searchResults?.search;
-    const shouldShowFooter = !!metadata?.count || selectedTransactionsKeys.length > 0;
+    const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, queryJSON?.hash, true);
+    const shouldShowFooter = selectedTransactionsKeys.length > 0 || (shouldAllowFooterTotals && !!metadata?.count);
 
     // Handles video player cleanup:
     // 1. On mount: Resets player if navigating from report screen
@@ -1229,7 +1161,11 @@ function SearchPage({route}: SearchPageProps) {
     }, []);
 
     const footerData = useMemo(() => {
-        const shouldUseClientTotal = !metadata?.count || (selectedTransactionsKeys.length > 0 && !areAllMatchingItemsSelected);
+        if (!shouldAllowFooterTotals && selectedTransactionsKeys.length === 0) {
+            return {count: undefined, total: undefined, currency: undefined};
+        }
+
+        const shouldUseClientTotal = selectedTransactionsKeys.length > 0 || !metadata?.count || (selectedTransactionsKeys.length > 0 && !areAllMatchingItemsSelected);
         const selectedTransactionItems = Object.values(selectedTransactions);
         const currency = metadata?.currency ?? selectedTransactionItems.at(0)?.groupCurrency;
         const numberOfExpense = shouldUseClientTotal
@@ -1245,7 +1181,7 @@ function SearchPage({route}: SearchPageProps) {
         const total = shouldUseClientTotal ? selectedTransactionItems.reduce((acc, transaction) => acc - (transaction.groupAmount ?? 0), 0) : metadata?.total;
 
         return {count: numberOfExpense, total, currency};
-    }, [areAllMatchingItemsSelected, metadata?.count, metadata?.currency, metadata?.total, selectedTransactions, selectedTransactionsKeys]);
+    }, [areAllMatchingItemsSelected, metadata?.count, metadata?.currency, metadata?.total, selectedTransactions, selectedTransactionsKeys, shouldAllowFooterTotals]);
 
     const onSortPressedCallback = useCallback(() => {
         setIsSorting(true);
@@ -1308,6 +1244,7 @@ function SearchPage({route}: SearchPageProps) {
                             currentSelectedReportID={selectedTransactionReportIDs?.at(0) ?? selectedReportIDs?.at(0)}
                             confirmPayment={onBulkPaySelected}
                             latestBankItems={latestBankItems}
+                            shouldShowFooter={shouldShowFooter}
                         />
                         <DragAndDropConsumer onDrop={initScanRequest}>
                             <DropZoneUI
