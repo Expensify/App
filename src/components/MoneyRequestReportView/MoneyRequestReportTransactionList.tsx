@@ -575,7 +575,7 @@ function MoneyRequestReportTransactionList({
                 <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.ph5, styles.pb2]}>
                     {shouldShowGroupedTransactions && (
                         <DropdownButton
-                            label={translate('reportLayout.groupByLabel')}
+                            label={translate('search.groupBy')}
                             value={selectedGroupByItem?.text ?? ''}
                             PopoverComponent={groupByPopoverComponent}
                         />
