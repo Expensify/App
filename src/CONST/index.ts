@@ -1141,6 +1141,7 @@ const CONST = {
         INBOX: 'inbox',
         POLICY_CONNECTIONS_URL: (policyID: string) => `policy?param={"policyID":"${policyID}"}#connections`,
         POLICY_CONNECTIONS_URL_ENCODED: (policyID: string) => `policy?param=%7B%22policyID%22%3A%22${policyID}%22%7D#connections`,
+        SETTINGS_WALLET_URL: 'settings?param={%22section%22:%22creditcards%22}',
         SIGN_OUT: 'signout',
         SUPPORTAL_RESTORE_STASHED_LOGIN: '_support/index?action=restoreStashedLogin',
     },
@@ -1281,6 +1282,7 @@ const CONST = {
                 CARD_REPLACED_VIRTUAL: 'CARDREPLACEDVIRTUAL',
                 CARD_REPLACED: 'CARDREPLACED',
                 CARD_ASSIGNED: 'CARDASSIGNED',
+                PERSONAL_CARD_CONNECTION_BROKEN: 'PERSONALCARDCONNECTIONBROKEN',
                 CHANGE_FIELD: 'CHANGEFIELD', // OldDot Action
                 CHANGE_POLICY: 'CHANGEPOLICY',
                 CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS: 'CREATEDREPORTFORUNAPPROVEDTRANSACTIONS',
@@ -1768,6 +1770,8 @@ const CONST = {
         TAG_ACTIVE_POLICY: 'active_policy_id',
         TAG_POLICIES_COUNT: 'policies_count',
         TAG_REPORTS_COUNT: 'reports_count',
+        TAG_PERSONAL_DETAILS_COUNT: 'personal_details_count',
+        TAG_USER_ROLE: 'user_role',
         TAG_NUDGE_MIGRATION_COHORT: 'nudge_migration_cohort',
         TAG_AUTHENTICATION_FUNCTION: 'authentication_function',
         TAG_AUTHENTICATION_ERROR_TYPE: 'authentication_error_type',
@@ -2255,12 +2259,6 @@ const CONST = {
     IMAGE_OBJECT_POSITION: {
         TOP: 'top',
         INITIAL: 'initial',
-    },
-
-    IMAGE_LOADING_PRIORITY: {
-        LOW: 'low',
-        NORMAL: 'normal',
-        HIGH: 'high',
     },
 
     FILE_TYPE_REGEX: {
@@ -2817,6 +2815,14 @@ const CONST = {
             CONFIRM: 'confirm',
         },
     },
+
+    SUBSCRIPTION_SIZE: {
+        PAGE_NAME: {
+            SIZE: 'size',
+            CONFIRM: 'confirm',
+        },
+    },
+
     MISSING_PERSONAL_DETAILS_INDEXES: {
         MAPPING: {
             LEGAL_NAME: 0,
@@ -3030,8 +3036,6 @@ const CONST = {
         QUANTITY_MAX_LENGTH: 12,
         // This is the transactionID used when going through the create expense flow so that it mimics a real transaction (like the edit flow)
         OPTIMISTIC_TRANSACTION_ID: '1',
-        // This is the transactionID used when bulk editing multiple expenses
-        OPTIMISTIC_BULK_EDIT_TRANSACTION_ID: 'optimisticBulkEditTransactionID',
         // Note: These payment types are used when building IOU reportAction message values in the server and should
         // not be changed.
         LOCATION_PERMISSION_PROMPT_THRESHOLD_DAYS: 7,
@@ -4002,8 +4006,10 @@ const CONST = {
 
         ONLY_PRIVATE_USER_AREA: /^[\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]+$/u,
 
-        // Regex pattern to match a digit followed by an emoji (used for Safari ZWNJ insertion)
-        DIGIT_FOLLOWED_BY_EMOJI: /(\d)([\u{1F300}-\u{1FAFF}\u{1F000}-\u{1F9FF}\u2600-\u27BF])/gu,
+        // Regex pattern to match a digit (#, *, or 0-9) followed by an emoji (used for Safari FE0E insertion to prevent keycap corruption)
+        DIGIT_OR_SYMBOL_FOLLOWED_BY_EMOJI: /([\d#*])([\u{1F300}-\u{1FAFF}\u{1F000}-\u{1F9FF}\u2600-\u27BF])/gu,
+        // Regex pattern to match a corrupted keycap sequence followed by an emoji
+        CORRUPTED_KEYCAP_FOLLOWED_BY_EMOJI: /([\d#*])\uFE0F?\u20E3([\u{1F300}-\u{1FAFF}\u{1F000}-\u{1F9FF}\u2600-\u27BF])/gu,
 
         TAX_ID: /^\d{9}$/,
         NON_NUMERIC: /\D/g,
@@ -4244,7 +4250,6 @@ const CONST = {
         TAX_RATE: 'taxRate',
         TAX_AMOUNT: 'taxAmount',
         REIMBURSABLE: 'reimbursable',
-        BILLABLE: 'billable',
         REPORT: 'report',
     },
     FOOTER: {
@@ -5645,6 +5650,7 @@ const CONST = {
     ACCESSIBILITY_LABELS: {
         COLLAPSE: 'Collapse',
         EXPAND: 'Expand',
+        ERROR: 'Error',
     },
 
     /**
@@ -5666,6 +5672,8 @@ const CONST = {
         GRID: 'grid',
         /** Use for section headers or titles. */
         HEADING: 'heading',
+        /** Use for elements that serve as a page or section header (e.g. top bar title). */
+        HEADER: 'header',
         /** Use for image elements. */
         IMG: 'img',
         /** Use for elements that navigate to other pages or content. */
@@ -7010,7 +7018,6 @@ const CONST = {
             TAG: 'tag',
         },
         BULK_ACTION_TYPES: {
-            EDIT: 'edit',
             EXPORT: 'export',
             APPROVE: 'approve',
             PAY: 'pay',
@@ -8108,7 +8115,8 @@ const CONST = {
          * The Travel Invoicing feed type constant.
          * This feed is used for Travel Invoicing cards which are separate from regular Expensify Cards.
          */
-        PROGRAM_TRAVEL_US: 'PROGRAM_TRAVEL_US',
+        PROGRAM_TRAVEL_US: 'TRAVEL_US',
+        MONTHLY_SETTLEMENT_DATE: 'monthlySettlementDate',
     },
     LAST_PAYMENT_METHOD: {
         LAST_USED: 'lastUsed',
@@ -8229,6 +8237,12 @@ const CONST = {
             ROTATE_BUTTON: 'Header-RotateButton',
             CLOSE_BUTTON: 'Header-CloseButton',
             MORE_BUTTON: 'Header-MoreButton',
+        },
+        TOP_BAR: {
+            CANCEL_BUTTON: 'TopBar-CancelButton',
+        },
+        COLLAPSIBLE_SECTION: {
+            TOGGLE: 'CollapsibleSection-Toggle',
         },
         VIDEO_PLAYER: {
             PLAY_PAUSE_BUTTON: 'VideoPlayer-PlayPauseButton',
@@ -8351,9 +8365,12 @@ const CONST = {
         },
         SELECTION_LIST: {
             BASE_LIST_ITEM: 'SelectionList-BaseListItem',
+            SPLIT_LIST_ITEM_EDIT_BUTTON: 'SplitListItem-EditButton',
+            LIST_HEADER_SELECT_ALL: 'SelectionList-ListHeader-SelectAll',
         },
         SELECTION_LIST_WITH_SECTIONS: {
             BASE_LIST_ITEM: 'SelectionListWithSections-BaseListItem',
+            SELECT_ALL: 'SelectionList-SelectAll',
         },
         CONTEXT_MENU: {
             REPLY_IN_THREAD: 'ContextMenu-ReplyInThread',
@@ -8444,6 +8461,12 @@ const CONST = {
         TRANSACTION_PREVIEW: {
             CARD: 'TransactionPreview-Card',
         },
+        TRANSACTION_ITEM_ROW: {
+            ARROW_RIGHT: 'TransactionItemRow-ArrowRight',
+        },
+        PAYMENT_METHOD_LIST_ITEM: {
+            CHASE_ACCOUNT_HELP: 'PaymentMethodListItem-ChaseAccountHelp',
+        },
         EMOJI_PICKER: {
             BUTTON: 'EmojiPicker-Button',
             BUTTON_DROPDOWN: 'EmojiPicker-ButtonDropdown',
@@ -8481,6 +8504,10 @@ const CONST = {
         },
         DISCOVER_SECTION: {
             TEST_DRIVE: 'DiscoverSection-TestDrive',
+        },
+        TEST_DRIVE_MODAL: {
+            SKIP: 'TestDriveModal-Skip',
+            START: 'TestDriveModal-Start',
         },
         HOME_PAGE: {
             WIDGET_ITEM: 'HomePage-WidgetItem',
@@ -8575,9 +8602,129 @@ const CONST = {
         },
         WORKSPACE: {
             TOGGLE_SETTINGS_ROW: 'Workspace-ToggleSettingsRow',
+            DUPLICATE_SELECT_FEATURES_SELECT_ALL: 'WorkspaceDuplicate-SelectFeaturesSelectAll',
             WORKSPACE_MENU_ITEM: 'Workspace-WorkspaceMenuItem',
+            INVITE_MESSAGE_PRIVACY_LINK: 'WorkspaceInviteMessage-PrivacyLink',
             COMPANY_CARDS: {
                 TABLE_ITEM: 'Workspace-CompanyCards-TableItem',
+                MORE_DROPDOWN: 'WorkspaceCompanyCards-MoreDropdown',
+                CARD_NAME: 'WorkspaceCompanyCards-CardName',
+                CARD_EXPORT: 'WorkspaceCompanyCards-CardExport',
+                VIEW_TRANSACTIONS: 'WorkspaceCompanyCards-ViewTransactions',
+                UPDATE_CARD: 'WorkspaceCompanyCards-UpdateCard',
+                UNASSIGN_CARD: 'WorkspaceCompanyCards-UnassignCard',
+                TRANSACTION_START_DATE: 'WorkspaceCompanyCards-TransactionStartDate',
+            },
+            LIST: {
+                NEW_DROPDOWN: 'WorkspaceList-NewDropdown',
+                NEW_WORKSPACE_BUTTON: 'WorkspaceList-NewWorkspaceButton',
+                NEW_DOMAIN_BUTTON: 'WorkspaceList-NewDomainButton',
+                THREE_DOT_MENU: 'WorkspaceList-ThreeDotMenu',
+            },
+            INITIAL: {
+                PROFILE: 'WorkspaceInitial-Profile',
+                MEMBERS: 'WorkspaceInitial-Members',
+                REPORTS: 'WorkspaceInitial-Reports',
+                ACCOUNTING: 'WorkspaceInitial-Accounting',
+                RECEIPT_PARTNERS: 'WorkspaceInitial-ReceiptPartners',
+                CATEGORIES: 'WorkspaceInitial-Categories',
+                TAGS: 'WorkspaceInitial-Tags',
+                TAXES: 'WorkspaceInitial-Taxes',
+                WORKFLOWS: 'WorkspaceInitial-Workflows',
+                RULES: 'WorkspaceInitial-Rules',
+                DISTANCE_RATES: 'WorkspaceInitial-DistanceRates',
+                TRAVEL: 'WorkspaceInitial-Travel',
+                EXPENSIFY_CARD: 'WorkspaceInitial-ExpensifyCard',
+                COMPANY_CARDS: 'WorkspaceInitial-CompanyCards',
+                PER_DIEM: 'WorkspaceInitial-PerDiem',
+                TIME_TRACKING: 'WorkspaceInitial-TimeTracking',
+                INVOICES: 'WorkspaceInitial-Invoices',
+                MORE_FEATURES: 'WorkspaceInitial-MoreFeatures',
+            },
+            OVERVIEW: {
+                AVATAR: 'WorkspaceOverview-Avatar',
+                NAME: 'WorkspaceOverview-Name',
+                DESCRIPTION: 'WorkspaceOverview-Description',
+                CURRENCY: 'WorkspaceOverview-Currency',
+                ADDRESS: 'WorkspaceOverview-Address',
+                PLAN_TYPE: 'WorkspaceOverview-PlanType',
+                SHARE: 'WorkspaceOverview-Share',
+                CUSTOM_RULES: 'WorkspaceOverview-CustomRules',
+                INVITE_BUTTON: 'WorkspaceOverview-InviteButton',
+                MORE_DROPDOWN: 'WorkspaceOverview-MoreDropdown',
+            },
+            MEMBERS: {
+                INVITE_BUTTON: 'WorkspaceMembers-InviteButton',
+                BULK_ACTIONS_DROPDOWN: 'WorkspaceMembers-BulkActionsDropdown',
+                MORE_DROPDOWN: 'WorkspaceMembers-MoreDropdown',
+            },
+            CATEGORIES: {
+                ADD_BUTTON: 'WorkspaceCategories-AddButton',
+                MORE_DROPDOWN: 'WorkspaceCategories-MoreDropdown',
+                BULK_ACTIONS_DROPDOWN: 'WorkspaceCategories-BulkActionsDropdown',
+            },
+            TAGS: {
+                ADD_BUTTON: 'WorkspaceTags-AddButton',
+                MORE_DROPDOWN: 'WorkspaceTags-MoreDropdown',
+                BULK_ACTIONS_DROPDOWN: 'WorkspaceTags-BulkActionsDropdown',
+            },
+            TAXES: {
+                ADD_BUTTON: 'WorkspaceTaxes-AddButton',
+                MORE_DROPDOWN: 'WorkspaceTaxes-MoreDropdown',
+                BULK_ACTIONS_DROPDOWN: 'WorkspaceTaxes-BulkActionsDropdown',
+            },
+            DISTANCE_RATES: {
+                ADD_BUTTON: 'WorkspaceDistanceRates-AddButton',
+                MORE_DROPDOWN: 'WorkspaceDistanceRates-MoreDropdown',
+                BULK_ACTIONS_DROPDOWN: 'WorkspaceDistanceRates-BulkActionsDropdown',
+                UNIT_SELECTOR: 'WorkspaceDistanceRates-UnitSelector',
+            },
+            WORKFLOWS: {
+                AUTO_REPORTING_FREQUENCY: 'WorkspaceWorkflows-AutoReportingFrequency',
+                ADD_APPROVAL: 'WorkspaceWorkflows-AddApproval',
+                BANK_ACCOUNT: 'WorkspaceWorkflows-BankAccount',
+                ADD_BANK_ACCOUNT: 'WorkspaceWorkflows-AddBankAccount',
+                AUTHORIZED_PAYER: 'WorkspaceWorkflows-AuthorizedPayer',
+                APPROVALS_EDIT_SAVE: 'WorkspaceWorkflows-ApprovalsEditSave',
+                APPROVAL_EDITOR_MEMBERS: 'WorkspaceWorkflows-ApprovalEditorMembers',
+                APPROVAL_EDITOR_APPROVER: 'WorkspaceWorkflows-ApprovalEditorApprover',
+                APPROVAL_SECTION_EXPENSES_FROM: 'WorkspaceWorkflows-ApprovalSectionExpensesFrom',
+                APPROVAL_SECTION_APPROVER: 'WorkspaceWorkflows-ApprovalSectionApprover',
+            },
+            ACCOUNTING: {
+                SETUP_BUTTON: 'WorkspaceAccounting-SetupButton',
+                CARD_SECTION_ADD_BUTTON: 'WorkspaceAccounting-CardSectionAddButton',
+                THREE_DOT_MENU: 'WorkspaceAccounting-ThreeDotMenu',
+            },
+            RULES: {
+                INDIVIDUAL_EXPENSES_MENU_ITEM: 'WorkspaceRules-IndividualExpensesMenuItem',
+                MERCHANT_RULE_ITEM: 'WorkspaceRules-MerchantRuleItem',
+                ADD_MERCHANT_RULE: 'WorkspaceRules-AddMerchantRule',
+                MERCHANT_RULE_SECTION_ITEM: 'WorkspaceRules-MerchantRuleSectionItem',
+                MERCHANT_RULE_SAVE: 'WorkspaceRules-MerchantRuleSave',
+                MERCHANT_RULE_PREVIEW_MATCHES: 'WorkspaceRules-MerchantRulePreviewMatches',
+                MERCHANT_RULE_DELETE: 'WorkspaceRules-MerchantRuleDelete',
+                CATEGORY_SELECTOR: 'WorkspaceRules-CategorySelector',
+            },
+            EXPENSIFY_CARD: {
+                ISSUE_CARD_BUTTON: 'WorkspaceExpensifyCard-IssueCardButton',
+                MORE_DROPDOWN: 'WorkspaceExpensifyCard-MoreDropdown',
+            },
+            PER_DIEM: {
+                ADD_BUTTON: 'WorkspacePerDiem-AddButton',
+                MORE_DROPDOWN: 'WorkspacePerDiem-MoreDropdown',
+                BULK_ACTIONS_DROPDOWN: 'WorkspacePerDiem-BulkActionsDropdown',
+            },
+            TRAVEL: {
+                BOOK_TRAVEL_BUTTON: 'WorkspaceTravel-BookTravelButton',
+                GET_STARTED_BUTTON: 'WorkspaceTravel-GetStartedButton',
+            },
+            INVOICES: {
+                COMPANY_NAME: 'WorkspaceInvoices-CompanyName',
+                COMPANY_WEBSITE: 'WorkspaceInvoices-CompanyWebsite',
+            },
+            FEATURE_LIST: {
+                CTA_BUTTON: 'WorkspaceFeatureList-CtaButton',
             },
         },
         ACCOUNT_SWITCHER: {
@@ -8594,6 +8741,12 @@ const CONST = {
         },
         ONBOARDING: {
             INTERESTED_FEATURES_ITEM: 'Onboarding-InterestedFeaturesItem',
+            ACCOUNTING_SELECT_INTEGRATION: 'OnboardingAccounting-SelectIntegration',
+            PURPOSE_ITEM: 'Onboarding-PurposeItem',
+            CONTINUE: 'Onboarding-Continue',
+            SKIP: 'Onboarding-Skip',
+            JOIN_WORKSPACE: 'Onboarding-JoinWorkspace',
+            CREATE_WORKSPACE: 'Onboarding-CreateWorkspace',
         },
         REPORT_HEADER_SKELETON: {
             GO_BACK: 'ReportHeaderSkeleton-GoBack',
@@ -8606,12 +8759,29 @@ const CONST = {
         VALIDATE_CODE: {
             RESEND_CODE: 'ValidateCode-ResendCode',
             RECOVERY_CODE: 'ValidateCode-RecoveryCode',
+            SKIP: 'ValidateCode-Skip',
+            VERIFY: 'ValidateCode-Verify',
         },
         INTERACTIVE_STEP_SUB_HEADER: {
             STEP_BUTTON: 'InteractiveStepSubHeader-StepButton',
         },
+        WALLET: {
+            ADD_BANK_ACCOUNT: 'Wallet-AddBankAccount',
+        },
         SOCIALS: {
             LINK: 'Socials',
+        },
+        SIGN_IN: {
+            CONTINUE: 'SignIn-Continue',
+            SIGN_IN_BUTTON: 'SignIn-SignInButton',
+            JOIN: 'SignIn-Join',
+            SSO: 'SignIn-SSO',
+            MAGIC_CODE: 'SignIn-MagicCode',
+            UNLINK: 'SignIn-Unlink',
+            GO_BACK: 'SignIn-GoBack',
+            VALIDATE: 'SignIn-Validate',
+            SEND: 'SignIn-Send',
+            CONFIRM: 'SignIn-Confirm',
         },
     },
 

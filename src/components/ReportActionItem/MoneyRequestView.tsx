@@ -37,13 +37,14 @@ import useViolations from '@hooks/useViolations';
 import {updateMoneyRequestBillable, updateMoneyRequestReimbursable} from '@libs/actions/IOU/index';
 import {initSplitExpense} from '@libs/actions/IOU/Split';
 import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
-import {getCompanyCardDescription} from '@libs/CardUtils';
+import {getBrokenConnectionUrlToFixPersonalCard, getCompanyCardDescription} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getRateFromMerchant} from '@libs/MergeTransactionUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
+import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import Parser from '@libs/Parser';
 import {
     canSubmitPerDiemExpenseFromWorkspace,
@@ -57,6 +58,7 @@ import {
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
+import {isMarkAsCashActionForTransaction} from '@libs/ReportPrimaryActionUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditFieldOfMoneyRequest,
@@ -74,7 +76,7 @@ import {
     isTrackExpenseReportNew,
     shouldEnableNegative,
 } from '@libs/ReportUtils';
-import {hasEnabledTags, shouldShowDependentTagList} from '@libs/TagsOptionsListUtils';
+import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     getBillable,
     getCurrency,
@@ -84,6 +86,7 @@ import {
     getOriginalAmountForDisplay,
     getOriginalTransactionWithSplitInfo,
     getReimbursable,
+    getTagArrayFromName,
     getTagForDisplay,
     getTaxName,
     hasMissingSmartscanFields,
@@ -238,6 +241,7 @@ function MoneyRequestView({
     const allPolicyTags = usePolicyTags();
     const policyTagList = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicyID}`];
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true});
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
 
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${getNonEmptyStringOnyxID(linkedTransactionID)}`, {canBeMissing: true});
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
@@ -330,6 +334,8 @@ function MoneyRequestView({
     const isEditable = !!canUserPerformWriteActionReportUtils(transactionThreadReport, isReportArchived) && !readonly;
     const canEdit = isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, isChatReportArchived, moneyRequestReport, policy, transaction) && isEditable;
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(transactionThreadReport?.policyID)}`;
+    const {personalCardsWithBrokenConnection} = useCardFeedErrors();
+    const connectionLink = getBrokenConnectionUrlToFixPersonalCard(personalCardsWithBrokenConnection, environmentURL);
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`, {canBeMissing: true});
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`, {canBeMissing: true});
@@ -417,6 +423,7 @@ function MoneyRequestView({
             getViolationsForField(field, data, policyHasDependentTags, tagValue).length > 0,
         [getViolationsForField],
     );
+    const isMarkAsCash = parentReport && currentUserEmailParam ? isMarkAsCashActionForTransaction(currentUserEmailParam, parentReport, transactionViolations, policy) : false;
     // Need to return undefined when we have pendingAction to avoid the duplicate pending action
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => (pendingAction ? undefined : transaction?.pendingFields?.[fieldPath]);
 
@@ -567,7 +574,13 @@ function MoneyRequestView({
         // Return violations if there are any
         if (field !== 'merchant' && hasViolations(field, data, policyHasDependentTags, tagValue)) {
             const violations = getViolationsForField(field, data, policyHasDependentTags, tagValue);
-            return `${violations.map((violation) => ViolationsUtils.getViolationTranslation(violation, translate, canEdit, undefined, companyCardPageURL)).join('. ')}.`;
+            return `${violations
+                .map((violation) => {
+                    const cardID = violation.data?.cardID;
+                    const card = cardID ? cardList?.[cardID] : undefined;
+                    return ViolationsUtils.getViolationTranslation(violation, translate, canEdit, undefined, companyCardPageURL, connectionLink, card, isMarkAsCash);
+                })
+                .join('. ')}.`;
         }
 
         if (field === 'attendees' && isMissingAttendeesViolation) {
@@ -709,7 +722,30 @@ function MoneyRequestView({
         const tagForDisplay = getTagForDisplay(updatedTransaction ?? transaction, index);
         let shouldShow = false;
         if (hasDependentTags) {
-            shouldShow = shouldShowDependentTagList(index, transactionTag, tags);
+            if (index === 0) {
+                shouldShow = true;
+            } else {
+                const prevTagValue = getTagForDisplay(transaction, index - 1);
+                if (!prevTagValue) {
+                    shouldShow = false;
+                } else {
+                    const parentTag = getTagArrayFromName(transactionTag ?? '')
+                        .slice(0, index)
+                        .join(':');
+
+                    const availableTags = Object.values(tags).filter((policyTag) => {
+                        const filterRegex = policyTag.rules?.parentTagsFilter;
+                        if (!filterRegex) {
+                            return true;
+                        }
+
+                        const regex = new RegExp(filterRegex);
+                        return regex.test(parentTag ?? '');
+                    });
+
+                    shouldShow = availableTags.some((tag) => tag.enabled);
+                }
+            }
         } else {
             shouldShow = !!tagForDisplay || (canEdit && hasEnabledOptions(tags));
         }
@@ -1101,8 +1137,10 @@ function MoneyRequestView({
                                     containerStyle={[styles.mt1]}
                                     textStyle={[styles.ph0]}
                                     isLast
+                                    isMarkAsCash={isMarkAsCash}
                                     canEdit={canEdit}
                                     companyCardPageURL={companyCardPageURL}
+                                    connectionLink={connectionLink}
                                 />
                             )}
                         </View>

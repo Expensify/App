@@ -1,6 +1,6 @@
 import lodashDebounce from 'lodash/debounce';
 import noop from 'lodash/noop';
-import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {BlurEvent, MeasureInWindowOnSuccessCallback, TextInputSelectionChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -38,6 +38,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
 import FS from '@libs/Fullstory';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {rand64} from '@libs/NumberUtils';
 import Performance from '@libs/Performance';
 import {getLinkedTransactionID, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
@@ -64,6 +65,7 @@ import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutsi
 import AgentZeroProcessingRequestIndicator from '@pages/inbox/report/AgentZeroProcessingRequestIndicator';
 import ParticipantLocalTime from '@pages/inbox/report/ParticipantLocalTime';
 import ReportTypingIndicator from '@pages/inbox/report/ReportTypingIndicator';
+import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import {hideEmojiPicker, isActive as isActiveEmojiPickerAction, isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
 import {addAttachmentWithComment, setIsComposerFullSize} from '@userActions/Report';
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
@@ -91,7 +93,7 @@ type SuggestionsRef = {
 
 type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 'isComposerFullSize' | 'lastReportAction'> & {
     /** A method to call when the form is submitted */
-    onSubmit: (newComment: string) => void;
+    onSubmit: (newComment: string, reportActionID?: string) => void;
 
     /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
@@ -166,6 +168,8 @@ function ReportActionCompose({
         canBeMissing: true,
     });
     const ancestors = useAncestors(transactionThreadReport ?? report);
+    const {scrollOffsetRef} = useContext(ActionListContext);
+
     /**
      * Updates the Highlight state of the composer
      */
@@ -356,16 +360,23 @@ function ReportActionCompose({
                 });
                 attachmentFileRef.current = null;
             } else {
-                Performance.markStart(CONST.TIMING.SEND_MESSAGE, {message: newCommentTrimmed});
-                startSpan(CONST.TELEMETRY.SPAN_SEND_MESSAGE, {
-                    name: 'send-message',
-                    op: CONST.TELEMETRY.SPAN_SEND_MESSAGE,
-                    attributes: {
-                        [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
-                        [CONST.TELEMETRY.ATTRIBUTE_MESSAGE_LENGTH]: newCommentTrimmed.length,
-                    },
-                });
-                onSubmit(newCommentTrimmed);
+                // Pre-generate the reportActionID so we can correlate the Sentry send-message span with the exact message
+                const optimisticReportActionID = rand64();
+
+                // The list is inverted, so an offset near 0 means the user is at the bottom (newest messages visible).
+                const isScrolledToBottom = scrollOffsetRef.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
+                if (isScrolledToBottom) {
+                    Performance.markStart(CONST.TIMING.SEND_MESSAGE, {message: newCommentTrimmed});
+                    startSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE}_${optimisticReportActionID}`, {
+                        name: 'send-message',
+                        op: CONST.TELEMETRY.SPAN_SEND_MESSAGE,
+                        attributes: {
+                            [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
+                            [CONST.TELEMETRY.ATTRIBUTE_MESSAGE_LENGTH]: newCommentTrimmed.length,
+                        },
+                    });
+                }
+                onSubmit(newCommentTrimmed, optimisticReportActionID);
             }
         },
         [
@@ -379,6 +390,7 @@ function ReportActionCompose({
             personalDetail.timezone,
             isInSidePanel,
             onSubmit,
+            scrollOffsetRef,
         ],
     );
 

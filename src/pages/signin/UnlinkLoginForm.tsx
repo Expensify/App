@@ -31,7 +31,7 @@ function UnlinkLoginForm() {
     return (
         <>
             <View style={[styles.mt5]}>
-                <Text>{translate('unlinkLoginForm.toValidateLogin', {primaryLogin, secondaryLogin})}</Text>
+                <Text>{translate('unlinkLoginForm.toValidateLogin', primaryLogin, secondaryLogin)}</Text>
             </View>
             <View style={[styles.mv5]}>
                 <Text>{translate('unlinkLoginForm.noLongerHaveAccess', primaryLogin)}</Text>
@@ -56,6 +56,7 @@ function UnlinkLoginForm() {
                 <PressableWithFeedback
                     accessibilityLabel={translate('common.back')}
                     onPress={() => redirectToSignIn()}
+                    sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.GO_BACK}
                 >
                     <Text style={[styles.link]}>{translate('common.back')}</Text>
                 </PressableWithFeedback>
@@ -65,6 +66,7 @@ function UnlinkLoginForm() {
                     isLoading={account?.isLoading && account.loadingForm === CONST.FORMS.UNLINK_LOGIN_FORM}
                     onPress={() => requestUnlinkValidationLink()}
                     isDisabled={!!isOffline || !!account?.message}
+                    sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.UNLINK}
                 />
             </View>
         </>

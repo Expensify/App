@@ -161,6 +161,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                     brickRoadIndicator={approvalWorkflow?.errors?.members ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     shouldShowRightIcon={!approvalWorkflow.isDefault}
                     interactive={!approvalWorkflow.isDefault}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_EDITOR_MEMBERS}
                 />
 
                 {approvalWorkflow.approvers.map((approver, approverIndex) => {
@@ -187,6 +188,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                                 brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                 errorText={errorText}
                                 shouldRenderErrorAsHTML
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_EDITOR_APPROVER}
                             />
                         </OfflineWithFeedback>
                     );
