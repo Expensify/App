@@ -18,6 +18,7 @@ import {
     cancelPayment,
     canIOUBePaid,
     canUnapproveIOU,
+    completePaymentOnboarding,
     convertBulkTrackedExpensesToIOU,
     createDistanceRequest,
     deleteMoneyRequest,
@@ -14454,18 +14455,19 @@ describe('actions/IOU', () => {
 
             // Call should not throw when personalDetails is provided
             expect(() => {
-                convertBulkTrackedExpensesToIOU(
-                    [transactionID],
-                    targetReportID,
-                    false, // isASAPSubmitBetaEnabled
-                    currentUserAccountID,
-                    currentUserEmail,
-                    {}, // transactionViolations
-                    [], // policyRecentlyUsedCurrencies
-                    undefined, // quickAction
-                    testPersonalDetails,
-                    [CONST.BETAS.ALL],
-                );
+                convertBulkTrackedExpensesToIOU({
+                    transactionIDs: [transactionID],
+                    iouReport,
+                    chatReport,
+                    isASAPSubmitBetaEnabled: false,
+                    currentUserAccountIDParam: currentUserAccountID,
+                    currentUserEmailParam: currentUserEmail,
+                    transactionViolations: {},
+                    policyRecentlyUsedCurrencies: [],
+                    quickAction: undefined,
+                    personalDetails: testPersonalDetails,
+                    betas: [CONST.BETAS.ALL],
+                });
             }).not.toThrow();
         });
 
@@ -14523,18 +14525,19 @@ describe('actions/IOU', () => {
             // The function should be able to look up payer email from personalDetails
             // Even if no transactions are provided, it should not throw
             expect(() => {
-                convertBulkTrackedExpensesToIOU(
-                    [], // empty transaction IDs
-                    targetReportID,
-                    false,
-                    currentUserAccountID,
-                    currentUserEmail,
-                    {},
-                    [],
-                    undefined,
-                    testPersonalDetails,
-                    [CONST.BETAS.ALL],
-                );
+                convertBulkTrackedExpensesToIOU({
+                    transactionIDs: [],
+                    iouReport,
+                    chatReport,
+                    isASAPSubmitBetaEnabled: false,
+                    currentUserAccountIDParam: currentUserAccountID,
+                    currentUserEmailParam: currentUserEmail,
+                    transactionViolations: {},
+                    policyRecentlyUsedCurrencies: [],
+                    quickAction: undefined,
+                    personalDetails: testPersonalDetails,
+                    betas: [CONST.BETAS.ALL],
+                });
             }).not.toThrow();
         });
 
@@ -14562,18 +14565,19 @@ describe('actions/IOU', () => {
 
             // Should not throw even with empty personalDetails
             expect(() => {
-                convertBulkTrackedExpensesToIOU(
-                    [],
-                    targetReportID,
-                    false,
-                    currentUserAccountID,
-                    currentUserEmail,
-                    {},
-                    [],
-                    undefined,
-                    {}, // empty personalDetails
-                    [CONST.BETAS.ALL],
-                );
+                convertBulkTrackedExpensesToIOU({
+                    transactionIDs: [],
+                    iouReport,
+                    chatReport,
+                    isASAPSubmitBetaEnabled: false,
+                    currentUserAccountIDParam: currentUserAccountID,
+                    currentUserEmailParam: currentUserEmail,
+                    transactionViolations: {},
+                    policyRecentlyUsedCurrencies: [],
+                    quickAction: undefined,
+                    personalDetails: undefined,
+                    betas: [CONST.BETAS.ALL],
+                });
             }).not.toThrow();
         });
 
@@ -14601,8 +14605,158 @@ describe('actions/IOU', () => {
 
             // Should not throw even with undefined personalDetails
             expect(() => {
-                convertBulkTrackedExpensesToIOU([], targetReportID, false, currentUserAccountID, currentUserEmail, {}, [], undefined, undefined, [CONST.BETAS.ALL]);
+                convertBulkTrackedExpensesToIOU({
+                    transactionIDs: [],
+                    iouReport,
+                    chatReport,
+                    isASAPSubmitBetaEnabled: false,
+                    currentUserAccountIDParam: currentUserAccountID,
+                    currentUserEmailParam: currentUserEmail,
+                    transactionViolations: {},
+                    policyRecentlyUsedCurrencies: [],
+                    quickAction: undefined,
+                    personalDetails: undefined,
+                    betas: [CONST.BETAS.ALL],
+                });
             }).not.toThrow();
+        });
+    });
+
+    describe('completePaymentOnboarding', () => {
+        let completeOnboardingSpy: jest.SpyInstance;
+
+        beforeEach(async () => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+            completeOnboardingSpy = jest.spyOn(require('@libs/actions/Report'), 'completeOnboarding').mockImplementation(jest.fn());
+            await Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [CARLOS_ACCOUNT_ID]: {
+                    accountID: CARLOS_ACCOUNT_ID,
+                    firstName: 'Carlos',
+                    lastName: 'Test',
+                },
+            });
+            await waitForBatchedUpdates();
+        });
+
+        afterEach(() => {
+            completeOnboardingSpy.mockRestore();
+        });
+
+        it('should not call completeOnboarding when introSelected is undefined', () => {
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, undefined);
+            expect(completeOnboardingSpy).not.toHaveBeenCalled();
+        });
+
+        it('should not call completeOnboarding when isInviteOnboardingComplete is true', () => {
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, {
+                choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                inviteType: CONST.ONBOARDING_INVITE_TYPES.IOU,
+                isInviteOnboardingComplete: true,
+            });
+            expect(completeOnboardingSpy).not.toHaveBeenCalled();
+        });
+
+        it('should not call completeOnboarding when choice is missing', () => {
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, {
+                inviteType: CONST.ONBOARDING_INVITE_TYPES.IOU,
+            });
+            expect(completeOnboardingSpy).not.toHaveBeenCalled();
+        });
+
+        it('should not call completeOnboarding when inviteType is missing', () => {
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, {
+                choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+            });
+            expect(completeOnboardingSpy).not.toHaveBeenCalled();
+        });
+
+        it('should override purpose to MANAGE_TEAM for IOU invite with BBA payment', () => {
+            const introSelected: IntroSelected = {
+                choice: CONST.ONBOARDING_CHOICES.SUBMIT,
+                inviteType: CONST.ONBOARDING_INVITE_TYPES.IOU,
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+            };
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected);
+
+            expect(completeOnboardingSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                    paymentSelected: CONST.PAYMENT_SELECTED.BBA,
+                    wasInvited: true,
+                    shouldSkipTestDriveModal: true,
+                    companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                    introSelected,
+                }),
+            );
+        });
+
+        it('should override purpose to CHAT_SPLIT for INVOICE invite with PBA payment', () => {
+            const introSelected: IntroSelected = {
+                choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                inviteType: CONST.ONBOARDING_INVITE_TYPES.INVOICE,
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+            };
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected);
+
+            expect(completeOnboardingSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    engagementChoice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
+                    paymentSelected: CONST.PAYMENT_SELECTED.PBA,
+                    wasInvited: true,
+                    shouldSkipTestDriveModal: true,
+                    companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                    introSelected,
+                }),
+            );
+        });
+
+        it('should keep original purpose for INVOICE invite with BBA payment', () => {
+            const introSelected: IntroSelected = {
+                choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                inviteType: CONST.ONBOARDING_INVITE_TYPES.INVOICE,
+            };
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected);
+
+            expect(completeOnboardingSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                    introSelected,
+                }),
+            );
+        });
+
+        it('should keep original purpose for IOU invite with PBA payment', () => {
+            const introSelected: IntroSelected = {
+                choice: CONST.ONBOARDING_CHOICES.SUBMIT,
+                inviteType: CONST.ONBOARDING_INVITE_TYPES.IOU,
+            };
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected);
+
+            expect(completeOnboardingSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    engagementChoice: CONST.ONBOARDING_CHOICES.SUBMIT,
+                    introSelected,
+                }),
+            );
+        });
+
+        it('should pass introSelected and optional params through to completeOnboarding', () => {
+            const introSelected: IntroSelected = {
+                choice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
+                inviteType: CONST.ONBOARDING_INVITE_TYPES.CHAT,
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MEDIUM,
+            };
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, 'adminsChatReport123', 'policyID456');
+
+            expect(completeOnboardingSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    engagementChoice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
+                    adminsChatReportID: 'adminsChatReport123',
+                    onboardingPolicyID: 'policyID456',
+                    introSelected,
+                }),
+            );
         });
     });
 });

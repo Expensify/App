@@ -185,12 +185,25 @@ const closeRHPFlow = (ref = navigationRef) => originalCloseRHPFlow(ref);
 /**
  * Close the side panel on narrow layout when navigating to a different screen.
  */
-function closeSidePanelOnNarrowScreen() {
+function closeSidePanelOnNarrowScreen(route: Route) {
     const isExtraLargeScreenWidth = Dimensions.get('window').width > variables.sidePanelResponsiveWidthBreakpoint;
 
     if (!sidePanelNVP?.openNarrowScreen || isExtraLargeScreenWidth) {
         return;
     }
+
+    // Split "r/:reportID/attachment/add" by ":reportID" to get the prefix "r/" and suffix "/attachment/add"
+    const addAttachmentPrefix = ROUTES.REPORT_ADD_ATTACHMENT.route.split(':reportID').at(0) ?? '';
+    const addAttachmentSuffix = ROUTES.REPORT_ADD_ATTACHMENT.route.split(':reportID').at(1) ?? '';
+    const attachmentPreviewRoute = ROUTES.REPORT_ATTACHMENTS.route;
+    const isAddingAttachment = typeof route === 'string' && route.startsWith(addAttachmentPrefix) && route.includes(addAttachmentSuffix);
+    const isPreviewingAttachment = typeof route === 'string' && route.startsWith(attachmentPreviewRoute);
+    // If the user is navigating to an attachment route (previewing or adding), keep the side panel open
+    // so they still have access to the chat.
+    if (isAddingAttachment || isPreviewingAttachment) {
+        return;
+    }
+
     SidePanelActions.closeSidePanel(true);
 }
 
@@ -308,7 +321,7 @@ function navigate(route: Route, options?: LinkToOptions) {
 
     const targetRoute = route.startsWith(CONST.SAML_REDIRECT_URL) ? ROUTES.HOME : route;
     linkTo(navigationRef.current, targetRoute, options);
-    closeSidePanelOnNarrowScreen();
+    closeSidePanelOnNarrowScreen(route);
 }
 /**
  * When routes are compared to determine whether the fallback route passed to the goUp function is in the state,

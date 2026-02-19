@@ -1,4 +1,4 @@
-import {feedKeysWithAssignedCardsSelector} from '@selectors/Card';
+import {buildFeedKeysWithAssignedCards} from '@selectors/Card';
 import {getCombinedCardFeedsFromAllFeeds, getWorkspaceCardFeedsStatus} from '@libs/CardFeedUtils';
 import {filterInactiveCards, getCardFeedWithDomainID, isCardConnectionBroken} from '@libs/CardUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
@@ -31,7 +31,7 @@ export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.CARD_FEED_ERRORS,
     dependencies: [ONYXKEYS.CARD_LIST, ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER],
     compute: ([globalCardList, allWorkspaceCards, cardFeeds]) => {
-        const feedKeysWithCards = feedKeysWithAssignedCardsSelector(allWorkspaceCards);
+        const feedKeysWithCards = buildFeedKeysWithAssignedCards(allWorkspaceCards);
         const combinedCompanyCardFeeds = getCombinedCardFeedsFromAllFeeds(cardFeeds, undefined, feedKeysWithCards);
         const workspaceCardFeedsStatus = getWorkspaceCardFeedsStatus(cardFeeds);
 

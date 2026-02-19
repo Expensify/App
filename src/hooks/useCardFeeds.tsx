@@ -1,8 +1,8 @@
-import {feedKeysWithAssignedCardsSelector} from '@selectors/Card';
 import type {OnyxCollection, ResultMetadata} from 'react-native-onyx';
 import {getCombinedCardFeedsFromAllFeeds, getWorkspaceCardFeedsStatus} from '@libs/CardFeedUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardFeedsStatusByDomainID, CombinedCardFeed, CombinedCardFeeds, CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import useFeedKeysWithAssignedCards from './useFeedKeysWithAssignedCards';
 import useOnyx from './useOnyx';
 import useWorkspaceAccountID from './useWorkspaceAccountID';
 
@@ -23,7 +23,7 @@ import useWorkspaceAccountID from './useWorkspaceAccountID';
 const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefined, ResultMetadata<OnyxCollection<CardFeeds>>, CardFeeds | undefined, CardFeedsStatusByDomainID] => {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [allFeeds, allFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
-    const [feedKeysWithCards] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {selector: feedKeysWithAssignedCardsSelector, canBeMissing: true});
+    const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const defaultFeed = allFeeds?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`];
 
     let workspaceFeeds: CombinedCardFeeds | undefined;

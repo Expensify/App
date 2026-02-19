@@ -1,6 +1,6 @@
-import React, {useContext} from 'react';
+import React from 'react';
 import {View} from 'react-native';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FeatureList from '@components/FeatureList';
 import type {FeatureListItem} from '@components/FeatureList';
 import Text from '@components/Text';
@@ -28,7 +28,8 @@ function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer}: 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const {isActingAsDelegate} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [allWorkspaceCards] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
 
     const policy = usePolicy(policyID);
