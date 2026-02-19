@@ -133,6 +133,9 @@ type ViolationsRterParams = {
     member?: string;
     rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>;
     companyCardPageURL?: string;
+    connectionLink?: string;
+    isPersonalCard?: boolean;
+    isMarkAsCash?: boolean;
 };
 
 type ViolationsTagOutOfPolicyParams = {tagName?: string} | undefined;
@@ -373,6 +376,11 @@ type NextStepParams = {
     etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>;
 };
 
+type ConciergeBrokenCardConnectionParams = {
+    cardName: string;
+    connectionLink?: string;
+};
+
 export type {
     MissingPropertyParams,
     InvalidPropertyParams,
@@ -397,6 +405,7 @@ export type {
     NotAllowedExtensionParams,
     ParentNavigationSummaryParams,
     PaidElsewhereParams,
+    ConciergeBrokenCardConnectionParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
