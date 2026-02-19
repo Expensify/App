@@ -251,6 +251,12 @@ function askHelpsiteAI(query) {
             aiContainer.innerHTML = '';
             aiContainer.appendChild(template);
 
+            const renderedCopyButton = aiContainer.querySelector('.ai-copy-button');
+            const renderedContentForCopy = aiContainer.querySelector('.ai-content');
+            renderedCopyButton.addEventListener('click', () => {
+                copyAIResponseToClipboard(renderedCopyButton, renderedContentForCopy);
+            });
+
             // Show "Show more" button if content overflows
             const renderedContent = aiContainer.querySelector('.ai-content');
             if (renderedContent.scrollHeight > renderedContent.clientHeight) {
