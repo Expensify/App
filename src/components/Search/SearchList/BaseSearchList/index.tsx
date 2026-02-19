@@ -13,6 +13,13 @@ import type BaseSearchListProps from './types';
 
 const AnimatedFlashListComponent = Animated.createAnimatedComponent(FlashList<SearchListItem>);
 
+/** Item type strings for FlashList recycling: group = TransactionGroupListItemType, row = transaction/report/task rows. */
+const FLASH_LIST_ITEM_TYPE = {GROUP: 'group', ROW: 'row'} as const;
+
+function getItemType(item: SearchListItem): string {
+    return 'transactions' in item ? FLASH_LIST_ITEM_TYPE.GROUP : FLASH_LIST_ITEM_TYPE.ROW;
+}
+
 function BaseSearchList({
     data,
     columns,
@@ -112,6 +119,7 @@ function BaseSearchList({
     return (
         <AnimatedFlashListComponent
             data={data}
+            getItemType={getItemType}
             renderItem={renderItemWithKeyboardFocus}
             keyExtractor={keyExtractor}
             onScroll={onScroll}
