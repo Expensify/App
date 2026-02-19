@@ -69,7 +69,22 @@ function LHNAvatar({
         );
     }
 
-    // Diagonal avatar (two overlapping avatars)
+    // When the secondary icon is a workspace, only show the primary avatar (e.g. chat threads).
+    // Diagonal is reserved for reports where both icons represent people (e.g. IOU reports).
+    if (secondaryIcon.type === CONST.ICON_TYPE_WORKSPACE) {
+        return (
+            <ReportActionAvatar.Single
+                accountID={Number(primaryIcon.id ?? CONST.DEFAULT_NUMBER_ID)}
+                avatar={primaryIcon}
+                shouldShowTooltip={shouldShowTooltip}
+                size={size}
+                containerStyles={singleAvatarContainerStyle}
+                fallbackIcon={primaryIcon.fallbackIcon}
+            />
+        );
+    }
+
+    // Diagonal avatar (two overlapping avatars, e.g. IOU reports)
     const secondaryAvatarContainerStyle = secondaryAvatarBackgroundColor ? StyleUtils.getBackgroundAndBorderStyle(secondaryAvatarBackgroundColor) : undefined;
 
     return (

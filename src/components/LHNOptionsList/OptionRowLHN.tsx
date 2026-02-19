@@ -31,6 +31,7 @@ import {
     isChatThread,
     isChatUsedForOnboarding as isChatUsedForOnboardingReportUtils,
     isConciergeChatReport,
+    isExpenseRequest,
     isGroupChat,
     isOneOnOneChat,
     isSystemChat,
@@ -275,12 +276,8 @@ function OptionRowLHN({
                                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                             {!!optionItem.icons?.length && !!firstIcon && (
                                                 <LHNAvatar
-                                                    icons={
-                                                        !!optionItem.shouldShowSubscript && !(isChatThread(report) && !isTripRoom(report))
-                                                            ? (optionItem.icons ?? [])
-                                                            : (optionItem.icons?.slice(0, 1) ?? [])
-                                                    }
-                                                    shouldShowSubscript={!!optionItem.shouldShowSubscript && !(isChatThread(report) && !isTripRoom(report))}
+                                                    icons={optionItem.icons ?? []}
+                                                    shouldShowSubscript={!!optionItem.shouldShowSubscript && !(isChatThread(report) && !isTripRoom(report) && !isExpenseRequest(report))}
                                                     size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                                     subscriptAvatarBorderColor={hovered && !isOptionFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
                                                     useMidSubscriptSize={isInFocusMode}
