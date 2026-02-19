@@ -238,7 +238,7 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
                         processRemainingFiles(convertedFiles, validFilesToProcess, filesToResize, pdfsToLoad, resolve);
                     })
                     .catch((error) => {
-                        console.error('Error converting HEIC/HEIF files:', error);
+                        Log.alert('Error converting HEIC/HEIF files:', {error});
                         setIsLoaderVisible(false);
                         resolve({processedFiles: validFilesToProcess, pdfsToLoad});
                     });
