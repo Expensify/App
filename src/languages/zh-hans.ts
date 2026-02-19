@@ -2170,6 +2170,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         unfreezeCard: '解冻卡片',
         freezeDescription: '冻结的卡片无法用于购买和交易。你可以随时解冻。',
         unfreezeDescription: '解冻此卡后，将重新允许购买和交易。仅当你确定该卡可以安全使用时再继续。',
+        youFroze: ({date}: {date: string}) => `你于${date}冻结了此卡。`,
+        frozenBy: ({person, date}: {person: string; date: string}) => `${person}于${date}冻结了此卡。`,
     },
     workflowsPage: {
         workflowTitle: '支出',
@@ -5372,6 +5374,11 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             reimbursementAccount: '报销账户',
             welcomeNote: '请开始使用我的新工作区',
             delayedSubmission: '延迟提交',
+            merchantRules: '商家规则',
+            merchantRulesCount: () => ({
+                one: '1 商家规则',
+                other: (count: number) => `${count} 商家规则`,
+            }),
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `您即将创建并共享 ${newWorkspaceName ?? ''}，其中包含来自原始工作区的 ${totalMembers ?? 0} 位成员。`,
             error: '复制您的新工作区时发生错误。请重试。',

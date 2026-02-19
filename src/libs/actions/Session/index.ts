@@ -263,7 +263,10 @@ function callSAMLSignOut(params: LogOutParams, authToken: string): Promise<void 
         .catch((error) => {
             Log.hmmm('SAML sign out failed', {error});
         })
-        .then(() => {
+        .then((result) => {
+            if (result && result.type !== 'success') {
+                return Promise.reject(Error('Logout cancelled'));
+            }
             // We always want to sign out the user from the app
             // eslint-disable-next-line rulesdir/no-api-side-effects-method
             return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT, params, {});
@@ -333,11 +336,6 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
         return;
     }
 
-    // When signing out from the HybridApp, we need to sign out from the oldDot app as well
-    if (CONFIG.IS_HYBRID_APP && shouldSignOutFromOldDot) {
-        HybridAppModule.signOutFromOldDot();
-    }
-
     const isSupportal = isSupportAuthToken();
     const shouldRestoreStashedSession = isSupportal || shouldForceUseStashedSession;
 
@@ -401,6 +399,10 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
     // Wait for signOut (if called), then redirect and update Onyx.
     return signOutPromise
         .then((response) => {
+            // When signing out from the HybridApp, we need to sign out from the oldDot app as well
+            if (CONFIG.IS_HYBRID_APP && shouldSignOutFromOldDot) {
+                HybridAppModule.signOutFromOldDot();
+            }
             if (isSupportal) {
                 // Send event to Fraud Protection backend, otherwise it might consider the user as being suspicious
                 FraudProtection.sendEvent(FRAUD_PROTECTION_EVENT.STOP_SUPPORT_SESSION);

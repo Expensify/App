@@ -2212,6 +2212,8 @@ ${amount} per ${merchant} - ${date}`,
         unfreezeCard: 'Sblocca carta',
         freezeDescription: 'Una carta bloccata non può essere usata per acquisti e transazioni. Puoi sbloccarla in qualsiasi momento.',
         unfreezeDescription: 'Sbloccando questa carta torneranno ad essere consentiti acquisti e transazioni. Procedi solo se sei sicuro che la carta sia sicura da usare.',
+        youFroze: ({date}: {date: string}) => `Hai bloccato questa carta il ${date}.`,
+        frozenBy: ({person, date}: {person: string; date: string}) => `${person} ha bloccato questa carta il ${date}.`,
     },
     workflowsPage: {
         workflowTitle: 'Spesa',
@@ -5501,6 +5503,11 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             reimbursementAccount: 'conto di rimborso',
             welcomeNote: 'Inizia a usare il mio nuovo workspace',
             delayedSubmission: 'invio posticipato',
+            merchantRules: 'Regole del commerciante',
+            merchantRulesCount: () => ({
+                one: '1 regola del commerciante',
+                other: (count: number) => `${count} regole del commerciante`,
+            }),
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `Stai per creare e condividere ${newWorkspaceName ?? ''} con ${totalMembers ?? 0} membri dello spazio di lavoro originale.`,
             error: 'Si è verificato un errore durante la duplicazione del tuo nuovo workspace. Riprova.',

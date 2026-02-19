@@ -2813,6 +2813,14 @@ const CONST = {
             CONFIRM: 'confirm',
         },
     },
+
+    SUBSCRIPTION_SIZE: {
+        PAGE_NAME: {
+            SIZE: 'size',
+            CONFIRM: 'confirm',
+        },
+    },
+
     MISSING_PERSONAL_DETAILS_INDEXES: {
         MAPPING: {
             LEGAL_NAME: 0,
@@ -8585,6 +8593,7 @@ const CONST = {
         },
         WORKSPACE: {
             TOGGLE_SETTINGS_ROW: 'Workspace-ToggleSettingsRow',
+            DUPLICATE_SELECT_FEATURES_SELECT_ALL: 'WorkspaceDuplicate-SelectFeaturesSelectAll',
             WORKSPACE_MENU_ITEM: 'Workspace-WorkspaceMenuItem',
             INVITE_MESSAGE_PRIVACY_LINK: 'WorkspaceInviteMessage-PrivacyLink',
             COMPANY_CARDS: {
