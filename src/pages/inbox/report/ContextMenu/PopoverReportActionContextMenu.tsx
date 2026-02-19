@@ -56,7 +56,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const selectionRef = useRef('');
     const reportActionDraftMessageRef = useRef<string | undefined>(undefined);
     const isReportArchived = useReportIsArchived(reportIDRef.current);
-    const isOriginalReportArchived = useReportIsArchived(getOriginalReportID(reportIDRef.current, reportActionRef.current));
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDRef.current}`, {canBeMissing: true});
+    const isOriginalReportArchived = useReportIsArchived(getOriginalReportID(reportIDRef.current, reportActionRef.current, reportActions));
     const {iouReport, chatReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(reportActionRef.current);
     const {transitionActionSheetState} = useActionSheetAwareScrollViewActions();
 
@@ -337,7 +338,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         policy,
     });
 
-    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getOriginalReportID(reportIDRef.current, reportActionRef.current)}`, {
+    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getOriginalReportID(reportIDRef.current, reportActionRef.current, reportActions)}`, {
         canBeMissing: true,
     });
     const ancestorsRef = useRef<typeof ancestors>([]);
@@ -394,14 +395,14 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         duplicateTransactionViolations,
         isReportArchived,
         isChatIOUReportArchived,
+        allTransactionViolations,
+        currentUserAccountID,
         deleteTransactions,
         currentSearchHash,
         email,
         reportTransactions,
-        isOriginalReportArchived,
-        allTransactionViolations,
         bankAccountList,
-        currentUserAccountID,
+        isOriginalReportArchived,
     ]);
 
     const hideDeleteModal = () => {

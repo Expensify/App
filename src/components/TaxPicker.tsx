@@ -13,7 +13,7 @@ import type {IOUAction} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import RadioListItem from './SelectionList/ListItem/RadioListItem';
-import SelectionList from './SelectionList/SelectionListWithSections';
+import SelectionListWithSections from './SelectionList/SelectionListWithSections';
 
 type TaxPickerProps = {
     /** The selected tax rate of an expense */
@@ -104,7 +104,7 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
     };
 
     return (
-        <SelectionList
+        <SelectionListWithSections
             sections={sections}
             shouldShowTextInput={shouldShowTextInput}
             textInputOptions={textInputOptions}

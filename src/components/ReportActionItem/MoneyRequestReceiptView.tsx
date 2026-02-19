@@ -3,11 +3,13 @@ import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import ConfirmModal from '@components/ConfirmModal';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
+import type {ValueOf} from 'type-fest';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReceiptAudit, {ReceiptAuditMessages} from '@components/ReceiptAudit';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import useActiveRoute from '@hooks/useActiveRoute';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useEnvironment from '@hooks/useEnvironment';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
@@ -29,6 +31,7 @@ import {
     isPaidGroupPolicy,
     isTrackExpenseReportNew,
 } from '@libs/ReportUtils';
+import trackExpenseCreationError from '@libs/telemetry/trackExpenseCreationError';
 import {
     didReceiptScanSucceed as didReceiptScanSucceedTransactionUtils,
     hasReceipt as hasReceiptTransactionUtils,
@@ -209,7 +212,7 @@ function MoneyRequestReceiptView({
     const errors = useMemo(() => ({...errorsWithoutReportCreation, ...reportCreationError}), [errorsWithoutReportCreation, reportCreationError]);
     const showReceiptErrorWithEmptyState = shouldShowReceiptEmptyState && !hasReceipt && !isEmptyObject(errors);
 
-    const [showConfirmDismissReceiptError, setShowConfirmDismissReceiptError] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
 
     const transactionAndReportActionErrors = useMemo(
         () => ({
@@ -222,6 +225,41 @@ function MoneyRequestReceiptView({
     const dismissReceiptError = () => {
         if (!report?.reportID) {
             return;
+        }
+
+        // Track expense creation errors to Sentry when the user dismisses them
+        if (!isEmptyObject(errors)) {
+            let errorType: ValueOf<typeof CONST.TELEMETRY.EXPENSE_ERROR_TYPE>;
+            let errorSource: ValueOf<typeof CONST.TELEMETRY.EXPENSE_ERROR_SOURCE>;
+
+            if (!isEmptyObject(reportCreationError)) {
+                errorType = CONST.TELEMETRY.EXPENSE_ERROR_TYPE.REPORT_CREATION_FAILED;
+                errorSource = CONST.TELEMETRY.EXPENSE_ERROR_SOURCE.REPORT_CREATION;
+            } else if (parentReportAction?.errors && !isEmptyObject(parentReportAction.errors)) {
+                errorType = CONST.TELEMETRY.EXPENSE_ERROR_TYPE.TRANSACTION_MISSING;
+                errorSource = CONST.TELEMETRY.EXPENSE_ERROR_SOURCE.REPORT_ACTION;
+            } else {
+                errorType = CONST.TELEMETRY.EXPENSE_ERROR_TYPE.TRANSACTION_MISSING;
+                errorSource = CONST.TELEMETRY.EXPENSE_ERROR_SOURCE.TRANSACTION;
+            }
+
+            const errorValue = Object.values(errors).at(0);
+            const errorMessage = typeof errorValue === 'string' ? errorValue : JSON.stringify(errorValue);
+            const isRequestPending = transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+            const isTransactionMissing = !transaction?.transactionID && !!linkedTransactionID;
+
+            trackExpenseCreationError(null, {
+                errorType,
+                errorSource,
+                reportID: report.reportID,
+                transactionID: linkedTransactionID,
+                hasReceipt,
+                pendingAction: transaction?.pendingAction,
+                iouType,
+                errorMessage,
+                isRequestPending,
+                isTransactionMissing,
+            });
         }
         if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             if (chatReport?.reportID && getCreationReportErrors(chatReport)) {
@@ -325,11 +363,24 @@ function MoneyRequestReceiptView({
                         const errorMessages = mapValues(Object.fromEntries(errorEntries), (error) => error);
                         const hasReceiptError = Object.values(errorMessages).some((error) => isReceiptError(error));
 
-                        if (hasReceiptError) {
-                            setShowConfirmDismissReceiptError(true);
-                        } else {
+                        if (!hasReceiptError) {
                             dismissReceiptError();
+                            return;
                         }
+
+                        showConfirmModal({
+                            title: translate('iou.dismissReceiptError'),
+                            prompt: translate('iou.dismissReceiptErrorConfirmation'),
+                            confirmText: translate('common.dismiss'),
+                            cancelText: translate('common.cancel'),
+                            shouldShowCancelButton: true,
+                            danger: true,
+                        }).then((result) => {
+                            if (result.action !== ModalActions.CONFIRM) {
+                                return;
+                            }
+                            dismissReceiptError();
+                        });
                     }}
                     dismissError={dismissReceiptError}
                     style={[shouldShowAuditMessage ? styles.mt3 : styles.mv3, !showReceiptErrorWithEmptyState && styles.flex1]}
@@ -370,22 +421,6 @@ function MoneyRequestReceiptView({
             )}
             {!shouldShowReceiptEmptyState && !hasReceipt && <View style={{marginVertical: 6}} />}
             {!!shouldShowAuditMessage && !hasReceipt && receiptAuditMessagesRow}
-            <ConfirmModal
-                isVisible={showConfirmDismissReceiptError}
-                onConfirm={() => {
-                    dismissReceiptError();
-                    setShowConfirmDismissReceiptError(false);
-                }}
-                onCancel={() => {
-                    setShowConfirmDismissReceiptError(false);
-                }}
-                title={translate('iou.dismissReceiptError')}
-                prompt={translate('iou.dismissReceiptErrorConfirmation')}
-                confirmText={translate('common.dismiss')}
-                cancelText={translate('common.cancel')}
-                shouldShowCancelButton
-                danger
-            />
         </View>
     );
 }

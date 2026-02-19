@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import RadioListItem from './SelectionList/ListItem/RadioListItem';
-import SelectionList from './SelectionList/SelectionListWithSections';
+import SelectionListWithSections from './SelectionList/SelectionListWithSections';
 import type {ListItem} from './SelectionList/types';
 
 type CategoryPickerProps = {
@@ -77,7 +77,7 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
     };
 
     return (
-        <SelectionList
+        <SelectionListWithSections
             sections={sections}
             onSelectRow={onSubmit}
             ListItem={RadioListItem}

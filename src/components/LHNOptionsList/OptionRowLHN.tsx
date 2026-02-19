@@ -4,7 +4,6 @@ import {StyleSheet, View} from 'react-native';
 import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {useSession} from '@components/OnyxListItemProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
@@ -62,7 +61,7 @@ function OptionRowLHN({
     const popoverAnchor = useRef<View>(null);
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil', 'DotIndicator', 'Pin']);
 
     const session = useSession();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
@@ -248,9 +247,7 @@ function OptionRowLHN({
                                     (hovered || isContextMenuActive) && !isOptionFocused ? styles.sidebarLinkHover : null,
                                 ]}
                                 role={CONST.ROLE.BUTTON}
-                                accessibilityLabel={`${translate('accessibilityHints.navigatesToChat')} ${optionItem.text}. ${optionItem.isUnread ? `${translate('common.unread')}.` : ''} ${
-                                    optionItem.alternateText
-                                }`}
+                                accessibilityLabel={`${translate('accessibilityHints.navigatesToChat')} ${optionItem.text}. ${optionItem.isUnread ? `${translate('common.unread')}.` : ''} ${optionItem.alternateText}${brickRoadIndicator ? `. ${translate('common.yourReviewIsRequired')}` : ''}`}
                                 onLayout={onLayout}
                                 needsOffscreenAlphaCompositing={(optionItem?.icons?.length ?? 0) >= 2}
                                 sentryLabel={CONST.SENTRY_LABEL.LHN.OPTION_ROW}
@@ -336,22 +333,19 @@ function OptionRowLHN({
                                             <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                                 <Icon
                                                     testID="RBR Icon"
-                                                    src={Expensicons.DotIndicator}
+                                                    src={expensifyIcons.DotIndicator}
                                                     fill={theme.danger}
                                                 />
                                             </View>
                                         )}
                                     </View>
                                 </View>
-                                <View
-                                    style={[styles.flexRow, styles.alignItemsCenter]}
-                                    accessible={false}
-                                >
+                                <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                     {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO && (
                                         <View style={styles.ml2}>
                                             <Icon
                                                 testID="GBR Icon"
-                                                src={Expensicons.DotIndicator}
+                                                src={expensifyIcons.DotIndicator}
                                                 fill={theme.success}
                                             />
                                         </View>
@@ -376,7 +370,7 @@ function OptionRowLHN({
                                             <Icon
                                                 testID="Pin Icon"
                                                 fill={theme.icon}
-                                                src={Expensicons.Pin}
+                                                src={expensifyIcons.Pin}
                                             />
                                         </View>
                                     )}
