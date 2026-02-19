@@ -129,11 +129,7 @@ const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 /**
  * List of AI-aware placeholder translation keys for expense threads
  */
-const AI_PLACEHOLDER_KEYS = [
-    'reportActionCompose.askConciergeToUpdate',
-    'reportActionCompose.askConciergeToCorrect',
-    'reportActionCompose.askConciergeForHelp',
-] as const;
+const AI_PLACEHOLDER_KEYS = ['reportActionCompose.askConciergeToUpdate', 'reportActionCompose.askConciergeToCorrect', 'reportActionCompose.askConciergeForHelp'] as const;
 
 /**
  * Returns a random AI-aware placeholder for expense threads
