@@ -17,7 +17,7 @@ function AvailableBookingDay({disabled, selected, pressed, hovered, children}: D
                 selected ? themeStyles.buttonSuccess : {},
             ]}
         >
-            <Text>{children}</Text>
+            <Text style={selected ? themeStyles.buttonSuccessText : {}}>{children}</Text>
         </View>
     );
 }

@@ -74,7 +74,7 @@ function RangeDatePicker({fromValue, toValue, onFromSelected, onToSelected, shou
                 <FormHelpMessage
                     isError
                     message={translate('search.errors.pleaseSelectDatesForBothFromAndTo')}
-                    style={[styles.mh3, styles.mt2]}
+                    style={[styles.mh5, styles.mt2]}
                 />
             )}
         </>

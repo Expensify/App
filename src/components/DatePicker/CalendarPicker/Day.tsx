@@ -27,13 +27,9 @@ function Day({disabled, selected, pressed, hovered, children}: DayProps) {
     const StyleUtils = useStyleUtils();
     return (
         <View
-            style={[
-                themeStyles.calendarDayContainer,
-                selected ? themeStyles.buttonDefaultBG : {},
-                !disabled ? StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed)) : {},
-            ]}
+            style={[themeStyles.calendarDayContainer, selected ? themeStyles.buttonSuccess : {}, !disabled ? StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed)) : {}]}
         >
-            <Text style={disabled ? themeStyles.buttonOpacityDisabled : {}}>{children}</Text>
+            <Text style={[disabled ? themeStyles.buttonOpacityDisabled : {}, selected ? themeStyles.buttonSuccessText : {}]}>{children}</Text>
         </View>
     );
 }
