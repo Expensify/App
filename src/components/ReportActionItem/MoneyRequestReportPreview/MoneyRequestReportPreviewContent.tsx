@@ -72,7 +72,7 @@ import {
     isReportApproved,
     isSettled,
     isTripRoom as isTripRoomReportUtils,
-    shouldCurrentUserSubmitReport,
+    canSubmitAndIsAwaitingForCurrentUser,
 } from '@libs/ReportUtils';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import {startSpan} from '@libs/telemetry/activeSpans';
@@ -235,7 +235,10 @@ function MoneyRequestReportPreviewContent({
 
     // The submit button should be success green color only if the user is submitter and the policy does not have Scheduled Submit turned on
     // Or if the report has been reopened or retracted
-    const isWaitingForSubmissionFromCurrentUser = useMemo(() => shouldCurrentUserSubmitReport(iouReport, chatReport, policy, reportActions), [iouReport, chatReport, policy, reportActions]);
+    const isWaitingForSubmissionFromCurrentUser = useMemo(
+        () => canSubmitAndIsAwaitingForCurrentUser(iouReport, chatReport, policy, transactions, transactionViolations, currentUserEmail, currentUserAccountID, reportActions),
+        [iouReport, chatReport, policy, transactions, transactionViolations, currentUserEmail, currentUserAccountID, reportActions],
+    );
 
     const confirmPayment = useCallback(
         (type: PaymentMethodType | undefined, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod) => {
