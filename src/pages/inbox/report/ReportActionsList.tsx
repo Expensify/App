@@ -14,6 +14,7 @@ import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@hooks/useFlatListScrollKey';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
 import useOnyx from '@hooks/useOnyx';
@@ -182,6 +183,7 @@ function ReportActionsList({
     const personalDetailsList = usePersonalDetails();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow']);
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -718,6 +720,8 @@ function ReportActionsList({
                             <View>
                                 <Button
                                     small
+                                    shouldShowRightIcon
+                                    iconRight={expensifyIcons.UpArrow}
                                     text={translate('common.concierge.showPreviousMessages')}
                                     onPress={onShowPreviousMessages}
                                 />
@@ -795,6 +799,7 @@ function ReportActionsList({
             onShowPreviousMessages,
             styles,
             translate,
+            expensifyIcons.UpArrow,
         ],
     );
 
