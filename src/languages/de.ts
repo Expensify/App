@@ -2120,7 +2120,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: 'Wallet aktivieren',
         addBankAccountToSendAndReceive: 'Füge ein Bankkonto hinzu, um Zahlungen zu senden oder zu empfangen.',
         addDebitOrCreditCard: 'Debit- oder Kreditkarte hinzufügen',
-        cardInactive: 'Inactive',
+        cardInactive: 'Inaktiv',
         assignedCards: 'Zugewiesene Karten',
         assignedCardsDescription: 'Transaktionen von diesen Karten werden automatisch synchronisiert.',
         expensifyCard: 'Expensify Card',
