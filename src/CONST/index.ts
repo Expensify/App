@@ -8743,6 +8743,9 @@ const CONST = {
         WALLET: {
             ADD_BANK_ACCOUNT: 'Wallet-AddBankAccount',
         },
+        REIMBURSEMENT_ACCOUNT: {
+            YOUR_DATA_IS_SECURE: 'ReimbursementAccount-YourDataIsSecure',
+        },
         SOCIALS: {
             LINK: 'Socials',
         },
