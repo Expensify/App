@@ -10,10 +10,10 @@ import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
 import Button from '@components/Button';
 import {getButtonRole} from '@components/Button/utils';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
-import ConfirmModal from '@components/ConfirmModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
 import type {PaymentMethod} from '@components/KYCWall/types';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import MoneyReportHeaderStatusBarSkeleton from '@components/MoneyReportHeaderStatusBarSkeleton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -24,6 +24,7 @@ import ExportWithDropdownMenu from '@components/ReportActionItem/ExportWithDropd
 import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -52,10 +53,10 @@ import {
     areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils,
     getAddExpenseDropdownOptions,
     getDisplayNameForParticipant,
-    getMoneyReportPreviewName,
     getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,
     getPolicyName,
+    getReportName,
     getReportStatusColorStyle,
     getReportStatusTranslation,
     getTransactionsWithReceipts,
@@ -126,7 +127,6 @@ function MoneyRequestReportPreviewContent({
     currentWidth,
     reportPreviewStyles,
     shouldDisplayContextMenu = true,
-    isInvoice,
     shouldShowBorder = false,
     onPress,
     forwardedFSClass,
@@ -172,10 +172,10 @@ function MoneyRequestReportPreviewContent({
 
     const {isPaidAnimationRunning, isApprovedAnimationRunning, isSubmittingAnimationRunning, stopAnimation, startAnimation, startApprovedAnimation, startSubmittingAnimation} =
         usePaymentAnimations();
+    const {showConfirmModal} = useConfirmModal();
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
-    const [isDEWModalVisible, setIsDEWModalVisible] = useState(false);
     const isIouReportArchived = useReportIsArchived(iouReportID);
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
@@ -227,12 +227,6 @@ function MoneyRequestReportPreviewContent({
     const shouldShowOnlyPayElsewhere = useMemo(() => !canIOUBePaid && getCanIOUBePaid(true), [canIOUBePaid, getCanIOUBePaid]);
 
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportAttributesSelector});
-
-    const currentReportName = iouReport?.reportID ? reportAttributes?.[iouReport.reportID]?.reportName : undefined;
-    const reportPreviewName = useMemo(() => {
-        return getMoneyReportPreviewName(action, iouReport, isInvoice, reportAttributes);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [action, iouReport, isInvoice, currentReportName]);
 
     const hasReceipts = transactionsWithReceipts.length > 0;
     const isScanning = hasReceipts && areAllRequestsBeingSmartScanned;
@@ -312,9 +306,23 @@ function MoneyRequestReportPreviewContent({
         ],
     );
 
+    const showDEWModal = useCallback(() => {
+        showConfirmModal({
+            title: translate('customApprovalWorkflow.title'),
+            prompt: translate('customApprovalWorkflow.description'),
+            confirmText: translate('customApprovalWorkflow.goToExpensifyClassic'),
+            shouldShowCancelButton: false,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+        });
+    }, [showConfirmModal, translate]);
+
     const confirmApproval = () => {
         if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
-            setIsDEWModalVisible(true);
+            showDEWModal();
             return;
         }
         setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
@@ -621,7 +629,7 @@ function MoneyRequestReportPreviewContent({
                 text={translate('common.submit')}
                 onPress={() => {
                     if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
-                        setIsDEWModalVisible(true);
+                        showDEWModal();
                         return;
                     }
                     startSubmittingAnimation();
@@ -787,7 +795,9 @@ function MoneyRequestReportPreviewContent({
                                                             style={[styles.headerText]}
                                                             testID="MoneyRequestReportPreview-reportName"
                                                         >
-                                                            {reportPreviewName}
+                                                            {/* This will be fixed as follow up https://github.com/Expensify/App/pull/75357 */}
+                                                            {/* eslint-disable-next-line @typescript-eslint/no-deprecated */}
+                                                            {getReportName(iouReport, undefined, undefined, undefined, undefined, reportAttributes) || action.childReportName}
                                                         </Text>
                                                     </Animated.View>
                                                 </View>
@@ -947,18 +957,6 @@ function MoneyRequestReportPreviewContent({
                     />
                 )}
             </OfflineWithFeedback>
-            <ConfirmModal
-                title={translate('customApprovalWorkflow.title')}
-                isVisible={isDEWModalVisible}
-                onConfirm={() => {
-                    setIsDEWModalVisible(false);
-                    openOldDotLink(CONST.OLDDOT_URLS.INBOX);
-                }}
-                onCancel={() => setIsDEWModalVisible(false)}
-                prompt={translate('customApprovalWorkflow.description')}
-                confirmText={translate('customApprovalWorkflow.goToExpensifyClassic')}
-                shouldShowCancelButton={false}
-            />
         </View>
     );
 }
