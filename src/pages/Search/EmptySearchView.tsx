@@ -253,6 +253,7 @@ function EmptySearchViewContent({
     };
 
     const typeMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
+    const todoMenuItems = typeMenuSections.filter((section) => section.translationPath === 'common.todo').flatMap((section) => section.menuItems);
 
     const onLongPress = (event: GestureResponderEvent | MouseEvent) => {
         if (!contextMenuAnchor) {
@@ -329,12 +330,13 @@ function EmptySearchViewContent({
 
     let content: EmptySearchViewItem | undefined;
 
-    // Begin by going through all of our To-do searches, and returning their empty state
-    // if it exists
+    // Begin by going through all of our searches, and returning their empty state
+    // if it exists. Use fireworks only for To-do items, folder for everything else.
     for (const menuItem of typeMenuItems) {
         if (menuItem.similarSearchHash === similarSearchHash && menuItem.emptyState) {
+            const isTodoItem = todoMenuItems.includes(menuItem);
             content = {
-                ...defaultViewItemHeader.fireworks,
+                ...(isTodoItem ? defaultViewItemHeader.fireworks : defaultViewItemHeader.folder),
                 title: translate(menuItem.emptyState.title),
                 subtitle: translate(menuItem.emptyState.subtitle),
                 buttons: menuItem.emptyState.buttons?.map((button) => ({

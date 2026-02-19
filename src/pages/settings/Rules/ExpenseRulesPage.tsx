@@ -250,9 +250,9 @@ function ExpenseRulesPage() {
                 shouldUseHeadlineHeader={!selectionModeHeader}
                 title={selectionModeHeader ? translate('common.selectMultiple') : translate('expenseRulesPage.title')}
             >
-                {!shouldUseNarrowLayout && headerButton}
+                {!shouldUseNarrowLayout && hasRules && headerButton}
             </HeaderWithBackButton>
-            {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{headerButton}</View>}
+            {shouldUseNarrowLayout && hasRules && <View style={[styles.pl5, styles.pr5]}>{headerButton}</View>}
             {!hasRules && !isLoading && headerContent}
             {!hasRules && !isLoading && (
                 <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
@@ -262,6 +262,14 @@ function ExpenseRulesPage() {
                         title={translate('expenseRulesPage.emptyRules.title')}
                         subtitle={translate('expenseRulesPage.emptyRules.subtitle')}
                         headerStyles={styles.emptyStateCardIllustrationContainer}
+                        buttons={[
+                            {
+                                success: true,
+                                buttonAction: navigateToNewRulePage,
+                                icon: icons.Plus,
+                                buttonText: translate('expenseRulesPage.newRule'),
+                            },
+                        ]}
                     />
                 </ScrollView>
             )}

@@ -15,7 +15,7 @@ type WorkspaceCompanyCardsFeedAddedEmptyPageProps = {
 function WorkspaceCompanyCardsFeedAddedEmptyPage({shouldShowGBDisclaimer}: WorkspaceCompanyCardsFeedAddedEmptyPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['CompanyCardsEmptyState']);
+    const illustrations = useMemoizedLazyIllustrations(['LaptopAssignCard']);
 
     return (
         <ScrollView
@@ -24,9 +24,9 @@ function WorkspaceCompanyCardsFeedAddedEmptyPage({shouldShowGBDisclaimer}: Works
         >
             <EmptyStateComponent
                 headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
-                headerMedia={illustrations.CompanyCardsEmptyState}
+                headerMedia={illustrations.LaptopAssignCard}
                 containerStyles={styles.mt5}
-                headerStyles={[styles.emptyStateCardIllustrationContainer, styles.justifyContentStart]}
+                headerStyles={styles.emptyStateCardIllustrationContainer}
                 headerContentStyles={styles.emptyStateCardIllustration}
                 title={translate('workspace.moreFeatures.companyCards.emptyAddedFeedTitle')}
                 subtitle={translate('workspace.moreFeatures.companyCards.emptyAddedFeedDescription')}

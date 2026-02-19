@@ -14,7 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 function WorkspaceCompanyCardsFeedPendingPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {CompanyCardsPendingState} = useMemoizedLazyIllustrations(['CompanyCardsPendingState']);
+    const {LaptopReviewCard} = useMemoizedLazyIllustrations(['LaptopReviewCard']);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
 
     return (
@@ -22,9 +22,9 @@ function WorkspaceCompanyCardsFeedPendingPage() {
             <EmptyStateComponent
                 containerStyles={styles.mt5}
                 headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
-                headerMedia={CompanyCardsPendingState}
+                headerMedia={LaptopReviewCard}
                 headerStyles={styles.emptyStateCardIllustrationContainer}
-                headerContentStyles={styles.pendingStateCardIllustration}
+                headerContentStyles={styles.emptyStateCardIllustration}
                 title={translate('workspace.moreFeatures.companyCards.pendingFeedTitle')}
             >
                 <Text>

@@ -736,11 +736,11 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             ? translate('workspace.tags.emptyTags.subtitleWithAccounting', `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`)
             : translate('workspace.tags.emptyTags.subtitleHTML');
         return (
-            <View style={[styles.renderHTML]}>
+            <View style={[styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter]}>
                 <RenderHTML html={emptyTagsSubtitle} />
             </View>
         );
-    }, [hasAccountingConnections, translate, environmentURL, policyID, styles.renderHTML]);
+    }, [hasAccountingConnections, translate, environmentURL, policyID, styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter]);
 
     return (
         <>

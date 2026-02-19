@@ -12,7 +12,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasIssuedExpensifyCard} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import colors from '@styles/theme/colors';
 import {clearAddNewCardFlow} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,7 +35,7 @@ function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer}: 
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const shouldShowExpensifyCardPromotionBanner = !hasIssuedExpensifyCard(workspaceAccountID, allWorkspaceCards);
 
-    const illustrations = useMemoizedLazyIllustrations(['CreditCardsNew', 'HandCard', 'MagnifyingGlassMoney', 'CompanyCardsEmptyState']);
+    const illustrations = useMemoizedLazyIllustrations(['CreditCardsNew', 'HandCard', 'MagnifyingGlassMoney', 'LaptopAssignCard']);
 
     const features = [
         {
@@ -83,10 +82,9 @@ function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer}: 
                 ctaText={translate('workspace.companyCards.addCards')}
                 ctaAccessibilityLabel={translate('workspace.companyCards.addCards')}
                 onCtaPress={handleCtaPress}
-                illustrationBackgroundColor={colors.blue700}
-                illustration={illustrations.CompanyCardsEmptyState}
+                illustration={illustrations.LaptopAssignCard}
                 illustrationStyle={styles.emptyStateCardIllustration}
-                illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentStart]}
+                illustrationContainerStyle={styles.emptyStateCardIllustrationContainer}
                 titleStyles={styles.textHeadlineH1}
                 isButtonDisabled={workspaceAccountID === CONST.DEFAULT_NUMBER_ID}
             />
