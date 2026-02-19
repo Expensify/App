@@ -226,6 +226,14 @@ jobs:
           custom-identifier: ${{ steps.computeIdentifier.outputs.IDENTIFIER }}
           validate-elf-alignment: false
 
+      - name: Upload Android build to Sentry for size analysis
+        if: ${{ env.ARTIFACT_PATH != '' }}
+        continue-on-error: true
+        timeout-minutes: 5
+        run: npx sentry-cli build upload "$ARTIFACT_PATH" --org expensify --project app --build-configuration AdHoc --log-level debug
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+
       - name: Upload Gradle profile report
         if: always()
         # v6
@@ -365,6 +373,14 @@ jobs:
             ]
           comment-bot: false
           custom-identifier: ${{ steps.computeIdentifier.outputs.IDENTIFIER }}
+
+      - name: Upload iOS build to Sentry for size analysis
+        if: ${{ env.ARTIFACT_PATH != '' }}
+        continue-on-error: true
+        timeout-minutes: 5
+        run: npx sentry-cli build upload "$ARTIFACT_PATH" --org expensify --project app --build-configuration AdHoc --log-level debug
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - name: Set artifact URL output
         id: set-artifact-url
