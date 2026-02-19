@@ -60,6 +60,7 @@ function getStateFromPath(path: Route): PartialState<NavigationState> {
     if (!state) {
         throw new Error('Failed to parse the path to a navigation state.');
     }
+
     return state;
 }
 

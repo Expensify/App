@@ -49,6 +49,7 @@ import Emoji from '@assets/images/emoji.svg';
 import EReceiptIcon from '@assets/images/eReceiptIcon.svg';
 import Exclamation from '@assets/images/exclamation.svg';
 import Exit from '@assets/images/exit.svg';
+import ExpenseCopy from '@assets/images/expense-copy.svg';
 import Export from '@assets/images/export.svg';
 import EyeDisabled from '@assets/images/eye-disabled.svg';
 import Eye from '@assets/images/eye.svg';
@@ -59,6 +60,7 @@ import FlagLevelOne from '@assets/images/flag_level_01.svg';
 import FlagLevelTwo from '@assets/images/flag_level_02.svg';
 import FlagLevelThree from '@assets/images/flag_level_03.svg';
 import Folder from '@assets/images/folder.svg';
+import FreezeCard from '@assets/images/freeze-card.svg';
 import Fullscreen from '@assets/images/fullscreen.svg';
 import GalleryNotFound from '@assets/images/gallery-not-found.svg';
 import GalleryPlus from '@assets/images/gallery-plus.svg';
@@ -126,6 +128,7 @@ import ReceiptScan from '@assets/images/receipt-scan.svg';
 import ReceiptSlash from '@assets/images/receipt-slash.svg';
 import Receipt from '@assets/images/receipt.svg';
 import RemoveMembers from '@assets/images/remove-members.svg';
+import ReportCopy from '@assets/images/report-copy.svg';
 import Rotate from '@assets/images/rotate-image.svg';
 import RotateLeft from '@assets/images/rotate-left.svg';
 import Scan from '@assets/images/scan.svg';
@@ -203,6 +206,7 @@ export {
     DragHandles,
     EReceiptIcon,
     Emoji,
+    ExpenseCopy,
     Exclamation,
     Exit,
     Export,
@@ -259,6 +263,7 @@ export {
     ReceiptScan,
     ReceiptSlash,
     RemoveMembers,
+    ReportCopy,
     ReplaceReceipt,
     ReceiptMultiple,
     Rotate,
@@ -328,4 +333,5 @@ export {
     CertiniaSquare,
     ZenefitsSquare,
     GalleryPlus,
+    FreezeCard,
 };

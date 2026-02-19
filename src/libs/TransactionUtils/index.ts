@@ -75,7 +75,6 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {
     Comment,
     Receipt,
-    Routes,
     TransactionChanges,
     TransactionCustomUnit,
     TransactionPendingFieldsKey,
@@ -114,17 +113,13 @@ type TransactionParams = {
     splitsStartDate?: string;
     splitsEndDate?: string;
     distance?: number;
-    customUnitRateID?: string;
-    waypoints?: WaypointCollection;
     odometerStart?: number;
     odometerEnd?: number;
-    routes?: Routes;
     gpsCoordinates?: string;
     type?: ValueOf<typeof CONST.TRANSACTION.TYPE>;
     count?: number;
     rate?: number;
     unit?: ValueOf<typeof CONST.TIME_TRACKING.UNIT>;
-    commentType?: ValueOf<typeof CONST.TRANSACTION.TYPE>;
 };
 
 type BuildOptimisticTransactionParams = {
@@ -135,28 +130,6 @@ type BuildOptimisticTransactionParams = {
     transactionParams: TransactionParams;
     isDemoTransactionParam?: boolean;
 };
-
-let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            allPolicyTags = {};
-            return;
-        }
-        allPolicyTags = value;
-    },
-});
-
-/**
- * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
- * TODO: remove `getPolicyTagsData` from this file (https://github.com/Expensify/App/issues/72719)
- * All usages of this function should be replaced with useOnyx hook in React components.
- */
-function getPolicyTagsData(policyID: string | undefined) {
-    return allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
-}
 
 function hasDistanceCustomUnit(transaction: OnyxEntry<Transaction> | Partial<Transaction>): boolean {
     const type = transaction?.comment?.type;
@@ -474,16 +447,12 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         splitExpensesTotal,
         participants,
         pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        customUnitRateID,
-        waypoints,
         odometerStart,
         odometerEnd,
-        routes,
         type,
         count,
         rate,
         unit,
-        commentType,
     } = transactionParams;
     // transactionIDs are random, positive, 64-bit numeric strings.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
@@ -517,28 +486,14 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
     if (splitExpensesTotal) {
         commentJSON.splitExpensesTotal = splitExpensesTotal;
     }
-    if (waypoints) {
-        commentJSON.waypoints = waypoints;
-    }
-    if (commentType) {
-        commentJSON.type = commentType;
-    }
 
-    const isMapDistanceTransaction = !!pendingFields?.waypoints || existingTransaction?.comment?.waypoints?.waypoint0;
+    const isMapDistanceTransaction = !!pendingFields?.waypoints;
     const isManualDistanceTransaction = isManualDistanceRequest(existingTransaction);
     const isOdometerDistanceTransaction = isOdometerDistanceRequest(existingTransaction);
     if (isMapDistanceTransaction || isManualDistanceTransaction || isOdometerDistanceTransaction) {
-        // If customUnit is provided (e.g., for split expenses), use it directly
-        // Otherwise, build customUnit from distance parameter
-        if (customUnit) {
-            lodashSet(commentJSON, 'customUnit', customUnit);
-        } else {
-            // Set the distance unit, which comes from the policy distance unit or the P2P rate data
-            lodashSet(commentJSON, 'customUnit.distanceUnit', DistanceRequestUtils.getUpdatedDistanceUnit({transaction: existingTransaction, policy}));
-            lodashSet(commentJSON, 'customUnit.quantity', distance);
-            lodashSet(commentJSON, 'customUnit.customUnitRateID', customUnitRateID);
-            lodashSet(commentJSON, 'customUnit.name', existingTransaction?.comment?.customUnit?.name ?? CONST.CUSTOM_UNITS.NAME_DISTANCE);
-        }
+        // Set the distance unit, which comes from the policy distance unit or the P2P rate data
+        lodashSet(commentJSON, 'customUnit.distanceUnit', DistanceRequestUtils.getUpdatedDistanceUnit({transaction: existingTransaction, policy}));
+        lodashSet(commentJSON, 'customUnit.quantity', distance);
     }
 
     const isPerDiemTransaction = !!pendingFields?.subRates;
@@ -583,9 +538,6 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         cardID: existingTransaction?.cardID,
         cardName: existingTransaction?.cardName,
         cardNumber: existingTransaction?.cardNumber,
-        // Use conditional spread to avoid creating the key if it's undefined, which would break lodashHas checks.
-        ...(existingTransaction?.iouRequestType ? {iouRequestType: existingTransaction.iouRequestType} : {}),
-        routes,
     };
 }
 
@@ -692,14 +644,12 @@ function getUpdatedTransaction({
     isFromExpenseReport,
     shouldUpdateReceiptState = true,
     policy = undefined,
-    isDraftSplitTransaction = false,
 }: {
     transaction: Transaction;
     transactionChanges: TransactionChanges;
     isFromExpenseReport: boolean;
     shouldUpdateReceiptState?: boolean;
     policy?: OnyxEntry<Policy>;
-    isDraftSplitTransaction?: boolean;
 }): Transaction {
     const isUnReportedExpense = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -734,10 +684,7 @@ function getUpdatedTransaction({
 
     if (Object.hasOwn(transactionChanges, 'waypoints')) {
         updatedTransaction.modifiedWaypoints = transactionChanges.waypoints;
-        // For draft split transactions, we don't want to set isLoading to true as all the split transactions are in draft state
-        if (!isDraftSplitTransaction) {
-            updatedTransaction.isLoading = true;
-        }
+        updatedTransaction.isLoading = true;
         shouldStopSmartscan = true;
 
         if (!transactionChanges.routes?.route0?.geometry?.coordinates) {
@@ -770,10 +717,6 @@ function getUpdatedTransaction({
             updatedTransaction.modifiedAmount = updatedAmount;
             updatedTransaction.modifiedMerchant = updatedMerchant;
         }
-    }
-
-    if (Object.hasOwn(transactionChanges, 'routes')) {
-        updatedTransaction.routes = transactionChanges.routes;
     }
 
     if (Object.hasOwn(transactionChanges, 'customUnitRateID')) {
@@ -1811,9 +1754,13 @@ function getWaypointIndex(key: string): number {
 /**
  * Filters the waypoints which are valid and returns those
  */
-function getValidWaypoints(waypoints: WaypointCollection | undefined, reArrangeIndexes = false): WaypointCollection {
+function getValidWaypoints(waypoints: WaypointCollection | undefined, reArrangeIndexes = false, areWaypointsForGpsDistanceRequest = false): WaypointCollection {
     if (!waypoints) {
         return {};
+    }
+
+    if (areWaypointsForGpsDistanceRequest) {
+        return waypoints;
     }
 
     const sortedIndexes = Object.keys(waypoints)
@@ -2367,6 +2314,7 @@ function removeSettledAndApprovedTransactions(transactions: Array<OnyxEntry<Tran
  */
 
 function compareDuplicateTransactionFields(
+    policyTags: PolicyTagLists,
     reviewingTransaction: OnyxEntry<Transaction>,
     duplicates: Array<OnyxEntry<Transaction>> | undefined,
     report: OnyxEntry<Report>,
@@ -2489,9 +2437,6 @@ function compareDuplicateTransactionFields(
                     keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
                 }
             } else if (fieldName === 'tag') {
-                // TODO: Replace getPolicyTagsData with useOnyx hook (https://github.com/Expensify/App/issues/72719)
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const policyTags = report?.policyID ? getPolicyTagsData(report?.policyID) : {};
                 const isMultiLevelTags = isMultiLevelTagsPolicyUtils(policyTags);
                 if (isMultiLevelTags) {
                     if (areAllFieldsEqualForKey || !policy?.areTagsEnabled) {

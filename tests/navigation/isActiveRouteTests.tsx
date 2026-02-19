@@ -1,5 +1,5 @@
 import {afterEach, beforeEach, describe, expect, it, jest} from '@jest/globals';
-import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
+import type {getPathFromState as GetPathFromState} from '@react-navigation/native';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {Route} from '@src/ROUTES';
@@ -18,7 +18,14 @@ jest.mock('@libs/Navigation/navigationRef', () => {
     };
 });
 
-jest.mock('@libs/Navigation/helpers/getPathFromState', () => jest.fn());
+jest.mock('@react-navigation/native', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+    const actual = jest.requireActual('@react-navigation/native') as {getPathFromState: typeof GetPathFromState};
+    return {
+        ...actual,
+        getPathFromState: jest.fn<typeof GetPathFromState>(() => '/settings/profile?backTo=settings'),
+    };
+});
 
 describe('Navigation', () => {
     afterEach(() => {
@@ -32,10 +39,8 @@ describe('Navigation', () => {
             isReady: jest.Mock;
         };
 
-        (getPathFromState as jest.Mock).mockReturnValue('/settings/profile?backTo=settings');
-
         navigationRefMock.current.getCurrentRoute.mockReturnValue({name: 'test'});
-        navigationRefMock.getRootState.mockReturnValue({});
+        navigationRefMock.getRootState.mockReturnValue({} as ReturnType<typeof navigationRef.getRootState>);
         navigationRefMock.isReady.mockReturnValue(true);
     });
 

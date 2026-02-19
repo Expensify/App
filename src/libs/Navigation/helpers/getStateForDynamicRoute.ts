@@ -18,11 +18,9 @@ type NestedRoute = {
 type RouteNode = LeafRoute | NestedRoute;
 
 function getRouteNamesForDynamicRoute(dynamicRouteName: DynamicRouteSuffix): string[] | null {
-    const configEntries = Object.entries(normalizedConfigs);
-
     // Search through normalized configs to find matching path and extract navigation hierarchy
     // routeNames contains the sequence of screen/navigator names that should be present in the navigation state
-    for (const [, config] of configEntries) {
+    for (const [, config] of Object.entries(normalizedConfigs)) {
         if (config.path === dynamicRouteName) {
             return config.routeNames;
         }

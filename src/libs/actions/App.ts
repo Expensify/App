@@ -1,4 +1,5 @@
 // Issue - https://github.com/Expensify/App/issues/26719
+import {getPathFromState} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import type {AppStateStatus} from 'react-native';
 import {AppState} from 'react-native';
@@ -10,6 +11,7 @@ import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
+import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
@@ -17,7 +19,6 @@ import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/Se
 import {clearSoundAssetsCache} from '@libs/Sound';
 import {cancelAllSpans, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
-import getPathFromState from '@src/libs/Navigation/helpers/getPathFromState';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -138,6 +139,7 @@ const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.HYBRID_APP,
     ONYXKEYS.SHOULD_USE_STAGING_SERVER,
     ONYXKEYS.IS_DEBUG_MODE_ENABLED,
+    ONYXKEYS.COLLECTION.PASSKEY_CREDENTIALS,
 
     // Preserve IS_USING_IMPORTED_STATE so that when the app restarts (especially in HybridApp mode),
     // we know if we're in imported state mode and should skip API calls that would cause infinite loading
@@ -241,7 +243,7 @@ function saveCurrentPathBeforeBackground() {
             return;
         }
 
-        const currentPath = getPathFromState(currentState);
+        const currentPath = getPathFromState(currentState, linkingConfig.config);
 
         if (currentPath) {
             Log.info('Saving current path before background', false, {currentPath});
@@ -262,8 +264,13 @@ AppState.addEventListener('change', (nextAppState) => {
         cancelAllSpans();
     }
     if (nextAppState.match(/inactive|background/) && appState === 'active') {
+        Log.info('App going to background', false, {previousState: appState, nextState: nextAppState});
         Log.info('Flushing logs as app is going inactive', true, {}, true);
         saveCurrentPathBeforeBackground();
+    }
+
+    if (nextAppState === 'active' && appState?.match(/inactive|background/)) {
+        Log.info('App coming to foreground', false, {previousState: appState, nextState: nextAppState});
     }
     appState = nextAppState;
 });
@@ -289,6 +296,13 @@ function getPolicyParamsForOpenOrReconnect(): Promise<PolicyParamsForOpenOrRecon
     });
 }
 
+type OnyxDataForOpenOrReconnectKeys =
+    | typeof ONYXKEYS.COLLECTION.REPORT
+    | typeof ONYXKEYS.IS_LOADING_REPORT_DATA
+    | typeof ONYXKEYS.HAS_LOADED_APP
+    | typeof ONYXKEYS.IS_LOADING_APP
+    | typeof ONYXKEYS.LAST_FULL_RECONNECT_TIME;
+
 /**
  * Returns the Onyx data that is used for both the OpenApp and ReconnectApp API commands.
  */
@@ -297,9 +311,7 @@ function getOnyxDataForOpenOrReconnect(
     isFullReconnect = false,
     shouldKeepPublicRooms = false,
     allReportsWithDraftComments?: Record<string, string | undefined>,
-): OnyxData<
-    typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.IS_LOADING_REPORT_DATA | typeof ONYXKEYS.HAS_LOADED_APP | typeof ONYXKEYS.IS_LOADING_APP | typeof ONYXKEYS.LAST_FULL_RECONNECT_TIME
-> {
+): OnyxData<OnyxDataForOpenOrReconnectKeys> {
     const result: OnyxData<
         | typeof ONYXKEYS.IS_LOADING_REPORT_DATA
         | typeof ONYXKEYS.HAS_LOADED_APP
@@ -492,7 +504,7 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
  * because it will follow patterns that are not recommended so we can be sure we're not putting the app in a unusable
  * state because of race conditions between reconnectApp and other pusher updates being applied at the same time.
  */
-function finalReconnectAppAfterActivatingReliableUpdates(): Promise<void | OnyxTypes.Response> {
+function finalReconnectAppAfterActivatingReliableUpdates(): Promise<void | OnyxTypes.Response<OnyxDataForOpenOrReconnectKeys>> {
     console.debug(`[OnyxUpdates] Executing last reconnect app with promise`);
     return getPolicyParamsForOpenOrReconnect().then((policyParams) => {
         const params: ReconnectAppParams = {...policyParams};
@@ -511,7 +523,7 @@ function finalReconnectAppAfterActivatingReliableUpdates(): Promise<void | OnyxT
  * @param [updateIDFrom] the ID of the Onyx update that we want to start fetching from
  * @param [updateIDTo] the ID of the Onyx update that we want to fetch up to
  */
-function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo: number | string = 0): Promise<void | OnyxTypes.Response> {
+function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo: number | string = 0): Promise<void | OnyxTypes.Response<OnyxDataForOpenOrReconnectKeys>> {
     console.debug(`[OnyxUpdates] Fetching missing updates updateIDFrom: ${updateIDFrom} and updateIDTo: ${updateIDTo}`);
 
     const parameters: GetMissingOnyxMessagesParams = {
@@ -632,7 +644,7 @@ function savePolicyDraftByNewWorkspace({
         makeMeAdmin,
         policyName,
         policyID,
-        engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+        engagementChoice: introSelected?.choice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND ? CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE : CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
         currency,
         file,
         lastUsedPaymentMethod,

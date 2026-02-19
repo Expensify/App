@@ -93,7 +93,7 @@ function VerifyPage({route}: VerifyPageProps) {
                 total: 3,
             }}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_2FA_ROOT.getRoute(route.params?.backTo, route.params?.forwardTo))}
-            shouldEnableViewportOffsetTop
+            shouldEnableMaxHeight={false}
         >
             <ScrollView
                 ref={scrollViewRef}

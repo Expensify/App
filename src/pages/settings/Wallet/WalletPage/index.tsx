@@ -37,9 +37,10 @@ import {hasDisplayableAssignedCards, maskCardNumber} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
-import {getDescriptionForPolicyDomainCard, hasEligibleActiveAdminFromWorkspaces} from '@libs/PolicyUtils';
+import {getDescriptionForPolicyDomainCard, hasActiveAdminWorkspaces, hasEligibleActiveAdminFromWorkspaces} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
+import WalletTravelCVVSection from '@pages/settings/Wallet/TravelCVVPage/WalletTravelCVVSection';
 import {deletePaymentBankAccount, openPersonalBankAccountSetupView, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
 import {deletePersonalCard} from '@userActions/Card';
 import {close as closeModal} from '@userActions/Modal';
@@ -97,6 +98,7 @@ function WalletPage() {
     const [shouldShowShareButton, setShouldShowShareButton] = useState(false);
     const [shouldShowUnshareButton, setShouldShowUnshareButton] = useState(false);
     const kycWallRef = useContext(KYCWallContext);
+    const isCurrentUserPolicyAdmin = hasActiveAdminWorkspaces(currentUserLogin, allPolicies);
 
     const hasWallet = !isEmpty(userWallet);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
@@ -161,14 +163,17 @@ function WalletPage() {
 
     const onBankAccountRowPressed = ({accountData}: PaymentMethodPressHandlerParams) => {
         const accountPolicyID = accountData?.additionalData?.policyID;
+        const bankAccountID = accountData?.bankAccountID;
 
-        if (accountPolicyID) {
-            if (isAccountLocked) {
-                showLockedAccountModal();
-                return;
-            }
-            navigateToBankAccountRoute(accountPolicyID, ROUTES.SETTINGS_WALLET);
+        if (accountPolicyID && isAccountLocked) {
+            showLockedAccountModal();
+            return;
         }
+        if (accountPolicyID) {
+            navigateToBankAccountRoute({policyID: accountPolicyID, backTo: ROUTES.SETTINGS_WALLET});
+            return;
+        }
+        navigateToBankAccountRoute({bankAccountID, backTo: ROUTES.SETTINGS_WALLET});
     };
 
     const assignedCardPressed = ({event, cardData, icon, cardID}: CardPressHandlerParams) => {
@@ -192,6 +197,10 @@ function WalletPage() {
     const addBankAccountPressed = () => {
         if (isAccountLocked) {
             showLockedAccountModal();
+            return;
+        }
+        if (isCurrentUserPolicyAdmin) {
+            Navigation.navigate(ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE);
             return;
         }
         openPersonalBankAccountSetupView({});
@@ -552,14 +561,17 @@ function WalletPage() {
                                 titleStyles={styles.accountSettingsSectionTitle}
                             >
                                 {hasAssignedCard && (
-                                    <PaymentMethodList
-                                        shouldShowAddBankAccount={false}
-                                        shouldShowAssignedCards
-                                        onPress={assignedCardPressed}
-                                        threeDotsMenuItems={cardThreeDotsMenuItems}
-                                        style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
-                                        listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
-                                    />
+                                    <>
+                                        <PaymentMethodList
+                                            shouldShowAddBankAccount={false}
+                                            shouldShowAssignedCards
+                                            onPress={assignedCardPressed}
+                                            threeDotsMenuItems={cardThreeDotsMenuItems}
+                                            style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
+                                            listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                                        />
+                                        <WalletTravelCVVSection />
+                                    </>
                                 )}
                                 {isBetaEnabled(CONST.BETAS.PERSONAL_CARD_IMPORT) && (
                                     <View style={[hasAssignedCard ? styles.mt3 : styles.mt5, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
