@@ -39,12 +39,16 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isExtraSmallScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const [error, setError] = useState('');
+    const [statusAnnouncement, setStatusAnnouncement] = useState({id: 0, text: ''});
     const isFocused = useIsFocused();
 
     const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
 
     const isUserValidated = account?.validated ?? false;
     const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
+    const announceStatus = (message: string) => {
+        setStatusAnnouncement((previousStatus) => ({id: previousStatus.id + 1, text: message}));
+    };
 
     useEffect(() => {
         if (!isUserValidated) {
@@ -122,6 +126,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                                 Clipboard.setString(account?.recoveryCodes ?? '');
                                                 setError('');
                                                 setCodesAreCopied();
+                                                announceStatus(translate('common.copied'));
                                             }}
                                             styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
                                             textStyles={[styles.buttonMediumText]}
@@ -136,6 +141,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                                 localFileDownload('two-factor-auth-codes', account?.recoveryCodes ?? '', translate);
                                                 setError('');
                                                 setCodesAreCopied();
+                                                announceStatus(translate('fileDownload.success.title'));
                                             }}
                                             inline={false}
                                             styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
@@ -151,6 +157,15 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                     </Section>
                 )}
                 <FixedFooter style={[styles.mtAuto, styles.pt5]}>
+                    {!!statusAnnouncement.text && (
+                        <Text
+                            key={statusAnnouncement.id}
+                            accessibilityRole={CONST.ROLE.ALERT}
+                            style={styles.hiddenElementOutsideOfWindow}
+                        >
+                            {statusAnnouncement.text}
+                        </Text>
+                    )}
                     {!!error && (
                         <FormHelpMessage
                             isError
