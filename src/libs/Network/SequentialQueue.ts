@@ -1,6 +1,7 @@
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {setIsOpenAppFailureModalOpen} from '@libs/actions/isOpenAppFailureModalOpen';
+import {endSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {
     deleteRequestsByIndices as deletePersistedRequestsByIndices,
     endRequestAndRemoveFromQueue as endPersistedRequestAndRemoveFromQueue,
@@ -157,6 +158,19 @@ function process(): Promise<void> {
         persistWhenOngoing: requestToProcess.persistWhenOngoing ?? false,
     });
 
+    const commandSpanId = `${CONST.TELEMETRY.SPAN_SEQUENTIAL_QUEUE_COMMAND}_${requestToProcess.command}`;
+    // Skip tracking PusherPing — it fires every 30s as a heartbeat and would spam telemetry
+    const shouldTrackSpan = requestToProcess.command !== WRITE_COMMANDS.PUSHER_PING;
+    if (shouldTrackSpan) {
+        startSpan(commandSpanId, {
+            name: CONST.TELEMETRY.SPAN_SEQUENTIAL_QUEUE_COMMAND,
+            op: CONST.TELEMETRY.SPAN_SEQUENTIAL_QUEUE_COMMAND,
+            attributes: {
+                [CONST.TELEMETRY.ATTRIBUTE_COMMAND_NAME]: requestToProcess.command,
+            },
+        });
+    }
+
     // Set the current request to a promise awaiting its processing so that getCurrentRequest can be used to take some action after the current request has processed.
     currentRequestPromise = processWithMiddleware(requestToProcess, true)
         .then((response) => {
@@ -177,6 +191,7 @@ function process(): Promise<void> {
                 command: requestToProcess.command,
                 remainingRequests: getAllPersistedRequests().length,
             });
+            endSpan(commandSpanId);
             endPersistedRequestAndRemoveFromQueue(requestToProcess);
 
             if (requestToProcess.queueFlushedData) {
@@ -216,6 +231,7 @@ function process(): Promise<void> {
                     errorName: error.name,
                     errorMessage: error.message,
                 });
+                endSpan(commandSpanId);
                 endPersistedRequestAndRemoveFromQueue(requestToProcess);
                 sequentialQueueRequestThrottle.clear();
                 return process();
@@ -226,6 +242,7 @@ function process(): Promise<void> {
                     command: requestToProcess.command,
                 });
                 Onyx.update(requestToProcess.failureData ?? []);
+                endSpan(commandSpanId);
                 endPersistedRequestAndRemoveFromQueue(requestToProcess);
                 sequentialQueueRequestThrottle.clear();
                 return process();
@@ -236,6 +253,7 @@ function process(): Promise<void> {
                 errorMessage: error.message,
             });
 
+            endSpan(commandSpanId);
             rollbackOngoingPersistedRequest();
             return sequentialQueueRequestThrottle
                 .sleep(error, requestToProcess.command)
