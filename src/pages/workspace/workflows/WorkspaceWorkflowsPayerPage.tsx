@@ -42,6 +42,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList, PolicyEmployee} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import ConfirmModal from '@components/ConfirmModal';
 import WorkspaceWorkflowsPayerSuccessPage from './WorkspaceWorkflowsPayerSuccessPage';
 
 type WorkspaceWorkflowsPayerPageOnyxProps = {
@@ -74,9 +75,11 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const [selectedPayer, setSelectedPayer] = useState<string | undefined | null>(policy?.achAccount?.reimburser);
     const shouldShowSuccess = sharedBankAccountData?.shouldShowSuccess ?? false;
     const styles = useThemeStyles();
+    const {showConfirmModal} = useConfirmModal();
     const isLoading = sharedBankAccountData?.isLoading ?? false;
     const [isAlertVisible, setIsAlertVisible] = useState<boolean>(false);
-    const {showConfirmModal, closeModal} = useConfirmModal();
+    const [showValidationModal, setShowValidationModal] = useState<boolean>(false);
+    const [showErrorModal, setShowErrorModal] = useState<boolean>(false);
     const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
     const selectedPayerDetails = selectedPayer ? getPersonalDetailByEmail(selectedPayer) : undefined;
     const ownerDetails = policy?.owner ? getPersonalDetailByEmail(policy?.owner) : undefined;
@@ -199,54 +202,14 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             return;
         }
         if (isBankAccountPartiallySetup(bankAccountInfo?.accountData?.state)) {
-            showConfirmModal({
-                title: translate('workflowsPayerPage.shareBankAccount.validationTitle'),
-                success: true,
-                shouldShowCancelButton: false,
-                confirmText: translate('common.buttonConfirm'),
-                prompt: (
-                    <View style={[styles.renderHTML, styles.flexRow]}>
-                        <RenderHTML
-                            onLinkPress={() => {
-                                closeModal();
-                                navigateToBankAccountRoute({policyID, backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)});
-                            }}
-                            html={translate('workflowsPayerPage.shareBankAccount.validationDescription', {
-                                admin: selectedPayerDetails?.displayName ?? '',
-                            })}
-                        />
-                    </View>
-                ),
-            });
+            setShowValidationModal(true);
             return;
         }
         const isAccountAlreadySharedWithCurrentUser =
             bankAccountInfo?.accountData?.sharees && currentUserPersonalDetails?.login ? bankAccountInfo?.accountData?.sharees.includes(currentUserPersonalDetails?.login) : false;
         const isOwner = policy?.owner === currentUserPersonalDetails?.login;
         if (!isOwner && !isAccountAlreadyShared && !isAccountAlreadySharedWithCurrentUser) {
-            showConfirmModal({
-                title: translate('workflowsPayerPage.shareBankAccount.errorTitle'),
-                success: true,
-                shouldShowCancelButton: false,
-                confirmText: translate('common.buttonConfirm'),
-                prompt: (
-                    <View style={[styles.renderHTML, styles.flexRow]}>
-                        <RenderHTML
-                            onLinkPress={() => {
-                                if (!currentUserPersonalDetails?.accountID || !policy?.ownerAccountID) {
-                                    return;
-                                }
-                                closeModal();
-                                navigateToAndOpenReportWithAccountIDs([policy.ownerAccountID], currentUserPersonalDetails.accountID);
-                            }}
-                            html={translate('workflowsPayerPage.shareBankAccount.errorDescription', {
-                                admin: selectedPayerDetails?.displayName ?? '',
-                                owner: ownerDetails?.displayName ?? '',
-                            })}
-                        />
-                    </View>
-                ),
-            });
+            setShowErrorModal(true);
             return;
         }
         showConfirmModal({
@@ -350,6 +313,58 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                     )}
                 </ScreenWrapper>
             </FullPageNotFoundView>
+            <ConfirmModal
+                title={translate('workflowsPayerPage.shareBankAccount.validationTitle')}
+                isVisible={showValidationModal}
+                onConfirm={() => {
+                    setShowValidationModal(false);
+                }}
+                success
+                onCancel={() => setShowValidationModal(false)}
+                prompt={
+                    <View style={[styles.renderHTML, styles.flexRow]}>
+                        <RenderHTML
+                            onLinkPress={() => {
+                                setShowValidationModal(false);
+                                navigateToBankAccountRoute({policyID, backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)});
+                            }}
+                            html={translate('workflowsPayerPage.shareBankAccount.validationDescription', {
+                                admin: selectedPayerDetails?.displayName ?? '',
+                            })}
+                        />
+                    </View>
+                }
+                shouldShowCancelButton={false}
+                confirmText={translate('common.buttonConfirm')}
+            />
+            <ConfirmModal
+                title={translate('workflowsPayerPage.shareBankAccount.errorTitle')}
+                isVisible={showErrorModal}
+                onCancel={() => setShowErrorModal(false)}
+                onConfirm={() => {
+                    setShowErrorModal(false);
+                }}
+                success
+                prompt={
+                    <View style={[styles.renderHTML, styles.flexRow]}>
+                        <RenderHTML
+                            onLinkPress={() => {
+                                if (!currentUserPersonalDetails?.accountID || !policy?.ownerAccountID) {
+                                    return;
+                                }
+                                setShowErrorModal(false);
+                                navigateToAndOpenReportWithAccountIDs([policy.ownerAccountID], currentUserPersonalDetails.accountID);
+                            }}
+                            html={translate('workflowsPayerPage.shareBankAccount.errorDescription', {
+                                admin: selectedPayerDetails?.displayName ?? '',
+                                owner: ownerDetails?.displayName ?? '',
+                            })}
+                        />
+                    </View>
+                }
+                shouldShowCancelButton={false}
+                confirmText={translate('common.buttonConfirm')}
+            />
         </AccessOrNotFoundWrapper>
     );
 }
