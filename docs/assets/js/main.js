@@ -184,6 +184,26 @@ function clearSearchInput() {
 
 let aiAbortController = null;
 
+let turndownService = null;
+if (typeof TurndownService !== 'undefined') {
+    turndownService = new TurndownService({headingStyle: 'atx', bulletListMarker: '-'});
+    turndownService.escape = (text) => text;
+    turndownService.addRule('bold', {
+        filter: ['strong', 'b'],
+        replacement: (content) => '*' + content + '*',
+    });
+}
+
+function copyAIResponseToClipboard(button, content) {
+    const text = turndownService ? turndownService.turndown(content.innerHTML) : content.innerText;
+    navigator.clipboard.writeText(text).then(() => {
+        button.style.opacity = '0.5';
+        setTimeout(() => {
+            button.style.opacity = '1';
+        }, 150);
+    });
+}
+
 function askHelpsiteAI(query) {
     const aiContainer = document.getElementById('ai-answer-container');
     if (!aiContainer) {
