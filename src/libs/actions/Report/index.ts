@@ -1296,8 +1296,8 @@ function openReport(
 
     // Prepare guided setup data only when nvp_introSelected is set and onboarding is not completed
     // OldDot users will never have nvp_introSelected set, so they will not see guided setup messages
-    if (introSelected && !isOnboardingCompleted && !isInviteOnboardingComplete && !hasOpenReportWithGuidedSetupData) {
-        const {choice, inviteType} = introSelected;
+    if (deprecatedIntroSelected && !isOnboardingCompleted && !isInviteOnboardingComplete && !hasOpenReportWithGuidedSetupData) {
+        const {choice, inviteType} = deprecatedIntroSelected;
         const isInviteIOUorInvoice = inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU || inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE;
         const isInviteChoiceCorrect = choice === CONST.ONBOARDING_CHOICES.ADMIN || choice === CONST.ONBOARDING_CHOICES.SUBMIT || choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
 
@@ -1309,10 +1309,10 @@ function openReport(
             }
 
             const onboardingData = prepareOnboardingOnyxData({
-                introSelected,
+                introSelected: deprecatedIntroSelected,
                 engagementChoice: choice,
                 onboardingMessage,
-                companySize: introSelected?.companySize as OnboardingCompanySize,
+                companySize: deprecatedIntroSelected?.companySize as OnboardingCompanySize,
             });
 
             if (onboardingData) {
@@ -4473,6 +4473,7 @@ type CompleteOnboardingProps = {
     isInvitedAccountant?: boolean;
     onboardingPurposeSelected?: OnboardingPurpose;
     shouldWaitForRHPVariantInitialization?: boolean;
+    introSelected: OnyxEntry<IntroSelected>;
 };
 
 async function completeOnboarding({
@@ -4491,9 +4492,10 @@ async function completeOnboarding({
     isInvitedAccountant,
     onboardingPurposeSelected,
     shouldWaitForRHPVariantInitialization = false,
+    introSelected,
 }: CompleteOnboardingProps) {
     const onboardingData = prepareOnboardingOnyxData({
-        introSelected: deprecatedIntroSelected,
+        introSelected,
         engagementChoice,
         onboardingMessage,
         adminsChatReportID,
@@ -5857,21 +5859,39 @@ function updatePolicyIdForReportAndThreads(
     currentReportID: string,
     policyID: string,
     reportIDToThreadsReportIDsMap: Record<string, string[]>,
-    optimisticData: OnyxUpdate[],
-    failureData: OnyxUpdate[],
+    optimisticData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
+            | typeof ONYXKEYS.COLLECTION.NEXT_STEP
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+        >
+    >,
+    failureData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.NEXT_STEP
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+        >
+    >,
 ) {
-    const currentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`];
+    const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${currentReportID}` as const;
+    const currentReport = allReports?.[reportKey];
     const originalPolicyID = currentReport?.policyID;
 
     if (originalPolicyID) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`,
+            key: reportKey,
             value: {policyID},
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`,
+            key: reportKey,
             value: {policyID: originalPolicyID},
         });
     }
@@ -6434,7 +6454,12 @@ function changeReportPolicyAndInviteSubmitter({
         return;
     }
     const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(employeeList, false, false));
-    const {optimisticData, successData, failureData, membersChats} = buildAddMembersToWorkspaceOnyxData(
+    const {
+        optimisticData: optimisticAddMembersData,
+        successData: successAddMembersData,
+        failureData: failureAddMembersData,
+        membersChats,
+    } = buildAddMembersToWorkspaceOnyxData(
         {[submitterEmail]: report.ownerAccountID},
         policy,
         policyMemberAccountIDs,
@@ -6467,9 +6492,10 @@ function changeReportPolicyAndInviteSubmitter({
         undefined,
         membersChats.reportCreationData[submitterEmail],
     );
-    optimisticData.push(...optimisticChangePolicyData);
-    successData.push(...successChangePolicyData);
-    failureData.push(...failureChangePolicyData);
+
+    const optimisticData = [...optimisticAddMembersData, ...optimisticChangePolicyData];
+    const successData = [...successAddMembersData, ...successChangePolicyData];
+    const failureData = [...failureAddMembersData, ...failureChangePolicyData];
 
     const params = {
         reportID: report.reportID,

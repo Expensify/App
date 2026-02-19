@@ -60,7 +60,7 @@ function ListHeader<TItem extends ListItem>({
     return (
         <View
             style={[styles.userSelectNone, styles.peopleRow, styles.ph5, styles.pb3, headerStyle, styles.selectionListStickyHeader]}
-            accessibilityRole="header"
+            accessibilityRole={CONST.ROLE.HEADER}
         >
             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                 <Checkbox
@@ -76,6 +76,7 @@ function ListHeader<TItem extends ListItem>({
                     <PressableWithFeedback
                         style={[styles.userSelectNone, styles.flexRow, styles.alignItemsCenter]}
                         onPress={onSelectAll}
+                        sentryLabel={CONST.SENTRY_LABEL.SELECTION_LIST.LIST_HEADER_SELECT_ALL}
                         accessibilityLabel={translate('workspace.people.selectAll')}
                         accessibilityRole="button"
                         accessibilityState={{checked: dataDetails.allSelected, disabled: allDisabled}}

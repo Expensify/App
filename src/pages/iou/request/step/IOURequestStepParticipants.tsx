@@ -1,12 +1,12 @@
 import {useIsFocused} from '@react-navigation/core';
-import {createPoliciesSelector} from '@selectors/Policy';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
+import useMappedPolicies from '@hooks/useMappedPolicies';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setTransactionReport} from '@libs/actions/Transaction';
@@ -49,7 +49,7 @@ import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-const policySelector = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
+const policyMapper = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
     policy && {
         id: policy.id,
         name: policy.name,
@@ -60,8 +60,6 @@ const policySelector = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
         isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
         customUnits: policy.customUnits,
     };
-
-const policiesSelector = (policies: OnyxCollection<Policy>) => createPoliciesSelector(policies, policySelector);
 
 type IOURequestStepParticipantsProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS>;
@@ -78,7 +76,7 @@ function IOURequestStepParticipants({
     const isFocused = useIsFocused();
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`, {canBeMissing: true});
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: true});
+    const [allPolicies] = useMappedPolicies(policyMapper);
 
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const [transactions] = useOptimisticDraftTransactions(initialTransaction);
@@ -191,7 +189,7 @@ function IOURequestStepParticipants({
 
         const rateID = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
         for (const transaction of transactions) {
-            setCustomUnitRateID(transaction.transactionID, rateID);
+            setCustomUnitRateID(transaction.transactionID, rateID, transaction, activePolicy);
             const shouldSetParticipantAutoAssignment = iouType === CONST.IOU.TYPE.CREATE;
             setMoneyRequestParticipantsFromReport(
                 transaction.transactionID,
@@ -215,7 +213,19 @@ function IOURequestStepParticipants({
                 }
             });
         });
-    }, [selfDMReportID, transactions, action, initialTransactionID, waitForKeyboardDismiss, iouType, selfDMReport, currentUserPersonalDetails.accountID, isActivePolicyRequest, backTo]);
+    }, [
+        selfDMReportID,
+        transactions,
+        action,
+        initialTransactionID,
+        waitForKeyboardDismiss,
+        iouType,
+        selfDMReport,
+        currentUserPersonalDetails.accountID,
+        isActivePolicyRequest,
+        backTo,
+        activePolicy,
+    ]);
 
     const addParticipant = useCallback(
         (val: Participant[]) => {
@@ -252,11 +262,11 @@ function IOURequestStepParticipants({
 
                 if (transactions.length > 0) {
                     for (const transaction of transactions) {
-                        setCustomUnitRateID(transaction.transactionID, rateID);
+                        setCustomUnitRateID(transaction.transactionID, rateID, transaction, policy);
                     }
                 } else {
                     // Fallback to using initialTransactionID directly
-                    setCustomUnitRateID(initialTransactionID, rateID);
+                    setCustomUnitRateID(initialTransactionID, rateID, undefined, policy);
                 }
             }
 

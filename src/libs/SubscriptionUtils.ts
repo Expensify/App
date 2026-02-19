@@ -72,10 +72,10 @@ Onyx.connect({
     callback: (value) => (ownerBillingGraceEndPeriod = value),
 });
 
-let userBillingGraceEndPeriodCollection: OnyxCollection<BillingGraceEndPeriod>;
+let deprecatedUserBillingGraceEndPeriodCollection: OnyxCollection<BillingGraceEndPeriod>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,
-    callback: (value) => (userBillingGraceEndPeriodCollection = value),
+    callback: (value) => (deprecatedUserBillingGraceEndPeriodCollection = value),
     waitForCollectionCallback: true,
 });
 
@@ -452,7 +452,7 @@ function getFreeTrialText(
         return translate('subscription.billingBanner.preTrial.title');
     }
     if (isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial)) {
-        return translate('subscription.billingBanner.trialStarted.title', {numOfDays: calculateRemainingFreeTrialDays(lastDayFreeTrial)});
+        return translate('subscription.billingBanner.trialStarted.title', calculateRemainingFreeTrialDays(lastDayFreeTrial));
     }
 
     return undefined;
@@ -499,7 +499,10 @@ function doesUserHavePaymentCardAdded(userBillingFundID: number | undefined): bo
 /**
  * Whether the user's billable actions should be restricted.
  */
-function shouldRestrictUserBillableActions(policyID: string): boolean {
+function shouldRestrictUserBillableActions(
+    policyID: string,
+    userBillingGraceEndPeriodCollection: OnyxCollection<BillingGraceEndPeriod> = deprecatedUserBillingGraceEndPeriodCollection,
+): boolean {
     const currentDate = new Date();
 
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];

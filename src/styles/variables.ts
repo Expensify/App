@@ -270,6 +270,9 @@ export default {
 
     cardPreviewHeight: 148,
     cardPreviewWidth: 235,
+    cardScarfOverlayWidth: 264,
+    cardScarfOverlayHeight: 172,
+    cardScarfOverlayZIndex: 2,
     cardIconWidth: 40,
     cardIconHeight: 26,
     cardBorderRadius: 4,
@@ -409,4 +412,6 @@ export default {
     runOutOfTimeHeight: 200,
     humptyDumptyWidth: 245,
     humptyDumptyHeight: 165,
+    magnifyingGlassSpyMouthClosedWidth: 161,
+    magnifyingGlassSpyMouthClosedHeight: 169,
 } as const;

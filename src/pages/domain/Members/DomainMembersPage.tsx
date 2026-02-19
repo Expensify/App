@@ -135,25 +135,14 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 wrapperStyle={shouldUseNarrowLayout && styles.flexGrow1}
             />
         ) : (
-            <>
-                <Button
-                    success
-                    onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_MEMBER.getRoute(domainAccountID))}
-                    text={translate('domain.members.addMember')}
-                    icon={icons.Plus}
-                    innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
-                    style={shouldUseNarrowLayout ? [styles.flexGrow1, styles.mb3] : undefined}
-                />
-                <ButtonWithDropdownMenu
-                    success={false}
-                    onPress={() => null}
-                    shouldAlwaysShowDropdownMenu
-                    customText={translate('common.more')}
-                    options={[]}
-                    isSplitButton={false}
-                    wrapperStyle={styles.flexGrow0}
-                />
-            </>
+            <Button
+                success
+                onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_MEMBER.getRoute(domainAccountID))}
+                text={translate('domain.members.addMember')}
+                icon={icons.Plus}
+                innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
+                style={shouldUseNarrowLayout ? [styles.flexGrow1, styles.mb3] : undefined}
+            />
         );
     };
 
