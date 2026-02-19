@@ -17,7 +17,7 @@ function SelectionList<TItem extends ListItem>({ref, ...props}: SelectionListPro
             ref={ref}
             // Ignore the focus if it's caused by a touch event on mobile chrome.
             // For example, a long press will trigger a focus event on mobile chrome.
-            shouldIgnoreFocus={shouldIgnoreFocus || isScreenReaderEnabled === true || isScreenReaderEnabled === null}
+            shouldIgnoreFocus={shouldIgnoreFocus || isScreenReaderEnabled === true}
             shouldDebounceScrolling={shouldDebounceScrolling}
             shouldDisableHoverStyle={shouldDisableHoverStyle}
             setShouldDisableHoverStyle={setShouldDisableHoverStyle}

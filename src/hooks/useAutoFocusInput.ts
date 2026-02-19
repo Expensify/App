@@ -34,7 +34,6 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
     useEffect(() => {
         if (
             isScreenReaderEnabled === true ||
-            isScreenReaderEnabled === null ||
             !isScreenTransitionEnded ||
             !isInputInitialized ||
             !inputRef.current ||
