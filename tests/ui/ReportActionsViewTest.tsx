@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/naming-convention -- Test mock objects use snake_case Onyx keys and external library naming conventions */
 import type * as ReactNavigation from '@react-navigation/native';
 import {render, screen} from '@testing-library/react-native';
 import React from 'react';

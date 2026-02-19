@@ -317,32 +317,24 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${linkedAction?.childReportID}`, {canBeMissing: true});
 
-    // Concierge side-panel session state — shared with ReportActionsView (filtering) and ReportFooter (status indicators).
-    const isConciergeSidePanel = isInSidePanel && isConciergeChatReport(report, conciergeReportID);
+    const isConciergeSidePanel = useMemo(() => isInSidePanel && isConciergeChatReport(report, conciergeReportID), [isInSidePanel, report, conciergeReportID]);
 
-    // Detect panel reopen so we can reset the session even if the component didn't unmount
-    // (e.g. panel was quickly toggled before the close animation finished).
+    // Tracks which reportActionIDs existed when the current side-panel session started.
+    // Mutated during render (not in useEffect) so the value is available synchronously
+    // for the hasUserSentMessage memo below — avoids an extra render cycle.
     const {shouldHideSidePanel} = useSidePanelState();
     const prevShouldHideSidePanel = usePrevious(shouldHideSidePanel);
-
-    // Capture action IDs present when this side-panel session started.
-    // We compare IDs (not timestamps) because the server can update an offline message's
-    // `created` field on sync. Initialized once per mount; resets when the panel closes
-    // (component unmounts) or when a quick toggle is detected (explicit reset below).
     const sessionStartActionIDs = useRef<Set<string> | null>(null);
 
-    // Reset on panel reopen (was hidden → now visible) to start a fresh session.
-    if (isConciergeSidePanel && prevShouldHideSidePanel && !shouldHideSidePanel) {
+    const shouldResetSession = !isConciergeSidePanel || (prevShouldHideSidePanel && !shouldHideSidePanel);
+    if (shouldResetSession && sessionStartActionIDs.current !== null) {
         sessionStartActionIDs.current = null;
     }
 
-    // Initialize the set once per session — only when there are actions to capture.
     if (isConciergeSidePanel && sessionStartActionIDs.current === null && reportActions.length > 0) {
         sessionStartActionIDs.current = new Set(reportActions.map((action) => action.reportActionID));
     }
 
-    // True when at least one non-CREATED action exists that wasn't present at session start
-    // and was authored by the current user.
     const hasUserSentMessage = useMemo(() => {
         const startIDs = sessionStartActionIDs.current;
         if (!isConciergeSidePanel || !startIDs) {

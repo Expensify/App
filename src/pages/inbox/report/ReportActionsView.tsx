@@ -96,15 +96,12 @@ function ReportActionsView({
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const currentUserAccountID = currentUserPersonalDetails.accountID;
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isReportArchived = useReportIsArchived(report?.reportID);
     const canPerformWriteAction = useMemo(() => canUserPerformWriteAction(report, isReportArchived), [report, isReportArchived]);
 
     const [showFullHistory, setShowFullHistory] = useState(false);
 
-    // Reset showFullHistory when the session resets (hasUserSentMessage transitions true → false,
-    // e.g. the side panel was closed and reopened).
     const prevHasUserSentMessage = usePrevious(hasUserSentMessage);
     useEffect(() => {
         if (!prevHasUserSentMessage || hasUserSentMessage) {
@@ -268,7 +265,7 @@ function ReportActionsView({
     // Used as a cutoff so automated Concierge replies that arrived between panel-open
     // and the user's first message are also hidden.
     const firstUserMessageCreated = useMemo(() => {
-        if (!isConciergeSidePanel || !hasUserSentMessage || !sessionStartActionIDs) {
+        if (showConciergeSidePanelWelcome || !isConciergeSidePanel || !hasUserSentMessage || !sessionStartActionIDs) {
             return undefined;
         }
         return reportActions.reduce<string | undefined>((earliest, action) => {
@@ -277,41 +274,37 @@ function ReportActionsView({
             }
             return !earliest || action.created < earliest ? action.created : earliest;
         }, undefined);
-    }, [isConciergeSidePanel, hasUserSentMessage, sessionStartActionIDs, reportActions, currentUserAccountID]);
+    }, [showConciergeSidePanelWelcome, isConciergeSidePanel, hasUserSentMessage, sessionStartActionIDs, reportActions, currentUserAccountID]);
 
-    // Whether an action belongs to the current session (not in the session-start set
-    // and created on or after the user's first message).
     const isCurrentSessionAction = useCallback(
         (action: OnyxTypes.ReportAction): boolean => {
             if (!firstUserMessageCreated) {
                 return false;
             }
-            // Always include the CREATED action so the report welcome header is shown
-            // once the user sends their first message.
             return isCreatedAction(action) || (!sessionStartActionIDs?.has(action.reportActionID) && action.created >= firstUserMessageCreated);
         },
         [firstUserMessageCreated, sessionStartActionIDs],
     );
 
     const conciergeSidePanelFilteredVisibleActions = useMemo(() => {
+        if (showConciergeSidePanelWelcome) {
+            return [];
+        }
         if (!isConciergeSidePanel || showFullHistory) {
             return visibleReportActions;
         }
-        if (!hasUserSentMessage) {
-            return [];
-        }
         return visibleReportActions.filter(isCurrentSessionAction);
-    }, [isConciergeSidePanel, showFullHistory, hasUserSentMessage, visibleReportActions, isCurrentSessionAction]);
+    }, [showConciergeSidePanelWelcome, isConciergeSidePanel, showFullHistory, visibleReportActions, isCurrentSessionAction]);
 
     const conciergeSidePanelFilteredReportActions = useMemo(() => {
+        if (showConciergeSidePanelWelcome) {
+            return [];
+        }
         if (!isConciergeSidePanel || showFullHistory) {
             return reportActions;
         }
-        if (!hasUserSentMessage) {
-            return [];
-        }
         return reportActions.filter(isCurrentSessionAction);
-    }, [isConciergeSidePanel, showFullHistory, hasUserSentMessage, reportActions, isCurrentSessionAction]);
+    }, [showConciergeSidePanelWelcome, isConciergeSidePanel, showFullHistory, reportActions, isCurrentSessionAction]);
 
     const newestReportAction = useMemo(() => reportActions?.at(0), [reportActions]);
     const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);
