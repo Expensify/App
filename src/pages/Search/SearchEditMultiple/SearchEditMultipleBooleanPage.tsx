@@ -60,7 +60,7 @@ function SearchEditMultipleBooleanPage() {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
             testID={testID}
         >

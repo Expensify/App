@@ -249,7 +249,10 @@ function SearchEditMultiplePage() {
     ];
 
     return (
-        <ScreenWrapper testID="SearchEditMultiplePage">
+        <ScreenWrapper
+            testID="SearchEditMultiplePage"
+            includeSafeAreaPaddingBottom
+        >
             <HeaderWithBackButton
                 title={translate('search.bulkActions.editMultipleTitle')}
                 onBackButtonPress={Navigation.goBack}

@@ -51,7 +51,7 @@ function SearchEditMultipleTaxPage() {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
             testID="SearchEditMultipleTaxPage"
         >

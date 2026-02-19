@@ -62,7 +62,7 @@ function SearchEditMultipleTagPage() {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
             testID="SearchEditMultipleTagPage"
         >

@@ -42,7 +42,7 @@ function SearchEditMultipleDatePage() {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
             testID="SearchEditMultipleDatePage"
         >
