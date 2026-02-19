@@ -1,7 +1,7 @@
-import {useContext, useState} from 'react';
+import {useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchContext} from '@components/Search/SearchContext';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
@@ -59,6 +59,7 @@ function useSelectedTransactionsActions({
     policy,
     beginExportWithTemplate,
     isOnSearch,
+    onDeleteSelected,
 }: {
     report?: Report;
     reportActions: ReportAction[];
@@ -69,9 +70,11 @@ function useSelectedTransactionsActions({
     policy?: Policy;
     beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => void;
     isOnSearch?: boolean;
+    onDeleteSelected?: (handleDeleteTransactions: () => void, handleDeleteTransactionsWithNavigation: (backToRoute?: Route) => void) => void | Promise<void>;
 }) {
     const {isOffline} = useNetworkWithOfflineStatus();
-    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {selectedTransactionIDs, clearSelectedTransactions, currentSearchHash, selectedTransactions: selectedTransactionsMeta} = useSearchContext();
     const allTransactions = useAllTransactions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
@@ -251,7 +254,7 @@ function useSelectedTransactionsActions({
 
         const hasNoRejectedTransaction = selectedTransactionIDs.every((id) => !hasTransactionBeenRejected(allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + id] ?? []));
         const canRejectTransactions =
-            selectedTransactionsList.length > 0 && isMoneyRequestReport && !!session?.email && !!report && canRejectReportAction(session.email, report, policy) && hasNoRejectedTransaction;
+            selectedTransactionsList.length > 0 && isMoneyRequestReport && !!session?.email && !!report && canRejectReportAction(session.email, report) && hasNoRejectedTransaction;
         if (canRejectTransactions) {
             options.push({
                 text: translate('search.bulkActions.reject'),
@@ -391,7 +394,13 @@ function useSelectedTransactionsActions({
                 text: translate('common.delete'),
                 icon: expensifyIcons.Trashcan,
                 value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
-                onSelected: showDeleteModal,
+                onSelected: () => {
+                    if (onDeleteSelected) {
+                        onDeleteSelected(handleDeleteTransactions, handleDeleteTransactionsWithNavigation);
+                    } else {
+                        showDeleteModal();
+                    }
+                },
             });
         }
         computedOptions = options;

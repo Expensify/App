@@ -134,7 +134,9 @@ function IOURequestStartPage({
     const hasCurrentPolicyTimeTrackingEnabled = policy ? isTimeTrackingEnabled(policy) : false;
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
     const hasPolicyPerDiemRates = !isEmptyObject(perDiemCustomUnit?.rates);
-    const shouldShowPerDiemOption = iouType !== CONST.IOU.TYPE.SPLIT && ((!isFromGlobalCreate && hasCurrentPolicyPerDiemEnabled && hasPolicyPerDiemRates) || doesPerDiemPolicyExist);
+    const hasCurrentPolicyPerDiemWithRates = !isFromGlobalCreate && hasCurrentPolicyPerDiemEnabled && hasPolicyPerDiemRates;
+    const hasAnyPolicyPerDiemWithRates = (iouType === CONST.IOU.TYPE.TRACK || isFromGlobalCreate) && doesPerDiemPolicyExist;
+    const shouldShowPerDiemOption = iouType !== CONST.IOU.TYPE.SPLIT && (hasCurrentPolicyPerDiemWithRates || hasAnyPolicyPerDiemWithRates);
 
     const transactionRequestType = useMemo(() => {
         if (!transaction?.iouRequestType) {

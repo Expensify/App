@@ -1,10 +1,8 @@
-import {accountIDSelector} from '@selectors/Session';
 import {useCallback, useMemo} from 'react';
 import type {ReactNode} from 'react';
-import {hasEmptyReportsForPolicy, reportSummariesOnyxSelector} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import getEmptyArray from '@src/types/utils/getEmptyArray';
 import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
+import useHasEmptyReportsForPolicy from './useHasEmptyReportsForPolicy';
 import useOnyx from './useOnyx';
 
 type UseConditionalCreateEmptyReportConfirmationParams = {
@@ -40,15 +38,8 @@ export default function useConditionalCreateEmptyReportConfirmation({
     onCancel,
     shouldBypassConfirmation = false,
 }: UseConditionalCreateEmptyReportConfirmationParams): UseConditionalCreateEmptyReportConfirmationResult {
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
-    type ReportSummary = ReturnType<typeof reportSummariesOnyxSelector>[number];
-    const [reportSummaries = getEmptyArray<ReportSummary>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        canBeMissing: true,
-        selector: reportSummariesOnyxSelector,
-    });
+    const hasEmptyReport = useHasEmptyReportsForPolicy(policyID);
     const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED, {canBeMissing: true});
-
-    const hasEmptyReport = useMemo(() => hasEmptyReportsForPolicy(reportSummaries, policyID, accountID), [accountID, policyID, reportSummaries]);
     const shouldSkipConfirmation = useMemo(() => shouldBypassConfirmation || hasDismissedEmptyReportsConfirmation === true, [hasDismissedEmptyReportsConfirmation, shouldBypassConfirmation]);
 
     const handleReportCreationConfirmed = useCallback(

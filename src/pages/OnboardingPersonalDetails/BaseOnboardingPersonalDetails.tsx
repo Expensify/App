@@ -39,6 +39,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID, {canBeMissing: true});
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, {canBeMissing: true});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
@@ -80,6 +81,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 adminsChatReportID: onboardingAdminsChatReportID,
                 onboardingPolicyID,
                 shouldSkipTestDriveModal: !!onboardingPolicyID && !mergedAccountConciergeReportID,
+                introSelected,
             });
 
             setOnboardingAdminsChatReportID();
@@ -105,6 +107,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             isSmallScreenWidth,
             mergedAccountConciergeReportID,
             conciergeChatReportID,
+            introSelected,
         ],
     );
 
@@ -216,7 +219,12 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 shouldTrimValues={false}
             >
                 <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
-                    <Text style={styles.textHeadlineH1}>{translate('onboarding.whatsYourName')}</Text>
+                    <Text
+                        style={styles.textHeadlineH1}
+                        accessibilityRole={CONST.ROLE.HEADER}
+                    >
+                        {translate('onboarding.whatsYourName')}
+                    </Text>
                 </View>
                 <View style={styles.mb4}>
                     <InputWrapper

@@ -102,6 +102,7 @@ function AvatarWithImagePicker({
     enablePreview = false,
     editIcon,
     name = '',
+    sentryLabel,
 }: AvatarWithImagePickerProps) {
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Pencil', 'Upload']);
     const styles = useThemeStyles();
@@ -273,6 +274,7 @@ function AvatarWithImagePicker({
                                         disabledStyle={disabledStyle}
                                         editIconStyle={editIconStyle}
                                         name={name}
+                                        sentryLabel={sentryLabel}
                                     />
                                 </OfflineWithFeedback>
                                 <PopoverMenu
