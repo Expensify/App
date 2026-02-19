@@ -32,6 +32,9 @@ type WorkspaceResetBankAccountModalProps = {
 
     /** Method to set the state of isResettingBankAccount */
     setIsResettingBankAccount?: (isResetting: boolean) => void;
+
+    /** Method to navigate back after resetting bank account from wallet */
+    navigateAfterReset?: () => void;
 };
 
 function WorkspaceResetBankAccountModal({
@@ -42,6 +45,7 @@ function WorkspaceResetBankAccountModal({
     isNonUSDWorkspace,
     setShouldShowContinueSetupButton,
     setIsResettingBankAccount,
+    navigateAfterReset,
 }: WorkspaceResetBankAccountModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -103,6 +107,9 @@ function WorkspaceResetBankAccountModal({
             if (setUSDBankAccountStep) {
                 setUSDBankAccountStep(null);
             }
+        }
+        if (navigateAfterReset) {
+            navigateAfterReset();
         }
     };
 

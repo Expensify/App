@@ -184,6 +184,14 @@ function VerifiedBankAccountFlowEntryPoint({
         prepareNextStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
     };
 
+    const navigateAfterReset = () => {
+        // we want to navigate after reset if the user comes from settings/wallet or settings/wallet/bank-account-purpose
+        if (!backTo.includes(ROUTES.SETTINGS_WALLET)) {
+            return;
+        }
+        Navigation.goBack(ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE);
+    };
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -299,6 +307,7 @@ function VerifiedBankAccountFlowEntryPoint({
                     setNonUSDBankAccountStep={setNonUSDBankAccountStep}
                     setShouldShowContinueSetupButton={setShouldShowContinueSetupButton}
                     setIsResettingBankAccount={setIsResettingBankAccount}
+                    navigateAfterReset={navigateAfterReset}
                 />
             )}
         </ScreenWrapper>
