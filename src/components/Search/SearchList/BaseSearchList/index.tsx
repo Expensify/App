@@ -1,13 +1,12 @@
 import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import Animated from 'react-native-reanimated';
 import type {ExtendedTargetedEvent, SearchListItem} from '@components/SelectionListWithSections/types';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {isMobileChrome} from '@libs/Browser';
-import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import CONST from '@src/CONST';
 import type BaseSearchListProps from './types';
 
@@ -33,17 +32,7 @@ function BaseSearchList({
     selectedTransactions,
     customCardNames,
 }: BaseSearchListProps) {
-    const hasKeyBeenPressed = useRef(false);
     const isFocused = useIsFocused();
-
-    const setHasKeyBeenPressed = useCallback(() => {
-        if (hasKeyBeenPressed.current) {
-            return;
-        }
-        // We need to track whether a key has been pressed to enable focus syncing only if a key has been pressed.
-        // This is to avoid the default behavior of web showing blue border on click of items after a page refresh.
-        hasKeyBeenPressed.current = true;
-    }, []);
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: -1,
@@ -52,7 +41,6 @@ function BaseSearchList({
         onFocusedIndexChange: (index: number) => {
             scrollToIndex?.(index);
         },
-        setHasKeyBeenPressed,
         isFocused,
         captureOnInputs: false,
     });
@@ -97,12 +85,6 @@ function BaseSearchList({
         isActive: isFocused && focusedIndex >= 0,
         shouldStopPropagation: true,
     });
-
-    useEffect(() => {
-        addKeyDownPressListener(setHasKeyBeenPressed);
-
-        return () => removeKeyDownPressListener(setHasKeyBeenPressed);
-    }, [setHasKeyBeenPressed]);
 
     const extraData = useMemo(
         () => [columns, newTransactions, selectedTransactions, customCardNames],
