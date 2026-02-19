@@ -860,9 +860,6 @@ function ReportActionsList({
                     style={styles.overscrollBehaviorContain}
                     data={sortedVisibleReportActions}
                     renderItem={renderItem}
-                    maxToRenderPerBatch={5}
-                    updateCellsBatchingPeriod={100}
-                    windowSize={7}
                     renderScrollComponent={renderActionSheetAwareScrollView}
                     contentContainerStyle={[styles.chatContentScrollView, shouldFocusToTopOnMount ? styles.justifyContentEnd : undefined]}
                     shouldHideContent={shouldScrollToEndAfterLayout}
