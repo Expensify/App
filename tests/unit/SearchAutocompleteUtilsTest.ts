@@ -1,5 +1,5 @@
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
-import {parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
+import {getTrimmedUserSearchQueryPreservingComma, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
 import createSharedValueMock from '../utils/createSharedValueMock';
 
 describe('SearchAutocompleteUtils', () => {
@@ -272,18 +272,18 @@ describe('SearchAutocompleteUtils', () => {
             ]);
         });
 
-        it('should not highlight TOTAL filter with amounts exceeding 8 digits', () => {
-            const input = 'total:999999999';
+        it('should not highlight TOTAL filter with amounts exceeding AMOUNT_MAX_LENGTH digits', () => {
+            const input = 'total:99999999999';
 
             const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
 
-            // Total amounts with more than 8 digits fail validation
+            // Total amounts with more than AMOUNT_MAX_LENGTH digits fail validation
             expect(result).toEqual([]);
         });
 
         describe('view filter highlighting', () => {
             it('highlights valid view values', () => {
-                const validViews = ['table', 'bar', 'line', 'pie'];
+                const validViews = ['table', 'bar'];
 
                 for (const view of validViews) {
                     const input = `view:${view}`;
@@ -303,14 +303,14 @@ describe('SearchAutocompleteUtils', () => {
             });
 
             it('highlights view in complex query with other filters', () => {
-                const input = 'type:expense view:line category:Travel';
+                const input = 'type:expense view:bar category:Travel';
 
                 const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
 
                 expect(result).toEqual([
                     {start: 5, type: 'mention-user', length: 7}, // type:expense
-                    {start: 18, type: 'mention-user', length: 4}, // view:line
-                    {start: 32, type: 'mention-user', length: 6}, // category:Travel
+                    {start: 18, type: 'mention-user', length: 3}, // view:bar
+                    {start: 31, type: 'mention-user', length: 6}, // category:Travel
                 ]);
             });
 
@@ -337,22 +337,84 @@ describe('SearchAutocompleteUtils', () => {
 
                 expect(result).toEqual([{start: 5, type: 'mention-user', length: 3}]);
             });
+        });
+    });
 
-            it('highlights view:line in query', () => {
-                const input = 'view:line';
+    describe('getTrimmedUserSearchQueryPreservingComma', () => {
+        it('should preserve comma-separated values for "to" field when user types comma', () => {
+            // User typed "to:user1," and is now selecting user2
+            const result = getTrimmedUserSearchQueryPreservingComma('to:user1,', 'to');
+            expect(result).toBe('to:user1,');
+        });
 
-                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
+        it('should return field prefix only when no comma is present', () => {
+            // User typed "to:user1" and is selecting user2 (should replace)
+            const result = getTrimmedUserSearchQueryPreservingComma('to:user1', 'to');
+            expect(result).toBe('to:');
+        });
 
-                expect(result).toEqual([{start: 5, type: 'mention-user', length: 4}]);
-            });
+        it('should preserve multiple comma-separated values', () => {
+            // User typed "to:user1,user2," and is selecting user3
+            const result = getTrimmedUserSearchQueryPreservingComma('to:user1,user2,', 'to');
+            expect(result).toBe('to:user1,user2,');
+        });
 
-            it('highlights view:pie in query', () => {
-                const input = 'view:pie';
+        it('should work with "from" field', () => {
+            const result = getTrimmedUserSearchQueryPreservingComma('from:john@example.com,', 'from');
+            expect(result).toBe('from:john@example.com,');
+        });
 
-                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
+        it('should work with "assignee" field', () => {
+            const result = getTrimmedUserSearchQueryPreservingComma('assignee:user1,', 'assignee');
+            expect(result).toBe('assignee:user1,');
+        });
 
-                expect(result).toEqual([{start: 5, type: 'mention-user', length: 3}]);
-            });
+        it('should work with "payer" field', () => {
+            const result = getTrimmedUserSearchQueryPreservingComma('payer:user1,', 'payer');
+            expect(result).toBe('payer:user1,');
+        });
+
+        it('should work with "exporter" field', () => {
+            const result = getTrimmedUserSearchQueryPreservingComma('exporter:user1,', 'exporter');
+            expect(result).toBe('exporter:user1,');
+        });
+
+        it('should work with "attendee" field', () => {
+            const result = getTrimmedUserSearchQueryPreservingComma('attendee:user1,', 'attendee');
+            expect(result).toBe('attendee:user1,');
+        });
+
+        it('should not preserve commas for non-name fields like "category"', () => {
+            // Category is not a name field, so commas should not be preserved
+            const result = getTrimmedUserSearchQueryPreservingComma('category:travel,', 'category');
+            expect(result).toBe('category:');
+        });
+
+        it('should handle case-insensitive field matching', () => {
+            const result = getTrimmedUserSearchQueryPreservingComma('TO:user1,', 'to');
+            expect(result).toBe('TO:user1,');
+        });
+
+        it('should handle queries with multiple fields and preserve comma in last name field', () => {
+            const result = getTrimmedUserSearchQueryPreservingComma('type:expense to:user1,', 'to');
+            expect(result).toBe('type:expense to:user1,');
+        });
+
+        it('should return query without autocompleted part when field key is not found', () => {
+            // When the field key is not in the query, it should fallback
+            const result = getTrimmedUserSearchQueryPreservingComma('some random text', 'to');
+            expect(result).toBe('some random text');
+        });
+
+        it('should handle undefined fieldKey by returning query without autocompleted part', () => {
+            const result = getTrimmedUserSearchQueryPreservingComma('to:user1', undefined);
+            expect(result).toBe('to:');
+        });
+
+        it('should handle partial input while typing after comma', () => {
+            // User typed "to:user1,joh" - should preserve "to:user1,"
+            const result = getTrimmedUserSearchQueryPreservingComma('to:user1,joh', 'to');
+            expect(result).toBe('to:user1,');
         });
     });
 });

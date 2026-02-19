@@ -1,11 +1,11 @@
-import {useContext, useState} from 'react';
+import {useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchContext} from '@components/Search/SearchContext';
-import {initSplitExpense} from '@libs/actions/IOU';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
+import {initSplitExpense} from '@libs/actions/IOU/Split';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {exportReportToCSV} from '@libs/actions/Report';
 import {getExportTemplates, handlePreventSearchAPI} from '@libs/actions/Search';
@@ -59,6 +59,7 @@ function useSelectedTransactionsActions({
     policy,
     beginExportWithTemplate,
     isOnSearch,
+    onDeleteSelected,
 }: {
     report?: Report;
     reportActions: ReportAction[];
@@ -69,9 +70,11 @@ function useSelectedTransactionsActions({
     policy?: Policy;
     beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => void;
     isOnSearch?: boolean;
+    onDeleteSelected?: (handleDeleteTransactions: () => void, handleDeleteTransactionsWithNavigation: (backToRoute?: Route) => void) => void | Promise<void>;
 }) {
     const {isOffline} = useNetworkWithOfflineStatus();
-    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {selectedTransactionIDs, clearSelectedTransactions, currentSearchHash, selectedTransactions: selectedTransactionsMeta} = useSearchContext();
     const allTransactions = useAllTransactions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
@@ -97,17 +100,16 @@ function useSelectedTransactionsActions({
     const knownOwnerIDs = new Set<number>();
     let hasUnknownOwner = false;
 
-    for (const selectedTransactionInfo of Object.values(selectedTransactionsMeta ?? {})) {
-        const ownerAccountID = selectedTransactionInfo?.ownerAccountID;
-        if (typeof ownerAccountID === 'number') {
-            knownOwnerIDs.add(ownerAccountID);
-        } else {
-            hasUnknownOwner = true;
-        }
-    }
-
     for (const selectedTransaction of selectedTransactionsList) {
+        const transactionID = selectedTransaction?.transactionID;
         const reportID = selectedTransaction?.reportID;
+
+        const metadataOwnerID = selectedTransactionsMeta?.[transactionID]?.ownerAccountID;
+        if (typeof metadataOwnerID === 'number') {
+            knownOwnerIDs.add(metadataOwnerID);
+            continue;
+        }
+
         if (!reportID || reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
             hasUnknownOwner = true;
             continue;
@@ -252,7 +254,7 @@ function useSelectedTransactionsActions({
 
         const hasNoRejectedTransaction = selectedTransactionIDs.every((id) => !hasTransactionBeenRejected(allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + id] ?? []));
         const canRejectTransactions =
-            selectedTransactionsList.length > 0 && isMoneyRequestReport && !!session?.email && !!report && canRejectReportAction(session.email, report, policy) && hasNoRejectedTransaction;
+            selectedTransactionsList.length > 0 && isMoneyRequestReport && !!session?.email && !!report && canRejectReportAction(session.email, report) && hasNoRejectedTransaction;
         if (canRejectTransactions) {
             options.push({
                 text: translate('search.bulkActions.reject'),
@@ -392,7 +394,13 @@ function useSelectedTransactionsActions({
                 text: translate('common.delete'),
                 icon: expensifyIcons.Trashcan,
                 value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
-                onSelected: showDeleteModal,
+                onSelected: () => {
+                    if (onDeleteSelected) {
+                        onDeleteSelected(handleDeleteTransactions, handleDeleteTransactionsWithNavigation);
+                    } else {
+                        showDeleteModal();
+                    }
+                },
             });
         }
         computedOptions = options;

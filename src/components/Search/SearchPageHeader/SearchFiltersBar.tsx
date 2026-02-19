@@ -6,7 +6,7 @@ import {FlatList, View} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {PaymentMethodType} from '@components/KYCWall/types';
@@ -24,8 +24,8 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import type {BankAccountMenuItem, SearchDateFilterKeys, SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
 import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
-import useCurrencyList from '@hooks/useCurrencyList';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyList';
+import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import useFilterFormValues from '@hooks/useFilterFormValues';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -33,32 +33,43 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSortedActiveAdminPolicies from '@hooks/useSortedActiveAdminPolicies';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceList from '@hooks/useWorkspaceList';
 import {close} from '@libs/actions/Modal';
 import {handleBulkPayItemSelected, updateAdvancedFilters} from '@libs/actions/Search';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getActiveAdminWorkspaces, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {isExpenseReport} from '@libs/ReportUtils';
 import {buildQueryStringFromFilterFormValues, getQueryWithUpdatedValues, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
-import {getDatePresets, getFeedOptions, getGroupByOptions, getGroupCurrencyOptions, getHasOptions, getStatusOptions, getTypeOptions, getWithdrawalTypeOptions} from '@libs/SearchUIUtils';
+import {
+    filterValidHasValues,
+    getDatePresets,
+    getFeedOptions,
+    getGroupByOptions,
+    getGroupCurrencyOptions,
+    getHasOptions,
+    getStatusOptions,
+    getTypeOptions,
+    getViewOptions,
+    getWithdrawalTypeOptions,
+} from '@libs/SearchUIUtils';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {hasMultipleOutputCurrenciesSelector} from '@src/selectors/Policy';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS, {AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {Policy} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import type {SearchHeaderOptionValue} from './SearchPageHeader';
 
-type FilterItem = {
+type FilterItem = WithSentryLabel & {
     label: string;
     PopoverComponent: (props: PopoverComponentProps) => ReactNode;
     value: string | string[] | null;
@@ -88,13 +99,13 @@ function SearchFiltersBar({
     const currentPolicy = usePolicy(currentSelectedPolicyID);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
-    // type, groupBy and status values are not guaranteed to respect the ts type as they come from user input
-    const {type: unsafeType, groupBy: unsafeGroupBy, status: unsafeStatus, flatFilters} = queryJSON;
+    // type, groupBy, status, and view values are not guaranteed to respect the ts type as they come from user input
+    const {type: unsafeType, groupBy: unsafeGroupBy, status: unsafeStatus, view: unsafeView, flatFilters} = queryJSON;
     const [selectedIOUReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentSelectedReportID}`, {canBeMissing: true});
     const isCurrentSelectedExpenseReport = isExpenseReport(currentSelectedReportID);
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate, localeCompare} = useLocalize();
+    const {translate} = useLocalize();
     const kycWallRef = useContext(KYCWallContext);
 
     const {isOffline} = useNetwork();
@@ -102,25 +113,21 @@ function SearchFiltersBar({
     const filterFormValues = useFilterFormValues(queryJSON);
     const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
     const {selectedTransactions, selectAllMatchingItems, areAllMatchingItemsSelected, showSelectAllMatchingItems, shouldShowFiltersBarLoading, currentSearchResults} = useSearchContext();
-    const {currencyList, getCurrencySymbol} = useCurrencyList();
+    const {currencyList} = useCurrencyListState();
+    const {getCurrencySymbol} = useCurrencyListActions();
 
     const [email] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
-    const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true});
+    const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [hasMultipleOutputCurrency] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasMultipleOutputCurrenciesSelector, canBeMissing: true});
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
+    const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter', 'Columns']);
-    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
-    // Get workspace data for the filter
-    const {sections: workspaces, shouldShowSearchInput: shouldShowWorkspaceSearchInput} = useWorkspaceList({
-        policies: allPolicies,
-        currentUserLogin: email,
-        shouldShowPendingDeletePolicy: false,
-        selectedPolicyIDs: undefined,
-        searchTerm: '',
-        localeCompare,
-    });
+    const {typeFiltersKeys, workspaces, shouldShowWorkspaceSearchInput} = useAdvancedSearchFilters();
 
     const shouldDisplayWorkspaceFilter = useMemo(() => workspaces.some((section) => section.data.length > 1), [workspaces]);
 
@@ -136,11 +143,6 @@ function SearchFiltersBar({
     }, [workspaces]);
 
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions ?? {}), [selectedTransactions]);
-    const hasMultipleOutputCurrency = useMemo(() => {
-        const policies = Object.values(allPolicies ?? {}).filter((policy): policy is Policy => isPaidGroupPolicy(policy));
-        const outputCurrency = policies.at(0)?.outputCurrency;
-        return policies.some((policy) => policy.outputCurrency !== outputCurrency);
-    }, [allPolicies]);
 
     // Get selected workspace options from filterFormValues or queryJSON
     const selectedWorkspaceOptions = useMemo(() => {
@@ -188,6 +190,12 @@ function SearchFiltersBar({
         return [options, value];
     }, [translate, unsafeGroupBy]);
 
+    const [viewOptions, viewValue] = useMemo(() => {
+        const options = getViewOptions(translate);
+        const value = options.find((option) => option.value === unsafeView) ?? options.at(0) ?? null;
+        return [options, value];
+    }, [translate, unsafeView]);
+
     const [groupCurrencyOptions, groupCurrency] = useMemo(() => {
         const options = getGroupCurrencyOptions(currencyList, getCurrencySymbol);
         const value = options.find((option) => option.value === searchAdvancedFiltersForm.groupCurrency) ?? null;
@@ -196,10 +204,10 @@ function SearchFiltersBar({
 
     const [feedOptions, feed] = useMemo(() => {
         const feedFilterValues = flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED)?.filters?.map((filter) => filter.value);
-        const options = getFeedOptions(allFeeds, nonPersonalAndWorkspaceCards);
+        const options = getFeedOptions(allFeeds, personalAndWorkspaceCards, translate, feedKeysWithCards);
         const value = feedFilterValues ? options.filter((option) => feedFilterValues.includes(option.value)) : [];
         return [options, value];
-    }, [flatFilters, allFeeds, nonPersonalAndWorkspaceCards]);
+    }, [flatFilters, allFeeds, personalAndWorkspaceCards, translate, feedKeysWithCards]);
 
     const [statusOptions, status] = useMemo(() => {
         const options = type ? getStatusOptions(translate, type.value) : [];
@@ -284,8 +292,7 @@ function SearchFiltersBar({
         const value = options.find((option) => option.value === searchAdvancedFiltersForm.withdrawalType) ?? null;
         return [options, value];
     }, [translate, searchAdvancedFiltersForm.withdrawalType]);
-    const {accountID} = useCurrentUserPersonalDetails();
-    const activeAdminPolicies = getActiveAdminWorkspaces(allPolicies, accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
+    const activeAdminPolicies = useSortedActiveAdminPolicies();
 
     const updateFilterForm = useCallback(
         (values: Partial<SearchAdvancedFiltersForm>) => {
@@ -296,8 +303,10 @@ function SearchFiltersBar({
 
             // If the type has changed, reset the status so we dont have an invalid status selected
             if (updatedFilterFormValues.type !== searchAdvancedFiltersForm.type) {
-                updatedFilterFormValues.status = CONST.SEARCH.STATUS.EXPENSE.ALL;
                 updatedFilterFormValues.columns = [];
+                updatedFilterFormValues.status = CONST.SEARCH.STATUS.EXPENSE.ALL;
+                // Filter out invalid "has" values for the new type
+                updatedFilterFormValues.has = filterValidHasValues(updatedFilterFormValues.has, updatedFilterFormValues.type, translate);
             }
 
             if (updatedFilterFormValues.groupBy !== searchAdvancedFiltersForm.groupBy) {
@@ -323,7 +332,7 @@ function SearchFiltersBar({
                 Navigation.setParams({q: queryString, rawQuery: undefined});
             });
         },
-        [searchAdvancedFiltersForm, queryJSON.sortBy, queryJSON.sortOrder, queryJSON.limit],
+        [searchAdvancedFiltersForm, queryJSON.sortBy, queryJSON.sortOrder, queryJSON.limit, translate],
     );
 
     const openAdvancedFilters = useCallback(() => {
@@ -371,6 +380,21 @@ function SearchFiltersBar({
             );
         },
         [translate, groupByOptions, groupBy, updateFilterForm],
+    );
+
+    const viewComponent = useCallback(
+        ({closeOverlay}: PopoverComponentProps) => {
+            return (
+                <SingleSelectPopup
+                    label={translate('search.view.label')}
+                    items={viewOptions}
+                    value={viewValue}
+                    closeOverlay={closeOverlay}
+                    onChange={(item) => updateFilterForm({view: item?.value ?? CONST.SEARCH.VIEW.TABLE})}
+                />
+            );
+        },
+        [translate, viewOptions, viewValue, updateFilterForm],
     );
 
     const groupCurrencyComponent = useCallback(
@@ -534,8 +558,6 @@ function SearchFiltersBar({
 
     const workspaceValue = useMemo(() => selectedWorkspaceOptions.map((option) => option.text), [selectedWorkspaceOptions]);
 
-    const {typeFiltersKeys} = useAdvancedSearchFilters();
-
     /**
      * Builds the list of all filter chips to be displayed in the
      * filter bar
@@ -557,6 +579,7 @@ function SearchFiltersBar({
                 PopoverComponent: typeComponent,
                 value: type?.text ?? null,
                 filterKey: FILTER_KEYS.TYPE,
+                sentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_TYPE,
             },
             ...(shouldDisplayGroupByFilter
                 ? [
@@ -565,6 +588,7 @@ function SearchFiltersBar({
                           PopoverComponent: groupByComponent,
                           value: groupBy?.text ?? null,
                           filterKey: FILTER_KEYS.GROUP_BY,
+                          sentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_GROUP_BY,
                       },
                   ]
                 : []),
@@ -575,6 +599,7 @@ function SearchFiltersBar({
                           PopoverComponent: groupCurrencyComponent,
                           value: groupCurrency?.value ?? null,
                           filterKey: FILTER_KEYS.GROUP_CURRENCY,
+                          sentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_GROUP_CURRENCY,
                       },
                   ]
                 : []),
@@ -585,6 +610,7 @@ function SearchFiltersBar({
                           PopoverComponent: feedComponent,
                           value: feed.map((option) => option.text),
                           filterKey: FILTER_KEYS.FEED,
+                          sentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_FEED,
                       },
                   ]
                 : []),
@@ -595,6 +621,7 @@ function SearchFiltersBar({
                           PopoverComponent: postedPickerComponent,
                           value: displayPosted,
                           filterKey: FILTER_KEYS.POSTED_ON,
+                          sentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POSTED,
                       },
                   ]
                 : []),
@@ -605,6 +632,7 @@ function SearchFiltersBar({
                           PopoverComponent: withdrawalTypeComponent,
                           value: withdrawalType?.text ?? null,
                           filterKey: FILTER_KEYS.WITHDRAWAL_TYPE,
+                          sentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_WITHDRAWAL_TYPE,
                       },
                   ]
                 : []),
@@ -615,6 +643,7 @@ function SearchFiltersBar({
                           PopoverComponent: withdrawnPickerComponent,
                           value: displayWithdrawn,
                           filterKey: FILTER_KEYS.WITHDRAWN_ON,
+                          sentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_WITHDRAWN,
                       },
                   ]
                 : []),
@@ -623,6 +652,7 @@ function SearchFiltersBar({
                 PopoverComponent: statusComponent,
                 value: status.map((option) => option.text),
                 filterKey: FILTER_KEYS.STATUS,
+                sentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_STATUS,
             },
             ...(type?.value === CONST.SEARCH.DATA_TYPES.CHAT
                 ? [
@@ -631,6 +661,7 @@ function SearchFiltersBar({
                           PopoverComponent: hasComponent,
                           value: has.map((option) => option.text),
                           filterKey: FILTER_KEYS.HAS,
+                          sentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_HAS,
                       },
                   ]
                 : []),
@@ -641,6 +672,7 @@ function SearchFiltersBar({
                           PopoverComponent: isComponent,
                           value: is.map((option) => option.text),
                           filterKey: FILTER_KEYS.IS,
+                          sentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_IS,
                       },
                   ]
                 : []),
@@ -649,12 +681,14 @@ function SearchFiltersBar({
                 PopoverComponent: datePickerComponent,
                 value: displayDate,
                 filterKey: FILTER_KEYS.DATE_ON,
+                sentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_DATE,
             },
             {
                 label: translate('common.from'),
                 PopoverComponent: userPickerComponent,
                 value: fromValue,
                 filterKey: FILTER_KEYS.FROM,
+                sentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_FROM,
             },
             ...(shouldDisplayWorkspaceFilter
                 ? [
@@ -663,6 +697,18 @@ function SearchFiltersBar({
                           PopoverComponent: workspaceComponent,
                           value: workspaceValue,
                           filterKey: FILTER_KEYS.POLICY_ID,
+                          sentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_WORKSPACE,
+                      },
+                  ]
+                : []),
+            ...(shouldDisplayGroupByFilter
+                ? [
+                      {
+                          label: translate('search.view.label'),
+                          PopoverComponent: viewComponent,
+                          value: viewValue?.text ?? null,
+                          filterKey: FILTER_KEYS.VIEW,
+                          sentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_VIEW,
                       },
                   ]
                 : []),
@@ -674,6 +720,7 @@ function SearchFiltersBar({
         type?.text,
         groupBy?.value,
         groupBy?.text,
+        viewValue?.text,
         groupCurrency?.value,
         withdrawalType?.text,
         displayDate,
@@ -693,6 +740,7 @@ function SearchFiltersBar({
         isComponent,
         typeComponent,
         groupByComponent,
+        viewComponent,
         groupCurrencyComponent,
         statusComponent,
         datePickerComponent,
@@ -726,14 +774,12 @@ function SearchFiltersBar({
         );
 
         const hiddenFilters = advancedSearchFiltersKeys.filter((key) => !exposedFiltersKeys.has(key as SearchAdvancedFiltersKey));
-        const hasReportFields = Object.keys(searchAdvancedFiltersForm).some(
-            (key) => key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX) && !key.startsWith(CONST.SEARCH.REPORT_FIELD.NOT_PREFIX),
-        );
+        const hasReportFields = Object.keys(filterFormValues).some((key) => key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX) && !key.startsWith(CONST.SEARCH.REPORT_FIELD.NOT_PREFIX));
 
         return hiddenFilters.filter((key) => {
             const dateFilterKey = DATE_FILTER_KEYS.find((dateKey) => key === dateKey);
             if (dateFilterKey) {
-                return searchAdvancedFiltersForm[`${dateFilterKey}On`] ?? searchAdvancedFiltersForm[`${dateFilterKey}After`] ?? searchAdvancedFiltersForm[`${dateFilterKey}Before`];
+                return filterFormValues[`${dateFilterKey}On`] ?? filterFormValues[`${dateFilterKey}After`] ?? filterFormValues[`${dateFilterKey}Before`];
             }
 
             if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD) {
@@ -743,15 +789,15 @@ function SearchFiltersBar({
             const amountFilterKey = AMOUNT_FILTER_KEYS.find((amountKey) => key === amountKey);
             if (amountFilterKey) {
                 return (
-                    searchAdvancedFiltersForm[`${amountFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`] ??
-                    searchAdvancedFiltersForm[`${amountFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`] ??
-                    searchAdvancedFiltersForm[`${amountFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`]
+                    filterFormValues[`${amountFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`] ??
+                    filterFormValues[`${amountFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`] ??
+                    filterFormValues[`${amountFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`]
                 );
             }
 
-            return searchAdvancedFiltersForm[key as SearchAdvancedFiltersKey];
+            return filterFormValues[key as SearchAdvancedFiltersKey];
         });
-    }, [searchAdvancedFiltersForm, filters, typeFiltersKeys]);
+    }, [filterFormValues, filters, typeFiltersKeys]);
 
     const adjustScroll = useCallback((info: {distanceFromEnd: number}) => {
         // Workaround for a known React Native bug on Android (https://github.com/facebook/react-native/issues/27504):
@@ -772,6 +818,7 @@ function SearchFiltersBar({
                 label={item.label}
                 value={item.value}
                 PopoverComponent={item.PopoverComponent}
+                sentryLabel={item.sentryLabel}
             />
         ),
         [],
@@ -797,6 +844,7 @@ function SearchFiltersBar({
                     icon={expensifyIcons.Filter}
                     textStyles={[styles.textMicroBold]}
                     onPress={openAdvancedFilters}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTERS_BUTTON}
                 />
                 {shouldShowColumnsButton && (
                     <Button
@@ -809,6 +857,7 @@ function SearchFiltersBar({
                         icon={expensifyIcons.Columns}
                         textStyles={[styles.textMicroBold]}
                         onPress={openSearchColumns}
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMNS_BUTTON}
                     />
                 )}
             </View>
@@ -847,7 +896,7 @@ function SearchFiltersBar({
                     enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                     iouReport={selectedIOUReport}
                     addBankAccountRoute={
-                        isCurrentSelectedExpenseReport ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(currentSelectedPolicyID, undefined, Navigation.getActiveRoute()) : undefined
+                        isCurrentSelectedExpenseReport ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: currentSelectedPolicyID, backTo: Navigation.getActiveRoute()}) : undefined
                     }
                     onSuccessfulKYC={(paymentType) => confirmPayment?.(paymentType)}
                 >
@@ -880,6 +929,7 @@ function SearchFiltersBar({
                                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                                 }}
+                                sentryLabel={CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_DROPDOWN}
                             />
                             {!areAllMatchingItemsSelected && showSelectAllMatchingItems && (
                                 <Button
@@ -889,6 +939,7 @@ function SearchFiltersBar({
                                     innerStyles={styles.p0}
                                     onPress={() => selectAllMatchingItems(true)}
                                     text={translate('search.exportAll.selectAllMatchingItems')}
+                                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.SELECT_ALL_MATCHING_BUTTON}
                                 />
                             )}
                         </View>

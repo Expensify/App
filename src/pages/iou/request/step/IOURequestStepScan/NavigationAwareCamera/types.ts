@@ -10,6 +10,7 @@ type NavigationAwareCameraProps = WebcamProps & {
 type NavigationAwareCameraNativeProps = Omit<CameraProps, 'isActive'> & {
     cameraTabIndex: number;
     ref?: ForwardedRef<VisionCamera>;
+    forceInactive?: boolean;
 };
 
 export type {NavigationAwareCameraProps, NavigationAwareCameraNativeProps};

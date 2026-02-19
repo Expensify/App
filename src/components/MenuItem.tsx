@@ -5,6 +5,7 @@ import type {GestureResponderEvent, Role, StyleProp, TextStyle, ViewStyle} from 
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -217,6 +218,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Accessibility label for the menu item */
         accessibilityLabel?: string;
 
+        /** Optional accessibility role for the title. Only set when the title is a section heading (e.g. CONST.ROLE.HEADER); omit for regular menu items. */
+        titleAccessibilityRole?: typeof CONST.ROLE.HEADER;
+
         /** Component to display as the title */
         titleComponent?: ReactElement;
 
@@ -423,6 +427,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** Whether item should be focusable with keyboard */
         tabIndex?: 0 | -1;
+
+        /** Additional styles for the right icon wrapper */
+        rightIconWrapperStyle?: StyleProp<ViewStyle>;
     };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -561,8 +568,11 @@ function MenuItem({
     role = CONST.ROLE.MENUITEM,
     shouldBeAccessible = true,
     tabIndex = 0,
+    rightIconWrapperStyle,
+    titleAccessibilityRole,
 }: MenuItemProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar', 'DotIndicator', 'Checkmark']);
+    const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -763,7 +773,7 @@ function MenuItem({
                                 disabled={disabled || isExecuting}
                                 ref={mergeRefs(ref, popoverAnchor)}
                                 role={role}
-                                accessibilityLabel={accessibilityLabel ?? defaultAccessibilityLabel}
+                                accessibilityLabel={`${accessibilityLabel ?? defaultAccessibilityLabel}${brickRoadIndicator ? `. ${translate('common.yourReviewIsRequired')}` : ''}`}
                                 accessible={shouldBeAccessible}
                                 tabIndex={tabIndex}
                                 onFocus={onFocus}
@@ -912,6 +922,7 @@ function MenuItem({
                                                                         style={combinedTitleTextStyle}
                                                                         numberOfLines={numberOfLinesTitle || undefined}
                                                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: interactive && disabled}}
+                                                                        accessibilityRole={titleAccessibilityRole}
                                                                     >
                                                                         {renderTitleContent()}
                                                                     </Text>
@@ -1026,6 +1037,7 @@ function MenuItem({
                                                             disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled,
                                                             hasSubMenuItems && styles.opacitySemiTransparent,
                                                             hasSubMenuItems && styles.pl6,
+                                                            rightIconWrapperStyle,
                                                         ]}
                                                     >
                                                         <Icon

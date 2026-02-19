@@ -1,4 +1,3 @@
-import {filterOutPersonalCards} from '@selectors/Card';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -8,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SingleOptionSelector from '@components/SingleOptionSelector';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -58,7 +58,7 @@ function ReportCardLostPage({
     const {translate} = useLocalize();
 
     const [formData] = useOnyx(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM, {canBeMissing: true});
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterOutPersonalCards, canBeMissing: true});
+    const cardList = useNonPersonalCardList();
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
 
     const [reason, setReason] = useState<Option>();

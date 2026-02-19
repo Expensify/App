@@ -351,6 +351,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     isSplitButton={false}
                     style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
                     isDisabled={!selectedPerDiem.length}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.PER_DIEM.BULK_ACTIONS_DROPDOWN}
                 />
             );
         }
@@ -365,6 +366,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     options={secondaryActions}
                     isSplitButton={false}
                     wrapperStyle={styles.flexGrow1}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.PER_DIEM.MORE_DROPDOWN}
                 />
             </View>
         );
@@ -435,7 +437,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                             return;
                         }
 
-                        Navigation.popToSidebar();
+                        Navigation.goBack();
                     }}
                 >
                     {!shouldUseNarrowLayout && getHeaderButtons()}
@@ -468,7 +470,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         customListHeader={getCustomListHeader()}
                         selectedItems={selectedPerDiem.map((item) => item.subRateID)}
                         onSelectAll={filteredSubRatesList.length > 0 ? toggleAllSubRates : undefined}
-                        style={{listHeaderWrapperStyle: [styles.ph9, styles.pv3, styles.pb5], listItemTitleContainerStyles: styles.flex3}}
+                        style={{listItemTitleContainerStyles: styles.flex3}}
                         onTurnOnSelectionMode={(item) => item && toggleSubRate(item)}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         shouldUseDefaultRightHandSideCheckmark={false}

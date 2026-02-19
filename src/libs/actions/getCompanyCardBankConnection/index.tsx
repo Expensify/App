@@ -49,7 +49,6 @@ function getCompanyCardBankConnection(policyID?: string, bankName?: string | nul
     const commandURL = getApiRoot(
         {
             shouldSkipWebProxy: true,
-            command: '',
         },
         forceProductionAPI,
     );
@@ -73,7 +72,6 @@ function getCompanyCardPlaidConnection(policyID?: string, publicToken?: string, 
 
     const commandURL = getApiRoot({
         shouldSkipWebProxy: true,
-        command: '',
     });
     return `${commandURL}partners/banks/plaid/oauth_callback.php?${new URLSearchParams(params).toString()}`;
 }

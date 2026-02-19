@@ -401,6 +401,7 @@ function BasePopoverMenu({
                     shouldCheckActionAllowedOnPress={false}
                     iconRight={item.rightIcon}
                     shouldShowRightIcon={!!item.rightIcon}
+                    brickRoadIndicator={item.brickRoadIndicator}
                     onFocus={() => {
                         if (!shouldUpdateFocusedIndex) {
                             return;
@@ -430,7 +431,14 @@ function BasePopoverMenu({
         if (!headerText || enteredSubMenuIndexes.length !== 0) {
             return;
         }
-        return <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pv3, headerStyles]}>{headerText}</Text>;
+        return (
+            <Text
+                key="header-text"
+                style={[styles.createMenuHeaderText, styles.ph5, styles.pv3, headerStyles]}
+            >
+                {headerText}
+            </Text>
+        );
     };
 
     useKeyboardShortcut(

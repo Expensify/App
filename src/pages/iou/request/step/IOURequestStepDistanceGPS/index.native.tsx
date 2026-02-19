@@ -1,4 +1,3 @@
-import reportsSelector from '@selectors/Attributes';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
@@ -7,8 +6,11 @@ import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useReportAttributes from '@hooks/useReportAttributes';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setGPSTransactionDraftData} from '@libs/actions/IOU';
@@ -49,11 +51,13 @@ function IOURequestStepDistanceGPS({
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
+    const reportAttributesDerived = useReportAttributes();
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-
+    const selfDMReport = useSelfDMReport();
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreatingNewRequest = !isEditing;
     // eslint-disable-next-line rulesdir/no-negated-variables
@@ -113,6 +117,11 @@ function IOURequestStepDistanceGPS({
             privateIsArchived: reportNameValuePairs?.private_isArchived,
             gpsCoordinates,
             gpsDistance: distance,
+            selfDMReport,
+            policyForMovingExpenses,
+            betas,
+            unit,
+            personalOutputCurrency: personalPolicy?.outputCurrency,
         });
     };
 
