@@ -1153,12 +1153,46 @@ button {
         box-sizing: border-box;
         display: flex;
         flex-direction: column;
+        position: relative;
 
         &.ai-panel-loading {
             min-height: 320px;
 
             @include breakpoint($breakpoint-tablet) {
                 min-height: 676px;
+            }
+        }
+    }
+
+    .ai-copy-button {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        padding: 0;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        img {
+            width: 28px;
+            height: 28px;
+            display: block;
+        }
+
+        .ai-copy-icon-dark {
+            display: none;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .ai-copy-icon-light {
+                display: none;
+            }
+
+            .ai-copy-icon-dark {
+                display: block;
             }
         }
     }
