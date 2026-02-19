@@ -37,7 +37,7 @@ function serverHasRegisteredCredentials(data: OnyxEntry<Account>) {
  * timing issues with optimistic updates.
  */
 function usePromptContent(promptType: MultifactorAuthenticationPromptType): PromptContent {
-    const {state} = useMultifactorAuthenticationState();
+    const state = useMultifactorAuthenticationState();
     const {areLocalCredentialsKnownToServer} = useNativeBiometrics();
     const [serverHasCredentials, setServerHasCredentials] = useState(false);
     const [deviceBiometricsState] = useOnyx(ONYXKEYS.DEVICE_BIOMETRICS, {canBeMissing: true});

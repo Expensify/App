@@ -120,6 +120,8 @@ function IOURequestStepDistanceGPS({
             selfDMReport,
             policyForMovingExpenses,
             betas,
+            unit,
+            personalOutputCurrency: personalPolicy?.outputCurrency,
         });
     };
 

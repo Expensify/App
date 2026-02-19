@@ -271,12 +271,6 @@ const ROUTES = {
         route: 'bank-account/connect-existing-business-bank-account',
         getRoute: (policyID: string) => `bank-account/connect-existing-business-bank-account?policyID=${policyID}` as const,
     },
-    PUBLIC_CONSOLE_DEBUG: {
-        route: 'troubleshoot/console',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`troubleshoot/console`, backTo),
-    },
     SETTINGS: 'settings',
     SETTINGS_PROFILE: {
         route: 'settings/profile',
@@ -490,17 +484,19 @@ const ROUTES = {
         route: 'settings/wallet/card/:cardID/activate',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}/activate` as const,
     },
+    SETTINGS_WALLET_TRAVEL_CVV: 'settings/wallet/travel-cvv',
+    SETTINGS_WALLET_TRAVEL_CVV_VERIFY_ACCOUNT: `settings/wallet/travel-cvv/${VERIFY_ACCOUNT}`,
     SETTINGS_RULES: 'settings/rules',
     SETTINGS_RULES_ADD: {
-        route: 'settings/rules/new/:field?',
-        getRoute: (field?: ValueOf<typeof CONST.EXPENSE_RULES.FIELDS>) => {
-            return `settings/rules/new/${field ? StringUtils.camelToHyphenCase(field) : ''}` as const;
+        route: 'settings/rules/new/:field?/:index?',
+        getRoute: (field?: ValueOf<typeof CONST.EXPENSE_RULES.FIELDS>, index?: number) => {
+            return `settings/rules/new/${field ? StringUtils.camelToHyphenCase(field) : ''}${index !== undefined ? `/${index === -1 ? ':index' : index}` : ''}` as const;
         },
     },
     SETTINGS_RULES_EDIT: {
-        route: 'settings/rules/edit/:hash/:field?',
-        getRoute: (hash?: string, field?: ValueOf<typeof CONST.EXPENSE_RULES.FIELDS>) => {
-            return `settings/rules/edit/${hash ?? ':hash'}/${field ? StringUtils.camelToHyphenCase(field) : ''}` as const;
+        route: 'settings/rules/edit/:hash/:field?/:index?',
+        getRoute: (hash?: string, field?: ValueOf<typeof CONST.EXPENSE_RULES.FIELDS>, index?: number) => {
+            return `settings/rules/edit/${hash ?? ':hash'}/${field ? StringUtils.camelToHyphenCase(field) : ''}${index !== undefined ? `/${index === -1 ? ':index' : index}` : ''}` as const;
         },
     },
     SETTINGS_LEGAL_NAME: 'settings/profile/legal-name',
@@ -592,16 +588,6 @@ const ROUTES = {
     SETTINGS_STATUS_CLEAR_AFTER_TIME: 'settings/profile/status/clear-after/time',
     SETTINGS_VACATION_DELEGATE: 'settings/profile/status/vacation-delegate',
     SETTINGS_TROUBLESHOOT: 'settings/troubleshoot',
-    SETTINGS_CONSOLE: {
-        route: 'settings/troubleshoot/console',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`settings/troubleshoot/console`, backTo),
-    },
-    SETTINGS_SHARE_LOG: {
-        route: 'settings/troubleshoot/console/share-log',
-        getRoute: (source: string) => `settings/troubleshoot/console/share-log?source=${encodeURI(source)}` as const,
-    },
 
     SETTINGS_EXIT_SURVEY_REASON: 'settings/exit-survey/reason',
 
@@ -2830,8 +2816,8 @@ const ROUTES = {
         getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/category` as const,
     },
     RULES_MERCHANT_TAG: {
-        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/tag',
-        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/tag` as const,
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/tag/:orderWeight',
+        getRoute: (policyID: string, ruleID?: string, orderWeight?: number) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/tag/${orderWeight}` as const,
     },
     RULES_MERCHANT_TAX: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/tax',

@@ -1,7 +1,7 @@
-import React, {useContext} from 'react';
+import React from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -58,7 +58,8 @@ function SubscriptionSettings() {
     const preferredCurrency = usePreferredCurrency();
     const themeIllustrations = useThemeIllustrations();
     const possibleCostSavings = useSubscriptionPossibleCostSavings();
-    const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const {isActingAsDelegate} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
     const [privateTaxExempt] = useOnyx(ONYXKEYS.NVP_PRIVATE_TAX_EXEMPT, {canBeMissing: true});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
@@ -173,9 +174,7 @@ function SubscriptionSettings() {
         <Text>
             <Text style={[styles.mr1, styles.textNormalThemeText]}>{translate('subscription.subscriptionSettings.autoIncrease')}</Text>
             <Text style={customTitleSecondSentenceStyles}>
-                {translate('subscription.subscriptionSettings.saveUpTo', {
-                    amountWithCurrency: convertToShortDisplayString(possibleCostSavings, preferredCurrency),
-                })}
+                {translate('subscription.subscriptionSettings.saveUpTo', convertToShortDisplayString(possibleCostSavings, preferredCurrency))}
             </Text>
         </Text>
     );
@@ -215,7 +214,7 @@ function SubscriptionSettings() {
                 <Text style={[styles.textSupporting, styles.mb5]}>{translate('subscription.subscriptionSettings.pricingConfiguration')}</Text>
                 <View style={[styles.renderHTML, styles.mb5]}>
                     <RenderHTML
-                        html={translate('subscription.subscriptionSettings.learnMore', {hasAdminsRoom: !!adminsChatReportID})}
+                        html={translate('subscription.subscriptionSettings.learnMore', !!adminsChatReportID)}
                         onLinkPress={(_evt, href) => handleLinkPress(href)}
                     />
                 </View>
@@ -252,9 +251,7 @@ function SubscriptionSettings() {
                                     onToggle={handleAutoRenewToggle}
                                     isActive={privateSubscription?.autoRenew}
                                 />
-                                {!!autoRenewalDate && (
-                                    <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.renewsOn', {date: autoRenewalDate})}</Text>
-                                )}
+                                {!!autoRenewalDate && <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.renewsOn', autoRenewalDate)}</Text>}
                             </View>
                         </OfflineWithFeedback>
                         <OfflineWithFeedback pendingAction={privateSubscription?.pendingFields?.addNewUsersAutomatically}>

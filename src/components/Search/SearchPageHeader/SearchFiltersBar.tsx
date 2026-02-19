@@ -1,5 +1,4 @@
 import {isUserValidatedSelector} from '@selectors/Account';
-import {feedKeysWithAssignedCardsSelector} from '@selectors/Card';
 import {emailSelector} from '@selectors/Session';
 import React, {useCallback, useContext, useMemo, useRef} from 'react';
 import type {ReactNode} from 'react';
@@ -7,7 +6,7 @@ import {FlatList, View} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {PaymentMethodType} from '@components/KYCWall/types';
@@ -25,7 +24,8 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import type {BankAccountMenuItem, SearchDateFilterKeys, SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
 import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
-import useCurrencyList from '@hooks/useCurrencyList';
+import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyList';
+import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import useFilterFormValues from '@hooks/useFilterFormValues';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -113,17 +113,19 @@ function SearchFiltersBar({
     const filterFormValues = useFilterFormValues(queryJSON);
     const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
     const {selectedTransactions, selectAllMatchingItems, areAllMatchingItemsSelected, showSelectAllMatchingItems, shouldShowFiltersBarLoading, currentSearchResults} = useSearchContext();
-    const {currencyList, getCurrencySymbol} = useCurrencyList();
+    const {currencyList} = useCurrencyListState();
+    const {getCurrencySymbol} = useCurrencyListActions();
 
     const [email] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
-    const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true});
+    const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [hasMultipleOutputCurrency] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasMultipleOutputCurrenciesSelector, canBeMissing: true});
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
-    const [feedKeysWithCards] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {selector: feedKeysWithAssignedCardsSelector, canBeMissing: true});
+    const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter', 'Columns']);
-    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
     const {typeFiltersKeys, workspaces, shouldShowWorkspaceSearchInput} = useAdvancedSearchFilters();
 
@@ -202,10 +204,10 @@ function SearchFiltersBar({
 
     const [feedOptions, feed] = useMemo(() => {
         const feedFilterValues = flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED)?.filters?.map((filter) => filter.value);
-        const options = getFeedOptions(allFeeds, nonPersonalAndWorkspaceCards, translate, feedKeysWithCards);
+        const options = getFeedOptions(allFeeds, personalAndWorkspaceCards, translate, feedKeysWithCards);
         const value = feedFilterValues ? options.filter((option) => feedFilterValues.includes(option.value)) : [];
         return [options, value];
-    }, [flatFilters, allFeeds, nonPersonalAndWorkspaceCards, translate, feedKeysWithCards]);
+    }, [flatFilters, allFeeds, personalAndWorkspaceCards, translate, feedKeysWithCards]);
 
     const [statusOptions, status] = useMemo(() => {
         const options = type ? getStatusOptions(translate, type.value) : [];
@@ -772,14 +774,12 @@ function SearchFiltersBar({
         );
 
         const hiddenFilters = advancedSearchFiltersKeys.filter((key) => !exposedFiltersKeys.has(key as SearchAdvancedFiltersKey));
-        const hasReportFields = Object.keys(searchAdvancedFiltersForm).some(
-            (key) => key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX) && !key.startsWith(CONST.SEARCH.REPORT_FIELD.NOT_PREFIX),
-        );
+        const hasReportFields = Object.keys(filterFormValues).some((key) => key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX) && !key.startsWith(CONST.SEARCH.REPORT_FIELD.NOT_PREFIX));
 
         return hiddenFilters.filter((key) => {
             const dateFilterKey = DATE_FILTER_KEYS.find((dateKey) => key === dateKey);
             if (dateFilterKey) {
-                return searchAdvancedFiltersForm[`${dateFilterKey}On`] ?? searchAdvancedFiltersForm[`${dateFilterKey}After`] ?? searchAdvancedFiltersForm[`${dateFilterKey}Before`];
+                return filterFormValues[`${dateFilterKey}On`] ?? filterFormValues[`${dateFilterKey}After`] ?? filterFormValues[`${dateFilterKey}Before`];
             }
 
             if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD) {
@@ -789,15 +789,15 @@ function SearchFiltersBar({
             const amountFilterKey = AMOUNT_FILTER_KEYS.find((amountKey) => key === amountKey);
             if (amountFilterKey) {
                 return (
-                    searchAdvancedFiltersForm[`${amountFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`] ??
-                    searchAdvancedFiltersForm[`${amountFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`] ??
-                    searchAdvancedFiltersForm[`${amountFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`]
+                    filterFormValues[`${amountFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`] ??
+                    filterFormValues[`${amountFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`] ??
+                    filterFormValues[`${amountFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`]
                 );
             }
 
-            return searchAdvancedFiltersForm[key as SearchAdvancedFiltersKey];
+            return filterFormValues[key as SearchAdvancedFiltersKey];
         });
-    }, [searchAdvancedFiltersForm, filters, typeFiltersKeys]);
+    }, [filterFormValues, filters, typeFiltersKeys]);
 
     const adjustScroll = useCallback((info: {distanceFromEnd: number}) => {
         // Workaround for a known React Native bug on Android (https://github.com/facebook/react-native/issues/27504):

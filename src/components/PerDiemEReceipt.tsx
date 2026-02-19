@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import useCurrencyList from '@hooks/useCurrencyList';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -53,7 +53,7 @@ function PerDiemEReceipt({transactionID}: PerDiemEReceiptProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {getCurrencySymbol} = useCurrencyList();
+    const {getCurrencySymbol} = useCurrencyListActions();
     const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark']);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {
         canBeMissing: true,
