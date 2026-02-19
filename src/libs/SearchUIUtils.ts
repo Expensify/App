@@ -4367,9 +4367,8 @@ function getColumnsToShow(
           };
 
     // If the user has set custom columns for the search, we need to respect their preference and order
-    const filteredVisibleColumns = visibleColumns.filter((column) => {
-        return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE).includes(column as ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE>);
-    });
+    const allowedColumns: string[] = isExpenseReportView ? Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS) : Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE);
+    const filteredVisibleColumns = visibleColumns.filter((column) => allowedColumns.includes(column));
 
     if (!arraysEqual(Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE), filteredVisibleColumns) && filteredVisibleColumns.length > 0) {
         const requiredColumns = isExpenseReportView

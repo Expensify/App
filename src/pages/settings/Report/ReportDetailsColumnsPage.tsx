@@ -4,7 +4,6 @@ import type {SearchCustomColumnIds} from '@components/Search/types';
 import useOnyx from '@hooks/useOnyx';
 import {setReportDetailsColumns} from '@libs/actions/ReportLayout';
 import Navigation from '@libs/Navigation/Navigation';
-import {getCustomColumns} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -25,7 +24,7 @@ const REPORT_DETAILS_DEFAULT_COLUMNS: SearchCustomColumnIds[] = [
 function ReportDetailsColumnsPage() {
     const [reportDetailsColumns] = useOnyx(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, {canBeMissing: true});
 
-    const allTypeCustomColumns = getCustomColumns(CONST.SEARCH.DATA_TYPES.EXPENSE);
+    const allTypeCustomColumns = Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS) as SearchCustomColumnIds[];
 
     const currentColumns = (reportDetailsColumns ?? []) as SearchCustomColumnIds[];
 

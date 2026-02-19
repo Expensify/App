@@ -1217,7 +1217,6 @@ const CONST = {
             EXPORT: 'export',
             PAY: 'pay',
             MERGE: 'merge',
-            REPORT_LAYOUT: 'reportLayout',
             DUPLICATE: 'duplicate',
         },
         PRIMARY_ACTIONS: {
@@ -7115,6 +7114,24 @@ const CONST = {
                 CHAT: {},
             };
         },
+        get REPORT_DETAILS_CUSTOM_COLUMNS() {
+            return {
+                RECEIPT: this.TABLE_COLUMNS.RECEIPT,
+                DATE: this.TABLE_COLUMNS.DATE,
+                MERCHANT: this.TABLE_COLUMNS.MERCHANT,
+                DESCRIPTION: this.TABLE_COLUMNS.DESCRIPTION,
+                CARD: this.TABLE_COLUMNS.CARD,
+                CATEGORY: this.TABLE_COLUMNS.CATEGORY,
+                TAG: this.TABLE_COLUMNS.TAG,
+                EXCHANGE_RATE: this.TABLE_COLUMNS.EXCHANGE_RATE,
+                ORIGINAL_AMOUNT: this.TABLE_COLUMNS.ORIGINAL_AMOUNT,
+                REIMBURSABLE: this.TABLE_COLUMNS.REIMBURSABLE,
+                BILLABLE: this.TABLE_COLUMNS.BILLABLE,
+                TAX_RATE: this.TABLE_COLUMNS.TAX_RATE,
+                TAX_AMOUNT: this.TABLE_COLUMNS.TAX_AMOUNT,
+                AMOUNT: this.TABLE_COLUMNS.TOTAL_AMOUNT,
+            };
+        },
         get GROUP_CUSTOM_COLUMNS() {
             return {
                 FROM: {
@@ -8396,7 +8413,6 @@ const CONST = {
             MERGE: 'MoreMenu-Merge',
             CHANGE_WORKSPACE: 'MoreMenu-ChangeWorkspace',
             CHANGE_APPROVER: 'MoreMenu-ChangeApprover',
-            REPORT_LAYOUT: 'MoreMenu-ReportLayout',
             DELETE: 'MoreMenu-Delete',
             RETRACT: 'MoreMenu-Retract',
             REOPEN: 'MoreMenu-Reopen',
