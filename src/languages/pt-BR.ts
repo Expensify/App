@@ -7378,6 +7378,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         scrollToNewestMessages: 'Rolar até as mensagens mais recentes',
         preStyledText: 'Texto pré-formatado',
         viewAttachment: 'Ver anexo',
+        contextMenuAvailable: 'Menu de contexto disponível. Pressione Shift+F10 para abri-lo.',
     },
     parentReportAction: {
         deletedReport: 'Relatório excluído',

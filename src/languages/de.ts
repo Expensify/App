@@ -7422,6 +7422,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         scrollToNewestMessages: 'Zu neuesten Nachrichten scrollen',
         preStyledText: 'Vorgestylter Text',
         viewAttachment: 'Anhang anzeigen',
+        contextMenuAvailable: 'Kontextmenü verfügbar. Drücken Sie Umschalt+F10 zum Öffnen.',
     },
     parentReportAction: {
         deletedReport: 'Gelöschter Bericht',

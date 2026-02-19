@@ -218,6 +218,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Accessibility label for the menu item */
         accessibilityLabel?: string;
 
+        /** Accessibility hint for the menu item */
+        accessibilityHint?: string;
+
         /** Optional accessibility role for the title. Only set when the title is a section heading (e.g. CONST.ROLE.HEADER); omit for regular menu items. */
         titleAccessibilityRole?: typeof CONST.ROLE.HEADER;
 
@@ -498,6 +501,7 @@ function MenuItem({
     disabled = false,
     title,
     accessibilityLabel,
+    accessibilityHint,
     titleComponent,
     titleContainerStyle,
     subtitle,
@@ -774,6 +778,7 @@ function MenuItem({
                                 ref={mergeRefs(ref, popoverAnchor)}
                                 role={role}
                                 accessibilityLabel={`${accessibilityLabel ?? defaultAccessibilityLabel}${brickRoadIndicator ? `. ${translate('common.yourReviewIsRequired')}` : ''}`}
+                                accessibilityHint={accessibilityHint}
                                 accessible={shouldBeAccessible}
                                 tabIndex={tabIndex}
                                 onFocus={onFocus}

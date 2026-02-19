@@ -7221,6 +7221,7 @@ ${reportName}
         scrollToNewestMessages: '滚动到最新消息',
         preStyledText: '预设样式文本',
         viewAttachment: '查看附件',
+        contextMenuAvailable: '有可用的上下文菜单。按 Shift+F10 打开。',
     },
     parentReportAction: {
         deletedReport: '已删除的报告',

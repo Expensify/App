@@ -7406,6 +7406,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         scrollToNewestMessages: 'Scorri ai messaggi più recenti',
         preStyledText: 'Testo preformattato',
         viewAttachment: 'Visualizza allegato',
+        contextMenuAvailable: 'Menu contestuale disponibile. Premi Maiusc+F10 per aprirlo.',
     },
     parentReportAction: {
         deletedReport: 'Report eliminato',

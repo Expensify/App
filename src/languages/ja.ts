@@ -7333,6 +7333,7 @@ ${reportName}
         scrollToNewestMessages: '最新のメッセージまでスクロール',
         preStyledText: '事前にスタイル設定されたテキスト',
         viewAttachment: '添付ファイルを表示',
+        contextMenuAvailable: 'コンテキストメニューがあります。Shift+F10 を押して開きます。',
     },
     parentReportAction: {
         deletedReport: '削除されたレポート',

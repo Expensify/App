@@ -13,6 +13,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
+import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
@@ -28,6 +29,8 @@ function AppDownloadLinksPage() {
     const icons = useMemoizedLazyExpensifyIcons(['Monitor', 'NewWindow']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const isDesktopWeb = getPlatform(true) === CONST.PLATFORM.WEB;
+    const contextMenuHint = isDesktopWeb ? translate('accessibilityHints.contextMenuAvailable') : undefined;
     const popoverAnchor = useRef<View>(null);
 
     const menuItems: DownloadMenuItem[] = [
@@ -87,6 +90,7 @@ function AppDownloadLinksPage() {
                         iconRight={item.iconRight}
                         shouldBlockSelection
                         shouldShowRightIcon
+                        accessibilityHint={contextMenuHint}
                         role={CONST.ROLE.LINK}
                     />
                 ))}

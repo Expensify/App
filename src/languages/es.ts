@@ -7679,6 +7679,7 @@ ${amount} para ${merchant} - ${date}`,
         scrollToNewestMessages: 'Desplázate a los mensajes más recientes',
         preStyledText: 'texto preestilizado',
         viewAttachment: 'Ver archivo adjunto',
+        contextMenuAvailable: 'Menú contextual disponible. Presiona Mayús+F10 para abrirlo.',
     },
     parentReportAction: {
         deletedReport: 'Informe eliminado',

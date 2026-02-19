@@ -7443,6 +7443,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         scrollToNewestMessages: 'Aller au dernier message',
         preStyledText: 'Texte pré-stylé',
         viewAttachment: 'Afficher la pièce jointe',
+        contextMenuAvailable: 'Menu contextuel disponible. Appuyez sur Maj+F10 pour l’ouvrir.',
     },
     parentReportAction: {
         deletedReport: 'Note de frais supprimée',

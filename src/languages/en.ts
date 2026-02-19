@@ -7361,6 +7361,7 @@ const translations = {
         scrollToNewestMessages: 'Scroll to newest messages',
         preStyledText: 'Pre-styled text',
         viewAttachment: 'View attachment',
+        contextMenuAvailable: 'Context menu available. Press Shift+F10 to open.',
     },
     parentReportAction: {
         deletedReport: 'Deleted report',

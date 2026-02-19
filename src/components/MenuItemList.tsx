@@ -1,7 +1,9 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useRef} from 'react';
 import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
+import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
+import getPlatform from '@libs/getPlatform';
 import mergeRefs from '@libs/mergeRefs';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
@@ -57,6 +59,9 @@ function MenuItemList({menuItems = [], shouldUseSingleExecution = false, wrapper
     const popoverAnchor = useRef<View>(null);
     const {isExecuting, singleExecution} = useSingleExecution();
     const isFocused = useIsFocused();
+    const {translate} = useLocalize();
+    const isDesktopWeb = getPlatform(true) === CONST.PLATFORM.WEB;
+    const contextMenuHint = isDesktopWeb ? translate('accessibilityHints.contextMenuAvailable') : undefined;
 
     /**
      * Handle the secondary interaction for a menu item.
@@ -105,6 +110,7 @@ function MenuItemList({menuItems = [], shouldUseSingleExecution = false, wrapper
                     iconHeight={iconHeight}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...menuItemProps}
+                    accessibilityHint={menuItemProps.accessibilityHint ?? (menuItemProps.link ? contextMenuHint : undefined)}
                     disabled={!!menuItemProps.disabled || isExecuting}
                     onPress={shouldUseSingleExecution ? singleExecution(menuItemProps.onPress) : menuItemProps.onPress}
                     isFocused={isFocused}
