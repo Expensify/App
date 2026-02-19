@@ -1,15 +1,14 @@
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import type {SectionListData} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-// eslint-disable-next-line no-restricted-imports
-import SelectionList from '@components/SelectionListWithSections';
-import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
-import type {Section} from '@components/SelectionListWithSections/types';
+import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
+import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import Text from '@components/Text';
+import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
@@ -28,7 +27,7 @@ import {appendCountryCode} from '@libs/LoginUtils';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import {getHeaderMessage} from '@libs/OptionsListUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
-import {getIneligibleInvitees, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
+import {getIneligibleInvitees, getMemberAccountIDsForWorkspace, getSoftExclusionsForGuideAndAccountManager} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {completeOnboarding as completeOnboardingReport} from '@userActions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@userActions/Welcome';
@@ -37,7 +36,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {InvitedEmailsToAccountIDs} from '@src/types/onyx';
 import type {BaseOnboardingWorkspaceInviteProps} from './types';
 
-type Sections = SectionListData<OptionData, Section<OptionData>>;
+type Sections = Array<Section<OptionData>>;
 
 function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWorkspaceInviteProps) {
     const styles = useThemeStyles();
@@ -45,6 +44,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID, {canBeMissing: true});
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, {canBeMissing: true});
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const policy = usePolicy(onboardingPolicyID);
     const {onboardingMessages} = useOnboardingMessages();
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
@@ -53,9 +53,13 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: true, initWithStoredValues: false});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const session = useSession();
     const {isBetaEnabled} = usePermissions();
+    const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+    const archivedReportsIdSet = useArchivedReportsIdSet();
 
     const ineligibleInvitees = getIneligibleInvitees(policy?.employeeList);
     const excludedUsers: Record<string, boolean> = {};
@@ -63,12 +67,15 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         excludedUsers[login] = true;
     }
 
+    const softExclusions = getSoftExclusionsForGuideAndAccountManager(policy, account?.accountManagerAccountID, personalDetails);
+
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, selectedOptionsForDisplay, toggleSelection, areOptionsInitialized, searchOptions} =
         useSearchSelector({
             selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
             searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
             includeUserToInvite: true,
             excludeLogins: excludedUsers,
+            excludeFromSuggestionsOnly: softExclusions,
             includeRecentReports: false,
             shouldInitialize: didScreenTransitionEnd,
         });
@@ -81,13 +88,13 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         searchInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
-    const sections: Sections[] = [];
+    const sections: Sections = [];
     if (areOptionsInitialized) {
         // Selected options section
         if (selectedOptionsForDisplay.length > 0) {
             sections.push({
-                title: undefined,
                 data: selectedOptionsForDisplay,
+                sectionIndex: 0,
             });
         }
 
@@ -96,14 +103,15 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
             sections.push({
                 title: translate('common.contacts'),
                 data: availableOptions.personalDetails,
+                sectionIndex: 1,
             });
         }
 
         // User to invite section
         if (availableOptions.userToInvite) {
             sections.push({
-                title: undefined,
                 data: [availableOptions.userToInvite],
+                sectionIndex: 2,
             });
         }
     }
@@ -119,6 +127,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
             shouldSkipTestDriveModal: !!onboardingPolicyID && !onboardingAdminsChatReportID,
             isInvitedAccountant,
             onboardingPurposeSelected,
+            introSelected,
         });
 
         setOnboardingAdminsChatReportID();
@@ -127,6 +136,8 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         navigateAfterOnboardingWithMicrotaskQueue(
             isSmallScreenWidth,
             isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+            conciergeReportID,
+            archivedReportsIdSet,
             onboardingPolicyID,
             onboardingAdminsChatReportID,
             // Onboarding tasks would show in Concierge instead of admins room for testing accounts, we should open where onboarding tasks are located
@@ -192,6 +203,19 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         </View>
     );
 
+    const textInputOptions = {
+        headerMessage,
+        label: translate('selectionList.nameEmailOrPhoneNumber'),
+        style: {
+            containerStyle: onboardingIsMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5,
+            headerMessageStyle: [onboardingIsMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5, styles.pb5],
+        },
+        onChangeText: (value: string) => {
+            setSearchTerm(value);
+        },
+        value: searchTerm,
+    };
+
     return (
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
@@ -207,30 +231,32 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
                 shouldDisplayHelpButton={false}
             />
             <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5, onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb3]}>
-                <Text style={styles.textHeadlineH1}>{translate('onboarding.inviteMembers.title')}</Text>
+                <Text
+                    style={styles.textHeadlineH1}
+                    accessibilityRole={CONST.ROLE.HEADER}
+                >
+                    {translate('onboarding.inviteMembers.title')}
+                </Text>
             </View>
             <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5, onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
                 <Text style={[styles.textNormal, styles.colorMuted]}>{translate('onboarding.inviteMembers.subtitle')}</Text>
             </View>
-            <SelectionList
-                listItemWrapperStyle={onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8] : []}
-                textInputStyle={onboardingIsMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5}
-                sectionTitleStyles={onboardingIsMediumOrLargerScreenWidth ? styles.ph3 : undefined}
-                headerMessageStyle={[onboardingIsMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5, styles.pb5]}
+            <SelectionListWithSections
                 canSelectMultiple
+                confirmButtonOptions={{
+                    onConfirm: inviteUser,
+                }}
                 sections={sections}
                 ListItem={InviteMemberListItem}
-                textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-                textInputValue={searchTerm}
-                onChangeText={(value) => {
-                    setSearchTerm(value);
-                }}
-                headerMessage={headerMessage}
                 onSelectRow={toggleSelection}
-                onConfirm={inviteUser}
-                showScrollIndicator
+                shouldShowTextInput
                 showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                style={{
+                    sectionTitleStyles: onboardingIsMediumOrLargerScreenWidth ? styles.ph3 : undefined,
+                    listItemWrapperStyle: onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8] : [],
+                }}
+                textInputOptions={textInputOptions}
                 footerContent={footerContent}
                 isLoadingNewOptions={!!isSearchingForReports}
                 addBottomSafeAreaPadding={isSmallScreenWidth}

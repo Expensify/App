@@ -1,4 +1,4 @@
-import {useFocusEffect} from '@react-navigation/native';
+import {findFocusedRoute, useFocusEffect} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
 import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -14,6 +14,7 @@ import Text from '@components/Text';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useHandleSelectionMode from '@hooks/useHandleSelectionMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -27,16 +28,18 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {setOptimisticTransactionThread} from '@libs/actions/Report';
 import {getReportLayoutGroupBy} from '@libs/actions/ReportLayout';
-import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+import {clearActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {hasNonReimbursableTransactions, isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
+import {isPolicyTaxEnabled} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {groupTransactionsByCategory, groupTransactionsByTag} from '@libs/ReportLayoutUtils';
 import {
     canAddTransaction,
     getAddExpenseDropdownOptions,
+    getBillableAndTaxTotal,
     getMoneyRequestSpendBreakdown,
     getReportOfflinePendingActionAndErrors,
     isCurrentUserSubmitter,
@@ -66,7 +69,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import MoneyRequestReportGroupHeader from './MoneyRequestReportGroupHeader';
@@ -176,22 +179,28 @@ function MoneyRequestReportTransactionList({
     const [selectedTransactionID, setSelectedTransactionID] = useState<string>('');
     const {reportPendingAction} = getReportOfflinePendingActionAndErrors(report);
 
+    const isTaxEnabled = isPolicyTaxEnabled(policy);
     const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
+    const {billableTotal, taxTotal} = getBillableAndTaxTotal(report, transactions);
     const formattedOutOfPocketAmount = convertToDisplayString(reimbursableSpend, report?.currency);
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
-    const shouldShowBreakdown = useMemo(() => shouldShowExpenseBreakdown(transactions), [transactions]);
+    const formattedBillableAmount = convertToDisplayString(billableTotal, report?.currency);
+    const formattedTaxAmount = convertToDisplayString(taxTotal, report?.currency);
+    const shouldShowExpenseReportBreakDown = shouldShowExpenseBreakdown(transactions);
+    const shouldShowBreakdown = shouldShowExpenseReportBreakDown || !!billableTotal || (!!taxTotal && isTaxEnabled);
     const transactionsWithoutPendingDelete = useMemo(() => transactions.filter((t) => !isTransactionPendingDelete(t)), [transactions]);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isReportArchived = useReportIsArchived(report?.reportID);
     const shouldShowAddExpenseButton = canAddTransaction(report, isReportArchived) && isCurrentUserSubmitter(report);
+    const [userBillingGraceEndPeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END, {canBeMissing: true});
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const [reportLayoutGroupBy] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY, {canBeMissing: true});
 
     const shouldShowGroupedTransactions = isExpenseReport(report) && !isIOUReport(report);
 
     const addExpenseDropdownOptions = useMemo(
-        () => getAddExpenseDropdownOptions(expensifyIcons, report?.reportID, policy, undefined, undefined, lastDistanceExpenseType),
-        [report?.reportID, policy, lastDistanceExpenseType, expensifyIcons.Location],
+        () => getAddExpenseDropdownOptions(translate, expensifyIcons, report?.reportID, policy, userBillingGraceEndPeriodCollection, undefined, undefined, lastDistanceExpenseType),
+        [translate, expensifyIcons, report?.reportID, policy, userBillingGraceEndPeriodCollection, lastDistanceExpenseType],
     );
 
     const hasPendingAction = useMemo(() => {
@@ -301,8 +310,7 @@ function MoneyRequestReportTransactionList({
             return groupTransactionsByTag(sortedTransactions, report, localeCompare);
         }
         return groupTransactionsByCategory(sortedTransactions, report, localeCompare);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sortedTransactions, currentGroupBy, report?.reportID, localeCompare, shouldShowGroupedTransactions]);
+    }, [sortedTransactions, currentGroupBy, report?.reportID, report?.currency, localeCompare, shouldShowGroupedTransactions]);
 
     const visualOrderTransactionIDs = useMemo(() => {
         if (!shouldShowGroupedTransactions || groupedTransactions.length === 0) {
@@ -310,6 +318,18 @@ function MoneyRequestReportTransactionList({
         }
         return groupedTransactions.flatMap((group) => group.transactions.filter((transaction) => !isTransactionPendingDelete(transaction)).map((transaction) => transaction.transactionID));
     }, [groupedTransactions, sortedTransactions, shouldShowGroupedTransactions]);
+
+    const visualOrderTransactionIDsDeepCompare = useDeepCompareRef(visualOrderTransactionIDs);
+    useEffect(() => {
+        const focusedRoute = findFocusedRoute(navigationRef.getRootState());
+        if (focusedRoute?.name !== SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
+            return;
+        }
+        setActiveTransactionIDs(visualOrderTransactionIDsDeepCompare ?? []);
+        return () => {
+            clearActiveTransactionIDs();
+        };
+    }, [visualOrderTransactionIDsDeepCompare]);
 
     const sortedTransactionsMap = useMemo(() => {
         const map = new Map<string, OnyxTypes.Transaction>();
@@ -610,34 +630,44 @@ function MoneyRequestReportTransactionList({
                     {shouldShowBreakdown && (
                         <View style={[styles.dFlex, styles.alignItemsEnd, styles.gap2, styles.mb2, styles.flex1]}>
                             {[
-                                {text: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount},
-                                {text: 'cardTransactions.companySpend', value: formattedCompanySpendAmount},
-                            ].map(({text, value}) => (
-                                <View
-                                    key={text}
-                                    style={[
-                                        styles.dFlex,
-                                        styles.flexRow,
-                                        styles.alignItemsCenter,
-                                        styles.pr3,
-                                        styles.mw100,
-                                        shouldUseNarrowLayout && [styles.justifyContentBetween, styles.w100],
-                                    ]}
-                                >
-                                    <Text
-                                        style={[styles.textLabelSupporting, styles.mr3]}
-                                        numberOfLines={1}
+                                {text: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount, shouldShow: shouldShowExpenseReportBreakDown},
+                                {text: 'cardTransactions.companySpend', value: formattedCompanySpendAmount, shouldShow: shouldShowExpenseReportBreakDown},
+                                {text: 'common.billable', value: formattedBillableAmount, shouldShow: !!billableTotal},
+                                {text: 'common.tax', value: formattedTaxAmount, shouldShow: !!taxTotal && isTaxEnabled},
+                            ]
+                                .filter(({shouldShow}) => shouldShow)
+                                .map(({text, value}) => (
+                                    <View
+                                        key={text}
+                                        style={[
+                                            styles.dFlex,
+                                            styles.flexRow,
+                                            styles.alignItemsCenter,
+                                            styles.pr3,
+                                            styles.mw100,
+                                            shouldUseNarrowLayout && [styles.justifyContentBetween, styles.w100],
+                                        ]}
                                     >
-                                        {translate(text as TranslationPaths)}
-                                    </Text>
-                                    <Text
-                                        numberOfLines={1}
-                                        style={[styles.textLabelSupporting, styles.textNormal, shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p, styles.textAlignRight]}
-                                    >
-                                        {value}
-                                    </Text>
-                                </View>
-                            ))}
+                                        <Text
+                                            style={[styles.textLabelSupporting, styles.mr3, hasPendingAction && styles.opacitySemiTransparent]}
+                                            numberOfLines={1}
+                                        >
+                                            {translate(text as TranslationPaths)}
+                                        </Text>
+                                        <Text
+                                            numberOfLines={1}
+                                            style={[
+                                                styles.textLabelSupporting,
+                                                styles.textNormal,
+                                                shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p,
+                                                styles.textAlignRight,
+                                                hasPendingAction && styles.opacitySemiTransparent,
+                                            ]}
+                                        >
+                                            {value}
+                                        </Text>
+                                    </View>
+                                ))}
                         </View>
                     )}
 

@@ -4,7 +4,7 @@ import Modal from '@components/Modal';
 import {usePopoverActions, usePopoverState} from '@components/PopoverProvider';
 import PopoverWithoutOverlay from '@components/PopoverWithoutOverlay';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSidePanel from '@hooks/useSidePanel';
+import useSidePanelState from '@hooks/useSidePanelState';
 import TooltipRefManager from '@libs/TooltipRefManager';
 import CONST from '@src/CONST';
 import type PopoverProps from './types';
@@ -39,7 +39,7 @@ function Popover(props: PopoverProps) {
     const withoutOverlayRef = useRef(null);
     const {popover} = usePopoverState();
     const {close} = usePopoverActions();
-    const {isSidePanelTransitionEnded} = useSidePanel();
+    const {isSidePanelTransitionEnded} = useSidePanelState();
 
     // This useEffect handles hiding popovers when SidePanel is animating.
     React.useEffect(() => {

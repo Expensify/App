@@ -88,7 +88,7 @@ function triggerListLayout(reportID?: string) {
 function getReportActions(reportID?: string) {
     const report = getReportScreen(reportID);
     return [
-        ...within(report).queryAllByLabelText(TestHelper.translateLocal('accessibilityHints.chatMessage')),
+        ...within(report).queryAllByAccessibilityHint(TestHelper.translateLocal('accessibilityHints.chatMessage')),
         // Created action has a different accessibility label.
         ...within(report).queryAllByLabelText(TestHelper.translateLocal('accessibilityHints.chatWelcomeMessage')),
     ];
@@ -227,7 +227,7 @@ async function signInAndGetApp(): Promise<void> {
     await waitForBatchedUpdatesWithAct();
 
     // Start listening for pusher events after navigation settles.
-    subscribeToUserEvents();
+    subscribeToUserEvents(USER_A_ACCOUNT_ID);
     await waitForBatchedUpdates();
 
     await act(async () => {
