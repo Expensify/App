@@ -774,24 +774,6 @@ function isRemoveHoldActionForTransaction(report: Report, reportTransaction: Tra
     return isOnHoldTransactionUtils(reportTransaction) && policy?.role === CONST.POLICY.ROLE.ADMIN && !isHoldCreator(reportTransaction, report.reportID);
 }
 
-/**
- * Checks if the report should show the "Report layout" option
- * Only shows for expense reports (not IOU reports) with 2 or more transactions
- */
-function isReportLayoutAction(report: Report, reportTransactions: Transaction[]): boolean {
-    if (!isExpenseReportUtils(report)) {
-        return false;
-    }
-
-    // Exclude IOU reports - only show for workspace expense reports
-    if (isIOUReportUtils(report)) {
-        return false;
-    }
-
-    // Only show if report has 2 or more transactions
-    return reportTransactions.length >= 2;
-}
-
 function isDuplicateAction(report: Report, reportTransactions: Transaction[]): boolean {
     // Only single transactions are supported for now
     if (reportTransactions.length !== 1) {
@@ -965,10 +947,6 @@ function getSecondaryReportActions({
     }
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
-
-    if (isReportLayoutAction(report, reportTransactions)) {
-        options.push(CONST.REPORT.SECONDARY_ACTIONS.REPORT_LAYOUT);
-    }
 
     if (isDeleteAction(report, reportTransactions, reportActions ?? [])) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);

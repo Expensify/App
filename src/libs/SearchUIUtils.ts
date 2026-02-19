@@ -4372,7 +4372,9 @@ function getColumnsToShow(
     });
 
     if (!arraysEqual(Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE), filteredVisibleColumns) && filteredVisibleColumns.length > 0) {
-        const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TYPE, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
+        const requiredColumns = isExpenseReportView
+            ? new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.TYPE, CONST.SEARCH.TABLE_COLUMNS.COMMENTS, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT])
+            : new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TYPE, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
         const result: SearchColumnType[] = [];
 
         // Add required columns that aren't in visibleColumns at the start

@@ -1455,12 +1455,7 @@ function MoneyReportHeader({
             icon: expensifyIcons.Feed,
             value: CONST.REPORT.SECONDARY_ACTIONS.REPORT_LAYOUT,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.REPORT_LAYOUT,
-            onSelected: () => {
-                if (!moneyRequestReport) {
-                    return;
-                }
-                Navigation.navigate(ROUTES.REPORT_SETTINGS_REPORT_LAYOUT.getRoute(moneyRequestReport.reportID));
-            },
+            onSelected: () => {},
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DELETE]: {
             text: translate('common.delete'),
