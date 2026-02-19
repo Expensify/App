@@ -745,16 +745,6 @@ const getFileValidationErrorText = (
     }
 };
 
-const getConfirmModalPrompt = (translate: LocalizedTranslate, attachmentInvalidReason: TranslationPaths | undefined) => {
-    if (!attachmentInvalidReason) {
-        return '';
-    }
-    if (attachmentInvalidReason === 'attachmentPicker.sizeExceededWithLimit') {
-        return translate(attachmentInvalidReason, {maxUploadSizeInMB: CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / (1024 * 1024)});
-    }
-    return translate(attachmentInvalidReason);
-};
-
 const MAX_CANVAS_SIZE = 4096;
 const JPEG_QUALITY = 0.85;
 
@@ -869,7 +859,6 @@ export {
     isValidReceiptExtension,
     getFileValidationErrorText,
     hasHeicOrHeifExtension,
-    getConfirmModalPrompt,
     canvasFallback,
     getFilesFromClipboardEvent,
     cleanFileObject,
