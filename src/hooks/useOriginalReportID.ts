@@ -1,6 +1,6 @@
 import {useMemo} from 'react';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
-import {getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
+import {getOneTransactionThreadReportID, withDEWRoutedActionsObject} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
@@ -21,7 +21,7 @@ import useTransactionsAndViolationsForReport from './useTransactionsAndViolation
  *
  */
 function useOriginalReportID(reportID: string | undefined, reportAction: OnyxInputOrEntry<Pick<ReportAction, 'reportActionID' | 'childReportID'>>): string | undefined {
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canBeMissing: true});
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canBeMissing: true, selector: withDEWRoutedActionsObject});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`, {canBeMissing: true});
     const {isOffline} = useNetwork();

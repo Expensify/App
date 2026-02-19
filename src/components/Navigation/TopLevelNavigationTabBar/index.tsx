@@ -1,7 +1,7 @@
 import type {ParamListBase} from '@react-navigation/native';
-import React, {useContext, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import {FullScreenBlockingViewContext} from '@components/FullScreenBlockingViewContextProvider';
+import {useFullScreenBlockingViewState} from '@components/FullScreenBlockingViewContextProvider';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
@@ -29,9 +29,9 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {paddingBottom} = useSafeAreaPaddings();
     const [isAfterClosingTransition, setIsAfterClosingTransition] = useState(false);
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const cancelAfterInteractions = useRef<ReturnType<typeof InteractionManager.runAfterInteractions> | undefined>(undefined);
-    const {isBlockingViewVisible} = useContext(FullScreenBlockingViewContext);
+    const {isBlockingViewVisible} = useFullScreenBlockingViewState();
     const StyleUtils = useStyleUtils();
 
     // That means it's visible and it's not covered by the overlay.
@@ -50,7 +50,7 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
             setIsAfterClosingTransition(false);
         } else {
             // If the bottom tab should be visible, we want to wait for transition to finish.
-            // eslint-disable-next-line deprecation/deprecation
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             cancelAfterInteractions.current = InteractionManager.runAfterInteractions(() => {
                 setIsAfterClosingTransition(true);
             });
@@ -60,6 +60,7 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
 
     return (
         <View
+            testID="TopLevelNavigationTabBar"
             style={[
                 styles.topLevelNavigationTabBar(isReadyToDisplayBottomBar, shouldUseNarrowLayout, paddingBottom),
                 // There is a missing border right on the wide layout
@@ -77,7 +78,5 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
         </View>
     );
 }
-
-TopLevelNavigationTabBar.displayName = 'TopLevelNavigationTabBar';
 
 export default TopLevelNavigationTabBar;

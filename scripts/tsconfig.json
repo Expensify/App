@@ -4,6 +4,7 @@
         "moduleResolution": "node",
         "target": "ES2023",
         "types": ["node"],
+        "strict": true,
         "allowSyntheticDefaultImports": true,
         "esModuleInterop": true,
         "downlevelIteration": true,
@@ -11,7 +12,6 @@
         "paths": {
             "@assets/*": ["../assets/*"],
             "@components/*": ["../src/components/*"],
-            "@desktop/*": ["../desktop/*"],
             "@github/*": ["../.github/*"],
             "@hooks/*": ["../src/hooks/*"],
             "@libs/*": ["../src/libs/*"],

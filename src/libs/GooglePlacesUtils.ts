@@ -18,17 +18,19 @@ type FieldsToExtract = Record<string, Exclude<keyof AddressComponent, 'types'>>;
  */
 function getAddressComponents(addressComponents: AddressComponent[], fieldsToExtract: FieldsToExtract): Record<string, string> {
     const result: Record<string, string> = {};
-    Object.keys(fieldsToExtract).forEach((key) => (result[key] = ''));
+    for (const key of Object.keys(fieldsToExtract)) {
+        result[key] = '';
+    }
 
-    addressComponents.forEach((addressComponent) => {
-        addressComponent.types.forEach((addressType) => {
+    for (const addressComponent of addressComponents) {
+        for (const addressType of addressComponent.types) {
             if (!(addressType in fieldsToExtract) || !(addressType in result && result[addressType] === '')) {
-                return;
+                continue;
             }
             const value = addressComponent[fieldsToExtract[addressType]] ? addressComponent[fieldsToExtract[addressType]] : '';
             result[addressType] = value;
-        });
-    });
+        }
+    }
     return result;
 }
 
@@ -43,10 +45,10 @@ type GetPlaceAutocompleteTermsResult = Partial<Record<GetPlaceAutocompleteTermsR
 function getPlaceAutocompleteTerms(addressTerms: AddressTerm[]): GetPlaceAutocompleteTermsResult {
     const fieldsToExtract: GetPlaceAutocompleteTermsResultKey[] = ['country', 'state', 'city', 'street'];
     const result: GetPlaceAutocompleteTermsResult = {};
-    fieldsToExtract.forEach((fieldToExtract, index) => {
+    for (const [index, fieldToExtract] of fieldsToExtract.entries()) {
         const fieldTermIndex = addressTerms.length - (index + 1);
         result[fieldToExtract] = fieldTermIndex >= 0 ? addressTerms.at(fieldTermIndex)?.value : '';
-    });
+    }
     return result;
 }
 

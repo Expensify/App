@@ -4,8 +4,8 @@ import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {updateWriteCapability as updateWriteCapabilityUtil} from '@libs/actions/Report';
@@ -13,8 +13,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {canEditWriteCapability} from '@libs/ReportUtils';
 import type {ReportSettingsNavigatorParamList} from '@navigation/types';
-import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
-import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
+import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
+import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -30,6 +30,7 @@ function WriteCapabilityPage({report, policy}: WriteCapabilityPageProps) {
         keyForList: value,
         isSelected: value === (report?.writeCapability ?? CONST.REPORT.WRITE_CAPABILITIES.ALL),
     }));
+    const selectedOptionKey = writeCapabilityOptions.find((locale) => locale.isSelected)?.keyForList;
     const isReportArchived = useReportIsArchived(report.reportID);
     const isAbleToEdit = canEditWriteCapability(report, policy, isReportArchived);
 
@@ -48,7 +49,7 @@ function WriteCapabilityPage({report, policy}: WriteCapabilityPageProps) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={WriteCapabilityPage.displayName}
+            testID="WriteCapabilityPage"
         >
             <FullPageNotFoundView shouldShow={!isAbleToEdit}>
                 <HeaderWithBackButton
@@ -57,17 +58,15 @@ function WriteCapabilityPage({report, policy}: WriteCapabilityPageProps) {
                     onBackButtonPress={goBack}
                 />
                 <SelectionList
-                    sections={[{data: writeCapabilityOptions}]}
+                    data={writeCapabilityOptions}
                     ListItem={RadioListItem}
                     onSelectRow={(option) => updateWriteCapability(option.value)}
                     shouldSingleExecuteRowSelect
-                    initiallyFocusedOptionKey={writeCapabilityOptions.find((locale) => locale.isSelected)?.keyForList}
+                    initiallyFocusedItemKey={selectedOptionKey}
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }
-
-WriteCapabilityPage.displayName = 'WriteCapabilityPage';
 
 export default withReportOrNotFound()(WriteCapabilityPage);

@@ -19,7 +19,7 @@ function SearchFiltersAttendeePage() {
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersAttendeePage.displayName}
+            testID="SearchFiltersAttendeePage"
             includeSafeAreaPaddingBottom
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
@@ -39,12 +39,11 @@ function SearchFiltersAttendeePage() {
                             attendee: selectedAccountIDs,
                         });
                     }}
+                    shouldAllowNameOnlyOptions
                 />
             </View>
         </ScreenWrapper>
     );
 }
-
-SearchFiltersAttendeePage.displayName = 'SearchFiltersAttendeePage';
 
 export default SearchFiltersAttendeePage;

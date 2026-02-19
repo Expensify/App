@@ -4,18 +4,18 @@ import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
-type ListItemType = {
+type ListItemType = ListItem<ValueOf<typeof CONST.POLICY.ROLE>> & {
     value: ValueOf<typeof CONST.POLICY.ROLE>;
     text: string;
     alternateText: string;
     isSelected: boolean;
-    keyForList: ValueOf<typeof CONST.POLICY.ROLE>;
 };
 
 type WorkspaceMemberDetailsPageProps = {
@@ -45,7 +45,7 @@ function WorkspaceMemberDetailsRoleSelectionModal({isVisible, items, onRoleChang
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapper
-                testID={WorkspaceMemberDetailsRoleSelectionModal.displayName}
+                testID="WorkspaceMemberDetailsRoleSelectionModal"
                 includePaddingTop={false}
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
@@ -55,12 +55,11 @@ function WorkspaceMemberDetailsRoleSelectionModal({isVisible, items, onRoleChang
                 />
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                     <SelectionList
-                        sections={[{data: items}]}
+                        data={items}
                         ListItem={RadioListItem}
                         onSelectRow={onRoleChange}
-                        isAlternateTextMultilineSupported
                         shouldSingleExecuteRowSelect
-                        initiallyFocusedOptionKey={items.find((item) => item.isSelected)?.keyForList}
+                        initiallyFocusedItemKey={items.find((item) => item.isSelected)?.keyForList}
                         addBottomSafeAreaPadding
                     />
                 </View>
@@ -68,8 +67,6 @@ function WorkspaceMemberDetailsRoleSelectionModal({isVisible, items, onRoleChang
         </Modal>
     );
 }
-
-WorkspaceMemberDetailsRoleSelectionModal.displayName = 'WorkspaceMemberDetailsRoleSelectionModal';
 
 export type {ListItemType};
 

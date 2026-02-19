@@ -31,6 +31,4 @@ function AutoCompleteSuggestionsPortal<TSuggestion>({left = 0, width = 0, bottom
     );
 }
 
-AutoCompleteSuggestionsPortal.displayName = 'AutoCompleteSuggestionsPortal';
-
 export default AutoCompleteSuggestionsPortal;

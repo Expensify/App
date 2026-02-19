@@ -254,6 +254,4 @@ function ConfirmContent({
     );
 }
 
-ConfirmContent.displayName = 'ConfirmContent';
-
 export default ConfirmContent;

@@ -1,5 +1,5 @@
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type {Country} from '@src/CONST';
+import type {FileObject} from '@src/types/utils/Attachment';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type Form from './Form';
 
@@ -448,7 +448,7 @@ type ReimbursementAccountForm = ReimbursementAccountFormExtraProps &
             ACHContractStepProps &
             ReimbursementAccountProps &
             NonUSDReimbursementAccountAdditionalProps
-    >;
+    > & {currency?: string};
 
 export type {
     ReimbursementAccountForm,

@@ -51,14 +51,14 @@ function ReportFieldsAddListValuePage({
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) =>
-            validateReportFieldListValueName(values[INPUT_IDS.VALUE_NAME].trim(), '', listValues, INPUT_IDS.VALUE_NAME),
-        [listValues],
+            validateReportFieldListValueName(values[INPUT_IDS.VALUE_NAME].trim(), '', listValues, INPUT_IDS.VALUE_NAME, translate),
+        [listValues, translate],
     );
 
     const createValue = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
             if (reportFieldID) {
-                addReportFieldListValue(policyID, reportFieldID, values[INPUT_IDS.VALUE_NAME]);
+                addReportFieldListValue({policy, reportFieldID, valueName: values[INPUT_IDS.VALUE_NAME]});
             } else {
                 createReportFieldsListValue({
                     valueName: values[INPUT_IDS.VALUE_NAME],
@@ -69,7 +69,7 @@ function ReportFieldsAddListValuePage({
             Keyboard.dismiss();
             Navigation.goBack();
         },
-        [formDraft, policyID, reportFieldID],
+        [formDraft, policy, reportFieldID],
     );
 
     return (
@@ -82,7 +82,7 @@ function ReportFieldsAddListValuePage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={styles.defaultModalContainer}
-                testID={ReportFieldsAddListValuePage.displayName}
+                testID="ReportFieldsAddListValuePage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -112,7 +112,5 @@ function ReportFieldsAddListValuePage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-ReportFieldsAddListValuePage.displayName = 'ReportFieldsAddListValuePage';
 
 export default withPolicyAndFullscreenLoading(ReportFieldsAddListValuePage);

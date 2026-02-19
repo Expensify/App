@@ -1,9 +1,10 @@
-import type {LayoutChangeEvent, ListRenderItem, StyleProp, ViewStyle} from 'react-native';
+import type {ListRenderItem} from '@shopify/flash-list';
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TransactionPreviewStyleType} from '@components/ReportActionItem/TransactionPreview/types';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import type {PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+import type {PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 
 type TransactionPreviewCarouselStyle = {
     [key in keyof TransactionPreviewStyleType]: number;
@@ -63,9 +64,6 @@ type MoneyRequestReportPreviewProps = {
     /** Whether  context menu should be shown on press */
     shouldDisplayContextMenu?: boolean;
 
-    /** Whether the report is an invoice preview */
-    isInvoice?: boolean;
-
     /** Whether to show a border to separate Reports Chat Item and Money Request Report Preview */
     shouldShowBorder?: boolean;
 };
@@ -75,7 +73,6 @@ type MoneyRequestReportPreviewContentOnyxProps = {
     invoiceReceiverPolicy: OnyxEntry<Policy>;
     iouReport: OnyxEntry<Report>;
     transactions: Transaction[];
-    violations: OnyxCollection<TransactionViolation[]>;
     policy: OnyxEntry<Policy>;
     invoiceReceiverPersonalDetail: OnyxEntry<PersonalDetails> | null;
     lastTransactionViolations: TransactionViolations;

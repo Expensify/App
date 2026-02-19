@@ -21,7 +21,6 @@ function TaskListItem<TItem extends ListItem>({
     onLongPressRow,
     shouldSyncFocus,
     allReports,
-    personalDetails,
 }: TaskListItemProps<TItem>) {
     const taskItem = item as unknown as TaskListItemType;
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskItem?.parentReportID}`];
@@ -53,7 +52,7 @@ function TaskListItem<TItem extends ListItem>({
         backgroundColor: theme.highlightBG,
     });
 
-    const fsClass = FS.getChatFSClass(personalDetails, parentReport);
+    const fsClass = FS.getChatFSClass(parentReport);
 
     return (
         <BaseListItem
@@ -82,7 +81,5 @@ function TaskListItem<TItem extends ListItem>({
         </BaseListItem>
     );
 }
-
-TaskListItem.displayName = 'TaskListItem';
 
 export default TaskListItem;

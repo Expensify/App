@@ -13,13 +13,12 @@ import ThumbnailImage from '@components/ThumbnailImage';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
+import type {ReceiptSource} from '@src/types/onyx/Transaction';
 import type IconAsset from '@src/types/utils/IconAsset';
 import shouldUseAspectRatioForEReceipts from './shouldUseAspectRatioForEReceipts';
 
 // It is used to avoid updating the image width in a loop.
 const MIN_UPDATE_WIDTH_DIFF = 1000;
-
-type Style = {height: number; borderRadius: number; margin: number};
 
 type ReceiptImageProps = (
     | {
@@ -33,31 +32,38 @@ type ReceiptImageProps = (
           isThumbnail?: boolean;
 
           /** Url of the receipt image */
-          source?: string;
+          source?: ReceiptSource;
 
           /** Whether it is a pdf thumbnail we are displaying */
-          isPDFThumbnail?: boolean;
+          isPDFThumbnail?: false;
       }
     | {
           transactionID?: string;
           isEReceipt?: boolean;
           isThumbnail: boolean;
+          source?: ReceiptSource;
+          isPDFThumbnail?: false;
+      }
+    | {
+          transactionID?: string;
+          isEReceipt?: boolean;
+          isThumbnail?: boolean;
+          source: ReceiptSource;
+          isPDFThumbnail?: false;
+      }
+    | {
+          transactionID?: string;
+          isEReceipt?: boolean;
+          isThumbnail?: boolean;
+          source: ReceiptSource;
+          isPDFThumbnail?: false;
+      }
+    | {
+          transactionID?: string;
+          isEReceipt?: boolean;
+          isThumbnail?: boolean;
           source?: string;
-          isPDFThumbnail?: boolean;
-      }
-    | {
-          transactionID?: string;
-          isEReceipt?: boolean;
-          isThumbnail?: boolean;
-          source: string;
-          isPDFThumbnail?: boolean;
-      }
-    | {
-          transactionID?: string;
-          isEReceipt?: boolean;
-          isThumbnail?: boolean;
-          source: string;
-          isPDFThumbnail?: string;
+          isPDFThumbnail: true;
       }
 ) & {
     /** Whether we should display the receipt with ThumbnailImage component */
@@ -68,9 +74,6 @@ type ReceiptImageProps = (
 
     /** Whether the receipt image requires an authToken */
     isAuthTokenRequired?: boolean;
-
-    /** Any additional styles to apply */
-    style?: Style;
 
     /** The file extension of the receipt file */
     fileExtension?: string;
@@ -115,17 +118,22 @@ type ReceiptImageProps = (
 
     /** Callback to be called when the image loads */
     onLoad?: (event?: {nativeEvent: {width: number; height: number}}) => void;
+
+    /** Callback to be called when the image fails to load */
+    onLoadFailure?: () => void;
+
+    /** Whether the receipt is a map distance request */
+    isMapDistanceRequest?: boolean;
 };
 
 function ReceiptImage({
     transactionID,
-    isPDFThumbnail = false,
+    isPDFThumbnail,
     isThumbnail = false,
     shouldUseThumbnailImage = false,
     isEReceipt = false,
     source,
     isAuthTokenRequired,
-    style,
     fileExtension,
     iconSize,
     loadingIconSize,
@@ -142,6 +150,8 @@ function ReceiptImage({
     loadingIndicatorStyles,
     thumbnailContainerStyles,
     onLoad,
+    onLoadFailure,
+    isMapDistanceRequest,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
     const [receiptImageWidth, setReceiptImageWidth] = useState<number | undefined>(undefined);
@@ -181,9 +191,9 @@ function ReceiptImage({
     }
 
     if (isThumbnail || (isEReceipt && isPerDiemRequest)) {
-        const props = isThumbnail && {borderRadius: style?.borderRadius, fileExtension, isReceiptThumbnail: true};
+        const props = isThumbnail && {fileExtension, isReceiptThumbnail: true};
         return (
-            <View style={style ?? [styles.w100, styles.h100]}>
+            <View style={[styles.w100, styles.h100]}>
                 <EReceiptThumbnail
                     transactionID={transactionID}
                     iconSize={iconSize}
@@ -209,6 +219,7 @@ function ReceiptImage({
                 fallbackIconBackground={fallbackIconBackground}
                 objectPosition={shouldUseInitialObjectPosition ? CONST.IMAGE_OBJECT_POSITION.INITIAL : CONST.IMAGE_OBJECT_POSITION.TOP}
                 onLoad={onLoad}
+                onLoadFailure={onLoadFailure}
             />
         );
     }
@@ -221,8 +232,8 @@ function ReceiptImage({
                 }
                 lastUpdateWidthTimestampRef.current = e.timeStamp;
             }}
-            source={{uri: source}}
-            style={[style ?? [styles.w100, styles.h100], styles.overflowHidden]}
+            source={typeof source === 'string' ? {uri: source} : source}
+            style={isMapDistanceRequest && styles.flex1}
             isAuthTokenRequired={!!isAuthTokenRequired}
             loadingIconSize={loadingIconSize}
             loadingIndicatorStyles={loadingIndicatorStyles}
@@ -231,6 +242,7 @@ function ReceiptImage({
             onLoad={onLoad}
             shouldCalculateAspectRatioForWideImage={shouldUseFullHeight}
             imageWidthToCalculateHeight={receiptImageWidth}
+            onError={onLoadFailure}
         />
     );
 }

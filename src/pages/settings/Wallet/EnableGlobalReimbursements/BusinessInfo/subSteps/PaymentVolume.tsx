@@ -18,7 +18,10 @@ function PaymentVolume({onNext, onMove, isEditing, currency}: PaymentVolumeProps
     const [enableGlobalReimbursementsDraft] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT, {canBeMissing: true});
     const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS, {canBeMissing: true});
 
-    const annualVolumeRangeListOptions = useMemo(() => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.AnnualVolumeRange), [corpayOnboardingFields]);
+    const annualVolumeRangeListOptions = useMemo(
+        () => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.AnnualVolumeRange),
+        [corpayOnboardingFields?.picklists.AnnualVolumeRange],
+    );
 
     const pushRowFields = useMemo(
         () => [
@@ -26,7 +29,7 @@ function PaymentVolume({onNext, onMove, isEditing, currency}: PaymentVolumeProps
                 inputID: ANNUAL_VOLUME,
                 defaultValue: enableGlobalReimbursementsDraft?.[ANNUAL_VOLUME] ?? '',
                 options: annualVolumeRangeListOptions,
-                description: translate('businessInfoStep.annualPaymentVolumeInCurrency', {currencyCode: currency}),
+                description: translate('businessInfoStep.annualPaymentVolumeInCurrency', currency),
                 modalHeaderTitle: translate('businessInfoStep.selectAnnualPaymentVolume'),
                 searchInputTitle: translate('businessInfoStep.findAnnualPaymentVolume'),
             },
@@ -56,7 +59,5 @@ function PaymentVolume({onNext, onMove, isEditing, currency}: PaymentVolumeProps
         />
     );
 }
-
-PaymentVolume.displayName = 'PaymentVolume';
 
 export default PaymentVolume;

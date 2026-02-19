@@ -1,19 +1,19 @@
 ---
 title: Book a Flight in New Expensify
 description: Learn how to book flights using Expensify’s integrated travel tool, from trip search to payment and confirmation.
-keywords: [New Expensify, book flight, travel tool, flight booking, trip room, itinerary, travel receipt]
+keywords: [New Expensify, book flight, flight search, travel booking, out of policy flight, travel approval, Expensify travel, create trip, travel receipt, travel tool, itinerary]
 ---
 
 <div id="new-expensify" markdown="1">
+# Book a flight in New Expensify
 
-Book flights easily through Expensify’s built-in travel booking tool. This guide walks you through finding flights, booking them, and accessing your travel details in New Expensify.
+Book flights easily with Expensify Travel. This guide walks you through finding flights, booking them, and accessing your travel details in New Expensify.
 
-# How to access the travel tool
+## Where to find Expensify Travel
 
-From the left-hand menu, select **Reports > Trips**.  
-Click the green **+** button in the bottom-left corner, then choose **Book travel**.
+Tap the green ➕ **Create** button at the bottom of your screen, then choose **Book travel**.
 
-If you don’t see this option, reach out to your Account Manager or Concierge to schedule a travel demo and enable the feature for your account.
+If you don’t see **Book travel**, ask a Workspace Admin to [enable Expensify Travel](https://help.expensify.com/articles/travel/company-setup/Enable-Travel-on-a-Workspace) on the workspace. 
 
 # How to book a flight
 
@@ -36,7 +36,7 @@ If you don’t see this option, reach out to your Account Manager or Concierge t
 7. Select an existing trip or create a new one to assign the booking.
 8. Confirm your payment method and click **Book Flight**.
 
-# What happens next
+## What happens after booking with Expensify Travel 
 
 - Your company’s travel policy may require approval before final confirmation.
 - You’ll receive a confirmation email after booking.
@@ -47,11 +47,11 @@ If you don’t see this option, reach out to your Account Manager or Concierge t
 
 ## Can I book flights for someone else?
 
-Yes, you can book flights for others if you’re an authorized arranger or guest booking is enabled. [Learn more about booking for others](https://docs.expensify.com).
+Yes, you can book flights for others if you’re an authorized arranger or guest booking is enabled. [Learn more](https://docs.expensify.com) about how guest and arranger travel works.
 
 ## Do I need to upload the flight receipt?
 
-Nope! Expensify automatically attaches the receipt to your report.
+No. Expensify attaches the receipt to your report automatically.
 
 ## Can I book international flights?
 
@@ -63,13 +63,15 @@ Yes! The receipt is SmartScanned and added to an expense report once the flight 
 
 ## Can I cancel or change my flight later?
 
-Flight changes and cancellations depend on the airline’s policy and your specific fare.  
-If changes are made through support, a $25 booking change fee applies.  
-You can manage bookings by going to **Reports > Trips > My Trips**.
+Yes — but it depends on your fare and the airline’s policy. If changes are made through support, a $25 booking change fee applies.
+To modify or cancel a booking:
+1. Tap the green ➕ **Create** button at the bottom of your screen, then choose **Book travel**.
+2. In the window that opens, click the **Trips** tab.
+3. Find your trip and click **Modify or Cancel**
 
-## Where can I view my travel itinerary while on the go?
+## Where can I view my trip itinerary?
 
-When a traveler books a trip in Expensify Travel, a **trip itinerary** is automatically created in New Expensify. 
+When a traveler books a trip in Expensify Travel, a **trip itinerary** is automatically created. 
 To view your trip:
 
 1. Open the Expensify mobile app.

@@ -2,8 +2,8 @@ import React, {useCallback} from 'react';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -47,7 +47,7 @@ function PriorityModePage() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={PriorityModePage.displayName}
+            testID="PriorityModePage"
         >
             <HeaderWithBackButton
                 title={translate('priorityModePage.priorityMode')}
@@ -55,16 +55,14 @@ function PriorityModePage() {
             />
             <Text style={[styles.mh5, styles.mv3]}>{translate('priorityModePage.explainerText')}</Text>
             <SelectionList
-                sections={[{data: priorityModes}]}
+                data={priorityModes}
                 ListItem={RadioListItem}
                 onSelectRow={updateMode}
                 shouldSingleExecuteRowSelect
-                initiallyFocusedOptionKey={priorityModes.find((mode) => mode.isSelected)?.keyForList}
+                initiallyFocusedItemKey={priorityModes.find((mode) => mode.isSelected)?.keyForList}
             />
         </ScreenWrapper>
     );
 }
-
-PriorityModePage.displayName = 'PriorityModePage';
 
 export default PriorityModePage;

@@ -2,13 +2,14 @@ import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
+import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {AvatarSizeName} from '@styles/utils';
 import variables from '@styles/variables';
 import type {PersonalDetails} from '@src/types/onyx';
-import type {SearchPersonalDetails} from '@src/types/onyx/SearchResults';
 import UserInfoCell from './UserInfoCell';
 
 function UserInfoCellsWithArrow({
@@ -22,20 +23,24 @@ function UserInfoCellsWithArrow({
     infoCellsTextStyle,
     infoCellsAvatarStyle,
     fromRecipientStyle,
+    shouldUseArrowIcon = true,
 }: {
     shouldShowToRecipient: boolean;
-    participantFrom: SearchPersonalDetails | PersonalDetails;
+    participantFrom: PersonalDetails;
     participantFromDisplayName: string;
-    participantTo: SearchPersonalDetails | PersonalDetails;
+    participantTo: PersonalDetails;
     participantToDisplayName: string;
     style?: StyleProp<ViewStyle>;
     avatarSize?: AvatarSizeName;
     infoCellsTextStyle?: TextStyle;
     infoCellsAvatarStyle?: ViewStyle;
     fromRecipientStyle?: ViewStyle;
+    shouldUseArrowIcon?: boolean;
 }) {
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRightLong']);
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {translate} = useLocalize();
 
     if (!participantFrom) {
         return null;
@@ -54,13 +59,22 @@ function UserInfoCellsWithArrow({
             />
             {shouldShowToRecipient && (
                 <>
-                    <Icon
-                        src={Expensicons.ArrowRightLong}
-                        width={variables.iconSizeXXSmall}
-                        height={variables.iconSizeXXSmall}
-                        fill={theme.icon}
-                        testID="ArrowRightLong Icon"
-                    />
+                    {shouldUseArrowIcon ? (
+                        <Icon
+                            src={icons.ArrowRightLong}
+                            width={variables.iconSizeXXSmall}
+                            height={variables.iconSizeXXSmall}
+                            fill={theme.icon}
+                            testID="UserInfoToIndicator"
+                        />
+                    ) : (
+                        <Text
+                            testID="UserInfoToIndicator"
+                            style={[styles.textMicroSupporting]}
+                        >
+                            {translate('common.conjunctionTo')}
+                        </Text>
+                    )}
                     <UserInfoCell
                         accountID={participantTo.accountID}
                         avatar={participantTo.avatar}
@@ -68,14 +82,12 @@ function UserInfoCellsWithArrow({
                         avatarSize={avatarSize}
                         textStyle={infoCellsTextStyle}
                         avatarStyle={infoCellsAvatarStyle}
-                        containerStyle={[styles.mw50, styles.flexShrink1, fromRecipientStyle]}
+                        containerStyle={[styles.mw50, styles.flexShrink1, fromRecipientStyle, styles.mlHalf]}
                     />
                 </>
             )}
         </View>
     );
 }
-
-UserInfoCellsWithArrow.displayName = 'UserInfoCellsWithArrow';
 
 export default UserInfoCellsWithArrow;

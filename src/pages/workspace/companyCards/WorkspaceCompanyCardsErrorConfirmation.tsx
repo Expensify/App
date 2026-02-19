@@ -1,32 +1,33 @@
 import React from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
-import {BrokenCompanyCardBankConnection} from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCompanyFeeds, getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
+import {getCompanyCardFeed, getCompanyFeeds, getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
 import {deleteWorkspaceCompanyCardFeed, setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import {enableExpensifyCard} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {CompanyCardFeed} from '@src/types/onyx';
+import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 
 type WorkspaceCompanyCardsErrorConfirmationProps = {
     policyID?: string;
-    newFeed?: CompanyCardFeed;
+    newFeed?: CompanyCardFeedWithDomainID;
 };
 
 function WorkspaceCompanyCardsErrorConfirmation({policyID, newFeed}: WorkspaceCompanyCardsErrorConfirmationProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['BrokenCompanyCardBankConnection']);
     const policy = usePolicy(policyID);
     const isExpensifyCardFeatureEnabled = !!policy?.areExpensifyCardsEnabled;
-    const [cardsList] = useCardsList(policyID, newFeed);
+    const [cardsList] = useCardsList(newFeed);
     const [cardFeeds] = useCardFeeds(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const companyFeeds = getCompanyFeeds(cardFeeds);
@@ -39,10 +40,10 @@ function WorkspaceCompanyCardsErrorConfirmation({policyID, newFeed}: WorkspaceCo
         }
         const {cardList, ...cards} = cardsList ?? {};
         const cardIDs = Object.keys(cards);
-        const feedToOpen = (Object.keys(companyFeeds) as CompanyCardFeed[])
-            .filter((feed) => feed !== newFeed && companyFeeds[feed]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-            .at(0);
-        deleteWorkspaceCompanyCardFeed(policyID, domainOrWorkspaceAccountID, newFeed, cardIDs, feedToOpen);
+        const feedToOpen = (Object.keys(companyFeeds) as CompanyCardFeedWithDomainID[]).find(
+            (feed) => feed !== newFeed && companyFeeds[feed]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        );
+        deleteWorkspaceCompanyCardFeed(policyID, domainOrWorkspaceAccountID, getCompanyCardFeed(newFeed), cardIDs, feedToOpen);
     };
 
     const onButtonPress = () => {
@@ -98,7 +99,7 @@ function WorkspaceCompanyCardsErrorConfirmation({policyID, newFeed}: WorkspaceCo
                     </TextLink>
                 </Text>
             }
-            illustration={BrokenCompanyCardBankConnection}
+            illustration={illustrations.BrokenCompanyCardBankConnection}
             shouldShowButton
             illustrationStyle={styles.errorStateCardIllustration}
             onButtonPress={onButtonPress}

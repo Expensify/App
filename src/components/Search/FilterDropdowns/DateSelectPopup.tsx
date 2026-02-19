@@ -2,8 +2,8 @@ import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import SearchDatePresetFilterBase from '@components/Search/SearchDatePresetFilterBase';
-import type {SearchDatePresetFilterBaseHandle, SearchDateValues} from '@components/Search/SearchDatePresetFilterBase';
+import DatePresetFilterBase from '@components/Search/FilterComponents/DatePresetFilterBase';
+import type {SearchDatePresetFilterBaseHandle, SearchDateValues} from '@components/Search/FilterComponents/DatePresetFilterBase';
 import type {SearchDatePreset} from '@components/Search/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -86,7 +86,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange}: DateSe
                         onBackButtonPress={() => setSelectedDateModifier(null)}
                     />
                 )}
-                <SearchDatePresetFilterBase
+                <DatePresetFilterBase
                     ref={searchDatePresetFilterBaseRef}
                     defaultDateValues={value}
                     selectedDateModifier={selectedDateModifier}
@@ -100,6 +100,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange}: DateSe
                     style={[styles.flex1]}
                     text={translate('common.reset')}
                     onPress={resetChanges}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_DATE}
                 />
                 <Button
                     success
@@ -107,12 +108,12 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange}: DateSe
                     style={[styles.flex1]}
                     text={translate('common.apply')}
                     onPress={applyChanges}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_DATE}
                 />
             </View>
         </View>
     );
 }
 
-DateSelectPopup.displayName = 'DateSelectPopup';
 export type {DateSelectPopupProps};
 export default DateSelectPopup;

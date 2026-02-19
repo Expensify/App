@@ -1,8 +1,11 @@
+import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useContext, useRef} from 'react';
 import {View} from 'react-native';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import KYCWall from '@components/KYCWall';
+import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
@@ -34,14 +37,17 @@ function SearchSelectedNarrow({options, itemsLength, currentSelectedPolicyID, cu
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [selectedIouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentSelectedReportID}`, {canBeMissing: true});
     const {translate, localeCompare} = useLocalize();
+    const kycWallRef = useContext(KYCWallContext);
     const currentPolicy = usePolicy(currentSelectedPolicyID);
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
     const isCurrentSelectedExpenseReport = isExpenseReport(currentSelectedReportID);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     // Stores an option to execute after modal closes when using deferred execution
     const selectedOptionRef = useRef<DropdownOption<SearchHeaderOptionValue> | null>(null);
     const {accountID} = useCurrentUserPersonalDetails();
     const activeAdminPolicies = getActiveAdminWorkspaces(allPolicies, accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
     const handleOnMenuItemPress = (option: DropdownOption<SearchHeaderOptionValue>) => {
         if (option?.shouldCloseModalOnSelect) {
@@ -53,10 +59,18 @@ function SearchSelectedNarrow({options, itemsLength, currentSelectedPolicyID, cu
 
     return (
         <KYCWall
+            ref={kycWallRef}
             chatReportID={currentSelectedReportID}
             iouReport={selectedIouReport}
             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-            addBankAccountRoute={isCurrentSelectedExpenseReport ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(currentSelectedPolicyID, undefined, Navigation.getActiveRoute()) : undefined}
+            addBankAccountRoute={
+                isCurrentSelectedExpenseReport
+                    ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({
+                          policyID: currentSelectedPolicyID,
+                          backTo: Navigation.getActiveRoute(),
+                      })
+                    : undefined
+            }
             onSuccessfulKYC={(paymentType) => confirmPayment?.(paymentType)}
         >
             {(triggerKYCFlow, buttonRef) => (
@@ -68,19 +82,22 @@ function SearchSelectedNarrow({options, itemsLength, currentSelectedPolicyID, cu
                         shouldAlwaysShowDropdownMenu
                         isDisabled={options.length === 0}
                         onPress={() => null}
+                        shouldPopoverUseScrollView={options.length >= CONST.DROPDOWN_SCROLL_THRESHOLD}
                         onOptionSelected={(item) => handleOnMenuItemPress(item)}
                         onSubItemSelected={(subItem) =>
-                            handleBulkPayItemSelected(
-                                subItem,
+                            handleBulkPayItemSelected({
+                                item: subItem,
                                 triggerKYCFlow,
                                 isAccountLocked,
                                 showLockedAccountModal,
-                                currentPolicy,
+                                policy: currentPolicy,
                                 latestBankItems,
                                 activeAdminPolicies,
                                 isUserValidated,
+                                isDelegateAccessRestricted,
+                                showDelegateNoAccessModal,
                                 confirmPayment,
-                            )
+                            })
                         }
                         success
                         isSplitButton={false}
@@ -90,13 +107,12 @@ function SearchSelectedNarrow({options, itemsLength, currentSelectedPolicyID, cu
                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                         }}
                         shouldUseModalPaddingStyle
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.NARROW_BULK_ACTIONS_DROPDOWN}
                     />
                 </View>
             )}
         </KYCWall>
     );
 }
-
-SearchSelectedNarrow.displayName = 'SearchSelectedNarrow';
 
 export default SearchSelectedNarrow;

@@ -1,10 +1,12 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
+import {openAuthSessionAsync} from 'expo-web-browser';
 import throttle from 'lodash/throttle';
 import type {ChannelAuthorizationData} from 'pusher-js/types/src/core/auth/options';
 import type {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
 import {InteractionManager} from 'react-native';
-import type {OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import {buildOldDotURL, openExternalLink} from '@libs/actions/Link';
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
 import * as API from '@libs/API';
 import type {
@@ -30,7 +32,6 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import FraudProtection from '@libs/FraudProtection';
 import Fullstory from '@libs/Fullstory';
 import HttpUtils from '@libs/HttpUtils';
-import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
@@ -45,14 +46,13 @@ import * as SessionUtils from '@libs/SessionUtils';
 import {checkIfShouldUseNewPartnerName, resetDidUserLogInDuringSession} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
 import Timers from '@libs/Timers';
-import {hideContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {confirmReadyToOpenApp, KEYS_TO_PRESERVE, openApp} from '@userActions/App';
 import {KEYS_TO_PRESERVE_DELEGATE_ACCESS} from '@userActions/Delegate';
 import * as Device from '@userActions/Device';
-import * as HybridAppActions from '@userActions/HybridApp';
 import type HybridAppSettings from '@userActions/HybridApp/types';
+import {close} from '@userActions/Modal';
 import redirectToSignIn from '@userActions/SignInRedirect';
-import Timing from '@userActions/Timing';
 import * as Welcome from '@userActions/Welcome';
 import CONFIG from '@src/CONFIG';
 import CONST, {FRAUD_PROTECTION_EVENT} from '@src/CONST';
@@ -63,9 +63,11 @@ import ROUTES from '@src/ROUTES';
 import type {TryNewDot} from '@src/types/onyx';
 import type Credentials from '@src/types/onyx/Credentials';
 import type Locale from '@src/types/onyx/Locale';
+import type {OnyxData} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
 import type {AutoAuthState} from '@src/types/onyx/Session';
+import pkg from '../../../../package.json';
 import clearCache from './clearCache';
 import updateSessionAuthTokens from './updateSessionAuthTokens';
 
@@ -127,6 +129,14 @@ Onyx.connect({
     },
 });
 
+let isUsingImportedState: boolean | undefined;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.IS_USING_IMPORTED_STATE,
+    callback: (value) => {
+        isUsingImportedState = value ?? false;
+    },
+});
+
 function isSupportAuthToken(): boolean {
     return session.authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
 }
@@ -148,7 +158,7 @@ function setSupportAuthToken(supportAuthToken: string, email: string, accountID:
 }
 
 function getShortLivedLoginParams(isSupportAuthTokenUsed = false, isSAML = false) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION | typeof ONYXKEYS.HYBRID_APP>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -163,6 +173,7 @@ function getShortLivedLoginParams(isSupportAuthTokenUsed = false, isSAML = false
             key: ONYXKEYS.SESSION,
             value: {
                 signedInWithShortLivedAuthToken: true,
+                signedInWithSAML: isSAML,
                 isAuthenticatingWithShortLivedToken: true,
                 isSupportAuthTokenUsed,
             },
@@ -170,7 +181,7 @@ function getShortLivedLoginParams(isSupportAuthTokenUsed = false, isSAML = false
     ];
 
     // Subsequently, we revert it back to the default value of 'signedInWithShortLivedAuthToken' in 'finallyData' to ensure the user is logged out on refresh
-    const finallyData: OnyxUpdate[] = [
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -183,13 +194,14 @@ function getShortLivedLoginParams(isSupportAuthTokenUsed = false, isSAML = false
             key: ONYXKEYS.SESSION,
             value: {
                 signedInWithShortLivedAuthToken: null,
+                signedInWithSAML: isSAML,
                 isSupportAuthTokenUsed: null,
                 isAuthenticatingWithShortLivedToken: false,
             },
         },
     ];
 
-    const failureData: OnyxUpdate[] = [];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.HYBRID_APP>> = [];
 
     if (CONFIG.IS_HYBRID_APP && isSAML) {
         optimisticData.push({
@@ -221,24 +233,44 @@ function signInWithSupportAuthToken(authToken: string) {
 }
 
 /**
- * Clears the Onyx store and redirects user to the sign in page
+ * Calls the LOG_OUT API to invalidate the session on the server.
  */
-function signOut(): Promise<void | Response> {
+function signOut(params: {autoGeneratedLogin?: string; signedInWithSAML?: boolean; authToken?: string} = {}): Promise<void | Response<never>> {
     Log.info('Flushing logs before signing out', true, {}, true);
-    const shouldUseNewPartnerName = checkIfShouldUseNewPartnerName(credentials?.autoGeneratedLogin);
+    const shouldUseNewPartnerName = checkIfShouldUseNewPartnerName(params.autoGeneratedLogin);
 
-    const params: LogOutParams = {
+    const logOutParams: LogOutParams = {
         // Send current authToken because we will immediately clear it once triggering this command
-        authToken: NetworkStore.getAuthToken() ?? null,
-        partnerUserID: credentials?.autoGeneratedLogin ?? '',
+        authToken: params.authToken ?? null,
+        partnerUserID: params.autoGeneratedLogin ?? '',
         partnerName: shouldUseNewPartnerName ? CONFIG.EXPENSIFY.PARTNER_NAME : CONFIG.EXPENSIFY.LEGACY_PARTNER_NAME,
         partnerPassword: shouldUseNewPartnerName ? CONFIG.EXPENSIFY.PARTNER_PASSWORD : CONFIG.EXPENSIFY.LEGACY_PARTNER_PASSWORD,
         shouldRetry: false,
         skipReauthentication: true,
     };
 
+    if (params.signedInWithSAML && params.authToken) {
+        return callSAMLSignOut(logOutParams, params.authToken);
+    }
+
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT, params, {});
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT, logOutParams, {});
+}
+
+function callSAMLSignOut(params: LogOutParams, authToken: string): Promise<void | Response<never>> {
+    const queryString = CONFIG.IS_HYBRID_APP ? `appversion=${pkg.version}&referer=ecash&authToken=${authToken}` : `referer=ecash&authToken=${authToken}`;
+    return openAuthSessionAsync(`${CONFIG.EXPENSIFY.SAML_URL}/logout?${queryString}`, CONST.SAML_REDIRECT_URL)
+        .catch((error) => {
+            Log.hmmm('SAML sign out failed', {error});
+        })
+        .then((result) => {
+            if (result && result.type !== 'success') {
+                return Promise.reject(Error('Logout cancelled'));
+            }
+            // We always want to sign out the user from the app
+            // eslint-disable-next-line rulesdir/no-api-side-effects-method
+            return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT, params, {});
+        });
 }
 
 /**
@@ -267,6 +299,29 @@ function isExpiredSession(sessionCreationDate: number): boolean {
     return new Date().getTime() - sessionCreationDate >= CONST.SESSION_EXPIRATION_TIME_MS;
 }
 
+const KEYS_TO_PRESERVE_SUPPORTAL = [
+    ONYXKEYS.NVP_TRY_FOCUS_MODE,
+    ONYXKEYS.PREFERRED_THEME,
+    ONYXKEYS.NVP_PREFERRED_LOCALE,
+    ONYXKEYS.ARE_TRANSLATIONS_LOADING,
+    ONYXKEYS.SESSION,
+    ONYXKEYS.STASHED_SESSION,
+    ONYXKEYS.HAS_LOADED_APP,
+    ONYXKEYS.STASHED_CREDENTIALS,
+    ONYXKEYS.HYBRID_APP,
+
+    // We need to preserve the sidebar loaded state since we never unmount the sidebar when connecting as a delegate
+    // This allows the report screen to load correctly when the delegate token expires and the delegate is returned to their original account.
+    ONYXKEYS.IS_SIDEBAR_LOADED,
+    ONYXKEYS.NETWORK,
+    ONYXKEYS.SHOULD_USE_STAGING_SERVER,
+    ONYXKEYS.IS_DEBUG_MODE_ENABLED,
+
+    // Preserve IS_USING_IMPORTED_STATE so that when transitioning to/from supportal,
+    // we know if we're in imported state mode and should skip API calls that would cause infinite loading
+    ONYXKEYS.IS_USING_IMPORTED_STATE,
+];
+
 function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSession?: boolean, shouldSignOutFromOldDot = true, shouldForceUseStashedSession?: boolean) {
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
@@ -281,18 +336,16 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
         return;
     }
 
-    // When signing out from the HybridApp, we need to sign out from the oldDot app as well
-    if (CONFIG.IS_HYBRID_APP && shouldSignOutFromOldDot) {
-        HybridAppModule.signOutFromOldDot();
-    }
-
     const isSupportal = isSupportAuthToken();
     const shouldRestoreStashedSession = isSupportal || shouldForceUseStashedSession;
 
     // We'll only call signOut if we're not stashing the session and not restoring a stashed session,
     // otherwise we'll call the API to invalidate the autogenerated credentials used for infinite
     // session.
-    const signOutPromise: Promise<void | Response> = !shouldRestoreStashedSession && !shouldStashSession ? signOut() : Promise.resolve();
+    const signOutPromise: Promise<void | Response<never>> =
+        !shouldRestoreStashedSession && !shouldStashSession
+            ? signOut({autoGeneratedLogin: credentials?.autoGeneratedLogin, signedInWithSAML: !!session.signedInWithSAML, authToken: session.authToken})
+            : Promise.resolve();
 
     // The function redirectToSignIn will clear the whole storage, so let's create our onyx params
     // updates for the credentials before we call it
@@ -341,9 +394,15 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
         Log.info('No stashed session found, clearing the session');
     }
 
+    const isPerformingSupportalLogout = isSupportal && shouldRestoreStashedSession && !shouldStashSession;
+
     // Wait for signOut (if called), then redirect and update Onyx.
     return signOutPromise
         .then((response) => {
+            // When signing out from the HybridApp, we need to sign out from the oldDot app as well
+            if (CONFIG.IS_HYBRID_APP && shouldSignOutFromOldDot) {
+                HybridAppModule.signOutFromOldDot();
+            }
             if (isSupportal) {
                 // Send event to Fraud Protection backend, otherwise it might consider the user as being suspicious
                 FraudProtection.sendEvent(FRAUD_PROTECTION_EVENT.STOP_SUPPORT_SESSION);
@@ -358,6 +417,30 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
                     true,
                     true,
                 );
+            } else if (isPerformingSupportalLogout && hasStashedSession()) {
+                // We have confirmed here that the supportal agent was logged in, so we can restore the stashed session
+                // and then redirect to the oldDot supportal page to restore the stashed session
+                // Clear the Onyx DB of stale data that might be present from a previous session
+                // of the customer account
+                Onyx.clear(KEYS_TO_PRESERVE_SUPPORTAL).then(() => {
+                    Onyx.multiSet(onyxSetParams).then(() => {
+                        buildOldDotURL(CONST.OLDDOT_URLS.SUPPORTAL_RESTORE_STASHED_LOGIN).then((oldDotURL) => {
+                            // Open the oldDot URL to restore the stashed session and go back to OD supportal page
+                            openExternalLink(oldDotURL, undefined, true);
+                        });
+                    });
+                });
+            } else if (isPerformingSupportalLogout && !hasStashedSession()) {
+                // If the supportal agent was not logged in, we call `redirectToSignIn` to clear the Onyx DB
+                // and then redirect to supportal and restore the stashed session
+                redirectToSignIn().then(() => {
+                    Onyx.multiSet(onyxSetParams).then(() => {
+                        buildOldDotURL(CONST.OLDDOT_URLS.SUPPORTAL_RESTORE_STASHED_LOGIN).then((oldDotURL) => {
+                            // Open the oldDot URL to restore the stashed session and go back to OD supportal page
+                            openExternalLink(oldDotURL, undefined, true);
+                        });
+                    });
+                });
             } else {
                 redirectToSignIn().then(() => {
                     Onyx.multiSet(onyxSetParams);
@@ -380,7 +463,9 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
 function callFunctionIfActionIsAllowed<TCallback extends ((...args: any[]) => any) | void>(callback: TCallback, isAnonymousAction = false): TCallback | (() => void) {
     if (isAnonymousUser() && !isAnonymousAction) {
         return () => {
-            signOutAndRedirectToSignIn();
+            close(() => {
+                signOutAndRedirectToSignIn();
+            });
         };
     }
     return callback;
@@ -390,7 +475,7 @@ function callFunctionIfActionIsAllowed<TCallback extends ((...args: any[]) => an
  * Request a new validate / magic code for user to sign in via passwordless flow
  */
 function resendValidateCode(login = credentials.login) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -400,7 +485,7 @@ function resendValidateCode(login = credentials.login) {
             },
         },
     ];
-    const finallyData: OnyxUpdate[] = [
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -415,16 +500,10 @@ function resendValidateCode(login = credentials.login) {
     API.write(WRITE_COMMANDS.REQUEST_NEW_VALIDATE_CODE, params, {optimisticData, finallyData});
 }
 
-type OnyxData = {
-    optimisticData: OnyxUpdate[];
-    successData: OnyxUpdate[];
-    failureData: OnyxUpdate[];
-};
-
 /**
  * Constructs the state object for the BeginSignIn && BeginAppleSignIn API calls.
  */
-function signInAttemptState(): OnyxData {
+function signInAttemptState(): OnyxData<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.CREDENTIALS> {
     return {
         optimisticData: [
             {
@@ -483,15 +562,15 @@ function beginSignIn(email: string) {
 /**
  * Create Onyx update to clean up anonymous user data
  */
-function buildOnyxDataToCleanUpAnonymousUser() {
+function buildOnyxDataToCleanUpAnonymousUser(): OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST> {
     const data: Record<string, null> = {};
     if (session.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS && session.accountID) {
         data[session.accountID] = null;
     }
     return {
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         value: data,
-        onyxMethod: Onyx.METHOD.MERGE,
     };
 }
 
@@ -500,7 +579,7 @@ function buildOnyxDataToCleanUpAnonymousUser() {
  *
  */
 function signUpUser(preferredLocale: Locale | undefined) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -513,7 +592,7 @@ function signUpUser(preferredLocale: Locale | undefined) {
 
     const onyxOperationToCleanUpAnonymousUser = buildOnyxDataToCleanUpAnonymousUser();
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -524,7 +603,7 @@ function signUpUser(preferredLocale: Locale | undefined) {
         onyxOperationToCleanUpAnonymousUser,
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -544,6 +623,12 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
 
     const clearOnyxIfSigningIn = () => {
         if (!hybridApp.useNewDotSignInPage) {
+            return Promise.resolve();
+        }
+
+        // Don't clear Onyx when using imported state to preserve imported data (reports, transactions, etc.)
+        if (isUsingImportedState) {
+            Log.info('[HybridApp] Skipping Onyx clear because using imported state');
             return Promise.resolve();
         }
 
@@ -581,9 +666,11 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
                       [ONYXKEYS.STASHED_SESSION]: {},
                   };
 
-            Log.info('[HybridApp] User switched account on OldDot side. Clearing onyx and applying delegate data');
-            return Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS).then(() =>
-                Onyx.multiSet({
+            // Don't clear Onyx when using imported state to preserve imported data (reports, transactions, etc.)
+            // Just update the session and credentials without clearing
+            if (isUsingImportedState) {
+                Log.info('[HybridApp] Skipping Onyx clear because using imported state. Updating session only.');
+                return Onyx.multiSet({
                     ...stashedData,
                     [ONYXKEYS.SESSION]: {
                         email: hybridApp?.delegateAccessData?.oldDotCurrentUserEmail,
@@ -591,10 +678,6 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
                         encryptedAuthToken: decodeURIComponent(hybridApp?.delegateAccessData?.oldDotCurrentEncryptedAuthToken ?? ''),
                         accountID: hybridApp?.delegateAccessData?.oldDotCurrentAccountID,
                     },
-                    // When a logged-in user opens NewDot for the first time after migrating to the new SignInPage, there will be no credentials on the NewDot side.
-                    // After migration, NewDot is responsible for creating credentials, but this only happens during sign-in.
-                    // To avoid blocking the transition, we fall back to credentials from OldDot in this scenario.
-                    // The `delegateAccessData` key is misleading in this context because, in the past, this code only handled Copilot. We are reusing the same logic here for this scenario.
                     [ONYXKEYS.CREDENTIALS]: {
                         autoGeneratedLogin: credentials?.autoGeneratedLogin ?? hybridApp.delegateAccessData?.oldDotAutoGeneratedLogin,
                         autoGeneratedPassword: credentials?.autoGeneratedPassword ?? hybridApp.delegateAccessData?.oldDotAutoGeneratedPassword,
@@ -602,20 +685,69 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
                 })
                     .then(() => Onyx.merge(ONYXKEYS.ACCOUNT, {primaryLogin: hybridApp?.delegateAccessData?.oldDotCurrentUserEmail}))
                     .then(() => {
-                        Log.info('[HybridApp] Calling openApp to get delegate account details');
                         confirmReadyToOpenApp();
                         return openApp();
+                    });
+            }
+
+            Log.info('[HybridApp] User switched account on OldDot side. Clearing onyx and applying delegate data');
+            return Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS)
+                .then(() =>
+                    Onyx.multiSet({
+                        ...stashedData,
+                        [ONYXKEYS.SESSION]: {
+                            email: hybridApp?.delegateAccessData?.oldDotCurrentUserEmail,
+                            authToken: hybridApp?.delegateAccessData?.oldDotCurrentAuthToken,
+                            encryptedAuthToken: decodeURIComponent(hybridApp?.delegateAccessData?.oldDotCurrentEncryptedAuthToken ?? ''),
+                            accountID: hybridApp?.delegateAccessData?.oldDotCurrentAccountID,
+                        },
+                        // When a logged-in user opens NewDot for the first time after migrating to the new SignInPage, there will be no credentials on the NewDot side.
+                        // After migration, NewDot is responsible for creating credentials, but this only happens during sign-in.
+                        // To avoid blocking the transition, we fall back to credentials from OldDot in this scenario.
+                        // The `delegateAccessData` key is misleading in this context because, in the past, this code only handled Copilot. We are reusing the same logic here for this scenario.
+                        [ONYXKEYS.CREDENTIALS]: {
+                            autoGeneratedLogin: credentials?.autoGeneratedLogin ?? hybridApp.delegateAccessData?.oldDotAutoGeneratedLogin,
+                            autoGeneratedPassword: credentials?.autoGeneratedPassword ?? hybridApp.delegateAccessData?.oldDotAutoGeneratedPassword,
+                        },
                     }),
-            );
+                )
+                .then(() => Onyx.merge(ONYXKEYS.ACCOUNT, {primaryLogin: hybridApp?.delegateAccessData?.oldDotCurrentUserEmail}))
+                .then(() => {
+                    Log.info('[HybridApp] Calling openApp to get delegate account details');
+                    confirmReadyToOpenApp();
+                    return openApp();
+                });
         })
-        .then(() =>
-            HybridAppActions.prepareHybridAppAfterTransitionToNewDot({
+        .then(resetDidUserLoginDuringSessionIfNeeded)
+        .then(() => {
+            const hybridAppUpdate = {
                 ...hybridApp,
                 closingReactNativeApp: false,
-            }),
-        )
-        .then(resetDidUserLoginDuringSessionIfNeeded)
-        .then(() => Promise.all(Object.entries(newDotOnyxValues).map(([key, value]) => Onyx.merge(key as OnyxKey, value ?? {}))))
+                readyToShowAuthScreens: !hybridApp?.useNewDotSignInPage,
+            };
+
+            const onyxUpdates: OnyxUpdate[] = [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.HYBRID_APP,
+                    value: hybridAppUpdate,
+                },
+            ];
+
+            for (const [key, value] of Object.entries(newDotOnyxValues)) {
+                onyxUpdates.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key,
+                    value: value ?? {},
+                } as OnyxUpdate);
+            }
+
+            // Batch all merges together so they're processed atomically by Onyx
+            // and don't await the promise to avoid blocking on disk persistence
+            Onyx.update(onyxUpdates);
+
+            return Promise.resolve();
+        })
         .then(() => {
             Log.info('[HybridApp] Setup after transition from OldDot finished');
             isHybridAppSetupFinished = true;
@@ -668,7 +800,7 @@ function signInWithShortLivedAuthToken(authToken: string, isSAML = false) {
  * @param validateCode - 6 digit code required for login
  */
 function signIn(validateCode: string, preferredLocale: Locale | undefined, twoFactorAuthCode?: string) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -682,7 +814,7 @@ function signIn(validateCode: string, preferredLocale: Locale | undefined, twoFa
 
     const onyxOperationToCleanUpAnonymousUser = buildOnyxDataToCleanUpAnonymousUser();
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.CREDENTIALS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -701,7 +833,7 @@ function signIn(validateCode: string, preferredLocale: Locale | undefined, twoFa
         onyxOperationToCleanUpAnonymousUser,
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -735,7 +867,7 @@ function signInWithValidateCode(accountID: number, code: string, preferredLocale
     const validateCode = twoFactorAuthCode ? credentials.validateCode : code;
     const onyxOperationToCleanUpAnonymousUser = buildOnyxDataToCleanUpAnonymousUser();
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -752,7 +884,7 @@ function signInWithValidateCode(accountID: number, code: string, preferredLocale
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.CREDENTIALS | typeof ONYXKEYS.SESSION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -777,7 +909,7 @@ function signInWithValidateCode(accountID: number, code: string, preferredLocale
         onyxOperationToCleanUpAnonymousUser,
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -857,6 +989,11 @@ function clearSignInData() {
  */
 function resetNavigationState() {
     Navigation.isNavigationReady().then(() => {
+        // Safe handling when navigation is not yet initialized
+        if (!navigationRef.isReady()) {
+            Log.warn('[src/libs/actions/Session/index.ts] NavigationRef is not ready. Returning undefined.');
+            return undefined;
+        }
         navigationRef.resetRoot({index: 0, routes: [{name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}]});
     });
 }
@@ -880,7 +1017,6 @@ function cleanupSession() {
         Log.info('Cleared all cache data', true, {}, true);
     });
     clearSoundAssetsCache();
-    Timing.clearData();
 }
 
 function clearAccountMessages() {
@@ -1009,7 +1145,7 @@ function requestUnlinkValidationLink() {
 }
 
 function unlinkLogin(accountID: number, validateCode: string) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -1019,7 +1155,7 @@ function unlinkLogin(accountID: number, validateCode: string) {
             },
         },
     ];
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.CREDENTIALS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -1036,7 +1172,7 @@ function unlinkLogin(accountID: number, validateCode: string) {
             },
         },
     ];
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -1062,7 +1198,7 @@ function unlinkLogin(accountID: number, validateCode: string) {
  * Toggles two-factor authentication based on the `enable` parameter
  */
 function toggleTwoFactorAuth(enable: boolean, twoFactorAuthCode = '') {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -1072,7 +1208,7 @@ function toggleTwoFactorAuth(enable: boolean, twoFactorAuthCode = '') {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -1082,7 +1218,7 @@ function toggleTwoFactorAuth(enable: boolean, twoFactorAuthCode = '') {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -1194,7 +1330,7 @@ function waitForUserSignIn(): Promise<boolean> {
 }
 
 function handleExitToNavigation(exitTo: Route) {
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         waitForUserSignIn().then(() => {
             Navigation.waitForProtectedRoutes().then(() => {
@@ -1243,7 +1379,7 @@ const canAnonymousUserAccessRoute = (route: string) => {
 };
 
 function AddWorkEmail(workEmail: string) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
@@ -1254,7 +1390,7 @@ function AddWorkEmail(workEmail: string) {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
@@ -1264,7 +1400,7 @@ function AddWorkEmail(workEmail: string) {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM | typeof ONYXKEYS.NVP_ONBOARDING>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
@@ -1293,11 +1429,11 @@ function AddWorkEmail(workEmail: string) {
 }
 
 function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: string, accountID: number | undefined) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY | typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE,
-            value: '',
+            key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY,
+            value: null,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1309,11 +1445,11 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY | typeof ONYXKEYS.NVP_ONBOARDING | typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE,
-            value: '',
+            key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY,
+            value: null,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1332,7 +1468,7 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -1356,7 +1492,7 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
         if (response?.jsonCode === CONST.JSON_CODE.EXP_ERROR) {
             // If the error other than invalid code, we show a blocking screen
             if (response?.message === CONST.MERGE_ACCOUNT_INVALID_CODE_ERROR || response?.title === CONST.MERGE_ACCOUNT_INVALID_CODE_ERROR) {
-                Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, translateLocal('contacts.genericFailureMessages.validateSecondaryLogin'));
+                Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'contacts.genericFailureMessages.validateSecondaryLogin');
             } else {
                 Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergingAccountBlocked: true});
             }
@@ -1382,7 +1518,7 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
 function resetSMSDeliveryFailureStatus(login: string) {
     const params: ResetSMSDeliveryFailureStatusParams = {login};
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -1394,7 +1530,7 @@ function resetSMSDeliveryFailureStatus(login: string) {
             },
         },
     ];
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -1405,7 +1541,7 @@ function resetSMSDeliveryFailureStatus(login: string) {
             },
         },
     ];
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -1422,6 +1558,7 @@ function resetSMSDeliveryFailureStatus(login: string) {
 }
 
 export {
+    KEYS_TO_PRESERVE_SUPPORTAL,
     beginSignIn,
     beginAppleSignIn,
     beginGoogleSignIn,

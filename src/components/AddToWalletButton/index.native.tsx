@@ -4,6 +4,7 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {Alert, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Text from '@components/Text';
+import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getPaymentMethods} from '@libs/actions/PaymentMethods';
@@ -61,6 +62,16 @@ function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddTo
         checkIfCardIsInWallet();
     }, [checkIfCardIsInWallet, isCardAvailable, card]);
 
+    // Recheck card status when app regains focus in case user manually adds card to wallet outside the app
+    useAppFocusEvent(
+        useCallback(() => {
+            if (!isCardAvailable) {
+                return;
+            }
+            checkIfCardIsInWallet();
+        }, [checkIfCardIsInWallet, isCardAvailable]),
+    );
+
     useEffect(() => {
         if (!isCardAvailable) {
             return;
@@ -101,7 +112,5 @@ function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddTo
         />
     );
 }
-
-AddToWalletButton.displayName = 'AddToWalletButton';
 
 export default AddToWalletButton;

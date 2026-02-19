@@ -73,7 +73,7 @@ function PersonalInfo({onBackButtonPress, ref}: PersonalInfoProps) {
     return (
         <InteractiveStepWrapper
             ref={ref}
-            wrapperID={PersonalInfo.displayName}
+            wrapperID="PersonalInfo"
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             headerTitle={translate('personalInfoStep.personalInfo')}
@@ -89,7 +89,5 @@ function PersonalInfo({onBackButtonPress, ref}: PersonalInfoProps) {
         </InteractiveStepWrapper>
     );
 }
-
-PersonalInfo.displayName = 'PersonalInfo';
 
 export default PersonalInfo;

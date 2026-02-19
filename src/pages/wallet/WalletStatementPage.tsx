@@ -42,7 +42,7 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
         if (!yearMonth || yearMonth.length !== 6 || yearMonth > currentYearMonth) {
             Navigation.dismissModal();
         }
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we want this effect to run only on mount
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we want this effect to run only on mount
     }, []);
 
     const processDownload = useCallback(() => {
@@ -56,12 +56,12 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
             const downloadFileName = `Expensify_Statement_${yearMonth}.pdf`;
             const fileName = walletStatement[yearMonth];
             const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${fileName}&downloadName=${downloadFileName}`;
-            fileDownload(pdfURL, downloadFileName).finally(() => setIsDownloading(false));
+            fileDownload(translate, pdfURL, downloadFileName).finally(() => setIsDownloading(false));
             return;
         }
 
         generateStatementPDF(yearMonth);
-    }, [baseURL, isWalletStatementGenerating, walletStatement, yearMonth]);
+    }, [baseURL, isWalletStatementGenerating, translate, walletStatement, yearMonth]);
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
@@ -78,14 +78,14 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
     const year = yearMonth?.substring(0, 4) || getYear(new Date());
     const month = yearMonth?.substring(4) || getMonth(new Date());
     const monthName = format(new Date(Number(year), Number(month) - 1), CONST.DATE.MONTH_FORMAT);
-    const title = translate('statementPage.title', {year, monthName});
+    const title = translate('statementPage.title', year, monthName);
     const url = `${baseURL}statement.php?period=${yearMonth}${themePreference === CONST.THEME.DARK ? '&isDarkMode=true' : ''}`;
 
     return (
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
             enableEdgeToEdgeBottomSafeAreaPadding
-            testID={WalletStatementPage.displayName}
+            testID="WalletStatementPage"
         >
             <HeaderWithBackButton
                 title={Str.recapitalize(title)}
@@ -99,7 +99,5 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
         </ScreenWrapper>
     );
 }
-
-WalletStatementPage.displayName = 'WalletStatementPage';
 
 export default WalletStatementPage;

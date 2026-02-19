@@ -19,32 +19,36 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/DateOfBirthForm';
 
 function DateOfBirthPage() {
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
-    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+
     /**
      * @returns An object containing the errors for each inputID
      */
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM>) => {
-        const requiredFields = ['dob' as const];
-        const errors = getFieldRequiredErrors(values, requiredFields);
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM>) => {
+            const requiredFields = ['dob' as const];
+            const errors = getFieldRequiredErrors(values, requiredFields, translate);
 
-        const minimumAge = CONST.DATE_BIRTH.MIN_AGE;
-        const maximumAge = CONST.DATE_BIRTH.MAX_AGE;
-        const dateError = getAgeRequirementError(values.dob ?? '', minimumAge, maximumAge);
+            const minimumAge = CONST.DATE_BIRTH.MIN_AGE;
+            const maximumAge = CONST.DATE_BIRTH.MAX_AGE;
+            const dateError = getAgeRequirementError(translate, values.dob ?? '', minimumAge, maximumAge);
 
-        if (values.dob && dateError) {
-            errors.dob = dateError;
-        }
+            if (values.dob && dateError) {
+                errors.dob = dateError;
+            }
 
-        return errors;
-    }, []);
+            return errors;
+        },
+        [translate],
+    );
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
-            testID={DateOfBirthPage.displayName}
+            testID="DateOfBirthPage"
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <HeaderWithBackButton
@@ -78,7 +82,5 @@ function DateOfBirthPage() {
         </ScreenWrapper>
     );
 }
-
-DateOfBirthPage.displayName = 'DateOfBirthPage';
 
 export default DateOfBirthPage;

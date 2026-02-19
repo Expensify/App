@@ -52,6 +52,4 @@ function AnonymousReportFooter({isSmallSizeLayout = false, report}: AnonymousRep
     );
 }
 
-AnonymousReportFooter.displayName = 'AnonymousReportFooter';
-
 export default AnonymousReportFooter;

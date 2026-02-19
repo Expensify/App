@@ -33,7 +33,7 @@ describe('OnyxUpdatesTest', () => {
         };
 
         // Given an onyx update from an Airship push notification
-        const airshipUpdates: OnyxUpdatesFromServer = {
+        const airshipUpdates: OnyxUpdatesFromServer<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
             type: CONST.ONYX_UPDATE_TYPES.AIRSHIP,
             previousUpdateID: 0,
             lastUpdateID: 1,
@@ -74,7 +74,7 @@ describe('OnyxUpdatesTest', () => {
         // And we received onyx updates from a full ReconnectApp request with the same lastUpdateID
         const reportID = NumberUtils.rand64();
         const reportValue = {reportID};
-        const fullReconnectUpdates: OnyxUpdatesFromServer = {
+        const fullReconnectUpdates: OnyxUpdatesFromServer<typeof ONYXKEYS.COLLECTION.REPORT> = {
             type: CONST.ONYX_UPDATE_TYPES.HTTPS,
             request: {
                 command: SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP,

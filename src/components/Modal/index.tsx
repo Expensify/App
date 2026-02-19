@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import StatusBar from '@libs/StatusBar';
@@ -20,10 +20,6 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
         StatusBar.setBackgroundColor(color);
     };
 
-    const hideModal = () => {
-        onModalHide();
-    };
-
     const handlePopStateRef = useRef(() => {
         rest.onClose?.();
     });
@@ -34,23 +30,42 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
         handlePopStateRef.current = () => {
             rest.onClose?.();
         };
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [rest.onClose]);
+
+    // We use a stable callback here to avoid issues with stale closures in event listeners.
+    // If we directly passed `handlePopStateRef.current` to addEventListener, the listener would
+    // capture the value of `onClose` at the time it was registered and would not update when
+    // `onClose` changes. By wrapping it in a stable useCallback and referencing
+    // handlePopStateRef.current inside, we ensure that the listener always calls the latest
+    // version of `onClose` without needing to reattach the event listener.
+    const handlePopState = useCallback(() => {
+        handlePopStateRef.current();
+    }, []);
+
+    const hideModal = () => {
+        window.removeEventListener('popstate', handlePopState);
+        if ((window.history.state as WindowState)?.shouldGoBack && shouldHandleNavigationBack) {
+            window.addEventListener('popstate', onModalHide, {once: true});
+            window.history.back();
+        } else {
+            onModalHide();
+        }
+    };
 
     const showModal = () => {
         if (shouldHandleNavigationBack) {
             window.history.pushState({shouldGoBack: true}, '', null);
-            window.addEventListener('popstate', handlePopStateRef.current);
+            window.addEventListener('popstate', handlePopState);
         }
         onModalShow?.();
     };
 
     useEffect(
         () => () => {
-            window.removeEventListener('popstate', handlePopStateRef.current);
+            window.removeEventListener('popstate', handlePopState);
         },
-        [],
+        [handlePopState],
     );
 
     const onModalWillShow = () => {
@@ -73,9 +88,6 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
     const onModalWillHide = () => {
         setStatusBarColor(previousStatusBarColor);
         rest.onModalWillHide?.();
-        if ((window.history.state as WindowState)?.shouldGoBack && shouldHandleNavigationBack) {
-            window.history.back();
-        }
     };
 
     return (
@@ -94,6 +106,5 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
         </BaseModal>
     );
 }
-Modal.displayName = 'Modal';
 
 export default Modal;

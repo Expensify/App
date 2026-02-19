@@ -53,6 +53,4 @@ function MergeFieldReview({mergeField, onValueSelected, errorText}: MergeFieldRe
     );
 }
 
-MergeFieldReview.displayName = 'MergeFieldReview';
-
 export default MergeFieldReview;

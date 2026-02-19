@@ -107,7 +107,7 @@ describe('AddUnreportedExpense Search Functionality', () => {
 
         // Add merchant to searchable fields
         const merchant = getMerchant(transaction);
-        if (merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) {
+        if (merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && merchant !== CONST.TRANSACTION.DEFAULT_MERCHANT) {
             searchableFields.push(merchant);
         }
 
@@ -122,6 +122,10 @@ describe('AddUnreportedExpense Search Functionality', () => {
         const currency = getCurrency(transaction);
         const formattedAmount = convertToDisplayString(amount, currency);
         searchableFields.push(formattedAmount);
+
+        // This allows users to search "2000" and find "$2,000.00" for example
+        const normalizedAmount = (amount / 100).toString();
+        searchableFields.push(normalizedAmount);
 
         return searchableFields;
     };
@@ -186,5 +190,29 @@ describe('AddUnreportedExpense Search Functionality', () => {
 
         expect(result).toHaveLength(1);
         expect(result.at(0)?.transactionID).toBe('1');
+    });
+
+    it('should search by unformatted numeric amount', () => {
+        const searchTerm = '25';
+        const result = tokenizedSearch(transactions, searchTerm, getSearchableFields);
+
+        expect(result).toHaveLength(1);
+        expect(result.at(0)?.transactionID).toBe('2');
+    });
+
+    it('should search by unformatted numeric amount for large values', () => {
+        const searchTerm = '150';
+        const result = tokenizedSearch(transactions, searchTerm, getSearchableFields);
+
+        expect(result).toHaveLength(1);
+        expect(result.at(0)?.transactionID).toBe('3');
+    });
+
+    it('should search by formatted amount with comma', () => {
+        const searchTerm = '$25.00';
+        const result = tokenizedSearch(transactions, searchTerm, getSearchableFields);
+
+        expect(result).toHaveLength(1);
+        expect(result.at(0)?.transactionID).toBe('2');
     });
 });

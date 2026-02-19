@@ -1,6 +1,6 @@
 # `react-native-webview` patches
 
-### [react-native-webview+13.13.1+001+fix-dataDetectorTypes.patch](react-native-webview+13.13.1+001+fix-dataDetectorTypes.patch)
+### [react-native-webview+13.16.0+001+fix-dataDetectorTypes.patch](react-native-webview+13.16.0+001+fix-dataDetectorTypes.patch)
 
 - Reason:
   
@@ -8,6 +8,6 @@
     This patch fixes dataDetectorTypes.
     ```
   
-- Upstream PR/issue: 🛑, commented in the App PR https://github.com/Expensify/App/pull/45289#issuecomment-3346241687
-- E/App issue: https://github.com/Expensify/App/issues/43177
-- PR introducing patch: https://github.com/Expensify/App/pull/45289
+- Upstream PR/issue: 🛑, there's no upstream PR/issue found. 
+- E/App issue: https://github.com/Expensify/App/issues/8503
+- PR introducing patch: https://github.com/Expensify/App/pull/13767

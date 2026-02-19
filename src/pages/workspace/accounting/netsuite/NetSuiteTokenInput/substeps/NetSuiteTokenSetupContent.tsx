@@ -40,5 +40,4 @@ function NetSuiteTokenSetupContent({onNext, screenIndex}: SubStepWithPolicy) {
     );
 }
 
-NetSuiteTokenSetupContent.displayName = 'NetSuiteTokenSetupContent';
 export default NetSuiteTokenSetupContent;

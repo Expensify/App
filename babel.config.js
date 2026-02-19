@@ -42,23 +42,18 @@ const defaultPluginsForWebpack = [
     // We use `@babel/plugin-transform-class-properties` for transforming ReactNative libraries and do not use it for our own
     // source code transformation as we do not use class property assignment.
     '@babel/plugin-transform-class-properties',
-
+    '@babel/plugin-proposal-export-namespace-from',
     // Keep it last
-    'react-native-reanimated/plugin',
+    'react-native-worklets/plugin',
     '@babel/plugin-transform-export-namespace-from',
 ];
 
-// The Fullstory annotate plugin generated a few errors when executed in Electron. Let's
-// ignore it for desktop builds.
-if (!process.env.ELECTRON_ENV && process.env.npm_lifecycle_event !== 'desktop') {
-    console.debug('This is not a desktop build, adding babel-plugin-annotate-react');
-    defaultPluginsForWebpack.push([
-        '@fullstory/babel-plugin-annotate-react',
-        {
-            native: true,
-        },
-    ]);
-}
+defaultPluginsForWebpack.push([
+    '@fullstory/babel-plugin-annotate-react',
+    {
+        native: true,
+    },
+]);
 
 if (process.env.DEBUG_BABEL_TRACE) {
     defaultPluginsForWebpack.push(traceTransformer);
@@ -81,8 +76,6 @@ const metro = {
         ['@babel/plugin-proposal-class-properties', {loose: true}],
         ['@babel/plugin-proposal-private-methods', {loose: true}],
         ['@babel/plugin-proposal-private-property-in-object', {loose: true}],
-        // The reanimated babel plugin needs to be last, as stated here: https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/installation
-        'react-native-reanimated/plugin',
 
         /* Fullstory */
         '@fullstory/react-native',
@@ -127,13 +120,14 @@ const metro = {
                     // This path is provide alias for files like `ONYXKEYS` and `CONST`.
                     '@src': './src',
                     '@userActions': './src/libs/actions',
-                    '@desktop': './desktop',
                     '@github': './.github',
                     '@selectors': './src/selectors',
                 },
             },
         ],
         '@babel/plugin-transform-export-namespace-from',
+        // The worklets babel plugin needs to be last, as stated here: https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/getting-started/
+        'react-native-worklets/plugin',
     ],
     env: {
         production: {

@@ -23,6 +23,4 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
     );
 }
 
-NetSuiteImportAddCustomListPage.displayName = 'NetSuiteImportAddCustomListPage';
-
 export default withPolicyConnections(NetSuiteImportAddCustomListPage);

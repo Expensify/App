@@ -49,7 +49,7 @@ function DebugTransactionViolationPage({
         Navigation.goBack();
         // We need to wait for navigation animations to finish before deleting a violation,
         // otherwise the user will see a not found page briefly.
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, updatedTransactionViolations);
         });
@@ -87,7 +87,7 @@ function DebugTransactionViolationPage({
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
             shouldEnableMinHeight={canUseTouchScreen()}
-            testID={DebugTransactionViolationPage.displayName}
+            testID="DebugTransactionViolationPage"
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
@@ -104,7 +104,5 @@ function DebugTransactionViolationPage({
         </ScreenWrapper>
     );
 }
-
-DebugTransactionViolationPage.displayName = 'DebugTransactionViolationPage';
 
 export default DebugTransactionViolationPage;

@@ -3,11 +3,12 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Currency, CurrencyList} from '@src/types/onyx';
+import type {CurrencyList, Locale} from '@src/types/onyx';
 import {format, formatToParts} from './NumberFormatUtils';
 
 let currencyList: OnyxValues[typeof ONYXKEYS.CURRENCY_LIST] = {};
 
+/* eslint-disable rulesdir/prefer-onyx-connect-in-libs -- may refactor to useOnyx/connectWithoutView later */
 Onyx.connect({
     key: ONYXKEYS.CURRENCY_LIST,
     callback: (val) => {
@@ -18,6 +19,7 @@ Onyx.connect({
         currencyList = val;
     },
 });
+/* eslint-enable rulesdir/prefer-onyx-connect-in-libs */
 
 /**
  * Returns the number of digits after the decimal separator for a specific currency.
@@ -29,11 +31,6 @@ Onyx.connect({
 function getCurrencyDecimals(currency: string = CONST.CURRENCY.USD): number {
     const decimals = currencyList?.[currency]?.decimals;
     return decimals ?? 2;
-}
-
-function getCurrency(currency: string = CONST.CURRENCY.USD): Currency | null {
-    const currencyItem = currencyList?.[currency];
-    return currencyItem;
 }
 
 /**
@@ -49,8 +46,8 @@ function getCurrencyUnit(currency: string = CONST.CURRENCY.USD): number {
 /**
  * Get localized currency symbol for currency(ISO 4217) Code
  */
-function getLocalizedCurrencySymbol(currencyCode: string): string | undefined {
-    const parts = formatToParts(IntlStore.getCurrentLocale(), 0, {
+function getLocalizedCurrencySymbol(locale: Locale | undefined, currencyCode: string): string | undefined {
+    const parts = formatToParts(locale, 0, {
         style: 'currency',
         currency: currencyCode,
     });
@@ -205,10 +202,6 @@ function isValidCurrencyCode(currencyCode: string): boolean {
     return !!currency;
 }
 
-function sanitizeCurrencyCode(currencyCode: string): string {
-    return isValidCurrencyCode(currencyCode) ? currencyCode : CONST.CURRENCY.USD;
-}
-
 function getCurrencyKeyByCountryCode(currencies?: CurrencyList, countryCode?: string): string {
     if (!currencies || !countryCode) {
         return CONST.CURRENCY.USD;
@@ -235,6 +228,4 @@ export {
     convertToDisplayStringWithoutCurrency,
     isValidCurrencyCode,
     convertToShortDisplayString,
-    getCurrency,
-    sanitizeCurrencyCode,
 };

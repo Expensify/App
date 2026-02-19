@@ -48,7 +48,7 @@ function WorkspaceNamePage({policy}: Props) {
             } else if ([...name].length > CONST.TITLE_CHARACTER_LIMIT) {
                 // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
                 // code units.
-                addErrorMessage(errors, 'name', translate('common.error.characterLimitExceedCounter', {length: [...name].length, limit: CONST.TITLE_CHARACTER_LIMIT}));
+                addErrorMessage(errors, 'name', translate('common.error.characterLimitExceedCounter', [...name].length, CONST.TITLE_CHARACTER_LIMIT));
             }
 
             return errors;
@@ -64,7 +64,7 @@ function WorkspaceNamePage({policy}: Props) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={WorkspaceNamePage.displayName}
+                testID="WorkspaceNamePage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.common.workspaceName')}
@@ -99,7 +99,5 @@ function WorkspaceNamePage({policy}: Props) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceNamePage.displayName = 'WorkspaceNamePage';
 
 export default withPolicy(WorkspaceNamePage);

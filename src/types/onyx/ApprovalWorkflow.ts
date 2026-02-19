@@ -1,5 +1,5 @@
 import type {ValueOf} from 'type-fest';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxValueWithOfflineFeedback, PendingFields} from './OnyxCommon';
@@ -35,6 +35,16 @@ type Approver = {
      * example: A -> B -> C -> A (cycle)
      */
     isCircularReference?: boolean;
+
+    /**
+     * If report total is above this limit, the report will be forwarded to 'overLimitForwardsTo' instead of 'forwardsTo'
+     */
+    approvalLimit?: number | null;
+
+    /**
+     * Email of the user this user forwards all approved reports to when report total is above 'approvalLimit'
+     */
+    overLimitForwardsTo?: string;
 };
 
 /**
@@ -119,6 +129,11 @@ type ApprovalWorkflowOnyx = Omit<ApprovalWorkflow, 'approvers'> & {
      * List of original approvers in the workflow
      */
     originalApprovers: Approver[];
+
+    /**
+     * Whether the user is in the initial creation flow
+     */
+    isInitialFlow?: boolean;
 };
 
 export default ApprovalWorkflow;

@@ -12,10 +12,10 @@ const {
     OUTSTANDING_FILTER,
     ACCOUNT_SWITCHER,
     SCAN_TEST_DRIVE_CONFIRMATION,
-    MULTI_SCAN_EDUCATIONAL_MODAL,
+    GPS_TOOLTIP,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
-type ProductTrainingTooltipName = Exclude<ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>, typeof MULTI_SCAN_EDUCATIONAL_MODAL>;
+type ProductTrainingTooltipName = Exclude<ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>, typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL>;
 
 type ShouldShowConditionProps = {
     shouldUseNarrowLayout: boolean;
@@ -92,6 +92,13 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(SCAN_TEST_DRIVE_CONFIRMATION, isDismissedUsingCloseButton),
         name: SCAN_TEST_DRIVE_CONFIRMATION,
         priority: 1200,
+        shouldShow: () => true,
+    },
+    [GPS_TOOLTIP]: {
+        content: 'productTrainingTooltip.gpsTooltip',
+        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(GPS_TOOLTIP, isDismissedUsingCloseButton),
+        name: GPS_TOOLTIP,
+        priority: 800,
         shouldShow: () => true,
     },
 };

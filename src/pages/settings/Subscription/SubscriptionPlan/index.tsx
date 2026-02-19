@@ -8,6 +8,7 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import variables from '@styles/variables';
 import ComparePlansModal from './ComparePlansModal';
 import SaveWithExpensifyButton from './SaveWithExpensifyButton';
@@ -18,12 +19,17 @@ function SubscriptionPlan() {
     const styles = useThemeStyles();
     const subscriptionPlan = useSubscriptionPlan();
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const illustrations = useMemoizedLazyIllustrations(['HandCard'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['HandCard']);
 
     const renderTitle = () => {
         return (
             <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.textStrong]}>{translate('subscription.yourPlan.title')}</Text>
+                <Text
+                    style={[styles.textHeadline, styles.cardSectionTitle, styles.textStrong]}
+                    accessibilityRole={CONST.ROLE.HEADER}
+                >
+                    {translate('subscription.yourPlan.title')}
+                </Text>
                 <Button
                     small
                     text={translate('subscription.yourPlan.exploreAllPlans')}
@@ -59,7 +65,5 @@ function SubscriptionPlan() {
         </Section>
     );
 }
-
-SubscriptionPlan.displayName = 'SubscriptionPlan';
 
 export default SubscriptionPlan;

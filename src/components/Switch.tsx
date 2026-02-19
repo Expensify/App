@@ -1,10 +1,11 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import Animated, {interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
 type SwitchProps = {
@@ -34,8 +35,10 @@ const OFFSET_X = {
 
 function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, disabledAction}: SwitchProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const offsetX = useSharedValue(isOn ? OFFSET_X.ON : OFFSET_X.OFF);
     const theme = useTheme();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock']);
 
     useEffect(() => {
         offsetX.set(withTiming(isOn ? OFFSET_X.ON : OFFSET_X.OFF, {duration: 300}));
@@ -59,6 +62,14 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
         backgroundColor: interpolateColor(offsetX.get(), [OFFSET_X.OFF, OFFSET_X.ON], [theme.icon, theme.success]),
     }));
 
+    // Enhance accessibility label to include locked state when disabled
+    const enhancedAccessibilityLabel = useMemo(() => {
+        if (disabled) {
+            return `${accessibilityLabel}, ${translate('common.locked')}`;
+        }
+        return accessibilityLabel;
+    }, [accessibilityLabel, disabled, translate]);
+
     return (
         <PressableWithFeedback
             disabled={!disabledAction && disabled}
@@ -66,16 +77,17 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
             onLongPress={handleSwitchPress}
             role={CONST.ROLE.SWITCH}
             aria-checked={isOn}
-            accessibilityLabel={accessibilityLabel}
+            accessibilityLabel={enhancedAccessibilityLabel}
             // disable hover dim for switch
             hoverDimmingValue={1}
             pressDimmingValue={0.8}
+            sentryLabel={enhancedAccessibilityLabel}
         >
             <Animated.View style={[styles.switchTrack, animatedSwitchTrackStyle]}>
                 <Animated.View style={[styles.switchThumb, animatedThumbStyle]}>
                     {(!!disabled || !!showLockIcon) && (
                         <Icon
-                            src={Expensicons.Lock}
+                            src={expensifyIcons.Lock}
                             fill={isOn ? theme.text : theme.icon}
                             width={styles.toggleSwitchLockIcon.width}
                             height={styles.toggleSwitchLockIcon.height}
@@ -87,5 +99,4 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
     );
 }
 
-Switch.displayName = 'Switch';
 export default Switch;

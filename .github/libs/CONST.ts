@@ -4,6 +4,7 @@ const GIT_CONST = {
     GITHUB_OWNER: process.env.GITHUB_REPOSITORY_OWNER ?? 'Expensify',
     APP_REPO: (process.env.GITHUB_REPOSITORY ?? 'Expensify/App').split('/').at(1) ?? '',
     MOBILE_EXPENSIFY_REPO: 'Mobile-Expensify',
+    DEFAULT_BASE_REF: 'main',
 } as const;
 
 const CONST = {
@@ -23,6 +24,8 @@ const CONST = {
     },
     COMMENT: {
         TYPE_BOT: 'Bot',
+        NAME_MELVIN: 'melvin-bot',
+        NAME_CODEX: 'chatgpt-codex-connector',
         NAME_GITHUB_ACTIONS: 'github-actions',
     },
     ACTIONS: {
@@ -48,6 +51,8 @@ const CONST = {
     TEST_WORKFLOW_NAME: 'Jest Unit Tests',
     TEST_WORKFLOW_PATH: '.github/workflows/test.yml',
     PROPOSAL_KEYWORD: 'Proposal',
+    PROPOSAL_HEADER_A: 'what is the root cause of that problem?',
+    PROPOSAL_HEADER_B: 'what changes do you think we should make in order to solve the problem?',
     DATE_FORMAT_STRING: 'yyyy-MM-dd',
     PULL_REQUEST_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`),
     ISSUE_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/issues/([0-9]+).*`),

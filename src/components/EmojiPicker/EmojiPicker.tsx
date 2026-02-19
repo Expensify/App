@@ -1,8 +1,8 @@
-/* eslint-disable react-compiler/react-compiler */
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef, RefObject} from 'react';
 import {Dimensions, View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
+import {Actions, useActionSheetAwareScrollViewActions} from '@components/ActionSheetAwareScrollView';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -12,10 +12,13 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
-import type {AnchorOrigin, EmojiPickerRef, EmojiPopoverAnchor, OnEmojiSelected, OnModalHideValue, OnWillShowPicker} from '@libs/actions/EmojiPickerAction';
+import type {AnchorOrigin, EmojiPickerOnModalHide, EmojiPickerRef, EmojiPopoverAnchor, OnEmojiSelected, ShowEmojiPickerOptions} from '@libs/actions/EmojiPickerAction';
 import {isMobileChrome} from '@libs/Browser';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
 import DomUtils from '@libs/DomUtils';
+import refocusComposerAfterPreventFirstResponder from '@libs/refocusComposerAfterPreventFirstResponder';
+import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
+import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import KeyboardUtils from '@src/utils/keyboard';
@@ -34,6 +37,8 @@ type EmojiPickerProps = {
 function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {transitionActionSheetState} = useActionSheetAwareScrollViewActions();
+
     const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false);
     const [emojiPopoverAnchorPosition, setEmojiPopoverAnchorPosition] = useState({
         horizontal: 0,
@@ -47,10 +52,11 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
         width: 0,
         height: 0,
     });
-    const onModalHide = useRef<OnModalHideValue>(() => {});
+    const onModalHide = useRef<EmojiPickerOnModalHide>(() => {});
     const onEmojiSelected = useRef<OnEmojiSelected>(() => {});
     const activeEmoji = useRef<string | undefined>(undefined);
     const emojiSearchInput = useRef<BaseTextInputRef | null>(null);
+    const composerToRefocusOnClose = useRef<ComposerType | undefined>(undefined);
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -75,16 +81,28 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
      * @param id - Unique id for EmojiPicker
      * @param activeEmojiValue - Selected emoji to be highlighted
      */
-    const showEmojiPicker = (
-        onModalHideValue: OnModalHideValue,
-        onEmojiSelectedValue: OnEmojiSelected,
-        emojiPopoverAnchorValue: EmojiPopoverAnchor,
-        anchorOrigin?: AnchorOrigin,
-        onWillShow?: OnWillShowPicker,
-        id?: string,
-        activeEmojiValue?: string,
+    const showEmojiPicker = ({
+        onModalHide: onModalHideValue,
+        onEmojiSelected: onEmojiSelectedValue,
+        emojiPopoverAnchor: emojiPopoverAnchorValue,
+        anchorOrigin,
+        onWillShow = () => {},
+        id = undefined,
+        activeEmoji: activeEmojiValue,
         withoutOverlay = true,
-    ) => {
+        composerToRefocusOnClose: composerToRefocusOnCloseValue,
+    }: ShowEmojiPickerOptions) => {
+        transitionActionSheetState({
+            type: Actions.TRANSITION_POPOVER,
+        });
+
+        composerToRefocusOnClose.current = composerToRefocusOnCloseValue;
+        if (composerToRefocusOnCloseValue === 'main') {
+            ReportActionComposeFocusManager.preventComposerFocusOnFirstResponderOnce();
+        } else if (composerToRefocusOnCloseValue === 'edit') {
+            ReportActionComposeFocusManager.preventEditComposerFocusOnFirstResponderOnce();
+        }
+
         onModalHide.current = onModalHideValue;
         onEmojiSelected.current = onEmojiSelectedValue;
         activeEmoji.current = activeEmojiValue;
@@ -98,7 +116,7 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
 
         // It's possible that the anchor is inside an active modal (e.g., add emoji reaction in report context menu).
         // So, we need to get the anchor position first before closing the active modal which will also destroy the anchor.
-        KeyboardUtils.dismiss().then(() =>
+        KeyboardUtils.dismiss(true).then(() =>
             calculateAnchorPosition(emojiPopoverAnchor?.current, anchorOriginValue).then((value) => {
                 close(() => {
                     onWillShow?.();
@@ -121,20 +139,34 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
     /**
      * Hide the emoji picker menu.
      */
-    const hideEmojiPicker = (isNavigating?: boolean) => {
-        const activeElementId = DomUtils.getActiveElement()?.id;
-        if (activeElementId !== CONST.COMPOSER.NATIVE_ID) {
-            blurActiveElement();
-        }
-        const currOnModalHide = onModalHide.current;
-        onModalHide.current = () => {
-            if (currOnModalHide) {
-                currOnModalHide(!!isNavigating);
+    const hideEmojiPicker = useCallback(
+        (isNavigating?: boolean) => {
+            const activeElementId = DomUtils.getActiveElement()?.id;
+            if (activeElementId !== CONST.COMPOSER.NATIVE_ID) {
+                blurActiveElement();
             }
+            const currOnModalHide = onModalHide.current;
+            onModalHide.current = () => {
+                if (currOnModalHide) {
+                    currOnModalHide(!!isNavigating);
+                }
 
-            emojiPopoverAnchorRef.current = null;
-        };
-        setIsEmojiPickerVisible(false);
+                emojiPopoverAnchorRef.current = null;
+            };
+            setIsEmojiPickerVisible(false);
+            transitionActionSheetState({
+                type: Actions.CLOSE_POPOVER,
+            });
+        },
+        [transitionActionSheetState],
+    );
+
+    const handleModalHide = () => {
+        onModalHide.current();
+
+        refocusComposerAfterPreventFirstResponder(composerToRefocusOnClose.current).then(() => {
+            composerToRefocusOnClose.current = undefined;
+        });
     };
 
     /**
@@ -150,7 +182,7 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
     /**
      * Callback for the emoji picker to add whatever emoji is chosen into the main input
      */
-    const selectEmoji = (emoji: string, emojiObject: Emoji) => {
+    const selectEmoji = (emoji: string, emojiObject: Emoji, preferredSkinTone: number) => {
         // Prevent fast click / multiple emoji selection;
         // The first click will hide the emoji picker by calling the hideEmojiPicker() function
         if (!isEmojiPickerVisible) {
@@ -159,7 +191,7 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
 
         hideEmojiPicker(false);
         if (typeof onEmojiSelected.current === 'function') {
-            onEmojiSelected.current(emoji, emojiObject);
+            onEmojiSelected.current(emoji, emojiObject, preferredSkinTone);
         }
     };
 
@@ -201,7 +233,7 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
             }
             emojiPopoverDimensionListener.remove();
         };
-    }, [isEmojiPickerVisible, shouldUseNarrowLayout, emojiPopoverAnchorOrigin, getEmojiPopoverAnchor]);
+    }, [isEmojiPickerVisible, shouldUseNarrowLayout, emojiPopoverAnchorOrigin, getEmojiPopoverAnchor, hideEmojiPicker]);
 
     return (
         <PopoverWithMeasuredContent
@@ -209,7 +241,7 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
             isVisible={isEmojiPickerVisible}
             onClose={hideEmojiPicker}
             onModalShow={focusEmojiSearchInput}
-            onModalHide={onModalHide.current}
+            onModalHide={handleModalHide}
             shouldSetModalVisibility={false}
             anchorPosition={{
                 vertical: emojiPopoverAnchorPosition.vertical,
@@ -246,5 +278,4 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
     );
 }
 
-EmojiPicker.displayName = 'EmojiPicker';
 export default withViewportOffsetTop(EmojiPicker);

@@ -43,13 +43,13 @@ function transformNumericKeysToArray(data: UnknownRecord): UnknownRecord | unkno
 function cleanAndTransformState<T>(state: string): T {
     const parsedState = JSON.parse(state) as UnknownRecord;
 
-    Object.keys(parsedState).forEach((key) => {
+    for (const key of Object.keys(parsedState)) {
         const shouldOmit = keysToOmit.some((onyxKey) => key.startsWith(onyxKey));
 
         if (shouldOmit) {
             delete parsedState[key];
         }
-    });
+    }
 
     const transformedState = transformNumericKeysToArray(parsedState) as T;
     return transformedState;
@@ -60,7 +60,7 @@ function importState(transformedState: OnyxState): Promise<void> {
     const collectionsMap = new Map<keyof OnyxCollectionValuesMapping, CollectionDataSet<OnyxCollectionKey>>();
     const regularState: Partial<Record<OnyxKey, OnyxEntry<OnyxKey>>> = {};
 
-    Object.entries(transformedState).forEach(([entryKey, entryValue]) => {
+    for (const [entryKey, entryValue] of Object.entries(transformedState)) {
         const key = entryKey as OnyxKey;
         const value = entryValue as NonNullable<OnyxEntry<OnyxKey>>;
 
@@ -72,14 +72,14 @@ function importState(transformedState: OnyxState): Promise<void> {
 
             const collection = collectionsMap.get(collectionKey);
             if (!collection) {
-                return;
+                continue;
             }
 
             collection[key as OnyxCollectionKey] = value;
         } else {
             regularState[key] = value;
         }
-    });
+    }
 
     return clearOnyxStateBeforeImport()
         .then(() => importOnyxCollectionState(collectionsMap))

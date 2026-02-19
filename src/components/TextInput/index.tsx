@@ -39,7 +39,7 @@ function TextInput({ref, ...props}: BaseTextInputProps) {
             }
             removeVisibilityListener();
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const isLabeledMultiline = !!props.label?.length && props.multiline;
@@ -76,7 +76,5 @@ function TextInput({ref, ...props}: BaseTextInputProps) {
         />
     );
 }
-
-TextInput.displayName = 'TextInput';
 
 export default TextInput;

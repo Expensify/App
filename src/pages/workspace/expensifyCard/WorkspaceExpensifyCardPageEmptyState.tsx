@@ -1,7 +1,7 @@
 import React, {useCallback, useContext, useMemo} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FeatureList from '@components/FeatureList';
 import type {FeatureListItem} from '@components/FeatureList';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
@@ -18,7 +18,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {getEligibleBankAccountsForCard, getEligibleBankAccountsForUkEuCard} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
+import {hasInProgressUSDVBBA, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -29,14 +29,13 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WorkspaceExpensifyCardPageEmptyStateProps = {
     route: PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>['route'];
 } & WithPolicyAndFullscreenLoadingProps;
 
 function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensifyCardPageEmptyStateProps) {
-    const illustrations = useMemoizedLazyIllustrations(['MoneyReceipts', 'CreditCardsNew', 'MoneyWings', 'HandCard', 'ExpensifyCardIllustration'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['MoneyReceipts', 'CreditCardsNew', 'MoneyWings', 'HandCard', 'ExpensifyCardIllustration']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -45,18 +44,24 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useDismissModalForUSD(policy?.outputCurrency);
     const {windowHeight} = useWindowDimensions();
-    const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const {isActingAsDelegate} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
-    const reimbursementAccountStatus = reimbursementAccount?.achData?.state ?? '';
-    const isSetupUnfinished = isEmptyObject(bankAccountList) && reimbursementAccountStatus && reimbursementAccountStatus !== CONST.BANK_ACCOUNT.STATE.OPEN;
+    const isSetupUnfinished = hasInProgressUSDVBBA(reimbursementAccount?.achData);
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policy?.id);
 
     const eligibleBankAccounts = isUkEuCurrencySupported ? getEligibleBankAccountsForUkEuCard(bankAccountList, policy?.outputCurrency) : getEligibleBankAccountsForCard(bankAccountList);
 
     const startFlow = useCallback(() => {
         if (!eligibleBankAccounts.length || isSetupUnfinished) {
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policy?.id, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policy?.id)));
+            Navigation.navigate(
+                ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({
+                    policyID: policy?.id,
+                    stepToOpen: REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW,
+                    backTo: ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policy?.id),
+                }),
+            );
         } else {
             Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.getRoute(policy?.id));
         }
@@ -150,7 +155,5 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
         </WorkspacePageWithSections>
     );
 }
-
-WorkspaceExpensifyCardPageEmptyState.displayName = 'WorkspaceExpensifyCardPageEmptyState';
 
 export default withPolicyAndFullscreenLoading(WorkspaceExpensifyCardPageEmptyState);

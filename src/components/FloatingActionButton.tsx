@@ -1,24 +1,26 @@
 import type {ForwardedRef} from 'react';
 import React, {useEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {GestureResponderEvent, Role, Text, View} from 'react-native';
+import type {GestureResponderEvent, Role, Text as TextType, View as ViewType} from 'react-native';
 import Animated, {Easing, interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Svg, {Path} from 'react-native-svg';
+import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import variables from '@styles/variables';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import {PressableWithoutFeedback} from './Pressable';
+import Tooltip from './Tooltip';
 
 const FAB_PATH = 'M12,3c0-1.1-0.9-2-2-2C8.9,1,8,1.9,8,3v5H3c-1.1,0-2,0.9-2,2c0,1.1,0.9,2,2,2h5v5c0,1.1,0.9,2,2,2c1.1,0,2-0.9,2-2v-5h5c1.1,0,2-0.9,2-2c0-1.1-0.9-2-2-2h-5V3z';
 const SMALL_FAB_PATH =
     'M9.6 13.6002C9.6 14.4839 8.88366 15.2002 8 15.2002C7.11635 15.2002 6.4 14.4839 6.4 13.6002V9.6002H2.4C1.51635 9.6002 0.800003 8.88385 0.800003 8.0002C0.800003 7.11654 1.51635 6.4002 2.4 6.4002H6.4V2.4002C6.4 1.51654 7.11635 0.800196 8 0.800196C8.88366 0.800196 9.6 1.51654 9.6 2.4002V6.4002H13.6C14.4837 6.4002 15.2 7.11654 15.2 8.0002C15.2 8.88385 14.4837 9.6002 13.6 9.6002H9.6V13.6002Z';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
-AnimatedPath.displayName = 'AnimatedPath';
 
-type FloatingActionButtonProps = {
+type FloatingActionButtonProps = WithSentryLabel & {
     /* Callback to fire on request to toggle the FloatingActionButton */
     onPress: (event: GestureResponderEvent | KeyboardEvent | undefined) => void;
 
@@ -35,20 +37,22 @@ type FloatingActionButtonProps = {
     role: Role;
 
     /** Reference to the outer element */
-    ref?: ForwardedRef<HTMLDivElement | View | Text>;
+    ref?: ForwardedRef<HTMLDivElement | ViewType | TextType>;
 };
 
-function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabel, role, ref}: FloatingActionButtonProps) {
-    const {success, successHover, buttonDefaultBG, textLight} = useTheme();
+function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabel, role, ref, sentryLabel}: FloatingActionButtonProps) {
+    const {buttonDefaultBG, buttonHoveredBG, icon} = useTheme();
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
-    const fabPressable = useRef<HTMLDivElement | View | Text | null>(null);
+    const fabPressable = useRef<HTMLDivElement | ViewType | TextType | null>(null);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isLHBVisible = !shouldUseNarrowLayout;
+    const {translate} = useLocalize();
 
     const fabSize = isLHBVisible ? variables.iconSizeSmall : variables.iconSizeNormal;
 
     const sharedValue = useSharedValue(isActive ? 1 : 0);
+    const isHovered = useSharedValue(false);
     const buttonRef = ref;
 
     useEffect(() => {
@@ -61,7 +65,7 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
     }, [isActive, sharedValue]);
 
     const animatedStyle = useAnimatedStyle(() => {
-        const backgroundColor = interpolateColor(sharedValue.get(), [0, 1], [success, buttonDefaultBG]);
+        const backgroundColor = isHovered.get() && !sharedValue.get() ? buttonHoveredBG : interpolateColor(sharedValue.get(), [0, 1], [buttonDefaultBG, buttonHoveredBG]);
 
         return {
             transform: [{rotate: `${sharedValue.get() * 135}deg`}],
@@ -86,47 +90,53 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
     };
 
     return (
-        <PressableWithoutFeedback
-            ref={(el) => {
-                fabPressable.current = el ?? null;
-                if (buttonRef && 'current' in buttonRef) {
-                    buttonRef.current = el ?? null;
-                }
-            }}
-            style={[
-                styles.h100,
-                styles.navigationTabBarItem,
+        <Tooltip text={translate('common.create')}>
+            <PressableWithoutFeedback
+                ref={(el) => {
+                    fabPressable.current = el ?? null;
+                    if (buttonRef && 'current' in buttonRef) {
+                        buttonRef.current = el ?? null;
+                    }
+                }}
+                style={[
+                    styles.navigationTabBarFABItem,
+                    styles.ph0,
+                    // Prevent text selection on touch devices (e.g. on long press)
+                    canUseTouchScreen() && styles.userSelectNone,
+                    styles.flex1,
+                ]}
+                accessibilityLabel={accessibilityLabel}
+                onPress={toggleFabAction}
+                onLongPress={longPressFabAction}
+                role={role}
+                shouldUseHapticsOnLongPress
+                testID="floating-action-button"
+                sentryLabel={sentryLabel}
+            >
+                {({hovered}) => {
+                    isHovered.set(hovered);
 
-                // Prevent text selection on touch devices (e.g. on long press)
-                canUseTouchScreen() && styles.userSelectNone,
-            ]}
-            accessibilityLabel={accessibilityLabel}
-            onPress={toggleFabAction}
-            onLongPress={longPressFabAction}
-            role={role}
-            shouldUseHapticsOnLongPress
-            testID="floating-action-button"
-        >
-            {({hovered}) => (
-                <Animated.View
-                    style={[styles.floatingActionButton, {borderRadius}, isLHBVisible && styles.floatingActionButtonSmall, animatedStyle, hovered && {backgroundColor: successHover}]}
-                    testID="fab-animated-container"
-                >
-                    <Svg
-                        width={fabSize}
-                        height={fabSize}
-                    >
-                        <AnimatedPath
-                            d={isLHBVisible ? SMALL_FAB_PATH : FAB_PATH}
-                            fill={textLight}
-                        />
-                    </Svg>
-                </Animated.View>
-            )}
-        </PressableWithoutFeedback>
+                    return (
+                        <Animated.View
+                            style={[styles.floatingActionButton, {borderRadius}, isLHBVisible && styles.floatingActionButtonSmall, animatedStyle]}
+                            testID="fab-animated-container"
+                        >
+                            <Svg
+                                width={fabSize}
+                                height={fabSize}
+                                pointerEvents="none"
+                            >
+                                <AnimatedPath
+                                    d={isLHBVisible ? SMALL_FAB_PATH : FAB_PATH}
+                                    fill={icon}
+                                />
+                            </Svg>
+                        </Animated.View>
+                    );
+                }}
+            </PressableWithoutFeedback>
+        </Tooltip>
     );
 }
-
-FloatingActionButton.displayName = 'FloatingActionButton';
 
 export default FloatingActionButton;

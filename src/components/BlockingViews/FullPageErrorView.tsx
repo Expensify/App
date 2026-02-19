@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {StyleProp, TextStyle} from 'react-native';
-import * as Illustrations from '@components/Icon/Illustrations';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import BlockingView from './BlockingView';
@@ -28,26 +28,30 @@ type FullPageErrorViewProps = {
 
     /** The style of the subtitle message */
     subtitleStyle?: StyleProp<TextStyle>;
+
+    containerStyle?: StyleProp<ViewStyle>;
 };
 
 // eslint-disable-next-line rulesdir/no-negated-variables
-function FullPageErrorView({testID, children = null, shouldShow = false, title = '', subtitle = '', shouldForceFullScreen = false, subtitleStyle}: FullPageErrorViewProps) {
+function FullPageErrorView({testID, children = null, shouldShow = false, title = '', subtitle = '', shouldForceFullScreen = false, subtitleStyle, containerStyle}: FullPageErrorViewProps) {
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass']);
 
     if (shouldShow) {
         return (
             <ForceFullScreenView shouldForceFullScreen={shouldForceFullScreen}>
                 <View
-                    style={[styles.flex1, styles.blockingErrorViewContainer]}
+                    style={[styles.flex1, styles.searchBlockingErrorViewContainer]}
                     testID={testID}
                 >
                     <BlockingView
-                        icon={Illustrations.BrokenMagnifyingGlass}
+                        icon={illustrations.BrokenMagnifyingGlass}
                         iconWidth={variables.errorPageIconWidth}
                         iconHeight={variables.errorPageIconHeight}
                         title={title}
                         subtitle={subtitle}
                         subtitleStyle={subtitleStyle}
+                        containerStyle={containerStyle}
                     />
                 </View>
             </ForceFullScreenView>
@@ -56,8 +60,6 @@ function FullPageErrorView({testID, children = null, shouldShow = false, title =
 
     return children;
 }
-
-FullPageErrorView.displayName = 'FullPageErrorView';
 
 export type {FullPageErrorViewProps};
 export default FullPageErrorView;

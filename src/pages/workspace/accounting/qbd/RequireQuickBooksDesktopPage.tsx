@@ -14,13 +14,13 @@ import Navigation from '@libs/Navigation/Navigation';
 function RequireQuickBooksDesktopModal() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['LaptopWithSecondScreenX'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['LaptopWithSecondScreenX']);
 
     return (
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
-            testID={RequireQuickBooksDesktopModal.displayName}
+            testID="RequireQuickBooksDesktopModal"
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
@@ -51,7 +51,5 @@ function RequireQuickBooksDesktopModal() {
         </ScreenWrapper>
     );
 }
-
-RequireQuickBooksDesktopModal.displayName = 'RequireQuickBooksDesktopModal';
 
 export default RequireQuickBooksDesktopModal;

@@ -1,6 +1,6 @@
 import type {NativeConfig} from 'react-native-config';
 import Config from 'react-native-config';
-import {runOnUI} from 'react-native-reanimated';
+import {scheduleOnUI} from 'react-native-worklets';
 import E2ELogin from '@libs/E2E/actions/e2eLogin';
 import waitForAppLoaded from '@libs/E2E/actions/waitForAppLoaded';
 import waitForKeyboard from '@libs/E2E/actions/waitForKeyboard';
@@ -9,11 +9,11 @@ import getConfigValueOrThrow from '@libs/E2E/utils/getConfigValueOrThrow';
 import getPromiseWithResolve from '@libs/E2E/utils/getPromiseWithResolve';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
-import {getRerenderCount, resetRerenderCount} from '@pages/home/report/ReportActionCompose/ComposerWithSuggestions/index.e2e';
-import {onSubmitAction} from '@pages/home/report/ReportActionCompose/ReportActionCompose';
+import {getRerenderCount, resetRerenderCount} from '@pages/inbox/report/ReportActionCompose/ComposerWithSuggestions/index.e2e';
+import {onSubmitAction} from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import * as NativeCommands from '../../../../tests/e2e/nativeCommands/NativeCommandsAction';
+import {makeBackspaceCommand, makeTypeTextCommand} from '../../../../tests/e2e/nativeCommands/NativeCommandsAction';
 
 const test = (config: NativeConfig) => {
     // check for login (if already logged in the action will simply resolve)
@@ -64,12 +64,12 @@ const test = (config: NativeConfig) => {
             // Wait until keyboard is visible (so we are focused on the input):
             waitForKeyboard().then(() => {
                 console.debug(`[E2E] Keyboard visible, typing…`);
-                E2EClient.sendNativeCommand(NativeCommands.makeBackspaceCommand())
+                E2EClient.sendNativeCommand(makeBackspaceCommand())
                     .then(() => {
                         resetRerenderCount();
                         return Promise.resolve();
                     })
-                    .then(() => E2EClient.sendNativeCommand(NativeCommands.makeTypeTextCommand('A')))
+                    .then(() => E2EClient.sendNativeCommand(makeTypeTextCommand('A')))
                     .then(
                         () =>
                             new Promise((resolve) => {
@@ -87,9 +87,9 @@ const test = (config: NativeConfig) => {
                                 }, 3000);
                             }),
                     )
-                    .then(() => E2EClient.sendNativeCommand(NativeCommands.makeBackspaceCommand()))
-                    .then(() => E2EClient.sendNativeCommand(NativeCommands.makeTypeTextCommand(message)))
-                    .then(() => runOnUI(onSubmitAction)())
+                    .then(() => E2EClient.sendNativeCommand(makeBackspaceCommand()))
+                    .then(() => E2EClient.sendNativeCommand(makeTypeTextCommand(message)))
+                    .then(() => scheduleOnUI(onSubmitAction))
                     .catch((error) => {
                         console.error('[E2E] Error while test', error);
                         E2EClient.submitTestDone();

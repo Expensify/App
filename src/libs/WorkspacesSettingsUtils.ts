@@ -83,31 +83,22 @@ function getOwnershipChecksDisplayText(
             break;
         case CONST.POLICY.OWNERSHIP_ERRORS.OWNER_OWES_AMOUNT:
             title = translate('workspace.changeOwner.ownerOwesAmountTitle');
-            text = translate('workspace.changeOwner.ownerOwesAmountText', {
-                email: ownerOwesAmount?.ownerEmail,
-                amount: convertToDisplayString(ownerOwesAmount?.amount, ownerOwesAmount?.currency),
-            });
+            text = translate('workspace.changeOwner.ownerOwesAmountText', ownerOwesAmount?.ownerEmail, convertToDisplayString(ownerOwesAmount?.amount, ownerOwesAmount?.currency));
             buttonText = translate('workspace.changeOwner.ownerOwesAmountButtonText');
             break;
         case CONST.POLICY.OWNERSHIP_ERRORS.SUBSCRIPTION:
             title = translate('workspace.changeOwner.subscriptionTitle');
-            text = translate('workspace.changeOwner.subscriptionText', {
-                usersCount: subscription?.ownerUserCount,
-                finalCount: subscription?.totalUserCount,
-            });
+            text = translate('workspace.changeOwner.subscriptionText', subscription?.ownerUserCount, subscription?.totalUserCount);
             buttonText = translate('workspace.changeOwner.subscriptionButtonText');
             break;
         case CONST.POLICY.OWNERSHIP_ERRORS.DUPLICATE_SUBSCRIPTION:
             title = translate('workspace.changeOwner.duplicateSubscriptionTitle');
-            text = translate('workspace.changeOwner.duplicateSubscriptionText', {
-                email: changeOwner?.duplicateSubscription ?? '',
-                workspaceName: policy?.name ?? '',
-            });
+            text = translate('workspace.changeOwner.duplicateSubscriptionText', changeOwner?.duplicateSubscription ?? '', policy?.name ?? '');
             buttonText = translate('workspace.changeOwner.duplicateSubscriptionButtonText');
             break;
         case CONST.POLICY.OWNERSHIP_ERRORS.HAS_FAILED_SETTLEMENTS:
             title = translate('workspace.changeOwner.hasFailedSettlementsTitle');
-            text = translate('workspace.changeOwner.hasFailedSettlementsText', {email: accountLogin ?? ''});
+            text = translate('workspace.changeOwner.hasFailedSettlementsText', accountLogin ?? '');
             buttonText = translate('workspace.changeOwner.hasFailedSettlementsButtonText');
             break;
         case CONST.POLICY.OWNERSHIP_ERRORS.FAILED_TO_CLEAR_BALANCE:
