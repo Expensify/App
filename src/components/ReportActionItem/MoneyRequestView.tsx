@@ -74,7 +74,7 @@ import {
     isTrackExpenseReportNew,
     shouldEnableNegative,
 } from '@libs/ReportUtils';
-import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
+import {hasEnabledTags, shouldShowDependentTagList} from '@libs/TagsOptionsListUtils';
 import {
     getBillable,
     getCurrency,
@@ -84,7 +84,6 @@ import {
     getOriginalAmountForDisplay,
     getOriginalTransactionWithSplitInfo,
     getReimbursable,
-    getTagArrayFromName,
     getTagForDisplay,
     getTaxName,
     hasMissingSmartscanFields,
@@ -710,30 +709,7 @@ function MoneyRequestView({
         const tagForDisplay = getTagForDisplay(updatedTransaction ?? transaction, index);
         let shouldShow = false;
         if (hasDependentTags) {
-            if (index === 0) {
-                shouldShow = true;
-            } else {
-                const prevTagValue = getTagForDisplay(transaction, index - 1);
-                if (!prevTagValue) {
-                    shouldShow = false;
-                } else {
-                    const parentTag = getTagArrayFromName(transactionTag ?? '')
-                        .slice(0, index)
-                        .join(':');
-
-                    const availableTags = Object.values(tags).filter((policyTag) => {
-                        const filterRegex = policyTag.rules?.parentTagsFilter;
-                        if (!filterRegex) {
-                            return true;
-                        }
-
-                        const regex = new RegExp(filterRegex);
-                        return regex.test(parentTag ?? '');
-                    });
-
-                    shouldShow = availableTags.some((tag) => tag.enabled);
-                }
-            }
+            shouldShow = shouldShowDependentTagList(index, transactionTag, tags);
         } else {
             shouldShow = !!tagForDisplay || (canEdit && hasEnabledOptions(tags));
         }
