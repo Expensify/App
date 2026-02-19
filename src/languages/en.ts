@@ -1324,6 +1324,7 @@ const translations = {
             invalidDistance: 'Please enter a valid distance before continuing',
             invalidReadings: 'Please enter both start and end readings',
             negativeDistanceNotAllowed: 'End reading must be greater than start reading',
+            distanceAmountTooLarge: 'The total amount is too large. Reduce the distance or lower the rate.',
             invalidIntegerAmount: 'Please enter a whole dollar amount before continuing',
             invalidTaxAmount: (amount: string) => `Maximum tax amount is ${amount}`,
             invalidSplit: 'The sum of splits must equal the total amount',
