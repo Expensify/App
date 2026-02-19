@@ -315,7 +315,7 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
                 originalFileOrder.current.set(file.uri ?? '', index);
             }
 
-            validateMultipleAttachmentFiles(files, items).then((result) => {
+            validateMultipleAttachmentFiles(files, items, validationOptions?.isValidatingReceipts).then((result) => {
                 if (result.isValid) {
                     onFilesValidated(result.validatedFiles, dataTransferItemList.current);
                     return;
@@ -338,7 +338,7 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
 
         originalFileOrder.current.set(files.uri ?? '', 0);
 
-        validateAttachmentFile(files, items?.at(0)).then((result) => {
+        validateAttachmentFile(files, items?.at(0), validationOptions?.isValidatingReceipts).then((result) => {
             if (result.isValid) {
                 onFilesValidated([result.validatedFile.file], dataTransferItemList.current);
                 return;
