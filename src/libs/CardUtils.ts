@@ -1,4 +1,4 @@
-import type {FeedKeysWithAssignedCards} from '@selectors/Card';
+import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 import {fromUnixTime, isBefore} from 'date-fns';
 import groupBy from 'lodash/groupBy';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -486,7 +486,7 @@ function isDirectFeed(feed: string | undefined): boolean {
  * Checks whether a feed has any assigned cards using a precomputed lightweight map.
  * This is used as a validity signal: direct feeds use it as a fallback when oAuthAccountDetails is missing,
  * and "gray zone" feeds (neither commercial nor direct) use it as the sole visibility criterion.
- * The feedKeysWithCards map is produced by feedKeysWithAssignedCardsSelector in selectors/Card.ts.
+ * The feedKeysWithCards map is produced by buildFeedKeysWithAssignedCards in selectors/Card.ts.
  */
 function feedHasCards(feedName: string, domainID: number, feedKeysWithCards: FeedKeysWithAssignedCards | undefined): boolean {
     if (!feedKeysWithCards || !domainID) {

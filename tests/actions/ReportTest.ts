@@ -2338,6 +2338,7 @@ describe('actions/Report', () => {
                 onboardingPolicyID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
                 userReportedIntegration: null,
+                introSelected: {choice: engagementChoice},
             });
 
             await waitForBatchedUpdates();
@@ -3507,6 +3508,7 @@ describe('actions/Report', () => {
             onboardingPolicyID,
             companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
             userReportedIntegration: null,
+            introSelected: {choice: engagementChoice},
         });
 
         await waitForBatchedUpdates();
