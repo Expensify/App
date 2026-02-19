@@ -676,9 +676,10 @@ function addActions({report, notifyReportID, ancestors, timezoneParam, currentUs
 
     const attachments = attachmentTags.flatMap((htmlTag, index) => {
         const tag = htmlTag[0];
+
         // [2] means the exact value, in this case source url and attachment id of the attachment tag
-        const source = tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_SOURCE)?.[2];
-        const dataAttachmentID = tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_ID)?.[2];
+        const source = CONST.REGEX.ATTACHMENT.ATTACHMENT_SOURCE.exec(tag)?.[2];
+        const dataAttachmentID = CONST.REGEX.ATTACHMENT.ATTACHMENT_ID.exec(tag)?.[2];
 
         if (!source) {
             return [];
@@ -2125,7 +2126,7 @@ function deleteReportComment(
     const attachments = attachmentTags.flatMap((htmlTag, index) => {
         const tag = htmlTag[0];
 
-        const dataAttachmentID = tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_ID)?.[2]; // [2] means the exact value of the attachment id of the attachment tag
+        const dataAttachmentID = CONST.REGEX.ATTACHMENT.ATTACHMENT_ID.exec(tag)?.[2]; // [2] means the exact value of the attachment id of the attachment tag
         const attachmentID = dataAttachmentID ?? `${reportActionID}_${index + 1}`;
         const attachment = allAttachments?.[`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`];
 

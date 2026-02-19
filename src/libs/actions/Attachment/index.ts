@@ -15,6 +15,7 @@ async function cacheAttachment({attachmentID, uri}: CacheAttachmentProps): Promi
     try {
         const response = await fetch(attachmentURL);
         if (!response.ok) {
+            Log.warn('[AttachmentCache] Failed to fetch attachment');
             return;
         }
 
@@ -23,6 +24,7 @@ async function cacheAttachment({attachmentID, uri}: CacheAttachmentProps): Promi
 
         // If the image file type doesn't exist in our list, then we need to exit
         if (!fileType) {
+            Log.warn('[AttachmentCache] Unsupported file type, skipping cache', {attachmentID, contentType});
             return;
         }
 

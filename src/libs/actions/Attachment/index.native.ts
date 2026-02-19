@@ -51,7 +51,7 @@ async function cacheAttachment({attachmentID, uri, mimeType}: CacheAttachmentPro
 
         // If attachmentFileType is not set properly / or doesn't exist in our lists, then we need to exit
         if (!attachmentFileType) {
-            Log.warn('[AttachmentCache] Unsupported content type, skipping cache', {attachmentID, contentType});
+            Log.warn('[AttachmentCache] Unsupported file type, skipping cache', {attachmentID, contentType});
             return;
         }
 
