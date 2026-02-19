@@ -106,5 +106,5 @@ function ModalProvider({children}: {children: React.ReactNode}) {
     );
 }
 
-export type {ModalProps, ModalStateChangePayload};
+export type {ModalProps};
 export {ModalProvider, useModal, ModalActions};
