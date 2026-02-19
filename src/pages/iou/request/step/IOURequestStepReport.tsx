@@ -262,7 +262,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
 
     let selectedPolicyID;
     if (isPerDiemTransaction) {
-        selectedPolicyID = isFromGlobalCreate ? undefined : perDiemOriginalPolicy?.id;
+        selectedPolicyID = perDiemOriginalPolicy?.id;
     } else {
         selectedPolicyID = !isEditing && !isFromGlobalCreate ? reportOrDraftReport?.policyID : undefined;
     }
