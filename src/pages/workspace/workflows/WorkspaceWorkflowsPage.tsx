@@ -219,7 +219,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const isDEWEnabled = hasDynamicExternalWorkflow(policy);
 
     const optionItems: ToggleSettingOptionRowProps[] = useMemo(() => {
-        const isBankAccountFullySetup = policy?.achAccount && policy?.achAccount.state === CONST.BANK_ACCOUNT.STATE.OPEN;
+        const isBankAccountFullySetup = policy?.achAccount && (policy?.achAccount.state === CONST.BANK_ACCOUNT.STATE.OPEN || policy?.achAccount.state === CONST.BANK_ACCOUNT.STATE.LOCKED);
         const bankAccountConnectedToWorkspace = Object.values(bankAccountList ?? {}).find((bankAccount) => bankAccount?.accountData?.additionalData?.policyID === policy?.id);
         const bankName = isBankAccountFullySetup ? (policy?.achAccount?.bankName ?? '') : (bankAccountConnectedToWorkspace?.accountData?.additionalData?.bankName ?? '');
         const addressName = isBankAccountFullySetup ? (policy?.achAccount?.addressName ?? '') : (bankAccountConnectedToWorkspace?.accountData?.addressName ?? '');
@@ -407,11 +407,22 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                             showLockedAccountModal();
                                             return;
                                         }
+                                        // User who is reimburser can initiate unlocking process
                                         if (state === CONST.BANK_ACCOUNT.STATE.LOCKED && bankAccountID && isUserReimburser) {
                                             pressedOnLockedBankAccount(bankAccountID);
                                             navigateToConciergeChat(undefined);
                                             return;
                                         }
+
+                                        // User who is not reimburser can't initiate unlocking process but can connect new account
+                                        if (state === CONST.BANK_ACCOUNT.STATE.LOCKED && bankAccountID && !isUserReimburser) {
+                                            // If user has existing accounts and no bank account setup in progress we should show screen to choose an existing account
+                                            if (hasValidExistingAccounts && !shouldShowContinueModal) {
+                                                Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(route.params.policyID));
+                                                return;
+                                            }
+                                        }
+
                                         navigateToBankAccountRoute({policyID: route.params.policyID, backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID)});
                                     }}
                                     displayInDefaultIconColor
