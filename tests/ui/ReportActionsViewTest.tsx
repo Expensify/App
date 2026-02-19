@@ -118,6 +118,7 @@ const renderReportActionsView = (
         hasOlderActions: boolean;
         isConciergeSidePanel?: boolean;
         hasUserSentMessage?: boolean;
+        sessionStartActionIDs?: Set<string> | null;
     }> = {},
 ) => {
     const defaultProps = {
@@ -356,11 +357,13 @@ describe('ReportActionsView', () => {
         it('should show ConciergeSidePanelWelcome when opened in side panel with no user messages', () => {
             setupConciergeMocks();
 
+            const sessionStartIDs = new Set(oldReportActions.map((a) => a.reportActionID));
             renderReportActionsView({
                 report: {...mockReport, reportID: CONCIERGE_REPORT_ID},
                 reportActions: oldReportActions,
                 isConciergeSidePanel: true,
                 hasUserSentMessage: false,
+                sessionStartActionIDs: sessionStartIDs,
             });
 
             expect(mockConciergeSidePanelWelcome).toHaveBeenCalled();
@@ -394,6 +397,10 @@ describe('ReportActionsView', () => {
         it('should hide welcome and show filtered actions when user sends a message', () => {
             setupConciergeMocks();
 
+            // sessionStartActionIDs contains only the old actions' IDs (simulating
+            // the set captured at session start by ReportScreen).
+            const sessionStartIDs = new Set(oldReportActions.map((a) => a.reportActionID));
+
             // The new message's ID is NOT in the initial actions (simulating a message
             // sent after the panel opened — its ID wasn't captured at session start).
             const actionsWithNewMessage: OnyxTypes.ReportAction[] = [
@@ -417,6 +424,7 @@ describe('ReportActionsView', () => {
                 reportActions: actionsWithNewMessage,
                 isConciergeSidePanel: true,
                 hasUserSentMessage: true,
+                sessionStartActionIDs: sessionStartIDs,
             });
 
             // Welcome should not be shown since user has sent a message
