@@ -42,7 +42,6 @@ const secureExpensifyUrl = addTrailingForwardSlash(get(Config, 'SECURE_EXPENSIFY
 const useNgrok = get(Config, 'USE_NGROK', 'false') === 'true';
 const useWebProxy = get(Config, 'USE_WEB_PROXY', 'true') === 'true';
 const expensifyComWithProxy = getPlatform() === 'web' && useWebProxy ? '/' : expensifyURL;
-const googleGeolocationAPIKey = get(Config, 'GCP_GEOLOCATION_API_KEY', '');
 
 // Throw errors on dev if config variables are not set correctly
 if (ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
@@ -89,7 +88,7 @@ export default {
         CONCIERGE_URL_PATHNAME: 'concierge/',
         DEVPORTAL_URL_PATHNAME: '_devportal/',
         CONCIERGE_URL: `${expensifyURL}concierge/`,
-        SAML_URL: `${expensifyURL}authentication/saml/login`,
+        SAML_URL: `${expensifyURL}authentication/saml`,
     },
     IS_IN_PRODUCTION: Platform.OS === 'web' ? process.env.NODE_ENV === 'production' : !__DEV__,
     IS_IN_STAGING: ENVIRONMENT === CONST.ENVIRONMENT.STAGING,
@@ -130,7 +129,6 @@ export default {
             },
         },
     },
-    GCP_GEOLOCATION_API_KEY: googleGeolocationAPIKey,
     FIREBASE_WEB_CONFIG: {
         apiKey: get(Config, 'FB_API_KEY', 'AIzaSyBrLKgCuo6Vem6Xi5RPokdumssW8HaWBow'),
         appId: get(Config, 'FB_APP_ID', '1:1008697809946:web:ca25268d2645fc285445a3'),

@@ -280,10 +280,6 @@ type PureReportActionItemProps = {
     /** The transaction thread report associated with the report for this action, if any */
     transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
 
-    /** Array of report actions for the report for this action */
-    // eslint-disable-next-line react/no-unused-prop-types
-    reportActions: OnyxTypes.ReportAction[];
-
     /** Report action belonging to the report's parent */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
@@ -546,11 +542,12 @@ function PureReportActionItem({
     reportMetadata,
 }: PureReportActionItemProps) {
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
-    const {translate, formatPhoneNumber, localeCompare, formatTravelDate, getLocalDateFromDatetime} = useLocalize();
+    const {translate, formatPhoneNumber, localeCompare, formatTravelDate, getLocalDateFromDatetime, datetimeToCalendarTime} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const personalDetail = useCurrentUserPersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const reportID = report?.reportID ?? action?.reportID;
+    const childReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${action.childReportID}`];
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -1228,7 +1225,6 @@ function PureReportActionItem({
                     contextMenuAnchor={popoverAnchorRef.current}
                     isHovered={hovered}
                     isWhisper={isWhisper}
-                    isInvoice={action.childType === CONST.REPORT.CHAT_TYPE.INVOICE}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     onPaymentOptionsShow={() => setIsPaymentMethodPopoverActive(true)}
                     onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
@@ -1309,7 +1305,8 @@ function PureReportActionItem({
                 <ReportActionItemMessageWithExplain
                     message={modifiedExpenseMessage}
                     action={action}
-                    reportID={reportID}
+                    childReport={childReport}
+                    originalReport={originalReport}
                 />
             );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) || isMarkAsClosedAction(action)) {
@@ -1322,13 +1319,14 @@ function PureReportActionItem({
                     <ReportActionItemMessageWithExplain
                         message={translate('iou.automaticallySubmitted')}
                         action={action}
-                        reportID={reportID}
+                        childReport={childReport}
+                        originalReport={originalReport}
                     />
                 );
             } else if (hasPendingDEWSubmit(reportMetadata, isDEWPolicy) && isPendingAdd) {
                 children = <ReportActionItemBasicMessage message={translate('iou.queuedToSubmitViaDEW')} />;
             } else {
-                children = <ReportActionItemBasicMessage message={translate('iou.submitted', {memo: getOriginalMessage(action)?.message})} />;
+                children = <ReportActionItemBasicMessage message={translate('iou.submitted', getOriginalMessage(action)?.message)} />;
             }
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
             const wasAutoApproved = getOriginalMessage(action)?.automaticAction ?? false;
@@ -1618,6 +1616,7 @@ function PureReportActionItem({
                         <ActionableItemButtons
                             items={actionableItemButtons}
                             layout="horizontal"
+                            isBackgroundHovered={hovered}
                         />
                     )}
                 </View>
@@ -1631,6 +1630,7 @@ function PureReportActionItem({
                             items={actionableItemButtons}
                             shouldUseLocalization
                             layout={isActionableTrackExpense(action) ? 'vertical' : 'horizontal'}
+                            isBackgroundHovered={hovered}
                         />
                     )}
                 </View>
@@ -1744,6 +1744,7 @@ function PureReportActionItem({
                             items={actionableItemButtons}
                             shouldUseLocalization
                             layout="vertical"
+                            isBackgroundHovered={hovered}
                         />
                     )}
                 </ReportActionItemBasicMessage>
@@ -1819,9 +1820,9 @@ function PureReportActionItem({
                                             }
                                             shouldUseLocalization={!isConciergeOptions && !actionContainsFollowUps}
                                             primaryTextNumberOfLines={actionableButtonsNoLines}
+                                            isBackgroundHovered={hovered}
                                             styles={{
-                                                text: [isConciergeOptions || actionContainsFollowUps ? styles.textAlignLeft : undefined],
-                                                button: actionContainsFollowUps ? [styles.actionableItemButton, hovered && styles.actionableItemButtonBackgroundHovered] : undefined,
+                                                text: [styles.textAlignLeft, styles.breakWord],
                                                 container: [
                                                     actionContainsFollowUps && shouldUseNarrowLayout ? styles.alignItemsStretch : undefined,
                                                     actionContainsFollowUps ? styles.mt5 : undefined,
@@ -2044,6 +2045,12 @@ function PureReportActionItem({
         );
     };
 
+    // Calculating accessibilityLabel for chat message with sender, date and time and the message content.
+    const displayName = getDisplayNameOrDefault(personalDetails?.[action.actorAccountID ?? CONST.DEFAULT_NUMBER_ID]);
+    const formattedTimestamp = datetimeToCalendarTime(action.created, false);
+    const plainMessage = getReportActionText(action);
+    const accessibilityLabel = `${displayName}, ${formattedTimestamp}, ${plainMessage}`;
+
     return (
         <View>
             {shouldShowCreatedAction && createdActionContent}
@@ -2064,8 +2071,9 @@ function PureReportActionItem({
                 onSecondaryInteraction={showPopover}
                 preventDefaultContextMenu={draftMessage === undefined && !hasErrors}
                 withoutFocusOnSecondaryInteraction
-                accessibilityLabel={translate('accessibilityHints.chatMessage')}
-                accessible
+                accessibilityLabel={accessibilityLabel}
+                accessibilityHint={translate('accessibilityHints.chatMessage')}
+                accessibilityRole={CONST.ROLE.BUTTON}
                 sentryLabel={CONST.SENTRY_LABEL.REPORT.PURE_REPORT_ACTION_ITEM}
             >
                 <Hoverable
@@ -2184,6 +2192,7 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.report?.description === nextProps.report?.description &&
         isCompletedTaskReport(prevProps.report) === isCompletedTaskReport(nextProps.report) &&
         prevProps.report?.managerID === nextProps.report?.managerID &&
+        prevProps.index === nextProps.index &&
         prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine &&
         prevProps.report?.total === nextProps.report?.total &&
         prevProps.report?.nonReimbursableTotal === nextProps.report?.nonReimbursableTotal &&
@@ -2191,7 +2200,6 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.linkedReportActionID === nextProps.linkedReportActionID &&
         deepEqual(prevProps.report?.fieldList, nextProps.report?.fieldList) &&
         deepEqual(prevProps.transactionThreadReport, nextProps.transactionThreadReport) &&
-        deepEqual(prevProps.reportActions, nextProps.reportActions) &&
         deepEqual(prevParentReportAction, nextParentReportAction) &&
         prevProps.draftMessage === nextProps.draftMessage &&
         prevProps.iouReport?.reportID === nextProps.iouReport?.reportID &&

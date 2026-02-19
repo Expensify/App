@@ -7,7 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
-import useCurrencyList from '@hooks/useCurrencyList';
+import {useCurrencyListState} from '@hooks/useCurrencyList';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -35,7 +35,7 @@ function SelectCountryStep({policyID}: CountryStepProps) {
     const route = useRoute<PlatformStackRouteProp<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW>>();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
-    const {currencyList} = useCurrencyList();
+    const {currencyList} = useCurrencyListState();
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
 

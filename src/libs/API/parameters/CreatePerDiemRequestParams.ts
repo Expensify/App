@@ -11,7 +11,7 @@ type CreatePerDiemRequestParams = {
     category?: string;
     description: string;
     tag?: string;
-    iouReportID: string;
+    iouReportID?: string;
     chatReportID: string;
     transactionID: string;
     reportActionID: string;
@@ -23,6 +23,7 @@ type CreatePerDiemRequestParams = {
     billable?: boolean;
     reimbursable?: boolean;
     attendees?: string;
+    customUnitPolicyID?: string;
 };
 
 export default CreatePerDiemRequestParams;

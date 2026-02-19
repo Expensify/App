@@ -27,7 +27,7 @@ type IconName = ValueOf<typeof CONST.NEXT_STEP.ICONS>;
 type IconMap = Record<IconName, IconAsset>;
 
 /**
- * Type guard to check if the next step is in the deprecated format (has message array)
+ * Type guard to check if the next step is in the deprecated format (has message array).
  * We prioritize the old format first for backwards compatibility during migration.
  */
 function isDeprecatedFormatNextStep(step: NextStepData): step is ReportNextStepDeprecated {
@@ -70,7 +70,8 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
         return '';
     }, [nextStep, translate, currentUserAccountID, currentUserEmail]);
 
-    const iconFill = nextStep?.iconFill ?? theme.icon;
+    // iconFill can be set by frontend optimistic updates (deprecated format) but backend never sends it in new format
+    const iconFill = (nextStep && 'iconFill' in nextStep ? (nextStep as {iconFill?: string}).iconFill : undefined) ?? theme.icon;
 
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100, styles.headerStatusBarContainer]}>

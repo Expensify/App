@@ -1,7 +1,5 @@
 import type React from 'react';
 import type {ForwardedRef} from 'react';
-import type {LinkProps, PressProps} from '@components/TextLink';
-import type {TranslationPaths} from '@src/languages/types';
 
 type SignInPageLayoutProps = {
     /** The children to show inside the layout */
@@ -37,8 +35,4 @@ type SignInPageLayoutRef = {
     scrollPageToTop: (animated?: boolean) => void;
 };
 
-type FooterColumnRow = (LinkProps | PressProps) & {
-    translationPath: TranslationPaths;
-};
-
-export type {SignInPageLayoutRef, SignInPageLayoutProps, FooterColumnRow};
+export type {SignInPageLayoutRef, SignInPageLayoutProps};

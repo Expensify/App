@@ -1,3 +1,4 @@
+import {getReportActionsForReportIDs} from '@selectors/ReportAction';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -49,9 +50,6 @@ type ReportActionItemParentActionProps = {
     /** The transaction thread report associated with the current report, if any */
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
 
-    /** Array of report actions for this report */
-    reportActions: OnyxTypes.ReportAction[];
-
     /** Report actions belonging to the report's parent */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
@@ -97,7 +95,6 @@ function ReportActionItemParentAction({
     policies,
     report,
     transactionThreadReport,
-    reportActions,
     parentReportAction,
     index = 0,
     shouldHideThreadDividerLine = false,
@@ -142,6 +139,23 @@ function ReportActionItemParentAction({
         },
         [ancestors],
     );
+
+    const ancestorReportActionsSelector = useCallback(
+        (allReportActions: OnyxCollection<OnyxTypes.ReportActions>) => {
+            const reportIDs = ancestors.map((ancestor) => ancestor.report.reportID);
+            return getReportActionsForReportIDs(allReportActions, reportIDs);
+        },
+        [ancestors],
+    );
+
+    const [ancestorsReportActions] = useOnyx(
+        ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+        {
+            canBeMissing: true,
+            selector: ancestorReportActionsSelector,
+        },
+        [ancestors],
+    );
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
 
     return (
@@ -161,7 +175,11 @@ function ReportActionItemParentAction({
                     const shouldDisplayThreadDivider = !isTripPreview(ancestorReportAction);
                     const isAncestorReportArchived = isArchivedReport(ancestorsReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestorReport.reportID}`]);
 
-                    const originalReportID = getOriginalReportID(ancestorReport.reportID, ancestorReportAction);
+                    const originalReportID = getOriginalReportID(
+                        ancestorReport.reportID,
+                        ancestorReportAction,
+                        ancestorsReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReport.reportID}`],
+                    );
                     const reportDraftMessages = originalReportID ? allDraftMessages?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`] : undefined;
                     const matchingDraftMessage = reportDraftMessages?.[ancestorReportAction.reportActionID];
                     const matchingDraftMessageString = matchingDraftMessage?.message;
@@ -192,7 +210,6 @@ function ReportActionItemParentAction({
                                 }
                                 parentReportAction={parentReportAction}
                                 report={ancestorReport}
-                                reportActions={reportActions}
                                 transactionThreadReport={transactionThreadReport}
                                 action={ancestorReportAction}
                                 displayAsGroup={false}

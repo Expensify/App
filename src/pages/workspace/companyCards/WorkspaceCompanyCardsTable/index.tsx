@@ -25,7 +25,6 @@ import WorkspaceCompanyCardsFeedPendingPage from '@pages/workspace/companyCards/
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import WorkspaceCompanyCardsTableHeaderButtons from './WorkspaceCompanyCardsTableHeaderButtons';
 import WorkspaceCompanyCardTableItem from './WorkspaceCompanyCardsTableItem';
@@ -78,7 +77,7 @@ function WorkspaceCompanyCardsTable({
         feedName,
         bankName,
         assignedCards,
-        cardNamesToEncryptedCardNumberMapping,
+        companyCardEntries,
         workspaceCardFeedsStatus,
         selectedFeed,
         isInitiallyLoadingFeeds,
@@ -94,7 +93,11 @@ function WorkspaceCompanyCardsTable({
     const hasNoAssignedCard = Object.keys(assignedCards ?? {}).length === 0;
 
     const areWorkspaceCardFeedsLoading = !!workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID]?.isLoading;
-    const workspaceCardFeedsErrors = workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID]?.errors;
+    // Synthesize error locally since Onyx discards writes to collection keys with member ID '0'.
+    const shouldShowWorkspaceFeedsLoadError = domainOrWorkspaceAccountID === CONST.DEFAULT_NUMBER_ID && isPolicyLoaded && !isOffline;
+    const workspaceCardFeedsErrors = shouldShowWorkspaceFeedsLoadError
+        ? {[CONST.COMPANY_CARDS.WORKSPACE_FEEDS_LOAD_ERROR]: translate('workspace.companyCards.error.workspaceFeedsCouldNotBeLoadedMessage')}
+        : workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID]?.errors;
 
     const selectedFeedStatus = selectedFeed?.status;
     const selectedFeedErrors = selectedFeedStatus?.errors;
@@ -113,7 +116,7 @@ function WorkspaceCompanyCardsTable({
     }
 
     const isLoadingFeed = (!feedName && isInitiallyLoadingFeeds) || !isPolicyLoaded || isLoadingOnyxValue(lastSelectedFeedMetadata) || !!selectedFeedStatus?.isLoading;
-    const isLoadingCards = Object.keys(cardNamesToEncryptedCardNumberMapping ?? {}).length === 0 ? isLoadingOnyxValue(cardListMetadata) : false;
+    const isLoadingCards = (companyCardEntries ?? []).length === 0 ? isLoadingOnyxValue(cardListMetadata) : false;
     const isLoadingPage = !isOffline && (isLoadingFeed || isLoadingOnyxValue(personalDetailsMetadata) || areWorkspaceCardFeedsLoading);
     const isLoading = isLoadingPage || isLoadingFeed;
 
@@ -150,8 +153,7 @@ function WorkspaceCompanyCardsTable({
 
     const cardsData: WorkspaceCompanyCardTableItemData[] = isLoadingCards
         ? []
-        : (Object.entries(cardNamesToEncryptedCardNumberMapping ?? {}).map(([cardName, encryptedCardNumber]) => {
-              const assignedCard = Object.values(assignedCards ?? {}).find((card: Card) => card.encryptedCardNumber === encryptedCardNumber || card.cardName === cardName);
+        : (companyCardEntries ?? []).map(({cardName, encryptedCardNumber, isAssigned, assignedCard}) => {
               const cardholder = assignedCard?.accountID ? personalDetails?.[assignedCard.accountID] : undefined;
 
               return {
@@ -159,14 +161,14 @@ function WorkspaceCompanyCardsTable({
                   encryptedCardNumber,
                   customCardName: assignedCard?.cardID && customCardNames?.[assignedCard.cardID] ? customCardNames?.[assignedCard.cardID] : getDefaultCardName(cardholder?.displayName ?? ''),
                   isCardDeleted: assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                  isAssigned: !!assignedCard,
+                  isAssigned,
                   assignedCard,
                   cardholder,
                   errors: assignedCard?.errors,
                   pendingAction: assignedCard?.pendingAction,
                   onDismissError: () => resetFailedWorkspaceCompanyCardUnassignment(domainOrWorkspaceAccountID, bankName, assignedCard?.cardID),
               };
-          }) ?? []);
+          });
 
     const keyExtractor = (item: WorkspaceCompanyCardTableItemData, index: number) => `${item.cardName}_${index}`;
 

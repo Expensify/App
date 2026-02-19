@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 
 type SearchFilterPageFooterButtonsProps = {
     /** Function to reset changes made in the filter */
@@ -24,6 +25,7 @@ function SearchFilterPageFooterButtons({resetChanges, applyChanges}: SearchFilte
                     style={[styles.mt3]}
                     text={translate('common.reset')}
                     onPress={resetChanges}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_RESET_BUTTON}
                 />
             )}
             <Button
@@ -33,6 +35,7 @@ function SearchFilterPageFooterButtons({resetChanges, applyChanges}: SearchFilte
                 style={[styles.mt3]}
                 text={translate('common.save')}
                 onPress={applyChanges}
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SAVE_BUTTON}
             />
         </View>
     );
