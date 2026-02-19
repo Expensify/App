@@ -14,7 +14,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canIOUBePaid} from '@libs/actions/IOU';
 import {getPayMoneyOnSearchInvoiceParams, payMoneyRequestOnSearch} from '@libs/actions/Search';
@@ -69,7 +68,6 @@ function ActionCell({
     shouldDisablePointerEvents,
 }: ActionCellProps) {
     const {translate} = useLocalize();
-    const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
@@ -122,7 +120,6 @@ function ActionCell({
                         isLargeScreenWidth ? styles.alignSelfCenter : styles.alignSelfEnd,
                         !extraSmall && StyleUtils.getHeight(variables.h20),
                         !extraSmall && StyleUtils.getMinimumHeight(variables.h20),
-                        isSelected ? StyleUtils.getBorderColorStyle(theme.buttonHoveredBG) : StyleUtils.getBorderColorStyle(theme.border),
                     ]}
                     iconStyles={styles.mr0}
                     success

@@ -989,6 +989,7 @@ const staticStyles = (theme: ThemeColors) =>
             paddingHorizontal: 8,
             minHeight: 20,
             borderRadius: variables.componentBorderRadiusSmall,
+            backgroundColor: theme.transparent,
             borderColor: colors.productDark500,
         },
 

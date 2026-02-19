@@ -90,7 +90,7 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
                     text={translate('task.completed')}
                     icon={Expensicons.Checkmark}
                     iconStyles={styles.mr0}
-                    badgeStyles={[styles.ml0, styles.ph2, styles.gap1, isLargeScreenWidth ? styles.alignSelfCenter : styles.alignSelfEnd, StyleUtils.getBorderColorStyle(theme.border)]}
+                    badgeStyles={[styles.ml0, styles.ph2, styles.gap1, isLargeScreenWidth ? styles.alignSelfCenter : styles.alignSelfEnd]}
                 />
             </View>
         );
