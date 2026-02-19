@@ -38,7 +38,7 @@ function ForYouSkeleton() {
             const iconY = 12;
             const titleX = iconX + 40 + gap;
             const titleWidth = getTitleSkeletonWidth(args.itemIndex);
-            const buttonWidth = 56;
+            const buttonWidth = styles.widgetItemButton.minWidth;
             const buttonHeight = 28;
             const buttonX = pageWidth - horizontalPadding - buttonWidth;
             const buttonY = (ITEM_HEIGHT - buttonHeight) / 2;
@@ -65,7 +65,7 @@ function ForYouSkeleton() {
                 </>
             );
         },
-        [horizontalPadding, pageWidth],
+        [horizontalPadding, pageWidth, styles.widgetItemButton.minWidth],
     );
 
     return (
