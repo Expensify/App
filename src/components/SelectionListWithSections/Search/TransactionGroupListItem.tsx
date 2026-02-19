@@ -263,6 +263,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const onExpandIconPress = useCallback(() => {
         if (isEmpty && !shouldDisplayEmptyView) {
             onPress();
+            // onPress handles handleToggle() for us, so we return early to avoid calling it twice
+            return;
         }
         handleToggle();
     }, [isEmpty, shouldDisplayEmptyView, handleToggle, onPress]);

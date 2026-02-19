@@ -141,14 +141,6 @@ Expensify learns how tags are applied over time and suggests them automatically.
 - Tags that were manually applied to expenses aren’t overwritten automatically.
 - These suggestions are based on patterns and may vary by user.
 
-## Workspace Merchant Rules for tags
-
-Workspace Admins can create explicit [**Workspace Merchant Rules**](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Merchant-Rules) to apply consistent tags based on merchant name across all workspace expenses. 
-
-- Rules apply to all expenses across the entire workspace.
-- Rules take precedence over learned suggestions
-- Tags that were manually applied to expenses aren’t overwritten automatically.
-
 ---
 
 # FAQ
