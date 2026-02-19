@@ -118,9 +118,9 @@ describe('canSubmitAndIsAwaitingForCurrentUser', () => {
 
     it('returns false when report is not waiting for submission from current user', () => {
         mockedCanSubmitReport.mockReturnValue(true);
-        const chatReportNotOwn = createPolicyExpenseChat(1, false);
+        const otherUserChatReport = createPolicyExpenseChat(1, false);
         const iouReportOtherOwner: Report = {...createExpenseReport(2), ownerAccountID: OTHER_USER_ACCOUNT_ID};
-        const result = canSubmitAndIsAwaitingForCurrentUser(iouReportOtherOwner, chatReportNotOwn, basePolicy, transactions, {}, 'user@test.com', CURRENT_USER_ACCOUNT_ID);
+        const result = canSubmitAndIsAwaitingForCurrentUser(iouReportOtherOwner, otherUserChatReport, basePolicy, transactions, {}, 'user@test.com', CURRENT_USER_ACCOUNT_ID);
         expect(result).toBe(false);
     });
 
