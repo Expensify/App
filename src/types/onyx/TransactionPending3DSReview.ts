@@ -23,6 +23,9 @@ type TransactionPending3DSReview = {
 
     /** transactionID of the pending transaction */
     transactionID: string;
+
+    /** Added by the troubleshooting tool to mark that this transaction is simulated */
+    simulated?: boolean;
 };
 
 export default TransactionPending3DSReview;
