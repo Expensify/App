@@ -1,5 +1,5 @@
 import fastMerge from 'expensify-common/dist/fastMerge';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ApiCommand} from '@libs/API/types';
 import Log from '@libs/Log';
@@ -7,7 +7,7 @@ import PaginationUtils from '@libs/PaginationUtils';
 import CONST from '@src/CONST';
 import type {OnyxCollectionKey, OnyxPagesKey, OnyxValues} from '@src/ONYXKEYS';
 import type {Request} from '@src/types/onyx';
-import type {PaginatedRequest} from '@src/types/onyx/Request';
+import type {AnyOnyxUpdate, PaginatedRequest} from '@src/types/onyx/Request';
 import type Middleware from './types';
 
 type PagedResource<TResourceKey extends OnyxCollectionKey> = OnyxValues[TResourceKey] extends Record<string, infer TResource> ? TResource : never;
@@ -50,14 +50,14 @@ function registerPaginationConfig<TResourceKey extends OnyxCollectionKey, TPageK
     paginationConfigs.set(initialCommand, {...config, type: 'initial'} as unknown as PaginationConfigMapValue);
     paginationConfigs.set(previousCommand, {...config, type: 'previous'} as unknown as PaginationConfigMapValue);
     paginationConfigs.set(nextCommand, {...config, type: 'next'} as unknown as PaginationConfigMapValue);
-    Onyx.connect<OnyxCollectionKey>({
+    Onyx.connectWithoutView<OnyxCollectionKey>({
         key: config.resourceCollectionKey,
         waitForCollectionCallback: true,
         callback: (data) => {
             resources.set(config.resourceCollectionKey, data);
         },
     });
-    Onyx.connect<OnyxPagesKey>({
+    Onyx.connectWithoutView<OnyxPagesKey>({
         key: config.pageCollectionKey,
         waitForCollectionCallback: true,
         callback: (data) => {
@@ -66,7 +66,7 @@ function registerPaginationConfig<TResourceKey extends OnyxCollectionKey, TPageK
     });
 }
 
-function isPaginatedRequest(request: Request | PaginatedRequest): request is PaginatedRequest {
+function isPaginatedRequest<TKey extends OnyxKey>(request: Request<TKey> | PaginatedRequest<TKey>): request is PaginatedRequest<TKey> {
     return 'isPaginated' in request && request.isPaginated;
 }
 
@@ -109,7 +109,7 @@ const Pagination: Middleware = (requestResponse, request) => {
 
         const newPage = sortedPageItems.map((item) => getItemID(item));
 
-        if (response.hasNewerActions === false || (type === 'initial' && !cursorID)) {
+        if (response.hasNewerActions === false || response.hasNewerActions === null || (type === 'initial' && !cursorID)) {
             newPage.unshift(CONST.PAGINATION_START_ID);
         }
         if (response.hasOlderActions === false || response.hasOlderActions === null) {
@@ -125,7 +125,7 @@ const Pagination: Middleware = (requestResponse, request) => {
         const existingPages = pagesCollections[pageKey] ?? [];
         const mergedPages = PaginationUtils.mergeAndSortContinuousPages(sortedAllItems, [...existingPages, newPage], getItemID);
 
-        response.onyxData.push({
+        (response.onyxData as AnyOnyxUpdate[]).push({
             key: pageKey,
             onyxMethod: Onyx.METHOD.SET,
             value: mergedPages,

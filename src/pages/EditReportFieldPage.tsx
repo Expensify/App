@@ -1,5 +1,7 @@
+import {reportByIDsSelector} from '@selectors/Attributes';
 import {Str} from 'expensify-common';
-import React from 'react';
+import React, {useCallback} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -16,8 +18,11 @@ import {deleteReportField, updateReportField, updateReportName} from '@libs/acti
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {EditRequestNavigatorParamList} from '@libs/Navigation/types';
+import {isPolicyFieldListEmpty} from '@libs/PolicyUtils';
+import {getReportName as getReportNameFromReportNameUtils} from '@libs/ReportNameUtils';
 import {
     getReportFieldKey,
+    getTitleFieldWithFallback,
     hasViolations as hasViolationsReportUtils,
     isInvoiceReport,
     isPaidGroupPolicyExpenseReport,
@@ -29,7 +34,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, ReportAttributesDerivedValue} from '@src/types/onyx';
 import EditReportFieldDate from './EditReportFieldDate';
 import EditReportFieldDropdown from './EditReportFieldDropdown';
 import EditReportFieldText from './EditReportFieldText';
@@ -41,9 +46,24 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     const fieldKey = getReportFieldKey(route.params.fieldID);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
+    const reportAttributesSelector = useCallback((attributes: OnyxEntry<ReportAttributesDerivedValue>) => reportByIDsSelector([reportID])(attributes), [reportID]);
+    const [reportAttributesByReportID] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+        canBeMissing: true,
+        selector: reportAttributesSelector,
+    });
     const [recentlyUsedReportFields] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS, {canBeMissing: true});
-    const reportField = report?.fieldList?.[fieldKey] ?? policy?.fieldList?.[fieldKey];
-    const policyField = policy?.fieldList?.[fieldKey] ?? reportField;
+
+    const isTitleField = route.params.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID;
+    let reportField = report?.fieldList?.[fieldKey] ?? policy?.fieldList?.[fieldKey];
+    let policyField = policy?.fieldList?.[fieldKey] ?? reportField;
+
+    // If the title field is missing, use fallback so that it can still be edited and matches the OldDot behavior.
+    if (isTitleField && !reportField && !policyField) {
+        const fallbackTitleField = getTitleFieldWithFallback(policy);
+        reportField = fallbackTitleField;
+        policyField = fallbackTitleField;
+    }
+
     const isDisabled = isReportFieldDisabledForUser(report, reportField, policy) && reportField?.type !== CONST.REPORT_FIELD_TYPES.FORMULA;
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -98,7 +118,12 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
         });
     };
 
-    const fieldValue = isReportFieldTitle ? (report.reportName ?? '') : (reportField.value ?? reportField.defaultValue);
+    // Provide a default when the report name and the policy field list are empty
+    /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+    const fieldValue = isReportFieldTitle
+        ? getReportNameFromReportNameUtils(report, reportAttributesByReportID) || (isPolicyFieldListEmpty(policy) ? CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME : '')
+        : (reportField.value ?? reportField.defaultValue);
+    /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
 
     const handleReportFieldChange = (form: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM>) => {
         const value = form[fieldKey];

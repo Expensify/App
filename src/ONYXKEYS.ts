@@ -1,4 +1,3 @@
-import type {OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from './CONST';
 import type {OnboardingAccounting} from './CONST';
@@ -9,6 +8,7 @@ import type * as FormTypes from './types/form';
 import type * as OnyxTypes from './types/onyx';
 import type {Attendee, DistanceExpenseType, Participant} from './types/onyx/IOU';
 import type Onboarding from './types/onyx/Onboarding';
+import type {AnyOnyxUpdate} from './types/onyx/Request';
 import type AssertTypesEqual from './types/utils/AssertTypesEqual';
 import type DeepValueOf from './types/utils/DeepValueOf';
 
@@ -28,6 +28,14 @@ const ONYXKEYS = {
 
     /** A unique ID for the device */
     DEVICE_ID: 'deviceID',
+
+    /** Holds information about device-specific biometrics which:
+     * - does need to be persisted
+     * - does not need to be kept in secure storage
+     * - does not persist across uninstallations
+     * (secure storage persists across uninstallation)
+     */
+    DEVICE_BIOMETRICS: 'deviceBiometrics',
 
     /** Boolean flag set whenever the sidebar has loaded */
     IS_SIDEBAR_LOADED: 'isSidebarLoaded',
@@ -52,8 +60,8 @@ const ONYXKEYS = {
     /** Keeps track if OpenApp failure modal is opened */
     IS_OPEN_APP_FAILURE_MODAL_OPEN: 'isOpenAppFailureModalOpen',
 
-    /** Stores the PIN for an activated UK/EU Expensify card to be shown once after activation */
-    ACTIVATED_CARD_PIN: 'activatedCardPin',
+    /** Keeps track if 'GPS in progress' modal is opened */
+    IS_GPS_IN_PROGRESS_MODAL_OPEN: 'isGpsInProgressModalOpen',
 
     /** Keeps track if there is a full screen currently visible or not */
     FULLSCREEN_VISIBILITY: 'fullscreenVisibility',
@@ -368,9 +376,6 @@ const ONYXKEYS = {
     /** Is the test tools modal open? */
     IS_TEST_TOOLS_MODAL_OPEN: 'isTestToolsModalOpen',
 
-    /** Is app in profiling mode */
-    APP_PROFILING_IN_PROGRESS: 'isProfilingInProgress',
-
     /** Stores information about active wallet transfer amount, selectedAccountID, status, etc */
     WALLET_TRANSFER: 'walletTransfer',
 
@@ -452,18 +457,6 @@ const ONYXKEYS = {
 
     /** Indicates whether an forced reset is required. Used in emergency situations where we must completely erase the Onyx data in the client because it is in a bad state. This will clear Onyx data without signing the user out. */
     RESET_REQUIRED: 'resetRequired',
-
-    /** Stores the logs of the app for debugging purposes */
-    LOGS: 'logs',
-
-    /** Indicates whether we should store logs or not */
-    SHOULD_STORE_LOGS: 'shouldStoreLogs',
-
-    /** Indicates whether we should record troubleshoot data or not */
-    SHOULD_RECORD_TROUBLESHOOT_DATA: 'shouldRecordTroubleshootData',
-
-    /** Timestamp when troubleshoot recording was started (for auto-off after 10 minutes) */
-    TROUBLESHOOT_RECORDING_START_TIME: 'troubleshootRecordingStartTime',
 
     /** Indicates whether we should mask fragile user data while exporting onyx state or not */
     SHOULD_MASK_ONYX_STATE: 'shouldMaskOnyxState',
@@ -575,6 +568,9 @@ const ONYXKEYS = {
 
     /** The user's session that will be preserved when using imported state */
     PRESERVED_USER_SESSION: 'preservedUserSession',
+
+    /** The user's account that will be preserved when using imported state */
+    PRESERVED_ACCOUNT: 'preservedAccount',
 
     /** Corpay onboarding fields used in steps 3-5 in the global reimbursements */
     CORPAY_ONBOARDING_FIELDS: 'corpayOnboardingFields',
@@ -727,9 +723,6 @@ const ONYXKEYS = {
          */
         WORKSPACE_CARDS_LIST: 'cards_',
 
-        /** Collection of objects where each object represents the card assignment that failed because we can't store errors in cardList or card feed due to server-provided IDs that aren't optimistic. */
-        FAILED_COMPANY_CARDS_ASSIGNMENTS: 'failedCompanyCardsAssignments_',
-
         /** Expensify cards settings */
         PRIVATE_EXPENSIFY_CARD_SETTINGS: 'private_expensifyCardSettings_',
 
@@ -773,6 +766,13 @@ const ONYXKEYS = {
 
         /** Errors related to a domain */
         DOMAIN_ERRORS: 'domainErrors_',
+
+        /**
+         * Local passkeys storage for WebAuthn/Passkeys authentication.
+         * Stores passkey credentials registered on this specific browser/device.
+         * Key format: passkey_${userId}
+         */
+        PASSKEY_CREDENTIALS: 'passkeyCredentials_',
     },
 
     /** List of Form ids */
@@ -927,6 +927,8 @@ const ONYXKEYS = {
         NEW_CHAT_NAME_FORM_DRAFT: 'newChatNameFormDraft',
         SUBSCRIPTION_SIZE_FORM: 'subscriptionSizeForm',
         SUBSCRIPTION_SIZE_FORM_DRAFT: 'subscriptionSizeFormDraft',
+        SUBSCRIPTION_EXPENSIFY_CODE_FORM: 'subscriptionExpensifyCodeForm',
+        SUBSCRIPTION_EXPENSIFY_CODE_FORM_DRAFT: 'subscriptionExpensifyCodeFormDraft',
         ISSUE_NEW_EXPENSIFY_CARD_FORM: 'issueNewExpensifyCard',
         ISSUE_NEW_EXPENSIFY_CARD_FORM_DRAFT: 'issueNewExpensifyCardDraft',
         ADD_NEW_CARD_FEED_FORM: 'addNewCardFeed',
@@ -937,6 +939,8 @@ const ONYXKEYS = {
         EDIT_EXPENSIFY_CARD_NAME_DRAFT_FORM: 'editExpensifyCardNameDraft',
         EDIT_EXPENSIFY_CARD_LIMIT_FORM: 'editExpensifyCardLimit',
         EDIT_EXPENSIFY_CARD_LIMIT_DRAFT_FORM: 'editExpensifyCardLimitDraft',
+        EDIT_EXPENSIFY_CARD_LIMIT_TYPE_FORM: 'editExpensifyCardLimitType',
+        EDIT_EXPENSIFY_CARD_LIMIT_TYPE_DRAFT_FORM: 'editExpensifyCardLimitTypeDraft',
         SAGE_INTACCT_CREDENTIALS_FORM: 'sageIntacctCredentialsForm',
         SAGE_INTACCT_CREDENTIALS_FORM_DRAFT: 'sageIntacctCredentialsFormDraft',
         NETSUITE_CUSTOM_FIELD_FORM: 'netSuiteCustomFieldForm',
@@ -1003,7 +1007,9 @@ const ONYXKEYS = {
         REPORT_TRANSACTIONS_AND_VIOLATIONS: 'reportTransactionsAndViolations',
         OUTSTANDING_REPORTS_BY_POLICY_ID: 'outstandingReportsByPolicyID',
         NON_PERSONAL_AND_WORKSPACE_CARD_LIST: 'nonPersonalAndWorkspaceCardList',
+        PERSONAL_AND_WORKSPACE_CARD_LIST: 'personalAndWorkspaceCardList',
         CARD_FEED_ERRORS: 'cardFeedErrors',
+        TODOS: 'todos',
     },
 
     /** Stores HybridApp specific state required to interoperate with OldDot */
@@ -1088,11 +1094,13 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.WORKSPACE_TIME_TRACKING_DEFAULT_RATE_FORM]: FormTypes.WorkspaceTimeTrackingDefaultRateForm;
     [ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM]: FormTypes.NewChatNameForm;
     [ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM]: FormTypes.SubscriptionSizeForm;
+    [ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM]: FormTypes.SubscriptionExpensifyCodeForm;
     [ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM]: FormTypes.IssueNewExpensifyCardForm;
     [ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM]: FormTypes.AddNewCardFeedForm;
     [ONYXKEYS.FORMS.ASSIGN_CARD_FORM]: FormTypes.AssignCardForm;
     [ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM]: FormTypes.EditExpensifyCardNameForm;
     [ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM]: FormTypes.EditExpensifyCardLimitForm;
+    [ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_TYPE_FORM]: FormTypes.EditExpensifyCardLimitTypeForm;
     [ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM]: FormTypes.SageIntactCredentialsForm;
     [ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_FORM]: FormTypes.NetSuiteCustomFieldForm;
     [ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM]: FormTypes.NetSuiteCustomFieldForm;
@@ -1181,7 +1189,6 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_BANK_ACCOUNT_METADATA]: OnyxTypes.ExpensifyCardBankAccountMetadata;
     [ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING]: boolean;
     [ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST]: OnyxTypes.WorkspaceCardsList;
-    [ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS]: OnyxTypes.FailedCompanyCardAssignments;
     [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION]: OnyxTypes.PolicyConnectionName;
     [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION]: OnyxTypes.CardContinuousReconciliation;
     [ONYXKEYS.COLLECTION.LAST_SELECTED_FEED]: OnyxTypes.CompanyCardFeedWithDomainID;
@@ -1193,6 +1200,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS]: OnyxTypes.DomainPendingActions;
     [ONYXKEYS.COLLECTION.DOMAIN_ERRORS]: OnyxTypes.DomainErrors;
     [ONYXKEYS.COLLECTION.CODING_RULE_MATCHING_TRANSACTION]: OnyxTypes.CodingRuleMatchingTransaction;
+    [ONYXKEYS.COLLECTION.PASSKEY_CREDENTIALS]: OnyxTypes.LocalPasskeyCredentialsEntry;
 };
 
 type OnyxValuesMapping = {
@@ -1209,15 +1217,15 @@ type OnyxValuesMapping = {
     [ONYXKEYS.RECENTLY_USED_CURRENCIES]: string[];
     [ONYXKEYS.ACTIVE_CLIENTS]: string[];
     [ONYXKEYS.DEVICE_ID]: string;
-    [ONYXKEYS.ACTIVATED_CARD_PIN]: string | undefined;
     [ONYXKEYS.IS_SIDEBAR_LOADED]: boolean;
-    [ONYXKEYS.PERSISTED_REQUESTS]: OnyxTypes.Request[];
-    [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: OnyxTypes.Request;
+    [ONYXKEYS.PERSISTED_REQUESTS]: OnyxTypes.AnyRequest[];
+    [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: OnyxTypes.AnyRequest;
     [ONYXKEYS.CURRENT_DATE]: string;
     [ONYXKEYS.CREDENTIALS]: OnyxTypes.Credentials;
     [ONYXKEYS.STASHED_CREDENTIALS]: OnyxTypes.Credentials;
     [ONYXKEYS.MODAL]: OnyxTypes.Modal;
     [ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN]: boolean;
+    [ONYXKEYS.IS_GPS_IN_PROGRESS_MODAL_OPEN]: boolean;
     [ONYXKEYS.GPS_DRAFT_DETAILS]: OnyxTypes.GpsDraftDetails;
     [ONYXKEYS.FULLSCREEN_VISIBILITY]: boolean;
     [ONYXKEYS.NETWORK]: OnyxTypes.Network;
@@ -1248,7 +1256,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_MUTED_PLATFORMS]: Partial<Record<Platform, true>>;
     [ONYXKEYS.NVP_PRIORITY_MODE]: ValueOf<typeof CONST.PRIORITY_MODE>;
     [ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE]: OnyxTypes.BlockedFromConcierge;
-    [ONYXKEYS.QUEUE_FLUSHED_DATA]: OnyxUpdate[];
+    [ONYXKEYS.QUEUE_FLUSHED_DATA]: AnyOnyxUpdate[];
 
     // The value of this nvp is a string representation of the date when the block expires, or an empty string if the user is not blocked
     [ONYXKEYS.NVP_BLOCKED_FROM_CHAT]: string;
@@ -1302,7 +1310,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW]: boolean;
     [ONYXKEYS.IS_LOADING_REPORT_DATA]: boolean;
     [ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN]: boolean;
-    [ONYXKEYS.APP_PROFILING_IN_PROGRESS]: boolean;
     [ONYXKEYS.IS_LOADING_APP]: boolean;
     [ONYXKEYS.HAS_LOADED_APP]: boolean;
     [ONYXKEYS.WALLET_TRANSFER]: OnyxTypes.WalletTransfer;
@@ -1314,7 +1321,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.VERIFY_3DS_SUBSCRIPTION]: string;
     [ONYXKEYS.PREFERRED_THEME]: ValueOf<typeof CONST.THEME>;
     [ONYXKEYS.MAPBOX_ACCESS_TOKEN]: OnyxTypes.MapboxAccessToken;
-    [ONYXKEYS.ONYX_UPDATES_FROM_SERVER]: OnyxTypes.OnyxUpdatesFromServer;
+    [ONYXKEYS.ONYX_UPDATES_FROM_SERVER]: OnyxTypes.AnyOnyxUpdatesFromServer;
     [ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT]: number;
     [ONYXKEYS.MAX_CANVAS_AREA]: number;
     [ONYXKEYS.MAX_CANVAS_HEIGHT]: number;
@@ -1335,10 +1342,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.RESET_REQUIRED]: boolean;
     [ONYXKEYS.PLAID_CURRENT_EVENT]: string;
     [ONYXKEYS.NVP_PRIVATE_TAX_EXEMPT]: boolean;
-    [ONYXKEYS.LOGS]: OnyxTypes.CapturedLogs;
-    [ONYXKEYS.SHOULD_STORE_LOGS]: boolean;
-    [ONYXKEYS.SHOULD_RECORD_TROUBLESHOOT_DATA]: boolean;
-    [ONYXKEYS.TROUBLESHOOT_RECORDING_START_TIME]: number | null;
     [ONYXKEYS.SHOULD_MASK_ONYX_STATE]: boolean;
     [ONYXKEYS.SHOULD_USE_STAGING_SERVER]: boolean;
     [ONYXKEYS.IS_DEBUG_MODE_ENABLED]: boolean;
@@ -1381,6 +1384,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.VALIDATED_FILE_OBJECT]: OnyxTypes.FileObject | undefined;
     [ONYXKEYS.CORPAY_FIELDS]: OnyxTypes.CorpayFields;
     [ONYXKEYS.PRESERVED_USER_SESSION]: OnyxTypes.Session;
+    [ONYXKEYS.PRESERVED_ACCOUNT]: OnyxTypes.Account;
     [ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING]: OnyxTypes.DismissedProductTraining;
     [ONYXKEYS.CORPAY_ONBOARDING_FIELDS]: OnyxTypes.CorpayOnboardingFields;
     [ONYXKEYS.LAST_FULL_RECONNECT_TIME]: string;
@@ -1414,6 +1418,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_OPEN_CONFIRM_NAVIGATE_EXPENSIFY_CLASSIC_MODAL_OPEN]: boolean;
     [ONYXKEYS.PERSONAL_POLICY_ID]: string;
     [ONYXKEYS.TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE]: Record<string, Record<string, boolean>>;
+    [ONYXKEYS.DEVICE_BIOMETRICS]: OnyxTypes.DeviceBiometrics;
 };
 
 type OnyxDerivedValuesMapping = {
@@ -1421,7 +1426,9 @@ type OnyxDerivedValuesMapping = {
     [ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS]: OnyxTypes.ReportTransactionsAndViolationsDerivedValue;
     [ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID]: OnyxTypes.OutstandingReportsByPolicyIDDerivedValue;
     [ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST]: OnyxTypes.NonPersonalAndWorkspaceCardListDerivedValue;
+    [ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST]: OnyxTypes.PersonalAndWorkspaceCardListDerivedValue;
     [ONYXKEYS.DERIVED.CARD_FEED_ERRORS]: OnyxTypes.CardFeedErrorsDerivedValue;
+    [ONYXKEYS.DERIVED.TODOS]: OnyxTypes.TodosDerivedValue;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping & OnyxDerivedValuesMapping;

@@ -1,6 +1,6 @@
 import {getReportPolicyID} from '@selectors/Report';
-import React, {useCallback, useContext, useEffect} from 'react';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import React, {useCallback, useEffect} from 'react';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchContext} from '@components/Search/SearchContext';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
@@ -34,15 +34,16 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
     const policy = usePolicy(reportPolicyID);
     const {superWideRHPRouteKeys} = useWideRHPState();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-
-    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
             return;
         }
 
-        const urlToNavigateBack = rejectMoneyRequest(transactionID, reportID, values.comment, policy, currentUserAccountID);
+        const urlToNavigateBack = rejectMoneyRequest(transactionID, reportID, values.comment, policy, currentUserAccountID, betas);
         removeTransaction(transactionID);
         // If the super wide rhp is not opened, dismiss the entire modal.
         if (superWideRHPRouteKeys.length > 0) {
@@ -57,7 +58,7 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM> = getFieldRequiredErrors(values, [INPUT_IDS.COMMENT]);
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM> = getFieldRequiredErrors(values, [INPUT_IDS.COMMENT], translate);
 
             if (!values.comment) {
                 errors.comment = translate('common.error.fieldRequired');

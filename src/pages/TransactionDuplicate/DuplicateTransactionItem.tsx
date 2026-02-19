@@ -43,7 +43,7 @@ function DuplicateTransactionItem({transaction, index, allReports, policies, onP
         return IOUTransactionID === transaction?.transactionID;
     });
 
-    const originalReportID = getOriginalReportID(report?.reportID, action);
+    const originalReportID = getOriginalReportID(report?.reportID, action, reportActions);
 
     const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {
         canBeMissing: true,
@@ -80,7 +80,6 @@ function DuplicateTransactionItem({transaction, index, allReports, policies, onP
                     report={report}
                     parentReportAction={getReportAction(report?.parentReportID, report?.parentReportActionID)}
                     index={index}
-                    reportActions={Object.values(reportActions ?? {})}
                     displayAsGroup={false}
                     shouldDisplayNewMarker={false}
                     isMostRecentIOUReportAction={false}

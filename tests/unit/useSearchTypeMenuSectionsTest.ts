@@ -1,10 +1,8 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {renderHook} from '@testing-library/react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useNetwork from '@hooks/useNetwork';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
 
 jest.mock('@libs/ReportUtils', () => ({
     getPersonalDetailsForAccountID: jest.fn(),
@@ -41,14 +39,11 @@ jest.mock('@hooks/useOnyx', () => ({
     default: (key: string, options?: {selector?: (value: unknown) => unknown}) => mockUseOnyx(key, options),
 }));
 
-jest.mock('@selectors/Policy', () => ({
-    createPoliciesSelector: jest.fn((policies: OnyxCollection<Policy>, policySelector: (policy: OnyxEntry<Policy>) => OnyxEntry<Policy>) => {
-        if (!policies) {
-            return policies;
-        }
+const mockUseMappedPolicies = jest.fn(() => [onyxData[ONYXKEYS.COLLECTION.POLICY], {}]);
 
-        return Object.fromEntries(Object.entries(policies).map(([policyKey, policyValue]) => [policyKey, policyValue ? policySelector(policyValue) : policyValue]));
-    }),
+jest.mock('@hooks/useMappedPolicies', () => ({
+    __esModule: true,
+    default: () => mockUseMappedPolicies(),
 }));
 
 describe('useSearchTypeMenuSections', () => {

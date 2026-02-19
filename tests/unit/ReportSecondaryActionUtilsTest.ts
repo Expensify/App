@@ -1,7 +1,13 @@
 import Onyx from 'react-native-onyx';
 // eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
-import {getSecondaryExportReportActions, getSecondaryReportActions, getSecondaryTransactionThreadActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
+import {
+    getSecondaryExportReportActions,
+    getSecondaryReportActions,
+    getSecondaryTransactionThreadActions,
+    isChangeWorkspaceAction,
+    isMergeActionForSelectedTransactions,
+} from '@libs/ReportSecondaryActionUtils';
 import CONST from '@src/CONST';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
@@ -2818,6 +2824,47 @@ describe('getSecondaryTransactionThreadActions', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
 
+    it('does not include the SPLIT option for processing report with instant submit, submit-and-close, and payments disabled', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            policyID: POLICY_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        } as unknown as Report;
+
+        const transaction = {
+            transactionID: 'TRANSACTION_ID',
+            status: CONST.TRANSACTION.STATUS.POSTED,
+            amount: 10,
+            merchant: 'Merchant',
+            date: '2025-01-01',
+        } as unknown as Transaction;
+
+        const policy = {
+            id: POLICY_ID,
+            type: CONST.POLICY.TYPE.TEAM,
+            isPolicyExpenseChatEnabled: true,
+            autoReporting: true,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+            employeeList: {
+                [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER},
+                [ADMIN_EMAIL]: {email: ADMIN_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
+            },
+            role: CONST.POLICY.ROLE.ADMIN,
+        } as unknown as Policy;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, EMPLOYEE_ACCOUNT_ID, report, transaction, actionR14932, {} as Transaction, policy);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
+    });
+
     describe('isMergeAction', () => {
         beforeEach(() => {
             jest.clearAllMocks();
@@ -3389,6 +3436,157 @@ describe('getSecondaryTransactionThreadActions', () => {
 
                 expect(result).toBe(false);
             });
+        });
+    });
+
+    describe('isChangeWorkspaceAction', () => {
+        // Helper functions
+        const createReport = (overrides = {}) =>
+            ({
+                reportID: String(REPORT_ID),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+                policyID: POLICY_ID,
+                ...overrides,
+            }) as Report;
+
+        const createPolicy = (id: string) =>
+            ({
+                id,
+                type: CONST.POLICY.TYPE.TEAM,
+            }) as Policy;
+
+        const createPolicies = (...policyIds: string[]) =>
+            policyIds.reduce(
+                (acc, id) => {
+                    acc[`${ONYXKEYS.COLLECTION.POLICY}${id}`] = createPolicy(id);
+                    return acc;
+                },
+                {} as Record<string, Policy>,
+            );
+
+        type MockFunction = ((...args: unknown[]) => unknown) | boolean;
+        type MockConfig = Partial<{
+            isIOUReport: boolean;
+            doesReportContainRequestsFromMultipleUsers: boolean;
+            isCurrentUserSubmitter: boolean;
+            isReportManager: boolean;
+            isWorkspaceEligibleForReportChange: MockFunction;
+            canEditReportPolicy: boolean;
+            isExported: boolean;
+        }>;
+
+        const setupMocks = (mocks: MockConfig = {}) => {
+            const defaults = {
+                isIOUReport: false,
+                doesReportContainRequestsFromMultipleUsers: false,
+                isCurrentUserSubmitter: false,
+                isReportManager: false,
+                isWorkspaceEligibleForReportChange: true,
+                canEditReportPolicy: true,
+                isExported: false,
+            };
+
+            for (const [method, value] of Object.entries({...defaults, ...mocks})) {
+                if (typeof value === 'function') {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
+                    jest.spyOn(ReportUtils, method as keyof typeof ReportUtils).mockImplementation(value as any);
+                } else {
+                    jest.spyOn(ReportUtils, method as keyof typeof ReportUtils).mockReturnValue(value);
+                }
+            }
+        };
+
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
+
+        it('should return false when IOU report contains requests from multiple users', () => {
+            setupMocks({isIOUReport: true, doesReportContainRequestsFromMultipleUsers: true});
+            const report = createReport({type: CONST.REPORT.TYPE.IOU});
+            const policies = createPolicies(POLICY_ID);
+
+            expect(isChangeWorkspaceAction(report, policies)).toBe(false);
+        });
+
+        it('should return false when IOU report and user is neither submitter nor manager', () => {
+            setupMocks({isIOUReport: true});
+            const report = createReport({type: CONST.REPORT.TYPE.IOU});
+            const policies = createPolicies(POLICY_ID);
+
+            expect(isChangeWorkspaceAction(report, policies)).toBe(false);
+        });
+
+        it('should return false when there are no available policies', () => {
+            setupMocks({isWorkspaceEligibleForReportChange: false});
+            const report = createReport();
+            const policies = createPolicies(POLICY_ID);
+
+            expect(isChangeWorkspaceAction(report, policies)).toBe(false);
+        });
+
+        it('should return false when only one available policy and it is the same as current report policy', () => {
+            setupMocks();
+            const report = createReport({policyID: POLICY_ID});
+            const policies = createPolicies(POLICY_ID);
+
+            expect(isChangeWorkspaceAction(report, policies)).toBe(false);
+        });
+
+        it('should return true when only one available policy but report has no policy', () => {
+            setupMocks();
+            const report = createReport({policyID: undefined});
+            const policies = createPolicies(POLICY_ID);
+
+            expect(isChangeWorkspaceAction(report, policies)).toBe(true);
+        });
+
+        it('should return true when only one available policy and it is different from current report policy', () => {
+            setupMocks({isWorkspaceEligibleForReportChange: ((_, policy: Policy) => policy?.id === POLICY_ID) as MockFunction});
+            const report = createReport({policyID: OLD_POLICY_ID});
+            const policies = createPolicies(POLICY_ID, OLD_POLICY_ID);
+
+            expect(isChangeWorkspaceAction(report, policies)).toBe(true);
+        });
+
+        it('should return false when cannot edit report policy', () => {
+            setupMocks({canEditReportPolicy: false});
+            const report = createReport({policyID: OLD_POLICY_ID});
+            const policies = createPolicies(POLICY_ID, OLD_POLICY_ID);
+
+            expect(isChangeWorkspaceAction(report, policies)).toBe(false);
+        });
+
+        it('should return false when report is exported', () => {
+            setupMocks({isExported: true});
+            const report = createReport({policyID: OLD_POLICY_ID});
+            const policies = createPolicies(POLICY_ID, OLD_POLICY_ID);
+
+            expect(isChangeWorkspaceAction(report, policies, [])).toBe(false);
+        });
+
+        it('should return true when multiple available policies exist', () => {
+            setupMocks();
+            const report = createReport({policyID: OLD_POLICY_ID});
+            const policies = createPolicies(POLICY_ID, OLD_POLICY_ID, 'another_policy');
+
+            expect(isChangeWorkspaceAction(report, policies)).toBe(true);
+        });
+
+        it('should return true when IOU report with single user and user is submitter', () => {
+            setupMocks({isIOUReport: true, isCurrentUserSubmitter: true});
+            const report = createReport({type: CONST.REPORT.TYPE.IOU, policyID: OLD_POLICY_ID});
+            const policies = createPolicies(POLICY_ID, OLD_POLICY_ID);
+
+            expect(isChangeWorkspaceAction(report, policies)).toBe(true);
+        });
+
+        it('should return true when IOU report with single user and user is manager', () => {
+            setupMocks({isIOUReport: true, isReportManager: true});
+            const report = createReport({type: CONST.REPORT.TYPE.IOU, policyID: OLD_POLICY_ID});
+            const policies = createPolicies(POLICY_ID, OLD_POLICY_ID);
+
+            expect(isChangeWorkspaceAction(report, policies)).toBe(true);
         });
     });
 });

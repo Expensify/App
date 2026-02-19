@@ -1,25 +1,27 @@
 import {useFocusEffect} from '@react-navigation/native';
-import reportsSelector from '@selectors/Attributes';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useReportAttributes from '@hooks/useReportAttributes';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isMovingTransactionFromTrackExpense, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
+import {calculateDefaultReimbursable, isMovingTransactionFromTrackExpense, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getPolicyExpenseChat, getReportOrDraftReport, getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from '@libs/ReportUtils';
@@ -29,17 +31,15 @@ import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
 import {
     getMoneyRequestParticipantsFromReport,
     requestMoney,
-    resetSplitShares,
-    setDraftSplitTransaction,
     setMoneyRequestAmount,
     setMoneyRequestParticipantsFromReport,
     setMoneyRequestTaxAmount,
     setMoneyRequestTaxRate,
-    setSplitShares,
     trackExpense,
     updateMoneyRequestAmountAndCurrency,
 } from '@userActions/IOU';
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
+import {resetSplitShares, setDraftSplitTransaction, setSplitShares} from '@userActions/IOU/Split';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -76,6 +76,7 @@ function IOURequestStepAmount({
     shouldKeepUserInput = false,
 }: IOURequestStepAmountProps) {
     const {translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
@@ -87,6 +88,7 @@ function IOURequestStepAmount({
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
     const policyID = isTrackExpense ? policyForMovingExpensesID : report?.policyID;
 
+    const selfDMReport = useSelfDMReport();
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
@@ -101,10 +103,11 @@ function IOURequestStepAmount({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: hasSeenTourSelector});
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionID ? [transactionID] : []);
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
+    const reportAttributesDerived = useReportAttributes();
     const privateIsArchivedMap = usePrivateIsArchivedMap();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
@@ -118,6 +121,7 @@ function IOURequestStepAmount({
     const {amount: transactionAmount} = getTransactionDetails(currentTransaction, undefined, undefined, allowNegative, disableOppositeConversion) ?? {amount: 0};
     const {currency: originalCurrency} = getTransactionDetails(isEditing && !isEmptyObject(draftTransaction) ? draftTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
     const [selectedCurrency, setSelectedCurrency] = useState(originalCurrency);
+    const decimals = getCurrencyDecimals(selectedCurrency || CONST.CURRENCY.USD);
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
@@ -196,7 +200,7 @@ function IOURequestStepAmount({
             if (taxCode) {
                 setMoneyRequestTaxRate(transactionID, taxCode);
                 const taxPercentage = getTaxValue(policy, transaction, taxCode) ?? '';
-                const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, amountInSmallestCurrencyUnits, selectedCurrency || CONST.CURRENCY.USD));
+                const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, amountInSmallestCurrencyUnits, decimals));
                 setMoneyRequestTaxAmount(transactionID, taxAmount);
             }
         }
@@ -224,6 +228,14 @@ function IOURequestStepAmount({
             const backendAmount = convertToBackendAmount(Number.parseFloat(amount));
 
             if (shouldSkipConfirmation) {
+                const participant = participants.at(0);
+                const defaultReimbursable = calculateDefaultReimbursable({
+                    iouType,
+                    policy,
+                    policyForMovingExpenses: policy,
+                    participant,
+                    transactionReportID: report?.reportID,
+                });
                 if (iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.SEND) {
                     if (paymentMethod && paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
                         sendMoneyWithWallet(report, quickAction, backendAmount, selectedCurrency, '', currentUserAccountIDParam, participants.at(0) ?? {});
@@ -235,6 +247,7 @@ function IOURequestStepAmount({
                 if (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.REQUEST) {
                     requestMoney({
                         report,
+                        betas,
                         participantParams: {
                             participant: participants.at(0) ?? {},
                             payeeEmail: currentUserEmailParam,
@@ -246,6 +259,7 @@ function IOURequestStepAmount({
                             created: transaction?.created ?? '',
                             merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                             attendees: transaction?.comment?.attendees,
+                            reimbursable: defaultReimbursable,
                         },
                         backToReport,
                         shouldGenerateTransactionThreadReport,
@@ -256,6 +270,7 @@ function IOURequestStepAmount({
                         quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                         isSelfTourViewed,
+                        personalDetails,
                     });
                     return;
                 }
@@ -273,6 +288,7 @@ function IOURequestStepAmount({
                             currency: selectedCurrency ?? CONST.CURRENCY.USD,
                             created: transaction?.created,
                             merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                            reimbursable: defaultReimbursable,
                         },
                         isASAPSubmitBetaEnabled,
                         currentUserAccountIDParam,
@@ -281,6 +297,7 @@ function IOURequestStepAmount({
                         activePolicyID,
                         quickAction,
                         recentWaypoints,
+                        betas,
                     });
                     return;
                 }
@@ -298,15 +315,16 @@ function IOURequestStepAmount({
         // Starting from global + menu means no participant context exists yet,
         // so we need to handle participant selection based on available workspace settings
         if (shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy)) {
-            const activePolicyExpenseChat = getPolicyExpenseChat(currentUserAccountIDParam, defaultExpensePolicy?.id);
             const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
-            const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
+            const targetReport = shouldAutoReport ? getPolicyExpenseChat(currentUserAccountIDParam, defaultExpensePolicy?.id) : selfDMReport;
+            const transactionReportID = isSelfDM(targetReport) ? CONST.REPORT.UNREPORTED_REPORT_ID : targetReport?.reportID;
+            const iouTypeTrackOrSubmit = transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
             const isReturningFromConfirmationPage = !!transaction?.participants?.length;
 
             const resetToDefaultWorkspace = () => {
                 setTransactionReport(transactionID, {reportID: transactionReportID}, true);
-                setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat, currentUserPersonalDetails.accountID).then(() => {
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, activePolicyExpenseChat?.reportID));
+                setMoneyRequestParticipantsFromReport(transactionID, targetReport, currentUserPersonalDetails.accountID).then(() => {
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouTypeTrackOrSubmit, transactionID, targetReport?.reportID));
                 });
             };
 
@@ -323,9 +341,9 @@ function IOURequestStepAmount({
 
                 // Preserve user's participant selection to avoid forcing them back to default workspace.
                 const iouReportID = transaction?.reportID;
-                const selectedReport = iouReportID ? getReportOrDraftReport(iouReportID) : null;
+                const selectedReport = iouReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? selfDMReport : getReportOrDraftReport(iouReportID);
                 const navigationIOUType = isSelfDM(selectedReport) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
-                const chatReportID = selectedReport?.chatReportID ?? iouReportID;
+                const chatReportID = selectedReport?.chatReportID ?? selectedReport?.reportID;
 
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
                     Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, navigationIOUType, transactionID, chatReportID));
@@ -365,7 +383,7 @@ function IOURequestStepAmount({
         const defaultTaxCode = getDefaultTaxCode(policy, currentTransaction, selectedCurrency) ?? '';
         const taxCode = (selectedCurrency !== transactionCurrency ? defaultTaxCode : transactionTaxCode) ?? defaultTaxCode;
         const taxPercentage = getTaxValue(policy, currentTransaction, taxCode) ?? '';
-        const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, newAmount, selectedCurrency ?? CONST.CURRENCY.USD));
+        const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, newAmount, decimals));
 
         if (isSplitBill) {
             setDraftSplitTransaction(transactionID, splitDraftTransaction, {amount: newAmount, currency: selectedCurrency, taxCode, taxAmount});

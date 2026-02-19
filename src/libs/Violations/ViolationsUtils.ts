@@ -36,6 +36,10 @@ function filterReceiptViolations(violations: TransactionViolation[]): Transactio
     return violations;
 }
 
+function isMaxExpenseAmountRuleEnabled(maxAmount: number | undefined) {
+    return typeof maxAmount === 'number' && maxAmount !== CONST.DISABLED_MAX_EXPENSE_VALUE;
+}
+
 /**
  * Calculates tag out of policy and missing tag violations for the given transaction
  */
@@ -294,7 +298,7 @@ const ViolationsUtils = {
     ): OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> {
         const isScanning = TransactionUtils.isScanning(updatedTransaction);
         const isScanRequest = TransactionUtils.isScanRequest(updatedTransaction);
-        const isPartialTransaction = TransactionUtils.isPartial(updatedTransaction);
+        const isPartialTransaction = TransactionUtils.isPartialTransaction(updatedTransaction);
         if (isPartialTransaction && isScanning) {
             return {
                 onyxMethod: Onyx.METHOD.SET,
@@ -314,7 +318,9 @@ const ViolationsUtils = {
         }
 
         // Only show SmartScan failed when scan failed AND the user hasn't filled required fields yet
-        const hasUserStartedFixingSmartscan = !TransactionUtils.isAmountMissing(updatedTransaction) || !TransactionUtils.isMerchantMissing(updatedTransaction);
+        // Note: amount === 0 is a placeholder value for scanning transactions, not a user-entered value
+        const hasUserStartedFixingSmartscan =
+            (!TransactionUtils.isAmountMissing(updatedTransaction) && updatedTransaction.amount !== 0) || !TransactionUtils.isMerchantMissing(updatedTransaction);
         const shouldShowSmartScanFailedError =
             isScanRequest &&
             updatedTransaction.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED &&
@@ -420,6 +426,7 @@ const ViolationsUtils = {
             !isInvoiceTransaction &&
             typeof categoryMaxAmountNoReceipt !== 'number' &&
             typeof maxAmountNoReceipt === 'number' &&
+            isMaxExpenseAmountRuleEnabled(maxAmountNoReceipt) &&
             expenseAmount > maxAmountNoReceipt &&
             !TransactionUtils.hasReceipt(updatedTransaction) &&
             isControlPolicy;
@@ -427,6 +434,7 @@ const ViolationsUtils = {
             canCalculateAmountViolations &&
             !isInvoiceTransaction &&
             typeof categoryMaxAmountNoReceipt === 'number' &&
+            isMaxExpenseAmountRuleEnabled(categoryMaxAmountNoReceipt) &&
             expenseAmount > categoryMaxAmountNoReceipt &&
             !TransactionUtils.hasReceipt(updatedTransaction) &&
             isControlPolicy;
@@ -438,6 +446,7 @@ const ViolationsUtils = {
             isEligibleForItemizedReceiptViolation &&
             typeof categoryMaxAmountNoItemizedReceipt !== 'number' &&
             typeof maxAmountNoItemizedReceipt === 'number' &&
+            isMaxExpenseAmountRuleEnabled(maxAmountNoItemizedReceipt) &&
             expenseAmount > maxAmountNoItemizedReceipt;
 
         // Check for itemized receipt requirement - category level override
@@ -451,6 +460,7 @@ const ViolationsUtils = {
             !isInvoiceTransaction &&
             typeof categoryOverLimit !== 'number' &&
             typeof overLimitAmount === 'number' &&
+            isMaxExpenseAmountRuleEnabled(overLimitAmount) &&
             expenseAmount > overLimitAmount &&
             isControlPolicy;
         const shouldCategoryShowOverLimitViolation =

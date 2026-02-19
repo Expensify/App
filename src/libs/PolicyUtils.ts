@@ -8,7 +8,19 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
-import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, Report, TaxRate, Transaction, TravelSettings} from '@src/types/onyx';
+import type {
+    OnyxInputOrEntry,
+    PersonalDetailsList,
+    Policy,
+    PolicyCategories,
+    PolicyEmployeeList,
+    PolicyTagLists,
+    PolicyTags,
+    Report,
+    TaxRate,
+    Transaction,
+    TravelSettings,
+} from '@src/types/onyx';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
     ConnectionLastSync,
@@ -67,6 +79,13 @@ Onyx.connect({
 });
 
 /**
+ * Returns true if the policy has no fieldList or its fieldList is empty.
+ */
+function isPolicyFieldListEmpty(policy: OnyxEntry<Policy>): boolean {
+    return !policy?.fieldList || Object.keys(policy.fieldList).length === 0;
+}
+
+/**
  * Filter out the active policies, which will exclude policies with pending deletion
  * and policies the current user doesn't belong to.
  * These are policies that we can use to create reports with in NewDot.
@@ -114,7 +133,8 @@ function getActivePoliciesWithExpenseChatAndTimeEnabled(policies: OnyxCollection
 /**
  * Checks if the current user is an admin of the policy.
  */
-const isPolicyAdmin = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string): boolean => getPolicyRole(policy, currentUserLogin) === CONST.POLICY.ROLE.ADMIN;
+const isPolicyAdmin = (policy: OnyxInputOrEntry<Policy>, login?: string, shouldCheckGlobalPolicyRole = true): boolean =>
+    getPolicyRole(policy, login, shouldCheckGlobalPolicyRole) === CONST.POLICY.ROLE.ADMIN;
 
 /**
  * Checks if we have any errors stored within the policy?.employeeList. Determines whether we should show a red brick road error or not.
@@ -245,7 +265,7 @@ function getEligibleBankAccountShareRecipients(policies: OnyxCollection<Policy> 
                 formatMemberForList({
                     text: personalDetails.displayName,
                     alternateText: personalDetails.login,
-                    keyForList: personalDetails.login,
+                    keyForList: personalDetails.login ?? String(personalDetails.accountID),
                     accountID: personalDetails.accountID,
                     login: personalDetails.login,
                     pendingAction: personalDetails.pendingAction,
@@ -353,8 +373,8 @@ function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, isConnecti
     return undefined;
 }
 
-function getPolicyRole(policy: OnyxInputOrEntry<Policy>, currentUserLogin: string | undefined): string | undefined {
-    if (policy?.role) {
+function getPolicyRole(policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string, shouldCheckGlobalPolicyRole = true): string | undefined {
+    if (shouldCheckGlobalPolicyRole && policy?.role) {
         return policy.role;
     }
 
@@ -433,11 +453,6 @@ function isExpensifyTeam(email: string | undefined): boolean {
 }
 
 /**
- * Checks if the user with login is an admin of the policy.
- */
-const isUserPolicyAdmin = (policy: OnyxInputOrEntry<Policy>, login?: string) => !!(policy && policy.employeeList && login && policy.employeeList[login]?.role === CONST.POLICY.ROLE.ADMIN);
-
-/**
  * Checks if the current user is of the role "user" on the policy.
  */
 const isPolicyUser = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string): boolean => getPolicyRole(policy, currentUserLogin) === CONST.POLICY.ROLE.USER;
@@ -506,6 +521,89 @@ function getIneligibleInvitees(employeeList?: PolicyEmployeeList): string[] {
     }
 
     return memberEmailsToExclude;
+}
+
+/**
+ * Get Guide and Account Manager information including their emails/logins and exclusion record.
+ * Used for filtering Guide/AM from contact lists while allowing manual entry.
+ *
+ * @param policy - The policy to get the assigned guide from
+ * @param accountManagerAccountID - The account manager's account ID from the account object (string from ONYXKEYS.ACCOUNT)
+ * @param personalDetails - Personal details collection to look up account manager login
+ * @returns Object containing extracted emails/logins and exclusions record
+ */
+function getGuideAndAccountManagerInfo(
+    policy: OnyxEntry<Policy>,
+    accountManagerAccountID: string | undefined,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+): {
+    assignedGuideEmail: string | undefined;
+    accountManagerLogin: string | undefined;
+    exclusions: Record<string, boolean>;
+} {
+    const assignedGuideEmail = policy?.assignedGuide?.email?.toLowerCase();
+    const accountManagerLogin = accountManagerAccountID ? personalDetails?.[Number(accountManagerAccountID)]?.login?.toLowerCase() : undefined;
+
+    const exclusions: Record<string, boolean> = {};
+    if (assignedGuideEmail) {
+        exclusions[assignedGuideEmail] = true;
+    }
+    if (accountManagerLogin) {
+        exclusions[accountManagerLogin] = true;
+    }
+
+    return {
+        assignedGuideEmail,
+        accountManagerLogin,
+        exclusions,
+    };
+}
+
+/**
+ * Get soft exclusions (Guide/Account Manager) that should be hidden from auto-suggestions
+ * but can still be manually entered by the user.
+ *
+ * @param policy - The policy to get the assigned guide from
+ * @param accountManagerAccountID - The account manager's account ID from the account object (string from ONYXKEYS.ACCOUNT)
+ * @param personalDetails - Personal details collection to look up account manager login
+ * @returns Record mapping lowercase emails to true for Guide and Account Manager
+ */
+function getSoftExclusionsForGuideAndAccountManager(
+    policy: OnyxEntry<Policy>,
+    accountManagerAccountID: string | undefined,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+): Record<string, boolean> {
+    return getGuideAndAccountManagerInfo(policy, accountManagerAccountID, personalDetails).exclusions;
+}
+
+/**
+ * Filter out Guide and Account Manager from a list of items.
+ * Used for filtering local data (e.g., policy.employeeList) that isn't filtered at the data layer.
+ *
+ * @param items - Array of items to filter (must have login or alternateText properties)
+ * @param assignedGuideEmail - The assigned guide's email (should be lowercase)
+ * @param accountManagerLogin - The account manager's login (should be lowercase)
+ * @returns Filtered array with Guide and Account Manager removed
+ */
+function filterGuideAndAccountManager<T extends {login?: string | null; alternateText?: string | null}>(
+    items: T[],
+    assignedGuideEmail: string | undefined,
+    accountManagerLogin: string | undefined,
+): T[] {
+    return items.filter((item) => {
+        const itemLogin = item.login?.toLowerCase();
+        const itemAltText = item.alternateText?.toLowerCase();
+
+        if (assignedGuideEmail && (itemLogin === assignedGuideEmail || itemAltText === assignedGuideEmail)) {
+            return false;
+        }
+
+        if (accountManagerLogin && (itemLogin === accountManagerLogin || itemAltText === accountManagerLogin)) {
+            return false;
+        }
+
+        return true;
+    });
 }
 
 function getSortedTagKeys(policyTagList: OnyxEntry<PolicyTagLists>): Array<keyof PolicyTagLists> {
@@ -1020,6 +1118,13 @@ function getActiveEmployeeWorkspaces(policies: OnyxCollection<Policy> | null, cu
 }
 
 /**
+ * Checks whether the current user has a policy with admin access
+ */
+function hasActiveAdminWorkspaces(currentUserLogin: string | undefined, policies?: OnyxCollection<Policy>) {
+    return getActiveAdminWorkspaces(policies ?? allPolicies, currentUserLogin).length > 0;
+}
+
+/**
  * Given a list of admin policies for the current user, checks whether any of them
  * has a Xero accounting software integration configured.
  */
@@ -1028,10 +1133,7 @@ function hasPolicyWithXeroConnection(adminPolicies: Policy[] | undefined) {
 }
 
 /** Whether the user can send invoice from the workspace */
-function canSendInvoiceFromWorkspace(policyID: string | undefined): boolean {
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(policyID);
+function canSendInvoiceFromWorkspace(policy: OnyxEntry<Policy>): boolean {
     return policy?.areInvoicesEnabled ?? false;
 }
 
@@ -1043,7 +1145,7 @@ function canSubmitPerDiemExpenseFromWorkspace(policy: OnyxEntry<Policy>): boolea
 
 /** Whether the user can send invoice */
 function canSendInvoice(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): boolean {
-    return getActiveAdminWorkspaces(policies, currentUserLogin).some((policy) => canSendInvoiceFromWorkspace(policy.id));
+    return getActiveAdminWorkspaces(policies, currentUserLogin).some((policy) => canSendInvoiceFromWorkspace(policy));
 }
 
 function hasDependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagLists>) {
@@ -1542,18 +1644,37 @@ function isPolicyAccessible(policy: OnyxEntry<Policy>, currentUserLogin: string)
 }
 
 function areAllGroupPoliciesExpenseChatDisabled(policies: OnyxCollection<Policy> | null) {
-    const groupPolicies = Object.values(policies ?? {}).filter(isPaidGroupPolicy);
-    if (groupPolicies.length === 0) {
+    let foundGroupPolicy = false;
+    for (const policy of Object.values(policies ?? {})) {
+        if (!policy || !isPaidGroupPolicy(policy)) {
+            continue;
+        }
+
+        if (policy.isJoinRequestPending || !shouldShowPolicy(policy, false, undefined)) {
+            continue;
+        }
+
+        foundGroupPolicy = true;
+
+        if (policy.isPolicyExpenseChatEnabled) {
+            return false;
+        }
+    }
+
+    if (!foundGroupPolicy) {
         return false;
     }
-    return !groupPolicies.some((policy) => !!policy?.isPolicyExpenseChatEnabled);
+
+    return true;
 }
 
 function getGroupPaidPoliciesWithExpenseChatEnabled(policies: OnyxCollection<Policy> | null) {
     if (isEmptyObject(policies)) {
         return CONST.EMPTY_ARRAY;
     }
-    return Object.values(policies).filter((policy) => isPaidGroupPolicy(policy) && policy?.isPolicyExpenseChatEnabled);
+    return Object.values(policies).filter(
+        (policy) => policy?.isPolicyExpenseChatEnabled && isPaidGroupPolicy(policy) && !policy?.isJoinRequestPending && shouldShowPolicy(policy, false, undefined),
+    );
 }
 
 /**
@@ -1700,13 +1821,11 @@ function getMostFrequentEmailDomain(acceptedDomains: string[], policy?: Policy) 
     return mostFrequent.domain;
 }
 
-const getDescriptionForPolicyDomainCard = (domainName: string, policies?: OnyxCollection<Policy>): string => {
+const getDescriptionForPolicyDomainCard = (domainName: string, policies: OnyxCollection<Policy>): string => {
     // A domain name containing a policyID indicates that this is a workspace feed
     const policyID = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1];
     if (policyID) {
-        // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const policy = getPolicy(policyID.toUpperCase(), policies);
+        const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID.toUpperCase()}`];
         return policy?.name ?? domainName;
     }
     return domainName;
@@ -1775,12 +1894,31 @@ function getConnectionExporters(policy: OnyxInputOrEntry<Policy>): Array<string 
     ];
 }
 
+/**
+ * Returns if the policy has the Time Tracking feature enabled.
+ */
 function isTimeTrackingEnabled(policy: OnyxEntry<Policy>): boolean {
     return !!policy?.units?.time?.enabled;
 }
 
+/**
+ * Returns the policy's default hourly rate for the Time Tracking feature.
+ */
 function getDefaultTimeTrackingRate(policy: Partial<OnyxEntry<Policy>>): number | undefined {
-    return policy?.units?.time?.rate ? convertToBackendAmount(policy.units.time.rate) : undefined;
+    return policy?.units?.time?.rate !== undefined ? convertToBackendAmount(policy.units.time.rate) : undefined;
+}
+
+function isPolicyTaxEnabled(policy: OnyxEntry<Policy>): boolean {
+    const isSyncTaxEnabled =
+        !!policy?.connections?.quickbooksOnline?.config?.syncTax ||
+        !!policy?.connections?.xero?.config?.importTaxRates ||
+        !!policy?.connections?.netsuite?.options?.config?.syncOptions?.syncTax;
+
+    return (policy?.tax?.trackingEnabled ?? false) || isSyncTaxEnabled;
+}
+
+function sortPoliciesByName(policies: Policy[], localeCompare: (a: string, b: string) => number): Policy[] {
+    return policies.sort((a, b) => localeCompare(a.name || '', b.name || ''));
 }
 
 export {
@@ -1796,6 +1934,9 @@ export {
     getCountOfEnabledTagsOfList,
     getIneligibleInvitees,
     getMemberAccountIDsForWorkspace,
+    getGuideAndAccountManagerInfo,
+    getSoftExclusionsForGuideAndAccountManager,
+    filterGuideAndAccountManager,
     getNumericValue,
     isMultiLevelTags,
     // This will be fixed as part of https://github.com/Expensify/App/issues/66397
@@ -1834,13 +1975,13 @@ export {
     getCorrectedAutoReportingFrequency,
     isPaidGroupPolicy,
     isPendingDeletePolicy,
-    isUserPolicyAdmin,
     isPolicyAdmin,
     isPolicyUser,
     isPolicyAuditor,
     hasEligibleActiveAdminFromWorkspaces,
     isPolicyEmployee,
     isPolicyFeatureEnabled,
+    isPolicyFieldListEmpty,
     getUberConnectionErrorDirectlyFromPolicy,
     isPolicyOwner,
     isPolicyMember,
@@ -1850,6 +1991,7 @@ export {
     isTaxTrackingEnabled,
     shouldShowPolicy,
     getActiveAdminWorkspaces,
+    hasActiveAdminWorkspaces,
     getOwnedPaidPolicies,
     canSendInvoiceFromWorkspace,
     canSubmitPerDiemExpenseFromWorkspace,
@@ -1953,6 +2095,8 @@ export {
     isTimeTrackingEnabled,
     getDefaultTimeTrackingRate,
     getActivePoliciesWithExpenseChatAndTimeEnabled,
+    isPolicyTaxEnabled,
+    sortPoliciesByName,
 };
 
 export type {MemberEmailsToAccountIDs};

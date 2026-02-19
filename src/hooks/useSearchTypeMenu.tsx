@@ -19,6 +19,7 @@ import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import useDeleteSavedSearch from './useDeleteSavedSearch';
+import useFeedKeysWithAssignedCards from './useFeedKeysWithAssignedCards';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
@@ -45,12 +46,13 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const personalDetails = usePersonalDetails();
     const [reports = getEmptyObject<NonNullable<OnyxCollection<Report>>>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const taxRates = getAllTaxRates(allPolicies);
-    const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true});
+    const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Basket',
         'Bookmark',
+        'CalendarSolid',
         'Checkmark',
         'Pencil',
         'Receipt',
@@ -67,6 +69,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
 
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
+    const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const flattenedMenuItems = useMemo(() => typeMenuSections.flatMap((section) => section.menuItems), [typeMenuSections]);
 
     useSuggestedSearchDefaultNavigation({
@@ -109,7 +112,19 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
 
             if (savedSearchTitle === item.query) {
                 const jsonQuery = buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
-                savedSearchTitle = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, nonPersonalAndWorkspaceCards, allFeeds, allPolicies, currentUserAccountID);
+                savedSearchTitle = buildUserReadableQueryString({
+                    queryJSON: jsonQuery,
+                    PersonalDetails: personalDetails,
+                    reports,
+                    taxRates,
+                    cardList: personalAndWorkspaceCards,
+                    cardFeeds: allFeeds,
+                    policies: allPolicies,
+                    currentUserAccountID,
+                    autoCompleteWithSpace: false,
+                    translate,
+                    feedKeysWithCards,
+                });
             }
 
             const isItemFocused = Number(key) === hash;
@@ -148,7 +163,21 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
             savedSearchesMenuItems: menuItems,
             isSavedSearchActive: savedSearchFocused,
         };
-    }, [savedSearches, hash, getOverflowMenu, expensifyIcons.Bookmark, personalDetails, reports, taxRates, nonPersonalAndWorkspaceCards, allFeeds, allPolicies, currentUserAccountID]);
+    }, [
+        savedSearches,
+        hash,
+        getOverflowMenu,
+        expensifyIcons.Bookmark,
+        personalDetails,
+        reports,
+        taxRates,
+        personalAndWorkspaceCards,
+        allFeeds,
+        feedKeysWithCards,
+        allPolicies,
+        currentUserAccountID,
+        translate,
+    ]);
 
     const activeItemIndex = useMemo(() => {
         // If we have a suggested search, then none of the menu items are active

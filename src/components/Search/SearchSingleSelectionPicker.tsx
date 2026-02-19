@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
-import SelectionList from '@components/SelectionList/SelectionListWithSections';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
@@ -119,7 +119,7 @@ function SearchSingleSelectionPicker({
     };
 
     return (
-        <SelectionList
+        <SelectionListWithSections
             sections={sections}
             onSelectRow={onSelectItem}
             ListItem={SingleSelectListItem}

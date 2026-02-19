@@ -54,7 +54,7 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM> => {
-            const errors = getFieldRequiredErrors(values, [INPUT_IDS.COMPANY_NAME, INPUT_IDS.COMPANY_WEBSITE]);
+            const errors = getFieldRequiredErrors(values, [INPUT_IDS.COMPANY_NAME, INPUT_IDS.COMPANY_WEBSITE], translate);
             if (values.companyWebsite) {
                 const companyWebsite = Str.sanitizeURL(values.companyWebsite, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
                 if (!isValidWebsite(companyWebsite)) {
@@ -89,6 +89,7 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
             companyWebsite,
             policyRecentlyUsedCategories,
             policyRecentlyUsedTags,
+            isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
         });
     };
 
@@ -105,7 +106,7 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM}
                 onSubmit={submit}
                 validate={validate}
-                submitButtonText={translate('iou.sendInvoice', {amount: formattedAmount})}
+                submitButtonText={translate('iou.sendInvoice', formattedAmount)}
                 enabledWhenOffline
             >
                 <InputWrapper

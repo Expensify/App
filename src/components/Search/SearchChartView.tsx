@@ -1,11 +1,10 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 import type {
     TransactionCardGroupListItemType,
     TransactionCategoryGroupListItemType,
-    TransactionGroupListItemType,
     TransactionMemberGroupListItemType,
     TransactionMerchantGroupListItemType,
     TransactionMonthGroupListItemType,
@@ -16,30 +15,19 @@ import type {
     TransactionYearGroupListItemType,
 } from '@components/SelectionListWithSections/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCurrencyDisplayInfoForCharts} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import {formatToParts} from '@libs/NumberFormatUtils';
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import useLocalize from '@hooks/useLocalize';
 import SearchBarChart from './SearchBarChart';
-import type {ChartView, SearchGroupBy, SearchQueryJSON} from './types';
-
-type GroupedItem =
-    | TransactionMemberGroupListItemType
-    | TransactionCardGroupListItemType
-    | TransactionWithdrawalIDGroupListItemType
-    | TransactionCategoryGroupListItemType
-    | TransactionMerchantGroupListItemType
-    | TransactionTagGroupListItemType
-    | TransactionMonthGroupListItemType
-    | TransactionWeekGroupListItemType
-    | TransactionYearGroupListItemType
-    | TransactionQuarterGroupListItemType;
+import SearchLineChart from './SearchLineChart';
+import type {ChartView, GroupedItem, SearchGroupBy, SearchQueryJSON} from './types';
 
 type ChartGroupByConfig = {
     titleIconName: 'Users' | 'CreditCard' | 'Send' | 'Folder' | 'Basket' | 'Tag' | 'Calendar';
@@ -125,76 +113,70 @@ type SearchChartViewProps = {
     /** The current search query JSON */
     queryJSON: SearchQueryJSON;
 
-    /** The view type (bar, etc.) */
-    view: Exclude<ChartView, 'line' | 'pie'>;
+    /** The view type (bar, line, etc.) */
+    view: Exclude<ChartView, 'pie'>;
 
     /** The groupBy parameter */
     groupBy: SearchGroupBy;
 
     /** Grouped transaction data from search results */
-    data: TransactionGroupListItemType[];
+    data: GroupedItem[];
 
     /** Whether data is loading */
     isLoading?: boolean;
 
     /** Scroll handler for hiding the top bar on mobile */
     onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+
+    /** Title to be displayed on the chart */
+    title: string;
 };
 
 /**
  * Map of chart view types to their corresponding chart components.
  */
-const CHART_VIEW_TO_COMPONENT: Record<Exclude<ChartView, 'line' | 'pie'>, typeof SearchBarChart> = {
+const CHART_VIEW_TO_COMPONENT: Record<Exclude<ChartView, 'pie'>, typeof SearchBarChart | typeof SearchLineChart> = {
     [CONST.SEARCH.VIEW.BAR]: SearchBarChart,
+    [CONST.SEARCH.VIEW.LINE]: SearchLineChart,
 };
 
 /**
  * Layer 3 component - dispatches to the appropriate chart type based on view parameter
  * and handles navigation/drill-down logic
  */
-function SearchChartView({queryJSON, view, groupBy, data, isLoading, onScroll}: SearchChartViewProps) {
+function SearchChartView({queryJSON, view, groupBy, data, isLoading, onScroll, title}: SearchChartViewProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {preferredLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const icons = useMemoizedLazyExpensifyIcons(['Users', 'CreditCard', 'Send', 'Folder', 'Basket', 'Tag', 'Calendar'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Users', 'CreditCard', 'Send', 'Folder', 'Basket', 'Tag', 'Calendar']);
     const {titleIconName, getLabel, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
     const titleIcon = icons[titleIconName];
-    const title = translate(`search.chartTitles.${groupBy}`);
     const ChartComponent = CHART_VIEW_TO_COMPONENT[view];
 
-    const handleBarPress = useCallback(
-        (filterQuery: string) => {
-            // Build new query string from current query + filter, then parse it
-            const currentQueryString = buildSearchQueryString(queryJSON);
-            const newQueryJSON = buildSearchQueryJSON(`${currentQueryString} ${filterQuery}`);
+    const handleItemPress = (filterQuery: string) => {
+        const currentQueryString = buildSearchQueryString(queryJSON);
+        const newQueryJSON = buildSearchQueryJSON(`${currentQueryString} ${filterQuery}`);
 
-            if (!newQueryJSON) {
-                Log.alert('[SearchChartView] Failed to build search query JSON from filter query');
-                return;
-            }
+        if (!newQueryJSON) {
+            Log.alert('[SearchChartView] Failed to build search query JSON from filter query');
+            return;
+        }
 
-            // Modify the query object directly: remove groupBy and view to show table
-            newQueryJSON.groupBy = undefined;
-            newQueryJSON.view = CONST.SEARCH.VIEW.TABLE;
+        newQueryJSON.groupBy = undefined;
+        newQueryJSON.view = CONST.SEARCH.VIEW.TABLE;
 
-            // Build the final query string and navigate
-            const newQueryString = buildSearchQueryString(newQueryJSON);
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: newQueryString}));
-        },
-        [queryJSON],
-    );
+        const newQueryString = buildSearchQueryString(newQueryJSON);
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: newQueryString}));
+    };
 
-    // Get currency symbol and position from first data item
-    const {yAxisUnit, yAxisUnitPosition} = useMemo((): {yAxisUnit: string; yAxisUnitPosition: 'left' | 'right'} => {
-        const firstItem = data.at(0) as GroupedItem | undefined;
-        const currency = firstItem?.currency ?? 'USD';
-        const {symbol, position} = getCurrencyDisplayInfoForCharts(currency);
-
-        return {
-            yAxisUnit: symbol,
-            yAxisUnitPosition: position,
-        };
-    }, [data]);
+    const firstItem = data.at(0);
+    const currency = firstItem?.currency ?? 'USD';
+    const parts = formatToParts(preferredLocale, 0, {style: 'currency', currency});
+    const currencyPart = parts.find((p) => p.type === 'currency');
+    const currencyIndex = parts.findIndex((p) => p.type === 'currency');
+    const integerIndex = parts.findIndex((p) => p.type === 'integer');
+    const yAxisUnit = {value: currencyPart?.value ?? currency, fallback: currency};
+    const yAxisUnitPosition = currencyIndex < integerIndex ? 'left' : 'right';
 
     return (
         <Animated.ScrollView
@@ -210,7 +192,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, onScroll}: 
                     titleIcon={titleIcon}
                     getLabel={getLabel}
                     getFilterQuery={getFilterQuery}
-                    onBarPress={handleBarPress}
+                    onItemPress={handleItemPress}
                     isLoading={isLoading}
                     yAxisUnit={yAxisUnit}
                     yAxisUnitPosition={yAxisUnitPosition}
