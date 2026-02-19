@@ -32,6 +32,8 @@ function getQuickActionRequestType(action: QuickActionName | undefined, lastDist
         requestType = lastDistanceExpenseType ?? CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
     } else if (action === CONST.QUICK_ACTIONS.PER_DIEM) {
         requestType = CONST.IOU.REQUEST_TYPE.PER_DIEM;
+    } else if (action === CONST.QUICK_ACTIONS.REQUEST_TIME) {
+        requestType = CONST.IOU.REQUEST_TYPE.TIME;
     }
 
     return requestType;
@@ -69,6 +71,9 @@ function navigateToQuickAction(params: NavigateToQuickActionParams) {
             break;
         case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
             selectOption(() => startDistanceRequest(CONST.IOU.TYPE.TRACK, reportID, requestType, true, undefined, isFromFloatingActionButton), false);
+            break;
+        case CONST.QUICK_ACTIONS.REQUEST_TIME:
+            selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID, requestType, false, undefined, undefined, isFromFloatingActionButton), true);
             break;
         default:
     }

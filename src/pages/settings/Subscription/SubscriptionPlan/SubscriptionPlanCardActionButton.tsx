@@ -136,6 +136,7 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
     const subscriptionType = isAnnual ? translate('subscription.subscriptionSettings.annual') : translate('subscription.details.payPerUse');
     const subscriptionSize = `${privateSubscription?.userCount ?? translate('subscription.subscriptionSettings.none')}`;
     const autoRenew = privateSubscription?.autoRenew ? translate('subscription.subscriptionSettings.on') : translate('subscription.subscriptionSettings.off');
+    const expensifyCode = privateSubscription?.isSecretPromoCode ? '' : (privateSubscription?.expensifyCode ?? '');
 
     return (
         <MenuItemWithTopDescription
@@ -144,7 +145,7 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
             shouldShowRightIcon
             onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS)}
             numberOfLinesTitle={3}
-            title={translate('subscription.subscriptionSettings.summary', {subscriptionType, subscriptionSize, autoRenew, autoIncrease})}
+            title={translate('subscription.subscriptionSettings.summary', {subscriptionType, subscriptionSize, expensifyCode, autoRenew, autoIncrease})}
         />
     );
 }

@@ -2,7 +2,6 @@
  * Type definitions for multifactor authentication biometrics operations.
  */
 import type {ValueOf} from 'type-fest';
-import type {AllMultifactorAuthenticationOutcomeType} from '@components/MultifactorAuthentication/config/types';
 import type {SignedChallenge} from './ED25519/types';
 import type {SECURE_STORE_VALUES} from './SecureStore';
 import type VALUES from './VALUES';
@@ -20,11 +19,6 @@ type AuthTypeInfo = {
     code: MultifactorAuthenticationMethodCode;
     name: AuthTypeName;
     marqetaValue: MarqetaAuthTypeName;
-};
-
-type OutcomePaths = {
-    successOutcome: AllMultifactorAuthenticationOutcomeType;
-    failureOutcome: AllMultifactorAuthenticationOutcomeType;
 };
 
 /**
@@ -93,6 +87,33 @@ type MultifactorKeyStoreOptions<T extends MultifactorAuthenticationKeyType> = T 
 
 type ChallengeType = ValueOf<typeof VALUES.CHALLENGE_TYPE>;
 
+/**
+ * Response type that determines what the MultifactorAuthenticationContext should do
+ * after a scenario callback is executed.
+ */
+type MultifactorAuthenticationCallbackResponse = ValueOf<typeof VALUES.CALLBACK_RESPONSE>;
+
+/**
+ * Input provided to the scenario callback containing information about the final API call.
+ */
+type MultifactorAuthenticationCallbackInput = {
+    /** The HTTP status code of the API response, if applicable */
+    httpStatusCode: number | undefined;
+
+    /** The HTTP status message or a pre-defined reason if the error occurred on the front-end */
+    message?: string;
+
+    /** Object containing the data that is relevant to the Scenario (e.g., {pin: number} for PIN scenarios) */
+    body?: Record<string, unknown>;
+};
+
+/**
+ * Callback function type for multifactor authentication scenarios.
+ * Called after the API call completes (success or failure).
+ * Returns a response that determines whether to show the outcome screen.
+ */
+type MultifactorAuthenticationScenarioCallback = (isSuccessful: boolean, callbackInput: MultifactorAuthenticationCallbackInput) => Promise<MultifactorAuthenticationCallbackResponse>;
+
 export type {
     MultifactorAuthenticationResponseMap,
     MultifactorAuthenticationKeyType,
@@ -105,7 +126,9 @@ export type {
     MultifactorAuthenticationMethodCode,
     ChallengeType,
     MarqetaAuthTypeName,
-    OutcomePaths,
     AuthTypeName,
     AuthTypeInfo,
+    MultifactorAuthenticationCallbackResponse,
+    MultifactorAuthenticationCallbackInput,
+    MultifactorAuthenticationScenarioCallback,
 };

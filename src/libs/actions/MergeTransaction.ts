@@ -367,9 +367,13 @@ function mergeTransactionRequest({
     const isUnreportedSourceTransaction = sourceTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const selfDMReportID = selfDMReport?.reportID;
 
-    const sourceTransactionOptimisticData: OnyxUpdate[] = [];
-    const sourceTransactionSuccessData: OnyxUpdate[] = [];
-    const sourceTransactionFailureData: OnyxUpdate[] = [];
+    const sourceTransactionOptimisticData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>
+    > = [];
+    const sourceTransactionSuccessData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [];
+    const sourceTransactionFailureData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>
+    > = [];
     if (!isUnreportedSourceTransaction || !selfDMReportID) {
         const optimisticSourceTransactionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION> = {
             onyxMethod: Onyx.METHOD.SET,
@@ -382,7 +386,7 @@ function mergeTransactionRequest({
             value: sourceTransaction,
         };
         const transactionsOfSourceReport = getReportTransactions(sourceTransaction.reportID);
-        const optimisticSourceReportData: OnyxUpdate[] =
+        const optimisticSourceReportData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> =
             transactionsOfSourceReport.length === 1
                 ? [
                       {
@@ -394,7 +398,7 @@ function mergeTransactionRequest({
                 : [];
 
         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-        const failureSourceReportData: OnyxUpdate[] =
+        const failureSourceReportData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> =
             transactionsOfSourceReport.length === 1
                 ? [
                       {
@@ -405,7 +409,7 @@ function mergeTransactionRequest({
                   ]
                 : [];
         const iouActionOfSourceTransaction = getIOUActionForReportID(sourceTransaction.reportID, sourceTransaction.transactionID);
-        const optimisticSourceReportActionData: OnyxUpdate[] = iouActionOfSourceTransaction
+        const optimisticSourceReportActionData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = iouActionOfSourceTransaction
             ? [
                   {
                       onyxMethod: Onyx.METHOD.MERGE,
@@ -418,7 +422,7 @@ function mergeTransactionRequest({
                   },
               ]
             : [];
-        const successSourceReportActionData: OnyxUpdate[] = iouActionOfSourceTransaction
+        const successSourceReportActionData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = iouActionOfSourceTransaction
             ? [
                   {
                       onyxMethod: Onyx.METHOD.MERGE,
@@ -432,7 +436,7 @@ function mergeTransactionRequest({
               ]
             : [];
 
-        const failureSourceReportActionData: OnyxUpdate[] = iouActionOfSourceTransaction
+        const failureSourceReportActionData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = iouActionOfSourceTransaction
             ? [
                   {
                       onyxMethod: Onyx.METHOD.MERGE,
@@ -520,20 +524,18 @@ function mergeTransactionRequest({
         },
     );
 
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<UpdateMoneyRequestDataKeys | typeof ONYXKEYS.COLLECTION.MERGE_TRANSACTION>> = [
         ...(onyxTargetTransactionData.optimisticData ?? []),
         optimisticMergeTransactionData,
         ...optimisticTransactionViolations,
         ...sourceTransactionOptimisticData,
     ];
 
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const failureData: OnyxUpdate[] = [...(onyxTargetTransactionData.failureData ?? []), ...failureTransactionViolations, ...sourceTransactionFailureData];
+    const failureData: Array<OnyxUpdate<UpdateMoneyRequestDataKeys>> = [...(onyxTargetTransactionData.failureData ?? []), ...failureTransactionViolations, ...sourceTransactionFailureData];
 
-    const successData: OnyxUpdate[] = [];
+    const successData: Array<OnyxUpdate<UpdateMoneyRequestDataKeys>> = [];
     successData.push(...sourceTransactionSuccessData);
     successData.push(...(onyxTargetTransactionData.successData ?? []));
 

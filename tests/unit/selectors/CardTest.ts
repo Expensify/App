@@ -500,6 +500,116 @@ describe('timeSensitiveCardsSelector', () => {
         expect(result.cardsWithFraud.at(0)?.cardID).toBe(1);
         expect(result.cardsWithFraud.at(0)?.nameValuePairs?.possibleFraud?.triggerAmount).toBe(5663);
     });
+
+    it('excludes fraud cards that have fraud flag but no possibleFraud data (prevents empty Time Sensitive section)', () => {
+        // This is the exact scenario that caused the empty "Time sensitive" block:
+        // card.fraud is set (e.g., 'domain') but possibleFraud is missing from nameValuePairs
+        const cardWithDomainFraudNoPossibleFraud = createRandomExpensifyCard(1, {
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+            fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
+        });
+        const cardWithIndividualFraudNoPossibleFraud = createRandomExpensifyCard(2, {
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+            fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL,
+        });
+
+        const cardList: CardList = {
+            '1': cardWithDomainFraudNoPossibleFraud,
+            '2': cardWithIndividualFraudNoPossibleFraud,
+        };
+
+        const result = timeSensitiveCardsSelector(cardList);
+
+        // Both cards should be excluded because they lack possibleFraud data needed for rendering
+        expect(result.cardsWithFraud).toHaveLength(0);
+    });
+
+    it('excludes fraud cards that have possibleFraud but no fraudAlertReportID', () => {
+        const cardWithFraudNoReportID = createRandomExpensifyCard(1, {
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+            fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
+            possibleFraud: {triggerAmount: 5000, triggerMerchant: 'Test Merchant', currency: 'USD'},
+        });
+
+        const cardList: CardList = {
+            '1': cardWithFraudNoReportID,
+        };
+
+        const result = timeSensitiveCardsSelector(cardList);
+
+        // Card should be excluded because fraudAlertReportID is missing
+        expect(result.cardsWithFraud).toHaveLength(0);
+    });
+
+    it('excludes fraud cards that have possibleFraud with fraudAlertReportID of 0', () => {
+        const cardWithFraudZeroReportID = createRandomExpensifyCard(1, {
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+            fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
+            possibleFraud: {triggerAmount: 5000, triggerMerchant: 'Test Merchant', currency: 'USD', fraudAlertReportID: 0},
+        });
+
+        const cardList: CardList = {
+            '1': cardWithFraudZeroReportID,
+        };
+
+        const result = timeSensitiveCardsSelector(cardList);
+
+        // Card should be excluded because fraudAlertReportID is 0 (falsy)
+        expect(result.cardsWithFraud).toHaveLength(0);
+    });
+
+    it('only includes fraud cards with complete data for rendering when mixed with incomplete ones', () => {
+        // Card with complete fraud data (should be included)
+        const completeCard = createRandomExpensifyCard(1, {
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+            fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
+            possibleFraud: {triggerAmount: 5000, triggerMerchant: 'Store A', currency: 'USD', fraudAlertReportID: 123},
+        });
+
+        // Card with fraud flag but no possibleFraud (should be excluded)
+        const incompleteFraudFlag = createRandomExpensifyCard(2, {
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+            fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL,
+        });
+
+        // Card with possibleFraud but missing fraudAlertReportID (should be excluded)
+        const incompletePossibleFraud = createRandomExpensifyCard(3, {
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+            fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
+            possibleFraud: {triggerAmount: 3000, triggerMerchant: 'Store B', currency: 'USD'},
+        });
+
+        const cardList: CardList = {
+            '1': completeCard,
+            '2': incompleteFraudFlag,
+            '3': incompletePossibleFraud,
+        };
+
+        const result = timeSensitiveCardsSelector(cardList);
+
+        // Only the card with complete data should be included
+        expect(result.cardsWithFraud).toHaveLength(1);
+        expect(result.cardsWithFraud.at(0)?.cardID).toBe(1);
+    });
+
+    it('returns completely empty result when only fraud cards exist but none have sufficient data to render', () => {
+        // This is the scenario that would cause an empty "Time sensitive" section
+        const cardWithFraudFlagOnly = createRandomExpensifyCard(1, {
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+            fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
+        });
+
+        const cardList: CardList = {
+            '1': cardWithFraudFlagOnly,
+        };
+
+        const result = timeSensitiveCardsSelector(cardList);
+
+        // All arrays should be empty, ensuring hasAnyTimeSensitiveContent would be false
+        expect(result.cardsWithFraud).toHaveLength(0);
+        expect(result.cardsNeedingShippingAddress).toHaveLength(0);
+        expect(result.cardsNeedingActivation).toHaveLength(0);
+    });
 });
 
 describe('areAllExpensifyCardsShipped', () => {

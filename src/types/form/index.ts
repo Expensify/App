@@ -68,6 +68,7 @@ export type {WalletAdditionalDetailsForm} from './WalletAdditionalDetailsForm';
 export type {NewChatNameForm} from './NewChatNameForm';
 export type {SageIntacctDimensionForm} from './SageIntacctDimensionsForm';
 export type {SubscriptionSizeForm} from './SubscriptionSizeForm';
+export type {SubscriptionExpensifyCodeForm} from './SubscriptionExpensifyCodeForm';
 export type {WorkspaceReportFieldForm} from './WorkspaceReportFieldForm';
 export type {SageIntactCredentialsForm} from './SageIntactCredentialsForm';
 export type {NetSuiteCustomFieldForm} from './NetSuiteCustomFieldForm';
@@ -101,6 +102,9 @@ export type {InternationalBankAccountForm} from './InternationalBankAccountForm'
 export type {WorkspacePerDiemForm} from './WorkspacePerDiemForm';
 export type {MoneyRequestRejectReasonForm} from './MoneyRequestRejectReasonForm';
 export type {EnableGlobalReimbursementsForm} from './EnableGlobalReimbursementsForm';
+export type {SearchEditMultipleDescriptionForm} from './SearchEditMultipleDescriptionForm';
+export type {SearchEditMultipleMerchantForm} from './SearchEditMultipleMerchantForm';
+export type {SearchEditMultipleDateForm} from './SearchEditMultipleDateForm';
 export type {EnterSignerInfoForm} from './EnterSignerInfoForm';
 export type {CreateDomainForm} from './CreateDomainForm';
 export type {SplitExpenseEditDateForm} from './SplitExpenseEditDateForm';
