@@ -4,10 +4,10 @@ import {groupPaidPoliciesWithExpenseChatEnabledSelector} from '@selectors/Policy
 import {Str} from 'expensify-common';
 import type {ImageContentFit} from 'expo-image';
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FloatingActionButton from '@components/FloatingActionButton';
 import FloatingReceiptButton from '@components/FloatingReceiptButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -155,7 +155,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     const [allPolicies] = useMappedPolicies(policyMapper);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {showConfirmModal} = useConfirmModal();
 
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);

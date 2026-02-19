@@ -1,11 +1,11 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useContext, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
 import AvatarSkeleton from '@components/AvatarSkeleton';
 import Button from '@components/Button';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
@@ -68,7 +68,8 @@ function ProfilePage() {
     const legalName = `${privateDetails.legalFirstName ?? ''} ${privateDetails.legalLastName ?? ''}`.trim();
 
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
-    const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const {isActingAsDelegate} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const publicOptions = [
         {
             description: translate('displayNamePage.headerTitle'),

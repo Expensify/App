@@ -6161,34 +6161,40 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
 /**
  * Move multiple tracked expenses from self-DM to an IOU report
  */
-function convertBulkTrackedExpensesToIOU(
-    transactionIDs: string[],
-    targetReportID: string,
-    isASAPSubmitBetaEnabled: boolean,
-    currentUserAccountIDParam: number,
-    currentUserEmailParam: string,
-    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
-    policyRecentlyUsedCurrencies: string[],
-    quickAction: OnyxEntry<OnyxTypes.QuickAction>,
-    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
-    betas: OnyxEntry<OnyxTypes.Beta[]>,
-) {
-    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`];
+function convertBulkTrackedExpensesToIOU({
+    transactionIDs,
+    iouReport,
+    chatReport,
+    isASAPSubmitBetaEnabled,
+    currentUserAccountIDParam,
+    currentUserEmailParam,
+    transactionViolations,
+    policyRecentlyUsedCurrencies,
+    quickAction,
+    personalDetails,
+    betas,
+}: {
+    transactionIDs: string[];
+    iouReport: OnyxEntry<OnyxTypes.Report>;
+    chatReport: OnyxEntry<OnyxTypes.Report>;
+    isASAPSubmitBetaEnabled: boolean;
+    currentUserAccountIDParam: number;
+    currentUserEmailParam: string;
+    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    policyRecentlyUsedCurrencies: string[];
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+}) {
+    const iouReportID = iouReport?.reportID;
 
     if (!iouReport || !isMoneyRequestReportReportUtils(iouReport)) {
-        Log.warn('[convertBulkTrackedExpensesToIOU] Invalid IOU report', {targetReportID});
+        Log.warn('[convertBulkTrackedExpensesToIOU] Invalid IOU report', {iouReportID});
         return;
     }
 
-    const chatReportID = iouReport.chatReportID;
-    if (!chatReportID) {
-        Log.warn('[convertBulkTrackedExpensesToIOU] No chat report found for IOU', {targetReportID});
-        return;
-    }
-
-    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
-    if (!chatReport) {
-        Log.warn('[convertBulkTrackedExpensesToIOU] Chat report not found', {chatReportID});
+    if (!chatReport?.reportID) {
+        Log.warn('[convertBulkTrackedExpensesToIOU] No chat report found for IOU', {iouReportID});
         return;
     }
 
@@ -6196,7 +6202,7 @@ function convertBulkTrackedExpensesToIOU(
     const payerAccountID = participantAccountIDs.at(0);
 
     if (!payerAccountID) {
-        Log.warn('[convertBulkTrackedExpensesToIOU] No payer found', {targetReportID, participantAccountIDs});
+        Log.warn('[convertBulkTrackedExpensesToIOU] No payer found', {iouReportID, participantAccountIDs});
         return;
     }
 
@@ -6285,7 +6291,7 @@ function convertBulkTrackedExpensesToIOU(
             parentChatReport: chatReport,
             participantParams,
             transactionParams,
-            moneyRequestReportID: targetReportID,
+            moneyRequestReportID: iouReportID,
             existingTransactionID: transactionID,
             existingTransaction: transaction,
             isASAPSubmitBetaEnabled,
@@ -11899,6 +11905,7 @@ function completePaymentOnboarding(
         wasInvited: true,
         shouldSkipTestDriveModal: true,
         companySize: introSelected?.companySize as OnboardingCompanySize,
+        introSelected,
     });
 }
 

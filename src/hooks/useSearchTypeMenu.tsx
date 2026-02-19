@@ -1,4 +1,3 @@
-import {feedKeysWithAssignedCardsSelector} from '@selectors/Card';
 import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -20,6 +19,7 @@ import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import useDeleteSavedSearch from './useDeleteSavedSearch';
+import useFeedKeysWithAssignedCards from './useFeedKeysWithAssignedCards';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
@@ -46,7 +46,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const personalDetails = usePersonalDetails();
     const [reports = getEmptyObject<NonNullable<OnyxCollection<Report>>>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const taxRates = getAllTaxRates(allPolicies);
-    const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true});
+    const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -69,7 +69,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
 
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
-    const [feedKeysWithCards] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {selector: feedKeysWithAssignedCardsSelector, canBeMissing: true});
+    const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const flattenedMenuItems = useMemo(() => typeMenuSections.flatMap((section) => section.menuItems), [typeMenuSections]);
 
     useSuggestedSearchDefaultNavigation({
@@ -117,7 +117,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                     PersonalDetails: personalDetails,
                     reports,
                     taxRates,
-                    cardList: nonPersonalAndWorkspaceCards,
+                    cardList: personalAndWorkspaceCards,
                     cardFeeds: allFeeds,
                     policies: allPolicies,
                     currentUserAccountID,
@@ -171,7 +171,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         personalDetails,
         reports,
         taxRates,
-        nonPersonalAndWorkspaceCards,
+        personalAndWorkspaceCards,
         allFeeds,
         feedKeysWithCards,
         allPolicies,

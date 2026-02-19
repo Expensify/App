@@ -5,7 +5,7 @@ import Animated from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import DecisionModal from '@components/DecisionModal';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
@@ -101,7 +101,8 @@ function SearchPage({route}: SearchPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
-    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {
         selectedTransactions,
         clearSelectedTransactions,
@@ -362,7 +363,7 @@ function SearchPage({route}: SearchPageProps) {
             {
                 query: status,
                 jsonQuery: JSON.stringify(queryJSON),
-                reportIDList: selectedReports?.map((report) => report?.reportID).filter((reportID) => reportID !== undefined) ?? [],
+                reportIDList: selectedReports.length > 0 ? selectedReportIDs : selectedTransactionReportIDs,
                 transactionIDList: selectedTransactionsKeys,
             },
             () => {

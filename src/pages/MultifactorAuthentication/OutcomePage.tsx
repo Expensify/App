@@ -11,23 +11,22 @@ function isServerError(error: ErrorState): boolean {
 }
 
 function MultifactorAuthenticationOutcomePage() {
-    const {state} = useMultifactorAuthenticationState();
-    const {scenario} = state;
+    const {scenario, error} = useMultifactorAuthenticationState();
 
     if (!scenario) {
         return <DefaultClientFailureScreen />;
     }
 
-    if (!state.error) {
+    if (!error) {
         return scenario.successScreen;
     }
 
-    const reasonScreen = scenario.failureScreens?.[state.error.reason];
+    const reasonScreen = scenario.failureScreens?.[error.reason];
     if (reasonScreen) {
         return reasonScreen;
     }
 
-    if (isServerError(state.error)) {
+    if (isServerError(error)) {
         return scenario.defaultServerFailureScreen;
     }
 

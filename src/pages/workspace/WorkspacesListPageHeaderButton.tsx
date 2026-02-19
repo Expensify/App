@@ -8,6 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
+import CONST from '@src/CONST';
 
 type WorkspacesListPageHeaderButtonProps = {
     /** Whether the button to add a new workspace should be shown. */
@@ -47,6 +48,7 @@ function WorkspacesListPageHeaderButton({shouldShowNewWorkspaceButton, shouldSho
                 style={shouldUseNarrowLayout && [styles.flexGrow1, styles.mb3]}
                 wrapperStyle={styles.flexGrow1}
                 testID="dropdown-button-new"
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.NEW_DROPDOWN}
             />
         );
     }
@@ -56,6 +58,7 @@ function WorkspacesListPageHeaderButton({shouldShowNewWorkspaceButton, shouldSho
             <Button
                 accessibilityLabel={translate('workspace.new.newWorkspace')}
                 text={translate('workspace.new.newWorkspace')}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.NEW_WORKSPACE_BUTTON}
                 onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route)))}
                 icon={icons.Plus}
                 style={shouldUseNarrowLayout && [styles.flexGrow1, styles.mb3]}
@@ -68,6 +71,7 @@ function WorkspacesListPageHeaderButton({shouldShowNewWorkspaceButton, shouldSho
             <Button
                 accessibilityLabel={translate('domain.addDomain.newDomain')}
                 text={translate('domain.addDomain.newDomain')}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.NEW_DOMAIN_BUTTON}
                 onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACES_ADD_DOMAIN))}
                 icon={icons.Plus}
                 style={shouldUseNarrowLayout && [styles.flexGrow1, styles.mb3]}

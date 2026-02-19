@@ -1,10 +1,10 @@
 import {useIsFocused} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AttachmentPicker from '@components/AttachmentPicker';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
 import Icon from '@components/Icon';
 // eslint-disable-next-line no-restricted-imports
@@ -158,7 +158,8 @@ function AttachmentPickerWithMenuItems({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {calculatePopoverPosition} = usePopoverPosition();
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(null);
-    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const {isProduction} = useEnvironment();

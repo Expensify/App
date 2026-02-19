@@ -271,12 +271,6 @@ const ROUTES = {
         route: 'bank-account/connect-existing-business-bank-account',
         getRoute: (policyID: string) => `bank-account/connect-existing-business-bank-account?policyID=${policyID}` as const,
     },
-    PUBLIC_CONSOLE_DEBUG: {
-        route: 'troubleshoot/console',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`troubleshoot/console`, backTo),
-    },
     SETTINGS: 'settings',
     SETTINGS_PROFILE: {
         route: 'settings/profile',
@@ -490,6 +484,8 @@ const ROUTES = {
         route: 'settings/wallet/card/:cardID/activate',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}/activate` as const,
     },
+    SETTINGS_WALLET_TRAVEL_CVV: 'settings/wallet/travel-cvv',
+    SETTINGS_WALLET_TRAVEL_CVV_VERIFY_ACCOUNT: `settings/wallet/travel-cvv/${VERIFY_ACCOUNT}`,
     SETTINGS_RULES: 'settings/rules',
     SETTINGS_RULES_ADD: {
         route: 'settings/rules/new/:field?/:index?',
@@ -592,16 +588,6 @@ const ROUTES = {
     SETTINGS_STATUS_CLEAR_AFTER_TIME: 'settings/profile/status/clear-after/time',
     SETTINGS_VACATION_DELEGATE: 'settings/profile/status/vacation-delegate',
     SETTINGS_TROUBLESHOOT: 'settings/troubleshoot',
-    SETTINGS_CONSOLE: {
-        route: 'settings/troubleshoot/console',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`settings/troubleshoot/console`, backTo),
-    },
-    SETTINGS_SHARE_LOG: {
-        route: 'settings/troubleshoot/console/share-log',
-        getRoute: (source: string) => `settings/troubleshoot/console/share-log?source=${encodeURI(source)}` as const,
-    },
 
     SETTINGS_EXIT_SURVEY_REASON: 'settings/exit-survey/reason',
 
