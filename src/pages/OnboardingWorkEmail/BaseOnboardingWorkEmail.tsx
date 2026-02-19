@@ -188,6 +188,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
 
                                     setOnboardingMergeAccountStepValue(true, true);
                                 }}
+                                sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.SKIP}
                             />
                         </OfflineWithFeedback>
                     }
