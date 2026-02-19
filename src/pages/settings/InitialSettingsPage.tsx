@@ -1,5 +1,4 @@
 import {findFocusedRoute, useNavigationState, useRoute} from '@react-navigation/native';
-import {filterOutPersonalCards} from '@selectors/Card';
 import {differenceInDays} from 'date-fns';
 import {stopLocationUpdatesAsync} from 'expo-location';
 import React, {useContext, useEffect, useLayoutEffect, useRef} from 'react';
@@ -27,6 +26,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
@@ -117,7 +117,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
-    const [allCards] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterOutPersonalCards, canBeMissing: true});
+    const allCards = useNonPersonalCardList();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [stripeCustomerId] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
@@ -153,6 +153,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
     const {
         all: {shouldShowRBR},
+        personalCard: {shouldShowRBR: shouldShowRBRForPersonalCard},
     } = useCardFeedErrors();
 
     const hasPendingCardAction = hasPendingExpensifyCardAction(allCards, privatePersonalDetails);
@@ -162,7 +163,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         !isEmptyObject(userWallet?.errors) ||
         !isEmptyObject(walletTerms?.errors) ||
         !isEmptyObject(unsharedBankAccount?.errors) ||
-        shouldShowRBR
+        shouldShowRBR ||
+        shouldShowRBRForPersonalCard
     ) {
         walletBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     } else if (hasPartiallySetupBankAccount(bankAccountList) || hasPendingCardAction) {
@@ -414,7 +416,12 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
         return (
             <View style={[menuItemsData.sectionStyle, styles.pb4, styles.mh3]}>
-                <Text style={styles.sectionTitle}>{translate(menuItemsData.sectionTranslationKey)}</Text>
+                <Text
+                    style={styles.sectionTitle}
+                    accessibilityRole={CONST.ROLE.HEADER}
+                >
+                    {translate(menuItemsData.sectionTranslationKey)}
+                </Text>
                 {menuItemsData.items.map((item) => {
                     const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
                     const isFocused = focusedRouteName ? focusedRouteName === item.screenName : false;

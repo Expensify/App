@@ -9544,15 +9544,11 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getMergedPR = getMergedPR;
 /* eslint-disable @typescript-eslint/naming-convention */
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
-const dedent_1 = __importDefault(__nccwpck_require__(6762));
 /**
  * Given the list of PRs associated with a commit on the target branch,
  * find the PR that was actually merged into that branch.
@@ -9631,27 +9627,27 @@ async function run() {
             errorMessage += `${checkResult.annotation_level}: ${checkResult.message}\n`;
         }
         const issueTitle = `Investigate workflow job failing on main: ${job.name}`;
-        const issueBody = (0, dedent_1.default)(`
-            🚨 **Failure Summary** 🚨:
+        // This template literal intentionally starts at column 0. GitHub Markdown renders
+        // 4+ leading spaces as a code block, so any indentation would break issue formatting.
+        const issueBody = `🚨 **Failure Summary** 🚨:
 
-            - **📋 Job Name**: [${job.name}](${job.html_url})
-            - **🔧 Failure in Workflow**: Process new code merged to main
-            - **🔗 Triggered by PR**: [PR Link](${prLink})
-            - **👤 PR Author**: @${prAuthor}
-            - **🤝 Merged by**: @${prMerger}
-            - **🐛 Error Message**: \n ${errorMessage}
+- **📋 Job Name**: [${job.name}](${job.html_url})
+- **🔧 Failure in Workflow**: Process new code merged to main
+- **🔗 Triggered by PR**: [PR Link](${prLink})
+- **👤 PR Author**: @${prAuthor}
+- **🤝 Merged by**: @${prMerger}
+- **🐛 Error Message**:
+${errorMessage}
+⚠️ **Action Required** ⚠️:
 
-            ⚠️ **Action Required** ⚠️:
+🛠️ A recent merge appears to have caused a failure in the job named [${job.name}](${job.html_url}).
+🔍 This issue has been automatically created and labeled with \`${failureLabel}\` for investigation.
 
-            🛠️ A recent merge appears to have caused a failure in the job named [${job.name}](${job.html_url}).
-            🔍 This issue has been automatically created and labeled with \`${failureLabel}\` for investigation.
+**👀 Please look into the following:**
+1. **Why the PR caused the job to fail?**
+2. **Address any underlying issues.**
 
-            **👀 Please look into the following:**
-            1. **Why the PR caused the job to fail?**
-            2. **Address any underlying issues.**
-
-            **🐛 We appreciate your help in squashing this bug!**
-        `);
+**🐛 We appreciate your help in squashing this bug!**`;
         await octokit.rest.issues.create({
             owner,
             repo,
@@ -9670,71 +9666,6 @@ if (require.main === require.cache[eval('__filename')]) {
     });
 }
 exports["default"] = run;
-
-
-/***/ }),
-
-/***/ 6762:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-/*
- * Note: This file is separated from StringUtils because it is imported by a ts-node script.
- *       ts-node scripts can't import react-native (because it is written in flow),
- *       and StringUtils indirectly imports react-native.
- */
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports["default"] = dedent;
-/**
- * Find the minimum indentation of any line in the string,
- * and remove that number of leading spaces from every line in the string.
- *
- * It also removes at most one leading newline, to reflect a common usage:
- *
- * ```
- * StringUtils.dedent(`
- *    const myIndentedStr = 'Hello, world!';
- *    console.log(myIndentedStr);
- * `)
- * ```
- *
- * This implementation assumes you'd want that to be:
- *
- * ```
- * const myIndentedStr = 'Hello, world!';
- * console.log(myIndentedStr);
- *
- * ```
- *
- * Rather than:
- *
- * ```
- *
- * const myIndentedStr = 'Hello, world!';
- * console.log(myIndentedStr);
- *
- * ```
- */
-function dedent(str) {
-    // Remove at most one leading newline
-    const stringWithoutLeadingNewlines = str.replaceAll(/^\r?\n/g, '');
-    // Split string by remaining newlines
-    const lines = stringWithoutLeadingNewlines.replaceAll('\r\n', '\n').split('\n');
-    // Find the minimum indentation of non-empty lines
-    let minIndent = Number.MAX_SAFE_INTEGER;
-    for (const line of lines) {
-        if (line.trim().length === 0) {
-            continue;
-        }
-        const indentation = line.match(/^ */)?.[0].length ?? 0;
-        if (indentation < minIndent) {
-            minIndent = indentation;
-        }
-    }
-    // Remove the common indentation
-    return lines.map((line) => line.slice(minIndent)).join('\n');
-}
 
 
 /***/ }),
