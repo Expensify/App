@@ -122,11 +122,11 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - ExpoAsset (12.0.8):
+  - ExpoAsset (12.0.9):
     - ExpoModulesCore
   - ExpoAudio (1.1.1):
     - ExpoModulesCore
-  - ExpoFont (14.0.8):
+  - ExpoFont (14.0.9):
     - ExpoModulesCore
   - ExpoImage (3.0.8):
     - ExpoModulesCore
@@ -141,7 +141,7 @@ PODS:
     - SDWebImageWebPCoder
   - ExpoLocation (19.0.7):
     - ExpoModulesCore
-  - ExpoModulesCore (3.0.18):
+  - ExpoModulesCore (3.0.24):
     - boost
     - DoubleConversion
     - fast_float
@@ -404,7 +404,7 @@ PODS:
     - nanopb/encode (= 3.30910.0)
   - nanopb/decode (3.30910.0)
   - nanopb/encode (3.30910.0)
-  - NitroModules (0.29.4):
+  - NitroModules (0.29.7):
     - boost
     - DoubleConversion
     - fast_float

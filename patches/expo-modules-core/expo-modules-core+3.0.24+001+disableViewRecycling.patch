@@ -1,16 +1,16 @@
 diff --git a/node_modules/expo-modules-core/ios/Fabric/ExpoFabricViewObjC.mm b/node_modules/expo-modules-core/ios/Fabric/ExpoFabricViewObjC.mm
-index 2eacddf..346bbb9 100644
+index 2727860..2004337 100644
 --- a/node_modules/expo-modules-core/ios/Fabric/ExpoFabricViewObjC.mm
 +++ b/node_modules/expo-modules-core/ios/Fabric/ExpoFabricViewObjC.mm
-@@ -138,6 +138,11 @@ - (void)finalizeUpdates:(RNComponentViewUpdateMask)updateMask
+@@ -138,6 +138,11 @@ static std::unordered_map<std::string, ExpoViewComponentDescriptor::Flavor> _com
    }
  }
- 
+
 ++ (BOOL)shouldBeRecycled
 +{
 +    return NO;
 +}
 +
  #pragma mark - Events
- 
+
  - (void)dispatchEvent:(nonnull NSString *)eventName payload:(nullable id)payload
