@@ -77,9 +77,8 @@ function IOURequestStepOdometerImage({
         [transactionID, imageType, isTransactionDraft, navigateBack],
     );
 
-    const {validateFiles, ErrorModal} = useFilesValidation((files: FileObject | FileObject[]) => {
-        const fileItems = Array.isArray(files) ? files : [files];
-        const file = fileItems.at(0);
+    const {validateFiles, ErrorModal} = useFilesValidation((files: FileObject[]) => {
+        const file = files.at(0);
         if (!file) {
             return;
         }

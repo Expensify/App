@@ -1329,9 +1329,8 @@ function IOURequestStepConfirmation({
     /**
      * Sets the Receipt object when dragging and dropping a file
      */
-    const setReceiptOnDrop = (files: FileObject | FileObject[]) => {
-        const fileItems = Array.isArray(files) ? files : [files];
-        const file = fileItems.at(0);
+    const setReceiptOnDrop = (files: FileObject[]) => {
+        const file = files.at(0);
         if (!file) {
             return;
         }

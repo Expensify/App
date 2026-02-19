@@ -77,17 +77,15 @@ function useAttachmentUploadValidation({
     );
 
     const attachmentUploadType = useRef<'receipt' | 'attachment'>(undefined);
-    const onFilesValidated = (files: FileObject | FileObject[], dataTransferItems: DataTransferItem[]) => {
+    const onFilesValidated = (files: FileObject[], dataTransferItems: DataTransferItem[]) => {
         if (attachmentUploadType.current === 'attachment') {
             showAttachmentModalScreen(files, dataTransferItems);
             return;
         }
 
-        const fileItems = Array.isArray(files) ? files : [files];
-
         if (shouldAddOrReplaceReceipt && transactionID) {
-            const source = URL.createObjectURL(fileItems.at(0) as Blob);
-            replaceReceipt({transactionID, file: fileItems.at(0) as File, source, transactionPolicy: policy, transactionPolicyCategories: policyCategories});
+            const source = URL.createObjectURL(files.at(0) as Blob);
+            replaceReceipt({transactionID, file: files.at(0) as File, source, transactionPolicy: policy, transactionPolicyCategories: policyCategories});
             return;
         }
 
@@ -103,7 +101,7 @@ function useAttachmentUploadValidation({
             draftTransactions,
         });
 
-        for (const [index, file] of fileItems.entries()) {
+        for (const [index, file] of files.entries()) {
             const source = URL.createObjectURL(file as Blob);
             const newTransaction =
                 index === 0

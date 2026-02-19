@@ -27,7 +27,7 @@ type ValidationOptions = {
     isValidatingReceipts?: boolean;
 };
 
-type OnFilesValidated = (files: File | FileObject[], dataTransferItems: DataTransferItem[]) => void;
+type OnFilesValidated = (files: FileObject[], dataTransferItems: DataTransferItem[]) => void;
 
 type ClassifiedFiles = {
     pdfsToLoad: FileObject[];
