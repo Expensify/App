@@ -124,7 +124,9 @@ function IOURequestStepDistanceOdometer({
     const shouldUseDefaultExpensePolicy = useMemo(() => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy), [iouType, defaultExpensePolicy]);
     const customUnitRateID = getRateID(transaction);
 
-    const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
+    const mileageRate = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy});
+    const unit = mileageRate.unit;
+    const rate = mileageRate.rate ?? 0;
 
     const shouldSkipConfirmation: boolean = !skipConfirmation || !report?.reportID ? false : !(isArchived || isPolicyExpenseChatUtils(report));
 
@@ -447,6 +449,12 @@ function IOURequestStepDistanceOdometer({
         const distance = end - start;
         if (distance <= 0) {
             setFormError(translate('iou.error.negativeDistanceNotAllowed'));
+            return;
+        }
+
+        // Validation: Check that distance * rate doesn't exceed the backend's safe amount limit
+        if (!DistanceRequestUtils.isDistanceAmountWithinLimit(distance, rate)) {
+            setFormError(translate('iou.error.distanceAmountTooLarge'));
             return;
         }
 

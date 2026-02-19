@@ -1308,6 +1308,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidDistance: 'Voer een geldige afstand in voordat je verdergaat',
             invalidReadings: 'Voer zowel de begin- als eindstanden in',
             negativeDistanceNotAllowed: 'Eindstand moet hoger zijn dan beginstand',
+            distanceAmountTooLarge: 'Het totale bedrag is te hoog. Verlaag de afstand of verlaag het tarief.',
             invalidIntegerAmount: 'Voer een volledig dollarbedrag in voordat je doorgaat',
             invalidTaxAmount: (amount: string) => `Maximale belastingbedrag is ${amount}`,
             invalidSplit: 'De som van de splitsingen moet gelijk zijn aan het totale bedrag',

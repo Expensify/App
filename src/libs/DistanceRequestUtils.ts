@@ -418,6 +418,19 @@ function getRateByCustomUnitRateID({customUnitRateID, policy}: {customUnitRateID
     return getMileageRates(policy, true, customUnitRateID)[customUnitRateID];
 }
 
+/**
+ * Returns whether the calculated distance expense amount (distance * rate) is within the backend's safe limit.
+ * The backend WAF rejects amounts exceeding 12 digits (999,999,999,999 cents).
+ *
+ * @param distance - The distance in the unit specified (km or mi), NOT meters
+ * @param rate - The rate in cents per unit
+ * @returns true if the amount is within limits, false if it would exceed the backend limit
+ */
+function isDistanceAmountWithinLimit(distance: number, rate: number): boolean {
+    const amount = Math.abs(Math.round(distance * rate));
+    return amount <= CONST.IOU.MAX_SAFE_AMOUNT;
+}
+
 export default {
     getDefaultMileageRate,
     getDistanceMerchant,
@@ -436,6 +449,7 @@ export default {
     getRateByCustomUnitRateID,
     getDistanceForDisplayLabel,
     convertDistanceUnit,
+    isDistanceAmountWithinLimit,
 };
 
 export type {MileageRate};

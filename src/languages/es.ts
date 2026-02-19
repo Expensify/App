@@ -1164,6 +1164,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidDistance: 'Por favor, ingresa una distancia válida antes de continuar',
             invalidReadings: 'Por favor ingrese ambas lecturas de inicio y fin',
             negativeDistanceNotAllowed: 'La lectura final debe ser mayor que la lectura inicial',
+            distanceAmountTooLarge: 'El importe total es demasiado alto. Reduce la distancia o disminuye la tarifa.',
             invalidIntegerAmount: 'Por favor, introduce una cantidad entera en dólares antes de continuar',
             invalidTaxAmount: (amount) => `El importe máximo del impuesto es ${amount}`,
             invalidSplit: 'La suma de las partes debe ser igual al importe total',
