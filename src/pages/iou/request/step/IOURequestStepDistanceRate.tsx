@@ -166,7 +166,12 @@ function IOURequestStepDistanceRate({
             shouldShowNotFoundPage={shouldShowNotFoundPage}
         >
             <Text style={[styles.mh5, styles.mv4]}>{translate('iou.chooseARate')}</Text>
-            {!!formError && <FormHelpMessage style={[styles.mh5, styles.mb4]} message={formError} />}
+            {!!formError && (
+                <FormHelpMessage
+                    style={[styles.mh5, styles.mb4]}
+                    message={formError}
+                />
+            )}
 
             <SelectionList
                 data={options}
