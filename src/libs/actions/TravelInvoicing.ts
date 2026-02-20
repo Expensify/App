@@ -317,6 +317,16 @@ function clearToggleTravelInvoicingErrors(workspaceAccountID: number) {
 }
 
 /**
+ * Clears the travel invoice statement state.
+ * Useful for recovering from stuck states.
+ */
+function clearTravelInvoiceStatementState() {
+    Onyx.merge(ONYXKEYS.TRAVEL_INVOICE_STATEMENT, {
+        isGenerating: false,
+    });
+}
+
+/**
  * Generates the Travel Invoice Statement PDF for a policy and date range.
  * Uses Onyx to track generation state and cache the filename.
  */
@@ -330,15 +340,8 @@ function getTravelInvoiceStatementPDF(policyID: string, startDate: string, endDa
             },
         },
     ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.TRAVEL_INVOICE_STATEMENT>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.TRAVEL_INVOICE_STATEMENT,
-            value: {
-                isGenerating: false,
-            },
-        },
-    ];
+    // Note: Backend returns onyxData with isGenerating: false AND the PDF filename,
+    // so we don't need successData here - the backend response handles it.
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.TRAVEL_INVOICE_STATEMENT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -354,7 +357,6 @@ function getTravelInvoiceStatementPDF(policyID: string, startDate: string, endDa
         {policyID, startDate, endDate},
         {
             optimisticData,
-            successData,
             failureData,
         },
     );
@@ -382,7 +384,7 @@ function exportTravelInvoiceStatementCSV(policyID: string, startDate: string, en
     const onDownloadFailed = () => {
         // When no data exists for the selected date range, the backend returns a JSON error.
         // Download an empty CSV file in this case.
-        const blob = new Blob([''], {type: 'text/csv'});
+        const blob = new Blob([translate('common.noResultsFound')], {type: CONST.SHARE_FILE_MIMETYPE.CSV});
         const href = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = href;
@@ -406,5 +408,6 @@ export {
     toggleTravelInvoicing,
     clearToggleTravelInvoicingErrors,
     getTravelInvoiceStatementPDF,
+    clearTravelInvoiceStatementState,
     exportTravelInvoiceStatementCSV,
 };

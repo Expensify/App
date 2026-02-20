@@ -15,7 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {exportTravelInvoiceStatementCSV, getTravelInvoiceStatementPDF} from '@libs/actions/TravelInvoicing';
+import {clearTravelInvoiceStatementState, exportTravelInvoiceStatementCSV, getTravelInvoiceStatementPDF} from '@libs/actions/TravelInvoicing';
 import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -28,7 +28,6 @@ import addTrailingForwardSlash from '@libs/UrlUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import CONFIG from '@src/CONFIG';
 
 type WorkspaceTravelInvoicingExportPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TRAVEL_EXPORT>;
 
@@ -43,7 +42,8 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
     const prevIsGenerating = usePrevious(isGenerating);
     const [isDownloading, setIsDownloading] = useState(isGenerating);
 
-    const baseURL = addTrailingForwardSlash(isDevelopment ? CONFIG.EXPENSIFY.DEFAULT_API_ROOT : getOldDotURLFromEnvironment(environment));
+    // When on DEV, use the production URL to download the PDF because the OldDot DEV url does not work
+    const baseURL = addTrailingForwardSlash(isDevelopment ? getOldDotURLFromEnvironment(CONST.ENVIRONMENT.PRODUCTION) : getOldDotURLFromEnvironment(environment));
 
     const searchDatePresetFilterBaseRef = useRef<SearchDatePresetFilterBaseHandle>(null);
     const [selectedDateModifier, setSelectedDateModifier] = useState<SearchDateModifier | null>(null);
@@ -97,7 +97,7 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
      */
     const processDownload = useCallback(() => {
         if (isGenerating) {
-            return;
+            clearTravelInvoiceStatementState();
         }
 
         const {startDate, endDate} = getDateRange();
