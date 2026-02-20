@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import type {OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
     AddAdminToDomainParams,
@@ -8,6 +8,7 @@ import type {
     DeleteDomainParams,
     RemoveDomainAdminParams,
     SetTechnicalContactEmailParams,
+    SetVacationDelegateParams,
     ToggleConsolidatedDomainBillingParams,
     ToggleTwoFactorAuthRequiredForDomainParams,
 } from '@libs/API/parameters';
@@ -18,6 +19,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Domain, DomainSecurityGroup, UserSecurityGroupData} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import type {ScimTokenWithState} from './ScimToken/ScimTokenUtils';
 import {ScimTokenState} from './ScimToken/ScimTokenUtils';
@@ -1133,6 +1135,236 @@ function clearToggleTwoFactorAuthRequiredForDomainError(domainAccountID: number)
     });
 }
 
+function setDomainVacationDelegate(domainAccountID: number, domainMemberAccountID: number, creator: string, vacationer: string, delegate: string, vacationDelegate?: BaseVacationDelegate) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: {
+                [`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${domainMemberAccountID}`]: {
+                    delegate,
+                    creator,
+                    previousDelegate: vacationDelegate?.delegate,
+                },
+            } as PrefixedRecord<typeof CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, BaseVacationDelegate>,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                member: {
+                    [vacationer]: {
+                        vacationDelegate: vacationDelegate?.delegate ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                memberErrors: {
+                    [vacationer]: {
+                        vacationDelegateErrors: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: {
+                [`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${domainMemberAccountID}`]: {
+                    previousDelegate: null,
+                },
+            } as PrefixedRecord<typeof CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, NullishDeep<BaseVacationDelegate>>,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                memberErrors: {
+                    [vacationer]: {
+                        vacationDelegateErrors: null,
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                member: {
+                    [vacationer]: {
+                        vacationDelegate: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                memberErrors: {
+                    [vacationer]: {
+                        vacationDelegateErrors: getMicroSecondOnyxErrorWithTranslationKey('domain.members.error.vacationDelegate'),
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                member: {
+                    [vacationer]: {
+                        vacationDelegate: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    const parameters: SetVacationDelegateParams = {
+        creator,
+        vacationerEmail: vacationer,
+        vacationDelegateEmail: delegate,
+        overridePolicyDiffWarning: true,
+        domainAccountID,
+    };
+
+    // We don't use the side effect here but `SetVacationDelegate` command is declared as side effect command
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SET_VACATION_DELEGATE, parameters, {optimisticData, successData, failureData});
+}
+
+function deleteDomainVacationDelegate(domainAccountID: number, domainMemberAccountID: number, vacationer: string, vacationDelegate: BaseVacationDelegate) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: {
+                [`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${domainMemberAccountID}`]: {
+                    creator: null,
+                    delegate: null,
+                    previousDelegate: vacationDelegate?.delegate,
+                },
+            } as PrefixedRecord<typeof CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, NullishDeep<BaseVacationDelegate>>,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                member: {
+                    [vacationer]: {
+                        vacationDelegate: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                memberErrors: {
+                    [vacationer]: {
+                        vacationDelegateErrors: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                member: {
+                    [vacationer]: {
+                        vacationDelegate: null,
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                memberErrors: {
+                    [vacationer]: {
+                        vacationDelegateErrors: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: {
+                [`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${domainMemberAccountID}`]: vacationDelegate,
+            } as PrefixedRecord<typeof CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, NullishDeep<BaseVacationDelegate>>,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                member: {
+                    [vacationer]: {
+                        vacationDelegate: null,
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                memberErrors: {
+                    [vacationer]: {
+                        vacationDelegateErrors: getMicroSecondOnyxErrorWithTranslationKey('domain.members.error.vacationDelegate'),
+                    },
+                },
+            },
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.DELETE_VACATION_DELEGATE, {vacationerEmail: vacationer, domainAccountID}, {optimisticData, successData, failureData});
+}
+
+function clearVacationDelegateError(domainAccountID: number, domainMemberAccountID: number, domainMemberEmail: string, previousDelegate?: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
+        [`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${domainMemberAccountID}`]: {
+            delegate: previousDelegate ?? null,
+        },
+    } as PrefixedRecord<typeof CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, NullishDeep<BaseVacationDelegate>>);
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
+        memberErrors: {
+            [domainMemberEmail]: {
+                vacationDelegateErrors: null,
+            },
+        },
+    });
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
+        member: {
+            [domainMemberEmail]: {
+                vacationDelegate: null,
+            },
+        },
+    });
+}
+
 export {
     getDomainValidationCode,
     validateDomain,
@@ -1161,4 +1393,7 @@ export {
     closeUserAccount,
     toggleTwoFactorAuthRequiredForDomain,
     clearToggleTwoFactorAuthRequiredForDomainError,
+    setDomainVacationDelegate,
+    deleteDomainVacationDelegate,
+    clearVacationDelegateError,
 };

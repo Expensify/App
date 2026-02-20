@@ -232,6 +232,7 @@ function CardSection() {
                         onPress={handleRetryPayment}
                         style={[styles.w100, styles.mb3]}
                         large
+                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.RETRY_PAYMENT}
                     />
                 )}
                 {hasCardAuthenticatedError(privateStripeCustomerID) && (
@@ -242,6 +243,7 @@ function CardSection() {
                         onPress={handleAuthenticatePayment}
                         style={[styles.w100, styles.mt5]}
                         large
+                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.AUTHENTICATE_PAYMENT}
                     />
                 )}
 
@@ -253,6 +255,7 @@ function CardSection() {
                         title={translate('subscription.cardSection.viewPaymentHistory')}
                         titleStyle={styles.textStrong}
                         onPress={viewPurchases}
+                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.VIEW_PAYMENT_HISTORY}
                     />
                 )}
 
@@ -265,6 +268,7 @@ function CardSection() {
                         titleStyle={styles.textStrong}
                         disabled={isOffline}
                         onPress={() => setIsRequestRefundModalVisible(true)}
+                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.REQUEST_REFUND}
                     />
                 )}
 
