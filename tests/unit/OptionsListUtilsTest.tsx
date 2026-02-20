@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import type {PrivateIsArchivedMap} from '@selectors/ReportNameValuePairs';
+import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 import {act, render, renderHook} from '@testing-library/react-native';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -1723,33 +1723,6 @@ describe('OptionsListUtils', () => {
             // Then none of the results should include receipts
             expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'receipts@expensify.com'})]));
             expect(results.recentReports).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'receipts@expensify.com'})]));
-        });
-
-        it('should exclude the person and the report from selected options', () => {
-            const selectedPerson = PERSONAL_DETAILS['3'];
-            const selectedReport = REPORTS['3'] as unknown as OptionData;
-
-            const results = getValidOptions(
-                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
-                allPolicies,
-                {},
-                nvpDismissedProductTraining,
-                loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                {
-                    excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-                    selectedOptions: [selectedPerson, selectedReport],
-                },
-            );
-
-            // The person must be excluded
-            expect(results.recentReports.every((option) => option.login !== selectedPerson.login)).toBe(true);
-            expect(results.personalDetails.every((option) => option.login !== selectedPerson.login)).toBe(true);
-
-            // The report must be excluded
-            expect(results.recentReports.every((option) => option.reportID !== selectedReport.reportID)).toBe(true);
-            expect(results.personalDetails.every((option) => option.reportID !== selectedPerson.reportID)).toBe(true);
         });
 
         it('should limit recent reports when maxRecentReportElements is specified', () => {

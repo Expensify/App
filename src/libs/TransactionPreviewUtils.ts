@@ -81,11 +81,12 @@ const getReviewNavigationRoute = (
     duplicates: Array<OnyxEntry<OnyxTypes.Transaction>>,
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyCategories: OnyxTypes.PolicyCategories | undefined,
+    policyTags: OnyxTypes.PolicyTagLists,
     transactionReport: OnyxEntry<OnyxTypes.Report>,
 ) => {
     // Use set method to prevent merging fields from the previous expense
     // (e.g., category, tag, tax) that may be not enabled/available in the new expense's policy.
-    const comparisonResult = compareDuplicateTransactionFields(transaction, duplicates, transactionReport, transaction?.transactionID, policy, policyCategories);
+    const comparisonResult = compareDuplicateTransactionFields(policyTags, transaction, duplicates, transactionReport, transaction?.transactionID, policy, policyCategories);
     setReviewDuplicatesKey(
         {
             ...comparisonResult.keep,

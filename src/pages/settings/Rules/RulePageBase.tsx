@@ -19,6 +19,7 @@ import {extractRuleFromForm, getKeyForRule} from '@libs/ExpenseRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {getAllTaxRatesNamesAndValues, getCleanedTagName, getTagLists} from '@libs/PolicyUtils';
+import {getEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
@@ -28,6 +29,7 @@ import ROUTES from '@src/ROUTES';
 import type {ExpenseRuleForm} from '@src/types/form';
 import type {ExpenseRule, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+import {hasEnabledOptions} from '@libs/OptionsListUtils';
 
 type RulePageBaseProps = {
     titleKey: TranslationPaths;
@@ -100,7 +102,11 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
     const categoriesSelector = useCallback(
         (allPolicyCategories: OnyxCollection<PolicyCategories>) => {
             const categories = getAvailableNonPersonalPolicyCategories(allPolicyCategories, personalPolicyID);
-            return Object.values(categories ?? {}).flatMap((policyCategories) => Object.values(policyCategories ?? {})).length > 0;
+            return (
+                Object.values(categories ?? {})
+                    .filter((policyCategories) => hasEnabledOptions(policyCategories ?? {}))
+                    .flatMap((policyCategories) => Object.values(policyCategories ?? {})).length > 0
+            );
         },
         [personalPolicyID],
     );
@@ -164,7 +170,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                     title: form?.merchant,
                     onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.RENAME_MERCHANT, hash),
                 },
-                hasPolicyCategories
+                form?.category || hasPolicyCategories
                     ? {
                           key: 'category',
                           description: translate('common.category'),
@@ -173,7 +179,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                       }
                     : undefined,
                 ...policyTags
-                    .filter(({orderWeight, tags}) => !!formTags.at(orderWeight) || Object.values(tags).some(({enabled}) => enabled))
+                    .filter(({orderWeight, tags}) => !!formTags.at(orderWeight) || getEnabledTags(tags, form?.tag ?? '', orderWeight).length > 0)
                     .map(({name, orderWeight}) => {
                         const formTag = formTags.at(orderWeight);
                         return {
