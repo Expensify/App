@@ -32,7 +32,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
-import {clearShareBankAccountErrors, shareBankAccount} from '@userActions/BankAccounts';
+import {clearShareBankAccountErrors, shareBankAccountAndSetPayer} from '@userActions/BankAccounts';
 import {setWorkspacePayer} from '@userActions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import {navigateToAndOpenReportWithAccountIDs} from '@userActions/Report';
@@ -166,7 +166,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const headerMessage = searchTerm && !sections.at(0)?.data.length ? translate('common.noResultsFound') : '';
 
     const handleConfirm = () => {
-        if (!bankAccountID || !authorizedPayerEmail) {
+        if (!bankAccountID || !authorizedPayerEmail || !accountID || !policyID) {
             return;
         }
         if (!selectedPayer) {
@@ -177,7 +177,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             Navigation.goBack();
             return;
         }
-        shareBankAccount(Number(bankAccountID), [authorizedPayerEmail]);
+        shareBankAccountAndSetPayer(Number(bankAccountID), accountID, policyID);
     };
 
     const onButtonPress = () => {
@@ -271,10 +271,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                         onBackButtonPress={Navigation.goBack}
                     />
                     {shouldShowSuccess && selectedPayer ? (
-                        <WorkspaceWorkflowsPayerSuccessPage
-                            policyID={policy?.id}
-                            selectedPayer={selectedPayer}
-                        />
+                        <WorkspaceWorkflowsPayerSuccessPage />
                     ) : (
                         <SelectionListWithSections
                             sections={sections}

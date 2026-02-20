@@ -7,29 +7,14 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {clearShareBankAccount} from '@userActions/BankAccounts';
-import {setWorkspacePayer} from '@userActions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-type WorkspaceWorkflowsPayerPageOnyxProps = {
-    /** Selected payer */
-    selectedPayer: string;
-    /** ID of the policy */
-    policyID?: string;
-};
-
-function WorkspaceWorkflowsPayerSuccessPage({policyID, selectedPayer}: WorkspaceWorkflowsPayerPageOnyxProps) {
+function WorkspaceWorkflowsPayerSuccessPage() {
     const {translate} = useLocalize();
     const [sharedBankAccountData] = useOnyx(ONYXKEYS.SHARE_BANK_ACCOUNT, {canBeMissing: true});
     const shouldShowSuccess = sharedBankAccountData?.shouldShowSuccess ?? false;
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['ShareBank', 'Telescope']);
-
-    useEffect(() => {
-        if (!policyID) {
-            return;
-        }
-        setWorkspacePayer(policyID, selectedPayer);
-    }, [policyID, selectedPayer]);
 
     useEffect(() => {
         return () => {
