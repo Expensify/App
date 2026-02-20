@@ -66,6 +66,3 @@ Once downgraded, your Workspace will be deleted, and a refund line item will app
 
 Yes, monthly subscriptions are prepaid and not usage-based, so you will be charged regardless of activity.
 
-## I'm in a Group Workspace. Do I need the monthly subscription too?
-
-No, Group Workspace members already have unlimited **SmartScans**. However, you can keep a subscription for personal use if you leave your company's Workspace.
