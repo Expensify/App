@@ -1,5 +1,6 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import {computeReportName} from '@libs/ReportNameUtils';
+import {getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
 import {generateIsEmptyReport, generateReportAttributes, isArchivedReport, isValidReport} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
@@ -219,6 +220,9 @@ export default createOnyxDerivedValueConfig({
                 brickRoadStatus = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
             }
 
+            // Compute oneTransactionThreadReportID to avoid redundant sorting in LHN renderItem
+            const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActionsList, false);
+
             acc[report.reportID] = {
                 reportName: report
                     ? computeReportName(report, reports, policies, transactions, reportNameValuePairs, personalDetails, reportActions, session?.accountID ?? CONST.DEFAULT_NUMBER_ID)
@@ -227,6 +231,7 @@ export default createOnyxDerivedValueConfig({
                 brickRoadStatus,
                 requiresAttention,
                 reportErrors,
+                oneTransactionThreadReportID,
             };
 
             return acc;
