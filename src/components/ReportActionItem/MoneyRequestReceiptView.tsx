@@ -45,7 +45,7 @@ import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/Violati
 import Navigation from '@navigation/Navigation';
 import {cleanUpMoneyRequest} from '@userActions/IOU';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
-import {clearAllRelatedReportActionErrors} from '@userActions/ReportActions';
+import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
 import {clearError, getLastModifiedExpense, revert} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

@@ -236,7 +236,7 @@ import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import type {GuidedSetupData} from '@userActions/Report';
 import {buildInviteToRoomOnyxData, completeOnboarding, notifyNewAction, optimisticReportLastData} from '@userActions/Report';
-import {clearAllRelatedReportActionErrors} from '@userActions/ReportActions';
+import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
 import {mergeTransactionIdsHighlightOnSearchRoute, sanitizeRecentWaypoints} from '@userActions/Transaction';
 import {removeDraftTransaction, removeDraftTransactions} from '@userActions/TransactionEdit';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';

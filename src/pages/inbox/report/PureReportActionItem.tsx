@@ -231,7 +231,7 @@ import {
     resolveConciergeCategoryOptions,
     resolveConciergeDescriptionOptions,
 } from '@userActions/Report';
-import type {IgnoreDirection} from '@userActions/ReportActions';
+import type {IgnoreDirection} from '@userActions/ClearReportActionErrors';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import {isBlockedFromConcierge} from '@userActions/User';
 import type {IOUAction} from '@src/CONST';
