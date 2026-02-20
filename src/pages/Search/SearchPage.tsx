@@ -384,6 +384,8 @@ function SearchPage({route}: SearchPageProps) {
         status,
         hash,
         selectedReports,
+        selectedReportIDs,
+        selectedTransactionReportIDs,
         queryJSON,
         selectAllMatchingItems,
         clearSelectedTransactions,

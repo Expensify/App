@@ -847,20 +847,54 @@ function bulkDeleteReports({
     }
 }
 
-function revertSplitTransactionOnSearch(hash: number, originalTransactionID: string, params: RevertSplitTransactionParams) {
-    const optimisticData: OnyxUpdate[] = [
-        {
+function revertSplitTransactionOnSearch(
+    hash: number,
+    originalTransactionID: string,
+    params: RevertSplitTransactionParams,
+    splitTransactionIDList: string[] = [],
+    optimisticRestoredTransaction?: Transaction,
+) {
+    let optimisticData: OnyxUpdate[] = [];
+    let failureData: OnyxUpdate[] = [];
+    let finallyData: OnyxUpdate[] = [];
+
+    if (splitTransactionIDList.length > 0 && optimisticRestoredTransaction) {
+        const {optimisticData: loadingOptimisticData, finallyData: loadingFinallyData} = getOnyxLoadingData(hash);
+        optimisticData = [...(loadingOptimisticData ?? [])];
+        finallyData = [...(loadingFinallyData ?? [])];
+
+        const pendingDeleteEntries = Object.fromEntries(
+            splitTransactionIDList.map((transactionID) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}]),
+        );
+
+        const pendingDeleteRollbackEntries = Object.fromEntries(splitTransactionIDList.map((transactionID) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {pendingAction: null}]));
+
+        optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
             value: {
                 data: {
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: null,
+                    ...pendingDeleteEntries,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: optimisticRestoredTransaction,
                 },
             },
-        },
-    ];
+        } as unknown as OnyxUpdate);
 
-    API.write(WRITE_COMMANDS.REVERT_SPLIT_TRANSACTION, params, {optimisticData, successData: [], failureData: []});
+        failureData = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+                value: {
+                    data: {
+                        ...pendingDeleteRollbackEntries,
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: null,
+                    },
+                },
+            } as unknown as OnyxUpdate,
+        ];
+    }
+
+    API.write(WRITE_COMMANDS.REVERT_SPLIT_TRANSACTION, params, {optimisticData, successData: [], failureData, finallyData});
 }
 
 function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[], transactions?: OnyxCollection<Transaction>) {

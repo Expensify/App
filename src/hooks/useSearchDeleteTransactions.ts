@@ -1,6 +1,7 @@
 import {useCallback} from 'react';
 import {useSearchContext} from '@components/Search/SearchContext';
 import {deleteMoneyRequestOnSearch, revertSplitTransactionOnSearch} from '@libs/actions/Search';
+import {hasValidModifiedAmount} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
@@ -71,18 +72,41 @@ function useSearchDeleteTransactions() {
                         continue;
                     }
                     const remainingPortion = Math.abs(Number(remaining.modifiedAmount ?? remaining.amount ?? 0));
-                    revertSplitTransactionOnSearch(hash, originalTransactionID, {
-                        transactionID: remaining.transactionID,
-                        amount: remainingPortion,
-                        created: remaining.created ?? '',
-                        category: remaining.category ?? '',
-                        tag: remaining.tag ?? '',
-                        merchant: remaining.modifiedMerchant ?? remaining.merchant ?? '',
-                        comment: remaining.comment?.comment ?? '',
-                        reimbursable: remaining.reimbursable,
-                        billable: remaining.billable,
-                        reportID: remaining.reportID,
-                    });
+                    const splitTransactionIDList = [...splitTransactionIDs];
+                    if (remaining.transactionID !== originalTransactionID) {
+                        splitTransactionIDList.push(remaining.transactionID);
+                    }
+                    const remainingModifiedAmount = hasValidModifiedAmount(remaining) ? remaining.modifiedAmount : '';
+                    const optimisticRestoredTransaction: Transaction = {
+                        ...remaining,
+                        transactionID: originalTransactionID,
+                        amount: remaining.amount,
+                        modifiedAmount: remainingModifiedAmount,
+                        pendingAction: null,
+                        comment: {
+                            ...(remaining.comment ?? {}),
+                            source: undefined,
+                            originalTransactionID: undefined,
+                        },
+                    };
+                    revertSplitTransactionOnSearch(
+                        hash,
+                        originalTransactionID,
+                        {
+                            transactionID: remaining.transactionID,
+                            amount: remainingPortion,
+                            created: remaining.created ?? '',
+                            category: remaining.category ?? '',
+                            tag: remaining.tag ?? '',
+                            merchant: remaining.modifiedMerchant ?? remaining.merchant ?? '',
+                            comment: remaining.comment?.comment ?? '',
+                            reimbursable: remaining.reimbursable,
+                            billable: remaining.billable,
+                            reportID: remaining.reportID,
+                        },
+                        splitTransactionIDList,
+                        optimisticRestoredTransaction,
+                    );
                     continue;
                 }
 
