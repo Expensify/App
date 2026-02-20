@@ -684,7 +684,7 @@ function addActions({
     }
 
     // Store all markdown text attachments i.e `![](https://images.unsplash.com/...)`
-    const reportActionID = file ? attachmentAction?.reportActionID : reportCommentAction?.reportActionID;
+    const resolvedReportActionID = file ? attachmentAction?.reportActionID : reportCommentAction?.reportActionID;
     const attachmentTags = [...reportCommentText.matchAll(CONST.REGEX.ATTACHMENT.ATTACHMENT)];
 
     const attachments = attachmentTags.flatMap((htmlTag, index) => {
@@ -700,7 +700,7 @@ function addActions({
 
         return {
             uri: source,
-            attachmentID: dataAttachmentID ?? `${reportActionID}_${index + 1}`,
+            attachmentID: dataAttachmentID ?? `${resolvedReportActionID}_${index + 1}`,
         };
     });
 
@@ -752,7 +752,7 @@ function addActions({
 
     const parameters: AddCommentOrAttachmentParams = {
         reportID,
-        reportActionID,
+        reportActionID: resolvedReportActionID,
         commentReportActionID: file && reportCommentAction ? reportCommentAction.reportActionID : null,
         reportComment: reportCommentText,
         file,
