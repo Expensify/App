@@ -6047,6 +6047,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             workspaceCurrencyNotSupported: 'Workspace-Währung wird nicht unterstützt',
             yourWorkspace: `Dein Arbeitsbereich ist auf eine nicht unterstützte Währung eingestellt. Sieh dir die <a href="${CONST.CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL}">Liste der unterstützten Währungen</a> an.`,
             chooseAnExisting: 'Wähle ein bestehendes Bankkonto zum Bezahlen von Ausgaben oder füge ein neues hinzu.',
+            changeBankAccount: 'Bankkonto ändern',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Besitz übertragen',

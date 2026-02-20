@@ -5976,6 +5976,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             workspaceCurrencyNotSupported: 'ワークスペースの通貨はサポートされていません',
             yourWorkspace: `ご利用のワークスペースはサポートされていない通貨に設定されています。<a href="${CONST.CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL}">サポートされている通貨の一覧</a>を表示します。`,
             chooseAnExisting: '既存の銀行口座を選択して経費を支払うか、新しい口座を追加してください。',
+            changeBankAccount: '銀行口座を変更',
         },
         changeOwner: {
             changeOwnerPageTitle: '所有者を変更',

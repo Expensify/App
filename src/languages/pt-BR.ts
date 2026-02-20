@@ -6014,6 +6014,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             workspaceCurrencyNotSupported: 'Moeda do workspace não suportada',
             yourWorkspace: `Seu workspace está configurado para uma moeda não compatível. Veja a <a href="${CONST.CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL}">lista de moedas compatíveis</a>.`,
             chooseAnExisting: 'Escolha uma conta bancária existente para pagar despesas ou adicione uma nova.',
+            changeBankAccount: 'Alterar conta bancária',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Transferir proprietário',
