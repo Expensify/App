@@ -1837,6 +1837,7 @@ const CONST = {
         ATTRIBUTE_ROUTE_TO: 'route_to',
         ATTRIBUTE_MIN_DURATION: 'min_duration',
         ATTRIBUTE_FINISHED_MANUALLY: 'finished_manually',
+        ATTRIBUTE_HAD_CACHED_DATA: 'had_cached_data',
         ATTRIBUTE_SKELETON_PREFIX: 'skeleton.',
         // Event names
         EVENT_SKELETON_ATTRIBUTES_UPDATE: 'skeleton_attributes_updated',

@@ -27,7 +27,7 @@ import navigationRef from '@libs/Navigation/navigationRef';
 import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, isMoneyRequestAction, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
 import {canEditReportAction, getReportOfflinePendingActionAndErrors, isReportTransactionThread} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
-import {cancelSpan} from '@libs/telemetry/activeSpans';
+import {cancelSpanWithChildren} from '@libs/telemetry/activeSpans';
 import Navigation from '@navigation/Navigation';
 import ReportActionsView from '@pages/inbox/report/ReportActionsView';
 import ReportFooter from '@pages/inbox/report/ReportFooter';
@@ -189,7 +189,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     // We need to cancel telemetry span when user leaves the screen before full report data is loaded
     useEffect(() => {
         return () => {
-            cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`);
+            cancelSpanWithChildren(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`);
         };
     }, [reportID]);
 

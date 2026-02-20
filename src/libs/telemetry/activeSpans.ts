@@ -52,8 +52,17 @@ function cancelAllSpans() {
     }
 }
 
+function cancelSpanWithChildren(spanId: string) {
+    for (const [id] of activeSpans.entries()) {
+        if (id.startsWith(`${spanId}_`)) {
+            cancelSpan(id);
+        }
+    }
+    cancelSpan(spanId);
+}
+
 function getSpan(spanId: string) {
     return activeSpans.get(spanId);
 }
 
-export {startSpan, endSpan, getSpan, cancelSpan, cancelAllSpans};
+export {startSpan, endSpan, getSpan, cancelSpan, cancelAllSpans, cancelSpanWithChildren};

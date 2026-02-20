@@ -87,7 +87,7 @@ import {
     isTaskReport,
     isValidReportIDFromPath,
 } from '@libs/ReportUtils';
-import {cancelSpan} from '@libs/telemetry/activeSpans';
+import {cancelSpanWithChildren, endSpan} from '@libs/telemetry/activeSpans';
 import {isNumeric} from '@libs/ValidationUtils';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
 import {setShouldShowComposeInput} from '@userActions/Composer';
@@ -650,8 +650,8 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         return () => {
             skipOpenReportListener.remove();
 
-            // We need to cancel telemetry span when user leaves the screen before full report data is loaded
-            cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`);
+            // We need to cancel telemetry span (and any child spans) when user leaves the screen before full report data is loaded
+            cancelSpanWithChildren(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`);
         };
     }, [reportID]);
 
@@ -885,6 +885,14 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             setIsLinkingToMessage(false);
         });
     }, [reportMetadata?.isLoadingInitialReportActions]);
+
+    const prevIsLoadingInitialReportActions = usePrevious(reportMetadata?.isLoadingInitialReportActions);
+    useEffect(() => {
+        if (!prevIsLoadingInitialReportActions || reportMetadata?.isLoadingInitialReportActions) {
+            return;
+        }
+        endSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}_DataFetch`);
+    }, [reportMetadata?.isLoadingInitialReportActions, prevIsLoadingInitialReportActions, reportID]);
 
     const navigateToEndOfReport = useCallback(() => {
         Navigation.setParams({reportActionID: ''});

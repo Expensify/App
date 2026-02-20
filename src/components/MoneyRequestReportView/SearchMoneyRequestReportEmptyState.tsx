@@ -10,7 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canAddTransaction, isArchivedReport} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {cancelSpan} from '@libs/telemetry/activeSpans';
+import {cancelSpanWithChildren} from '@libs/telemetry/activeSpans';
 import Navigation from '@navigation/Navigation';
 import {startDistanceRequest, startMoneyRequest} from '@userActions/IOU';
 import {openUnreportedExpense} from '@userActions/Report';
@@ -78,7 +78,7 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
     ];
 
     useEffect(() => {
-        cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${report.reportID}`);
+        cancelSpanWithChildren(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${report.reportID}`);
     }, [report.reportID]);
 
     return (

@@ -11,7 +11,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setSidebarLoaded} from '@libs/actions/App';
 import Navigation from '@libs/Navigation/Navigation';
-import {cancelSpan} from '@libs/telemetry/activeSpans';
+import {cancelSpanWithChildren} from '@libs/telemetry/activeSpans';
 import * as ReportActionContextMenu from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -66,7 +66,7 @@ function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.
                 (shouldUseNarrowLayout && isActiveReport(option.reportID) && !reportActionID) ||
                 shouldBlockReportNavigation
             ) {
-                cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${option.reportID}`);
+                cancelSpanWithChildren(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${option.reportID}`);
                 return;
             }
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID));

@@ -182,6 +182,7 @@ import {isAnonymousUser} from '@userActions/Session';
 import {onServerDataReady} from '@userActions/Welcome';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize, OnboardingMessage} from '@userActions/Welcome/OnboardingFlow';
+import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import CONFIG from '@src/CONFIG';
 import type {OnboardingAccounting} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -1491,6 +1492,16 @@ function openReport(
         resourceID: reportID,
         cursorID: reportActionID,
     };
+
+    const parentSpanId = `${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`;
+    const parentSpan = getSpan(parentSpanId);
+    if (parentSpan) {
+        startSpan(`${parentSpanId}_DataFetch`, {
+            name: 'DataFetch',
+            op: `${CONST.TELEMETRY.SPAN_OPEN_REPORT}.DataFetch`,
+            parentSpan,
+        });
+    }
 
     if (isFromDeepLink) {
         finallyData.push({
