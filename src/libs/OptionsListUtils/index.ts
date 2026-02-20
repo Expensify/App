@@ -149,7 +149,7 @@ import {isScanning} from '@libs/TransactionUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PrivateIsArchivedMap} from '@src/selectors/ReportNameValuePairs';
+import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 import type {
     Beta,
     DismissedProductTraining,

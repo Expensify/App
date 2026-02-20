@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as NativeNavigation from '@react-navigation/native';
-import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
+import {act, cleanup, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
 import {addSeconds, format, subMinutes} from 'date-fns';
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -286,6 +286,7 @@ async function signInAndGetApp(): Promise<void> {
 describe('Pagination', () => {
     afterEach(async () => {
         await waitForIdle();
+        cleanup();
         await act(async () => {
             await Onyx.clear();
 
@@ -298,9 +299,7 @@ describe('Pagination', () => {
         jest.clearAllMocks();
     });
 
-    // @TODO: Adjust this test to work with the home page as a default screen.
-    // GitHub issue: https://github.com/Expensify/App/issues/80982
-    xit('opens a chat and load initial messages', async () => {
+    it('opens a chat and load initial messages', async () => {
         mockOpenReport(5, '5');
 
         await signInAndGetApp();
@@ -323,9 +322,7 @@ describe('Pagination', () => {
         TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
     });
 
-    // @TODO: Adjust this test to work with the home page as a default screen.
-    // GitHub issue: https://github.com/Expensify/App/issues/80982
-    xit('opens a chat and load older messages', async () => {
+    it('opens a chat and load older messages', async () => {
         mockOpenReport(CONST.REPORT.MIN_INITIAL_REPORT_ACTION_COUNT, '18');
         mockGetOlderActions(5);
 
@@ -357,9 +354,7 @@ describe('Pagination', () => {
         });
     });
 
-    // @TODO: Adjust this test to work with the home page as a default screen.
-    // GitHub issue: https://github.com/Expensify/App/issues/80982
-    xit('opens a chat and load newer messages', async () => {
+    it('opens a chat and load newer messages', async () => {
         mockOpenReport(5, '5');
         mockGetNewerActions(5);
 

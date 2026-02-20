@@ -960,6 +960,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Portafoglio > Carte assegnate',
             },
         },
+        assignedCards: 'Carte assegnate',
+        assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} rimanenti`,
         announcements: 'Annunci',
         discoverSection: {
             title: 'Scopri',
@@ -6388,7 +6390,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 matchTypeContains: 'Contiene',
                 matchTypeExact: 'Corrisponde esattamente',
                 duplicateRuleTitle: "Una regola simile per l'esercente esiste già",
-                duplicateRulePrompt: (merchantName: string) => `Vuoi salvare una nuova regola per «${merchantName}» anche se ne hai già una esistente?`,
+                duplicateRulePrompt: (merchantName: string) => `La regola esistente per "${merchantName}" avrà la priorità su questa. Salvare comunque?`,
                 saveAnyway: 'Salva comunque',
                 applyToExistingUnsubmittedExpenses: 'Applica alle spese esistenti non inviate',
             },

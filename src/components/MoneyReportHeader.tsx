@@ -103,6 +103,7 @@ import {
     isPending,
     isPerDiemRequest,
     isScanning,
+    isTransactionPendingDelete,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from '@libs/TransactionUtils';
 import type {ExportType} from '@pages/inbox/report/ReportDetailsExportPage';
@@ -287,8 +288,16 @@ function MoneyReportHeader({
 
     const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
 
-    const transactions = useMemo(() => {
-        return Object.values(reportTransactions);
+    const {transactions, nonPendingDeleteTransactions} = useMemo(() => {
+        const all: OnyxTypes.Transaction[] = [];
+        const filtered: OnyxTypes.Transaction[] = [];
+        for (const transaction of Object.values(reportTransactions)) {
+            all.push(transaction);
+            if (!isTransactionPendingDelete(transaction)) {
+                filtered.push(transaction);
+            }
+        }
+        return {transactions: all, nonPendingDeleteTransactions: filtered};
     }, [reportTransactions]);
 
     // When prevent self-approval is enabled & the current user is submitter AND they're submitting to themselves, we need to show the optimistic next step
@@ -851,7 +860,7 @@ function MoneyReportHeader({
             currentUserAccountID: accountID,
             report: moneyRequestReport,
             chatReport,
-            reportTransactions: transactions,
+            reportTransactions: nonPendingDeleteTransactions,
             violations,
             bankAccountList,
             policy,
@@ -870,7 +879,7 @@ function MoneyReportHeader({
         isSubmittingAnimationRunning,
         moneyRequestReport,
         chatReport,
-        transactions,
+        nonPendingDeleteTransactions,
         violations,
         policy,
         reportNameValuePairs,
@@ -1182,7 +1191,7 @@ function MoneyReportHeader({
             currentUserAccountID: accountID,
             report: moneyRequestReport,
             chatReport,
-            reportTransactions: transactions,
+            reportTransactions: nonPendingDeleteTransactions,
             originalTransaction: originalIOUTransaction,
             violations,
             bankAccountList,
@@ -1198,7 +1207,7 @@ function MoneyReportHeader({
         currentUserLogin,
         accountID,
         chatReport,
-        transactions,
+        nonPendingDeleteTransactions,
         originalIOUTransaction,
         violations,
         policy,
@@ -1442,6 +1451,7 @@ function MoneyReportHeader({
             icon: expensifyIcons.Buildings,
             value: CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.CHANGE_WORKSPACE,
+            shouldShow: transactions.length === 0 || nonPendingDeleteTransactions.length > 0,
             onSelected: () => {
                 if (!moneyRequestReport) {
                     return;

@@ -959,6 +959,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Wallet > Toegewezen kaarten',
             },
         },
+        assignedCards: 'Toegewezen kaarten',
+        assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} resterend`,
         announcements: 'Aankondigingen',
         discoverSection: {
             title: 'Ontdekken',
@@ -6369,7 +6371,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 matchTypeContains: 'Bevat',
                 matchTypeExact: 'Komt exact overeen',
                 duplicateRuleTitle: 'Vergelijkbare handelaarregel bestaat al',
-                duplicateRulePrompt: (merchantName: string) => `Wil je een nieuwe regel voor ‘${merchantName}’ opslaan, ook al heb je er al een bestaande?`,
+                duplicateRulePrompt: (merchantName: string) => `Je bestaande regel voor ‘${merchantName}’ krijgt voorrang op deze regel. Toch opslaan?`,
                 saveAnyway: 'Toch opslaan',
                 applyToExistingUnsubmittedExpenses: 'Toepassen op bestaande niet-ingediende uitgaven',
             },
