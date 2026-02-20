@@ -76,46 +76,6 @@ type FilterItem = WithSentryLabel & {
     filterKey: SearchAdvancedFiltersKey;
 };
 
-type TranslateFunction = (key: TranslationPaths) => string;
-
-function createDateDisplayValueHelper(filterValues: {on?: string; after?: string; before?: string; range?: string}, translate: TranslateFunction): [SearchDateValues, string[]] {
-    const rangeBoundaries = getRangeBoundariesFromFormValue(filterValues.range, filterValues.after, filterValues.before);
-    const hasRange = !!filterValues.range;
-    const value: SearchDateValues = {
-        [CONST.SEARCH.DATE_MODIFIERS.ON]: filterValues.on,
-        [CONST.SEARCH.DATE_MODIFIERS.AFTER]: filterValues.after,
-        [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: filterValues.before,
-        [CONST.SEARCH.DATE_MODIFIERS.RANGE]: filterValues.range,
-    };
-
-    const displayText: string[] = [];
-    if (value.On) {
-        displayText.push(isSearchDatePreset(value.On) ? translate(`search.filters.date.presets.${value.On}`) : `${translate('common.on')} ${DateUtils.formatToReadableString(value.On)}`);
-    }
-
-    if (value.After) {
-        displayText.push(`${translate('common.after')} ${DateUtils.formatToReadableString(value.After)}`);
-    }
-    if (value.Before) {
-        displayText.push(`${translate('common.before')} ${DateUtils.formatToReadableString(value.Before)}`);
-    }
-
-    if (hasRange) {
-        const singleBoundary = rangeBoundaries.from ?? rangeBoundaries.to;
-        let rangeDisplay = '';
-        if (rangeBoundaries.from && rangeBoundaries.to) {
-            rangeDisplay = DateUtils.getFormattedDateRangeForSearch(rangeBoundaries.from, rangeBoundaries.to, true);
-        } else if (singleBoundary) {
-            rangeDisplay = DateUtils.formatToReadableString(singleBoundary);
-        }
-        if (rangeDisplay) {
-            displayText.push(`${translate('common.range')}: ${rangeDisplay}`);
-        }
-    }
-
-    return [value, displayText];
-}
-
 type SearchFiltersBarProps = {
     queryJSON: SearchQueryJSON;
     headerButtonsOptions: Array<DropdownOption<SearchHeaderOptionValue>>;
@@ -273,7 +233,43 @@ function SearchFiltersBar({
 
     const createDateDisplayValue = useCallback(
         (filterValues: {on?: string; after?: string; before?: string; range?: string}): [SearchDateValues, string[]] => {
-            return createDateDisplayValueHelper(filterValues, translate);
+            const rangeBoundaries = getRangeBoundariesFromFormValue(filterValues.range, filterValues.after, filterValues.before);
+            const hasRange = !!filterValues.range;
+            const value: SearchDateValues = {
+                [CONST.SEARCH.DATE_MODIFIERS.ON]: filterValues.on,
+                [CONST.SEARCH.DATE_MODIFIERS.AFTER]: filterValues.after,
+                [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: filterValues.before,
+                [CONST.SEARCH.DATE_MODIFIERS.RANGE]: filterValues.range,
+            };
+
+            const displayText: string[] = [];
+            if (value.On) {
+                displayText.push(
+                    isSearchDatePreset(value.On) ? translate(`search.filters.date.presets.${value.On}`) : `${translate('common.on')} ${DateUtils.formatToReadableString(value.On)}`,
+                );
+            }
+
+            if (value.After) {
+                displayText.push(`${translate('common.after')} ${DateUtils.formatToReadableString(value.After)}`);
+            }
+            if (value.Before) {
+                displayText.push(`${translate('common.before')} ${DateUtils.formatToReadableString(value.Before)}`);
+            }
+
+            if (hasRange) {
+                const singleBoundary = rangeBoundaries.from ?? rangeBoundaries.to;
+                let rangeDisplay = '';
+                if (rangeBoundaries.from && rangeBoundaries.to) {
+                    rangeDisplay = DateUtils.getFormattedDateRangeForSearch(rangeBoundaries.from, rangeBoundaries.to, true);
+                } else if (singleBoundary) {
+                    rangeDisplay = DateUtils.formatToReadableString(singleBoundary);
+                }
+                if (rangeDisplay) {
+                    displayText.push(`${translate('common.range')}: ${rangeDisplay}`);
+                }
+            }
+
+            return [value, displayText];
         },
         [translate],
     );
@@ -841,7 +837,7 @@ function SearchFiltersBar({
 
             return filterFormValues[key as SearchAdvancedFiltersKey];
         });
-    }, [filterFormValues, filters, typeFiltersKeys]);
+    }, [filterFormValues, filters, searchAdvancedFiltersForm, typeFiltersKeys]);
 
     const adjustScroll = useCallback((info: {distanceFromEnd: number}) => {
         // Workaround for a known React Native bug on Android (https://github.com/facebook/react-native/issues/27504):
@@ -1010,4 +1006,3 @@ function SearchFiltersBar({
 }
 
 export default SearchFiltersBar;
-export {createDateDisplayValueHelper};

@@ -402,7 +402,6 @@ function getFilterDisplayTitle(
 
     if (key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
         const values: string[] = [];
-        const reportFieldRangePrefix = CONST.SEARCH.REPORT_FIELD.RANGE_PREFIX;
         const reportFieldValues: Record<string, {text?: string; on?: string; after?: string; before?: string; range?: string}> = {};
 
         for (const [fieldKey, fieldValue] of Object.entries(filters)) {
@@ -415,7 +414,7 @@ function getFilterDisplayTitle(
                 .replace(CONST.SEARCH.REPORT_FIELD.ON_PREFIX, '')
                 .replace(CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX, '')
                 .replace(CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX, '')
-                .replace(reportFieldRangePrefix, '');
+                .replace(CONST.SEARCH.REPORT_FIELD.RANGE_PREFIX, '');
 
             if (!suffix) {
                 continue;
@@ -433,7 +432,7 @@ function getFilterDisplayTitle(
                 reportFieldValues[suffix].after = fieldValue as string;
             } else if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX)) {
                 reportFieldValues[suffix].before = fieldValue as string;
-            } else if (fieldKey.startsWith(reportFieldRangePrefix)) {
+            } else if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.RANGE_PREFIX)) {
                 reportFieldValues[suffix].range = fieldValue as string;
             }
         }
