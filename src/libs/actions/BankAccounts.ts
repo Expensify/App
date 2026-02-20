@@ -1554,7 +1554,6 @@ function pressedOnLockedBankAccount(bankAccountID: number, translate: LocalizedT
                 deleted: '',
             },
         ];
-        reportAction.originalMessage = {html, whisperedTo: []};
         reportAction.pendingAction = null;
         reportAction.isOptimisticAction = false;
 
