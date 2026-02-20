@@ -45,6 +45,14 @@ readonly LINE_ARG="${3:-}"
 [[ -z "$PATH_ARG" || -z "$BODY_ARG" || -z "$LINE_ARG" ]] && usage
 
 validate_rule "$BODY_ARG"
+
+# Check for self-contradicting comments (flags violation then walks it back).
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if ! "$SCRIPT_DIR/filterContradictions.sh" "$BODY_ARG"; then
+    echo "Comment suppressed: self-contradicting review comment detected"
+    exit 0
+fi
+
 echo "Comment approved: $COMMENT_STATUS_REASON"
 
 readonly FOOTER=$'\n\n---\n\nPlease rate this suggestion with 👍 or 👎 to help us improve! Reactions are used to monitor reviewer efficiency.'
