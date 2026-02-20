@@ -24,6 +24,7 @@ import type {
     AddedOrDeletedPolicyReportFieldParams,
     AddOrDeletePolicyCustomUnitRateParams,
     ChangeFieldParams,
+    ConciergeBrokenCardConnectionParams,
     ConnectionNameParams,
     CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
@@ -130,7 +131,6 @@ import type {
     ZipCodeExampleFormatParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
-
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -435,6 +435,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reportID: 'レポートID',
         longReportID: '長いレポートID',
         withdrawalID: '出金ID',
+        withdrawalStatus: '出金ステータス',
         bankAccounts: '銀行口座',
         chooseFile: 'ファイルを選択',
         chooseFiles: 'ファイルを選択',
@@ -533,6 +534,7 @@ const translations: TranslationDeepObject<typeof en> = {
         week: '週',
         year: '年',
         quarter: '四半期',
+        vacationDelegate: '休暇代理人',
         expensifyLogo: 'Expensifyロゴ',
     },
     socials: {
@@ -929,18 +931,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: '初年度が25％オフになります！',
                 subtitle: ({days}: {days: number}) => `残り ${days} ${days === 1 ? '日' : '日数'} 日`,
             },
-            addShippingAddress: {
-                title: '配送先住所が必要です',
-                subtitle: 'Expensify Card を受け取る住所を入力してください。',
-                cta: '住所を追加',
-            },
-            activateCard: {
-                title: 'Expensify Card を有効化する',
-                subtitle: 'カードを認証して支出を始めましょう。',
-                cta: '有効化',
-            },
+            addShippingAddress: {title: '配送先住所が必要です', subtitle: 'Expensify カードを受け取る住所を入力してください。', cta: '住所を追加'},
+            activateCard: {title: 'Expensify カードを有効化する', subtitle: 'カードを認証して支出を始めましょう。', cta: '有効化'},
             reviewCardFraud: {
-                title: 'Expensify Card の不正利用の可能性を確認する',
+                title: 'Expensify カードの不正利用の可能性を確認する',
                 titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `${merchant} での不正の可能性がある ${amount} を確認`,
                 subtitle: 'Expensify カード',
                 cta: '確認',
@@ -955,6 +949,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: ({integrationName}: {integrationName: string}) => `${integrationName} 接続を修正`,
                 defaultSubtitle: 'ワークスペース > 会計',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会計`,
+            },
+            fixPersonalCardConnection: {
+                title: ({cardName}: {cardName?: string}) => (cardName ? `${cardName}個人カードの接続を修正` : '個人カードの連携を修正'),
+                subtitle: 'ウォレット > 割り当てられたカード',
             },
         },
         announcements: 'お知らせ',
@@ -1930,8 +1928,8 @@ const translations: TranslationDeepObject<typeof en> = {
         lockAccount: 'アカウントをロック',
         unlockAccount: 'アカウントのロック解除',
         compromisedDescription:
-            'アカウントにおかしな点がありますか？報告すると、アカウントが即座にロックされ、新しい Expensify Card での取引がブロックされ、アカウントの変更もできなくなります。',
-        domainAdminsDescription: 'ドメイン管理者向け：これにより、ドメイン内のすべての Expensify Card のアクティビティと管理者の操作も一時停止されます。',
+            'アカウントにおかしな点がありますか？報告すると、すぐにアカウントがロックされ、新しい Expensify カードの取引がブロックされ、アカウントの変更もできなくなります。',
+        domainAdminsDescription: 'ドメイン管理者向け：これにより、ドメイン全体のすべての Expensify カードの利用と管理者による操作も一時停止されます。',
         areYouSure: 'Expensify アカウントをロックしてもよろしいですか？',
         onceLocked: 'ロックされると、解除リクエストとセキュリティ審査が完了するまでアカウントは制限されます',
     },
@@ -2069,6 +2067,14 @@ const translations: TranslationDeepObject<typeof en> = {
             password: 'Expensify のパスワードを入力してください',
         },
     },
+    personalCard: {
+        fixCard: 'カードを修正',
+        brokenConnection: 'カード接続が切断されています。',
+        conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
+            connectionLink
+                ? `${cardName}カードとの接続が切れています。カードを修正するには、<a href="${connectionLink}">銀行にログイン</a>してください。`
+                : `${cardName}カードとの接続が切れています。カードを修正するには、銀行にログインしてください。`,
+    },
     walletPage: {
         balance: '残高',
         paymentMethodsTitle: '支払方法',
@@ -2119,7 +2125,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unshareBankAccount: '銀行口座の共有を解除',
         unshareBankAccountDescription: '以下の全員がこの銀行口座にアクセスできます。いつでもアクセス権を削除できます。進行中の支払いはそのまま完了します。',
         unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} はこのビジネス銀行口座へのアクセス権を失います。処理中の支払いは引き続き完了します。`,
-        reachOutForHelp: 'そのレポートは Expensify Card と一緒に使用されています。共有を解除する必要がある場合は、<concierge-link>Concierge に連絡してください</concierge-link>。',
+        reachOutForHelp: 'Expensify カードで使用されています。共有を解除する必要がある場合は、<concierge-link>Concierge にお問い合わせください</concierge-link>。',
         unshareErrorModalTitle: '銀行口座の共有を解除できません',
         travelCVV: {
             title: 'トラベルCVV',
@@ -2198,6 +2204,9 @@ ${date} の ${merchant} への ${amount}`,
         unfreezeCard: 'カードの一時停止を解除',
         freezeDescription: '一時停止したカードは購入や取引に使用できません。いつでも再開できます。',
         unfreezeDescription: 'このカードの一時停止を解除すると、購入と取引が再び可能になります。カードが安全に使用できると確信できる場合にのみ続行してください。',
+        frozen: '凍結中',
+        youFroze: ({date}: {date: string}) => `${date}にこのカードを一時停止しました。`,
+        frozenBy: ({person, date}: {person: string; date: string}) => `${person}が${date}にこのカードを一時停止しました。`,
     },
     workflowsPage: {
         workflowTitle: '支出',
@@ -2325,7 +2334,7 @@ ${date} の ${merchant} への ${amount}`,
         error: {
             thatDidNotMatch: 'カードの下4桁が一致しませんでした。もう一度お試しください。',
             throttled:
-                'Expensify Card の下4桁の入力ミスが多すぎます。番号が正しいと確信できる場合は、問題解決のため Concierge へお問い合わせください。それ以外の場合は、時間をおいてから再度お試しください。',
+                'Expensify カードの下4桁の入力に複数回連続で失敗しました。番号が正しいと確信される場合は、問題解決のために Concierge へご連絡ください。それ以外の場合は、時間をおいてからもう一度お試しください。',
         },
     },
     getPhysicalCard: {
@@ -3037,7 +3046,6 @@ ${
         time: '時間',
         clearAfter: 'クリアまでの時間',
         whenClearStatus: 'ステータスをいつクリアしますか？',
-        vacationDelegate: '休暇代理人',
         setVacationDelegate: `休暇中に不在の間、あなたに代わってレポートを承認する代理人を設定しましょう。`,
         cannotSetVacationDelegate: `現在、次のメンバーの代理人になっているため、休暇代理人を設定できません：`,
         vacationDelegateError: '休暇の代理人を更新中にエラーが発生しました。',
@@ -3072,14 +3080,14 @@ ${
         connectManually: '手動で接続',
         desktopConnection: '注意：Chase、Wells Fargo、Capital One、または Bank of America と接続するには、ブラウザでこの手続きを完了するためにこちらをクリックしてください。',
         yourDataIsSecure: 'お客様のデータは安全です',
-        toGetStarted: '銀行口座を追加して、経費の精算、Expensifyカードの発行、請求書の回収、支払いをすべて一か所で行いましょう。',
+        toGetStarted: '銀行口座を追加して、経費の精算、Expensify カードの発行、請求書の入金管理、請求書の支払いをすべて一括で行いましょう。',
         plaidBodyCopy: '従業員に、会社の経費を支払うのも立て替え精算を受けるのも、より簡単な方法を提供しましょう。',
         checkHelpLine: '口座のルーティング番号と口座番号は、その口座の小切手に記載されています。',
         bankAccountPurposeTitle: '銀行口座で何をしたいですか？',
         getReimbursed: '払い戻しを受ける',
         getReimbursedDescription: '雇用主または他の人から',
         makePayments: '支払いを行う',
-        makePaymentsDescription: '経費を支払うかExpensifyカードを発行する',
+        makePaymentsDescription: '経費の支払いまたは Expensify カードの発行',
         hasPhoneLoginError: (contactMethodRoute: string) =>
             `銀行口座を連携するには、まず<a href="${contactMethodRoute}">メールアドレスをプライマリログインとして追加</a>してから、もう一度お試しください。電話番号はセカンダリログインとして追加できます。`,
         hasBeenThrottledError: '銀行口座の追加中にエラーが発生しました。数分待ってから、もう一度お試しください。',
@@ -3119,7 +3127,7 @@ ${
             validationAmounts: '入力した検証用金額が正しくありません。銀行明細書をもう一度確認してから、再度お試しください。',
             fullName: '有効な氏名を入力してください',
             ownershipPercentage: '有効なパーセント数値を入力してください',
-            deletePaymentBankAccount: 'この銀行口座は、Expensify Card の支払いに使用されているため削除できません。この口座をそれでも削除したい場合は、Concierge までご連絡ください。',
+            deletePaymentBankAccount: 'この銀行口座は Expensify カードの支払いに使用されているため、削除できません。この口座を削除したい場合は、Concierge までご連絡ください。',
             sameDepositAndWithdrawalAccount: '入金口座と出金口座が同じです。',
         },
     },
@@ -3910,7 +3918,7 @@ ${
             defaultCategory: 'デフォルトカテゴリ',
             viewTransactions: '取引を表示',
             policyExpenseChatName: (displayName: string) => `${displayName} さんの経費`,
-            deepDiveExpensifyCard: `<muted-text-label>Expensify Card の取引は、<a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">当社のインテグレーション</a>によって作成される「Expensify Card 負債勘定」に自動的にエクスポートされます。</muted-text-label>`,
+            deepDiveExpensifyCard: `<muted-text-label>Expensify カードの取引は、<a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">当社の連携機能</a>で作成される「Expensify カード負債勘定」に自動的にエクスポートされます。</muted-text-label>`,
             reimbursementChoice: {
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES]: 'ダイレクト',
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO]: 'なし',
@@ -3981,7 +3989,7 @@ ${
             exportDescription: 'Expensify のデータを QuickBooks Desktop へエクスポートする方法を設定します。',
             date: 'エクスポート日',
             exportInvoices: '請求書のエクスポート先',
-            exportExpensifyCard: 'Expensifyカードの取引を次の形式でエクスポートする',
+            exportExpensifyCard: 'Expensify カードの取引を次の形式でエクスポートします',
             account: 'アカウント',
             accountDescription: '仕訳を記帳する場所を選択してください。',
             accountsPayable: '買掛金',
@@ -4101,7 +4109,7 @@ ${
             exportDescription: 'Expensify のデータを QuickBooks Online へエクスポートする方法を設定します。',
             date: 'エクスポート日',
             exportInvoices: '請求書のエクスポート先',
-            exportExpensifyCard: 'Expensifyカードの取引を次の形式でエクスポートする',
+            exportExpensifyCard: 'Expensify カードの取引を次の形式でエクスポートします',
             exportDate: {
                 label: 'エクスポート日',
                 description: 'レポートをQuickBooks Onlineにエクスポートする際に、この日付を使用します。',
@@ -4898,7 +4906,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             },
         },
         expensifyCard: {
-            issueAndManageCards: 'Expensifyカードの発行と管理',
+            issueAndManageCards: 'Expensify カードを発行して管理する',
             getStartedIssuing: 'まずは最初のバーチャルカードまたは物理カードを発行しましょう。',
             verificationInProgress: '確認を進めています…',
             verifyingTheDetails: 'いくつかの詳細を確認しています。Expensify カードを発行できる準備が整いましたら、Concierge からお知らせします。',
@@ -4913,7 +4921,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             lastFour: '下4桁',
             limit: '上限',
             currentBalance: '現在の残高',
-            currentBalanceDescription: '現在残高は、前回の清算日以降に発生した、すべての記帳済み Expensify Card 取引の合計です。',
+            currentBalanceDescription: '現在残高は、前回の精算日以降に発生し記帳されたすべての Expensify カード取引の合計です。',
             balanceWillBeSettledOn: (settlementDate: string) => `残高は${settlementDate}に精算されます`,
             settleBalance: '残高を清算',
             cardLimit: 'カード上限',
@@ -4922,19 +4930,19 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             remainingLimitDescription:
                 '残りの限度額を算出する際には、お客様としてのご利用期間、登録時にご提供いただいた事業関連情報、およびビジネス用銀行口座の利用可能残高など、複数の要素を考慮します。残りの限度額は日々変動する可能性があります。',
             earnedCashback: 'キャッシュバック',
-            earnedCashbackDescription: 'キャッシュバック残高は、ワークスペース全体での毎月の清算済みExpensifyカード利用額に基づいています。',
+            earnedCashbackDescription: 'キャッシュバック残高は、ワークスペース内で決済済みの月間 Expensify カード利用額に基づいています。',
             issueNewCard: '新しいカードを発行',
             finishSetup: 'セットアップを完了',
             chooseBankAccount: '銀行口座を選択',
-            chooseExistingBank: '既存のビジネス銀行口座を選んでExpensifyカードの残高を支払うか、新しい銀行口座を追加してください',
+            chooseExistingBank: '既存のビジネス銀行口座を選んで Expensify カードの残高を支払うか、新しい銀行口座を追加してください',
             accountEndingIn: '末尾が…の口座',
             addNewBankAccount: '新しい銀行口座を追加',
             settlementAccount: '決済口座',
-            settlementAccountDescription: 'Expensifyカードの残高を支払う口座を選択してください。',
+            settlementAccountDescription: 'Expensify カードの残高を支払う口座を選択してください。',
             settlementAccountInfo: (reconciliationAccountSettingsLink: string, accountNumber: string) =>
                 `継続照合が正しく機能するように、この口座が<a href="${reconciliationAccountSettingsLink}">照合用口座</a>（${accountNumber}）と一致していることを確認してください。`,
             settlementFrequency: '清算頻度',
-            settlementFrequencyDescription: 'Expensify Card の残高を支払う頻度を選択してください。',
+            settlementFrequencyDescription: 'Expensify カードの残高を支払う頻度を選択してください。',
             settlementFrequencyInfo: '月次清算に切り替えるには、Plaid を通じて銀行口座を連携し、直近90日間の残高履歴がプラスである必要があります。',
             frequency: {
                 daily: '毎日',
@@ -4957,20 +4965,20 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             changeCardMonthlyLimitTypeWarning: (limit: number | string) =>
                 `このカードの限度額タイプを「月次」に変更すると、すでに月間限度額 ${limit} に達しているため、新しい取引は拒否されます。`,
             addShippingDetails: '配送先の詳細を追加',
-            issuedCard: (assignee: string) => `${assignee} に Expensify カードを発行しました！カードは 2～3 営業日以内に到着します。`,
-            issuedCardNoShippingDetails: (assignee: string) => `${assignee}にExpensify Cardを発行しました！配送先の詳細が確認され次第、カードを発送します。`,
-            issuedCardVirtual: (assignee: string, link: string) => `${assignee} にバーチャル Expensify Card を発行しました！${link} はすぐに使用できます。`,
-            addedShippingDetails: (assignee: string) => `${assignee} が配送先の詳細を追加しました。Expensify Card は 2～3 営業日で届きます。`,
-            replacedCard: (assignee: string) => `${assignee} は Expensify Card を再発行しました。新しいカードは 2〜3 営業日で到着します。`,
-            replacedVirtualCard: (assignee: string, link: string) => `${assignee}さんがバーチャル Expensify Card を再発行しました！${link}はすぐにご利用いただけます。`,
+            issuedCard: (assignee: string) => `${assignee} に Expensify カードを発行しました。カードは 2〜3 営業日以内に到着します。`,
+            issuedCardNoShippingDetails: (assignee: string) => `${assignee} に Expensify カードを発行しました。配送先の詳細が確認され次第、カードを発送します。`,
+            issuedCardVirtual: (assignee: string, link: string) => `${assignee} にバーチャル Expensify カードを発行しました！${link} はすぐにご利用いただけます。`,
+            addedShippingDetails: (assignee: string) => `${assignee} さんが配送先情報を追加しました。Expensify カードは営業日2～3日で届きます。`,
+            replacedCard: (assignee: string) => `${assignee} さんが Expensify カードを再発行しました。新しいカードは 2〜3 営業日以内に到着します。`,
+            replacedVirtualCard: (assignee: string, link: string) => `${assignee} はバーチャル Expensify カードを再発行しました！${link} はすぐにご利用いただけます。`,
             card: 'カード',
             replacementCard: '再発行カード',
             verifyingHeader: '確認中',
             bankAccountVerifiedHeader: '銀行口座が確認されました',
             verifyingBankAccount: '銀行口座を確認しています…',
-            verifyingBankAccountDescription: 'このアカウントでExpensifyカードを発行できるか確認しています。しばらくお待ちください。',
+            verifyingBankAccountDescription: 'このアカウントで Expensify カードを発行できるか確認しています。しばらくお待ちください。',
             bankAccountVerified: '銀行口座が認証されました！',
-            bankAccountVerifiedDescription: 'ワークスペースのメンバーに Expensify Card を発行できるようになりました。',
+            bankAccountVerifiedDescription: 'ワークスペースのメンバーに Expensify カードを発行できるようになりました。',
             oneMoreStep: 'あともう一歩…',
             oneMoreStepDescription: '銀行口座を手動で確認する必要があるようです。指示が表示されていますので、Concierge 画面に進んでください。',
             gotIt: '了解しました',
@@ -5093,11 +5101,11 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             expensifyCard: {
                 title: 'Expensify カード',
                 subtitle: '支出を把握し、コントロールしましょう。',
-                disableCardTitle: 'Expensifyカードを無効にする',
-                disableCardPrompt: 'このExpensifyカードはすでに使用中のため、無効にすることはできません。次の手順についてはConciergeにお問い合わせください。',
+                disableCardTitle: 'Expensify カードを無効にする',
+                disableCardPrompt: 'Expensify カードはすでに使用中のため、無効にすることはできません。今後の対応については Concierge までお問い合わせください。',
                 disableCardButton: 'Conciergeとチャット',
                 feed: {
-                    title: 'Expensifyカードを入手',
+                    title: 'Expensify カードを入手する',
                     subTitle: '経費精算を効率化してExpensifyの請求額を最大50％節約し、さらに以下の特典も利用できます。',
                     features: {
                         cashBack: '米国内でのすべての購入にキャッシュバック',
@@ -5121,7 +5129,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 },
                 bankConnectionError: '銀行接続の問題',
                 connectWithPlaid: 'Plaid 経由で接続',
-                connectWithExpensifyCard: 'Expensify Card をお試しください。',
+                connectWithExpensifyCard: 'Expensify カードをお試しください。',
                 bankConnectionDescription: `もう一度カードの追加をお試しください。それでも解決しない場合は、次の方法をお試しください。`,
                 disableCardTitle: '法人カードを無効化',
                 disableCardPrompt: 'この機能が使用中のため、会社カードは無効にできません。今後の対応についてはConciergeにお問い合わせください。',
@@ -5142,7 +5150,10 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 updateCard: 'カードを更新',
                 unassignCard: 'カードの割り当てを解除',
                 unassign: '割り当てを解除',
-                unassignCardDescription: 'このカードの割り当てを解除すると、ドラフトレポート上のすべての取引がカード所有者のアカウントから削除されます。',
+                unassignCardDescription: 'このカードの割り当てを解除すると、未送信の取引はすべて削除されます。',
+                removeCard: 'カードを削除',
+                remove: '削除',
+                removeCardDescription: 'このカードを削除すると、未送信のすべての取引が削除されます。',
                 assignCard: 'カードを割り当てる',
                 cardFeedName: 'カードフィード名',
                 cardFeedNameDescription: '他のカードフィードと区別できるように、一意の名前を付けてください。',
@@ -5174,9 +5185,9 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 noAccountsFound: 'アカウントが見つかりません',
                 defaultCard: 'デフォルトカード',
                 downgradeTitle: `ワークスペースをダウングレードできません`,
-                downgradeSubTitle: `このワークスペースには複数のカードフィード（Expensify Card を除く）が接続されているため、ダウングレードできません。続行するには、<a href="#">カードフィードを 1 つのみにしてください</a>。`,
+                downgradeSubTitle: `このワークスペースには複数のカードフィード（Expensify カードを除く）が接続されているため、ダウングレードできません。続行するには、<a href="#">カードフィードを1つだけ残す</a>ようにしてください。`,
                 noAccountsFoundDescription: (connection: string) => `${connection} にアカウントを追加して、もう一度接続を同期してください`,
-                expensifyCardBannerTitle: 'Expensifyカードを入手',
+                expensifyCardBannerTitle: 'Expensify カードを入手する',
                 expensifyCardBannerSubtitle:
                     '米国内でのあらゆるご利用でキャッシュバックを獲得し、Expensify の請求額を最大 50% 割引、無制限のバーチャルカードなど、さらに多くの特典をご利用いただけます。',
                 expensifyCardBannerLearnMoreButton: '詳細はこちら',
@@ -5187,7 +5198,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 title: 'ワークフロー',
                 subtitle: '支出の承認と支払い方法を設定します。',
                 disableApprovalPrompt:
-                    'このワークスペースの Expensify Card は現在、Smart Limit を設定するために承認に依存しています。承認を無効にする前に、Smart Limit が設定されている Expensify Card の制限タイプをすべて変更してください。',
+                    'このワークスペースの Expensify カードは現在、Smart Limits を設定するために承認フローに依存しています。承認を無効にする前に、Smart Limits が設定されている Expensify カードの上限タイプを変更してください。',
             },
             invoices: {
                 title: '請求書',
@@ -5232,7 +5243,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             workflowWarningModal: {
                 featureEnabledTitle: 'ちょっと待ってください…',
                 featureEnabledText:
-                    'このワークスペース内の Expensify カードは、Smart Limit を設定するために承認ワークフローに依存しています。\n\nワークフローを無効にする前に、Smart Limit が設定されているカードの限度額タイプを変更してください。',
+                    'このワークスペースの Expensify カードは、Smart Limit を設定するために承認ワークフローに依存しています。\n\nワークフローを無効にする前に、Smart Limit が設定されているカードの上限タイプを変更してください。',
                 confirmText: 'Expensify カードに移動',
             },
             rules: {
@@ -5448,6 +5459,11 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             reimbursementAccount: '精算口座',
             welcomeNote: '私の新しいワークスペースを使い始めてください',
             delayedSubmission: '遅延提出',
+            merchantRules: '販売者ルール',
+            merchantRulesCount: () => ({
+                one: '1 販売者ルール',
+                other: (count: number) => `${count} 販売者ルール`,
+            }),
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `元のワークスペースから ${totalMembers ?? 0} 人のメンバーと一緒に、${newWorkspaceName ?? ''} を作成して共有しようとしています。`,
             error: '新しいワークスペースの複製中にエラーが発生しました。もう一度お試しください。',
@@ -5466,7 +5482,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
         },
         new: {
             newWorkspace: '新しいワークスペース',
-            getTheExpensifyCardAndMore: 'Expensifyカードなどを入手する',
+            getTheExpensifyCardAndMore: 'Expensify カードなどを利用する',
             confirmWorkspace: 'ワークスペースを確認',
             myGroupWorkspace: ({workspaceNumber}: {workspaceNumber?: number}) => `マイ・グループワークスペース${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
             workspaceName: (userName: string, workspaceNumber?: number) => `${userName} のワークスペース${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
@@ -5830,13 +5846,13 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             cardReconciliation: 'カード照合',
             reconciliationAccount: '照合勘定',
             continuousReconciliation: '継続的な照合',
-            saveHoursOnReconciliation: '会計期間ごとの照合作業を、Expensify が Expensify カードの利用明細と清算を自動的かつ継続的に照合して代行することで、数時間分削減できます。',
+            saveHoursOnReconciliation: 'Expensify が Expensify カードの明細と清算を自動的に照合することで、会計期間ごとの消し込み作業にかかる時間を大幅に削減できます。',
             enableContinuousReconciliation: (accountingAdvancedSettingsLink: string, connectionName: string) =>
                 `<muted-text-label>継続的な消込を有効にするには、${connectionName} の<a href="${accountingAdvancedSettingsLink}">自動同期</a>を有効にしてください。</muted-text-label>`,
             chooseReconciliationAccount: {
-                chooseBankAccount: 'Expensify Card の支払いを照合する銀行口座を選択してください。',
+                chooseBankAccount: 'Expensify カードの支払いを照合する銀行口座を選択してください。',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
-                    `この口座が、継続照合が正しく機能するように、末尾が ${lastFourPAN} の<a href="${settlementAccountUrl}">Expensify Card 精算口座</a>と一致していることを確認してください。`,
+                    `継続消込が正しく機能するように、この口座が、末尾が ${lastFourPAN} の<a href="${settlementAccountUrl}">Expensify カード精算口座</a>と一致していることを確認してください。`,
             },
         },
         export: {
@@ -5995,7 +6011,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             hasFailedSettlementsTitle: '所有権を譲渡できません',
             hasFailedSettlementsButtonText: '了解しました',
             hasFailedSettlementsText: (email: string) =>
-                `${email} に未払いの Expensify Card 精算があるため、請求を引き継ぐことはできません。問題を解決するために、concierge@expensify.com まで連絡するよう依頼してください。その後、このワークスペースの請求を引き継ぐことができます。`,
+                `${email} に未払いの Expensify カードの清算があるため、請求の引き継ぎはできません。問題を解決するために、concierge@expensify.com まで連絡するよう依頼してください。その後、このワークスペースの請求を引き継ぐことができます。`,
             failedToClearBalanceTitle: '残高のクリアに失敗しました',
             failedToClearBalanceButtonText: 'OK',
             failedToClearBalanceText: '残高を消去できませんでした。後でもう一度お試しください。',
@@ -6623,7 +6639,7 @@ ${reportName}
                 case 'categories':
                     return `${enabled ? '有効' : '無効'} 個のカテゴリー`;
                 case 'tags':
-                    return `${enabled ? '有効' : '無効'} 件のタグ`;
+                    return `${enabled ? '有効' : '無効'} 個のタグ`;
                 case 'workflows':
                     return `${enabled ? '有効' : '無効'} 個のワークフロー`;
                 case 'distance rates':
@@ -6631,19 +6647,19 @@ ${reportName}
                 case 'accounting':
                     return `${enabled ? '有効' : '無効'} 会計`;
                 case 'Expensify Cards':
-                    return `${enabled ? '有効' : '無効'} Expensifyカード`;
+                    return `${enabled ? '有効' : '無効'} Expensify カード`;
                 case 'company cards':
-                    return `${enabled ? '有効' : '無効'} 枚の法人カード`;
+                    return `${enabled ? '有効' : '無効'} 件の会社カード`;
                 case 'invoicing':
                     return `${enabled ? '有効' : '無効'} の請求書作成`;
                 case 'per diem':
-                    return `日当 ${enabled ? '有効' : '無効'}`;
+                    return `${enabled ? '有効' : '無効'} 日当`;
                 case 'receipt partners':
-                    return `${enabled ? '有効' : '無効'} 件の領収書パートナー`;
+                    return `${enabled ? '有効' : '無効'} 件のレシートパートナー`;
                 case 'rules':
                     return `${enabled ? '有効' : '無効'} 個のルール`;
                 case 'tax tracking':
-                    return `${enabled ? '有効' : '無効'} 税金追跡`;
+                    return `${enabled ? '有効' : '無効'} の税金の追跡`;
                 default:
                     return `${enabled ? '有効' : '無効'} ${featureName}`;
             }
@@ -7251,7 +7267,7 @@ ${reportName}
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `${feedName} との接続が切断されています。カードの取引明細の取込を再開するには、<a href='${workspaceCompanyCardRoute}'>銀行にログイン</a>してください。`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
-                    `ビジネス用銀行口座へのPlaid接続が切断されました。Expensifyカードを引き続きご利用いただくために、<a href='${walletRoute}'>銀行口座 ${maskedAccountNumber} を再接続</a>してください。`,
+                    `Plaid によるビジネス銀行口座との接続が切断されています。Expensify カードを引き続きご利用いただくために、<a href='${walletRoute}'>銀行口座 ${maskedAccountNumber} を再接続</a>してください。`,
                 addEmployee: (email: string, role: string) => `${email} を ${role === 'member' ? 'a' : 'ある'} ${role} として追加しました`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `${email} のロールを ${currentRole} から ${newRole} に更新しました`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
@@ -7276,7 +7292,7 @@ ${reportName}
                 addedConnection: ({connectionName}: ConnectionNameParams) => `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} に接続済み`,
                 leftTheChat: 'チャットを退出しました',
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
-                    `Reimbursement または Expensify Card の清算に問題が発生したため、ビジネス銀行口座 ${maskedBankAccountNumber} は自動的にロックされました。問題を解決するには、<a href="${linkURL}">ワークスペース設定</a>で修正してください。`,
+                    `ビジネス銀行口座 ${maskedBankAccountNumber} は、払い戻しまたは Expensify カードの精算に問題が発生したため自動的にロックされました。問題を解決するには、<a href="${linkURL}">ワークスペース設定</a>で修正してください。`,
                 leftTheChatWithName: (nameOrEmail: string) => `${nameOrEmail ? `${nameOrEmail}: ` : ''}がチャットから退出しました`,
             },
             error: {
@@ -7650,17 +7666,25 @@ ${reportName}
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: '要レビュー',
-        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL}: ViolationsRterParams) => {
+        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL, connectionLink, isPersonalCard, isMarkAsCash}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
-                return '銀行連携の不具合によりレシートを自動照合できません';
+                return '銀行連携の不具合により、領収書を自動照合できません。';
+            }
+            if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
+                if (!connectionLink) {
+                    return '銀行連携の不具合により、領収書を自動照合できません。';
+                }
+                return isMarkAsCash
+                    ? `カード連携の不具合により領収書を自動照合できません。無視するには現金としてマークするか、<a href="${connectionLink}">カードを修正</a>して領収書と照合してください。`
+                    : `カード連携が壊れているため、領収書を自動照合できません。領収書を照合するには、<a href="${connectionLink}">カードの問題を解決</a>してください。`;
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
-                    ? `銀行接続が切断されました。<a href="${companyCardPageURL}">再接続してレシートと照合</a>`
-                    : '銀行連携が切断されています。管理者に依頼して再接続し、レシートとの照合を行ってください。';
+                    ? `銀行連携が切断されました。<a href="${companyCardPageURL}">レシートと照合するために再接続</a>`
+                    : '銀行連携が切断されています。管理者に依頼して再接続し、領収書と照合してください。';
             }
             if (!isTransactionOlderThan7Days) {
-                return isAdmin ? `${member} に現金としてマークするよう依頼するか、7日待ってからもう一度お試しください` : 'カード取引との統合待ちです。';
+                return isAdmin ? `${member} に現金としてマークするよう依頼するか、7日待ってから再試行してください` : 'カード取引との照合待ちです。';
             }
             return '';
         },
@@ -7865,8 +7889,8 @@ ${reportName}
             collect: {
                 title: '回収',
                 description: '経費、出張、チャットがすべて使える小規模ビジネス向けプラン。',
-                priceAnnual: ({lower, upper}: YourPlanPriceParams) => `Expensify カードありのアクティブメンバーは ${lower}、Expensify カードなしのアクティブメンバーは ${upper} から。`,
-                pricePayPerUse: ({lower, upper}: YourPlanPriceParams) => `Expensify カードありのアクティブメンバーは ${lower}、Expensify カードなしのアクティブメンバーは ${upper} から。`,
+                priceAnnual: ({lower, upper}: YourPlanPriceParams) => `Expensify カードありのアクティブメンバーは ${lower}、Expensify カードなしのアクティブメンバーは ${upper} です。`,
+                pricePayPerUse: ({lower, upper}: YourPlanPriceParams) => `Expensify カードありのアクティブメンバーは ${lower}、Expensify カードなしのアクティブメンバーは ${upper} です。`,
                 benefit1: 'レシートのスキャン',
                 benefit2: '精算払い',
                 benefit3: 'コーポレートカード管理',
@@ -7879,8 +7903,8 @@ ${reportName}
             control: {
                 title: 'コントロール',
                 description: '大企業向けの経費精算、出張管理、チャット。',
-                priceAnnual: ({lower, upper}: YourPlanPriceParams) => `Expensify カードありのアクティブメンバーは ${lower}、Expensify カードなしのアクティブメンバーは ${upper} から。`,
-                pricePayPerUse: ({lower, upper}: YourPlanPriceParams) => `Expensify カードありのアクティブメンバーは ${lower}、Expensify カードなしのアクティブメンバーは ${upper} から。`,
+                priceAnnual: ({lower, upper}: YourPlanPriceParams) => `Expensify カードありのアクティブメンバーは ${lower}、Expensify カードなしのアクティブメンバーは ${upper} です。`,
+                pricePayPerUse: ({lower, upper}: YourPlanPriceParams) => `Expensify カードありのアクティブメンバーは ${lower}、Expensify カードなしのアクティブメンバーは ${upper} です。`,
                 benefit1: 'Collect プランのすべての内容',
                 benefit2: '多段階承認ワークフロー',
                 benefit3: 'カスタム経費ルール',
@@ -7894,8 +7918,8 @@ ${reportName}
             downgrade: 'Collect へダウングレード',
             upgrade: 'Control にアップグレード',
             addMembers: 'メンバーを追加',
-            saveWithExpensifyTitle: 'Expensify カードで節約',
-            saveWithExpensifyDescription: 'Expensify CardのキャッシュバックがExpensifyの請求額をどれだけ削減できるか、節約額計算ツールを使って確認しましょう。',
+            saveWithExpensifyTitle: 'Expensify カードで節約しましょう',
+            saveWithExpensifyDescription: '節約計算ツールを使って、Expensify カードのキャッシュバックが Expensify の請求額をどれだけ減らせるか確認しましょう。',
             saveWithExpensifyButton: '詳細はこちら',
         },
         compareModal: {
@@ -7963,11 +7987,11 @@ ${reportName}
             helpUsImprove: 'Expensify の改善にご協力ください',
             whatsMainReason: '自動更新を無効にする主な理由は何ですか？',
             renewsOn: (date: string) => `更新日：${date}`,
-            pricingConfiguration: '料金は構成によって異なります。最も安くご利用いただくには、年額サブスクリプションを選択し、Expensify Card をご利用ください。',
+            pricingConfiguration: '料金は設定内容によって異なります。最もお得にご利用いただくには、年額プランを選択し、Expensify カードをお申し込みください。',
             learnMore: (hasAdminsRoom: boolean) =>
                 `<muted-text>詳しくは<a href="${CONST.PRICING}">料金ページ</a>をご覧いただくか、${hasAdminsRoom ? `<a href="adminsRoom">#adminsルーム。</a>` : '#admins ルーム。'}で当社チームにチャットでお問い合わせください</muted-text>`,
             estimatedPrice: '概算価格',
-            changesBasedOn: 'これは、Expensify Card の利用状況と、以下のサブスクリプションオプションに基づいて変動します。',
+            changesBasedOn: 'これは、お客様の Expensify カードの利用状況と、以下のサブスクリプションオプションによって変わります。',
         },
         requestEarlyCancellation: {
             title: '早期解約をリクエスト',
@@ -8350,12 +8374,14 @@ ${reportName}
             error: {
                 removeMember: 'このユーザーを削除できません。もう一度お試しください。',
                 addMember: 'このメンバーを追加できませんでした。もう一度お試しください。',
+                vacationDelegate: 'このユーザーを休暇代理人として設定できませんでした。もう一度お試しください。',
             },
             forceTwoFactorAuth: '2要素認証を必須にする',
             forceTwoFactorAuthSAMLEnabledDescription: (samlPageUrl: string) =>
                 `<muted-text>2 要素認証を必須にするには、<a href="${samlPageUrl}">SAML</a> を無効にしてください。</muted-text>`,
             forceTwoFactorAuthDescription: `<muted-text>このドメインのすべてのメンバーに二要素認証を必須にします。ドメインメンバーは、サインイン時に自分のアカウントで二要素認証を設定するよう求められます。</muted-text>`,
             forceTwoFactorAuthError: '2要素認証の強制設定を変更できませんでした。後でもう一度お試しください。',
+            cannotSetVacationDelegateForMember: (email: string) => `${email} に休暇代理人を設定できません。現在、このユーザーは次のメンバーの代理人になっています。`,
         },
         common: {settings: '設定'},
         groups: {title: 'グループ', memberCount: () => ({one: 'メンバー 1 人', other: (count: number) => `${count}名のメンバー`})},
