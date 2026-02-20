@@ -126,7 +126,7 @@ function WalletPage() {
         paymentMethodButtonRef.current = event?.currentTarget as HTMLDivElement;
 
         if (accountData?.state === CONST.BANK_ACCOUNT.STATE.LOCKED && accountData?.bankAccountID) {
-            pressedOnLockedBankAccount(accountData?.bankAccountID);
+            pressedOnLockedBankAccount(accountData?.bankAccountID, translate);
             navigateToConciergeChat(undefined);
             return;
         }

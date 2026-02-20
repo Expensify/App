@@ -3126,6 +3126,10 @@ ${
         unlockBankAccount: 'Déverrouiller le compte bancaire',
         youCantPayThis: 'Vous ne pouvez pas payer ce rapport car vous avez un',
         tapBelow: 'Appuyez ci-dessous et le Concierge vous aidera à le déverrouiller.',
+        htmlUnlockMessage: (maskedAccountNumber: string) =>
+            `<h1>Expensify Business Bank Account ${maskedAccountNumber}</h1><p>Merci d'avoir soumis une demande de déblocage de votre compte bancaire. Les demandes de retrait peuvent être rejetées en raison de fonds insuffisants ou si le compte bancaire n'a pas été activé pour le prélèvement automatique. Nous examinerons votre dossier et vous contacterons si nous avons besoin d'informations supplémentaires pour résoudre ce problème.</p>`,
+        textUnlockMessage: (maskedAccountNumber: string) =>
+            `Expensify Business Bank Account ${maskedAccountNumber}\nMerci d'avoir soumis une demande de déblocage de votre compte bancaire. Les demandes de retrait peuvent être rejetées en raison de fonds insuffisants ou si le compte bancaire n'a pas été activé pour le prélèvement automatique. Nous examinerons votre dossier et vous contacterons si nous avons besoin d'informations supplémentaires pour résoudre ce problème.`,
         error: {
             youNeedToSelectAnOption: 'Veuillez sélectionner une option pour continuer',
             noBankAccountAvailable: 'Désolé, aucun compte bancaire n’est disponible',

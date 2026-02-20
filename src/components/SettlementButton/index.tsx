@@ -602,7 +602,7 @@ function SettlementButton({
         if (policy?.achAccount?.bankAccountID === undefined) {
             return;
         }
-        pressedOnLockedBankAccount(policy?.achAccount?.bankAccountID);
+        pressedOnLockedBankAccount(policy?.achAccount?.bankAccountID, translate);
         navigateToConciergeChat(undefined);
     };
 

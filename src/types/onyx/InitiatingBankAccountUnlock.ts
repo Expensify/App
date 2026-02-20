@@ -10,6 +10,8 @@ type InitiatingBankAccountUnlock = {
     isLoading: boolean;
     /** Errors */
     errors: Errors;
+    /** ID of the optimistic Concierge report action to clean up after API success */
+    optimisticReportActionID?: string | null;
 };
 
 export default InitiatingBankAccountUnlock;

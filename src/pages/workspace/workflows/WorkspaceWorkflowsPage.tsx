@@ -409,7 +409,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                         }
                                         // User who is reimburser can initiate unlocking process
                                         if (state === CONST.BANK_ACCOUNT.STATE.LOCKED && bankAccountID && isUserReimburser) {
-                                            pressedOnLockedBankAccount(bankAccountID);
+                                            pressedOnLockedBankAccount(bankAccountID, translate);
                                             navigateToConciergeChat(undefined);
                                             return;
                                         }

@@ -378,13 +378,15 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         if (!isConciergeChatReport(report) || !initiatingBankAccountUnlock?.bankAccountIDToUnlock) {
             return;
         }
-
         initiateBankAccountUnlock(initiatingBankAccountUnlock.bankAccountIDToUnlock);
+    }, [initiatingBankAccountUnlock?.bankAccountIDToUnlock, report]);
 
-        if (initiatingBankAccountUnlock?.isSuccess) {
-            clearInitiatingBankAccountUnlock();
+    useEffect(() => {
+        if (!initiatingBankAccountUnlock?.isSuccess || !isConciergeChatReport(report)) {
+            return;
         }
-    }, [initiatingBankAccountUnlock?.bankAccountIDToUnlock, initiatingBankAccountUnlock?.isSuccess, report]);
+        clearInitiatingBankAccountUnlock();
+    }, [initiatingBankAccountUnlock?.isSuccess, report]);
 
     useEffect(() => {
         if (!prevIsFocused || isFocused) {
