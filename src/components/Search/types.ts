@@ -322,6 +322,25 @@ type BankAccountMenuItem = {
     value: PaymentMethod;
 };
 
+/**
+ * Minimal descriptor for a search list item. Used to pass only IDs to the list
+ * so that full item data can be resolved per-row via useSearchListItem.
+ */
+type SearchListItemDescriptor = {
+    /** Stable key for list identity and selection */
+    keyForList: string;
+    /** Search data type (expense, expense_report, chat, task) or group-by variant */
+    type: SearchDataTypes | string;
+    transactionID?: string;
+    reportID?: string;
+    reportActionID?: string;
+    policyID?: string;
+    /** For group-by items: query hash to load transactions snapshot */
+    transactionsQueryJSON?: SearchQueryJSON;
+    /** For group-by items: which group (e.g. EXPENSE_REPORT, FROM, CARD) */
+    groupedBy?: SearchGroupBy;
+};
+
 /** Union type representing all possible grouped transaction item types used in chart views */
 type GroupedItem =
     | TransactionMemberGroupListItemType
@@ -336,6 +355,7 @@ type GroupedItem =
     | TransactionQuarterGroupListItemType;
 
 export type {
+    SearchListItemDescriptor,
     SelectedTransactionInfo,
     SelectedTransactions,
     SearchColumnType,

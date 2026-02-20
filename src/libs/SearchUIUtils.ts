@@ -21,6 +21,7 @@ import type {
     SearchDatePreset,
     SearchFilterKey,
     SearchGroupBy,
+    SearchListItemDescriptor,
     SearchQueryJSON,
     SearchStatus,
     SearchView,
@@ -1146,6 +1147,60 @@ function isTransactionQuarterGroupListItemType(item: ListItem): item is Transact
 function isGroupedItemArray(data: ListItem[]): data is GroupedItem[] {
     const first = data.at(0);
     return data.length === 0 || (first !== undefined && isTransactionGroupListItemType(first) && 'groupedBy' in first);
+}
+
+/**
+ * Converts a full SearchListItem to a minimal descriptor (keyForList + type + IDs).
+ * Used so the list can pass only descriptors and resolve full items per-row.
+ */
+function toSearchListItemDescriptor(item: SearchListItem): SearchListItemDescriptor {
+    if (isTransactionListItemType(item)) {
+        return {
+            keyForList: item.keyForList,
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            transactionID: item.transactionID,
+            reportID: item.reportID,
+            policyID: item.policyID,
+        };
+    }
+    if (isReportActionListItemType(item)) {
+        return {
+            keyForList: item.keyForList,
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            reportID: item.reportID,
+            reportActionID: item.reportActionID,
+        };
+    }
+    if (isTaskListItemType(item)) {
+        return {
+            keyForList: item.keyForList,
+            type: CONST.SEARCH.DATA_TYPES.TASK,
+            reportID: item.reportID,
+        };
+    }
+    if (isTransactionReportGroupListItemType(item)) {
+        return {
+            keyForList: item.keyForList ?? '',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+            reportID: item.reportID,
+            policyID: item.policyID,
+            transactionsQueryJSON: item.transactionsQueryJSON,
+            groupedBy: item.groupedBy,
+        };
+    }
+    if (isTransactionGroupListItemType(item)) {
+        return {
+            keyForList: item.keyForList ?? '',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            reportID: 'reportID' in item ? item.reportID : undefined,
+            transactionsQueryJSON: item.transactionsQueryJSON,
+            groupedBy: 'groupedBy' in item ? item.groupedBy : undefined,
+        };
+    }
+    return {
+        keyForList: (item as ListItem).keyForList ?? '',
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+    };
 }
 
 /**
@@ -4424,5 +4479,6 @@ export {
     getToFieldValueForTransaction,
     isTodoSearch,
     adjustTimeRangeToDateFilters,
+    toSearchListItemDescriptor,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};
