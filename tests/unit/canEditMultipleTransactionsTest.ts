@@ -205,4 +205,25 @@ describe('canEditMultipleTransactions', () => {
 
         expect(result).toBe(true);
     });
+
+    it('returns true when all selected transactions are unreported expenses', () => {
+        const {transaction1, transaction2, reports, policies, reportActions} = buildTestData();
+
+        const unreportedTransaction1: Transaction = {...transaction1, reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
+        const unreportedTransaction2: Transaction = {...transaction2, reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
+
+        const result = canEditMultipleTransactions([unreportedTransaction1, unreportedTransaction2], reportActions, reports, policies);
+
+        expect(result).toBe(true);
+    });
+
+    it('returns true when some transactions are unreported and others are reported editable expenses', () => {
+        const {transaction1, transaction2, reports, policies, reportActions} = buildTestData();
+
+        const unreportedTransaction2: Transaction = {...transaction2, reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
+
+        const result = canEditMultipleTransactions([transaction1, unreportedTransaction2], reportActions, reports, policies);
+
+        expect(result).toBe(true);
+    });
 });
