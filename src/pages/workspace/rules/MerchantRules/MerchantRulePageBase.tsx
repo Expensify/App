@@ -34,6 +34,7 @@ import type {MerchantRuleForm} from '@src/types/form';
 import type {PolicyTagLists} from '@src/types/onyx';
 import type {CodingRule} from '@src/types/onyx/Policy';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+import {hasEnabledOptions} from '@libs/OptionsListUtils';
 
 type MerchantRulePageBaseProps = {
     policyID: string;
@@ -136,7 +137,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
         if (!policy?.areCategoriesEnabled) {
             return false;
         }
-        return Object.keys(policyCategories ?? {}).length > 0;
+        return !!form?.category || hasEnabledOptions(policyCategories ?? {});
     };
 
     const hasTags = () => {
@@ -377,6 +378,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                                         title={item.title}
                                         titleStyle={styles.flex1}
                                         shouldRenderAsHTML={item.shouldRenderAsHTML}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                                     />
                                 ))}
                         </View>
@@ -389,6 +391,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                     message={errorMessage}
                     onSubmit={handleSubmit}
                     enabledWhenOffline
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SAVE}
                     shouldRenderFooterAboveSubmit
                     footerContent={
                         <>
@@ -405,6 +408,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                                 onPress={previewMatches}
                                 style={[styles.mb4]}
                                 large
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_PREVIEW_MATCHES}
                             />
                             {isEditing && (
                                 <Button
@@ -412,6 +416,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                                     onPress={handleDelete}
                                     style={[styles.mb4]}
                                     large
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_DELETE}
                                 />
                             )}
                         </>
