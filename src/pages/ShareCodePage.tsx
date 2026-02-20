@@ -17,12 +17,14 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
 import type {BackToParams} from '@libs/Navigation/types';
+import {getReportName} from '@libs/ReportNameUtils';
 import {
     getChatRoomSubtitle,
     getDefaultWorkspaceAvatar,
@@ -31,7 +33,6 @@ import {
     getParticipantsAccountIDsForDisplay,
     getPolicyName,
     getReportForHeader,
-    getReportName,
     isExpenseReport,
     isMoneyRequestReport,
 } from '@libs/ReportUtils';
@@ -78,6 +79,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
     const qrCodeRef = useRef<QRShareWithDownloadHandle>(null);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const reportAttributes = useReportAttributes();
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isReport = !!report?.reportID;
@@ -102,8 +104,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
 
     const reportForTitle = useMemo(() => getReportForHeader(report), [report]);
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const title = isReport ? getReportName(reportForTitle) : (currentUserPersonalDetails.displayName ?? '');
+    const title = isReport ? getReportName(reportForTitle, reportAttributes) : (currentUserPersonalDetails.displayName ?? '');
     const urlWithTrailingSlash = addTrailingForwardSlash(environmentURL);
     const url = isReport
         ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(report.reportID)}`

@@ -6,6 +6,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -53,6 +54,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
+    const reportAttributes = useReportAttributes();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector, canBeMissing: false});
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
@@ -89,7 +91,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                 )}`,
         )
         .join(', ');
-    const reportName = getReportName(report);
+    const reportName = getReportName(report, reportAttributes);
     const shouldShowUsePlusButtonText =
         moneyRequestOptions.includes(CONST.IOU.TYPE.PAY) ||
         moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT) ||

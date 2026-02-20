@@ -24,6 +24,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
@@ -39,9 +40,9 @@ import Parser from '@libs/Parser';
 import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {isPolicyAdmin, isPolicyEmployee as isPolicyEmployeeUtils} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {
     getReportForHeader,
-    getReportName,
     getReportPersonalDetailsParticipants,
     isChatThread,
     isDefaultRoom,
@@ -68,6 +69,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     const reportAction = useMemo(() => getReportAction(report?.parentReportID, report?.parentReportActionID), [report?.parentReportID, report?.parentReportActionID]);
     const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
     const styles = useThemeStyles();
+    const reportAttributes = useReportAttributes();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: false});
     const currentUserAccountID = Number(session?.accountID);
@@ -442,8 +444,9 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
             >
                 <HeaderWithBackButton
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    subtitle={StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(getReportName(reportForSubtitle)) : getReportName(reportForSubtitle))}
+                    subtitle={StringUtils.lineBreaksToSpaces(
+                        shouldParserToHTML ? Parser.htmlToText(getReportName(reportForSubtitle, reportAttributes)) : getReportName(reportForSubtitle, reportAttributes),
+                    )}
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
                             setSelectedMembers([]);

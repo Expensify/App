@@ -12,12 +12,12 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import type {DisplayNameWithTooltips} from '@libs/ReportUtils';
 import {
     getChatRoomSubtitle,
     getDisplayNamesWithTooltips,
     getParentNavigationSubtitle,
-    getReportName,
     getReportStatusColorStyle,
     getReportStatusTranslation,
     isChatThread,
@@ -181,17 +181,9 @@ function AvatarWithDisplayName({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
-    const [invoiceReceiverPolicy] = useOnyx(
-        `${ONYXKEYS.COLLECTION.POLICY}${parentReport?.invoiceReceiver && 'policyID' in parentReport.invoiceReceiver ? parentReport.invoiceReceiver.policyID : undefined}`,
-        {canBeMissing: true},
-    );
     const reportAttributes = useReportAttributes();
-    const parentReportActionParam = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
     const isReportArchived = useReportIsArchived(report?.reportID);
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const title = getReportName(report, undefined, parentReportActionParam, personalDetails, invoiceReceiverPolicy, reportAttributes, undefined, isReportArchived);
+    const title = getReportName(report, reportAttributes);
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
     const subtitle = getChatRoomSubtitle(report, true, isReportArchived);
     const parentNavigationSubtitleData = getParentNavigationSubtitle(report, isParentReportArchived, reportAttributes);
