@@ -1,11 +1,11 @@
-import React, {useCallback, useEffect} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import React, { useCallback, useEffect } from 'react';
+import { View } from 'react-native';
+import type { OnyxCollection, OnyxEntry } from 'react-native-onyx';
+import type { ValueOf } from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 // eslint-disable-next-line no-restricted-imports
-import {Connect, RotateLeft} from '@components/Icon/Expensicons';
+import { Connect, RotateLeft } from '@components/Icon/Expensicons';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -16,27 +16,28 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getLatestError, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import { getLatestError, getMicroSecondOnyxErrorWithTranslationKey } from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasActiveAdminWorkspaces} from '@libs/PolicyUtils';
+import { hasActiveAdminWorkspaces } from '@libs/PolicyUtils';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
-import {goToWithdrawalAccountSetupStep, openPlaidView, updateReimbursementAccountDraft} from '@userActions/BankAccounts';
-import {openExternalLink} from '@userActions/Link';
-import {requestResetBankAccount, resetReimbursementAccount, setBankAccountSubStep, setReimbursementAccountOptionPressed} from '@userActions/ReimbursementAccount';
+import { goToWithdrawalAccountSetupStep, openPlaidView, updateReimbursementAccountDraft } from '@userActions/BankAccounts';
+import { openExternalLink } from '@userActions/Link';
+import { requestResetBankAccount, resetReimbursementAccount, setBankAccountSubStep, setReimbursementAccountOptionPressed } from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
+import type { Route } from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type {ReimbursementAccountForm} from '@src/types/form';
+import type { ReimbursementAccountForm } from '@src/types/form';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type * as OnyxTypes from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import { isEmptyObject } from '@src/types/utils/EmptyObject';
+
 
 type VerifiedBankAccountFlowEntryPointProps = {
     /** Bank account currently in setup */
@@ -102,9 +103,16 @@ function VerifiedBankAccountFlowEntryPoint({
     const [reimbursementAccountOptionPressed] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT_OPTION_PRESSED, {canBeMissing: true});
     const isAccountValidated = account?.validated ?? false;
 
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
-    const isCurrentUserPolicyAdmin = hasActiveAdminWorkspaces(currentUserLogin, allPolicies);
+    const isCurrentUserPolicyAdminSelector = useCallback((policies: OnyxCollection<OnyxTypes.Policy>) => hasActiveAdminWorkspaces(currentUserLogin, policies), [currentUserLogin]);
+    const [isCurrentUserPolicyAdmin] = useOnyx(
+        ONYXKEYS.COLLECTION.POLICY,
+        {
+            canBeMissing: true,
+            selector: isCurrentUserPolicyAdminSelector,
+        },
+        [isCurrentUserPolicyAdminSelector],
+    );
 
     const personalBankAccounts = bankAccountList ? Object.keys(bankAccountList).filter((key) => bankAccountList[key].accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) : [];
 
