@@ -169,6 +169,11 @@ type CardFeedErrors = {
     cardsWithBrokenFeedConnection: Record<string, Card>;
 
     /**
+     * The personal cards with a broken connection.
+     */
+    personalCardsWithBrokenConnection: Record<string, Card>;
+
+    /**
      * Whether to show the RBR for each workspace account ID.
      */
     shouldShowRbrForWorkspaceAccountID: Record<number, boolean>;
@@ -192,6 +197,11 @@ type CardFeedErrors = {
      * The errors of expensify card.
      */
     expensifyCard: CardFeedErrorState;
+
+    /**
+     * The errors of personal card.
+     */
+    personalCard: CardFeedErrorState;
 };
 
 /**

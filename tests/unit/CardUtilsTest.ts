@@ -1,5 +1,5 @@
-import type {FeedKeysWithAssignedCards} from '@selectors/Card';
-import {feedKeysWithAssignedCardsSelector} from '@selectors/Card';
+import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
+import {buildFeedKeysWithAssignedCards} from '@selectors/Card';
 import lodashSortBy from 'lodash/sortBy';
 import type {OnyxCollection} from 'react-native-onyx';
 import type IllustrationsType from '@styles/theme/illustrations/types';
@@ -20,6 +20,7 @@ import {
     getAssignedCardSortKey,
     getBankCardDetailsImage,
     getBankName,
+    getBrokenConnectionUrlToFixPersonalCard,
     getCardDescription,
     getCardFeedIcon,
     getCardFeedWithDomainID,
@@ -1107,13 +1108,13 @@ describe('CardUtils', () => {
         });
     });
 
-    describe('feedKeysWithAssignedCardsSelector', () => {
+    describe('buildFeedKeysWithAssignedCards', () => {
         it('Should return empty object when allWorkspaceCards is undefined', () => {
-            expect(feedKeysWithAssignedCardsSelector(undefined)).toStrictEqual({});
+            expect(buildFeedKeysWithAssignedCards(undefined)).toStrictEqual({});
         });
 
         it('Should return empty object when allWorkspaceCards is empty', () => {
-            expect(feedKeysWithAssignedCardsSelector({})).toStrictEqual({});
+            expect(buildFeedKeysWithAssignedCards({})).toStrictEqual({});
         });
 
         it('Should return empty object when entries only have cardList (no assigned cards)', () => {
@@ -1124,7 +1125,7 @@ describe('CardUtils', () => {
                     },
                 },
             };
-            expect(feedKeysWithAssignedCardsSelector(allWorkspaceCards as unknown as OnyxCollection<WorkspaceCardsList>)).toStrictEqual({});
+            expect(buildFeedKeysWithAssignedCards(allWorkspaceCards as unknown as OnyxCollection<WorkspaceCardsList>)).toStrictEqual({});
         });
 
         it('Should extract feed keys that have assigned cards', () => {
@@ -1155,7 +1156,7 @@ describe('CardUtils', () => {
                     },
                 },
             };
-            const result = feedKeysWithAssignedCardsSelector(allWorkspaceCards as unknown as OnyxCollection<WorkspaceCardsList>);
+            const result = buildFeedKeysWithAssignedCards(allWorkspaceCards as unknown as OnyxCollection<WorkspaceCardsList>);
             expect(result).toStrictEqual({
                 '12345_oauth.chase.com': true,
                 '67890_plaid.ins_123456': true,
@@ -1175,7 +1176,7 @@ describe('CardUtils', () => {
                     },
                 },
             };
-            const result = feedKeysWithAssignedCardsSelector(allWorkspaceCards as unknown as OnyxCollection<WorkspaceCardsList>);
+            const result = buildFeedKeysWithAssignedCards(allWorkspaceCards as unknown as OnyxCollection<WorkspaceCardsList>);
             expect(result).toStrictEqual({
                 '67890_oauth.americanexpressfdx.com 3000': true,
             });
@@ -1197,7 +1198,7 @@ describe('CardUtils', () => {
                     },
                 },
             };
-            const result = feedKeysWithAssignedCardsSelector(allWorkspaceCards as unknown as OnyxCollection<WorkspaceCardsList>);
+            const result = buildFeedKeysWithAssignedCards(allWorkspaceCards as unknown as OnyxCollection<WorkspaceCardsList>);
             expect(result).toStrictEqual({
                 '12345_oauth.chase.com': true,
             });
@@ -1217,7 +1218,7 @@ describe('CardUtils', () => {
                     },
                 },
             };
-            const result = feedKeysWithAssignedCardsSelector(allWorkspaceCards as unknown as OnyxCollection<WorkspaceCardsList>);
+            const result = buildFeedKeysWithAssignedCards(allWorkspaceCards as unknown as OnyxCollection<WorkspaceCardsList>);
             expect(result).toStrictEqual({
                 '67890_plaid.ins_123456': true,
             });
@@ -1249,7 +1250,7 @@ describe('CardUtils', () => {
                     cardList: {'CARD...1': 'enc'},
                 },
             };
-            const result = feedKeysWithAssignedCardsSelector(allWorkspaceCards as unknown as OnyxCollection<WorkspaceCardsList>);
+            const result = buildFeedKeysWithAssignedCards(allWorkspaceCards as unknown as OnyxCollection<WorkspaceCardsList>);
             expect(result).toStrictEqual({
                 '11111_oauth.chase.com': true,
                 '22222_oauth.chase.com': true,
@@ -2806,6 +2807,48 @@ describe('CardUtils', () => {
 
             // Different card name but same last 4 digits - should NOT match
             expect(isMatchingCard(card, '', 'Business Gold Card - JANE DOE - 1234')).toBe(false);
+        });
+    });
+
+    describe('getBrokenConnectionUrlToFixPersonalCard', () => {
+        const environmentURL = 'https://dev.new.expensify.com';
+
+        it('Should return undefined when cards is undefined', () => {
+            expect(getBrokenConnectionUrlToFixPersonalCard(undefined as unknown as Record<string, Card>, environmentURL)).toBeUndefined();
+        });
+
+        it('Should return undefined when cards is null', () => {
+            expect(getBrokenConnectionUrlToFixPersonalCard(null as unknown as Record<string, Card>, environmentURL)).toBeUndefined();
+        });
+
+        it('Should return wallet URL when cards is empty object', () => {
+            const result = getBrokenConnectionUrlToFixPersonalCard({}, environmentURL);
+            expect(result).toBe(`${environmentURL}/settings/wallet`);
+        });
+
+        it('Should return personal card details URL when there is exactly one card', () => {
+            const cards: Record<string, Card> = {
+                '1': {cardID: 12345} as Card,
+            };
+            const result = getBrokenConnectionUrlToFixPersonalCard(cards, environmentURL);
+            expect(result).toBe(`${environmentURL}/settings/wallet/personal-card/12345`);
+        });
+
+        it('Should return wallet URL when there are multiple cards', () => {
+            const cards: Record<string, Card> = {
+                '1': {cardID: 111} as Card,
+                '2': {cardID: 222} as Card,
+            };
+            const result = getBrokenConnectionUrlToFixPersonalCard(cards, environmentURL);
+            expect(result).toBe(`${environmentURL}/settings/wallet`);
+        });
+
+        it('Should use first card cardID for single-card URL', () => {
+            const cards: Record<string, Card> = {
+                cardKey: {cardID: 99999} as Card,
+            };
+            const result = getBrokenConnectionUrlToFixPersonalCard(cards, environmentURL);
+            expect(result).toBe(`${environmentURL}/settings/wallet/personal-card/99999`);
         });
     });
 });
