@@ -5490,18 +5490,19 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         descriptionBadge: {
-            backgroundColor: theme.border,
+            backgroundColor: theme.transparent,
+            borderWidth: 1,
+            borderColor: theme.border,
             borderRadius: variables.componentBorderRadiusXLarge,
-            paddingHorizontal: 8,
-            height: 16,
+            paddingHorizontal: 6,
+            paddingVertical: 1,
             justifyContent: 'center' as const,
             alignItems: 'center' as const,
         },
 
         descriptionBadgeText: {
             fontSize: variables.fontSizeExtraSmall,
-            lineHeight: 12,
-            color: theme.text,
+            color: theme.textSupporting,
         },
 
         todoBadge: {
