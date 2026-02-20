@@ -237,23 +237,18 @@ function useSearchHighlightAndScroll({
             return;
         }
 
+        // As we depend on newSearchResultKeys to determine which transactionIDs to reset from transactionIDsToHighlight,
+        // we need to ensure that newSearchResultKeys is not cleared before we reset transactionIDsToHighlight
         const highlightedTransactionIDs = Object.keys(transactionIDsToHighlight).filter(
             (id) => transactionIDsToHighlight[id] && newSearchResultKeys?.has(`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`),
         );
 
-        // We need to use requestAnimationFrame here to ensure that setTimeout actually starts
-        // only after the user has navigated to the "Reports > Expenses" page.
-        // Otherwise, there is still a chance we might miss the timing because setTimeout runs too early,
-        // causing the highlight not to appear.
-        let timer: NodeJS.Timeout;
-        const animation = requestAnimationFrame(() => {
-            timer = setTimeout(() => {
-                mergeTransactionIdsHighlightOnSearchRoute(queryJSON.type, Object.fromEntries(highlightedTransactionIDs.map((id) => [id, false])));
-            }, CONST.ANIMATED_HIGHLIGHT_START_DURATION);
-        });
+        const timer = setTimeout(() => {
+            mergeTransactionIdsHighlightOnSearchRoute(queryJSON.type, Object.fromEntries(highlightedTransactionIDs.map((id) => [id, false])));
+        }, CONST.ANIMATED_HIGHLIGHT_START_DURATION);
+
         return () => {
             clearTimeout(timer);
-            cancelAnimationFrame(animation);
         };
     }, [transactionIDsToHighlight, queryJSON.type, newSearchResultKeys]);
 
@@ -271,11 +266,23 @@ function useSearchHighlightAndScroll({
             return;
         }
 
-        const timer = setTimeout(() => {
-            setNewSearchResultKeys(null);
-        }, CONST.ANIMATED_HIGHLIGHT_START_DURATION);
+        // We need to use requestAnimationFrame here to ensure that setTimeout actually starts
+        // only after "Reports > Expenses" pages finishes the current rendering cycle and the user sees the highlight,
+        // which is when we want to start the timer to remove the highlight.
+        // Otherwise, there is still a chance we might miss the timing because setTimeout runs too early,
+        // causing the highlight not to appear.
 
-        return () => clearTimeout(timer);
+        let timer: NodeJS.Timeout;
+        const animation = requestAnimationFrame(() => {
+            timer = setTimeout(() => {
+                setNewSearchResultKeys(null);
+            }, CONST.ANIMATED_HIGHLIGHT_START_DURATION);
+        });
+
+        return () => {
+            clearTimeout(timer);
+            cancelAnimationFrame(animation);
+        };
     }, [newSearchResultKeys]);
 
     /**

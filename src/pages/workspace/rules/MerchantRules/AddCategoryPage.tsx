@@ -9,6 +9,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import CONST from '@src/CONST';
 
 type AddCategoryPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_CATEGORY>;
 
@@ -23,7 +24,7 @@ function AddCategoryPage({route}: AddCategoryPageProps) {
 
     const categoryItems = useMemo(() => {
         return Object.values(policyCategories ?? {})
-            .filter((category) => category.enabled)
+            .filter((category) => category.enabled && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             .map((category) => {
                 const decodedCategoryName = getDecodedCategoryName(category.name);
                 return {name: decodedCategoryName, value: category.name};

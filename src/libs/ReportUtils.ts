@@ -100,7 +100,6 @@ import {
 } from './actions/IOU';
 import type {IOURequestType} from './actions/IOU';
 import {unholdRequest} from './actions/IOU/Hold';
-import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {createDraftWorkspace} from './actions/Policy/Policy';
 import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
 import {openUnreportedExpense} from './actions/Report';
@@ -12517,17 +12516,14 @@ function getReportPersonalDetailsParticipants(report: Report, personalDetailsPar
     };
 }
 
-function canRejectReportAction(currentUserLogin: string, report: Report, policy?: Policy): boolean {
-    const isReportApprover = isApproverUtils(policy, currentUserLogin);
+function canRejectReportAction(currentUserLogin: string, report: Report): boolean {
     const isReportBeingProcessed = isProcessingReport(report);
     const isIOU = isIOUReport(report);
     const isInvoice = isInvoiceReport(report);
     const isCurrentUserManager = report?.managerID === currentUserAccountID;
 
-    const userCanReject = isReportApprover && isCurrentUserManager;
-
-    if (!userCanReject) {
-        return false; // must be approver or payer
+    if (!isCurrentUserManager) {
+        return false;
     }
 
     if (isIOU) {

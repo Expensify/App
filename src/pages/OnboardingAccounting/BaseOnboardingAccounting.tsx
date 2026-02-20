@@ -196,9 +196,10 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
     const renderOption = useCallback(
         (item: OnboardingListItem) => (
             <PressableWithoutFeedback
-                sentryLabel="OnboardingAccounting-integrationOption"
                 key={item.keyForList ?? ''}
                 onPress={() => handleIntegrationSelect(item.keyForList)}
+                accessibilityLabel={item.text}
+                sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.ACCOUNTING_SELECT_INTEGRATION}
                 accessible={false}
                 hoverStyle={!item.isSelected ? styles.hoveredComponentBG : undefined}
                 style={[styles.onboardingAccountingItem, isSmallScreenWidth && styles.flexBasis100, item.isSelected && styles.activeComponentBG]}
@@ -247,7 +248,12 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
                 shouldDisplayHelpButton={false}
             />
             <View style={[onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
-                <Text style={[styles.textHeadlineH1, styles.mb5]}>{translate('onboarding.accounting.title')}</Text>
+                <Text
+                    style={[styles.textHeadlineH1, styles.mb5]}
+                    accessibilityRole={CONST.ROLE.HEADER}
+                >
+                    {translate('onboarding.accounting.title')}
+                </Text>
             </View>
             <ScrollView style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5, styles.pt3, styles.pb8]}>
                 <View style={[styles.flexRow, styles.flexWrap, styles.gap3, styles.mb3]}>{accountingOptions.map(renderOption)}</View>
@@ -267,6 +273,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
                     text={translate('common.continue')}
                     onPress={handleContinue}
                     pressOnEnter
+                    sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CONTINUE}
                 />
             </FixedFooter>
         </ScreenWrapper>
