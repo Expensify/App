@@ -74,7 +74,7 @@ function SelectBankStep() {
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={translate('workspace.companyCards.addCards')}
+                title={translate('personalCard.addPersonalCard')}
                 onBackButtonPress={handleBackButtonPress}
             />
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.addNewCard.whoIsYourBankAccount')}</Text>

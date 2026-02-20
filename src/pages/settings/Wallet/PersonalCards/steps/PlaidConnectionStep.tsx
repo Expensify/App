@@ -210,7 +210,7 @@ function PlaidConnectionStep({feed, onExit}: {feed?: CompanyCardFeedWithDomainID
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={translate('workspace.companyCards.addCards')}
+                title={translate('personalCard.addPersonalCard')}
                 onBackButtonPress={handleBackButtonPress}
             />
             {isPlaidDisabled ? (

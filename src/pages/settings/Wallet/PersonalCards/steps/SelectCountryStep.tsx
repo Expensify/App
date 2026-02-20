@@ -98,7 +98,7 @@ function SelectCountryStep() {
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={translate('workspace.companyCards.addCards')}
+                title={translate('personalCard.addPersonalCard')}
                 onBackButtonPress={handleBackButtonPress}
             />
 

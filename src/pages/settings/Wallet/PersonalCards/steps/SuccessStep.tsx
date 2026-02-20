@@ -43,13 +43,13 @@ function SuccessStep() {
         >
             <FullPageNotFoundView>
                 <HeaderWithBackButton
-                    title={translate('bankAccount.addBankAccount')}
+                    title={translate('personalCard.addPersonalCard')}
                     onBackButtonPress={exitFlow}
                 />
                 <ScrollView contentContainerStyle={styles.flexGrow1}>
                     <ConfirmationPage
-                        heading={translate('addPersonalBankAccountPage.successTitle')}
-                        description={translate('addPersonalBankAccountPage.successMessage')}
+                        heading={translate('personalCard.personalCardAdded')}
+                        description={translate('personalCard.personalCardAddedDescription')}
                         shouldShowButton
                         buttonText={translate('common.continue')}
                         onButtonPress={exitFlow}
