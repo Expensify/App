@@ -680,7 +680,20 @@ function getRawFilterListFromQuery(rawQuery: SearchQueryString) {
     return undefined;
 }
 
+// Cache for buildSearchQueryJSON to avoid re-running the PEG parser for identical queries.
+// This is a pure function called from 64+ sites — many fire during the same render cycle
+// with identical query strings, each running the full parser from scratch.
+const buildSearchQueryJSONCache = new Map<string, SearchQueryJSON | undefined>();
+const BUILD_SEARCH_QUERY_JSON_CACHE_MAX_SIZE = 50;
+const BUILD_SEARCH_QUERY_JSON_CACHE_KEY_SEPARATOR = '\x00'; // Null byte prevents collisions if query/rawQuery contain arbitrary strings
+
 function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQueryString) {
+    const cacheKey = rawQuery ? `${query}${BUILD_SEARCH_QUERY_JSON_CACHE_KEY_SEPARATOR}${rawQuery}` : query;
+    if (buildSearchQueryJSONCache.has(cacheKey)) {
+        const cached = buildSearchQueryJSONCache.get(cacheKey);
+        return cached ? {...cached} : cached;
+    }
+
     try {
         const {parserQuery} = normalizeRangeFiltersForParsing(query);
         const result = parseSearchQuery(parserQuery) as SearchQueryJSON;
@@ -717,7 +730,15 @@ function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQuerySt
             result.rawFilterList = getRawFilterListFromQuery(rawQuery);
         }
 
-        return result;
+        if (buildSearchQueryJSONCache.size >= BUILD_SEARCH_QUERY_JSON_CACHE_MAX_SIZE) {
+            const firstKey = buildSearchQueryJSONCache.keys().next().value;
+            if (firstKey !== undefined) {
+                buildSearchQueryJSONCache.delete(firstKey);
+            }
+        }
+        buildSearchQueryJSONCache.set(cacheKey, result);
+
+        return {...result};
     } catch (e) {
         console.error(`Error when parsing SearchQuery: "${query}"`, e);
     }

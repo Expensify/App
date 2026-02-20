@@ -400,6 +400,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                     isDisabled={isOffline}
                     isLoading={isLoading}
                     pressOnEnter
+                    sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CONTINUE}
                 />
             </FixedFooter>
         </ScreenWrapper>

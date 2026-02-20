@@ -147,6 +147,7 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubPagePr
                             country: INPUT_IDS.COUNTRY as Country,
                         }}
                         maxInputLength={CONST.FORM_CHARACTER_LIMIT}
+                        autoComplete="address-line1"
                     />
                 </View>
                 <InputWrapper
@@ -158,6 +159,7 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubPagePr
                     defaultValue={personalDetailsValues[INPUT_IDS.ADDRESS_LINE_2]}
                     spellCheck={false}
                     containerStyles={styles.mt5}
+                    autoComplete="address-line2"
                 />
                 <View style={[styles.mt2, styles.mhn5]}>
                     <InputWrapper
@@ -211,6 +213,7 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubPagePr
                     hint={zipFormat}
                     onValueChange={handleAddressChange}
                     containerStyles={styles.mt5}
+                    autoComplete="postal-code"
                 />
             </View>
         </FormProvider>

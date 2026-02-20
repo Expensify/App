@@ -95,6 +95,7 @@ function ExitSurveyConfirmPage({route, navigation}: ExitSurveyConfirmPageProps) 
                     large
                     text={translate(shouldShowQuickTips ? 'exitSurvey.takeMeToExpensifyClassic' : 'exitSurvey.goToExpensifyClassic')}
                     pressOnEnter
+                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_EXIT_SURVEY.GO_TO_CLASSIC}
                     onPress={() => {
                         switchToOldDot(exitSurveyResponse);
                         Navigation.dismissModal();

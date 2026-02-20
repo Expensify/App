@@ -1,5 +1,6 @@
 import type {PusherAuthorizerResult, PusherChannel} from '@pusher/pusher-websocket-react-native';
 import {Pusher} from '@pusher/pusher-websocket-react-native';
+import * as Sentry from '@sentry/react-native';
 import isObject from 'lodash/isObject';
 import {InteractionManager} from 'react-native';
 import Onyx from 'react-native-onyx';
@@ -211,8 +212,22 @@ function subscribe<EventName extends PusherEventName>(
                 InteractionManager.runAfterInteractions(() => {
                     // We cannot call subscribe() before init(). Prevent any attempt to do this on dev.
                     if (!socket) {
-                        throw new Error(`[Pusher] instance not found. Pusher.subscribe()
-            most likely has been called before Pusher.init()`);
+                        const error = new Error('[Pusher] instance not found. Pusher.subscribe() most likely has been called before Pusher.init()');
+
+                        if (__DEV__) {
+                            throw error;
+                        }
+
+                        // In production, report to Sentry without crashing the app.
+                        // This can happen when disconnect() is called (e.g. during the "Upgrade Required"
+                        // teardown) before this deferred InteractionManager callback runs.
+                        Sentry.captureException(error, {
+                            tags: {source: 'Pusher.subscribe'},
+                            extra: {channelName, eventName},
+                        });
+                        Log.info('[Pusher] Socket disconnected before subscribe could complete, skipping subscription', false, {channelName, eventName});
+                        resolve();
+                        return;
                     }
 
                     Log.info('[Pusher] Attempting to subscribe to channel', false, {channelName, eventName});

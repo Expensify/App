@@ -19,9 +19,9 @@ type ActionableItemButtonsProps = {
     layout?: 'horizontal' | 'vertical';
     shouldUseLocalization?: boolean;
     primaryTextNumberOfLines?: number;
-    isBackgroundHovered?: boolean;
     styles?: {
         text?: StyleProp<TextStyle>;
+        button?: StyleProp<ViewStyle>;
         container?: StyleProp<ViewStyle>;
     };
 };
@@ -39,7 +39,7 @@ function ActionableItemButtons(props: ActionableItemButtonsProps) {
                     text={props.shouldUseLocalization ? translate(item.text as TranslationPaths) : item.text}
                     medium
                     success={item.isPrimary}
-                    innerStyles={!item.isPrimary && [styles.actionableItemButton, props.isBackgroundHovered && styles.actionableItemButtonBackgroundHovered]}
+                    innerStyles={props.styles?.button}
                     primaryTextNumberOfLines={props.primaryTextNumberOfLines}
                     textStyles={props.styles?.text}
                 />

@@ -13,7 +13,7 @@ import {
 } from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getDomainNameForPolicy, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+import {getDomainNameForPolicy, getMemberAccountIDsForWorkspace, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import {clearAddNewCardFlow, clearAssignCardStepAndData, openPolicyCompanyCardsPage, setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -55,7 +55,8 @@ function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssig
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
 
     const fetchCompanyCards = () => {
-        openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID, translate);
+        const emailList = Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList));
+        openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID, emailList, translate);
     };
 
     const {isOffline} = useNetwork({onReconnect: fetchCompanyCards});

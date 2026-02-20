@@ -1,5 +1,5 @@
 import type * as NativeNavigation from '@react-navigation/native';
-import type {PrivateIsArchivedMap} from '@selectors/ReportNameValuePairs';
+import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 import {fireEvent, screen} from '@testing-library/react-native';
 import React, {useMemo} from 'react';
 import Onyx from 'react-native-onyx';
