@@ -27,7 +27,6 @@ import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@userActio
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
 import type {JoinablePolicy} from '@src/types/onyx/JoinablePolicies';
 import type {BaseOnboardingWorkspacesProps} from './types';
 
@@ -149,8 +148,8 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     );
 
     const handleBackButtonPress = useCallback(() => {
-        Navigation.goBack(route.params?.backTo as Route);
-    }, [route.params?.backTo]);
+        Navigation.goBack();
+    }, []);
 
     const skipJoiningWorkspaces = () => {
         if (isVsb) {
@@ -174,7 +173,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             shouldShowOfflineIndicator={isSmallScreenWidth}
         >
             <HeaderWithBackButton
-                shouldShowBackButton
+                shouldShowBackButton={!!route.params?.backTo}
                 progressBarPercentage={60}
                 onBackButtonPress={handleBackButtonPress}
                 shouldDisplayHelpButton={false}
