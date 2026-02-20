@@ -3,15 +3,16 @@ import {FlashList} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import Animated from 'react-native-reanimated';
-import type {ExtendedTargetedEvent, SearchListItem} from '@components/SelectionListWithSections/types';
+import type {ExtendedTargetedEvent} from '@components/SelectionListWithSections/types';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {isMobileChrome} from '@libs/Browser';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import CONST from '@src/CONST';
 import type BaseSearchListProps from './types';
+import type {SearchListDataItem} from './types';
 
-const AnimatedFlashListComponent = Animated.createAnimatedComponent(FlashList<SearchListItem>);
+const AnimatedFlashListComponent = Animated.createAnimatedComponent(FlashList<SearchListDataItem>);
 
 function BaseSearchList({
     data,
@@ -58,7 +59,7 @@ function BaseSearchList({
     });
 
     const renderItemWithKeyboardFocus = useCallback(
-        ({item, index}: {item: SearchListItem; index: number}) => {
+        ({item, index}: {item: SearchListDataItem; index: number}) => {
             const isItemFocused = focusedIndex === index;
 
             const onFocus = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {

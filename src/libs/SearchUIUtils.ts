@@ -1185,7 +1185,7 @@ function toSearchListItemDescriptor(item: SearchListItem): SearchListItemDescrip
             reportID: item.reportID,
             policyID: item.policyID,
             transactionsQueryJSON: item.transactionsQueryJSON,
-            groupedBy: item.groupedBy,
+            groupedBy: item.groupedBy as SearchListItemDescriptor['groupedBy'],
         };
     }
     if (isTransactionGroupListItemType(item)) {
@@ -1194,7 +1194,7 @@ function toSearchListItemDescriptor(item: SearchListItem): SearchListItemDescrip
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             reportID: 'reportID' in item ? item.reportID : undefined,
             transactionsQueryJSON: item.transactionsQueryJSON,
-            groupedBy: 'groupedBy' in item ? item.groupedBy : undefined,
+            groupedBy: ('groupedBy' in item ? item.groupedBy : undefined) as SearchListItemDescriptor['groupedBy'],
         };
     }
     return {

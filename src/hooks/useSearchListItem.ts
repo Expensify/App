@@ -20,6 +20,8 @@ function useSearchListItem(descriptor: SearchListItemDescriptor): UseSearchListI
     const {selectedTransactions} = useSearchContext();
 
     return useMemo(() => {
+        // Reading ref during render is intentional: cache is synced by parent when sortedData changes; we need it to resolve the item for this row.
+        // eslint-disable-next-line react-hooks/refs -- cache ref is the source of truth for list items, updated by Search when sortedData changes
         const cache = itemsCacheRef?.current;
         const cachedItem = (cache?.get(descriptor.keyForList) ?? null) as SearchListItem | null;
         const isSelected = !!(cachedItem && selectedTransactions[descriptor.keyForList]?.isSelected);
@@ -30,6 +32,7 @@ function useSearchListItem(descriptor: SearchListItemDescriptor): UseSearchListI
 
         const itemWithSelection: SearchListItem = {...cachedItem, isSelected};
         return {item: itemWithSelection, isSelected};
+    // eslint-disable-next-line rulesdir/prefer-narrow-hook-dependencies -- itemsCacheRef intentional: ref.current not in deps (ref updates don't trigger re-renders)
     }, [descriptor.keyForList, itemsCacheRef, selectedTransactions]);
 }
 

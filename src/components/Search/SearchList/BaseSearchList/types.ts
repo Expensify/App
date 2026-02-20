@@ -1,12 +1,14 @@
 import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
 import type {ForwardedRef} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
-import type {SearchColumnType, SelectedTransactions} from '@components/Search/types';
+import type {SearchColumnType, SearchListItemDescriptor, SelectedTransactions} from '@components/Search/types';
 import type {ExtendedTargetedEvent, SearchListItem} from '@components/SelectionListWithSections/types';
 import type {Transaction} from '@src/types/onyx';
 
+export type SearchListDataItem = SearchListItem | SearchListItemDescriptor;
+
 type BaseSearchListProps = Pick<
-    FlashListProps<SearchListItem>,
+    FlashListProps<SearchListDataItem>,
     | 'onScroll'
     | 'contentContainerStyle'
     | 'onEndReached'
@@ -17,11 +19,11 @@ type BaseSearchListProps = Pick<
     | 'showsVerticalScrollIndicator'
     | 'onLayout'
 > & {
-    /** The data to display in the list */
-    data: SearchListItem[];
+    /** The data to display in the list (full items or descriptors when using useSearchListItem) */
+    data: SearchListDataItem[];
 
     /** The function to render each item in the list */
-    renderItem: (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => React.JSX.Element;
+    renderItem: (item: SearchListDataItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => React.JSX.Element;
 
     /** The columns that might change to trigger re-render via extraData */
     columns: SearchColumnType[];
@@ -32,11 +34,11 @@ type BaseSearchListProps = Pick<
     /** The length of the flattened items in the list */
     flattenedItemsLength: number;
 
-    /** The callback, which is run when a row is pressed */
-    onSelectRow: (item: SearchListItem) => void;
+    /** The callback, which is run when a row is pressed (receives item or descriptor when using descriptor flow) */
+    onSelectRow: (item: SearchListDataItem) => void;
 
     /** The ref to the list */
-    ref: ForwardedRef<FlashListRef<SearchListItem>>;
+    ref: ForwardedRef<FlashListRef<SearchListDataItem>>;
 
     /** The function to scroll to an index */
     scrollToIndex?: (index: number, animated?: boolean) => void;
