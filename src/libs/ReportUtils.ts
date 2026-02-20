@@ -3581,6 +3581,20 @@ function getInvoiceReceiverIcons(report: OnyxInputOrEntry<Report>, personalDetai
             },
         ];
     }
+
+    // When the receiver policy data is not yet loaded in Onyx (e.g. cross-user B2B invoice),
+    // return a placeholder workspace icon so the subscript pair is always shown.
+    if (receiverPolicyID) {
+        return [
+            {
+                source: getDefaultWorkspaceAvatar(''),
+                type: CONST.ICON_TYPE_WORKSPACE,
+                name: '',
+                id: receiverPolicyID,
+            },
+        ];
+    }
+
     return [];
 }
 
@@ -3732,8 +3746,11 @@ function getIconsForIOUReport(report: OnyxInputOrEntry<Report>, personalDetails:
     const isManager = currentUserAccountID === report?.managerID;
 
     // For one transaction IOUs, display a simplified report icon
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    if (isOneTransactionReportDeprecated(report)) {
+    if (isOneTransactionReport(report)) {
+        return [ownerIcon];
+    }
+
+    if (report?.managerID === report?.ownerAccountID) {
         return [ownerIcon];
     }
 

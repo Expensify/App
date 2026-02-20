@@ -157,7 +157,6 @@ import {
     isHiddenForCurrentUser,
     isInvoiceReport,
     isInvoiceRoom,
-    isTripRoom,
     isIOUOwnedByCurrentUser,
     isJoinRequestInAdminRoom,
     isMoneyRequestReport,
@@ -168,8 +167,10 @@ import {
     isSystemChat as isSystemChatUtil,
     isTaskReport,
     isThread,
+    isTripRoom,
     isUnread,
     isUnreadWithMention,
+    isWorkspaceTaskReport,
     shouldDisplayViolationsRBRInLHN,
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
@@ -762,7 +763,8 @@ function getOptionData({
     result.isMoneyRequestReport = isMoneyRequestReport(report);
     // Chat threads (non-expense-request) should not show subscript in LHN even if shouldReportShowSubscript
     // returns true — the workspace icon is suppressed to show only the actor avatar.
-    result.shouldShowSubscript = shouldReportShowSubscript(report, isReportArchived) && !(isChatThread(report) && !isTripRoom(report) && !isExpenseRequest(report));
+    result.shouldShowSubscript =
+        shouldReportShowSubscript(report, isReportArchived) && !(isChatThread(report) && !isTripRoom(report) && !isExpenseRequest(report)) && !isWorkspaceTaskReport(report);
     result.pendingAction = report.pendingFields?.addWorkspaceRoom ?? report.pendingFields?.createChat;
     result.brickRoadIndicator = reportAttributes?.brickRoadStatus;
     result.ownerAccountID = report.ownerAccountID;
