@@ -14,7 +14,7 @@ import {getUpdatedTransactionTag} from '@libs/TagsOptionsListUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import getCommonDependentTag from './SearchEditMultipleUtils';
+import {getCommonDependentTag} from './SearchEditMultipleUtils';
 
 function SearchEditMultipleTagPage() {
     const {translate} = useLocalize();

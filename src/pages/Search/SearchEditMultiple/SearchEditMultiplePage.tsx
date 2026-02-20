@@ -15,7 +15,6 @@ import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getCleanedTagName, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils} from '@libs/PolicyUtils';
-import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest} from '@libs/ReportUtils';
 import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
 import {hasEnabledTags, shouldShowDependentTagList} from '@libs/TagsOptionsListUtils';
@@ -23,9 +22,10 @@ import {getTagArrayFromName, getTaxName, isDistanceRequest, isManagedCardTransac
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {ValueOf} from 'type-fest';
 import type {Route} from '@src/ROUTES';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
-import getCommonDependentTag from './SearchEditMultipleUtils';
+import {getCommonDependentTag, getTransactionEditContext} from './SearchEditMultipleUtils';
 
 function SearchEditMultiplePage() {
     const {translate} = useLocalize();
@@ -40,46 +40,37 @@ function SearchEditMultiplePage() {
 
     const selectedTransactionIDs = draftTransaction?.selectedTransactionIDs ?? [];
 
-    const hasCustomUnitTransaction = selectedTransactionIDs.some((transactionID) => {
-        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-        return isDistanceRequest(transaction) || isPerDiemRequest(transaction);
+    const selectedTransactionContexts = selectedTransactionIDs.flatMap((transactionID) => {
+        const context = getTransactionEditContext(transactionID, allTransactions, allReports, allReportActions, policies);
+        return context ? [context] : [];
     });
 
-    const hasPartiallyEditableTransaction = selectedTransactionIDs.some((transactionID) => {
-        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-        if (!transaction) {
-            return false;
-        }
+    const hasCustomUnitTransaction = selectedTransactionContexts.some(({transaction}) => isDistanceRequest(transaction) || isPerDiemRequest(transaction));
 
-        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
-        const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`] ?? {};
-        const reportAction = getIOUActionForTransactionID(Object.values(reportActions), transactionID);
-        const transactionPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+    const isFieldDisabledForAnyTransaction = (field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) =>
+        selectedTransactionContexts.some(({transaction, report, reportAction, transactionPolicy}) => {
+            // Unreported expenses have no report actions yet but are always editable
+            if (!transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+                return false;
+            }
+            return !canEditFieldOfMoneyRequest(reportAction, field, undefined, false, undefined, transaction, report, transactionPolicy);
+        });
 
-        return !canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT, undefined, false, undefined, transaction, report, transactionPolicy);
-    });
+    const hasPartiallyEditableTransaction = isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.AMOUNT);
 
-    const areSelectedTransactionsBillable = selectedTransactionIDs.every((transactionID) => {
-        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-        if (!transaction) {
-            return false;
-        }
+    const hasPartiallyEditableMerchantTransaction = isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.MERCHANT);
 
-        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
-        const transactionPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-        return transactionPolicy?.disabledFields?.defaultBillable === false || !!transaction.billable;
-    });
+    const hasPartiallyEditableTaxRateTransaction = isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.TAX_RATE);
 
-    const areSelectedTransactionsReimbursable = selectedTransactionIDs.every((transactionID) => {
-        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-        if (!transaction) {
-            return false;
-        }
+    const hasPartiallyEditableDateTransaction = isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.DATE);
 
-        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
-        const transactionPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-        return transactionPolicy?.disabledFields?.reimbursable === false && !isManagedCardTransaction(transaction);
-    });
+    const areSelectedTransactionsBillable = selectedTransactionContexts.every(
+        ({transaction, transactionPolicy}) => transactionPolicy?.disabledFields?.defaultBillable === false || !!transaction.billable,
+    );
+
+    const areSelectedTransactionsReimbursable = selectedTransactionContexts.every(
+        ({transaction, transactionPolicy}) => transactionPolicy?.disabledFields?.reimbursable === false && !isManagedCardTransaction(transaction),
+    );
 
     const policyID = getSearchBulkEditPolicyID(selectedTransactionIDs, activePolicyID, allTransactions, allReports);
 
@@ -200,13 +191,13 @@ function SearchEditMultiplePage() {
             description: translate('common.merchant'),
             title: draftTransaction?.merchant ?? '',
             route: ROUTES.SEARCH_EDIT_MULTIPLE_MERCHANT_RHP,
-            disabled: hasCustomUnitTransaction,
+            disabled: hasPartiallyEditableMerchantTransaction,
         },
         {
             description: translate('common.date'),
             title: draftTransaction?.created ?? '',
             route: ROUTES.SEARCH_EDIT_MULTIPLE_DATE_RHP,
-            disabled: hasPartiallyEditableTransaction,
+            disabled: hasPartiallyEditableDateTransaction,
         },
         ...(areCategoriesEnabled
             ? [
@@ -224,7 +215,7 @@ function SearchEditMultiplePage() {
                       description: translate('iou.taxRate'),
                       title: draftTransaction?.taxCode ? (getTaxName(policy, draftTransaction) ?? '') : '',
                       route: ROUTES.SEARCH_EDIT_MULTIPLE_TAX_RHP,
-                      disabled: hasCustomUnitTransaction,
+                      disabled: hasPartiallyEditableTaxRateTransaction,
                   },
               ]
             : []),
