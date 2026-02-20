@@ -108,6 +108,18 @@ describe('useSearchDeleteTransactions', () => {
                 comment: `split-${hiddenRemainingSplitID}`,
                 reportID: hiddenRemainingSplit.reportID,
             }),
+            [selectedSplitID, hiddenRemainingSplitID],
+            expect.objectContaining({
+                transactionID: originalTransactionID,
+                amount: hiddenRemainingSplit.amount,
+                modifiedAmount: hiddenRemainingSplit.modifiedAmount,
+                merchant: hiddenRemainingSplit.merchant,
+                comment: expect.objectContaining({
+                    source: undefined,
+                    originalTransactionID: undefined,
+                    comment: `split-${hiddenRemainingSplitID}`,
+                }),
+            }),
         );
     });
 
