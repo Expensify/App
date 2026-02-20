@@ -5492,7 +5492,7 @@ const staticStyles = (theme: ThemeColors) =>
         descriptionBadge: {
             backgroundColor: theme.border,
             borderWidth: 0,
-            borderRadius: 9999,
+            borderRadius: variables.buttonBorderRadius,
             paddingHorizontal: 8,
             paddingVertical: 2,
             minHeight: 16,
