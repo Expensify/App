@@ -86,10 +86,7 @@ function BaseSearchList({
         shouldStopPropagation: true,
     });
 
-    const extraData = useMemo(
-        () => [columns, newTransactions, selectedTransactions, customCardNames],
-        [columns, newTransactions, selectedTransactions, customCardNames],
-    );
+    const extraData = useMemo(() => [columns, newTransactions, selectedTransactions, customCardNames], [columns, newTransactions, selectedTransactions, customCardNames]);
 
     return (
         <AnimatedFlashListComponent
