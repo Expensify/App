@@ -215,6 +215,9 @@ type MoneyRequestConfirmationListProps = {
 
     /** Show remove expense confirmation modal */
     showRemoveExpenseConfirmModal?: () => void;
+
+    /** When true, hide the "To:" section (e.g. when adding an expense directly to the current report) */
+    shouldHideToSection?: boolean;
 };
 
 type MoneyRequestConfirmationListItem = (Participant & {keyForList: string}) | OptionData;
@@ -266,6 +269,7 @@ function MoneyRequestConfirmationList({
     isTimeRequest = false,
     iouTimeCount,
     iouTimeRate,
+    shouldHideToSection = false,
 }: MoneyRequestConfirmationListProps) {
     const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
@@ -833,19 +837,22 @@ function MoneyRequestConfirmationList({
                 },
             );
         } else {
-            const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
-                ...participant,
-                isSelected: false,
-                keyForList: `${participant.keyForList ?? participant.accountID ?? participant.reportID}`,
-                isInteractive: isFromGlobalCreateAndCanEditParticipant && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
-                shouldShowRightCaret: isFromGlobalCreateAndCanEditParticipant && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
-            }));
+            // When adding an expense from within a report, hide the "To:" section since the destination is already the current report
+            if (!shouldHideToSection) {
+                const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
+                    ...participant,
+                    isSelected: false,
+                    keyForList: `${participant.keyForList ?? participant.accountID ?? participant.reportID}`,
+                    isInteractive: isFromGlobalCreateAndCanEditParticipant && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
+                    shouldShowRightCaret: isFromGlobalCreateAndCanEditParticipant && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
+                }));
 
-            options.push({
-                title: translate('common.to'),
-                data: formattedSelectedParticipants,
-                sectionIndex: 0,
-            });
+                options.push({
+                    title: translate('common.to'),
+                    data: formattedSelectedParticipants,
+                    sectionIndex: 0,
+                });
+            }
         }
 
         return options;
@@ -860,6 +867,7 @@ function MoneyRequestConfirmationList({
         isTestReceipt,
         isRestrictedToPreferredPolicy,
         isTypeInvoice,
+        shouldHideToSection,
     ]);
 
     useEffect(() => {
@@ -1358,5 +1366,6 @@ export default memo(
         prevProps.shouldDisplayReceipt === nextProps.shouldDisplayReceipt &&
         prevProps.isTimeRequest === nextProps.isTimeRequest &&
         prevProps.iouTimeCount === nextProps.iouTimeCount &&
-        prevProps.iouTimeRate === nextProps.iouTimeRate,
+        prevProps.iouTimeRate === nextProps.iouTimeRate &&
+        prevProps.shouldHideToSection === nextProps.shouldHideToSection,
 );

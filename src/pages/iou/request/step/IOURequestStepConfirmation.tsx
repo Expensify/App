@@ -57,6 +57,7 @@ import {
     generateReportID,
     getReportOrDraftReport,
     hasViolations as hasViolationsReportUtils,
+    isMoneyRequestReport,
     isProcessingReport,
     isReportOutstanding,
     isSelectedManagerMcTest,
@@ -173,6 +174,7 @@ function IOURequestStepConfirmation({
     const canUseReport = !(isProcessingReport(transactionReport) && !policyReal?.harvesting?.enabled) && isReportOutstanding(transactionReport, policyReal?.id, undefined, false);
 
     const shouldUseTransactionReport = !!transactionReport && (canUseReport || !reportWithDraftFallback);
+    const shouldHideToSection = useMemo(() => isMoneyRequestReport(reportWithDraftFallback), [reportWithDraftFallback]);
     const isTransactionReportDifferentFromRoute = useMemo(
         () => !!transaction?.reportID && !!reportWithDraftFallback?.reportID && transaction.reportID !== reportWithDraftFallback.reportID,
         [reportWithDraftFallback?.reportID, transaction?.reportID],
@@ -1488,6 +1490,7 @@ function IOURequestStepConfirmation({
                         isTimeRequest={isTimeRequest}
                         iouTimeCount={transaction?.comment?.units?.count}
                         iouTimeRate={transaction?.comment?.units?.rate}
+                        shouldHideToSection={shouldHideToSection}
                     />
                 </View>
             </DragAndDropProvider>
