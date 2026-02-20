@@ -267,7 +267,7 @@ function OptionRowLHN({
                                                 singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
                                                 shouldShowTooltip={shouldOptionShowTooltip(optionItem)}
                                                 reportID={optionItem?.reportID}
-                                                isInLHN={true}
+                                                isInLHN
                                             />
                                         )}
                                         <View style={contentContainerStyles}>
