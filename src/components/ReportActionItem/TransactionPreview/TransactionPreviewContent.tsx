@@ -27,6 +27,7 @@ import Parser from '@libs/Parser';
 import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {isMarkAsCashActionForTransaction} from '@libs/ReportPrimaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {canEditMoneyRequest, getTransactionDetails, isPolicyExpenseChat, isReportApproved, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
@@ -38,6 +39,8 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import useCardFeedErrors from '@hooks/useCardFeedErrors';
+import {getBrokenConnectionUrlToFixPersonalCard} from '@libs/CardUtils';
 import type {TransactionPreviewContentProps} from './types';
 
 function TransactionPreviewContent({
@@ -77,7 +80,10 @@ function TransactionPreviewContent({
     );
     const {amount, comment: requestComment, merchant, tag, category, currency: requestCurrency} = transactionDetails;
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`, {canBeMissing: true});
-
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {
+        canBeMissing: false,
+    });
     const managerID = report?.managerID ?? reportPreviewAction?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const ownerAccountID = report?.ownerAccountID ?? reportPreviewAction?.childOwnerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const isReportAPolicyExpenseChat = isPolicyExpenseChat(chatReport);
@@ -85,17 +91,19 @@ function TransactionPreviewContent({
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserDetails.email ?? '';
+    const currentUserLogin = currentUserDetails.login;
     const currentUserAccountID = currentUserDetails.accountID;
     const transactionPreviewCommonArguments = useMemo(
         () => ({
             iouReport: report,
+            policy,
             transaction,
             action,
             isBillSplit,
             violations,
             transactionDetails,
         }),
-        [action, report, isBillSplit, transaction, transactionDetails, violations],
+        [action, report, policy, isBillSplit, transaction, transactionDetails, violations],
     );
 
     const conditionals = useMemo(
@@ -118,7 +126,15 @@ function TransactionPreviewContent({
     const isIOUActionType = isMoneyRequestAction(action);
     const canEdit = isIOUActionType && canEditMoneyRequest(action, isChatReportArchived, report, policy, transaction);
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
-    const violationMessage = firstViolation ? ViolationsUtils.getViolationTranslation(firstViolation, translate, canEdit, undefined, companyCardPageURL) : undefined;
+    const {personalCardsWithBrokenConnection} = useCardFeedErrors();
+    const connectionLink = getBrokenConnectionUrlToFixPersonalCard(personalCardsWithBrokenConnection, environmentURL);
+    const cardID = firstViolation?.data?.cardID;
+    const card = cardID ? cardList?.[cardID] : undefined;
+    const isMarkAsCash = parentReport && currentUserLogin ? isMarkAsCashActionForTransaction(currentUserLogin, parentReport, violations, policy) : false;
+
+    const violationMessage = firstViolation
+        ? ViolationsUtils.getViolationTranslation(firstViolation, translate, canEdit, undefined, companyCardPageURL, connectionLink, card, isMarkAsCash)
+        : undefined;
 
     const previewText = useMemo(
         () =>
@@ -151,7 +167,7 @@ function TransactionPreviewContent({
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const isApproved = isReportApproved({report});
     const pendingAction = action?.pendingAction;
-    const isIOUSettled = !pendingAction && isSettled(report?.reportID);
+    const isIOUSettled = !pendingAction && isSettled(report);
     const isSettlementOrApprovalPartial = !!report?.pendingFields?.partial;
     const isTransactionScanning = isScanning(transaction);
     const displayAmount = isDeleted ? displayDeleteAmountText : displayAmountText;

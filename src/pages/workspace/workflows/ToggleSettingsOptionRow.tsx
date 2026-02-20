@@ -12,6 +12,7 @@ import Text from '@components/Text';
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Parser from '@libs/Parser';
+import CONST from '@src/CONST';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -45,6 +46,9 @@ type ToggleSettingOptionRowProps = {
 
     /** Used to apply styles to the Title */
     titleStyle?: StyleProp<TextStyle>;
+
+    /** Optional accessibility role for the title. Only set when the title is a section heading (e.g. CONST.ROLE.HEADER); omit for regular rows. */
+    titleAccessibilityRole?: typeof CONST.ROLE.HEADER;
 
     /** Used to apply styles to the Subtitle */
     subtitleStyle?: StyleProp<TextStyle>;
@@ -97,6 +101,7 @@ function ToggleSettingOptionRow({
     shouldParseSubtitle = false,
     wrapperStyle,
     titleStyle,
+    titleAccessibilityRole,
     onToggle,
     subMenuItems,
     isActive,
@@ -170,7 +175,12 @@ function ToggleSettingOptionRow({
             )}
             {customTitle ?? (
                 <View style={[styles.flexColumn, styles.flex1]}>
-                    <Text style={[styles.textNormal, styles.lh20, titleStyle]}>{title}</Text>
+                    <Text
+                        style={[styles.textNormal, styles.lh20, titleStyle]}
+                        accessibilityRole={titleAccessibilityRole}
+                    >
+                        {title}
+                    </Text>
                     {!shouldPlaceSubtitleBelowSwitch && subtitle && subTitleView}
                 </View>
             )}
@@ -193,9 +203,9 @@ function ToggleSettingOptionRow({
                         style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                         onPress={shouldMakeContentPressable ? onPress : undefined}
                         accessibilityLabel={title}
-                        role="button"
+                        role={shouldMakeContentPressable ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
                         accessible={false}
-                        interactive={!!shouldMakeContentPressable}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TOGGLE_SETTINGS_ROW}
                     >
                         {contentArea}
                     </PressableWithoutFeedback>

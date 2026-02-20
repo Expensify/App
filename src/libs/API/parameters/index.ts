@@ -68,6 +68,7 @@ export type {default as PusherPingParams} from './PusherPingParams';
 export type {default as ReconnectAppParams} from './ReconnectAppParams';
 export type {default as ReferTeachersUniteVolunteerParams} from './ReferTeachersUniteVolunteerParams';
 export type {default as ReportVirtualExpensifyCardFraudParams} from './ReportVirtualExpensifyCardFraudParams';
+export type {default as FreezeCardParams} from './FreezeCardParams';
 export type {default as ResolveFraudAlertParams} from './ResolveFraudAlertParams';
 export type {default as RequestContactMethodValidateCodeParams} from './RequestContactMethodValidateCodeParams';
 export type {default as RequestNewValidateCodeParams} from './RequestNewValidateCodeParams';
@@ -80,7 +81,6 @@ export type {default as ResolveActionableReportMentionWhisperParams} from './Res
 export type {default as RevealExpensifyCardDetailsParams} from './RevealExpensifyCardDetailsParams';
 export type {default as SearchForReportsParams} from './SearchForReportsParams';
 export type {default as SearchForRoomsToMentionParams} from './SearchForRoomsToMentionParams';
-export type {default as SendPerformanceTimingParams} from './SendPerformanceTimingParams';
 export type {default as GraphiteParams} from './GraphiteParams';
 export type {default as SetContactMethodAsDefaultParams} from './SetContactMethodAsDefaultParams';
 export type {default as SignInUserWithLinkParams} from './SignInUserWithLinkParams';
@@ -211,6 +211,7 @@ export type {default as SetWorkspaceAutoHarvestingParams} from './SetWorkspaceAu
 export type {default as SetWorkspaceAutoReportingFrequencyParams} from './SetWorkspaceAutoReportingFrequencyParams';
 export type {default as SetWorkspaceAutoReportingMonthlyOffsetParams} from './SetWorkspaceAutoReportingMonthlyOffsetParams';
 export type {default as SetWorkspaceApprovalModeParams} from './SetWorkspaceApprovalModeParams';
+export type {default as DisablePolicyApprovalsParams} from './DisablePolicyApprovalsParams';
 export type {default as SetWorkspacePayerParams} from './SetWorkspacePayerParams';
 export type {default as SetWorkspaceReimbursementParams} from './SetWorkspaceReimbursementParams';
 export type {default as SetWorkspaceDefaultSpendCategoryParams} from './SetWorkspaceDefaultSpendCategoryParams';
@@ -225,6 +226,7 @@ export type {default as EnablePolicyConnectionsParams} from './EnablePolicyConne
 export type {default as TogglePolicyReceiptPartnersParams} from './TogglePolicyReceiptPartnersParams';
 export type {default as EnablePolicyDistanceRatesParams} from './EnablePolicyDistanceRatesParams';
 export type {default as EnablePolicyTravelParams} from './EnablePolicyTravelParams';
+export type {default as SetPolicyTravelSettingsParams} from './SetPolicyTravelSettingsParams';
 export type {default as EnablePolicyTagsParams} from './EnablePolicyTagsParams';
 export type {default as SetPolicyTagsEnabled} from './SetPolicyTagsEnabled';
 export type {default as EnablePolicyWorkflowsParams} from './EnablePolicyWorkflowsParams';
@@ -290,6 +292,7 @@ export type {default as UpdateSubscriptionAutoRenewParams} from './UpdateSubscri
 export type {default as UpdateSubscriptionAddNewUsersAutomaticallyParams} from './UpdateSubscriptionAddNewUsersAutomaticallyParams';
 export type {default as GenerateSpotnanaTokenParams} from './GenerateSpotnanaTokenParams';
 export type {default as UpdateSubscriptionSizeParams} from './UpdateSubscriptionSizeParams';
+export type {default as SetPromoCodeParams} from './SetPromoCodeParams';
 export type {default as ReportExportParams} from './ReportExportParams';
 export type {default as MarkAsExportedParams} from './MarkAsExportedParams';
 export type {default as UpgradeToCorporateParams} from './UpgradeToCorporateParams';
@@ -379,6 +382,7 @@ export type {default as ExportTagsSpreadsheetParams} from './ExportTagsSpreadshe
 export type {default as UpdateXeroGenericTypeParams} from './UpdateXeroGenericTypeParams';
 export type {default as UpdateCardSettlementFrequencyParams} from './UpdateCardSettlementFrequencyParams';
 export type {default as UpdateCardSettlementAccountParams} from './UpdateCardSettlementAccountParams';
+export type {default as ToggleTravelInvoicingParams} from './ToggleTravelInvoicingParams';
 export type {default as SetTravelInvoicingSettlementAccountParams} from './SetTravelInvoicingSettlementAccountParams';
 export type {default as SetCompanyCardFeedName} from './SetCompanyCardFeedName';
 export type {default as DeleteCompanyCardFeed} from './DeleteCompanyCardFeed';
@@ -469,11 +473,14 @@ export type {default as SetPolicyRequireCompanyCardsEnabledParams} from './SetPo
 export type {default as SetTechnicalContactEmailParams} from './SetTechnicalContactEmailParams';
 export type {default as ToggleConsolidatedDomainBillingParams} from './ToggleConsolidatedDomainBillingParams';
 export type {default as RemoveDomainAdminParams} from './RemoveDomainAdminParams';
+export type {default as DeleteDomainMemberParams} from './DeleteDomainMemberParams';
 export type {default as DeleteDomainParams} from './DeleteDomainParams';
 export type {default as GetDuplicateTransactionDetailsParams} from './GetDuplicateTransactionDetailsParams';
+export type {default as UpdateTravelInvoicingSettlementFrequencyParams} from './UpdateTravelInvoicingSettlementFrequencyParams';
 export type {default as SetPolicyCodingRuleParams} from './SetPolicyCodingRuleParams';
 export type {default as RegisterAuthenticationKeyParams} from './RegisterAuthenticationKeyParams';
 export type {default as TroubleshootMultifactorAuthenticationParams} from './TroubleshootMultifactorAuthenticationParams';
 export type {default as RequestAuthenticationChallengeParams} from './RequestAuthenticationChallengeParams';
 export type {default as GetTransactionsMatchingCodingRuleParams} from './GetTransactionsMatchingCodingRuleParams';
 export type {default as SetPolicyTimeTrackingDefaultRateParams} from './SetPolicyTimeTrackingDefaultRateParams';
+export type {default as ToggleTwoFactorAuthRequiredForDomainParams} from './ToggleTwoFactorAuthRequiredForDomainParams';

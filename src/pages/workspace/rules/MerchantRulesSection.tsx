@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import Badge from '@components/Badge';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
@@ -13,7 +14,8 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getCleanedTagName} from '@libs/PolicyUtils';
+import Parser from '@libs/Parser';
+import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {CodingRule} from '@src/types/onyx/Policy';
@@ -43,10 +45,11 @@ function getRuleDescription(rule: CodingRule, translate: ReturnType<typeof useLo
         actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.category, getDecodedCategoryName(rule.category)));
     }
     if (rule.tag) {
-        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.tag, getCleanedTagName(rule.tag)));
+        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.tag, getCommaSeparatedTagNameWithSanitizedColons(rule.tag)));
     }
     if (rule.comment) {
-        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.description, rule.comment));
+        const commentMarkdown = Parser.htmlToMarkdown(rule.comment);
+        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.description, commentMarkdown));
     }
     if (rule.tax?.field_id_TAX?.value) {
         actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.tax, `${rule.tax.field_id_TAX.name} (${rule.tax.field_id_TAX.value})`));
@@ -132,15 +135,21 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
 
                         return (
                             <View key={rule.ruleID}>
-                                <MenuItemWithTopDescription
-                                    description={matchDescription}
-                                    title={ruleDescription}
-                                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                                    descriptionTextStyle={[styles.textStrong, styles.themeTextColor, styles.fontSizeNormal]}
-                                    titleStyle={[styles.textLabelSupporting, styles.fontSizeLabel]}
-                                    shouldShowRightIcon
-                                    onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, rule.ruleID))}
-                                />
+                                <OfflineWithFeedback
+                                    pendingAction={rule.pendingAction}
+                                    errors={rule.errors}
+                                >
+                                    <MenuItemWithTopDescription
+                                        description={matchDescription}
+                                        title={ruleDescription}
+                                        wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                                        descriptionTextStyle={[styles.textStrong, styles.themeTextColor, styles.fontSizeNormal]}
+                                        titleStyle={[styles.textLabelSupporting, styles.fontSizeLabel]}
+                                        shouldShowRightIcon
+                                        onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, rule.ruleID))}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_ITEM}
+                                    />
+                                </OfflineWithFeedback>
                             </View>
                         );
                     })}
@@ -154,6 +163,7 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
                 iconWidth={20}
                 style={[styles.sectionMenuItemTopDescription, !hasRules && styles.mt6, styles.mbn3]}
                 onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID))}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.ADD_MERCHANT_RULE}
             />
         </Section>
     );

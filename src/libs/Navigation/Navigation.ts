@@ -10,6 +10,7 @@ import Onyx from 'react-native-onyx';
 import type {Writable} from 'type-fest';
 import {ALL_WIDE_RIGHT_MODALS, SUPER_WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider/WIDE_RIGHT_MODALS';
 import SidePanelActions from '@libs/actions/SidePanel';
+import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {shallowCompare} from '@libs/ObjectUtils';
@@ -184,12 +185,25 @@ const closeRHPFlow = (ref = navigationRef) => originalCloseRHPFlow(ref);
 /**
  * Close the side panel on narrow layout when navigating to a different screen.
  */
-function closeSidePanelOnNarrowScreen() {
+function closeSidePanelOnNarrowScreen(route: Route) {
     const isExtraLargeScreenWidth = Dimensions.get('window').width > variables.sidePanelResponsiveWidthBreakpoint;
 
     if (!sidePanelNVP?.openNarrowScreen || isExtraLargeScreenWidth) {
         return;
     }
+
+    // Split "r/:reportID/attachment/add" by ":reportID" to get the prefix "r/" and suffix "/attachment/add"
+    const addAttachmentPrefix = ROUTES.REPORT_ADD_ATTACHMENT.route.split(':reportID').at(0) ?? '';
+    const addAttachmentSuffix = ROUTES.REPORT_ADD_ATTACHMENT.route.split(':reportID').at(1) ?? '';
+    const attachmentPreviewRoute = ROUTES.REPORT_ATTACHMENTS.route;
+    const isAddingAttachment = typeof route === 'string' && route.startsWith(addAttachmentPrefix) && route.includes(addAttachmentSuffix);
+    const isPreviewingAttachment = typeof route === 'string' && route.startsWith(attachmentPreviewRoute);
+    // If the user is navigating to an attachment route (previewing or adding), keep the side panel open
+    // so they still have access to the chat.
+    if (isAddingAttachment || isPreviewingAttachment) {
+        return;
+    }
+
     SidePanelActions.closeSidePanel(true);
 }
 
@@ -266,6 +280,7 @@ function isActiveRoute(routePath: Route): boolean {
  * @param options.forceReplace - If true, the navigation action will replace the current route instead of pushing a new one.
  */
 function navigate(route: Route, options?: LinkToOptions) {
+    clearSelectedText();
     if (!canNavigate('navigate', {route})) {
         if (!navigationRef.isReady()) {
             // Store intended route if the navigator is not yet available,
@@ -303,8 +318,10 @@ function navigate(route: Route, options?: LinkToOptions) {
             });
         }
     }
-    linkTo(navigationRef.current, route, options);
-    closeSidePanelOnNarrowScreen();
+
+    const targetRoute = route.startsWith(CONST.SAML_REDIRECT_URL) ? ROUTES.HOME : route;
+    linkTo(navigationRef.current, targetRoute, options);
+    closeSidePanelOnNarrowScreen(route);
 }
 /**
  * When routes are compared to determine whether the fallback route passed to the goUp function is in the state,
@@ -439,12 +456,19 @@ function goUp(backToRoute: Route, options?: GoBackOptions) {
  * @param options - Optional configuration that affects navigation logic
  */
 function goBack(backToRoute?: Route, options?: GoBackOptions) {
+    clearSelectedText();
+
     if (!canNavigate('goBack', {backToRoute})) {
         return;
     }
 
     if (backToRoute) {
         goUp(backToRoute, options);
+        return;
+    }
+
+    if (shouldPopToSidebar) {
+        popToSidebar();
         return;
     }
 
@@ -693,6 +717,7 @@ function getTopmostSuperWideRHPReportID(state: NavigationState = navigationRef.g
  * see the NAVIGATION.md documentation.
  */
 const dismissModal = ({ref = navigationRef, callback}: {ref?: NavigationRef; callback?: () => void} = {}) => {
+    clearSelectedText();
     isNavigationReady().then(() => {
         if (callback) {
             const subscription = DeviceEventEmitter.addListener(CONST.MODAL_EVENTS.CLOSED, () => {
@@ -739,19 +764,6 @@ const dismissModalWithReport = ({reportID, reportActionID, referrer, backTo}: Re
         });
     });
 };
-
-/**
- * Returns to the first screen in the stack, dismissing all the others, only if the global variable shouldPopToSidebar is set to true.
- */
-function popToTop() {
-    if (!shouldPopToSidebar) {
-        goBack();
-        return;
-    }
-
-    shouldPopToSidebar = false;
-    navigationRef.current?.dispatch(StackActions.popToTop());
-}
 
 function popRootToTop() {
     const rootState = navigationRef.getRootState();
@@ -921,7 +933,6 @@ export default {
     goBackToHome,
     closeRHPFlow,
     setNavigationActionToMicrotaskQueue,
-    popToTop,
     popRootToTop,
     pop,
     removeScreenFromNavigationState,

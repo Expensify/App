@@ -45,7 +45,7 @@ function EnterEmail({onSubmit, isUserDirector, isLoading}: EnterEmailProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, shouldGatherBothEmails ? [SIGNER_EMAIL, SECOND_SIGNER_EMAIL] : [SIGNER_EMAIL]);
+            const errors = getFieldRequiredErrors(values, shouldGatherBothEmails ? [SIGNER_EMAIL, SECOND_SIGNER_EMAIL] : [SIGNER_EMAIL], translate);
             if (!shouldGatherOnlySecondSignerEmail && values[SIGNER_EMAIL] && !Str.isValidEmail(values[SIGNER_EMAIL])) {
                 errors[SIGNER_EMAIL] = translate('bankAccount.error.email');
             }
@@ -88,6 +88,7 @@ function EnterEmail({onSubmit, isUserDirector, isLoading}: EnterEmailProps) {
                 inputMode={CONST.INPUT_MODE.EMAIL}
                 containerStyles={[styles.mt6]}
                 ref={!shouldGatherBothEmails ? inputCallbackRef : undefined}
+                autoComplete="email"
             />
             {shouldGatherBothEmails && (
                 <InputWrapper
@@ -98,6 +99,7 @@ function EnterEmail({onSubmit, isUserDirector, isLoading}: EnterEmailProps) {
                     inputID={SECOND_SIGNER_EMAIL}
                     inputMode={CONST.INPUT_MODE.EMAIL}
                     containerStyles={[styles.mt6]}
+                    autoComplete="email"
                 />
             )}
         </FormProvider>

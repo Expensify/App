@@ -1,4 +1,3 @@
-import {filterOutPersonalCards} from '@selectors/Card';
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
@@ -7,6 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
@@ -29,7 +29,7 @@ function ReportVirtualCardFraudPage({route}: ReportVirtualCardFraudPageProps) {
     const {cardID = ''} = route.params;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterOutPersonalCards, canBeMissing: false});
+    const cardList = useNonPersonalCardList();
     const [formData] = useOnyx(ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD, {canBeMissing: true});
 
     const virtualCard = cardList?.[cardID];

@@ -1,7 +1,6 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
@@ -15,7 +14,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import Section from '@components/Section';
 import useCardFeeds from '@hooks/useCardFeeds';
-import useCurrencyList from '@hooks/useCurrencyList';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -68,7 +67,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {ownerPoliciesSelector} from '@src/selectors/Policy';
 import {reimbursementAccountErrorSelector} from '@src/selectors/ReimbursementAccount';
-import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithPolicyProps} from './withPolicy';
 import withPolicy from './withPolicy';
@@ -81,7 +79,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {getCurrencySymbol} = useCurrencyList();
+    const {getCurrencySymbol} = useCurrencyListActions();
     const illustrationIcons = useMemoizedLazyIllustrations(['Building']);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exit', 'FallbackWorkspaceAvatar', 'ImageCropSquareMask', 'QrCode', 'Transfer', 'Trashcan', 'UserPlus']);
 
@@ -178,13 +176,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const privateSubscription = usePrivateSubscription();
     const accountID = currentUserPersonalDetails?.accountID;
 
-    const selector = useCallback(
-        (policies: OnyxCollection<Policy>) => {
-            return ownerPoliciesSelector(policies, accountID);
-        },
-        [accountID],
-    );
-    const [ownerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true, selector});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const ownerPolicies = ownerPoliciesSelector(policies, accountID);
 
     const isFocused = useIsFocused();
     const isPendingDelete = isPendingDeletePolicy(policy);
@@ -246,6 +239,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         }
 
         deleteWorkspace({
+            policies,
             policyID,
             activePolicyID,
             policyName,
@@ -264,6 +258,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             goBackFromInvalidPolicy();
         }
     }, [
+        policies,
         policyID,
         policyName,
         lastAccessedWorkspacePolicyID,
@@ -341,12 +336,12 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             return;
         }
 
-        Navigation.popToSidebar();
+        Navigation.goBack();
     };
 
     const startChangeOwnershipFlow = useCallback(() => {
         clearWorkspaceOwnerChangeFlow(policyID);
-        requestWorkspaceOwnerChange(policyID, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
+        requestWorkspaceOwnerChange(policy, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
         Navigation.navigate(
             ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(
                 policyID,
@@ -355,7 +350,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                 Navigation.getActiveRoute(),
             ),
         );
-    }, [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, policyID]);
+    }, [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, policyID, policy]);
 
     const handleLeave = useCallback(() => {
         const isReimburser = policy?.achAccount?.reimburser === session?.email;
@@ -415,6 +410,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             success={false}
             onPress={() => {}}
             shouldAlwaysShowDropdownMenu
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.MORE_DROPDOWN}
             customText={translate('common.more')}
             options={options}
             isSplitButton={false}
@@ -453,6 +449,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             text: translate('common.share'),
             icon: expensifyIcons.QrCode,
             onSelected: isAccountLocked ? showLockedAccountModal : onPressShare,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.SHARE,
         });
         if (isOwner) {
             secondaryActions.push({
@@ -490,6 +487,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                     <Button
                         success
                         text={translate('common.invite')}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.INVITE_BUTTON}
                         icon={expensifyIcons.UserPlus}
                         onPress={handleInvitePress}
                         medium
@@ -603,6 +601,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 deleteWorkspaceAvatar(policyID);
                             }}
                             editorMaskImage={expensifyIcons.ImageCropSquareMask}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.AVATAR}
                             pendingAction={policy?.pendingFields?.avatarURL}
                             errors={policy?.errorFields?.avatarURL}
                             onErrorClose={() => {
@@ -620,12 +619,14 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 title={policyName}
                                 titleStyle={styles.workspaceTitleStyle}
                                 description={translate('workspace.common.workspaceName')}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.NAME}
                                 shouldShowRightIcon={!readOnly}
                                 interactive={!readOnly}
                                 wrapperStyle={[styles.sectionMenuItemTopDescription, shouldUseNarrowLayout ? styles.mt3 : {}]}
                                 onPress={onPressName}
                                 shouldBreakWord
                                 numberOfLinesTitle={0}
+                                titleAccessibilityRole={CONST.ROLE.HEADER}
                             />
                         </OfflineWithFeedback>
                         {(!StringUtils.isEmptyString(policy?.description ?? '') || !readOnly || (prevIsPendingDelete && !isPendingDelete)) && (
@@ -642,6 +643,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 <MenuItemWithTopDescription
                                     title={policyDescription}
                                     description={translate('workspace.editor.descriptionInputLabel')}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.DESCRIPTION}
                                     shouldShowRightIcon={!readOnly}
                                     interactive={!readOnly}
                                     wrapperStyle={styles.sectionMenuItemTopDescription}
@@ -665,6 +667,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 <MenuItemWithTopDescription
                                     title={formattedCurrency}
                                     description={translate('workspace.editor.currencyInputLabel')}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.CURRENCY}
                                     shouldShowRightIcon={hasVBA ? false : !currencyReadOnly}
                                     interactive={hasVBA ? false : !currencyReadOnly}
                                     wrapperStyle={styles.sectionMenuItemTopDescription}
@@ -684,6 +687,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                     <MenuItemWithTopDescription
                                         title={formattedAddress}
                                         description={translate('common.companyAddress')}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.ADDRESS}
                                         shouldShowRightIcon={!readOnly}
                                         interactive={!readOnly}
                                         wrapperStyle={styles.sectionMenuItemTopDescription}
@@ -701,6 +705,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                     <MenuItemWithTopDescription
                                         title={getUserFriendlyWorkspaceType(policy.type, translate)}
                                         description={translate('workspace.common.planType')}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.PLAN_TYPE}
                                         shouldShowRightIcon
                                         wrapperStyle={styles.sectionMenuItemTopDescription}
                                         onPress={onPressPlanType}
@@ -723,6 +728,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 <MenuItemWithTopDescription
                                     title={policy?.customRules ?? ''}
                                     description={translate('workspace.editor.policy')}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.CUSTOM_RULES}
                                     shouldShowRightIcon={!readOnly}
                                     interactive={!readOnly}
                                     wrapperStyle={styles.sectionMenuItemTopDescription}

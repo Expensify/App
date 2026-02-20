@@ -3,7 +3,7 @@ import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
 import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {FlatList, ViewStyle} from 'react-native';
+import type {ViewStyle} from 'react-native';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
@@ -22,9 +22,10 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useShowWideRHPVersion from '@components/WideRHPContextProvider/useShowWideRHPVersion';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
+import useActionListContextValue from '@hooks/useActionListContextValue';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
+import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
-import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -38,7 +39,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSidePanel from '@hooks/useSidePanel';
+import useSidePanelActions from '@hooks/useSidePanelActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
@@ -59,10 +60,10 @@ import {
     isCreatedAction,
     isDeletedParentAction,
     isMoneyRequestAction,
-    isReportActionVisible,
     isSentMoneyReportAction,
     isTransactionThread,
     isWhisperAction,
+    shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
 import {
     canEditReportAction,
@@ -87,7 +88,7 @@ import {
     isTaskReport,
     isValidReportIDFromPath,
 } from '@libs/ReportUtils';
-import {cancelSpan} from '@libs/telemetry/activeSpans';
+import {cancelSpan, cancelSpansByPrefix} from '@libs/telemetry/activeSpans';
 import {isNumeric} from '@libs/ValidationUtils';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
 import {setShouldShowComposeInput} from '@userActions/Composer';
@@ -113,7 +114,6 @@ import useReportWasDeleted from './hooks/useReportWasDeleted';
 import ReactionListWrapper from './ReactionListWrapper';
 import ReportActionsView from './report/ReportActionsView';
 import ReportFooter from './report/ReportFooter';
-import type {ActionListContextType, ScrollPosition} from './ReportScreenContext';
 import {ActionListContext} from './ReportScreenContext';
 
 type ReportScreenNavigationProps =
@@ -167,7 +167,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const prevIsFocused = usePrevious(isFocused);
     const [firstRender, setFirstRender] = useState(true);
     const isSkippingOpenReport = useRef(false);
-    const flatListRef = useRef<FlatList>(null);
     const hasCreatedLegacyThreadRef = useRef(false);
     const {isBetaEnabled} = usePermissions();
     const {isOffline} = useNetwork();
@@ -184,15 +183,15 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {canBeMissing: true, allowStaleData: true});
     const [policies = getEmptyObject<NonNullable<OnyxCollection<OnyxTypes.Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, canBeMissing: false});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: false});
+    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+
+    const archivedReportsIdSet = useArchivedReportsIdSet();
 
     const parentReportAction = useParentReportAction(reportOnyx);
 
     const deletedParentAction = isDeletedParentAction(parentReportAction);
     const prevDeletedParentAction = usePrevious(deletedParentAction);
-
-    const permissions = useDeepCompareRef(reportOnyx?.permissions);
 
     const isAnonymousUser = useIsAnonymousUser();
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
@@ -211,7 +210,12 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                 return;
             }
 
-            const lastAccessedReportID = findLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), 'openOnAdminRoom' in route.params && !!route.params.openOnAdminRoom)?.reportID;
+            const lastAccessedReportID = findLastAccessedReport(
+                !isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+                'openOnAdminRoom' in route.params && !!route.params.openOnAdminRoom,
+                undefined,
+                archivedReportsIdSet,
+            )?.reportID;
 
             // It's possible that reports aren't fully loaded yet
             // in that case the reportID is undefined
@@ -222,7 +226,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                 Log.info(`[ReportScreen] no reportID found in params, setting it to lastAccessedReportID: ${lastAccessedReportID}`);
                 navigation.setParams({reportID: lastAccessedReportID});
             });
-        }, [isBetaEnabled, navigation, route.params]),
+        }, [archivedReportsIdSet, isBetaEnabled, navigation, route.params]),
     );
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
@@ -289,12 +293,12 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                 private_isArchived: reportNameValuePairsOnyx?.private_isArchived,
                 lastMentionedTime: reportOnyx.lastMentionedTime,
                 avatarUrl: reportOnyx.avatarUrl,
-                permissions,
+                permissions: reportOnyx?.permissions,
                 invoiceReceiver: reportOnyx.invoiceReceiver,
                 policyAvatar: reportOnyx.policyAvatar,
                 nextStep: reportOnyx.nextStep,
             },
-        [reportOnyx, reportNameValuePairsOnyx?.private_isArchived, permissions],
+        [reportOnyx, reportNameValuePairsOnyx?.private_isArchived],
     );
     const reportID = report?.reportID;
 
@@ -306,14 +310,12 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
-    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {canBeMissing: true});
     const {reportActions: unfilteredReportActions, linkedAction, sortedAllReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
     // wrapping in useMemo because this is array operation and can cause performance issues
     const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${linkedAction?.childReportID}`, {canBeMissing: true});
 
     const [isBannerVisible, setIsBannerVisible] = useState(true);
-    const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
 
     const viewportOffsetTop = useViewportOffsetTop();
 
@@ -366,23 +368,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
     const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, reportTransactions);
 
-    const {closeSidePanel} = useSidePanel();
-
-    useEffect(() => {
-        if (
-            !isFocused ||
-            !reportIDFromRoute ||
-            report?.reportID ||
-            reportMetadata?.isLoadingInitialReportActions ||
-            reportMetadata?.isOptimisticReport ||
-            isLoadingApp ||
-            userLeavingStatus
-        ) {
-            return;
-        }
-
-        Navigation.goBack();
-    }, [isFocused, reportIDFromRoute, report?.reportID, reportMetadata?.isLoadingInitialReportActions, reportMetadata?.isOptimisticReport, isLoadingApp, userLeavingStatus]);
+    const {closeSidePanel} = useSidePanelActions();
 
     useEffect(() => {
         if (!prevIsFocused || isFocused) {
@@ -412,10 +398,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             }
             if (backTo) {
                 Navigation.goBack(backTo as Route);
-                return;
-            }
-            if (Navigation.getShouldPopToSidebar()) {
-                Navigation.popToSidebar();
                 return;
             }
             Navigation.goBack();
@@ -483,16 +465,10 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const isReportArchived = useReportIsArchived(report?.reportID);
     const {isEditingDisabled, isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived);
 
-    const isLinkedActionDeleted = useMemo(() => {
-        if (!linkedAction) {
-            return false;
-        }
-        const actionReportID = linkedAction.reportID ?? reportID;
-        if (!actionReportID) {
-            return true;
-        }
-        return !isReportActionVisible(linkedAction, actionReportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsData);
-    }, [linkedAction, report, isReportArchived, reportID, visibleReportActionsData]);
+    const isLinkedActionDeleted = useMemo(
+        () => !!linkedAction && !shouldReportActionBeVisible(linkedAction, linkedAction.reportActionID, canUserPerformWriteAction(report, isReportArchived)),
+        [linkedAction, report, isReportArchived],
+    );
 
     const prevIsLinkedActionDeleted = usePrevious(linkedAction ? isLinkedActionDeleted : undefined);
 
@@ -605,7 +581,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             }
         }
 
-        openReport(reportIDFromRoute, reportActionIDFromRoute);
+        openReport(reportIDFromRoute, introSelected, reportActionIDFromRoute);
     }, [
         reportMetadata.isOptimisticReport,
         report,
@@ -674,6 +650,9 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
             // We need to cancel telemetry span when user leaves the screen before full report data is loaded
             cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`);
+
+            // Cancel any pending send-message spans to prevent orphaned spans when navigating away
+            cancelSpansByPrefix(CONST.TELEMETRY.SPAN_SEND_MESSAGE);
         };
     }, [reportID]);
 
@@ -740,7 +719,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         if (!shouldUseNarrowLayout || !isFocused || prevIsFocused || !isChatThread(report) || !isHiddenForCurrentUser(report) || isTransactionThreadView) {
             return;
         }
-        openReport(reportID);
+        openReport(reportID, introSelected);
 
         // We don't want to run this useEffect every time `report` is changed
         // Excluding shouldUseNarrowLayout from the dependency list to prevent re-triggering on screen resize events.
@@ -898,7 +877,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         };
     }, [report?.reportID, didSubscribeToReportLeavingEvents, reportIDFromRoute, report?.pendingFields, currentUserAccountID]);
 
-    const actionListValue = useMemo((): ActionListContextType => ({flatListRef, scrollPosition, setScrollPosition}), [flatListRef, scrollPosition, setScrollPosition]);
+    const actionListValue = useActionListContextValue();
 
     // This helps in tracking from the moment 'route' triggers useMemo until isLoadingInitialReportActions becomes true. It prevents blinking when loading reportActions from cache.
     useEffect(() => {

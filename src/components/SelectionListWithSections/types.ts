@@ -6,6 +6,7 @@ import type {
     LayoutChangeEvent,
     NativeScrollEvent,
     NativeSyntheticEvent,
+    Role,
     ScrollViewProps,
     SectionListData,
     StyleProp,
@@ -19,7 +20,6 @@ import type {AnimatedStyle} from 'react-native-reanimated';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-import type {OptionData} from '@libs/ReportUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type UnreportedExpenseListItem from '@pages/UnreportedExpenseListItem';
 // eslint-disable-next-line no-restricted-imports
@@ -124,6 +124,9 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Whether to call stopPropagation on the mouseleave event in BaseListItem */
     shouldStopMouseLeavePropagation?: boolean;
+
+    /** Accessibility role for the list item (e.g. 'checkbox' for multi-select options so screen readers announce checked state) */
+    accessibilityRole?: Role;
 } & TRightHandSideComponent<TItem>;
 
 type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;
@@ -297,6 +300,9 @@ type TransactionListItemType = ListItem &
 
         /** final and formatted "merchant" value used for displaying and sorting */
         formattedMerchant: string;
+
+        /** Whether the card feed has been deleted */
+        isCardFeedDeleted?: boolean;
 
         /** The original amount of the transaction */
         originalAmount?: number;
@@ -771,8 +777,6 @@ type Section<TItem extends ListItem> = {
     shouldShow?: boolean;
 };
 
-type Sections = Array<SectionListData<OptionData, Section<OptionData>>>;
-
 type LoadingPlaceholderComponentProps = {
     shouldStyleAsTable?: boolean;
     fixedNumItems?: number;
@@ -1220,5 +1224,4 @@ export type {
     SortableColumnName,
     SearchListItem,
     UnreportedExpenseListItemType,
-    Sections,
 };

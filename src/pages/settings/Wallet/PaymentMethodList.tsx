@@ -24,8 +24,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {
     getAssignedCardSortKey,
     getCardFeedIcon,
-    getCompanyCardFeedWithDomainID,
+    getCardFeedWithDomainID,
     getPlaidInstitutionIconUrl,
+    isCardConnectionBroken,
+    isCardFrozen,
     isExpensifyCard,
     isExpensifyCardPendingAction,
     isPersonalCard,
@@ -39,7 +41,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {BankAccount, BankAccountList, CardList, CompanyCardFeed} from '@src/types/onyx';
+import type {BankAccount, BankAccountList, CardList} from '@src/types/onyx';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -180,14 +182,14 @@ function PaymentMethodList({
     const isLoadingBankAccountList = isLoadingOnyxValue(bankAccountListResult);
     const [cardList = getEmptyObject<CardList>(), cardListResult] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const isLoadingCardList = isLoadingOnyxValue(cardListResult);
-    const nonExpensifyCardDomains = shouldShowAssignedCards
+    const cardDomains = shouldShowAssignedCards
         ? Object.values(isLoadingCardList ? {} : (cardList ?? {}))
-              .filter((card) => !isExpensifyCard(card) && !!card.domainName)
+              .filter((card) => !!card.domainName)
               .map((card) => card.domainName)
         : [];
     const [policiesForAssignedCards] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         canBeMissing: true,
-        selector: createPoliciesForDomainCardsSelector(nonExpensifyCardDomains),
+        selector: createPoliciesForDomainCardsSelector(cardDomains),
     });
     // Temporarily disabled because P2P debit cards are disabled.
     // const [fundList = getEmptyObject<FundList>()] = useOnyx(ONYXKEYS.FUND_LIST);
@@ -206,22 +208,24 @@ function PaymentMethodList({
                 );
 
             const assignedCardsSorted = lodashSortBy(assignedCards, getAssignedCardSortKey);
-            const assignedCardsGrouped: PaymentMethodItem[] = [];
+            const companyCardsGrouped: PaymentMethodItem[] = [];
+            const personalCardsGrouped: PaymentMethodItem[] = [];
             for (const card of assignedCardsSorted) {
                 const isDisabled = card.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                 const isUserPersonalCard = isPersonalCard(card);
-                const isCSVCard = card.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
+                const isCSVCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
+                const assignedCardsGrouped = isUserPersonalCard ? personalCardsGrouped : companyCardsGrouped;
 
                 let icon;
                 if (isUserPersonalCard && isCSVCard) {
                     icon = getCardFeedIcon(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV, illustrations, companyCardFeedIcons);
                 } else {
-                    icon = getCardFeedIcon(card.bank as CompanyCardFeed, illustrations, companyCardFeedIcons);
+                    icon = getCardFeedIcon(card.bank, illustrations, companyCardFeedIcons);
                 }
 
                 let shouldShowRBR = false;
                 if (card.fundID) {
-                    const feedNameWithDomainID = getCompanyCardFeedWithDomainID(card.bank as CompanyCardFeed, card.fundID);
+                    const feedNameWithDomainID = getCardFeedWithDomainID(card.bank, card.fundID);
                     shouldShowRBR = shouldShowRbrForFeedNameWithDomainID[feedNameWithDomainID];
                 } else if (card.bank !== CONST.PERSONAL_CARD.BANK_NAME.CSV) {
                     // Don't show red dot for CSV imported cards without fundID
@@ -239,10 +243,14 @@ function PaymentMethodList({
                     }
                 }
 
+                if (isUserPersonalCard && (!isEmptyObject(card.errors) || isCardConnectionBroken(card))) {
+                    brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+                }
+
                 if (!isExpensifyCard(card)) {
                     const lastFourPAN = lastFourNumbersFromCardName(card.cardName);
                     const plaidUrl = getPlaidInstitutionIconUrl(card.bank);
-                    const isCSVImportCard = card.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD;
+                    const isCSVImportCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD;
                     const cardTitle = isCSVImportCard ? (card.nameValuePairs?.cardTitle ?? card.cardName) : maskCardNumber(card.cardName, card.bank);
                     const pressHandler = onPress as CardPressHandler;
                     let cardDescription;
@@ -280,7 +288,7 @@ function PaymentMethodList({
                         disabled: isDisabled,
                         shouldShowRightIcon,
                         shouldShowThreeDotsMenu: !isUserPersonalCard || isCSVCard,
-                        errors: card.errors,
+                        errors: isUserPersonalCard ? undefined : card.errors,
                         canDismissError: false,
                         pendingAction: card.pendingAction,
                         brickRoadIndicator,
@@ -352,9 +360,16 @@ function PaymentMethodList({
                     iconStyles: [styles.cardIcon],
                     iconWidth: variables.cardIconWidth,
                     iconHeight: variables.cardIconHeight,
+                    isCardFrozen: isCardFrozen(card),
                 });
             }
-            return assignedCardsGrouped;
+
+            const companyCards = [translate('workspace.common.companyCards'), ...companyCardsGrouped];
+            const personalCards = [translate('workspace.common.personalCards'), ...personalCardsGrouped];
+            if (companyCardsGrouped.length > 0 && personalCardsGrouped.length > 0) {
+                return [...companyCards, ...personalCards];
+            }
+            return [...companyCardsGrouped, ...personalCardsGrouped];
         }
 
         // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
@@ -465,6 +480,7 @@ function PaymentMethodList({
                 title={translate('bankAccount.addBankAccount')}
                 icon={Expensicons.Plus}
                 wrapperStyle={[styles.paymentMethod, listItemStyle]}
+                sentryLabel={CONST.SENTRY_LABEL.WALLET.ADD_BANK_ACCOUNT}
             />
         ),
 
@@ -489,6 +505,8 @@ function PaymentMethodList({
         return filteredPaymentMethods;
     }, [filteredPaymentMethods, shouldShowBankAccountSections, translate]);
 
+    const filteredPaymentMethodsWithoutStrings = useMemo(() => filteredPaymentMethods.filter((method) => typeof method !== 'string'), [filteredPaymentMethods]);
+
     /**
      * Create a menuItem for each passed paymentMethod
      */
@@ -505,7 +523,7 @@ function PaymentMethodList({
                 <PaymentMethodListItem
                     item={item}
                     shouldShowDefaultBadge={shouldShowDefaultBadge(
-                        filteredPaymentMethods,
+                        filteredPaymentMethodsWithoutStrings,
                         invoiceTransferBankAccountID ? invoiceTransferBankAccountID === item.methodID : item.methodID === userWallet?.walletLinkedAccountID,
                         shouldHideDefaultBadge,
                     )}
@@ -515,7 +533,7 @@ function PaymentMethodList({
             );
         },
         [
-            filteredPaymentMethods,
+            filteredPaymentMethodsWithoutStrings,
             invoiceTransferBankAccountID,
             userWallet?.walletLinkedAccountID,
             shouldHideDefaultBadge,

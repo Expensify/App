@@ -78,6 +78,7 @@ function SortableTableHeader({
                             textStyle={textStyle}
                             sortOrder={sortOrder ?? CONST.SEARCH.SORT_ORDER.ASC}
                             isActive={isActive}
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH.SORTABLE_HEADER}
                             containerStyle={[
                                 StyleUtils.getReportTableColumnStyles(
                                     columnName,

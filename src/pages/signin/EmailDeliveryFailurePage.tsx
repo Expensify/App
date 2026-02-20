@@ -9,6 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {normalizeLogin} from '@libs/LoginUtils';
 import {clearSignInData} from '@userActions/Session';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function EmailDeliveryFailurePage() {
@@ -31,7 +32,7 @@ function EmailDeliveryFailurePage() {
         <>
             <View style={[styles.mv3, styles.flexRow]}>
                 <View style={[styles.flex1]}>
-                    <Text>{translate('emailDeliveryFailurePage.ourEmailProvider', {login})}</Text>
+                    <Text>{translate('emailDeliveryFailurePage.ourEmailProvider', login)}</Text>
                     <View style={[styles.mt5, styles.renderHTML]}>
                         <RenderHTML html={translate('emailDeliveryFailurePage.confirmThat', login)} />
                     </View>
@@ -51,6 +52,7 @@ function EmailDeliveryFailurePage() {
                     // disable hover dim for switch
                     hoverDimmingValue={1}
                     pressDimmingValue={0.2}
+                    sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.GO_BACK}
                 >
                     <Text style={[styles.link]}>{translate('common.back')}</Text>
                 </PressableWithFeedback>
