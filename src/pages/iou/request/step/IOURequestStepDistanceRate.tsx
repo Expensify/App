@@ -1,5 +1,6 @@
-import React, {useMemo} from 'react';
+import React, {useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import FormHelpMessage from '@components/FormHelpMessage';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
@@ -77,6 +78,8 @@ function IOURequestStepDistanceRate({
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
+    const [formError, setFormError] = useState('');
+
     const rates = DistanceRequestUtils.getMileageRates(policy, false, currentRateID);
     const sortedRates = useMemo(() => Object.values(rates).sort((a, b) => localeCompare(a.name ?? '', b.name ?? '')), [rates, localeCompare]);
 
@@ -118,6 +121,16 @@ function IOURequestStepDistanceRate({
             setMoneyRequestTaxRate(transactionID, taxRateExternalID ?? null, shouldUseTransactionDraft(action));
         }
 
+        // Validate that the new rate combined with the existing distance doesn't exceed the backend limit
+        const newRate = rates[customUnitRateID]?.rate ?? 0;
+        const unit = DistanceRequestUtils.getDistanceUnit(transaction, rates[customUnitRateID]);
+        const distanceInMeters = getDistanceInMeters(transaction, unit);
+        const distanceInUnits = DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit);
+        if (!DistanceRequestUtils.isDistanceAmountWithinLimit(distanceInUnits, newRate)) {
+            setFormError(translate('iou.error.distanceAmountTooLarge'));
+            return;
+        }
+
         if (currentRateID !== customUnitRateID) {
             setMoneyRequestDistanceRate(transactionID, customUnitRateID, policy, shouldUseTransactionDraft(action));
 
@@ -140,6 +153,7 @@ function IOURequestStepDistanceRate({
             }
         }
 
+        setFormError('');
         navigateBack();
     }
 
@@ -152,6 +166,7 @@ function IOURequestStepDistanceRate({
             shouldShowNotFoundPage={shouldShowNotFoundPage}
         >
             <Text style={[styles.mh5, styles.mv4]}>{translate('iou.chooseARate')}</Text>
+            {!!formError && <FormHelpMessage style={[styles.mh5, styles.mb4]} message={formError} />}
 
             <SelectionList
                 data={options}
