@@ -153,6 +153,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
     const {
         all: {shouldShowRBR},
+        personalCard: {shouldShowRBR: shouldShowRBRForPersonalCard},
     } = useCardFeedErrors();
 
     const hasPendingCardAction = hasPendingExpensifyCardAction(allCards, privatePersonalDetails);
@@ -162,7 +163,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         !isEmptyObject(userWallet?.errors) ||
         !isEmptyObject(walletTerms?.errors) ||
         !isEmptyObject(unsharedBankAccount?.errors) ||
-        shouldShowRBR
+        shouldShowRBR ||
+        shouldShowRBRForPersonalCard
     ) {
         walletBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     } else if (hasPartiallySetupBankAccount(bankAccountList) || hasPendingCardAction) {

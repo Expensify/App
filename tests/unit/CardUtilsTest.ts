@@ -20,6 +20,7 @@ import {
     getAssignedCardSortKey,
     getBankCardDetailsImage,
     getBankName,
+    getBrokenConnectionUrlToFixPersonalCard,
     getCardDescription,
     getCardFeedIcon,
     getCardFeedWithDomainID,
@@ -2806,6 +2807,48 @@ describe('CardUtils', () => {
 
             // Different card name but same last 4 digits - should NOT match
             expect(isMatchingCard(card, '', 'Business Gold Card - JANE DOE - 1234')).toBe(false);
+        });
+    });
+
+    describe('getBrokenConnectionUrlToFixPersonalCard', () => {
+        const environmentURL = 'https://dev.new.expensify.com';
+
+        it('Should return undefined when cards is undefined', () => {
+            expect(getBrokenConnectionUrlToFixPersonalCard(undefined as unknown as Record<string, Card>, environmentURL)).toBeUndefined();
+        });
+
+        it('Should return undefined when cards is null', () => {
+            expect(getBrokenConnectionUrlToFixPersonalCard(null as unknown as Record<string, Card>, environmentURL)).toBeUndefined();
+        });
+
+        it('Should return wallet URL when cards is empty object', () => {
+            const result = getBrokenConnectionUrlToFixPersonalCard({}, environmentURL);
+            expect(result).toBe(`${environmentURL}/settings/wallet`);
+        });
+
+        it('Should return personal card details URL when there is exactly one card', () => {
+            const cards: Record<string, Card> = {
+                '1': {cardID: 12345} as Card,
+            };
+            const result = getBrokenConnectionUrlToFixPersonalCard(cards, environmentURL);
+            expect(result).toBe(`${environmentURL}/settings/wallet/personal-card/12345`);
+        });
+
+        it('Should return wallet URL when there are multiple cards', () => {
+            const cards: Record<string, Card> = {
+                '1': {cardID: 111} as Card,
+                '2': {cardID: 222} as Card,
+            };
+            const result = getBrokenConnectionUrlToFixPersonalCard(cards, environmentURL);
+            expect(result).toBe(`${environmentURL}/settings/wallet`);
+        });
+
+        it('Should use first card cardID for single-card URL', () => {
+            const cards: Record<string, Card> = {
+                cardKey: {cardID: 99999} as Card,
+            };
+            const result = getBrokenConnectionUrlToFixPersonalCard(cards, environmentURL);
+            expect(result).toBe(`${environmentURL}/settings/wallet/personal-card/99999`);
         });
     });
 });
