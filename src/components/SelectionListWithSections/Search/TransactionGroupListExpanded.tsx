@@ -32,6 +32,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     showTooltip,
     canSelectMultiple,
     onCheckboxPress,
+    onSelectRow,
     columns,
     groupBy,
     accountID,
@@ -103,7 +104,12 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 
         // The arrow navigation in RHP is only allowed for group-by:reports
         if (!isExpenseReportType) {
-            navigateToTransactionThread();
+            onSelectRow(transactionItem as unknown as TItem, {
+                hasParentReport: false,
+                hasTransaction: false,
+                hasParentReportAction: false,
+                hasTransactionThreadReport: false,
+            });
             return;
         }
 

@@ -712,7 +712,7 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
 
 type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     TransactionGroupListItemProps<TItem>,
-    'showTooltip' | 'canSelectMultiple' | 'onCheckboxPress' | 'columns' | 'groupBy' | 'accountID' | 'isOffline' | 'violations'
+    'showTooltip' | 'canSelectMultiple' | 'onCheckboxPress' | 'onSelectRow' | 'columns' | 'groupBy' | 'accountID' | 'isOffline' | 'violations'
 > & {
     transactions: TransactionListItemType[];
     transactionsVisibleLimit: number;

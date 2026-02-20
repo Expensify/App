@@ -475,7 +475,10 @@ function Search({
             return [];
         }
         return (baseFilteredData as TransactionGroupListItemType[])
-            .map((item) => (item.transactionsQueryJSON?.hash ? String(item.transactionsQueryJSON.hash) : undefined))
+            .map((item) => {
+                const queryHash = item.transactionsQueryJSON?.hash;
+                return queryHash || queryHash === 0 ? String(queryHash) : undefined;
+            })
             .filter((hashValue): hashValue is string => !!hashValue);
     }, [validGroupBy, baseFilteredData]);
 
@@ -487,7 +490,8 @@ function Search({
         }
 
         const enriched = (baseFilteredData as TransactionGroupListItemType[]).map((item) => {
-            const snapshot = item.transactionsQueryJSON?.hash ? groupByTransactionSnapshots[String(item.transactionsQueryJSON.hash)] : undefined;
+            const queryHash = item.transactionsQueryJSON?.hash;
+            const snapshot = queryHash || queryHash === 0 ? groupByTransactionSnapshots[String(queryHash)] : undefined;
             if (!snapshot?.data) {
                 return item;
             }
