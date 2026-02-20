@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useBlockedFromConcierge} from '@components/OnyxListItemProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -8,6 +8,7 @@ import useOriginalReportID from '@hooks/useOriginalReportID';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactions from '@hooks/useReportTransactions';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getForReportActionTemp, getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import {getIOUReportIDFromReportActionPreview, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
@@ -40,11 +41,11 @@ type ReportActionItemProps = Omit<
     PureReportActionItemProps,
     'taskReport' | 'linkedReport' | 'iouReportOfLinkedReport' | 'currentUserAccountID' | 'personalPolicyID' | 'allTransactionDrafts'
 > & {
-    /** All the data of the report collection */
-    allReports: OnyxCollection<Report>;
+    /** All the data of the report collection (optional when used from Search list; component subscribes at row level) */
+    allReports?: OnyxCollection<Report>;
 
-    /** All the data of the policy collection */
-    policies: OnyxCollection<Policy>;
+    /** All the data of the policy collection (optional when used from Search list; component subscribes at row level) */
+    policies?: OnyxCollection<Policy>;
 
     /** Whether to show the draft message or not */
     shouldShowDraftMessage?: boolean;
@@ -72,8 +73,8 @@ type ReportActionItemProps = Omit<
 };
 
 function ReportActionItem({
-    allReports,
-    policies,
+    allReports: allReportsProp,
+    policies: policiesProp,
     action,
     report,
     draftMessage,
@@ -90,7 +91,102 @@ function ReportActionItem({
     const reportID = report?.reportID;
     const originalMessage = getOriginalMessage(action);
     const originalReportID = useOriginalReportID(reportID, action);
+    const iouReportID = getIOUReportIDFromReportActionPreview(action);
+    const movedFromReportID = getMovedReportID(action, CONST.REPORT.MOVE_TYPE.FROM);
+    const movedToReportID = getMovedReportID(action, CONST.REPORT.MOVE_TYPE.TO);
+    const parentReportID = report?.parentReportID || undefined;
+    const taskReportID = originalMessage && 'taskReportID' in originalMessage ? originalMessage.taskReportID : undefined;
+    const linkedReportID = originalMessage && 'linkedReportID' in originalMessage ? originalMessage.linkedReportID : undefined;
+
+    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(originalReportID)}`, {canBeMissing: true});
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(iouReportID)}`, {canBeMissing: true});
+    const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(movedFromReportID)}`, {canBeMissing: true});
+    const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(movedToReportID)}`, {canBeMissing: true});
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReportID)}`, {canBeMissing: true});
+    const [taskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(taskReportID)}`, {canBeMissing: true});
+    const [linkedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(linkedReportID)}`, {canBeMissing: true});
+    const [iouReportOfLinkedReport] = useOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(linkedReport && 'iouReportID' in linkedReport ? linkedReport.iouReportID : undefined)}`,
+        {canBeMissing: true},
+    );
+    const [policyFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`, {canBeMissing: true});
+
+    const allReports = useMemo((): OnyxCollection<Report> => {
+        if (allReportsProp) {
+            return allReportsProp;
+        }
+        const key = (id: string | undefined) => (id ? `${ONYXKEYS.COLLECTION.REPORT}${id}` : '');
+        const map: OnyxCollection<Report> = {};
+        if (originalReportID && originalReport) {
+            map[key(originalReportID)] = originalReport;
+        }
+        if (iouReportID && iouReport) {
+            map[key(iouReportID)] = iouReport;
+        }
+        if (movedFromReportID && movedFromReport) {
+            map[key(movedFromReportID)] = movedFromReport;
+        }
+        if (movedToReportID && movedToReport) {
+            map[key(movedToReportID)] = movedToReport;
+        }
+        if (parentReportID && parentReport) {
+            map[key(parentReportID)] = parentReport;
+        }
+        if (taskReportID && taskReport) {
+            map[key(taskReportID)] = taskReport;
+        }
+        if (linkedReportID && linkedReport) {
+            map[key(linkedReportID)] = linkedReport;
+        }
+        if (linkedReport && 'iouReportID' in linkedReport && iouReportOfLinkedReport) {
+            map[key(linkedReport.iouReportID)] = iouReportOfLinkedReport;
+        }
+        if (reportID && report) {
+            map[key(reportID)] = report;
+        }
+        return map;
+    }, [
+        allReportsProp,
+        originalReportID,
+        originalReport,
+        iouReportID,
+        iouReport,
+        movedFromReportID,
+        movedFromReport,
+        movedToReportID,
+        movedToReport,
+        parentReportID,
+        parentReport,
+        taskReportID,
+        taskReport,
+        linkedReportID,
+        linkedReport,
+        iouReportOfLinkedReport,
+        reportID,
+        report,
+    ]);
+
+    const policies = useMemo((): OnyxCollection<Policy> => {
+        if (policiesProp) {
+            return policiesProp;
+        }
+        if (!report?.policyID || !policyFromOnyx) {
+            return {};
+        }
+        return {[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`]: policyFromOnyx};
+    }, [policiesProp, report?.policyID, policyFromOnyx]);
+
     const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
+    const iouReportResolved = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
+    const movedFromReportResolved = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${movedFromReportID}`];
+    const movedToReportResolved = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${movedToReportID}`];
+    const parentReportResolved = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
+    const taskReportResolved = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`];
+    const linkedReportResolved = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${linkedReportID}`];
+    const iouReportOfLinkedReportResolved =
+        linkedReportResolved && 'iouReportID' in linkedReportResolved
+            ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${linkedReportResolved.iouReportID}`]
+            : undefined;
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const {accountID: currentUserAccountID, email: currentUserEmail} = useCurrentUserPersonalDetails();
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
@@ -103,14 +199,11 @@ function ReportActionItem({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {canBeMissing: true});
-    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getIOUReportIDFromReportActionPreview(action)}`];
-    const movedFromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(action, CONST.REPORT.MOVE_TYPE.FROM)}`];
-    const movedToReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(action, CONST.REPORT.MOVE_TYPE.TO)}`];
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
-    const transactionsOnIOUReport = useReportTransactions(iouReport?.reportID);
+    const transactionsOnIOUReport = useReportTransactions(iouReportResolved?.reportID);
     const transactionID = isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID;
 
     const getLinkedTransactionRouteError = useCallback(
@@ -122,16 +215,9 @@ function ReportActionItem({
 
     const [linkedTransactionRouteError] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true, selector: getLinkedTransactionRouteError});
 
-    // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID || undefined}`];
     const blockedFromConcierge = useBlockedFromConcierge();
-    const targetReport = isChatThread(report) ? parentReport : report;
+    const targetReport = isChatThread(report) ? parentReportResolved : report;
     const missingPaymentMethod = getIndicatedMissingPaymentMethod(userWalletTierName, targetReport?.reportID, action, bankAccountList);
-
-    const taskReport = originalMessage && 'taskReportID' in originalMessage ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalMessage.taskReportID}`] : undefined;
-    const linkedReport = originalMessage && 'linkedReportID' in originalMessage ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalMessage.linkedReportID}`] : undefined;
-    const iouReportOfLinkedReport = linkedReport && 'iouReportID' in linkedReport ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${linkedReport.iouReportID}`] : undefined;
 
     return (
         <PureReportActionItem
@@ -147,15 +233,15 @@ function ReportActionItem({
             policy={policy}
             currentUserAccountID={currentUserAccountID}
             draftMessage={draftMessage}
-            iouReport={iouReport}
-            taskReport={taskReport}
+            iouReport={iouReportResolved}
+            taskReport={taskReportResolved}
             cardList={cardList}
-            linkedReport={linkedReport}
-            iouReportOfLinkedReport={iouReportOfLinkedReport}
+            linkedReport={linkedReportResolved}
+            iouReportOfLinkedReport={iouReportOfLinkedReportResolved}
             emojiReactions={emojiReactions}
             linkedTransactionRouteError={linkedTransactionRouteError}
             isUserValidated={isUserValidated}
-            parentReport={parentReport}
+            parentReport={parentReportResolved}
             personalDetails={personalDetails}
             blockedFromConcierge={blockedFromConcierge}
             originalReportID={originalReportID}
@@ -167,7 +253,7 @@ function ReportActionItem({
             createDraftTransactionAndNavigateToParticipantSelector={createDraftTransactionAndNavigateToParticipantSelector}
             resolveActionableReportMentionWhisper={resolveActionableReportMentionWhisper}
             resolveActionableMentionWhisper={resolveActionableMentionWhisper}
-            isClosedExpenseReportWithNoExpenses={isClosedExpenseReportWithNoExpenses(iouReport, transactionsOnIOUReport)}
+            isClosedExpenseReportWithNoExpenses={isClosedExpenseReportWithNoExpenses(iouReportResolved, transactionsOnIOUReport)}
             isCurrentUserTheOnlyParticipant={isCurrentUserTheOnlyParticipant}
             missingPaymentMethod={missingPaymentMethod}
             reimbursementDeQueuedOrCanceledActionMessage={getReimbursementDeQueuedOrCanceledActionMessage(
@@ -179,8 +265,8 @@ function ReportActionItem({
                 translate,
                 reportAction: action,
                 policy,
-                movedFromReport,
-                movedToReport,
+                movedFromReport: movedFromReportResolved,
+                movedToReport: movedToReportResolved,
                 policyTags: policyTags ?? CONST.POLICY.DEFAULT_TAG_LIST,
                 currentUserLogin: currentUserEmail ?? '',
             })}

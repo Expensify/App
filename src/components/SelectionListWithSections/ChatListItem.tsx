@@ -1,7 +1,12 @@
 import React from 'react';
+import {isUserValidatedSelector} from '@selectors/Account';
+import {tierNameSelector} from '@selectors/UserWallet';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import FS from '@libs/Fullstory';
 import ReportActionItem from '@pages/inbox/report/ReportActionItem';
 import variables from '@styles/variables';
@@ -20,15 +25,14 @@ function ChatListItem<TItem extends ListItem>({
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
-    policies,
-    allReports,
-    userWalletTierName,
-    isUserValidated,
-    personalDetails,
-    userBillingFundID,
 }: ChatListItemProps<TItem>) {
     const reportActionItem = item as unknown as ReportActionListItemType;
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.reportID}`];
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportActionItem?.reportID)}`, {canBeMissing: true});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`, {canBeMissing: true});
+    const personalDetails = usePersonalDetails();
+    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector, canBeMissing: false});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
+    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
     const styles = useThemeStyles();
     const theme = useTheme();
     const animatedHighlightStyle = useAnimatedHighlightStyle({
@@ -73,9 +77,8 @@ function ChatListItem<TItem extends ListItem>({
             forwardedFSClass={fsClass}
         >
             <ReportActionItem
-                allReports={allReports}
                 action={reportActionItem}
-                report={report}
+                report={report ?? undefined}
                 onPress={() => onSelectRow(item)}
                 parentReportAction={undefined}
                 displayAsGroup={false}
@@ -85,7 +88,6 @@ function ChatListItem<TItem extends ListItem>({
                 isFirstVisibleReportAction={false}
                 shouldDisplayContextMenu={false}
                 shouldShowDraftMessage={false}
-                policies={policies}
                 shouldShowBorder
                 userWalletTierName={userWalletTierName}
                 isUserValidated={isUserValidated}

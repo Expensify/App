@@ -2,9 +2,11 @@ import React from 'react';
 import BaseListItem from '@components/SelectionListWithSections/BaseListItem';
 import type {ListItem, TaskListItemProps, TaskListItemType} from '@components/SelectionListWithSections/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import FS from '@libs/Fullstory';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,10 +22,9 @@ function TaskListItem<TItem extends ListItem>({
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
-    allReports,
 }: TaskListItemProps<TItem>) {
     const taskItem = item as unknown as TaskListItemType;
-    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskItem?.parentReportID}`];
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(taskItem?.parentReportID)}`, {canBeMissing: true});
     const styles = useThemeStyles();
     const theme = useTheme();
 

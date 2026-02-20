@@ -674,12 +674,6 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     /** Whether the item's action is loading */
     isLoading?: boolean;
-
-    /** All the data of the report collection */
-    allReports?: OnyxCollection<Report>;
-
-    /** Personal details list */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
 type ExpenseReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -699,7 +693,6 @@ type ExpenseReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     groupBy?: SearchGroupBy;
     searchType?: SearchDataTypes;
-    policies?: OnyxCollection<Policy>;
     accountID?: number;
     columns?: SearchColumnType[];
     newTransactionID?: string;
@@ -729,27 +722,6 @@ type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
 
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     queryJSONHash?: number;
-
-    /** The policies which the user has access to */
-    policies?: OnyxCollection<Policy>;
-
-    /** All the data of the report collection */
-    allReports?: OnyxCollection<Report>;
-
-    /** The report data */
-    report?: Report;
-
-    /** The user wallet tierName */
-    userWalletTierName: string | undefined;
-
-    /** Whether the user is validated */
-    isUserValidated: boolean | undefined;
-
-    /** Personal details list */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-
-    /** User billing fund ID */
-    userBillingFundID: number | undefined;
 };
 
 type ValidListItem =
