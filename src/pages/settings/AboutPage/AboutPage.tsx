@@ -10,6 +10,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import useAccessibilityFocusOnReturn from '@hooks/useAccessibilityFocusOnReturn';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -46,6 +47,7 @@ type MenuItem = {
     icon: IconAsset;
     iconRight?: IconAsset;
     action: () => Promise<void>;
+    shouldRestoreFocusOnReturn?: boolean;
     link?: string;
     wrapperStyle?: StyleProp<ViewStyle>;
 };
@@ -58,6 +60,7 @@ function AboutPage() {
     const popoverAnchor = useRef<View>(null);
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {restoreFocusOnReturn, setFocusTarget} = useAccessibilityFocusOnReturn();
     const aboutIllustration = useAboutSectionIllustration();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
 
@@ -67,11 +70,13 @@ function AboutPage() {
                 translationKey: 'initialSettingsPage.aboutPage.appDownloadLinks',
                 icon: icons.Link,
                 action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_APP_DOWNLOAD_LINKS)),
+                shouldRestoreFocusOnReturn: true,
             },
             {
                 translationKey: 'initialSettingsPage.aboutPage.viewKeyboardShortcuts',
                 icon: icons.Keyboard,
                 action: waitForNavigate(() => Navigation.navigate(ROUTES.KEYBOARD_SHORTCUTS.getRoute(Navigation.getActiveRoute()))),
+                shouldRestoreFocusOnReturn: true,
             },
             {
                 translationKey: 'initialSettingsPage.aboutPage.viewTheCode',
@@ -97,15 +102,22 @@ function AboutPage() {
                 translationKey: 'initialSettingsPage.aboutPage.reportABug',
                 icon: icons.Bug,
                 action: waitForNavigate(() => navigateToConciergeChat(conciergeReportID, false)),
+                shouldRestoreFocusOnReturn: true,
             },
         ];
 
-        return baseMenuItems.map(({translationKey, icon, iconRight, action, link}: MenuItem) => ({
+        return baseMenuItems.map(({translationKey, icon, iconRight, action, link, shouldRestoreFocusOnReturn}: MenuItem) => ({
             key: translationKey,
             title: translate(translationKey),
             icon,
             iconRight,
-            onPress: action,
+            onPress: (event: GestureResponderEvent | KeyboardEvent | undefined) => {
+                if (shouldRestoreFocusOnReturn) {
+                    setFocusTarget(event);
+                }
+
+                return action();
+            },
             shouldShowRightIcon: true,
             onSecondaryInteraction: link
                 ? (event: GestureResponderEvent | MouseEvent) =>
@@ -120,7 +132,7 @@ function AboutPage() {
             shouldBlockSelection: !!link,
             wrapperStyle: [styles.sectionMenuItemTopDescription],
         }));
-    }, [icons, styles, translate, waitForNavigate, conciergeReportID]);
+    }, [icons, styles, translate, waitForNavigate, conciergeReportID, setFocusTarget]);
 
     const overlayContent = useCallback(
         () => (
@@ -143,6 +155,7 @@ function AboutPage() {
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
             testID="AboutPage"
+            onEntryTransitionEnd={restoreFocusOnReturn}
         >
             <HeaderWithBackButton
                 title={translate('initialSettingsPage.about')}

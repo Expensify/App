@@ -14,6 +14,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+import useAccessibilityFocusOnReturn from '@hooks/useAccessibilityFocusOnReturn';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -48,6 +49,7 @@ function ProfilePage() {
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {restoreFocusOnReturn, setFocusTarget} = useAccessibilityFocusOnReturn();
     const route = useRoute<PlatformStackRouteProp<SettingsSplitNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.ROOT>>();
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
     const getPronouns = (): string => {
@@ -108,47 +110,23 @@ function ProfilePage() {
         {
             description: translate('privatePersonalDetails.legalName'),
             title: legalName,
-            action: () => {
-                if (isActingAsDelegate) {
-                    showDelegateNoAccessModal();
-                    return;
-                }
-                Navigation.navigate(ROUTES.SETTINGS_LEGAL_NAME);
-            },
+            pageRoute: ROUTES.SETTINGS_LEGAL_NAME,
         },
         {
             description: translate('common.dob'),
             title: privateDetails.dob ?? '',
-            action: () => {
-                if (isActingAsDelegate) {
-                    showDelegateNoAccessModal();
-                    return;
-                }
-                Navigation.navigate(ROUTES.SETTINGS_DATE_OF_BIRTH);
-            },
+            pageRoute: ROUTES.SETTINGS_DATE_OF_BIRTH,
         },
         {
             description: translate('common.phoneNumber'),
             title: privateDetails.phoneNumber ?? '',
-            action: () => {
-                if (isActingAsDelegate) {
-                    showDelegateNoAccessModal();
-                    return;
-                }
-                Navigation.navigate(ROUTES.SETTINGS_PHONE_NUMBER);
-            },
+            pageRoute: ROUTES.SETTINGS_PHONE_NUMBER,
             brickRoadIndicator: privatePersonalDetails?.errorFields?.phoneNumber ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
         {
             description: translate('privatePersonalDetails.address'),
             title: getFormattedAddress(privateDetails),
-            action: () => {
-                if (isActingAsDelegate) {
-                    showDelegateNoAccessModal();
-                    return;
-                }
-                Navigation.navigate(ROUTES.SETTINGS_ADDRESS);
-            },
+            pageRoute: ROUTES.SETTINGS_ADDRESS,
         },
     ];
 
@@ -157,6 +135,7 @@ function ProfilePage() {
             includeSafeAreaPaddingBottom={false}
             testID="ProfilePage"
             shouldShowOfflineIndicatorInWideScreen
+            onEntryTransitionEnd={restoreFocusOnReturn}
         >
             <HeaderWithBackButton
                 title={translate('common.profile')}
@@ -214,7 +193,10 @@ function ProfilePage() {
                                     title={detail.title}
                                     description={detail.description}
                                     wrapperStyle={styles.sectionMenuItemTopDescription}
-                                    onPress={() => Navigation.navigate(detail.pageRoute)}
+                                    onPress={(event) => {
+                                        setFocusTarget(event);
+                                        Navigation.navigate(detail.pageRoute);
+                                    }}
                                     brickRoadIndicator={detail.brickRoadIndicator}
                                     pressableTestID={detail?.testID}
                                 />
@@ -249,7 +231,14 @@ function ProfilePage() {
                                             title={detail.title}
                                             description={detail.description}
                                             wrapperStyle={styles.sectionMenuItemTopDescription}
-                                            onPress={detail.action}
+                                            onPress={(event) => {
+                                                if (isActingAsDelegate) {
+                                                    showDelegateNoAccessModal();
+                                                    return;
+                                                }
+                                                setFocusTarget(event);
+                                                Navigation.navigate(detail.pageRoute);
+                                            }}
                                             brickRoadIndicator={detail.brickRoadIndicator}
                                         />
                                     ))}
