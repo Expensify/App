@@ -4,14 +4,16 @@ import type {FlashListRef, ListRenderItem, ListRenderItemInfo} from '@shopify/fl
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {TextInputKeyPressEvent} from 'react-native';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
+import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useDebounce from '@hooks/useDebounce';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
+import useLocalize from '@hooks/useLocalize';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -93,6 +95,7 @@ function BaseSelectionList<TItem extends ListItem>({
     setShouldDisableHoverStyle = () => {},
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const isFocused = useIsFocused();
     const scrollEnabled = useScrollEnabled();
     const {singleExecution} = useSingleExecution();
@@ -102,9 +105,12 @@ function BaseSelectionList<TItem extends ListItem>({
 
     const innerTextInputRef = useRef<BaseTextInputRef | null>(null);
     const isTextInputFocusedRef = useRef<boolean>(false);
+    const [isTextInputFocused, setIsTextInputFocused] = useState(false);
     const hasKeyBeenPressed = useRef(false);
     const listRef = useRef<FlashListRef<TItem> | null>(null);
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const [suggestionsAnnouncement, setSuggestionsAnnouncement] = useState({id: 0, text: ''});
+    const lastAnnouncementKeyRef = useRef('');
 
     const initialFocusedIndex = useMemo(() => data.findIndex((i) => i.keyForList === initiallyFocusedItemKey), [data, initiallyFocusedItemKey]);
     const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);
@@ -312,7 +318,10 @@ function BaseSelectionList<TItem extends ListItem>({
                 onSubmit={selectFocusedOption}
                 dataLength={data.length}
                 isLoading={isLoadingNewOptions}
-                onFocusChange={(v: boolean) => (isTextInputFocusedRef.current = v)}
+                onFocusChange={(v: boolean) => {
+                    isTextInputFocusedRef.current = v;
+                    setIsTextInputFocused(v);
+                }}
                 showLoadingPlaceholder={showLoadingPlaceholder}
                 isLoadingNewOptions={isLoadingNewOptions}
             />
@@ -394,6 +403,24 @@ function BaseSelectionList<TItem extends ListItem>({
     };
 
     const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    useEffect(() => {
+        if (Platform.OS !== 'web' || !shouldShowTextInput || !isTextInputFocused || isLoadingNewOptions || data.length === 0) {
+            lastAnnouncementKeyRef.current = '';
+            return;
+        }
+
+        const announcementKey = `${textInputOptions?.value ?? ''}-${data.length}`;
+        if (lastAnnouncementKeyRef.current === announcementKey) {
+            return;
+        }
+
+        lastAnnouncementKeyRef.current = announcementKey;
+        setSuggestionsAnnouncement((prev) => ({
+            id: prev.id + 1,
+            text: translate('search.suggestionsAvailable', {count: data.length}),
+        }));
+    }, [data.length, isLoadingNewOptions, isTextInputFocused, shouldShowTextInput, textInputOptions?.value, translate]);
 
     // The function scrolls to the focused input to prevent keyboard occlusion.
     // It ensures the entire list item is visible, not just the input field.
@@ -507,6 +534,16 @@ function BaseSelectionList<TItem extends ListItem>({
     return (
         <View style={[styles.flex1, addBottomSafeAreaPadding && !hasFooter && paddingBottomStyle, style?.containerStyle]}>
             {textInputComponent({shouldBeInsideList: false})}
+            {Platform.OS === 'web' && !!suggestionsAnnouncement.text && (
+                <Text
+                    // Changing the key ensures the live region re-announces the same text.
+                    key={suggestionsAnnouncement.id}
+                    role={CONST.ROLE.STATUS}
+                    style={styles.hiddenElementOutsideOfWindow}
+                >
+                    {suggestionsAnnouncement.text}
+                </Text>
+            )}
             {data.length === 0 && (showLoadingPlaceholder || showListEmptyContent) ? (
                 renderListEmptyContent()
             ) : (

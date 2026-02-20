@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {Keyboard, LogBox, StyleSheet, View} from 'react-native';
+import {Keyboard, LogBox, Platform, StyleSheet, View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import type {GooglePlaceData, GooglePlaceDetail} from 'react-native-google-places-autocomplete';
@@ -96,6 +96,8 @@ function AddressSearch({
     const shouldTriggerGeolocationCallbacks = useRef(true);
     const [shouldHidePredefinedPlaces, setShouldHidePredefinedPlaces] = useState(false);
     const containerRef = useRef<View>(null);
+    const [suggestionsAnnouncement, setSuggestionsAnnouncement] = useState({id: 0, text: ''});
+    const lastAnnouncementKeyRef = useRef('');
     const query = useMemo(
         () => ({
             language: preferredLocale,
@@ -106,6 +108,29 @@ function AddressSearch({
         [preferredLocale, resultTypes, limitSearchesToCountry, locationBias],
     );
     const shouldShowCurrentLocationButton = canUseCurrentLocation && searchValue.trim().length === 0 && isFocused;
+
+    useEffect(() => {
+        if (Platform.OS !== 'web' || !isFocused || !displayListViewBorder) {
+            lastAnnouncementKeyRef.current = '';
+            return;
+        }
+
+        const announcementKey = searchValue.trim();
+        if (lastAnnouncementKeyRef.current === announcementKey) {
+            return;
+        }
+
+        lastAnnouncementKeyRef.current = announcementKey;
+        const timeoutID = setTimeout(() => {
+            setSuggestionsAnnouncement((prev) => ({
+                id: prev.id + 1,
+                text: translate('search.suggestionsAvailable'),
+            }));
+        }, 0);
+
+        return () => clearTimeout(timeoutID);
+    }, [displayListViewBorder, isFocused, searchValue, translate]);
+
     const saveLocationDetails = (autocompleteData: GooglePlaceData, details: GooglePlaceDetail | null) => {
         const addressComponents = details?.address_components;
         if (!addressComponents) {
@@ -362,6 +387,16 @@ function AddressSearch({
                     ref={containerRef}
                     fsClass={forwardedFSClass}
                 >
+                    {Platform.OS === 'web' && !!suggestionsAnnouncement.text && (
+                        <Text
+                            // Changing the key ensures the live region re-announces the same text.
+                            key={suggestionsAnnouncement.id}
+                            role={CONST.ROLE.STATUS}
+                            style={styles.hiddenElementOutsideOfWindow}
+                        >
+                            {suggestionsAnnouncement.text}
+                        </Text>
+                    )}
                     <GooglePlacesAutocomplete
                         disableScroll
                         fetchDetails

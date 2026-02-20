@@ -7182,6 +7182,10 @@ const translations = {
         searchIn: 'Search in',
         searchPlaceholder: 'Search for something',
         suggestions: 'Suggestions',
+        suggestionsAvailable: ({count}: {count?: number} = {}) => {
+            const countText = count ? `${count} ${count === 1 ? 'result' : 'results'}. ` : '';
+            return `Suggestions available. ${countText}Use up and down arrow keys to navigate.`;
+        },
         exportSearchResults: {
             title: 'Create export',
             description: "Whoa, that's a lot of items! We'll bundle them up, and Concierge will send you a file shortly.",

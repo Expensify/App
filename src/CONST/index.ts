@@ -5756,6 +5756,8 @@ const CONST = {
         SPINBUTTON: 'spinbutton',
         /** Use for elements providing a summary of app conditions. */
         SUMMARY: 'summary',
+        /** Use for elements providing status updates. */
+        STATUS: 'status',
         /** Use for on/off switch elements. */
         SWITCH: 'switch',
         /** Use for tab elements in a tab list. */

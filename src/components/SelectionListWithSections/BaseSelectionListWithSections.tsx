@@ -3,7 +3,7 @@ import lodashDebounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, SectionList as RNSectionList, TextInput as RNTextInput, SectionListData, SectionListRenderItemInfo, TextInputKeyPressEvent} from 'react-native';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
 import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
 import FixedFooter from '@components/FixedFooter';
@@ -189,9 +189,12 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     }, [canSelectMultiple, isItemSelected, sections]);
     const [currentPage, setCurrentPage] = useState(() => calculateInitialCurrentPage());
     const isTextInputFocusedRef = useRef<boolean>(false);
+    const [isTextInputFocused, setIsTextInputFocused] = useState(false);
     const {singleExecution} = useSingleExecution();
     const itemHeights = useRef<Record<string, number>>({});
     const pendingScrollIndexRef = useRef<number | null>(null);
+    const [suggestionsAnnouncement, setSuggestionsAnnouncement] = useState({id: 0, text: ''});
+    const lastAnnouncementKeyRef = useRef('');
 
     const onItemLayout = (event: LayoutChangeEvent, itemKey: string | null | undefined) => {
         if (!itemKey) {
@@ -761,8 +764,14 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                             textInputRef.current = element as RNTextInput;
                         }
                     }}
-                    onFocus={() => (isTextInputFocusedRef.current = true)}
-                    onBlur={() => (isTextInputFocusedRef.current = false)}
+                    onFocus={() => {
+                        isTextInputFocusedRef.current = true;
+                        setIsTextInputFocused(true);
+                    }}
+                    onBlur={() => {
+                        isTextInputFocusedRef.current = false;
+                        setIsTextInputFocused(false);
+                    }}
                     label={textInputLabel}
                     accessibilityLabel={textInputLabel}
                     hint={textInputHint}
@@ -813,6 +822,24 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         },
         [onLayout, scrollToFocusedIndexOnFirstRender],
     );
+
+    useEffect(() => {
+        if (Platform.OS !== 'web' || !shouldShowTextInput || !isTextInputFocused || isLoadingNewOptions || flattenedSections.allOptions.length === 0) {
+            lastAnnouncementKeyRef.current = '';
+            return;
+        }
+
+        const announcementKey = `${textInputValue}-${flattenedSections.allOptions.length}`;
+        if (lastAnnouncementKeyRef.current === announcementKey) {
+            return;
+        }
+
+        lastAnnouncementKeyRef.current = announcementKey;
+        setSuggestionsAnnouncement((prev) => ({
+            id: prev.id + 1,
+            text: translate('search.suggestionsAvailable', {count: flattenedSections.allOptions.length}),
+        }));
+    }, [flattenedSections.allOptions.length, isLoadingNewOptions, isTextInputFocused, shouldShowTextInput, textInputValue, translate]);
 
     const updateAndScrollToFocusedIndex = useCallback(
         (newFocusedIndex: number, shouldSkipWhenIndexNonZero = false) => {
@@ -956,8 +983,9 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
      *
      * @param isTextInputFocused - Is external TextInput focused.
      */
-    const updateExternalTextInputFocus = useCallback((isTextInputFocused: boolean) => {
-        isTextInputFocusedRef.current = isTextInputFocused;
+    const updateExternalTextInputFocus = useCallback((textInputFocused: boolean) => {
+        isTextInputFocusedRef.current = textInputFocused;
+        setIsTextInputFocused(textInputFocused);
     }, []);
 
     useImperativeHandle(
@@ -1027,6 +1055,16 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     return (
         <View style={[styles.flex1, !addBottomSafeAreaPadding && paddingBottomStyle, containerStyle]}>
             {shouldShowTextInput && !shouldShowTextInputAfterHeader && renderInput()}
+            {Platform.OS === 'web' && !!suggestionsAnnouncement.text && (
+                <Text
+                    // Changing the key ensures the live region re-announces the same text.
+                    key={suggestionsAnnouncement.id}
+                    role={CONST.ROLE.STATUS}
+                    style={styles.hiddenElementOutsideOfWindow}
+                >
+                    {suggestionsAnnouncement.text}
+                </Text>
+            )}
             {/* If we are loading new options we will avoid showing any header message. This is mostly because one of the header messages says there are no options. */}
             {/* This is misleading because we might be in the process of loading fresh options from the server. */}
             {!shouldShowHeaderMessageAfterHeader && headerMessageContent()}
