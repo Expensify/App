@@ -1,4 +1,5 @@
 import {getCrashlytics, log, recordError} from '@react-native-firebase/crashlytics';
+import * as Sentry from '@sentry/react-native';
 import React from 'react';
 import Log from '@libs/Log';
 import BaseErrorBoundary from './BaseErrorBoundary';
@@ -14,6 +15,10 @@ const logError: LogError = (errorMessage, error, errorInfo) => {
      * Since the error was handled we need to manually tell crashlytics about it */
     log(crashlytics, `errorInfo: ${errorInfo}`);
     recordError(crashlytics, error);
+
+    /* Since the error was handled by the boundary, Sentry's global handler won't catch it.
+     * We manually capture it here so it appears in Sentry alongside Crashlytics. */
+    Sentry.captureException(error, {extra: {errorInfo}});
 };
 
 function ErrorBoundary({errorMessage, children}: Omit<BaseErrorBoundaryProps, 'logError'>) {
