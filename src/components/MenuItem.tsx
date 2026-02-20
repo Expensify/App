@@ -171,8 +171,8 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** A description text to show under the title */
         description?: string;
 
-        /** Small pill badge text to show before the description */
-        descriptionBadgeText?: string;
+        /** Optional component to render before the description text (e.g. a badge pill) */
+        descriptionAddon?: ReactNode;
 
         /** Text to show below menu item. This text is not interactive */
         helperText?: string;
@@ -489,7 +489,7 @@ function MenuItem({
     furtherDetailsStyle,
     furtherDetailsComponent,
     description,
-    descriptionBadgeText,
+    descriptionAddon,
     helperText,
     helperTextStyle,
     errorText,
@@ -900,6 +900,7 @@ function MenuItem({
                                                             styles.justifyContentCenter,
                                                             styles.flex1,
                                                             StyleUtils.getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu || isCompact),
+                                                            styles.gap1,
                                                             titleContainerStyle,
                                                         ]}
                                                     >
@@ -941,16 +942,20 @@ function MenuItem({
                                                                 )}
                                                             </View>
                                                         )}
-                                                        {!shouldShowDescriptionOnTop && (!!description || !!descriptionBadgeText) && (
-                                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-                                                                {!!descriptionBadgeText && (
-                                                                    <View style={styles.descriptionBadge}>
-                                                                        <Text style={[styles.textStrong, styles.descriptionBadgeText]}>{descriptionBadgeText}</Text>
-                                                                    </View>
-                                                                )}
+                                                        {!shouldShowDescriptionOnTop && !descriptionAddon && !!description && (
+                                                            <Text
+                                                                style={[descriptionTextStyles, styles.mt0]}
+                                                                numberOfLines={numberOfLinesDescription}
+                                                            >
+                                                                {description}
+                                                            </Text>
+                                                        )}
+                                                        {!shouldShowDescriptionOnTop && !!descriptionAddon && (
+                                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, ...(icon && !Array.isArray(icon) ? [styles.ml3] : [])]}>
+                                                                {descriptionAddon}
                                                                 {!!description && (
                                                                     <Text
-                                                                        style={[descriptionTextStyles, styles.flexShrink1]}
+                                                                        style={[descriptionTextStyles, styles.flexShrink1, styles.ml0]}
                                                                         numberOfLines={numberOfLinesDescription}
                                                                     >
                                                                         {description}

@@ -2,6 +2,7 @@ import React, {useMemo, useRef} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -128,21 +129,33 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
         if (isInSetupState) {
             return translate('common.actionRequired');
         }
-        if (item.isCardFrozen) {
-            return translate('cardPage.frozen');
-        }
         return shouldShowDefaultBadge ? translate('paymentMethodList.defaultPaymentMethod') : undefined;
-    }, [isInSetupState, item.isCardFrozen, shouldShowDefaultBadge, translate]);
+    }, [isInSetupState, shouldShowDefaultBadge, translate]);
 
-    const badgeIcon = useMemo(() => {
-        if (isInSetupState) {
-            return icons.DotIndicator;
-        }
+    const descriptionAddon = useMemo(() => {
         if (item.isCardFrozen) {
-            return icons.FreezeCard;
+            return (
+                <Badge
+                    text={translate('cardPage.frozen')}
+                    icon={icons.FreezeCard}
+                    badgeStyles={[styles.descriptionBadge, styles.descriptionBadgeWithIcon]}
+                    textStyles={styles.descriptionBadgeText}
+                    iconStyles={[styles.mr0]}
+                    shouldUseXXSmallIcon
+                />
+            );
+        }
+        if (item.isSuspended) {
+            return (
+                <Badge
+                    text={translate('walletPage.cardInactive')}
+                    badgeStyles={[styles.descriptionBadge]}
+                    textStyles={styles.descriptionBadgeText}
+                />
+            );
         }
         return undefined;
-    }, [icons.DotIndicator, icons.FreezeCard, isInSetupState, item.isCardFrozen]);
+    }, [item.isCardFrozen, item.isSuspended, icons.FreezeCard, styles, translate]);
 
     return (
         <OfflineWithFeedback
@@ -156,7 +169,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 onPress={handleRowPress}
                 title={item.title}
                 description={item.description}
-                descriptionBadgeText={item.isSuspended ? translate('walletPage.cardInactive') : undefined}
+                descriptionAddon={descriptionAddon}
                 icon={item.icon}
                 plaidUrl={item.plaidUrl}
                 disabled={item.disabled}
@@ -166,9 +179,8 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 iconWidth={item.iconWidth ?? item.iconSize}
                 iconStyles={item.iconStyles}
                 badgeText={badgeText}
-                badgeIcon={badgeIcon}
+                badgeIcon={isInSetupState ? icons.DotIndicator : undefined}
                 badgeSuccess={isInSetupState ? true : undefined}
-                badgeStyle={item.isCardFrozen ? styles.badgeBordered : undefined}
                 wrapperStyle={[styles.paymentMethod, listItemStyle]}
                 iconRight={isInSetupState ? undefined : item.iconRight}
                 shouldShowRightIcon={!showThreeDotsMenu && item.shouldShowRightIcon}
