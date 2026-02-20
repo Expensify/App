@@ -159,9 +159,7 @@ function DatePresetFilterBase({
 
     // Separate ephemeral state for Range mode calendar selections
     const [rangeEphemeralValues, setRangeEphemeralValues] = useState<{from?: string; to?: string}>(() => {
-        const rangeBoundaries = getRangeBoundariesFromFormValue(
-            defaultDateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE],
-        );
+        const rangeBoundaries = getRangeBoundariesFromFormValue(defaultDateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE]);
         return {
             from: rangeBoundaries.from,
             to: rangeBoundaries.to,
