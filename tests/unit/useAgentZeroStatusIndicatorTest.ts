@@ -1,4 +1,4 @@
-import {act, renderHook} from '@testing-library/react-native';
+import {act, renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
 import {subscribeToReportReasoningEvents, unsubscribeFromReportReasoningChannel} from '@libs/actions/Report';
@@ -191,7 +191,9 @@ describe('useAgentZeroStatusIndicator', () => {
 
             // Then it should replace the waiting label with the server label
             await waitForBatchedUpdates();
-            expect(result.current.statusLabel).toBe(serverLabel);
+            await waitFor(() => {
+                expect(result.current.statusLabel).toBe(serverLabel);
+            });
         });
     });
 
@@ -436,7 +438,10 @@ describe('useAgentZeroStatusIndicator', () => {
                 agentZeroProcessingRequestIndicator: serverLabel,
             });
             await waitForBatchedUpdates();
-            expect(result.current.statusLabel).toBe(serverLabel);
+
+            await waitFor(() => {
+                expect(result.current.statusLabel).toBe(serverLabel);
+            });
 
             // When the final response arrives → backend clears indicator
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
