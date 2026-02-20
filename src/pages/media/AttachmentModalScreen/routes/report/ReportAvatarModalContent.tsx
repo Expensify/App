@@ -36,13 +36,6 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
                 isWorkspaceAvatar: false,
             };
         }
-        if (isUserCreatedPolicyRoom(report) && report?.avatarUrl) {
-            return {
-                source: getFullSizeAvatar({avatarSource: report.avatarUrl, defaultAvatars}),
-                headerTitle: getReportName(report, reportAttributes),
-                isWorkspaceAvatar: false,
-            };
-        }
 
         return {
             source: getFullSizeAvatar({avatarSource: getWorkspaceIcon(report, policy).source, defaultAvatars}),
