@@ -27,6 +27,7 @@ import type {
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
 } from '@components/SelectionListWithSections/types';
+import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -44,7 +45,6 @@ import {mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionU
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {isActionLoadingSetSelector} from '@src/selectors/ReportMetaData';
 import type {ReportAction, ReportActions, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import CardListItemHeader from './CardListItemHeader';
 import CategoryListItemHeader from './CategoryListItemHeader';
@@ -122,10 +122,11 @@ function TransactionGroupListItem<TItem extends ListItem>({
         setIsExpanded(false);
     }, [collapseExpandedGroupsTrigger]);
 
-    const [isActionLoadingSet = CONST.EMPTY_SET] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
+    const isActionLoadingSet = useActionLoadingReportIDs();
     const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
 
     const transactions = useMemo(() => {
         if (isExpenseReportType) {
@@ -145,6 +146,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             isActionLoadingSet,
             allReportMetadata,
             cardFeeds,
+            cardList,
         }) as [TransactionListItemType[], number];
         return sectionData.map((transactionItem) => ({
             ...transactionItem,
@@ -163,6 +165,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         bankAccountList,
         allReportMetadata,
         cardFeeds,
+        cardList,
     ]);
 
     const selectedItemsLength = useMemo(() => {
@@ -199,9 +202,10 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 offset: isRefresh ? 0 : (transactionsSnapshot?.search?.offset ?? 0) + pageSize,
                 shouldCalculateTotals: false,
                 isLoading: !!transactionsSnapshot?.search?.isLoading,
+                isOffline,
             });
         },
-        [groupItem.transactionsQueryJSON, transactionsSnapshot?.search?.offset, transactionsSnapshot?.search?.isLoading],
+        [groupItem.transactionsQueryJSON, isOffline, transactionsSnapshot?.search?.offset, transactionsSnapshot?.search?.isLoading],
     );
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
@@ -270,6 +274,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const onExpandIconPress = useCallback(() => {
         if (isEmpty && !shouldDisplayEmptyView) {
             onPress();
+            // onPress handles handleToggle() for us, so we return early to avoid calling it twice
+            return;
         }
         handleToggle();
     }, [isEmpty, shouldDisplayEmptyView, handleToggle, onPress]);

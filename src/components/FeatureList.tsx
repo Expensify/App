@@ -7,6 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
+import CONST from '@src/CONST';
 import Button from './Button';
 import type DotLottieAnimation from './LottieAnimations/types';
 import MenuItem from './MenuItem';
@@ -128,6 +129,7 @@ function FeatureList({
                         success
                         isDisabled={isButtonDisabled}
                         large
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.FEATURE_LIST.CTA_BUTTON}
                     />
                 )}
                 {!!footer && footer}

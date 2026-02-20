@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -20,7 +21,9 @@ import {clearDraftMerchantRule, setDraftMerchantRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
-import {getCleanedTagName, getTagNamesFromTagsLists} from '@libs/PolicyUtils';
+import {getCleanedTagName, getTagLists} from '@libs/PolicyUtils';
+import {getEnabledTags} from '@libs/TagsOptionsListUtils';
+import {getTagArrayFromName} from '@libs/TransactionUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
@@ -28,7 +31,10 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {MerchantRuleForm} from '@src/types/form';
+import type {PolicyTagLists} from '@src/types/onyx';
 import type {CodingRule} from '@src/types/onyx/Policy';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
+import {hasEnabledOptions} from '@libs/OptionsListUtils';
 
 type MerchantRulePageBaseProps = {
     policyID: string;
@@ -38,7 +44,8 @@ type MerchantRulePageBaseProps = {
 };
 
 type SectionItemType = {
-    descriptionTranslationKey: 'common.merchant' | 'common.category' | 'common.tag' | 'common.tax' | 'common.description' | 'common.reimbursable' | 'common.billable';
+    key: string;
+    description: string;
     required?: boolean;
     title?: string;
     onPress: () => void;
@@ -89,7 +96,10 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
+    const [policyTags = getEmptyArray<ValueOf<PolicyTagLists>>()] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
+        canBeMissing: true,
+        selector: getTagLists,
+    });
     const [shouldShowError, setShouldShowError] = useState(false);
     const {showConfirmModal} = useConfirmModal();
     const [shouldUpdateMatchingTransactions, setShouldUpdateMatchingTransactions] = useState(false);
@@ -127,16 +137,16 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
         if (!policy?.areCategoriesEnabled) {
             return false;
         }
-        return Object.keys(policyCategories ?? {}).length > 0;
+        return !!form?.category || hasEnabledOptions(policyCategories ?? {});
     };
 
     const hasTags = () => {
         if (!policy?.areTagsEnabled) {
             return false;
         }
-        const tagNames = getTagNamesFromTagsLists(policyTags ?? {});
-        return tagNames.length > 0;
+        return policyTags.length > 0;
     };
+    const formTags = getTagArrayFromName(form?.tag ?? '');
 
     const hasTaxes = () => {
         if (!policy?.tax?.trackingEnabled) {
@@ -148,7 +158,6 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
     const isBillableEnabled = policy?.disabledFields?.defaultBillable !== true;
 
     const categoryDisplayName = form?.category ? getDecodedCategoryName(form.category) : undefined;
-    const tagDisplayName = form?.tag ? getCleanedTagName(form.tag) : undefined;
     const taxDisplayName = () => {
         if (!form?.tax || !policy?.taxRates?.taxes) {
             return undefined;
@@ -256,7 +265,8 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
             titleTranslationKey: 'workspace.rules.merchantRules.expensesWith',
             items: [
                 {
-                    descriptionTranslationKey: 'common.merchant',
+                    key: 'merchantToMatch',
+                    description: translate('common.merchant'),
                     required: true,
                     title: form?.merchantToMatch,
                     onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_MERCHANT_TO_MATCH.getRoute(policyID, ruleID)),
@@ -267,45 +277,57 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
             titleTranslationKey: 'workspace.rules.merchantRules.applyUpdates',
             items: [
                 {
-                    descriptionTranslationKey: 'common.merchant',
+                    key: 'merchant',
+                    description: translate('common.merchant'),
                     title: form?.merchant,
                     onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_MERCHANT.getRoute(policyID, ruleID)),
                 },
                 hasCategories()
                     ? {
-                          descriptionTranslationKey: 'common.category',
+                          key: 'category',
+                          description: translate('common.category'),
                           title: categoryDisplayName,
                           onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_CATEGORY.getRoute(policyID, ruleID)),
                       }
                     : undefined,
-                hasTags()
-                    ? {
-                          descriptionTranslationKey: 'common.tag',
-                          title: tagDisplayName,
-                          onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_TAG.getRoute(policyID, ruleID)),
-                      }
-                    : undefined,
+                ...(hasTags()
+                    ? policyTags
+                          .filter(({orderWeight, tags}) => !!formTags.at(orderWeight) || getEnabledTags(tags, form?.tag ?? '', orderWeight).length > 0)
+                          .map(({name, orderWeight}) => {
+                              const formTag = formTags.at(orderWeight);
+                              return {
+                                  key: `tag-${name}-${orderWeight}`,
+                                  description: name,
+                                  title: formTag ? getCleanedTagName(formTag) : undefined,
+                                  onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_TAG.getRoute(policyID, ruleID, orderWeight)),
+                              };
+                          })
+                    : []),
                 hasTaxes()
                     ? {
-                          descriptionTranslationKey: 'common.tax',
+                          key: 'tax',
+                          description: translate('common.tax'),
                           title: taxDisplayName(),
                           onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_TAX.getRoute(policyID, ruleID)),
                       }
                     : undefined,
                 {
-                    descriptionTranslationKey: 'common.description',
+                    key: 'description',
+                    description: translate('common.description'),
                     title: form?.comment ? Parser.replace(form.comment) : undefined,
                     onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_DESCRIPTION.getRoute(policyID, ruleID)),
                     shouldRenderAsHTML: true,
                 },
                 {
-                    descriptionTranslationKey: 'common.reimbursable',
+                    key: 'reimbursable',
+                    description: translate('common.reimbursable'),
                     title: getBooleanTitle(form?.reimbursable, translate),
                     onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_REIMBURSABLE.getRoute(policyID, ruleID)),
                 },
                 isBillableEnabled
                     ? {
-                          descriptionTranslationKey: 'common.billable',
+                          key: 'billable',
+                          description: translate('common.billable'),
                           title: getBooleanTitle(form?.billable, translate),
                           onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_BILLABLE.getRoute(policyID, ruleID)),
                       }
@@ -347,8 +369,8 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                                 .filter((item): item is SectionItemType => !!item)
                                 .map((item) => (
                                     <MenuItemWithTopDescription
-                                        key={item.descriptionTranslationKey}
-                                        description={translate(item.descriptionTranslationKey)}
+                                        key={item.key}
+                                        description={item.description}
                                         errorText={shouldShowError && item.required && !item.title ? translate('common.error.fieldRequired') : ''}
                                         onPress={item.onPress}
                                         rightLabel={item.required ? translate('common.required') : undefined}
@@ -356,6 +378,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                                         title={item.title}
                                         titleStyle={styles.flex1}
                                         shouldRenderAsHTML={item.shouldRenderAsHTML}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                                     />
                                 ))}
                         </View>
@@ -368,6 +391,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                     message={errorMessage}
                     onSubmit={handleSubmit}
                     enabledWhenOffline
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SAVE}
                     shouldRenderFooterAboveSubmit
                     footerContent={
                         <>
@@ -384,6 +408,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                                 onPress={previewMatches}
                                 style={[styles.mb4]}
                                 large
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_PREVIEW_MATCHES}
                             />
                             {isEditing && (
                                 <Button
@@ -391,6 +416,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                                     onPress={handleDelete}
                                     style={[styles.mb4]}
                                     large
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_DELETE}
                                 />
                             )}
                         </>

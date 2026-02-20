@@ -1,4 +1,4 @@
-import type {FeedKeysWithAssignedCards} from '@selectors/Card';
+import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 import {fromUnixTime, isBefore} from 'date-fns';
 import groupBy from 'lodash/groupBy';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -23,6 +23,7 @@ import type {
     PrivatePersonalDetails,
     WorkspaceCardsList,
 } from '@src/types/onyx';
+import ROUTES from '@src/ROUTES';
 import type {UnassignedCard} from '@src/types/onyx/Card';
 import type {
     BankName,
@@ -120,10 +121,11 @@ function getCardDescription(card: Card | undefined, translate: LocalizedTranslat
         return '';
     }
     const isPlaid = !!getPlaidInstitutionId(card.bank);
-    const bankName = isPlaid ? card?.cardName : getBankName(card.bank);
+    const isPersonal = isPersonalCard(card);
+    const bankName = isPlaid || isPersonal ? card?.cardName : getBankName(card.bank);
     const cardDescriptor = card.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED ? translate('cardTransactions.notActivated') : card.lastFourPAN;
     const humanReadableBankName = card.bank === CONST.EXPENSIFY_CARD.BANK ? CONST.EXPENSIFY_CARD.BANK : bankName;
-    return cardDescriptor && !isPlaid ? `${humanReadableBankName} - ${cardDescriptor}` : `${humanReadableBankName}`;
+    return cardDescriptor && !isPlaid && !isPersonal ? `${humanReadableBankName} - ${cardDescriptor}` : `${humanReadableBankName}`;
 }
 
 /**
@@ -485,7 +487,7 @@ function isDirectFeed(feed: string | undefined): boolean {
  * Checks whether a feed has any assigned cards using a precomputed lightweight map.
  * This is used as a validity signal: direct feeds use it as a fallback when oAuthAccountDetails is missing,
  * and "gray zone" feeds (neither commercial nor direct) use it as the sole visibility criterion.
- * The feedKeysWithCards map is produced by feedKeysWithAssignedCardsSelector in selectors/Card.ts.
+ * The feedKeysWithCards map is produced by buildFeedKeysWithAssignedCards in selectors/Card.ts.
  */
 function feedHasCards(feedName: string, domainID: number, feedKeysWithCards: FeedKeysWithAssignedCards | undefined): boolean {
     if (!feedKeysWithCards || !domainID) {
@@ -1013,6 +1015,15 @@ function isCardPendingReplace(card?: Card) {
     );
 }
 
+/**
+ * Check if card has a broken connection
+ *
+ * @param card personal card to check
+ */
+function isPersonalCardBrokenConnection(card?: Card) {
+    return card?.lastScrapeResult && !CONST.COMPANY_CARDS.BROKEN_CONNECTION_IGNORED_STATUSES.includes(card?.lastScrapeResult);
+}
+
 function isExpensifyCardPendingAction(card?: Card, privatePersonalDetails?: PrivatePersonalDetails): boolean {
     return (
         card?.bank === CONST.EXPENSIFY_CARD.BANK &&
@@ -1160,6 +1171,29 @@ function hasDisplayableAssignedCards(cardList: CardList | undefined): boolean {
     );
 }
 
+function isCardFrozen(card?: OnyxEntry<Card>): boolean {
+    return card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED && card?.nameValuePairs?.frozen != null;
+}
+
+/**
+ * Return url for fixing broken personal card connection
+ *
+ * @param cards list of the broken cards
+ * @param environmentURL environment url
+ * @returns url
+ */
+function getBrokenConnectionUrlToFixPersonalCard(cards: Record<string, Card>, environmentURL: string) {
+    if (!cards) {
+        return undefined;
+    }
+    if (Object.keys(cards).length === 1) {
+        const card = Object.values(cards).at(0);
+        return `${environmentURL}/${ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(card?.cardID.toString())}`;
+    }
+
+    return `${environmentURL}/${ROUTES.SETTINGS_WALLET}`;
+}
+
 export {
     getAssignedCardSortKey,
     getDefaultExpensifyCardLimitType,
@@ -1167,6 +1201,7 @@ export {
     getDomainCards,
     formatCardExpiration,
     getMonthFromExpirationDateString,
+    getBrokenConnectionUrlToFixPersonalCard,
     getYearFromExpirationDateString,
     maskCard,
     maskCardNumber,
@@ -1181,6 +1216,7 @@ export {
     getBankName,
     isSelectedFeedExpired,
     getCompanyFeeds,
+    isPersonalCardBrokenConnection,
     isCustomFeed,
     isCSVFeedOrExpensifyCard,
     getBankCardDetailsImage,
@@ -1240,6 +1276,7 @@ export {
     isCardAlreadyAssigned,
     generateCardID,
     hasDisplayableAssignedCards,
+    isCardFrozen,
     isCardWithPotentialFraud,
 };
 

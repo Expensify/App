@@ -80,7 +80,6 @@ function DuplicateTransactionItem({transaction, index, allReports, policies, onP
                     report={report}
                     parentReportAction={getReportAction(report?.parentReportID, report?.parentReportActionID)}
                     index={index}
-                    reportActions={Object.values(reportActions ?? {})}
                     displayAsGroup={false}
                     shouldDisplayNewMarker={false}
                     isMostRecentIOUReportAction={false}
