@@ -34,6 +34,7 @@ function SubscriptionPlan() {
                     small
                     text={translate('subscription.yourPlan.exploreAllPlans')}
                     onPress={() => setIsModalVisible(true)}
+                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.EXPLORE_PLANS}
                 />
             </View>
         );

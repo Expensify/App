@@ -1,6 +1,7 @@
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 import {fromUnixTime, isBefore} from 'date-fns';
 import groupBy from 'lodash/groupBy';
+import lodashSortBy from 'lodash/sortBy';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
@@ -114,7 +115,8 @@ function isExpensifyCard(card?: Card) {
 
 /**
  * @param card
- * @returns string in format %<bank> - <lastFourPAN || Not Activated>%.
+ * @param translate
+ * @returns string in format %<bank> • <lastFourPAN || Not Activated>%.
  */
 function getCardDescription(card: Card | undefined, translate: LocalizedTranslate) {
     if (!card) {
@@ -125,7 +127,7 @@ function getCardDescription(card: Card | undefined, translate: LocalizedTranslat
     const bankName = isPlaid || isPersonal ? card?.cardName : getBankName(card.bank);
     const cardDescriptor = card.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED ? translate('cardTransactions.notActivated') : card.lastFourPAN;
     const humanReadableBankName = card.bank === CONST.EXPENSIFY_CARD.BANK ? CONST.EXPENSIFY_CARD.BANK : bankName;
-    return cardDescriptor && !isPlaid && !isPersonal ? `${humanReadableBankName} - ${cardDescriptor}` : `${humanReadableBankName}`;
+    return cardDescriptor && !isPlaid && !isPersonal ? `${humanReadableBankName} ${CONST.DOT_SEPARATOR} ${cardDescriptor}` : `${humanReadableBankName}`;
 }
 
 /**
@@ -1194,6 +1196,44 @@ function getBrokenConnectionUrlToFixPersonalCard(cards: Record<string, Card>, en
     return `${environmentURL}/${ROUTES.SETTINGS_WALLET}`;
 }
 
+/**
+ * Gets displayable Expensify cards, filtering out inactive cards and grouping combo cards
+ * (physical + virtual pairs) so only the physical card is shown per domain.
+ *
+ * @param cardList - The card list to filter
+ * @returns Array of displayable Expensify cards with combo cards deduplicated by domain
+ */
+function getDisplayableExpensifyCards(cardList: CardList | undefined): Card[] {
+    if (!hasDisplayableAssignedCards(cardList)) {
+        return [];
+    }
+
+    const activeCards = filterAllInactiveCards(cardList);
+    const activeExpensifyCards = Object.values(activeCards).filter((card) => isExpensifyCard(card) && card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH);
+
+    const sortedCards = lodashSortBy(activeExpensifyCards, getAssignedCardSortKey);
+    const seenDomains = new Set<string>();
+
+    return sortedCards.filter((card) => {
+        const isAdminIssuedVirtualCard = !!card.nameValuePairs?.issuedBy && !!card.nameValuePairs?.isVirtual;
+        const isTravelCard = !!card.nameValuePairs?.isVirtual && !!card.nameValuePairs?.isTravelCard;
+        const isComboCard = !!card.domainName && !isAdminIssuedVirtualCard && !isTravelCard;
+
+        // Always show non-combo cards (admin-issued virtual, travel cards, or cards without domain)
+        if (!isComboCard) {
+            return true;
+        }
+
+        // For combo cards, only show the first one per domain (physical card comes first due to sorting)
+        if (seenDomains.has(card.domainName)) {
+            return false;
+        }
+
+        seenDomains.add(card.domainName);
+        return true;
+    });
+}
+
 export {
     getAssignedCardSortKey,
     getDefaultExpensifyCardLimitType,
@@ -1278,6 +1318,7 @@ export {
     hasDisplayableAssignedCards,
     isCardFrozen,
     isCardWithPotentialFraud,
+    getDisplayableExpensifyCards,
 };
 
 export type {CompanyCardFeedIcons, CompanyCardBankIcons};

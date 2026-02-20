@@ -1,4 +1,4 @@
-import {transactionDraftValuesSelector} from '@selectors/TransactionDraft';
+import useTransactionDraftValues from '@hooks/useTransactionDraftValues';
 import {deepEqual} from 'fast-equals';
 import lodashPick from 'lodash/pick';
 import React, {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
@@ -135,13 +135,10 @@ function MoneyRequestParticipantsSelector({
     const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].some((option) => option === action);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
     const hasBeenAddedToNudgeMigration = !!tryNewDot?.nudgeMigration?.timestamp;
-    const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
-        selector: transactionDraftValuesSelector,
-        canBeMissing: true,
-    });
+    const optimisticTransactions = useTransactionDraftValues();
 
     // This is necessary to prevent showing the Manager McTest when there are multiple transactions being created
-    const hasMultipleTransactions = (optimisticTransactions ?? []).length > 1;
+    const hasMultipleTransactions = optimisticTransactions.length > 1;
     const canShowManagerMcTest = useMemo(() => !hasBeenAddedToNudgeMigration && action !== CONST.IOU.ACTION.SUBMIT, [hasBeenAddedToNudgeMigration, action]) && !hasMultipleTransactions;
 
     /**

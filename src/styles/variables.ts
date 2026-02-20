@@ -106,7 +106,6 @@ export default {
     receiptPaneRHPMaxWidth: 465,
     homePageLeftColumnMaxWidth: 680,
     homePageRightColumnMaxWidth: 488,
-    superWideRHPMaxWidth: 1260,
     minScanTooltipWidth: 320,
     uploadViewMargin: 20,
     chooseFilesViewMargin: 8,

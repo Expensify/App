@@ -1,4 +1,6 @@
 /* eslint-disable max-classes-per-file */
+// Polyfill necessary for Onyx.init in jest/setupAfterEnv.ts
+import '@src/polyfills/PromiseWithResolvers';
 import * as core from '@actions/core';
 import '@shopify/flash-list/jestSetup';
 import type {ReactNode} from 'react';
