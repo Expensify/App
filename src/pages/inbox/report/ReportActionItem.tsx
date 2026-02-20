@@ -39,7 +39,7 @@ import PureReportActionItem from './PureReportActionItem';
 
 type ReportActionItemProps = Omit<
     PureReportActionItemProps,
-    'taskReport' | 'linkedReport' | 'iouReportOfLinkedReport' | 'currentUserAccountID' | 'personalPolicyID' | 'allTransactionDrafts'
+    'taskReport' | 'linkedReport' | 'iouReportOfLinkedReport' | 'currentUserAccountID' | 'personalPolicyID' | 'allTransactionDrafts' | 'allReports' | 'policies'
 > & {
     /** All the data of the report collection (optional when used from Search list; component subscribes at row level) */
     allReports?: OnyxCollection<Report>;
@@ -94,7 +94,7 @@ function ReportActionItem({
     const iouReportID = getIOUReportIDFromReportActionPreview(action);
     const movedFromReportID = getMovedReportID(action, CONST.REPORT.MOVE_TYPE.FROM);
     const movedToReportID = getMovedReportID(action, CONST.REPORT.MOVE_TYPE.TO);
-    const parentReportID = report?.parentReportID || undefined;
+    const parentReportID = report?.parentReportID ?? undefined;
     const taskReportID = originalMessage && 'taskReportID' in originalMessage ? originalMessage.taskReportID : undefined;
     const linkedReportID = originalMessage && 'linkedReportID' in originalMessage ? originalMessage.linkedReportID : undefined;
 
@@ -166,6 +166,8 @@ function ReportActionItem({
         report,
     ]);
 
+    // Narrow deps (report?.policyID) intentional; React Compiler infers broader `report`
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization
     const policies = useMemo((): OnyxCollection<Policy> => {
         if (policiesProp) {
             return policiesProp;
@@ -176,7 +178,7 @@ function ReportActionItem({
         return {[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`]: policyFromOnyx};
     }, [policiesProp, report?.policyID, policyFromOnyx]);
 
-    const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
+    const originalReportResolved = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
     const iouReportResolved = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
     const movedFromReportResolved = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${movedFromReportID}`];
     const movedToReportResolved = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${movedToReportID}`];
@@ -184,9 +186,7 @@ function ReportActionItem({
     const taskReportResolved = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`];
     const linkedReportResolved = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${linkedReportID}`];
     const iouReportOfLinkedReportResolved =
-        linkedReportResolved && 'iouReportID' in linkedReportResolved
-            ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${linkedReportResolved.iouReportID}`]
-            : undefined;
+        linkedReportResolved && 'iouReportID' in linkedReportResolved ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${linkedReportResolved.iouReportID}`] : undefined;
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const {accountID: currentUserAccountID, email: currentUserEmail} = useCurrentUserPersonalDetails();
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
@@ -245,9 +245,9 @@ function ReportActionItem({
             personalDetails={personalDetails}
             blockedFromConcierge={blockedFromConcierge}
             originalReportID={originalReportID}
-            originalReport={originalReport}
+            originalReport={originalReportResolved}
             deleteReportActionDraft={deleteReportActionDraft}
-            isArchivedRoom={isArchivedNonExpenseReport(originalReport, isOriginalReportArchived)}
+            isArchivedRoom={isArchivedNonExpenseReport(originalReportResolved, isOriginalReportArchived)}
             isChronosReport={chatIncludesChronosWithID(originalReportID)}
             toggleEmojiReaction={toggleEmojiReaction}
             createDraftTransactionAndNavigateToParticipantSelector={createDraftTransactionAndNavigateToParticipantSelector}

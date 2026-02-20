@@ -1,6 +1,4 @@
 import {useFocusEffect, useRoute} from '@react-navigation/native';
-import {isUserValidatedSelector} from '@selectors/Account';
-import {tierNameSelector} from '@selectors/UserWallet';
 import type {FlashListProps, FlashListRef, ViewToken} from '@shopify/flash-list';
 import React, {useCallback, useContext, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
@@ -11,7 +9,6 @@ import Animated, {Easing, FadeOutUp, LinearTransition} from 'react-native-reanim
 import Checkbox from '@components/Checkbox';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
@@ -42,7 +39,6 @@ import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
@@ -55,10 +51,7 @@ import {getTableMinWidth, isTransactionReportGroupListItemType} from '@libs/Sear
 import variables from '@styles/variables';
 import type {TransactionPreviewData} from '@userActions/Search';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, Transaction, TransactionViolations} from '@src/types/onyx';
-import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ThemeStyles} from '@styles/index';
 import BaseSearchList from './BaseSearchList';
 import type BaseSearchListProps from './BaseSearchList/types';
@@ -183,16 +176,10 @@ function SearchListItemRow({
     shouldPreventDefaultFocusOnSelectRow,
     hash,
     columns,
-    policies,
-    allReports,
     groupBy,
     type,
     onDEWModalOpen,
     isDEWBetaEnabled,
-    userWalletTierName,
-    isUserValidated,
-    personalDetails,
-    userBillingFundID,
     isOffline,
     violations,
     customCardNames,
@@ -214,16 +201,10 @@ function SearchListItemRow({
     shouldPreventDefaultFocusOnSelectRow?: boolean;
     hash: number;
     columns: SearchColumnType[];
-    policies: OnyxCollection<Policy>;
-    allReports: OnyxCollection<Report>;
     groupBy: SearchGroupBy | undefined;
     type: SearchDataTypes;
     onDEWModalOpen?: () => void;
     isDEWBetaEnabled?: boolean;
-    userWalletTierName: string | undefined;
-    isUserValidated: boolean | undefined;
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-    userBillingFundID: number | undefined;
     isOffline: boolean;
     violations: Record<string, TransactionViolations | undefined> | undefined;
     customCardNames: Record<number, string> | undefined;
@@ -260,17 +241,11 @@ function SearchListItemRow({
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 queryJSONHash={hash}
                 columns={columns}
-                policies={policies}
                 isDisabled={isDisabled}
-                allReports={allReports}
                 groupBy={groupBy}
                 searchType={type}
                 onDEWModalOpen={onDEWModalOpen}
                 isDEWBetaEnabled={isDEWBetaEnabled}
-                userWalletTierName={userWalletTierName}
-                isUserValidated={isUserValidated}
-                personalDetails={personalDetails}
-                userBillingFundID={userBillingFundID}
                 isOffline={isOffline}
                 violations={violations}
                 customCardNames={customCardNames}
@@ -490,18 +465,7 @@ function SearchList({
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [longPressedItem, setLongPressedItem] = useState<SearchListItem>();
 
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        canBeMissing: true,
-    });
-
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-
     const hasItemsBeingRemoved = prevDataLength && prevDataLength > data.length;
-    const personalDetails = usePersonalDetails();
-
-    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector, canBeMissing: false});
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
-    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
 
     const route = useRoute();
     const {getScrollOffset} = useContext(ScrollOffsetContext);
@@ -611,16 +575,10 @@ function SearchList({
                         shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                         hash={hash}
                         columns={columns}
-                        policies={policies}
-                        allReports={allReports}
                         groupBy={groupBy}
                         type={type}
                         onDEWModalOpen={onDEWModalOpen}
                         isDEWBetaEnabled={isDEWBetaEnabled}
-                        userWalletTierName={userWalletTierName ?? ''}
-                        isUserValidated={isUserValidated ?? false}
-                        personalDetails={personalDetails}
-                        userBillingFundID={userBillingFundID}
                         isOffline={isOffline}
                         violations={violations}
                         customCardNames={customCardNames ?? {}}
@@ -660,17 +618,11 @@ function SearchList({
                         shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                         queryJSONHash={hash}
                         columns={columns}
-                        policies={policies}
                         isDisabled={isDisabled}
-                        allReports={allReports}
                         groupBy={groupBy}
                         searchType={type}
                         onDEWModalOpen={onDEWModalOpen}
                         isDEWBetaEnabled={isDEWBetaEnabled}
-                        userWalletTierName={userWalletTierName}
-                        isUserValidated={isUserValidated}
-                        personalDetails={personalDetails}
-                        userBillingFundID={userBillingFundID}
                         isOffline={isOffline}
                         violations={violations}
                         customCardNames={customCardNames}
@@ -698,12 +650,6 @@ function SearchList({
             shouldPreventDefaultFocusOnSelectRow,
             hash,
             columns,
-            policies,
-            allReports,
-            userWalletTierName,
-            isUserValidated,
-            personalDetails,
-            userBillingFundID,
             isOffline,
             violations,
             onDEWModalOpen,
@@ -754,12 +700,12 @@ function SearchList({
                 data={data}
                 renderItem={renderItem}
                 onSelectRow={
-                            sortedData
-                                ? onSelectRowResolved
-                                : (item: SearchListDataItem) => {
-                                      onSelectRow(item as SearchListItem);
-                                  }
-                        }
+                    sortedData
+                        ? onSelectRowResolved
+                        : (item: SearchListDataItem) => {
+                              onSelectRow(item as SearchListItem);
+                          }
+                }
                 keyExtractor={keyExtractor}
                 onScroll={onScroll}
                 showsVerticalScrollIndicator={false}
