@@ -840,7 +840,7 @@ describe('SearchQueryUtils', () => {
             expect(result.dateRange).toBe('2025-03-01,2025-03-10');
         });
 
-        test('drops explicit date range flag when parsed date values no longer match existing form state', () => {
+        test('does not set explicit date range flag when only date boundaries are provided', () => {
             const policyCategories = {};
             const policyTags = {};
             const currencyList = {};
@@ -855,13 +855,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const existingFormValues: Partial<SearchAdvancedFiltersForm> = {
-                dateAfter: '2025-03-02',
-                dateBefore: '2025-03-10',
-                dateRange: '2025-03-02,2025-03-10',
-            };
-
-            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates, existingFormValues);
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
 
             expect(result.dateRange).toBeUndefined();
         });
@@ -888,7 +882,7 @@ describe('SearchQueryUtils', () => {
             expect(result['reportFieldRange-start-date']).toBe('2025-03-01,2025-03-10');
         });
 
-        test('drops explicit report field range flag when parsed date values no longer match existing form state', () => {
+        test('does not set explicit report field range flag when only date boundaries are provided', () => {
             const policyCategories = {};
             const policyTags = {};
             const currencyList = {};
@@ -903,13 +897,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const existingFormValues: Partial<SearchAdvancedFiltersForm> = {
-                'reportFieldAfter-start-date': '2025-03-02',
-                'reportFieldBefore-start-date': '2025-03-10',
-                'reportFieldRange-start-date': '2025-03-02,2025-03-10',
-            };
-
-            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates, existingFormValues);
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
 
             expect(result['reportFieldRange-start-date']).toBeUndefined();
         });
