@@ -300,7 +300,15 @@ function ReportActionsList({
         // Scan through each visible report action until we find the appropriate action to show the unread marker
         for (let index = startIndex; index < sortedVisibleReportActions.length; index++) {
             const reportAction = sortedVisibleReportActions.at(index);
-            const nextAction = sortedVisibleReportActions.at(index + 1);
+
+            if (reportAction?.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID) {
+                continue;
+            }
+
+            let nextAction = sortedVisibleReportActions.at(index + 1);
+            if (nextAction?.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID) {
+                nextAction = sortedVisibleReportActions.at(index + 2);
+            }
             const isEarliestReceivedOfflineMessage = index === earliestReceivedOfflineMessageIndex;
 
             const shouldDisplayNewMarker =

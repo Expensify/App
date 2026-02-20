@@ -165,6 +165,7 @@ import {
     shouldDisplayThreadReplies as shouldDisplayThreadRepliesReportUtils,
 } from '@libs/ReportUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils';
+import {CONCIERGE_GREETING_ACTION_ID} from '@pages/inbox/report/ReportActionsView';
 import {setDownload} from '@userActions/Download';
 import {
     deleteReportActionDraft,
@@ -1101,7 +1102,13 @@ const ContextMenuActions: ContextMenuAction[] = [
             // Only hide the copy link menu item when context menu is opened over img element.
             const isAttachmentTarget = menuTarget?.current && 'tagName' in menuTarget.current && menuTarget?.current.tagName === 'IMG' && isAttachment;
             const isDynamicWorkflowRoutedAction = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED);
-            return type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !isAttachmentTarget && !isMessageDeleted(reportAction) && !isDynamicWorkflowRoutedAction;
+            return (
+                type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
+                !isAttachmentTarget &&
+                !isMessageDeleted(reportAction) &&
+                !isDynamicWorkflowRoutedAction &&
+                reportAction?.reportActionID !== CONST.CONCIERGE_GREETING_ACTION_ID
+            );
         },
         onPress: (closePopover, {reportAction, originalReportID}) => {
             getEnvironmentURL().then((environmentURL) => {

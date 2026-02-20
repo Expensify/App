@@ -554,7 +554,7 @@ const translations = {
         year: 'Year',
         quarter: 'Quarter',
         concierge: {
-            sidePanelGreeting: "Hi there, I'm Concierge. How can I help?",
+            sidePanelGreeting: 'Hi there, how can I help?',
             showHistory: 'Show history',
         },
         expensifyLogo: 'Expensify logo',

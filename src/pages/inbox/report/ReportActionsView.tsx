@@ -6,6 +6,7 @@ import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLoadReportActions from '@hooks/useLoadReportActions';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -39,7 +40,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import ReportActionItemCreated from './ReportActionItemCreated';
 import ReportActionsList from './ReportActionsList';
 import UserTypingEventListener from './UserTypingEventListener';
 
@@ -95,6 +95,7 @@ function ReportActionsView({
     sessionStartActionIDs = null,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
+    const {translate} = useLocalize();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isReportArchived = useReportIsArchived(report?.reportID);
@@ -260,6 +261,26 @@ function ReportActionsView({
     }, [isConciergeSidePanel, visibleReportActions, sessionStartActionIDs]);
 
     const showConciergeSidePanelWelcome = isConciergeSidePanel && !hasUserSentMessage && !showFullHistory;
+    const showConciergeGreeting = isConciergeSidePanel && !showFullHistory;
+
+    const conciergeGreetingAction = useMemo(() => {
+        if (!showConciergeGreeting) {
+            return undefined;
+        }
+        const greetingText = translate('common.concierge.sidePanelGreeting');
+        return {
+            reportActionID: CONST.CONCIERGE_GREETING_ACTION_ID,
+            reportID: report.reportID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+            person: [{style: 'strong', text: CONST.CONCIERGE_DISPLAY_NAME, type: 'TEXT'}],
+            created: report.lastReadTime ?? DateUtils.getDBTime(),
+            message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: greetingText, text: greetingText}],
+            originalMessage: {html: greetingText, whisperedTo: []},
+            shouldShow: true,
+            isOptimisticAction: true,
+        } as OnyxTypes.ReportAction;
+    }, [showConciergeGreeting, report.reportID, report.lastReadTime, translate]);
 
     // Find the earliest `created` timestamp among messages the user sent in this session.
     // Used as a cutoff so automated Concierge replies that arrived between panel-open
@@ -287,24 +308,36 @@ function ReportActionsView({
     );
 
     const conciergeSidePanelFilteredVisibleActions = useMemo(() => {
-        if (showConciergeSidePanelWelcome) {
-            return [];
+        if (showConciergeSidePanelWelcome && conciergeGreetingAction) {
+            const createdAction = visibleReportActions.find(isCreatedAction);
+            return createdAction ? [conciergeGreetingAction, createdAction] : [conciergeGreetingAction];
         }
         if (!isConciergeSidePanel || showFullHistory) {
             return visibleReportActions;
         }
-        return visibleReportActions.filter(isCurrentSessionAction);
-    }, [showConciergeSidePanelWelcome, isConciergeSidePanel, showFullHistory, visibleReportActions, isCurrentSessionAction]);
+        const filtered = visibleReportActions.filter(isCurrentSessionAction);
+        if (conciergeGreetingAction) {
+            const createdIndex = filtered.findIndex(isCreatedAction);
+            filtered.splice(createdIndex === -1 ? filtered.length : createdIndex, 0, conciergeGreetingAction);
+        }
+        return filtered;
+    }, [showConciergeSidePanelWelcome, conciergeGreetingAction, isConciergeSidePanel, showFullHistory, visibleReportActions, isCurrentSessionAction]);
 
     const conciergeSidePanelFilteredReportActions = useMemo(() => {
-        if (showConciergeSidePanelWelcome) {
-            return [];
+        if (showConciergeSidePanelWelcome && conciergeGreetingAction) {
+            const createdAction = reportActions.find(isCreatedAction);
+            return createdAction ? [conciergeGreetingAction, createdAction] : [conciergeGreetingAction];
         }
         if (!isConciergeSidePanel || showFullHistory) {
             return reportActions;
         }
-        return reportActions.filter(isCurrentSessionAction);
-    }, [showConciergeSidePanelWelcome, isConciergeSidePanel, showFullHistory, reportActions, isCurrentSessionAction]);
+        const filtered = reportActions.filter(isCurrentSessionAction);
+        if (conciergeGreetingAction) {
+            const createdIndex = filtered.findIndex(isCreatedAction);
+            filtered.splice(createdIndex === -1 ? filtered.length : createdIndex, 0, conciergeGreetingAction);
+        }
+        return filtered;
+    }, [showConciergeSidePanelWelcome, conciergeGreetingAction, isConciergeSidePanel, showFullHistory, reportActions, isCurrentSessionAction]);
 
     const newestReportAction = useMemo(() => reportActions?.at(0), [reportActions]);
     const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);
@@ -393,20 +426,8 @@ function ReportActionsView({
         return <ReportActionsSkeletonView />;
     }
 
-    if (!isReportTransactionThread && isMissingReportActions) {
+    if (!isReportTransactionThread && isMissingReportActions && !showConciergeSidePanelWelcome) {
         return <ReportActionsSkeletonView shouldAnimate={false} />;
-    }
-
-    if (showConciergeSidePanelWelcome) {
-        return (
-            <>
-                <ReportActionItemCreated
-                    reportID={report.reportID}
-                    policyID={report.policyID}
-                />
-                <UserTypingEventListener report={report} />
-            </>
-        );
     }
 
     // AutoScroll is disabled when we do linking to a specific reportAction

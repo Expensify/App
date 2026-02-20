@@ -403,7 +403,7 @@ const translations: TranslationDeepObject<typeof en> = {
         year: 'Año',
         quarter: 'Trimestre',
         concierge: {
-            sidePanelGreeting: 'Hola, soy Concierge. ¿En qué puedo ayudarte?',
+            sidePanelGreeting: 'Hola, ¿en qué puedo ayudarte?',
             showHistory: 'Mostrar historial',
         },
         expensifyLogo: 'Logo de Expensify',
