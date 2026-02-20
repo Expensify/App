@@ -3,7 +3,7 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type en from './en';
-import type {CreatedReportForUnapprovedTransactionsParams, PaidElsewhereParams, UpdatedPolicyTagParams, ViolationsRterParams} from './params';
+import type {ConciergeBrokenCardConnectionParams, CreatedReportForUnapprovedTransactionsParams, PaidElsewhereParams, UpdatedPolicyTagParams, ViolationsRterParams} from './params';
 import type {TranslationDeepObject} from './types';
 
 /* eslint-disable max-len */
@@ -306,6 +306,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reportID: 'ID del informe',
         longReportID: 'ID de informe largo',
         withdrawalID: 'ID de retiro',
+        withdrawalStatus: 'Estado de retiro',
         bankAccounts: 'Cuentas bancarias',
         chooseFile: 'Elegir archivo',
         chooseFiles: 'Elegir archivos',
@@ -402,6 +403,7 @@ const translations: TranslationDeepObject<typeof en> = {
         week: 'Semana',
         year: 'Año',
         quarter: 'Trimestre',
+        vacationDelegate: 'Delegado de vacaciones',
         expensifyLogo: 'Logo de Expensify',
     },
     socials: {
@@ -788,6 +790,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 defaultSubtitle: 'Espacio de trabajo > Tarjetas de empresa',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Tarjetas de empresa`,
             },
+            fixPersonalCardConnection: {
+                title: ({cardName}: {cardName?: string}) => (cardName ? `Arreglar la conexión de la tarjeta personal de ${cardName}` : 'Arreglar la conexión de la tarjeta personal'),
+                subtitle: 'Monedero > Tarjetas asignadas',
+            },
             fixAccountingConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Reconectar con ${integrationName}`,
                 defaultSubtitle: 'Espacio de trabajo > Contabilidad',
@@ -810,6 +816,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 cta: 'Revisar',
             },
         },
+        assignedCards: 'Tarjetas asignadas',
+        assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} restantes`,
         announcements: 'Anuncios',
         discoverSection: {
             title: 'Descubrir',
@@ -1931,6 +1939,14 @@ const translations: TranslationDeepObject<typeof en> = {
             password: 'Por favor, introduce tu contraseña de Expensify',
         },
     },
+    personalCard: {
+        brokenConnection: 'Hay un problema con la conexión de tu tarjeta.',
+        fixCard: 'Arreglar conexión de la tarjeta',
+        conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
+            connectionLink
+                ? `La conexión de tu tarjeta ${cardName} se ha interrumpido. <a href="${connectionLink}">Inicia sesión en tu banco</a> para arreglarla.`
+                : `La conexión de tu tarjeta ${cardName} se ha interrumpido. Inicia sesión en tu banco para arreglarla.`,
+    },
     walletPage: {
         balance: 'Saldo',
         paymentMethodsTitle: 'Métodos de pago',
@@ -2052,6 +2068,9 @@ ${amount} para ${merchant} - ${date}`,
         unfreezeCard: 'Descongelar tarjeta',
         freezeDescription: 'Una tarjeta congelada no se puede usar para compras ni transacciones. Puedes descongelarla en cualquier momento.',
         unfreezeDescription: 'Al descongelar esta tarjeta se volverán a permitir compras y transacciones. Continúa solo si estás seguro de que la tarjeta es segura para usar.',
+        frozen: 'Congelada',
+        youFroze: ({date}: {date: string}) => `Congelaste esta tarjeta el ${date}.`,
+        frozenBy: ({person, date}: {person: string; date: string}) => `${person} congeló esta tarjeta el ${date}.`,
     },
     workflowsPage: {
         workflowTitle: 'Gasto',
@@ -2912,7 +2931,6 @@ ${amount} para ${merchant} - ${date}`,
         time: 'Hora',
         clearAfter: 'Borrar después',
         whenClearStatus: '¿Cuándo deberíamos borrar tu estado?',
-        vacationDelegate: 'Delegado de vacaciones',
         setVacationDelegate: 'Configura un delegado de vacaciones para aprobar informes en tu nombre mientras estás fuera de la oficina.',
         cannotSetVacationDelegate: `No puedes establecer un delegado de vacaciones porque actualmente eres el delegado de los siguientes miembros:`,
         vacationDelegateError: 'Hubo un error al actualizar tu delegado de vacaciones.',
@@ -4928,6 +4946,11 @@ ${amount} para ${merchant} - ${date}`,
                     },
                 },
                 travelInvoicing: {
+                    travelBookingSection: {
+                        title: 'Reserva de viajes',
+                        subtitle: '¡Felicidades! Todo está listo para reservar y gestionar viajes en este espacio de trabajo.',
+                        manageTravelLabel: 'Gestionar viajes',
+                    },
                     centralInvoicingSection: {
                         title: 'Facturación centralizada',
                         subtitle: 'Centraliza todos los gastos de viaje en una factura mensual en lugar de pagar en el momento de la compra.',
@@ -4941,6 +4964,16 @@ ${amount} para ${merchant} - ${date}`,
                             settlementFrequencyDescription:
                                 'Con qué frecuencia Expensify retirará fondos de la cuenta bancaria de tu empresa para liquidar transacciones recientes de Expensify Travel.',
                         },
+                    },
+                    disableModal: {
+                        title: '¿Desactivar la facturación de viajes?',
+                        body: 'Es posible que las próximas reservas de hotel y alquiler de coches deban volver a reservarse con un método de pago diferente para evitar su cancelación.',
+                        confirm: 'Desactivar',
+                    },
+                    outstandingBalanceModal: {
+                        title: 'No se puede desactivar la facturación de viajes',
+                        body: 'Aún tienes un saldo pendiente de viajes. Por favor, paga tu saldo primero.',
+                        confirm: 'Entendido',
                     },
                 },
             },
@@ -4996,7 +5029,10 @@ ${amount} para ${merchant} - ${date}`,
                 updateCard: 'Actualizar tarjeta',
                 unassignCard: 'Desasignar tarjeta',
                 unassign: 'Desasignar',
-                unassignCardDescription: 'Desasignar esta tarjeta eliminará todas las transacciones en informes en borrador de la cuenta del titular.',
+                unassignCardDescription: 'Desasignar esta tarjeta eliminará todas las transacciones no enviadas.',
+                removeCard: 'Eliminar tarjeta',
+                remove: 'Eliminar',
+                removeCardDescription: 'Eliminar esta tarjeta eliminará todas las transacciones no enviadas.',
                 assignCard: 'Asignar tarjeta',
                 cardFeedName: 'Nombre del feed de tarjeta',
                 cardFeedNameDescription: 'Dale al feed de tarjeta un nombre único para que puedas distinguirlo de los demás.',
@@ -5303,6 +5339,11 @@ ${amount} para ${merchant} - ${date}`,
             reimbursementAccount: 'cuenta de reembolso',
             delayedSubmission: 'presentación retrasada',
             welcomeNote: 'Por favor, comience a utilizar mi nuevo espacio de trabajo.',
+            merchantRules: 'Reglas de comerciante',
+            merchantRulesCount: () => ({
+                one: '1 regla de comerciante',
+                other: (count: number) => `${count} reglas de comerciante`,
+            }),
             confirmTitle: ({newWorkspaceName, totalMembers}) =>
                 `Estás a punto de crear y compartir ${newWorkspaceName ?? ''} con ${totalMembers ?? 0} miembros del espacio de trabajo original.`,
             error: 'Se produjo un error al duplicar tu nuevo espacio de trabajo. Inténtalo de nuevo.',
@@ -6182,7 +6223,7 @@ ${amount} para ${merchant} - ${date}`,
                 matchTypeContains: 'Contiene',
                 matchTypeExact: 'Coincide exactamente',
                 duplicateRuleTitle: 'Ya existe una regla de comerciante similar',
-                duplicateRulePrompt: (merchantName: string) => `¿Quieres guardar una nueva regla para "${merchantName}" aunque ya tengas una existente?`,
+                duplicateRulePrompt: (merchantName: string) => `La regla existente para "${merchantName}" tendrá prioridad sobre esta. ¿Desea guardarla de todos modos?`,
                 saveAnyway: 'Guardar de todos modos',
                 applyToExistingUnsubmittedExpenses: 'Aplicar a gastos existentes no enviados',
             },
@@ -7912,9 +7953,17 @@ ${amount} para ${merchant} - ${date}`,
         },
         customRules: ({message}) => message,
         reviewRequired: 'Revisión requerida',
-        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL}: ViolationsRterParams) => {
+        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL, connectionLink, isPersonalCard, isMarkAsCash}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return 'No se puede emparejar automáticamente el recibo debido a una conexión bancaria interrumpida.';
+            }
+            if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
+                if (!connectionLink) {
+                    return 'No se puede emparejar automáticamente el recibo debido a una conexión bancaria interrumpida.';
+                }
+                return isMarkAsCash
+                    ? `No se puede vincular automáticamente el recibo debido a un problema de conexión de la tarjeta. Márcalo como efectivo para ignorarlo o <a href="${connectionLink}">soluciona la conexión de la tarjeta</a> para asociar el recibo.`
+                    : `No se puede vincular automáticamente el recibo debido a un problema de conexión de la tarjeta. <a href="${connectionLink}">Soluciona la conexión de la tarjeta</a> para asociar el recibo.`;
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
@@ -8623,12 +8672,15 @@ ${amount} para ${merchant} - ${date}`,
             error: {
                 removeMember: 'No se pudo eliminar a este usuario. Por favor, inténtalo de nuevo.',
                 addMember: 'No se pudo añadir este miembro. Por favor, inténtalo de nuevo.',
+                vacationDelegate: 'No se pudo establecer a este usuario como delegado de vacaciones. Por favor, inténtalo de nuevo.',
             },
             forceTwoFactorAuth: 'Forzar la autenticación de dos factores',
             forceTwoFactorAuthSAMLEnabledDescription: (samlPageUrl: string) =>
                 `<muted-text>Por favor, deshabilita <a href="${samlPageUrl}">SAML</a> para forzar la autenticación de dos factores.</muted-text>`,
             forceTwoFactorAuthDescription: `<muted-text>Requiere la autenticación de dos factores para todos los miembros de este dominio. Se les pedirá a los miembros del dominio que configuren la autenticación de dos factores en su cuenta cuando inicien sesión.</muted-text>`,
             forceTwoFactorAuthError: 'No se pudo cambiar la autenticación de dos factores forzada. Por favor, inténtalo de nuevo más tarde.',
+            cannotSetVacationDelegateForMember: (email: string) =>
+                `No puedes establecer un delegado de vacaciones para ${email} porque actualmente es el delegado de los siguientes miembros:`,
         },
         common: {
             settings: 'Configuración',

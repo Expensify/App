@@ -51,7 +51,7 @@ function WorkspaceTravelInvoicingSettlementFrequencyPage({route}: WorkspaceTrave
     }));
 
     const selectFrequency = (item: FrequencyItem) => {
-        updateTravelInvoiceSettlementFrequency(policyID, workspaceAccountID, item.value, cardSettings?.monthlySettlementDate ? new Date(cardSettings.monthlySettlementDate) : undefined);
+        updateTravelInvoiceSettlementFrequency(workspaceAccountID, item.value, cardSettings?.monthlySettlementDate ? new Date(cardSettings.monthlySettlementDate) : undefined);
         Navigation.goBack();
     };
 
