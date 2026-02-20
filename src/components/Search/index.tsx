@@ -1,6 +1,7 @@
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import type {ReactNode} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -64,6 +65,7 @@ import {
     isTransactionReportGroupListItemType,
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
+    toSearchListItemDescriptor,
 } from '@libs/SearchUIUtils';
 import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import markNavigateAfterExpenseCreateEnd from '@libs/telemetry/markNavigateAfterExpenseCreateEnd';
@@ -84,6 +86,7 @@ import arraysEqual from '@src/utils/arraysEqual';
 import SearchChartView from './SearchChartView';
 import {useSearchContext} from './SearchContext';
 import SearchList from './SearchList';
+import {SearchListItemsCacheProvider, useSearchListItemsCache} from './SearchListItemsCacheContext';
 import {SearchScopeProvider} from './SearchScopeProvider';
 import type {SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
 
@@ -98,6 +101,15 @@ type SearchProps = {
     searchRequestResponseStatusCode?: number | null;
     onDEWModalOpen?: () => void;
 };
+
+/** Syncs sortedData into the list items cache so useSearchListItem can resolve items by descriptor. */
+function SearchListCacheSync({sortedData, children}: {sortedData: SearchListItem[]; children: ReactNode}) {
+    const cache = useSearchListItemsCache();
+    useLayoutEffect(() => {
+        cache?.setItemsCache(sortedData);
+    }, [sortedData, cache]);
+    return children;
+}
 
 function mapTransactionItemToSelectedEntry(
     item: TransactionListItemType,
@@ -1062,6 +1074,8 @@ function Search({
         [type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy, isChat, newSearchResultKeys, hash],
     );
 
+    const orderedDescriptors = useMemo(() => sortedData.map((item) => toSearchListItemDescriptor(item)), [sortedData]);
+
     useEffect(() => {
         const currentRoute = Navigation.getActiveRouteWithoutParams();
         if (hasErrors && (currentRoute === '/' || (shouldResetSearchQuery && currentRoute === '/search'))) {
@@ -1275,67 +1289,72 @@ function Search({
 
     return (
         <SearchScopeProvider>
-            <Animated.View style={[styles.flex1, animatedStyle]}>
-                <SearchList
-                    ref={searchListRef}
-                    data={sortedData}
-                    ListItem={ListItem}
-                    onSelectRow={onSelectRow}
-                    onCheckboxPress={toggleTransaction}
-                    onAllCheckboxPress={toggleAllTransactions}
-                    canSelectMultiple={canSelectMultiple}
-                    selectedTransactions={selectedTransactions}
-                    shouldPreventLongPressRow={isChat || isTask}
-                    onDEWModalOpen={handleDEWModalOpen}
-                    isDEWBetaEnabled={isDEWBetaEnabled}
-                    SearchTableHeader={
-                        !shouldShowTableHeader ? undefined : (
-                            <View style={[!isTask && styles.pr8, styles.flex1]}>
-                                <SearchTableHeader
-                                    canSelectMultiple={canSelectMultiple}
-                                    columns={columnsToShow}
-                                    type={type}
-                                    onSortPress={onSortPress}
-                                    sortOrder={sortOrder}
-                                    sortBy={sortBy}
-                                    shouldShowYear={shouldShowYearCreated}
-                                    shouldShowYearSubmitted={shouldShowYearSubmitted}
-                                    shouldShowYearApproved={shouldShowYearApproved}
-                                    shouldShowYearPosted={shouldShowYearPosted}
-                                    shouldShowYearExported={shouldShowYearExported}
-                                    isAmountColumnWide={shouldShowAmountInWideColumn}
-                                    isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
-                                    shouldShowSorting
-                                    groupBy={validGroupBy}
-                                />
-                            </View>
-                        )
-                    }
-                    contentContainerStyle={[styles.pb3, contentContainerStyle]}
-                    containerStyle={[styles.pv0, !tableHeaderVisible && !isSmallScreenWidth && styles.pt3]}
-                    shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                    onScroll={onSearchListScroll}
-                    onEndReachedThreshold={0.75}
-                    onEndReached={fetchMoreResults}
-                    ListFooterComponent={
-                        shouldShowLoadingMoreItems ? (
-                            <SearchRowSkeleton
-                                shouldAnimate
-                                fixedNumItems={5}
-                            />
-                        ) : undefined
-                    }
-                    queryJSON={queryJSON}
-                    columns={columnsToShow}
-                    violations={violations}
-                    onLayout={onLayout}
-                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                    shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
-                    newTransactions={newTransactions}
-                    hasLoadedAllTransactions={hasLoadedAllTransactions}
-                    customCardNames={customCardNames}
-                />
-            </Animated.View>
+            <SearchListItemsCacheProvider>
+                <SearchListCacheSync sortedData={sortedData}>
+                    <Animated.View style={[styles.flex1, animatedStyle]}>
+                        <SearchList
+                            ref={searchListRef}
+                            data={orderedDescriptors}
+                            sortedData={sortedData}
+                            ListItem={ListItem}
+                            onSelectRow={onSelectRow}
+                            onCheckboxPress={toggleTransaction}
+                            onAllCheckboxPress={toggleAllTransactions}
+                            canSelectMultiple={canSelectMultiple}
+                            selectedTransactions={selectedTransactions}
+                            shouldPreventLongPressRow={isChat || isTask}
+                            onDEWModalOpen={handleDEWModalOpen}
+                            isDEWBetaEnabled={isDEWBetaEnabled}
+                            SearchTableHeader={
+                                !shouldShowTableHeader ? undefined : (
+                                    <View style={[!isTask && styles.pr8, styles.flex1]}>
+                                        <SearchTableHeader
+                                            canSelectMultiple={canSelectMultiple}
+                                            columns={columnsToShow}
+                                            type={type}
+                                            onSortPress={onSortPress}
+                                            sortOrder={sortOrder}
+                                            sortBy={sortBy}
+                                            shouldShowYear={shouldShowYearCreated}
+                                            shouldShowYearSubmitted={shouldShowYearSubmitted}
+                                            shouldShowYearApproved={shouldShowYearApproved}
+                                            shouldShowYearPosted={shouldShowYearPosted}
+                                            shouldShowYearExported={shouldShowYearExported}
+                                            isAmountColumnWide={shouldShowAmountInWideColumn}
+                                            isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
+                                            shouldShowSorting
+                                            groupBy={validGroupBy}
+                                        />
+                                    </View>
+                                )
+                            }
+                            contentContainerStyle={[styles.pb3, contentContainerStyle]}
+                            containerStyle={[styles.pv0, !tableHeaderVisible && !isSmallScreenWidth && styles.pt3]}
+                            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                            onScroll={onSearchListScroll}
+                            onEndReachedThreshold={0.75}
+                            onEndReached={fetchMoreResults}
+                            ListFooterComponent={
+                                shouldShowLoadingMoreItems ? (
+                                    <SearchRowSkeleton
+                                        shouldAnimate
+                                        fixedNumItems={5}
+                                    />
+                                ) : undefined
+                            }
+                            queryJSON={queryJSON}
+                            columns={columnsToShow}
+                            violations={violations}
+                            onLayout={onLayout}
+                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                            shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
+                            newTransactions={newTransactions}
+                            hasLoadedAllTransactions={hasLoadedAllTransactions}
+                            customCardNames={customCardNames}
+                        />
+                    </Animated.View>
+                </SearchListCacheSync>
+            </SearchListItemsCacheProvider>
         </SearchScopeProvider>
     );
 }
