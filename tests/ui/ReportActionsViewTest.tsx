@@ -61,10 +61,10 @@ jest.mock('@pages/inbox/report/ReportActionsList', () =>
     }),
 );
 jest.mock('@pages/inbox/report/UserTypingEventListener', () => jest.fn(() => null));
-jest.mock('@components/ConciergeSidePanelWelcome', () => jest.fn(() => null));
+jest.mock('@pages/inbox/report/ReportActionItemCreated', () => jest.fn(() => null));
 
 const mockReportActionsList: jest.Mock = jest.requireMock('@pages/inbox/report/ReportActionsList');
-const mockConciergeSidePanelWelcome: jest.Mock = jest.requireMock('@components/ConciergeSidePanelWelcome');
+const mockReportActionItemCreated: jest.Mock = jest.requireMock('@pages/inbox/report/ReportActionItemCreated');
 
 jest.mock('@libs/actions/Report', () => ({
     updateLoadingInitialReportAction: jest.fn(),
@@ -354,7 +354,7 @@ describe('ReportActionsView', () => {
             });
         };
 
-        it('should show ConciergeSidePanelWelcome when opened in side panel with no user messages', () => {
+        it('should show ReportActionItemCreated when opened in side panel with no user messages', () => {
             setupConciergeMocks();
 
             const sessionStartIDs = new Set(oldReportActions.map((a) => a.reportActionID));
@@ -366,11 +366,11 @@ describe('ReportActionsView', () => {
                 sessionStartActionIDs: sessionStartIDs,
             });
 
-            expect(mockConciergeSidePanelWelcome).toHaveBeenCalled();
+            expect(mockReportActionItemCreated).toHaveBeenCalled();
             expect(mockReportActionsList).not.toHaveBeenCalled();
         });
 
-        it('should not show ConciergeSidePanelWelcome when not in side panel', () => {
+        it('should not show welcome state when not in side panel', () => {
             setupConciergeMocks();
 
             renderReportActionsView({
@@ -379,10 +379,10 @@ describe('ReportActionsView', () => {
                 isConciergeSidePanel: false,
             });
 
-            expect(mockConciergeSidePanelWelcome).not.toHaveBeenCalled();
+            expect(mockReportActionItemCreated).not.toHaveBeenCalled();
         });
 
-        it('should not show ConciergeSidePanelWelcome for non-concierge reports in side panel', () => {
+        it('should not show welcome state for non-concierge reports in side panel', () => {
             setupConciergeMocks();
 
             renderReportActionsView({
@@ -391,7 +391,7 @@ describe('ReportActionsView', () => {
                 isConciergeSidePanel: false,
             });
 
-            expect(mockConciergeSidePanelWelcome).not.toHaveBeenCalled();
+            expect(mockReportActionItemCreated).not.toHaveBeenCalled();
         });
 
         it('should hide welcome and show filtered actions when user sends a message', () => {
@@ -428,7 +428,7 @@ describe('ReportActionsView', () => {
             });
 
             // Welcome should not be shown since user has sent a message
-            expect(mockConciergeSidePanelWelcome).not.toHaveBeenCalled();
+            expect(mockReportActionItemCreated).not.toHaveBeenCalled();
             // ReportActionsList should be rendered with filtered actions
             expect(mockReportActionsList).toHaveBeenCalled();
         });
