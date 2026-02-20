@@ -9559,7 +9559,7 @@ const github = __importStar(__nccwpck_require__(5438));
  * targeting the correct base branch to avoid blaming the wrong PR.
  */
 function getMergedPR(associatedPRs, targetBranch = 'main') {
-    return associatedPRs.find((pr) => pr.merged_at !== null && pr.base.ref === targetBranch) ?? associatedPRs.at(0);
+    return associatedPRs.find((pr) => pr.merged_at !== null && pr.base.ref === targetBranch);
 }
 async function run() {
     const token = core.getInput('GITHUB_TOKEN', { required: true });

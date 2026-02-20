@@ -11751,10 +11751,29 @@ function getPreviousExistingTag(tag, level) {
     return previousVersion;
 }
 /**
+ * Extract Mobile-Expensify submodule update commits from the commit history.
+ * Matches both version-based ("Update Mobile-Expensify submodule version to 9.3.21-0")
+ * and hash-based ("Update Mobile-Expensify submodule to 9f18fca") patterns.
+ */
+function getSubmoduleUpdates(commits) {
+    const updates = [];
+    for (const commit of commits) {
+        const match = commit.subject.match(/^Update Mobile-Expensify submodule (?:version )?to (.+)$/);
+        if (match) {
+            updates.push({
+                version: match[1],
+                date: commit.date,
+                commit: commit.commit,
+            });
+        }
+    }
+    return updates;
+}
+/**
  * Parse merged PRs, excluding those from irrelevant branches.
  */
 function getValidMergedPRs(commits) {
-    const mergedPRs = new Set();
+    const mergedPRs = new Map();
     for (const commit of commits) {
         const author = commit.authorName;
         if (author === CONST_1.default.OS_BOTIFY) {
@@ -11772,27 +11791,44 @@ function getValidMergedPRs(commits) {
             mergedPRs.delete(pr);
             continue;
         }
-        mergedPRs.add(pr);
+        mergedPRs.set(pr, commit.date);
     }
-    return Array.from(mergedPRs);
+    return Array.from(mergedPRs.entries()).map(([prNumber, date]) => ({ prNumber, date }));
 }
 /**
- * Takes in two git tags and returns a list of PR numbers of all PRs merged between those two tags
+ * Takes in two git tags and returns a list of merged PRs entries between those two tags,
+ * along with any Mobile-Expensify submodule version updates found in the commit history.
+ * Returns PRs in the order they appear in the commit history from the GitHub API.
  */
-async function getPullRequestsDeployedBetween(fromTag, toTag, repositoryName) {
+async function getMergedPRsDeployedBetween(fromTag, toTag, repositoryName) {
     console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
     const apiCommitList = await GithubUtils_1.default.getCommitHistoryBetweenTags(fromTag, toTag, repositoryName);
-    const apiPullRequestNumbers = getValidMergedPRs(apiCommitList).sort((a, b) => a - b);
+    const mergedPRs = getValidMergedPRs(apiCommitList);
+    const submoduleUpdates = getSubmoduleUpdates(apiCommitList);
     console.log(`Found ${apiCommitList.length} commits.`);
     core.startGroup('Parsed PRs:');
-    core.info(apiPullRequestNumbers.join(', '));
+    core.info(mergedPRs.map((pr) => pr.prNumber).join(', '));
     core.endGroup();
-    return apiPullRequestNumbers;
+    if (submoduleUpdates.length > 0) {
+        core.startGroup('Submodule updates:');
+        core.info(submoduleUpdates.map((u) => u.version).join(', '));
+        core.endGroup();
+    }
+    return { mergedPRs, submoduleUpdates };
+}
+/**
+ * Takes in two git tags and returns a list of PR numbers of all PRs merged between those two tags.
+ */
+async function getPullRequestsDeployedBetween(fromTag, toTag, repositoryName) {
+    const { mergedPRs } = await getMergedPRsDeployedBetween(fromTag, toTag, repositoryName);
+    return mergedPRs.map((pr) => pr.prNumber).sort((a, b) => a - b);
 }
 exports["default"] = {
     getPreviousExistingTag,
     getValidMergedPRs,
+    getSubmoduleUpdates,
     getPullRequestsDeployedBetween,
+    getMergedPRsDeployedBetween,
 };
 
 
@@ -12050,7 +12086,7 @@ class GithubUtils {
     /**
      * Generate the issue body and assignees for a StagingDeployCash.
      */
-    static generateStagingDeployCashBodyAndAssignees(tag, PRList, PRListMobileExpensify, verifiedPRList = [], verifiedPRListMobileExpensify = [], deployBlockers = [], resolvedDeployBlockers = [], resolvedInternalQAPRs = [], isFirebaseChecked = false, isGHStatusChecked = false) {
+    static generateStagingDeployCashBodyAndAssignees({ tag, PRList, PRListMobileExpensify = [], verifiedPRList = [], verifiedPRListMobileExpensify = [], deployBlockers = [], resolvedDeployBlockers = [], resolvedInternalQAPRs = [], isFirebaseChecked = false, isGHStatusChecked = false, chronologicalSection = '', }) {
         return this.fetchAllPullRequests(PRList.map((pr) => this.getPullRequestNumberFromURL(pr)))
             .then((data) => {
             const internalQAPRs = Array.isArray(data) ? data.filter((pr) => !(0, isEmptyObject_1.isEmptyObject)(pr.labels.find((item) => item.name === CONST_1.default.LABELS.INTERNAL_QA))) : [];
@@ -12119,6 +12155,10 @@ class GithubUtils {
                         issueBody += URL;
                         issueBody += '\r\n';
                     }
+                    issueBody += '\r\n\r\n';
+                }
+                if (chronologicalSection) {
+                    issueBody += chronologicalSection;
                     issueBody += '\r\n\r\n';
                 }
                 issueBody += '**Deployer verifications:**';
@@ -12235,6 +12275,26 @@ class GithubUtils {
             per_page: options.per_page ?? 50,
             ...(options.status && { status: options.status }),
         });
+    }
+    /**
+     * Get the workflow run URL for a specific commit SHA and workflow file.
+     * Returns the HTML URL of the matching run, or undefined if not found.
+     */
+    static async getWorkflowRunURLForCommit(commitSha, workflowFile) {
+        try {
+            const response = await this.octokit.actions.listWorkflowRuns({
+                owner: CONST_1.default.GITHUB_OWNER,
+                repo: CONST_1.default.APP_REPO,
+                workflow_id: workflowFile,
+                head_sha: commitSha,
+                per_page: 1,
+            });
+            return response.data.workflow_runs.at(0)?.html_url;
+        }
+        catch (error) {
+            console.warn(`Failed to find workflow run for commit ${commitSha}:`, error);
+            return undefined;
+        }
     }
     /**
      * Generate the URL of an New Expensify pull request given the PR number.
@@ -12393,6 +12453,7 @@ class GithubUtils {
                 commit: commit.sha,
                 subject: commit.commit.message,
                 authorName: commit.commit.author?.name ?? 'Unknown',
+                date: commit.commit.committer?.date ?? '',
             }));
         }
         catch (error) {

@@ -679,16 +679,16 @@ function getForReportActionTemp({
 
     const hasModifiedTag = isReportActionOriginalMessageAnObject && 'oldTag' in reportActionOriginalMessage && 'tag' in reportActionOriginalMessage;
     if (hasModifiedTag) {
+        const policyTagsToUse = policyTags ?? CONST.POLICY.DEFAULT_TAG_LIST;
         const transactionTag = reportActionOriginalMessage?.tag ?? '';
         const oldTransactionTag = reportActionOriginalMessage?.oldTag ?? '';
         const splittedTag = getTagArrayFromName(transactionTag);
         const splittedOldTag = getTagArrayFromName(oldTransactionTag);
         const localizedTagListName = translate('common.tag');
-        const sortedTagKeys = getSortedTagKeys(policyTags);
+        const sortedTagKeys = getSortedTagKeys(policyTagsToUse);
 
         for (const [index, policyTagKey] of sortedTagKeys.entries()) {
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            const policyTagListName = policyTags?.[policyTagKey]?.name || localizedTagListName;
+            const policyTagListName = policyTagsToUse[policyTagKey].name || localizedTagListName;
 
             const newTag = splittedTag.at(index) ?? '';
             const oldTag = splittedOldTag.at(index) ?? '';
@@ -756,10 +756,11 @@ function getForReportActionTemp({
 
     const hasPolicyRulesModifiedFields = isReportActionOriginalMessageAnObject && 'policyRulesModifiedFields' in reportActionOriginalMessage && 'policyID' in reportActionOriginalMessage;
     if (hasPolicyRulesModifiedFields) {
-        const {policyRulesModifiedFields, policyID} = reportActionOriginalMessage;
+        const rulePolicyID = reportActionOriginalMessage.policyID;
+        const policyRulesModifiedFields = reportActionOriginalMessage.policyRulesModifiedFields;
 
-        if (policyRulesModifiedFields && policyID) {
-            return getPolicyRulesModifiedMessage(translate, policyRulesModifiedFields, policyID);
+        if (policyRulesModifiedFields && rulePolicyID) {
+            return getPolicyRulesModifiedMessage(translate, policyRulesModifiedFields, rulePolicyID);
         }
     }
 

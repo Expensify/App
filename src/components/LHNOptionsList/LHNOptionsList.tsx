@@ -461,7 +461,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     onScroll={onScroll}
                     initialScrollIndex={isWeb ? getScrollIndex(route) : undefined}
                     maintainVisibleContentPosition={{disabled: true}}
-                    drawDistance={1000}
+                    drawDistance={250}
                     removeClippedSubviews
                 />
             )}
