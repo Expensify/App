@@ -2,7 +2,6 @@ import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import ConciergeSidePanelWelcome from '@components/ConciergeSidePanelWelcome';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -40,6 +39,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import ReportActionItemCreated from './ReportActionItemCreated';
 import ReportActionsList from './ReportActionsList';
 import UserTypingEventListener from './UserTypingEventListener';
 
@@ -400,7 +400,10 @@ function ReportActionsView({
     if (showConciergeSidePanelWelcome) {
         return (
             <>
-                <ConciergeSidePanelWelcome />
+                <ReportActionItemCreated
+                    reportID={report.reportID}
+                    policyID={report.policyID}
+                />
                 <UserTypingEventListener report={report} />
             </>
         );

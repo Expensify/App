@@ -555,7 +555,7 @@ const translations = {
         quarter: 'Quarter',
         concierge: {
             sidePanelGreeting: "Hi there, I'm Concierge. How can I help?",
-            showPreviousMessages: 'Show previous messages',
+            showHistory: 'Show history',
         },
         expensifyLogo: 'Expensify logo',
     },

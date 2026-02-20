@@ -404,7 +404,7 @@ const translations: TranslationDeepObject<typeof en> = {
         quarter: 'Trimestre',
         concierge: {
             sidePanelGreeting: 'Hola, soy Concierge. ¿En qué puedo ayudarte?',
-            showPreviousMessages: 'Mostrar mensajes anteriores',
+            showHistory: 'Mostrar historial',
         },
         expensifyLogo: 'Logo de Expensify',
     },

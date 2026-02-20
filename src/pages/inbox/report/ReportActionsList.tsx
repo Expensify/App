@@ -722,7 +722,7 @@ function ReportActionsList({
                                     small
                                     shouldShowRightIcon
                                     iconRight={expensifyIcons.UpArrow}
-                                    text={translate('common.concierge.showPreviousMessages')}
+                                    text={translate('common.concierge.showHistory')}
                                     onPress={onShowPreviousMessages}
                                 />
                             </View>
