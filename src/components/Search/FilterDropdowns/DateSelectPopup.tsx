@@ -2,7 +2,6 @@ import {format, parseISO} from 'date-fns';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
-import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -105,7 +104,6 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
                 return;
             }
 
-            // This now returns the updated values synchronously
             const dateValues = searchDatePresetFilterBaseRef.current.setDateValueOfSelectedDateModifier();
             updateTrackedDateValues(dateValues);
             clearSelection();
@@ -172,53 +170,20 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
     const maxPopupHeight = Math.round(windowHeight * 0.875);
 
     // For non-Range modes, use original simple styles. For Range, use custom layout
-    const useRangeLayout = isRangeMode;
+    const useRangeLayout = isInRangeMode;
+    const datePresetFilterBase = (
+        <DatePresetFilterBase
+            ref={searchDatePresetFilterBaseRef}
+            defaultDateValues={trackedDateValues}
+            selectedDateModifier={selectedDateModifier}
+            onSelectDateModifier={setSelectedDateModifier}
+            presets={presets}
+            shouldShowRangeError={shouldShowRangeError}
+            onDateValuesChange={updateTrackedDateValues}
+            onRangeValidationErrorChange={setShouldShowRangeError}
+        />
+    );
 
-    // Original simple styles for non-Range modes
-    if (!useRangeLayout) {
-        return (
-            <View style={[!isSmallScreenWidth && styles.pv4, styles.gap2]}>
-                {isSmallScreenWidth && !selectedDateModifier && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{label}</Text>}
-                <View>
-                    {!!selectedDateModifier && (
-                        <HeaderWithBackButton
-                            shouldDisplayHelpButton={false}
-                            style={[styles.h10, styles.pb3]}
-                            subtitle={translate(`common.${selectedDateModifier.toLowerCase() as SearchDateModifierLower}`)}
-                            onBackButtonPress={handleBackPress}
-                        />
-                    )}
-                    <DatePresetFilterBase
-                        ref={searchDatePresetFilterBaseRef}
-                        defaultDateValues={trackedDateValues}
-                        selectedDateModifier={selectedDateModifier}
-                        onSelectDateModifier={setSelectedDateModifier}
-                        presets={presets}
-                        shouldShowRangeError={shouldShowRangeError}
-                        onDateValuesChange={updateTrackedDateValues}
-                        onRangeValidationErrorChange={setShouldShowRangeError}
-                    />
-                </View>
-                <View style={[styles.flexRow, styles.gap2, styles.ph5]}>
-                    <Button
-                        medium
-                        style={[styles.flex1]}
-                        text={translate('common.reset')}
-                        onPress={resetChanges}
-                    />
-                    <Button
-                        success
-                        medium
-                        style={[styles.flex1]}
-                        text={translate('common.apply')}
-                        onPress={applyChanges}
-                    />
-                </View>
-            </View>
-        );
-    }
-
-    // Range mode - desktop uses simple layout, mobile uses ScrollView layout
     if (!isSmallScreenWidth) {
         return (
             <View style={[styles.pv4, styles.gap2]}>
@@ -231,73 +196,81 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
                             onBackButtonPress={handleBackPress}
                         />
                     )}
-                    <DatePresetFilterBase
-                        ref={searchDatePresetFilterBaseRef}
-                        defaultDateValues={trackedDateValues}
-                        selectedDateModifier={selectedDateModifier}
-                        onSelectDateModifier={setSelectedDateModifier}
-                        presets={presets}
-                        shouldShowRangeError={shouldShowRangeError}
-                        onDateValuesChange={updateTrackedDateValues}
-                        onRangeValidationErrorChange={setShouldShowRangeError}
-                    />
+                    {datePresetFilterBase}
                 </View>
-                <View style={[styles.flexRow, styles.mh5, styles.alignItemsCenter, styles.pt1]}>
-                    {shouldShowInlineRangeText ? (
-                        <>
-                            <View style={[styles.flex1, styles.mr2]}>
-                                {!!rangeText && (
-                                    <Text style={[styles.textLabelSupporting]}>
-                                        {`${translate('common.range')}: `}
-                                        <Text style={[styles.textLabel]}>{rangeText}</Text>
-                                    </Text>
-                                )}
-                            </View>
-                            <View style={[styles.flex1, styles.ml2]}>
-                                <View style={[styles.flexRow, styles.gap2]}>
-                                    <Button
-                                        medium
-                                        style={[styles.flex1]}
-                                        text={translate('common.reset')}
-                                        onPress={resetChanges}
-                                    />
-                                    <Button
-                                        success
-                                        medium
-                                        style={[styles.flex1]}
-                                        text={translate('common.apply')}
-                                        onPress={applyChanges}
-                                    />
+                {useRangeLayout ? (
+                    <View style={[styles.flexRow, styles.mh5, styles.alignItemsCenter, styles.pt1]}>
+                        {shouldShowInlineRangeText ? (
+                            <>
+                                <View style={[styles.flex1, styles.mr2]}>
+                                    {!!rangeText && (
+                                        <Text style={[styles.textLabelSupporting]}>
+                                            {`${translate('common.range')}: `}
+                                            <Text style={[styles.textLabel]}>{rangeText}</Text>
+                                        </Text>
+                                    )}
                                 </View>
+                                <View style={[styles.flex1, styles.ml2]}>
+                                    <View style={[styles.flexRow, styles.gap2]}>
+                                        <Button
+                                            medium
+                                            style={[styles.flex1]}
+                                            text={translate('common.reset')}
+                                            onPress={resetChanges}
+                                        />
+                                        <Button
+                                            success
+                                            medium
+                                            style={[styles.flex1]}
+                                            text={translate('common.apply')}
+                                            onPress={applyChanges}
+                                        />
+                                    </View>
+                                </View>
+                            </>
+                        ) : (
+                            <View style={[styles.flexRow, styles.gap2, styles.flex1]}>
+                                <Button
+                                    medium
+                                    style={[styles.flex1]}
+                                    text={translate('common.reset')}
+                                    onPress={resetChanges}
+                                />
+                                <Button
+                                    success
+                                    medium
+                                    style={[styles.flex1]}
+                                    text={translate('common.apply')}
+                                    onPress={applyChanges}
+                                />
                             </View>
-                        </>
-                    ) : (
-                        <View style={[styles.flexRow, styles.gap2, styles.flex1]}>
-                            <Button
-                                medium
-                                style={[styles.flex1]}
-                                text={translate('common.reset')}
-                                onPress={resetChanges}
-                            />
-                            <Button
-                                success
-                                medium
-                                style={[styles.flex1]}
-                                text={translate('common.apply')}
-                                onPress={applyChanges}
-                            />
-                        </View>
-                    )}
-                </View>
+                        )}
+                    </View>
+                ) : (
+                    <View style={[styles.flexRow, styles.gap2, styles.ph5]}>
+                        <Button
+                            medium
+                            style={[styles.flex1]}
+                            text={translate('common.reset')}
+                            onPress={resetChanges}
+                        />
+                        <Button
+                            success
+                            medium
+                            style={[styles.flex1]}
+                            text={translate('common.apply')}
+                            onPress={applyChanges}
+                        />
+                    </View>
+                )}
             </View>
         );
     }
 
-    // Range mode - Mobile with ScrollView
     const topPaddingStyle = selectedDateModifier ? styles.pt3 : undefined;
     const buttonRowSpacing = selectedDateModifier ? styles.mt4 : styles.mt2;
 
-    return (
+    return useRangeLayout ? (
         <View style={[topPaddingStyle, styles.flexGrow1, {maxHeight: maxPopupHeight}]}>
             {!selectedDateModifier && <Text style={[styles.textLabel, styles.ph5, styles.pb3]}>{label}</Text>}
             <ScrollView
@@ -321,25 +294,8 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
                         <Text style={[styles.textLabelSupporting]}>{translate(`common.${selectedDateModifier.toLowerCase() as SearchDateModifierLower}`)}</Text>
                     </View>
                 )}
-                <DatePresetFilterBase
-                    ref={searchDatePresetFilterBaseRef}
-                    defaultDateValues={trackedDateValues}
-                    selectedDateModifier={selectedDateModifier}
-                    onSelectDateModifier={setSelectedDateModifier}
-                    presets={presets}
-                    shouldShowRangeError={shouldShowRangeError}
-                    shouldShowRangeErrorInPicker={false}
-                    onDateValuesChange={updateTrackedDateValues}
-                    onRangeValidationErrorChange={setShouldShowRangeError}
-                />
+                {datePresetFilterBase}
             </ScrollView>
-            {shouldShowRangeError && selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE && (
-                <FormHelpMessage
-                    isError
-                    message={translate('search.errors.pleaseSelectDatesForBothFromAndTo')}
-                    style={[styles.mh3, styles.mt2]}
-                />
-            )}
             {!!rangeText && selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE && (
                 <Text style={[styles.textLabelSupporting, styles.ph5, styles.mt2, styles.textAlignLeft]}>
                     {`${translate('common.range')}: `}
@@ -361,6 +317,36 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
                     text={translate('common.apply')}
                     onPress={applyChanges}
                     sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_DATE}
+                />
+            </View>
+        </View>
+    ) : (
+        <View style={styles.gap2}>
+            {!selectedDateModifier && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{label}</Text>}
+            <View>
+                {!!selectedDateModifier && (
+                    <HeaderWithBackButton
+                        shouldDisplayHelpButton={false}
+                        style={[styles.h10, styles.pb3]}
+                        subtitle={translate(`common.${selectedDateModifier.toLowerCase() as SearchDateModifierLower}`)}
+                        onBackButtonPress={handleBackPress}
+                    />
+                )}
+                {datePresetFilterBase}
+            </View>
+            <View style={[styles.flexRow, styles.gap2, styles.ph5]}>
+                <Button
+                    medium
+                    style={[styles.flex1]}
+                    text={translate('common.reset')}
+                    onPress={resetChanges}
+                />
+                <Button
+                    success
+                    medium
+                    style={[styles.flex1]}
+                    text={translate('common.apply')}
+                    onPress={applyChanges}
                 />
             </View>
         </View>
