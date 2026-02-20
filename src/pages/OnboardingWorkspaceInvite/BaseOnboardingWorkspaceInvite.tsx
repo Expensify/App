@@ -189,6 +189,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
                     large
                     text={translate('common.skip')}
                     onPress={() => completeOnboarding(false)}
+                    sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.SKIP}
                 />
             </View>
             <View>
@@ -198,6 +199,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
                     text={translate('common.continue')}
                     onPress={() => inviteUser()}
                     isDisabled={selectedOptions.length <= 0}
+                    sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CONTINUE}
                 />
             </View>
         </View>

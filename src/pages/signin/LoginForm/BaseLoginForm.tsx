@@ -292,6 +292,7 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
                             isAlertVisible={shouldShowServerError}
                             buttonStyles={[shouldShowServerError ? styles.mt3 : {}]}
                             containerStyles={[styles.mh0]}
+                            sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.CONTINUE}
                         />
                         {
                             // This feature has a few behavioral differences in development mode. To prevent confusion

@@ -2910,6 +2910,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
     const isPerDiemOptionSelected = parts?.perDiem;
     const isOverviewOptionSelected = parts?.overview;
     const isTravelOptionSelected = parts?.travel;
+    const isCodingRulesOptionSelected = parts?.codingRules;
 
     const outputCurrency = isOverviewOptionSelected ? policy?.outputCurrency : localCurrency;
 
@@ -2963,6 +2964,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
                 connections: isConnectionsOptionSelected ? policy?.connections : undefined,
                 customUnits: getCustomUnitsForDuplication(policy, isDistanceRatesOptionSelected, isPerDiemOptionSelected),
                 taxRates: isTaxesOptionSelected ? policy?.taxRates : undefined,
+                rules: isCodingRulesOptionSelected ? {codingRules: policy?.rules?.codingRules} : undefined,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 pendingFields: {
                     autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,

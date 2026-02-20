@@ -4,7 +4,7 @@ import {renderHook, waitFor} from '@testing-library/react-native';
 import {format} from 'date-fns';
 import {deepEqual} from 'fast-equals';
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry, OnyxInputValue, OnyxMultiSetInput} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxInputValue, OnyxKey, OnyxMultiSetInput} from 'react-native-onyx';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SearchQueryJSON, SearchStatus} from '@components/Search/types';
 import useOnyx from '@hooks/useOnyx';
@@ -81,6 +81,7 @@ import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as API from '@src/libs/API';
 import DateUtils from '@src/libs/DateUtils';
+import * as SearchQueryUtils from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {IntroSelected, PersonalDetailsList, Policy, PolicyTagLists, RecentlyUsedTags, RecentWaypoint, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
@@ -10014,6 +10015,94 @@ describe('actions/IOU', () => {
             }
         });
 
+        it('adds grouped from snapshot optimistic data for grouped search queries', async () => {
+            const currentSearchQueryJSON = {
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING] as SearchStatus,
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+                sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                groupBy: CONST.SEARCH.GROUP_BY.FROM,
+                filters: {
+                    operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                    left: CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE,
+                    right: 'yes',
+                },
+                inputQuery: 'sortBy:date sortOrder:desc type:expense groupBy:from status:drafts,outstanding',
+                flatFilters: [],
+                hash: 71801560,
+                recentSearchHash: 1043581824,
+                similarSearchHash: 1832274510,
+                view: CONST.SEARCH.VIEW.TABLE,
+            } as SearchQueryJSON;
+
+            const getCurrentSearchQueryJSONSpy = jest.spyOn(SearchQueryUtils, 'getCurrentSearchQueryJSON').mockReturnValue(currentSearchQueryJSON);
+
+            requestMoney({
+                action: CONST.IOU.ACTION.CREATE,
+                report: {reportID: ''},
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                },
+                transactionParams: {
+                    amount: 10000,
+                    attendees: [],
+                    currency: CONST.CURRENCY.USD,
+                    created: '',
+                    merchant: 'KFC',
+                    comment: '',
+                    linkedTrackedExpenseReportAction: {
+                        reportActionID: '',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        created: '2024-10-30',
+                    },
+                    actionableWhisperReportActionID: '1',
+                    linkedTrackedExpenseReportID: '1',
+                },
+                shouldGenerateTransactionThreadReport: true,
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                transactionViolations: {},
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                quickAction: undefined,
+                betas: [CONST.BETAS.ALL],
+                personalDetails: {},
+            });
+
+            await waitForBatchedUpdates();
+
+            expect(writeSpy).toHaveBeenCalledTimes(1);
+            const [, , requestData] = writeSpy.mock.calls.at(0) as [ApiCommand, Record<string, unknown>, {optimisticData?: Array<{key: string}>}];
+            const optimisticData = requestData.optimisticData ?? [];
+            const mainSnapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`;
+            expect(optimisticData.some((update) => update.key === mainSnapshotKey)).toBeTruthy();
+
+            const newFlatFilters = currentSearchQueryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM);
+            newFlatFilters.push({
+                key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: String(RORY_ACCOUNT_ID)}],
+            });
+            const groupedTransactionsQueryJSON = SearchQueryUtils.buildSearchQueryJSON(
+                SearchQueryUtils.buildSearchQueryString({
+                    ...currentSearchQueryJSON,
+                    groupBy: undefined,
+                    flatFilters: newFlatFilters,
+                }),
+            );
+
+            expect(groupedTransactionsQueryJSON?.hash).toBeDefined();
+            if (!groupedTransactionsQueryJSON) {
+                throw new Error('Expected grouped transactions query JSON to be defined');
+            }
+            const groupedSnapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${groupedTransactionsQueryJSON.hash}`;
+            expect(optimisticData.some((update) => update.key === groupedSnapshotKey)).toBeTruthy();
+
+            getCurrentSearchQueryJSONSpy.mockRestore();
+        });
+
         test.each([
             [WRITE_COMMANDS.TRACK_EXPENSE, CONST.IOU.ACTION.CREATE],
             [WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE, CONST.IOU.ACTION.CATEGORIZE],
@@ -11133,10 +11222,12 @@ describe('actions/IOU', () => {
 
     describe('replaceReceipt', () => {
         it('should replace the receipt of the transaction', async () => {
-            const transactionID = '123';
+            const transactionID = rand64().toString();
+            const snapshotHash = 918273645;
             const file = new File([new Blob(['test'])], 'test.jpg', {type: 'image/jpeg'});
             file.source = 'test';
             const source = 'test';
+            const getCurrentSearchQueryJSONSpy = jest.spyOn(SearchQueryUtils, 'getCurrentSearchQueryJSON').mockReturnValue({hash: snapshotHash} as SearchQueryJSON);
 
             const transaction = {
                 transactionID,
@@ -11150,7 +11241,7 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             // Given a snapshot of the transaction
-            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${unapprovedCashHash}`, {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`, {
                 // @ts-expect-error: Allow partial record in snapshot update
                 data: {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
@@ -11158,45 +11249,41 @@ describe('actions/IOU', () => {
             });
             await waitForBatchedUpdates();
 
-            // When the receipt is replaced
-            replaceReceipt({transactionID, file, source, transactionPolicy: undefined});
-            await waitForBatchedUpdates();
+            try {
+                // When the receipt is replaced
+                replaceReceipt({transactionID, file, source, transactionPolicy: undefined});
+                await waitForBatchedUpdates();
 
-            // Then the transaction should have the new receipt source
-            const updatedTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
-                    callback: (transactions) => {
-                        Onyx.disconnect(connection);
-                        const newTransaction = transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-                        resolve(newTransaction);
-                    },
+                // Then the transaction should have the new receipt source
+                const updatedTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
+                    const connection = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.TRANSACTION,
+                        waitForCollectionCallback: true,
+                        callback: (transactions) => {
+                            Onyx.disconnect(connection);
+                            const newTransaction = transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+                            resolve(newTransaction);
+                        },
+                    });
                 });
-            });
-            expect(updatedTransaction?.receipt?.source).toBe(source);
+                expect(updatedTransaction?.receipt?.source).toBe(source);
 
-            // Then the snapshot should have the new receipt source
-            const updatedSnapshot = await new Promise<OnyxEntry<SearchResults>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: ONYXKEYS.COLLECTION.SNAPSHOT,
-                    waitForCollectionCallback: true,
-                    callback: (snapshots) => {
-                        Onyx.disconnect(connection);
-                        const newSnapshot = snapshots[`${ONYXKEYS.COLLECTION.SNAPSHOT}${unapprovedCashHash}`];
-                        resolve(newSnapshot);
-                    },
-                });
-            });
+                // Then the snapshot should have the new receipt source
+                const updatedSnapshot = (await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}` as OnyxKey)) as OnyxEntry<SearchResults>;
 
-            expect(updatedSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.receipt?.source).toBe(source);
+                expect(updatedSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.receipt?.source).toBe(source);
+            } finally {
+                getCurrentSearchQueryJSONSpy.mockRestore();
+            }
         });
 
         it('should add receipt if it does not exist', async () => {
-            const transactionID = '123';
+            const transactionID = rand64().toString();
+            const snapshotHash = 918273646;
             const file = new File([new Blob(['test'])], 'test.jpg', {type: 'image/jpeg'});
             file.source = 'test';
             const source = 'test';
+            const getCurrentSearchQueryJSONSpy = jest.spyOn(SearchQueryUtils, 'getCurrentSearchQueryJSON').mockReturnValue({hash: snapshotHash} as SearchQueryJSON);
 
             const transaction = {
                 transactionID,
@@ -11207,7 +11294,7 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             // Given a snapshot of the transaction
-            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${unapprovedCashHash}`, {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`, {
                 // @ts-expect-error: Allow partial record in snapshot update
                 data: {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
@@ -11215,38 +11302,33 @@ describe('actions/IOU', () => {
             });
             await waitForBatchedUpdates();
 
-            // When the receipt is replaced
-            replaceReceipt({transactionID, file, source, transactionPolicy: undefined});
-            await waitForBatchedUpdates();
+            try {
+                // When the receipt is replaced
+                replaceReceipt({transactionID, file, source, transactionPolicy: undefined});
+                await waitForBatchedUpdates();
 
-            // Then the transaction should have the new receipt source
-            const updatedTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
-                    callback: (transactions) => {
-                        Onyx.disconnect(connection);
-                        const newTransaction = transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-                        resolve(newTransaction);
-                    },
+                // Then the transaction should have the new receipt source
+                const updatedTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
+                    const connection = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.TRANSACTION,
+                        waitForCollectionCallback: true,
+                        callback: (transactions) => {
+                            Onyx.disconnect(connection);
+                            const newTransaction = transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+                            resolve(newTransaction);
+                        },
+                    });
                 });
-            });
-            expect(updatedTransaction?.receipt?.source).toBe(source);
+                expect(updatedTransaction?.receipt?.source).toBe(source);
 
-            // Then the snapshot should have the new receipt source
-            const updatedSnapshot = await new Promise<OnyxEntry<SearchResults>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: ONYXKEYS.COLLECTION.SNAPSHOT,
-                    waitForCollectionCallback: true,
-                    callback: (snapshots) => {
-                        Onyx.disconnect(connection);
-                        const newSnapshot = snapshots[`${ONYXKEYS.COLLECTION.SNAPSHOT}${unapprovedCashHash}`];
-                        resolve(newSnapshot);
-                    },
+                // Then the snapshot should have the new receipt source
+                await waitFor(async () => {
+                    const updatedSnapshot = (await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}` as OnyxKey)) as OnyxEntry<SearchResults>;
+                    expect(updatedSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.receipt?.source).toBe(source);
                 });
-            });
-
-            expect(updatedSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.receipt?.source).toBe(source);
+            } finally {
+                getCurrentSearchQueryJSONSpy.mockRestore();
+            }
         });
     });
 

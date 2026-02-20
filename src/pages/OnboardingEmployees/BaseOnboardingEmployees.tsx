@@ -68,6 +68,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                     Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
                 }}
                 pressOnEnter
+                sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CONTINUE}
             />
         </>
     );

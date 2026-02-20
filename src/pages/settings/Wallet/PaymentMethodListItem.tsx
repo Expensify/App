@@ -45,6 +45,7 @@ type PaymentMethodItem = PaymentMethod & {
     cardID?: number;
     plaidUrl?: string;
     onThreeDotsMenuPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void;
+    isCardFrozen?: boolean;
 } & BankIcon;
 
 type PaymentMethodListItemProps = {
@@ -102,7 +103,7 @@ function isBusinessBankAccountLocked(account: PaymentMethodItem) {
 }
 
 function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems, listItemStyle}: PaymentMethodListItemProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'QuestionMark']);
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'FreezeCard', 'QuestionMark']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -135,8 +136,21 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
         if (isInSetupState) {
             return translate('common.actionRequired');
         }
+        if (item.isCardFrozen) {
+            return translate('cardPage.frozen');
+        }
         return shouldShowDefaultBadge ? translate('paymentMethodList.defaultPaymentMethod') : undefined;
-    }, [isInSetupState, isInLockedState, shouldShowDefaultBadge, translate]);
+    }, [isInSetupState, isInLockedState, item.isCardFrozen, shouldShowDefaultBadge, translate]);
+
+    const badgeIcon = useMemo(() => {
+        if (isInSetupState || isInLockedState) {
+            return icons.DotIndicator;
+        }
+        if (item.isCardFrozen) {
+            return icons.FreezeCard;
+        }
+        return undefined;
+    }, [icons.DotIndicator, icons.FreezeCard, isInSetupState, isInLockedState, item.isCardFrozen]);
 
     return (
         <OfflineWithFeedback
@@ -159,9 +173,10 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 iconWidth={item.iconWidth ?? item.iconSize}
                 iconStyles={item.iconStyles}
                 badgeText={badgeText}
-                badgeIcon={isInSetupState || isInLockedState ? icons.DotIndicator : undefined}
+                badgeIcon={badgeIcon}
                 badgeSuccess={isInSetupState ? true : undefined}
                 badgeError={isInLockedState ? true : undefined}
+                badgeStyle={item.isCardFrozen ? styles.badgeBordered : undefined}
                 wrapperStyle={[styles.paymentMethod, listItemStyle]}
                 iconRight={isInSetupState ? undefined : item.iconRight}
                 shouldShowRightIcon={!showThreeDotsMenu && item.shouldShowRightIcon}
