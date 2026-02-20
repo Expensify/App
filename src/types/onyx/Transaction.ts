@@ -455,6 +455,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The transaction tax value */
         taxValue?: string | undefined;
 
+        /** The transaction tax name */
+        taxName?: string;
+
         /** Whether the expense is billable */
         billable?: boolean;
 
@@ -535,9 +538,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The transaction id */
         transactionID: string;
-
-        /** Selected transaction IDs for bulk edit operations (only used in draft transactions) */
-        selectedTransactionIDs?: string[];
 
         /** The transaction tag */
         tag?: string;
