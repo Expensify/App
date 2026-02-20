@@ -4,7 +4,7 @@ import {useIsFocused, useRoute} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
 import {tierNameSelector} from '@selectors/UserWallet';
 import isEmpty from 'lodash/isEmpty';
-import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -60,6 +60,7 @@ import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Visibility from '@libs/Visibility';
 import isSearchTopmostFullScreenRoute from '@navigation/helpers/isSearchTopmostFullScreenRoute';
+import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import FloatingMessageCounter from '@pages/inbox/report/FloatingMessageCounter';
 import getInitialNumToRender from '@pages/inbox/report/getInitialNumReportActionsToRender';
 import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
@@ -293,6 +294,7 @@ function MoneyRequestReportActionsList({
     const lastActionIndex = lastAction?.reportActionID;
     const previousLastIndex = useRef(lastActionIndex);
 
+    const {scrollOffsetRef} = useContext(ActionListContext);
     const scrollingVerticalBottomOffset = useRef(0);
     const scrollingVerticalTopOffset = useRef(0);
     const wrapperViewRef = useRef<View>(null);
@@ -481,6 +483,7 @@ function MoneyRequestReportActionsList({
              * Diff == (height of all items in the list) - (height of the layout with the list) - (how far user scrolled)
              */
             scrollingVerticalBottomOffset.current = fullContentHeight - layoutMeasurement.height - contentOffset.y;
+            scrollOffsetRef.current = scrollingVerticalBottomOffset.current;
 
             // We additionally track the top offset to be able to scroll to the new transaction when it's added
             scrollingVerticalTopOffset.current = contentOffset.y;
