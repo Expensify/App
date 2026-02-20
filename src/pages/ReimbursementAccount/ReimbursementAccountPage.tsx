@@ -6,6 +6,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import ConfirmationPage from '@components/ConfirmationPage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -151,13 +152,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
 
     useEffect(() => {
         return () => {
-            // we want to clear reimbursementAccount and reimbursementAccountDraft when the setup is initiated from the Wallet
-            if (backTo === ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE || backTo === ROUTES.SETTINGS_WALLET) {
-                clearReimbursementAccountDraft();
-                clearReimbursementAccount();
-            }
-
-            // When user closes RHP, we want to make sure that he is not in the changing account flow anymore so data can be refetched
+            clearReimbursementAccountDraft();
+            clearReimbursementAccount();
             cancelChangingToNewBankAccount();
             getPaymentMethods(true);
         };
@@ -486,6 +482,18 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
 
     const shouldShowPolicyName = topmostFullScreenRoute?.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR;
     const policyNameToDisplay = shouldShowPolicyName ? policyName : '';
+
+    if (isOffline && !hasLoadedData) {
+        return (
+            <ScreenWrapper testID="ReimbursementAccountPage">
+                <HeaderWithBackButton
+                    title={translate('bankAccount.addBankAccount')}
+                    onBackButtonPress={() => Navigation.goBack(backTo)}
+                />
+                <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>
+            </ScreenWrapper>
+        );
+    }
 
     if (isLoadingPolicy) {
         return <FullScreenLoadingIndicator />;

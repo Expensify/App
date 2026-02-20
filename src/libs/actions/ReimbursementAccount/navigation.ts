@@ -17,7 +17,7 @@ function goToWithdrawalAccountSetupStep(stepID: BankAccountStep) {
  *
  * @param [policyID] - The policy ID associated with the bank account.
  * @param [backTo] - An optional return path. If provided, it will be URL-encoded and appended to the resulting URL.
- * @param [bankAccountID] - An optional bank account ID. If provided, it will be included in the resulting URL.
+ * @param [bankAccountID] - An optional bank account ID. There can be bank accounts that are not linked to any workspace.
  * @param [navigationOptions] - Optional navigation options to customize the navigation behavior.
  */
 function navigateToBankAccountRoute({

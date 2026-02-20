@@ -42,6 +42,7 @@ import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
 // Multifactor Authentication Illustrations
 import HumptyDumpty from '@assets/images/multifactorAuthentication/humpty-dumpty.svg';
+import MagnifyingGlassSpyMouthClosed from '@assets/images/multifactorAuthentication/magnifying-glass-spy-mouth-closed.svg';
 import OpenPadlock from '@assets/images/multifactorAuthentication/open-padlock.svg';
 import RunOutOfTime from '@assets/images/multifactorAuthentication/running-out-of-time.svg';
 import PendingTravel from '@assets/images/pending-travel.svg';
@@ -79,7 +80,7 @@ import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cl
 import ToddInCar from '@assets/images/product-illustrations/todd-in-car.svg';
 import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phones.svg';
 import WorkspaceScene from '@assets/images/product-illustrations/workspace-scene.svg';
-import ReceiptUpload from '@assets/images/receipt-upload.svg';
+import ReceiptStack from '@assets/images/receipt-upload.svg';
 import RunningTurtle from '@assets/images/running-turtle.svg';
 import Shutter from '@assets/images/shutter.svg';
 // Simple Illustrations - Bucket 3 (Common)
@@ -146,6 +147,7 @@ import RealtimeReport from '@assets/images/simple-illustrations/simple-illustrat
 import ReceiptLocationMarker from '@assets/images/simple-illustrations/simple-illustration__receipt-location-marker.svg';
 import ReceiptWrangler from '@assets/images/simple-illustrations/simple-illustration__receipt-wrangler.svg';
 import ReceiptPartners from '@assets/images/simple-illustrations/simple-illustration__receipt.svg';
+import ReceiptUpload from '@assets/images/simple-illustrations/simple-illustration__receiptupload.svg';
 import ReportReceipt from '@assets/images/simple-illustrations/simple-illustration__report-receipt.svg';
 import Rules from '@assets/images/simple-illustrations/simple-illustration__rules.svg';
 import SendMoney from '@assets/images/simple-illustrations/simple-illustration__sendmoney.svg';
@@ -168,6 +170,7 @@ import VirtualCard from '@assets/images/simple-illustrations/simple-illustration
 import WalletAlt2 from '@assets/images/simple-illustrations/simple-illustration__wallet-alt2.svg';
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
+import TravelCVV from '@assets/images/travel-cvv.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
 
 // Create the illustrations object with all imported illustrations
@@ -253,10 +256,11 @@ const Illustrations = {
     // Other Images
     Hand,
     PendingTravel,
-    ReceiptUpload,
+    ReceiptStack,
     RunningTurtle,
     Shutter,
     ExpensifyApprovedLogo,
+    TravelCVV,
     TurtleInShell,
 
     // Simple Illustrations
@@ -277,6 +281,7 @@ const Illustrations = {
     RealtimeReport,
     ReceiptPartners,
     ReceiptWrangler,
+    ReceiptUpload,
     TravelAlerts,
     ReportReceipt,
     Rules,
@@ -345,6 +350,7 @@ const Illustrations = {
     UserShield,
 
     // Multifactor Authentication Illustrations
+    MagnifyingGlassSpyMouthClosed,
     OpenPadlock,
     RunOutOfTime,
     HumptyDumpty,

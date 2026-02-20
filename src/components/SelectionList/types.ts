@@ -76,6 +76,9 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     /** Whether to scroll to the focused item */
     shouldScrollToFocusedIndex?: boolean;
 
+    /** Whether to scroll to the focused item on mount. When false, the list stays at the top to keep header content visible */
+    shouldScrollToFocusedIndexOnMount?: boolean;
+
     /** Whether keyboard shortcuts should be disabled */
     disableKeyboardShortcuts?: boolean;
 
@@ -182,6 +185,9 @@ type SelectionListStyle = {
     /** Styles for the list */
     listStyle?: StyleProp<ViewStyle>;
 
+    /** Styles for the content container of the list (scrolls with content) */
+    contentContainerStyle?: StyleProp<ViewStyle>;
+
     /** Styles for the list container */
     containerStyle?: StyleProp<ViewStyle>;
 
@@ -237,6 +243,9 @@ type TextInputOptions = {
 
     /** Whether the text input autofocus should be disabled */
     disableAutoFocus?: boolean;
+
+    /** Whether the text input auto correct should be disabled */
+    disableAutoCorrect?: boolean;
 
     /** Styles for the text input */
     style?: {

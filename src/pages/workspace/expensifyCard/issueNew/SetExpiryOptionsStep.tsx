@@ -61,7 +61,7 @@ function SetExpiryOptionsStep({policy, stepNames, startStepIndex}: SetExpiryOpti
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>) => {
         setIssueNewCardStepAndData({
             step: isEditing ? CONST.EXPENSIFY_CARD.STEP.CONFIRMATION : CONST.EXPENSIFY_CARD.STEP.CARD_NAME,
-            data: expirationToggle ? {validFrom: values.validFrom, validThru: values.validThru} : {validFrom: undefined, validThru: undefined},
+            data: expirationToggle ? {validFrom: values.validFrom, validThru: values.validThru} : {validFrom: '', validThru: ''},
             isEditing: false,
             policyID,
         });

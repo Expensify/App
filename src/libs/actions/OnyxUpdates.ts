@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/react-native';
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {Merge} from 'type-fest';
@@ -5,9 +6,10 @@ import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import Performance from '@libs/Performance';
 import PusherUtils from '@libs/PusherUtils';
+import {trackExpenseApiError} from '@libs/telemetry/trackExpenseCreationError';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxUpdateEvent, OnyxUpdatesFromServer, Request} from '@src/types/onyx';
+import type {AnyOnyxUpdatesFromServer, OnyxUpdateEvent, OnyxUpdatesFromServer, Request} from '@src/types/onyx';
 import type Response from '@src/types/onyx/Response';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {queueOnyxUpdates} from './QueuedOnyxUpdates';
@@ -30,6 +32,14 @@ let airshipEventsPromise = Promise.resolve();
 
 function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(request: Request<TKey>, response: Response<TKey>, lastUpdateID: number) {
     Performance.markStart(CONST.TIMING.APPLY_HTTPS_UPDATES);
+    const span = Sentry.startInactiveSpan({
+        name: CONST.TELEMETRY.SPAN_APPLY_ONYX_UPDATES,
+        op: `${CONST.TELEMETRY.SPAN_APPLY_ONYX_UPDATES}.https`,
+        attributes: {
+            [CONST.TELEMETRY.ATTRIBUTE_COMMAND]: request.command,
+            [CONST.TELEMETRY.ATTRIBUTE_ONYX_UPDATES_COUNT]: response.onyxData?.length ?? 0,
+        },
+    });
     Log.info('[OnyxUpdateManager] Applying https update', false, {lastUpdateID});
     // For most requests we can immediately update Onyx. For write requests we queue the updates and apply them after the sequential queue has flushed to prevent a replay effect in
     // the UI. See https://github.com/Expensify/App/issues/12775 for more info.
@@ -55,6 +65,14 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(request: Request<TKey>, res
                     Log.info('[OnyxUpdateManager] Received 460 status code, not applying failure data');
                     return Promise.resolve();
                 }
+
+                trackExpenseApiError({
+                    command: request.command,
+                    jsonCode: response.jsonCode ?? 0,
+                    message: response.message,
+                    requestData: request.data,
+                });
+
                 return updateHandler(request.failureData);
             }
             return Promise.resolve();
@@ -67,13 +85,27 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(request: Request<TKey>, res
         })
         .then(() => {
             Performance.markEnd(CONST.TIMING.APPLY_HTTPS_UPDATES);
+            span.setStatus({code: 1});
+            span.end();
             Log.info('[OnyxUpdateManager] Done applying HTTPS update', false, {lastUpdateID});
             return Promise.resolve(response);
+        })
+        .catch((error: unknown) => {
+            span.setStatus({code: 2, message: error instanceof Error ? error.message : undefined});
+            span.end();
+            throw error;
         });
 }
 
 function applyPusherOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdateEvent<TKey>>, lastUpdateID: number) {
     Performance.markStart(CONST.TIMING.APPLY_PUSHER_UPDATES);
+    const span = Sentry.startInactiveSpan({
+        name: CONST.TELEMETRY.SPAN_APPLY_ONYX_UPDATES,
+        op: `${CONST.TELEMETRY.SPAN_APPLY_ONYX_UPDATES}.pusher`,
+        attributes: {
+            [CONST.TELEMETRY.ATTRIBUTE_ONYX_UPDATES_COUNT]: updates.length,
+        },
+    });
 
     pusherEventsPromise = pusherEventsPromise.then(() => {
         Log.info('[OnyxUpdateManager] Applying pusher update', false, {lastUpdateID});
@@ -83,7 +115,14 @@ function applyPusherOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdateE
         .reduce((promise, update) => promise.then(() => PusherUtils.triggerMultiEventHandler(update.eventType, update.data)), pusherEventsPromise)
         .then(() => {
             Performance.markEnd(CONST.TIMING.APPLY_PUSHER_UPDATES);
+            span.setStatus({code: 1});
+            span.end();
             Log.info('[OnyxUpdateManager] Done applying Pusher update', false, {lastUpdateID});
+        })
+        .catch((error: unknown) => {
+            span.setStatus({code: 2, message: error instanceof Error ? error.message : undefined});
+            span.end();
+            throw error;
         });
 
     return pusherEventsPromise;
@@ -91,6 +130,13 @@ function applyPusherOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdateE
 
 function applyAirshipOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdateEvent<TKey>>, lastUpdateID: number) {
     Performance.markStart(CONST.TIMING.APPLY_AIRSHIP_UPDATES);
+    const span = Sentry.startInactiveSpan({
+        name: CONST.TELEMETRY.SPAN_APPLY_ONYX_UPDATES,
+        op: `${CONST.TELEMETRY.SPAN_APPLY_ONYX_UPDATES}.airship`,
+        attributes: {
+            [CONST.TELEMETRY.ATTRIBUTE_ONYX_UPDATES_COUNT]: updates.length,
+        },
+    });
 
     airshipEventsPromise = airshipEventsPromise.then(() => {
         Log.info('[OnyxUpdateManager] Applying Airship updates', false, {lastUpdateID});
@@ -100,7 +146,14 @@ function applyAirshipOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdate
         .reduce((promise, update) => promise.then(() => Onyx.update(update.data as Array<OnyxUpdate<TKey>>)), airshipEventsPromise)
         .then(() => {
             Performance.markEnd(CONST.TIMING.APPLY_AIRSHIP_UPDATES);
+            span.setStatus({code: 1});
+            span.end();
             Log.info('[OnyxUpdateManager] Done applying Airship updates', false, {lastUpdateID});
+        })
+        .catch((error: unknown) => {
+            span.setStatus({code: 2, message: error instanceof Error ? error.message : undefined});
+            span.end();
+            throw error;
         });
 
     return airshipEventsPromise;
@@ -124,7 +177,7 @@ function apply<TKey extends OnyxKey>({
     request,
     response,
     updates,
-}: Merge<OnyxUpdatesFromServer<TKey>, {request: Request<TKey>; response: Response<TKey>; type: 'https'}>): Promise<Response>;
+}: Merge<OnyxUpdatesFromServer<TKey>, {request: Request<TKey>; response: Response<TKey>; type: 'https'}>): Promise<Response<TKey>>;
 function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, updates}: OnyxUpdatesFromServer<TKey>): Promise<Response<TKey>>;
 function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, updates}: OnyxUpdatesFromServer<TKey>): Promise<void | Response<TKey>> | undefined {
     Log.info(`[OnyxUpdateManager] Applying update type: ${type} with lastUpdateID: ${lastUpdateID}`, false, {command: request?.command});
@@ -175,7 +228,7 @@ function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, upd
  * @param [updateParams.response] Exists if updateParams.type === 'https'
  * @param [updateParams.updates] Exists if updateParams.type === 'pusher'
  */
-function saveUpdateInformation<TKey extends OnyxKey = OnyxKey>(updateParams: OnyxUpdatesFromServer<TKey>) {
+function saveUpdateInformation<TKey extends OnyxKey>(updateParams: OnyxUpdatesFromServer<TKey>) {
     let modifiedUpdateParams = updateParams;
     // We don't want to store the data in the updateParams if it's a HTTPS update since it is useless anyways
     // and it causes serialization issues when storing in Onyx
@@ -183,7 +236,8 @@ function saveUpdateInformation<TKey extends OnyxKey = OnyxKey>(updateParams: Ony
         modifiedUpdateParams = {...modifiedUpdateParams, request: {...updateParams.request, data: {apiRequestType: updateParams.request?.data?.apiRequestType}}};
     }
     // Always use set() here so that the updateParams are never merged and always unique to the request that came in
-    Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, modifiedUpdateParams as OnyxUpdatesFromServer);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, modifiedUpdateParams as AnyOnyxUpdatesFromServer);
 }
 
 type DoesClientNeedToBeUpdatedParams = {

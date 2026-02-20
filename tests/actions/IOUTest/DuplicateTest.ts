@@ -16,7 +16,7 @@ import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as API from '@src/libs/API';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OriginalMessageIOU, Report, ReportActions} from '@src/types/onyx';
+import type {OriginalMessageIOU, RecentWaypoint, Report, ReportActions} from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -889,6 +889,9 @@ describe('actions/Duplicate', () => {
     });
 
     describe('duplicateExpenseTransaction', () => {
+        let writeSpy: jest.SpyInstance;
+        let recentWaypoints: RecentWaypoint[] = [];
+
         const mockOptimisticChatReportID = '789';
         const mockOptimisticIOUReportID = '987';
         const mockIsASAPSubmitBetaEnabled = false;
@@ -897,6 +900,31 @@ describe('actions/Duplicate', () => {
         const mockPolicy = createRandomPolicy(1);
         const policyExpenseChat = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
         const fakePolicyCategories = createRandomPolicyCategories(3);
+
+        beforeEach(async () => {
+            jest.clearAllMocks();
+            global.fetch = getGlobalFetchMock();
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            writeSpy = jest.spyOn(API, 'write').mockImplementation((command, params, options) => {
+                // Apply optimistic data for testing
+                if (options?.optimisticData) {
+                    for (const update of options.optimisticData) {
+                        if (update.onyxMethod === Onyx.METHOD.MERGE) {
+                            Onyx.merge(update.key, update.value);
+                        } else if (update.onyxMethod === Onyx.METHOD.SET) {
+                            Onyx.set(update.key, update.value);
+                        }
+                    }
+                }
+                return Promise.resolve();
+            });
+            recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+            return Onyx.clear();
+        });
+
+        afterEach(() => {
+            writeSpy.mockRestore();
+        });
 
         it('should create a duplicate expense successfully', async () => {
             const {waypoints, ...restOfComment} = mockTransaction.comment ?? {};
@@ -926,6 +954,7 @@ describe('actions/Duplicate', () => {
                 targetReport: policyExpenseChat,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                recentWaypoints,
             });
 
             await waitForBatchedUpdates();
@@ -985,6 +1014,7 @@ describe('actions/Duplicate', () => {
                 targetReport: policyExpenseChat,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                recentWaypoints,
             });
 
             await waitForBatchedUpdates();
@@ -1044,6 +1074,7 @@ describe('actions/Duplicate', () => {
                 targetReport: policyExpenseChat,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                recentWaypoints,
             });
 
             await waitForBatchedUpdates();
@@ -1066,6 +1097,187 @@ describe('actions/Duplicate', () => {
             expect(duplicatedTransaction?.comment?.customUnit?.name).toEqual(CONST.CUSTOM_UNITS.NAME_DISTANCE);
             expect(duplicatedTransaction?.comment?.customUnit?.distanceUnit).toEqual(mockDistanceTransaction.comment?.customUnit?.distanceUnit);
             expect(duplicatedTransaction?.comment?.customUnit?.quantity).toEqual(DISTANCE_MI);
+        });
+
+        it('should not pass linkedTrackedExpenseReportAction.childReportID as transactionThreadReportID to the API', async () => {
+            // Given a transaction with linkedTrackedExpenseReportAction set
+            // This simulates a split expense that was removed from a report, where the
+            // linkedTrackedExpenseReportAction.childReportID points to an already-existing report
+            const existingLinkedReportActionChildReportID = 'existing-linked-child-789';
+
+            const {waypoints, ...restOfComment} = mockTransaction.comment ?? {};
+            const mockTransactionWithLinkedAction = {
+                ...mockTransaction,
+                amount: mockTransaction.amount * -1,
+                linkedTrackedExpenseReportAction: {
+                    reportActionID: 'linked-action-123',
+                    childReportID: existingLinkedReportActionChildReportID,
+                    actionName: 'IOU',
+                    created: '2024-01-01 00:00:00',
+                } as ReportAction,
+                comment: {
+                    ...restOfComment,
+                },
+            };
+
+            // Seed Onyx with a report whose reportID matches linkedTrackedExpenseReportAction.childReportID.
+            // This simulates the real-world scenario where the original expense's transaction thread
+            // report already exists in the user's local data. Without this seed, buildTransactionThread
+            // would find no existing report in Onyx and generate a fresh ID regardless, causing the
+            // test to pass even without the fix. With this seed, buildTransactionThread calls
+            // getReportOrDraftReport(existingTransactionThreadReportID), finds this report, and
+            // reuses its ID as transactionThreadReportID — which is exactly the collision the fix prevents.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${existingLinkedReportActionChildReportID}`, {
+                reportID: existingLinkedReportActionChildReportID,
+                reportName: 'Existing Transaction Thread',
+                type: CONST.REPORT.TYPE.CHAT,
+            });
+            await waitForBatchedUpdates();
+
+            // When duplicating the transaction
+            duplicateExpenseTransaction({
+                transaction: mockTransactionWithLinkedAction,
+                optimisticChatReportID: mockOptimisticChatReportID,
+                optimisticIOUReportID: mockOptimisticIOUReportID,
+                isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                customUnitPolicyID: '',
+                targetPolicy: mockPolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetReport: policyExpenseChat,
+                betas: [CONST.BETAS.ALL],
+                personalDetails: {},
+                recentWaypoints,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then the API should have been called with REQUEST_MONEY
+            const requestMoneyCall = writeSpy.mock.calls.find((call: [string, Record<string, unknown>]) => call[0] === WRITE_COMMANDS.REQUEST_MONEY);
+            expect(requestMoneyCall).toBeDefined();
+
+            // And the transactionThreadReportID in the API call should NOT be the childReportID
+            // from the original transaction's linkedTrackedExpenseReportAction.
+            // If it were, the backend would try to create a report with an ID that already exists,
+            // causing a unique constraint violation.
+            const apiParams = requestMoneyCall?.[1] as Record<string, unknown>;
+            expect(apiParams?.transactionThreadReportID).not.toBe(existingLinkedReportActionChildReportID);
+        });
+
+        it('should call trackExpense API when targetPolicy is not provided', async () => {
+            const {waypoints, ...restOfComment} = mockTransaction.comment ?? {};
+            const mockCashExpenseTransaction = {
+                ...mockTransaction,
+                amount: mockTransaction.amount * -1,
+                comment: {
+                    ...restOfComment,
+                },
+            };
+
+            await Onyx.clear();
+
+            // When duplicating the transaction without targetPolicy
+            duplicateExpenseTransaction({
+                transaction: mockCashExpenseTransaction,
+                optimisticChatReportID: mockOptimisticChatReportID,
+                optimisticIOUReportID: mockOptimisticIOUReportID,
+                isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                customUnitPolicyID: '',
+                targetPolicy: undefined,
+                targetPolicyCategories: undefined,
+                targetReport: undefined,
+                betas: [CONST.BETAS.ALL],
+                personalDetails: {},
+                recentWaypoints,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then the API should have been called with TRACK_EXPENSE instead of REQUEST_MONEY
+            const trackExpenseCall = writeSpy.mock.calls.find((call: [string, Record<string, unknown>]) => call[0] === WRITE_COMMANDS.TRACK_EXPENSE);
+            const requestMoneyCall = writeSpy.mock.calls.find((call: [string, Record<string, unknown>]) => call[0] === WRITE_COMMANDS.REQUEST_MONEY);
+
+            expect(trackExpenseCall).toBeDefined();
+            expect(requestMoneyCall).toBeUndefined();
+
+            // Then a transaction should be created successfully
+            let duplicatedTransaction: OnyxEntry<Transaction>;
+
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (allTransactions) => {
+                    duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
+                },
+            });
+
+            expect(duplicatedTransaction).toBeDefined();
+            expect(duplicatedTransaction?.transactionID).not.toBe(mockCashExpenseTransaction.transactionID);
+        });
+
+        it('should preserve all transaction fields when duplicating Cash expense', async () => {
+            // Given a transaction with all fields populated using mockTransaction values
+            const {waypoints, ...restOfComment} = mockTransaction.comment ?? {};
+            const mockCashExpense: Transaction = {
+                ...mockTransaction,
+                amount: mockTransaction.amount * -1,
+                comment: {
+                    ...restOfComment,
+                },
+            };
+
+            await Onyx.clear();
+
+            // When duplicating the transaction
+            duplicateExpenseTransaction({
+                transaction: mockCashExpense,
+                optimisticChatReportID: mockOptimisticChatReportID,
+                optimisticIOUReportID: mockOptimisticIOUReportID,
+                isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                customUnitPolicyID: '',
+                targetPolicy: mockPolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetReport: policyExpenseChat,
+                betas: [CONST.BETAS.ALL],
+                personalDetails: {},
+                recentWaypoints,
+            });
+
+            await waitForBatchedUpdates();
+
+            // The duplicated transaction should have all fields preserved
+            let duplicatedTransaction: OnyxEntry<Transaction>;
+
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (allTransactions) => {
+                    duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
+                },
+            });
+
+            expect(duplicatedTransaction).toBeDefined();
+            expect(duplicatedTransaction?.transactionID).not.toBe(mockCashExpense.transactionID);
+            expect(duplicatedTransaction?.category).toBe(mockTransaction.category);
+            expect(duplicatedTransaction?.tag).toBe(mockTransaction.tag);
+            expect(duplicatedTransaction?.billable).toBe(mockTransaction.billable);
+            expect(duplicatedTransaction?.reimbursable).toBe(mockTransaction.reimbursable);
+            expect(duplicatedTransaction?.currency).toBe(mockTransaction.currency);
+            expect(Math.abs(duplicatedTransaction?.amount ?? 0)).toBe(Math.abs(mockTransaction.amount));
         });
     });
 

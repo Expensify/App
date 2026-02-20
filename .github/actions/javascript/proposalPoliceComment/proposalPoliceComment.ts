@@ -94,13 +94,19 @@ async function run() {
         let didFindDuplicate = false;
         let originalProposal: TupleToUnion<typeof commentsResponse> | undefined;
         for (const previousProposal of commentsResponse) {
-            const isProposal = !!previousProposal.body?.includes(CONST.PROPOSAL_KEYWORD);
+            const body = previousProposal.body ?? '';
+            const lowerCaseBody = body.toLowerCase() ?? '';
+            const isProposal = !!body.includes(CONST.PROPOSAL_KEYWORD) && !!lowerCaseBody.includes(CONST.PROPOSAL_HEADER_A) && !!lowerCaseBody.includes(CONST.PROPOSAL_HEADER_B);
             const previousProposalCreatedAt = new Date(previousProposal.created_at).getTime();
             // Early continue if not a proposal or previous comment is newer than current one
             if (!isProposal || previousProposalCreatedAt >= newProposalCreatedAt) {
                 continue;
             }
-            const isAuthorBot = previousProposal.user?.login === CONST.COMMENT.NAME_GITHUB_ACTIONS || previousProposal.user?.type === CONST.COMMENT.TYPE_BOT;
+            const isAuthorBot =
+                previousProposal.user?.login === CONST.COMMENT.NAME_MELVIN ||
+                previousProposal.user?.login === CONST.COMMENT.NAME_CODEX ||
+                previousProposal.user?.login === CONST.COMMENT.NAME_GITHUB_ACTIONS ||
+                previousProposal.user?.type === CONST.COMMENT.TYPE_BOT;
             // Skip prompting if comment author is the GH bot
             if (isAuthorBot) {
                 continue;
@@ -109,6 +115,7 @@ async function run() {
             const duplicateCheckPrompt = PROPOSAL_POLICE_TEMPLATES.getPromptForNewProposalDuplicateCheck(previousProposal.body, newProposalBody);
             const duplicateCheckResponse = await openAI.promptAssistant(assistantID, duplicateCheckPrompt);
             let similarityPercentage = 0;
+            // eslint-disable-next-line @typescript-eslint/no-deprecated -- TODO: refactor `parseAssistantResponse` to use `promptResponses` instead
             const parsedDuplicateCheckResponse = openAI.parseAssistantResponse<DuplicateProposalResponse>(duplicateCheckResponse);
             core.startGroup('Parsed Duplicate Check Response');
             console.log('parsedDuplicateCheckResponse: ', parsedDuplicateCheckResponse);
@@ -149,6 +156,7 @@ async function run() {
         : PROPOSAL_POLICE_TEMPLATES.getPromptForEditedProposal(payload.changes.body?.from, payload.comment?.body);
 
     const assistantResponse = await openAI.promptAssistant(assistantID, prompt);
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- TODO: refactor `parseAssistantResponse` to use `promptResponses` instead
     const parsedAssistantResponse = openAI.parseAssistantResponse<AssistantResponse>(assistantResponse);
     core.startGroup('Parsed Assistant Response');
     console.log('parsedAssistantResponse: ', parsedAssistantResponse);

@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {setReadyToShowAuthScreens} from '@userActions/HybridApp';
 import {clearSignInData, signUpUser} from '@userActions/Session';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import Terms from './Terms';
@@ -36,6 +37,7 @@ function SignUpWelcomeForm() {
                     }}
                     pressOnEnter
                     style={[styles.mb2]}
+                    sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.JOIN}
                 />
                 {!!serverErrorText && (
                     <FormHelpMessage

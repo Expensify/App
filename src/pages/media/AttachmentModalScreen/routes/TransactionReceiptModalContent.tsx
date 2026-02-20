@@ -9,7 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import {detachReceipt, navigateToStartStepIfScanFileCannotBeRead, replaceReceipt, setMoneyRequestReceipt} from '@libs/actions/IOU';
+import {detachReceipt, navigateToStartStepIfScanFileCannotBeRead, removeMoneyRequestOdometerImage, replaceReceipt, setMoneyRequestReceipt} from '@libs/actions/IOU';
 import {openReport} from '@libs/actions/Report';
 import cropOrRotateImage from '@libs/cropOrRotateImage';
 import fetchImage from '@libs/fetchImage';
@@ -28,10 +28,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
+import type {FileObject} from '@src/types/utils/Attachment';
 import useDownloadAttachment from './hooks/useDownloadAttachment';
 
 function TransactionReceiptModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.TRANSACTION_RECEIPT>) {
-    const {reportID, transactionID, action, iouType: iouTypeParam, readonly: readonlyParam, mergeTransactionID} = route.params;
+    const {reportID, transactionID, action, iouType: iouTypeParam, readonly: readonlyParam, mergeTransactionID, imageType} = route.params;
 
     const icons = useMemoizedLazyExpensifyIcons(['Download']);
     const {translate} = useLocalize();
@@ -76,7 +77,47 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const isLocalFile = receiptURIs.isLocalFile;
     const isAuthTokenRequired = !isLocalFile && !isDraftTransaction;
     const readonly = readonlyParam === 'true';
-    const source = isDraftTransaction ? transactionDraft?.receipt?.source : tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
+    // Handle odometer images when imageType is provided
+    const isOdometerImage = !!imageType;
+    let odometerImage: FileObject | string | undefined;
+    if (isOdometerImage) {
+        odometerImage = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? transaction?.comment?.odometerStartImage : transaction?.comment?.odometerEndImage;
+    }
+    const odometerFile = typeof odometerImage !== 'string' ? odometerImage : undefined;
+    const [odometerImageSource, setOdometerImageSource] = useState<string | undefined>(undefined);
+
+    useEffect(() => {
+        if (!isOdometerImage || !odometerImage) {
+            setOdometerImageSource(undefined);
+            return;
+        }
+
+        if (typeof odometerImage === 'string') {
+            setOdometerImageSource(odometerImage);
+            return;
+        }
+
+        if ('uri' in odometerImage && typeof odometerImage.uri === 'string' && odometerImage.uri.length > 0) {
+            setOdometerImageSource(odometerImage.uri);
+            return;
+        }
+
+        if (!(odometerImage instanceof File)) {
+            setOdometerImageSource(undefined);
+            return;
+        }
+
+        const blobUrl = URL.createObjectURL(odometerImage);
+        setOdometerImageSource(blobUrl);
+
+        return () => {
+            URL.revokeObjectURL(blobUrl);
+        };
+    }, [isOdometerImage, odometerImage]);
+
+    // Use odometer image if imageType is provided (it's present only when we display odometer image) otherwise use receipt
+    const receiptSource = isDraftTransaction ? transactionDraft?.receipt?.source : tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
+    const source = isOdometerImage && odometerImage ? (odometerImageSource ?? receiptSource) : receiptSource;
     const [sourceUri, setSourceUri] = useState<ReceiptSource>('');
 
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
@@ -167,8 +208,16 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const shouldShowNotFoundPage =
         isTrackExpenseReportValue || isDraftTransaction || transaction?.reportID === CONST.REPORT.SPLIT_REPORT_ID || readonly ? !transaction : moneyRequestReportID !== transaction?.reportID;
 
-    const originalFileName = isDraftTransaction ? transaction?.receipt?.filename : receiptURIs?.filename;
-    const headerTitle = translate('common.receipt');
+    let originalFileName = isDraftTransaction ? transaction?.receipt?.filename : receiptURIs?.filename;
+    if (isOdometerImage) {
+        originalFileName = odometerFile?.name;
+    }
+    let headerTitle: string;
+    if (isOdometerImage) {
+        headerTitle = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? translate('distance.odometer.startTitle') : translate('distance.odometer.endTitle');
+    } else {
+        headerTitle = translate('common.receipt');
+    }
 
     /**
      * Detach the receipt and close the modal.
@@ -177,6 +226,17 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         detachReceipt(transaction?.transactionID, policy, policyCategories);
         navigation.goBack();
     }, [navigation, transaction?.transactionID, policy, policyCategories]);
+
+    /**
+     * Remove odometer image and close the modal.
+     */
+    const deleteOdometerImageAndClose = useCallback(() => {
+        if (!transaction?.transactionID || !imageType) {
+            return;
+        }
+        removeMoneyRequestOdometerImage(transaction.transactionID, imageType, isDraftTransaction);
+        navigation.goBack();
+    }, [transaction?.transactionID, imageType, isDraftTransaction, navigation]);
 
     const onDownloadAttachment = useDownloadAttachment({
         isAuthTokenRequired,
@@ -250,7 +310,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const threeDotsMenuItems: ThreeDotsMenuItemFactory = useCallback(
         ({file, source: innerSource, isLocalSource}) => {
             const menuItems = [];
-            if (shouldShowReplaceReceiptButton) {
+            if (shouldShowReplaceReceiptButton || isOdometerImage) {
                 menuItems.push({
                     icon: expensifyIcons.Camera,
                     text: translate('common.replace'),
@@ -258,13 +318,15 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                         Navigation.dismissModal({
                             callback: () =>
                                 Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
-                                        action ?? CONST.IOU.ACTION.EDIT,
-                                        iouType,
-                                        draftTransactionID ?? transaction?.transactionID,
-                                        report?.reportID,
-                                        Navigation.getActiveRoute(),
-                                    ),
+                                    isOdometerImage
+                                        ? ROUTES.ODOMETER_IMAGE.getRoute(action ?? CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, imageType)
+                                        : ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                                              action ?? CONST.IOU.ACTION.EDIT,
+                                              iouType,
+                                              draftTransactionID ?? transaction?.transactionID,
+                                              report?.reportID,
+                                              Navigation.getActiveRoute(),
+                                          ),
                                 ),
                         });
                     },
@@ -281,16 +343,17 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             }
 
             const hasOnlyEReceipt = hasEReceipt(transaction) && !hasReceiptSource(transaction);
-            if (
+            const isDeletableReceipt =
                 shouldShowDeleteReceiptButton &&
                 !hasOnlyEReceipt &&
                 hasReceipt(transaction) &&
                 !isReceiptBeingScanned(transaction) &&
-                !hasMissingSmartscanFields(transaction, transactionReport)
-            ) {
+                !hasMissingSmartscanFields(transaction, transactionReport);
+            const isDraftOdometer = isOdometerImage && isDraftTransaction;
+            if (isDeletableReceipt || isDraftOdometer) {
                 menuItems.push({
                     icon: Expensicons.Trashcan,
-                    text: translate('receipt.deleteReceipt'),
+                    text: isOdometerImage ? translate('distance.odometer.deleteOdometerPhoto') : translate('receipt.deleteReceipt'),
                     onSelected: () => setIsDeleteReceiptConfirmModalVisible?.(true),
                     shouldCallAfterModalHide: true,
                     sentryLabel: CONST.SENTRY_LABEL.RECEIPT_MODAL.DELETE_RECEIPT,
@@ -301,16 +364,21 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         },
         [
             shouldShowReplaceReceiptButton,
+            isOdometerImage,
             isOffline,
             allowDownload,
             draftTransactionID,
             transaction,
             shouldShowDeleteReceiptButton,
             transactionReport,
+            isDraftTransaction,
             expensifyIcons.Camera,
             translate,
             action,
             iouType,
+            transactionID,
+            reportID,
+            imageType,
             report?.reportID,
             icons.Download,
             onDownloadAttachment,
@@ -320,17 +388,24 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const ExtraContent = useMemo(
         () => (
             <ConfirmModal
-                title={translate('receipt.deleteReceipt')}
+                title={isOdometerImage ? translate('distance.odometer.deleteOdometerPhoto') : translate('receipt.deleteReceipt')}
                 isVisible={isDeleteReceiptConfirmModalVisible}
-                onConfirm={() => deleteReceiptAndClose()}
+                onConfirm={() => {
+                    if (isOdometerImage) {
+                        deleteOdometerImageAndClose();
+                    } else {
+                        deleteReceiptAndClose();
+                    }
+                    setIsDeleteReceiptConfirmModalVisible(false);
+                }}
                 onCancel={() => setIsDeleteReceiptConfirmModalVisible?.(false)}
-                prompt={translate('receipt.deleteConfirmation')}
+                prompt={isOdometerImage ? translate('distance.odometer.deleteOdometerPhotoConfirmation') : translate('receipt.deleteConfirmation')}
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
                 danger
             />
         ),
-        [deleteReceiptAndClose, isDeleteReceiptConfirmModalVisible, translate],
+        [deleteReceiptAndClose, deleteOdometerImageAndClose, isDeleteReceiptConfirmModalVisible, isOdometerImage, translate],
     );
 
     const contentProps = useMemo<AttachmentModalBaseContentProps>(

@@ -1,7 +1,8 @@
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CountrySelectionList from '@pages/settings/Wallet/CountrySelectionList';
 import {clearReimbursementAccountDraft, navigateToBankAccountRoute, updateReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
@@ -12,12 +13,42 @@ import ROUTES from '@src/ROUTES';
 
 function CountrySelection() {
     const [country] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: true});
+    const personalPolicy = usePersonalPolicy();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const isSupportedCountry = !!country && !!CONST.BBA_COUNTRY_CURRENCY_MAP[country];
+    const initialCountry = useMemo(() => {
+        const outputCurrency = personalPolicy?.outputCurrency;
 
-    const [selectedCountry, setSelectedCountry] = useState<string>(isSupportedCountry ? country : '');
+        if (!outputCurrency) {
+            return '';
+        }
+
+        if (CONST.BBA_EU_ORIGINAL_CURRENCY_COUNTRY_MAP[outputCurrency]) {
+            return CONST.BBA_EU_ORIGINAL_CURRENCY_COUNTRY_MAP[outputCurrency];
+        }
+
+        const countriesWithCurrency = Object.entries(CONST.BBA_COUNTRY_CURRENCY_MAP)
+            .filter(([, currency]) => currency === outputCurrency)
+            .map(([countryCode]) => countryCode);
+
+        if (countriesWithCurrency.length === 1) {
+            return countriesWithCurrency.at(0) ?? '';
+        }
+
+        if (countriesWithCurrency.length > 1) {
+            if (country && countriesWithCurrency.includes(country)) {
+                return country;
+            }
+            return '';
+        }
+
+        const isSupportedCountry = !!country && !!CONST.BBA_COUNTRY_CURRENCY_MAP[country];
+
+        return isSupportedCountry ? country : '';
+    }, [personalPolicy?.outputCurrency, country]);
+
+    const [selectedCountry, setSelectedCountry] = useState<string>(initialCountry);
     const [shouldShowError, setShouldShowError] = useState(false);
 
     const onCountrySelected = (countryChecked: string) => {

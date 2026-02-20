@@ -110,46 +110,6 @@ https://github.com/user-attachments/assets/fe00da26-af07-4ea1-bd92-2dbe06c4bdad
 - For more accurate performance data, prefer release builds when possible
 - The generated traces require symbolication to show meaningful function names in release builds
 
-### React Native Release Profiler
-
-For more advanced JavaScript profiling on native devices, [`react-native-release-profiler`](https://github.com/margelo/react-native-release-profiler) provides programmatic profiling capabilities that work on both development and release builds.
-
-#### Setup:
-The profiler is already integrated into our debugging console. See the [App README](https://github.com/Expensify/App?tab=readme-ov-file#release-profiler) for detailed setup instructions.
-
-#### Steps to Profile:
-
-1. **Start Profiling:**
-   - Open the debugging console (four-finger tap)
-   - Press "Record Troubleshoot Data"
-   - Perform the actions you want to profile
-   - Press "Record Troubleshoot Data" again
-
-2. **Retrieve Profile:**
-   - The profile is saved to the device's Documents folder
-
-3. **Symbolicate Profile:**
-   - Download source maps from the GitHub release. Each release contains source maps for Android, iOS and Web.
-   - Copy the recorded profile to the root folder of the E/App repository
-   - Copy the source maps to the specific paths:
-     - **Android:** `android/app/build/generated/sourcemaps/react/productionRelease/` and rename file to `index.android.bundle.map`
-     - **iOS:** root folder and rename file to `main.jsbundle.map`
-     - **Web:** `dist` and run `npm run combine-web-sourcemaps` to generate merged sourcemaps
-   - Run the appropriate symbolication command:
-     ```bash
-     # iOS
-     npm run symbolicate-release:ios
-     # Android
-     npm run symbolicate-release:android
-     # Web
-     npm run symbolicate-release:web
-     ```
-   - This converts the raw profile into a format with readable function names
-
-4. **Analyze:**
-   - Upload the symbolicated profile to [Speedscope](https://www.speedscope.app/)
-   - Or use Chrome DevTools Performance tab
-
 ### Flashlight
 
 [Flashlight](https://github.com/bamlab/flashlight) is a tool for measuring React Native app performance with quantifiable metrics. It provides automated performance testing and can generate consistent baseline measurements.

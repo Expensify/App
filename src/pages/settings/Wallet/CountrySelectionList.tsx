@@ -91,6 +91,6 @@ function CountrySelectionList({isEditing, selectedCountry, countries, onCountryS
     );
 }
 
-CountrySelectionList.displayName = 'CountrySelector';
+CountrySelectionList.displayName = 'CountrySelectionList';
 
 export default CountrySelectionList;
