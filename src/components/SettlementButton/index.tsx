@@ -153,7 +153,11 @@ function SettlementButton({
     const hasSinglePolicy = !isExpenseReport && activeAdminPolicies.length === 1;
     const hasMultiplePolicies = !isExpenseReport && activeAdminPolicies.length > 1;
     const formattedPaymentMethods = formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles, translate);
-    const hasIntentToPay = ((formattedPaymentMethods.length === 1 && isIOUReport(iouReport)) || policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN) && !lastPaymentMethod;
+    const hasIntentToPay =
+        ((formattedPaymentMethods.length === 1 && isIOUReport(iouReport)) ||
+            policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN ||
+            policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.LOCKED) &&
+        !lastPaymentMethod;
     const {isBetaEnabled} = usePermissions();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -178,7 +182,9 @@ function SettlementButton({
             return;
         }
         const policyBankAccounts = formattedPaymentMethods.filter(
-            (method) => method.methodID === policy?.achAccount?.bankAccountID && (method.accountData as AccountData)?.state === CONST.BANK_ACCOUNT.STATE.OPEN,
+            (method) =>
+                method.methodID === policy?.achAccount?.bankAccountID &&
+                ((method.accountData as AccountData)?.state === CONST.BANK_ACCOUNT.STATE.OPEN || (method.accountData as AccountData)?.state === CONST.BANK_ACCOUNT.STATE.LOCKED),
         );
 
         return policyBankAccounts.map((formattedPaymentMethod) => {
