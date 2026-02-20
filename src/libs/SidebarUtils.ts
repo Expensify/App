@@ -373,6 +373,44 @@ function updateReportsToDisplayInLHN({
     return displayedReportsCopy;
 }
 /**
+ * Builds a map of parent report IDs to their child transaction thread reports' lastVisibleActionCreated.
+ * This is used to find the correct lastVisibleActionCreated for expense reports with transaction threads.
+ */
+function buildTransactionThreadMap(allReports: OnyxCollection<Report>): Record<string, string> {
+    const transactionThreadMap: Record<string, string> = {};
+
+    if (!allReports) {
+        return transactionThreadMap;
+    }
+
+    for (const report of Object.values(allReports)) {
+        if (!report?.parentReportID || !report.lastVisibleActionCreated) {
+            continue;
+        }
+
+        const parentReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`];
+
+        // Only consider child reports of expense/IOU/invoice reports
+        if (
+            !parentReport ||
+            (parentReport.type !== CONST.REPORT.TYPE.IOU && parentReport.type !== CONST.REPORT.TYPE.EXPENSE && parentReport.type !== CONST.REPORT.TYPE.INVOICE)
+        ) {
+            continue;
+        }
+
+        // Get the existing value or empty string
+        const existingValue = transactionThreadMap[report.parentReportID] ?? '';
+
+        // Keep the most recent lastVisibleActionCreated for each parent
+        if (report.lastVisibleActionCreated > existingValue) {
+            transactionThreadMap[report.parentReportID] = report.lastVisibleActionCreated;
+        }
+    }
+
+    return transactionThreadMap;
+}
+
+/**
  * Categorizes reports into their respective LHN groups
  */
 function categorizeReportsForLHN(
@@ -380,12 +418,16 @@ function categorizeReportsForLHN(
     reportsDrafts: OnyxCollection<string> | undefined,
     conciergeReportID: string | undefined,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+    allReports?: OnyxCollection<Report>,
 ) {
     const pinnedAndGBRReports: MiniReport[] = [];
     const errorReports: MiniReport[] = [];
     const draftReports: MiniReport[] = [];
     const nonArchivedReports: MiniReport[] = [];
     const archivedReports: MiniReport[] = [];
+
+    // Build a map of transaction thread lastVisibleActionCreated for expense reports
+    const transactionThreadMap = allReports ? buildTransactionThreadMap(allReports) : {};
 
     // Pre-calculate report names and other properties to avoid repeated calculations
     const reportValues = Object.values(reportsToDisplay);
@@ -407,10 +449,18 @@ function categorizeReportsForLHN(
         const reportID = report.reportID;
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         const displayName = getReportName(report, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, conciergeReportID);
+
+        // Get the correct lastVisibleActionCreated considering transaction thread reports
+        let lastVisibleActionCreated = report.lastVisibleActionCreated ?? '';
+        const transactionThreadLastAction = transactionThreadMap[reportID];
+        if (transactionThreadLastAction && transactionThreadLastAction > lastVisibleActionCreated) {
+            lastVisibleActionCreated = transactionThreadLastAction;
+        }
+
         const miniReport: MiniReport = {
             reportID,
             displayName,
-            lastVisibleActionCreated: report.lastVisibleActionCreated,
+            lastVisibleActionCreated,
         };
 
         const isPinned = !!report.isPinned;
@@ -543,6 +593,7 @@ function sortReportsToDisplayInLHN(
     reportsDrafts: OnyxCollection<string> | undefined,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs> | undefined,
     conciergeReportID: string | undefined,
+    allReports?: OnyxCollection<Report>,
 ): string[] {
     Performance.markStart(CONST.TIMING.GET_ORDERED_REPORT_IDS);
 
@@ -560,7 +611,7 @@ function sortReportsToDisplayInLHN(
     //      - Sorted by reportDisplayName in GSD (focus) view mode
 
     // Step 1: Categorize reports
-    const categories = categorizeReportsForLHN(reportsToDisplay, reportsDrafts, conciergeReportID, reportNameValuePairs);
+    const categories = categorizeReportsForLHN(reportsToDisplay, reportsDrafts, conciergeReportID, reportNameValuePairs, allReports);
 
     // Step 2: Sort each category
     const sortedCategories = sortCategorizedReports(categories, isInDefaultMode, localeCompare);

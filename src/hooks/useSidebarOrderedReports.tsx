@@ -232,10 +232,10 @@ function SidebarOrderedReportsContextProvider({
 
     const getOrderedReportIDs = useCallback(
         () =>
-            SidebarUtils.sortReportsToDisplayInLHN(deepComparedReportsToDisplayInLHN ?? {}, priorityMode, localeCompare, deepComparedReportsDrafts, reportNameValuePairs, conciergeReportID),
+            SidebarUtils.sortReportsToDisplayInLHN(deepComparedReportsToDisplayInLHN ?? {}, priorityMode, localeCompare, deepComparedReportsDrafts, reportNameValuePairs, conciergeReportID, chatReports),
         // Rule disabled intentionally - reports should be sorted only when the reportsToDisplayInLHN changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [deepComparedReportsToDisplayInLHN, localeCompare, deepComparedReportsDrafts, conciergeReportID],
+        [deepComparedReportsToDisplayInLHN, localeCompare, deepComparedReportsDrafts, conciergeReportID, chatReports],
     );
 
     const orderedReportIDs = useMemo(() => getOrderedReportIDs(), [getOrderedReportIDs]);
