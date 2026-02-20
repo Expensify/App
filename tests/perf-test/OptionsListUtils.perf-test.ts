@@ -1,6 +1,6 @@
 import {rand} from '@ngneat/falso';
 import type * as NativeNavigation from '@react-navigation/native';
-import type {PrivateIsArchivedMap} from '@selectors/ReportNameValuePairs';
+import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
 import {createOptionList, filterAndOrderOptions, getMemberInviteOptions, getSearchOptions, getValidOptions} from '@libs/OptionsListUtils';
@@ -139,6 +139,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: MOCK_CURRENT_USER_EMAIL,
+                policyCollection: allPolicies,
                 personalDetails,
             }),
         );
@@ -218,6 +219,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 MOCK_CURRENT_USER_ACCOUNT_ID,
                 MOCK_CURRENT_USER_EMAIL,
+                personalDetails,
                 mockedBetas,
                 {},
                 false,

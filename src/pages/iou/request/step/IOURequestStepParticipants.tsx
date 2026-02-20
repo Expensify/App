@@ -1,12 +1,12 @@
 import {useIsFocused} from '@react-navigation/core';
-import {createPoliciesSelector} from '@selectors/Policy';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
+import useMappedPolicies from '@hooks/useMappedPolicies';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setTransactionReport} from '@libs/actions/Transaction';
@@ -32,8 +32,8 @@ import {
     setMoneyRequestParticipants,
     setMoneyRequestParticipantsFromReport,
     setMoneyRequestTag,
-    setSplitShares,
 } from '@userActions/IOU';
+import {setSplitShares} from '@userActions/IOU/Split';
 import {createDraftWorkspace} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -49,7 +49,7 @@ import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-const policySelector = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
+const policyMapper = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
     policy && {
         id: policy.id,
         name: policy.name,
@@ -60,8 +60,6 @@ const policySelector = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
         isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
         customUnits: policy.customUnits,
     };
-
-const policiesSelector = (policies: OnyxCollection<Policy>) => createPoliciesSelector(policies, policySelector);
 
 type IOURequestStepParticipantsProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS>;
@@ -78,7 +76,7 @@ function IOURequestStepParticipants({
     const isFocused = useIsFocused();
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`, {canBeMissing: true});
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: true});
+    const [allPolicies] = useMappedPolicies(policyMapper);
 
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const [transactions] = useOptimisticDraftTransactions(initialTransaction);
@@ -111,7 +109,7 @@ function IOURequestStepParticipants({
         return translate('iou.chooseRecipient');
     }, [iouType, translate, isSplitRequest, action]);
 
-    const selfDMReportID = useMemo(() => findSelfDMReportID(), []);
+    const selfDMReportID = findSelfDMReportID();
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
@@ -199,7 +197,7 @@ function IOURequestStepParticipants({
                 currentUserPersonalDetails.accountID,
                 shouldSetParticipantAutoAssignment ? isActivePolicyRequest : false,
             );
-            setTransactionReport(transaction.transactionID, {reportID: selfDMReportID}, true);
+            setTransactionReport(transaction.transactionID, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
         }
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.TRACK, initialTransactionID, selfDMReportID);
         waitForKeyboardDismiss(() => {

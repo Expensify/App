@@ -328,6 +328,7 @@ function WorkspaceTaxesPage({
                 <Button
                     success
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_CREATE.getRoute(policyID))}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.ADD_BUTTON}
                     icon={Expensicons.Plus}
                     text={translate('workspace.taxes.addRate')}
                     style={[shouldUseNarrowLayout && styles.flex1]}
@@ -338,6 +339,7 @@ function WorkspaceTaxesPage({
                 onPress={() => {}}
                 shouldUseOptionIcon
                 customText={translate('common.more')}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.MORE_DROPDOWN}
                 options={secondaryActions}
                 isSplitButton={false}
                 wrapperStyle={hasAccountingConnections ? styles.flexGrow1 : styles.flexGrow0}
@@ -353,6 +355,7 @@ function WorkspaceTaxesPage({
             isSplitButton={false}
             style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
             isDisabled={!selectedTaxesIDs.length}
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.BULK_ACTIONS_DROPDOWN}
         />
     );
 
@@ -406,7 +409,7 @@ function WorkspaceTaxesPage({
                             turnOffMobileSelectionMode();
                             return;
                         }
-                        Navigation.popToSidebar();
+                        Navigation.goBack();
                     }}
                 >
                     {!shouldUseNarrowLayout && headerButtons}
@@ -427,7 +430,6 @@ function WorkspaceTaxesPage({
                     onTurnOnSelectionMode={(item) => item && toggleTax(item)}
                     onSelectAll={filteredTaxesList.length > 0 ? toggleAllTaxes : undefined}
                     onDismissError={(item) => (item.keyForList ? clearTaxRateError(policyID, item.keyForList, item.pendingAction) : undefined)}
-                    style={{listHeaderWrapperStyle: [styles.ph9, styles.pv3, styles.pb5]}}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     shouldUseDefaultRightHandSideCheckmark={false}
                     customListHeader={getCustomListHeader()}
@@ -445,9 +447,7 @@ function WorkspaceTaxesPage({
                     onConfirm={deleteTaxes}
                     onCancel={() => setIsDeleteModalVisible(false)}
                     prompt={
-                        selectedTaxesIDs.length > 1
-                            ? translate('workspace.taxes.deleteMultipleTaxConfirmation', {taxAmount: selectedTaxesIDs.length})
-                            : translate('workspace.taxes.deleteTaxConfirmation')
+                        selectedTaxesIDs.length > 1 ? translate('workspace.taxes.deleteMultipleTaxConfirmation', selectedTaxesIDs.length) : translate('workspace.taxes.deleteTaxConfirmation')
                     }
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}

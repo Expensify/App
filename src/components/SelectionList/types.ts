@@ -25,6 +25,9 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     /** Custom content to display in the footer */
     footerContent?: React.ReactNode;
 
+    /** Custom content to display in the footer of list component */
+    listFooterContent?: React.JSX.Element | null | undefined;
+
     /** Whether to show the loading placeholder */
     showLoadingPlaceholder?: boolean;
 
@@ -72,6 +75,9 @@ type BaseSelectionListProps<TItem extends ListItem> = {
 
     /** Whether to scroll to the focused item */
     shouldScrollToFocusedIndex?: boolean;
+
+    /** Whether to scroll to the focused item on mount. When false, the list stays at the top to keep header content visible */
+    shouldScrollToFocusedIndexOnMount?: boolean;
 
     /** Whether keyboard shortcuts should be disabled */
     disableKeyboardShortcuts?: boolean;
@@ -129,9 +135,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> &
         /** Custom component to render while data is loading */
         customLoadingPlaceholder?: React.JSX.Element;
 
-        /** Custom content to display in the footer of list component */
-        listFooterContent?: React.JSX.Element | null | undefined;
-
         /** Number of lines to show for alternate text */
         alternateNumberOfSupportedLines?: number;
 
@@ -181,6 +184,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> &
 type SelectionListStyle = {
     /** Styles for the list */
     listStyle?: StyleProp<ViewStyle>;
+
+    /** Styles for the content container of the list (scrolls with content) */
+    contentContainerStyle?: StyleProp<ViewStyle>;
 
     /** Styles for the list container */
     containerStyle?: StyleProp<ViewStyle>;
@@ -237,6 +243,9 @@ type TextInputOptions = {
 
     /** Whether the text input autofocus should be disabled */
     disableAutoFocus?: boolean;
+
+    /** Whether the text input auto correct should be disabled */
+    disableAutoCorrect?: boolean;
 
     /** Styles for the text input */
     style?: {

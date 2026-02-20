@@ -64,14 +64,11 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     }, []);
 
     useEffect(() => {
-        // If the user only has a domain feed, a workspace account may not have been created yet.
-        // However, adding a workspace feed requires a workspace account.
-        // Calling openPolicyAddCardFeedPage will trigger the creation of a workspace account.
-        if (workspaceAccountID) {
-            return;
-        }
+        // If the user only has a domain feed, then the workspace account may not have been created yet, or the "Company cards" workspace-level feature may not have been enabled yet
+        // However, adding a workspace feed requires a workspace account with "Company cards" feature enabled.
+        // Calling openPolicyAddCardFeedPage will trigger the creation of the workspace account (if necessary) and enable the "Company cards" feature (if not enabled).
         openPolicyAddCardFeedPage(policyID);
-    }, [workspaceAccountID, policyID]);
+    }, [policyID]);
 
     if (isAddCardFeedLoading || isAllFeedsResultLoading || isBlockedToAddNewFeeds) {
         return <FullScreenLoadingIndicator />;

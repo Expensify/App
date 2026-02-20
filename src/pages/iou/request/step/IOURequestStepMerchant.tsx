@@ -17,7 +17,8 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTransactionDetails, isExpenseRequest, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {isInvalidMerchantValue, isValidInputLength} from '@libs/ValidationUtils';
-import {setDraftSplitTransaction, setMoneyRequestMerchant, updateMoneyRequestMerchant} from '@userActions/IOU';
+import {setMoneyRequestMerchant, updateMoneyRequestMerchant} from '@userActions/IOU';
+import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -87,9 +88,10 @@ function IOURequestStepMerchant({
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM> = {};
             const {isValid, byteLength} = isValidInputLength(value.moneyRequestMerchant, CONST.MERCHANT_NAME_MAX_BYTES);
 
-            if (isMerchantRequired && !value.moneyRequestMerchant) {
+            const trimmedMerchant = value.moneyRequestMerchant?.trim();
+            if (isMerchantRequired && !trimmedMerchant) {
                 errors.moneyRequestMerchant = translate('common.error.fieldRequired');
-            } else if (isMerchantRequired && isInvalidMerchantValue(value.moneyRequestMerchant)) {
+            } else if (trimmedMerchant && isInvalidMerchantValue(trimmedMerchant)) {
                 errors.moneyRequestMerchant = translate('iou.error.invalidMerchant');
             } else if (!isValid) {
                 errors.moneyRequestMerchant = translate('common.error.characterLimitExceedCounter', byteLength, CONST.MERCHANT_NAME_MAX_BYTES);

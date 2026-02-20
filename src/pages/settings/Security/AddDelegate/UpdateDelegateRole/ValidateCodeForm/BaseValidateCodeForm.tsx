@@ -51,7 +51,7 @@ type BaseValidateCodeFormProps = {
     wrapperStyle?: StyleProp<ViewStyle>;
 };
 
-function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => {}, delegate, role, wrapperStyle}: BaseValidateCodeFormProps) {
+function BaseValidateCodeForm({autoComplete = CONST.AUTO_COMPLETE_VARIANTS.ONE_TIME_CODE, innerRef = () => {}, delegate, role, wrapperStyle}: BaseValidateCodeFormProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const theme = useTheme();
@@ -173,6 +173,7 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
                             pressDimmingValue={0.2}
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('validateCodeForm.magicCodeNotReceived')}
+                            sentryLabel={CONST.SENTRY_LABEL.VALIDATE_CODE.RESEND_CODE}
                         >
                             <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>{translate('validateCodeForm.magicCodeNotReceived')}</Text>
                         </PressableWithFeedback>

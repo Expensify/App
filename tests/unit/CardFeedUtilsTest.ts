@@ -90,6 +90,10 @@ const cardFeedsMock: OnyxCollection<CardFeeds> = {
                 [cardFeedCitiBankMock]: {preferredPolicy: 'AA1BB2CC3'},
                 [cardFeedStripeMock]: {preferredPolicy: 'XX1YY2ZZ3'},
             },
+            oAuthAccountDetails: {
+                [cardFeedAmericaExpressMock]: {accountList: ['CREDIT CARD...1234'], credentials: 'xxxxx', expiration: 1730998958},
+                [cardFeedCitiBankMock]: {accountList: ['CREDIT CARD...5678'], credentials: 'xxxxx', expiration: 1730998958},
+            },
         },
     },
 };
@@ -100,7 +104,7 @@ describe('Card Feed Utils', () => {
         return waitForBatchedUpdates();
     });
     it('returns display name of workspace & domain cards', () => {
-        const cardFeedNamesWithType = getCardFeedNamesWithType({workspaceCardFeeds: fakeWorkspace, translate: translateLocal});
+        const cardFeedNamesWithType = getCardFeedNamesWithType({workspaceCardFeeds: fakeWorkspace, policies: undefined, translate: translateLocal});
         expect(Object.keys(cardFeedNamesWithType).length).toBe(2);
         expect(Object.values(cardFeedNamesWithType).every((cardFeedName) => cardFeedName.name === 'All Expensify')).toBe(true);
     });
@@ -113,7 +117,7 @@ describe('Card Feed Utils', () => {
     });
 
     it('returns empty object when workspaceCardFeeds is empty', () => {
-        const names = getCardFeedNamesWithType({workspaceCardFeeds: {key: {}}, translate: translateLocal});
+        const names = getCardFeedNamesWithType({workspaceCardFeeds: {key: {}}, policies: undefined, translate: translateLocal});
         expect(names).toEqual({});
     });
 

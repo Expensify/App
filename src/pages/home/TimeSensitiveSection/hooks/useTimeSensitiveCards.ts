@@ -1,45 +1,53 @@
-import {useMemo} from 'react';
 import useOnyx from '@hooks/useOnyx';
-import {isCard, isCardPendingActivate, isCardPendingIssue} from '@libs/CardUtils';
-import CONST from '@src/CONST';
+import {isCard, isCardPendingActivate, isCardPendingIssue, isCardWithPotentialFraud, isExpensifyCard} from '@libs/CardUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card} from '@src/types/onyx';
 
 function useTimeSensitiveCards() {
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [cards] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
 
-    const {cardsNeedingShippingAddress, cardsNeedingActivation} = useMemo<{cardsNeedingShippingAddress: Card[]; cardsNeedingActivation: Card[]}>(() => {
-        const cards = Object.values(cardList ?? {}).filter(isCard);
-        const isPhysicalExpensifyCard = (card: Card) => card.bank === CONST.EXPENSIFY_CARD.BANK && !card.nameValuePairs?.isVirtual;
+    const cardsNeedingShippingAddress: Card[] = [];
+    const cardsNeedingActivation: Card[] = [];
+    const cardsWithFraud: Card[] = [];
 
-        return cards.reduce<{cardsNeedingShippingAddress: Card[]; cardsNeedingActivation: Card[]}>(
-            (acc, card) => {
-                if (!isPhysicalExpensifyCard(card)) {
-                    return acc;
-                }
+    for (const card of Object.values(cards ?? {})) {
+        if (!isCard(card)) {
+            continue;
+        }
 
-                if (isCardPendingIssue(card)) {
-                    acc.cardsNeedingShippingAddress.push(card);
-                }
+        if (!isExpensifyCard(card)) {
+            continue;
+        }
 
-                if (isCardPendingActivate(card)) {
-                    acc.cardsNeedingActivation.push(card);
-                }
+        if (isCardWithPotentialFraud(card) && card.nameValuePairs?.possibleFraud?.fraudAlertReportID) {
+            cardsWithFraud.push(card);
+        }
 
-                return acc;
-            },
-            {cardsNeedingShippingAddress: [], cardsNeedingActivation: []},
-        );
-    }, [cardList]);
+        const isPhysicalCard = !card.nameValuePairs?.isVirtual;
+        if (!isPhysicalCard) {
+            continue;
+        }
+
+        if (isCardPendingIssue(card)) {
+            cardsNeedingShippingAddress.push(card);
+        }
+
+        if (isCardPendingActivate(card)) {
+            cardsNeedingActivation.push(card);
+        }
+    }
 
     const shouldShowAddShippingAddress = cardsNeedingShippingAddress.length > 0;
     const shouldShowActivateCard = cardsNeedingActivation.length > 0;
+    const shouldShowReviewCardFraud = cardsWithFraud.length > 0;
 
     return {
         shouldShowAddShippingAddress,
         shouldShowActivateCard,
+        shouldShowReviewCardFraud,
         cardsNeedingShippingAddress,
         cardsNeedingActivation,
+        cardsWithFraud,
     };
 }
 

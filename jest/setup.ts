@@ -1,4 +1,6 @@
 /* eslint-disable max-classes-per-file */
+// Polyfill necessary for Onyx.init in jest/setupAfterEnv.ts
+import '@src/polyfills/PromiseWithResolvers';
 import * as core from '@actions/core';
 import '@shopify/flash-list/jestSetup';
 import type {ReactNode} from 'react';
@@ -117,12 +119,6 @@ jest.mock('@libs/scheduleOnLiveMarkdownRuntime', () => {
     };
     return scheduleOnLiveMarkdownRuntime;
 });
-
-jest.mock('@src/libs/actions/Timing', () => ({
-    start: jest.fn(),
-    end: jest.fn(),
-    clearData: jest.fn(),
-}));
 
 jest.mock('@src/setup/telemetry', () => ({
     // eslint-disable-next-line @typescript-eslint/naming-convention

@@ -10,7 +10,7 @@ import RenderHTML from '@components/RenderHTML';
 import Table from '@components/Table';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useCardFeeds from '@hooks/useCardFeeds';
-import useCurrencyList from '@hooks/useCurrencyList';
+import {useCurrencyListState} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -24,7 +24,7 @@ import {setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userAc
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {CompanyCardFeed, CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 
 const FEED_SELECTOR_SKELETON_WIDTH = 289;
 
@@ -50,7 +50,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
 
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const {currencyList} = useCurrencyList();
+    const {currencyList} = useCurrencyListState();
     const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['Gear']);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
@@ -58,8 +58,8 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
     const [cardFeeds] = useCardFeeds(policyID);
     const policy = usePolicy(policyID);
 
-    const formattedFeedName = feedName ? getCustomOrFormattedFeedName(translate, feedName as CompanyCardFeed, cardFeeds?.[feedName]?.customFeedName) : undefined;
-    const isCommercialFeed = isCustomFeed(feedName as CompanyCardFeed);
+    const formattedFeedName = feedName ? getCustomOrFormattedFeedName(translate, feedName, cardFeeds?.[feedName]?.customFeedName) : undefined;
+    const isCommercialFeed = isCustomFeed(feedName);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const currentFeedData = feedName ? companyFeeds?.[feedName] : undefined;
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${currentFeedData?.domainID}`, {canBeMissing: true});
@@ -161,6 +161,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                                     options={secondaryActions}
                                     isSplitButton={false}
                                     wrapperStyle={shouldShowNarrowLayout ? styles.flex1 : styles.flexGrow0}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.MORE_DROPDOWN}
                                 />
                             </>
                         )}
