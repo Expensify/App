@@ -15,7 +15,7 @@ concurrency:
 jobs:
   review:
     if: github.event.pull_request.draft != true && !contains(github.event.pull_request.title, 'Revert')
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     env:
       PR_NUMBER: ${{ github.event.pull_request.number }}
     steps:
