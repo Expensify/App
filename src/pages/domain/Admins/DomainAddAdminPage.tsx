@@ -71,7 +71,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
         }
         didInvite.current = true;
 
-        addAdminToDomain(domainAccountID, currentlySelectedUser.accountID, currentlySelectedUser.login, domainName);
+        addAdminToDomain(domainAccountID, currentlySelectedUser.accountID, currentlySelectedUser.login, domainName, !!currentlySelectedUser.isOptimisticAccount);
         Navigation.dismissModal();
     };
 
