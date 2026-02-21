@@ -1331,6 +1331,7 @@ const translations = {
             distanceAmountTooLarge: 'The total amount is too large. Reduce the distance or lower the rate.',
             distanceAmountTooLargeReduceDistance: 'The total amount is too large. Reduce the distance.',
             distanceAmountTooLargeReduceRate: 'The total amount is too large. Lower the rate.',
+            odometerReadingTooLarge: 'Odometer readings cannot exceed 999,999.',
             invalidIntegerAmount: 'Please enter a whole dollar amount before continuing',
             invalidTaxAmount: (amount: string) => `Maximum tax amount is ${amount}`,
             invalidSplit: 'The sum of splits must equal the total amount',

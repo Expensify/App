@@ -445,7 +445,11 @@ function IOURequestStepDistanceOdometer({
             return;
         }
 
-        // Validation: Calculated distance (end - start) must be > 0
+        if (start > CONST.IOU.ODOMETER_MAX_VALUE || end > CONST.IOU.ODOMETER_MAX_VALUE) {
+            setFormError(translate('iou.error.odometerReadingTooLarge'));
+            return;
+        }
+
         const distance = end - start;
         if (distance <= 0) {
             setFormError(translate('iou.error.negativeDistanceNotAllowed'));
