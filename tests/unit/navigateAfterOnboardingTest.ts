@@ -123,14 +123,14 @@ describe('navigateAfterOnboarding', () => {
         expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
     });
 
-    it('should pass archivedReportsIdSet when looking up last accessed report', () => {
-        const archivedReportsIdSet = new Set<string>(['report_1']);
+    it('should pass archivedReportsIDSet when looking up last accessed report', () => {
+        const archivedReportsIDSet = new Set<string>(['report_1']);
         mockFindLastAccessedReport.mockReturnValue(undefined);
         mockShouldOpenOnAdminRoom.mockReturnValue(false);
 
-        navigateAfterOnboarding(true, true, '', archivedReportsIdSet, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
+        navigateAfterOnboarding(true, true, '', archivedReportsIDSet, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
 
-        expect(mockFindLastAccessedReport).toHaveBeenCalledWith(false, false, undefined, archivedReportsIdSet);
+        expect(mockFindLastAccessedReport).toHaveBeenCalledWith(false, false, undefined, archivedReportsIDSet);
     });
 
     it('should navigate to Concierge room if user uses a test email', () => {

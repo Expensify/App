@@ -9,7 +9,7 @@ import {getChildTransactions, getOriginalTransactionWithSplitInfo} from '@libs/T
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
-import useArchivedReportsIdSet from './useArchivedReportsIdSet';
+import useArchivedReportsIDSet from './useArchivedReportsIDSet';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
@@ -40,7 +40,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.reportID)}`, {canBeMissing: true});
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
-    const archivedReportsIdSet = useArchivedReportsIdSet();
+    const archivedReportsIDSet = useArchivedReportsIDSet();
 
     /**
      * Delete transactions by IDs
@@ -167,7 +167,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
                 const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
                 const chatIOUReportID = chatReport?.reportID;
-                const isChatIOUReportArchived = archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatIOUReportID}`);
+                const isChatIOUReportArchived = archivedReportsIDSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatIOUReportID}`);
                 deleteMoneyRequest({
                     transactionID,
                     reportAction: action,
@@ -195,7 +195,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             allReportNameValuePairs,
             allReports,
             allTransactions,
-            archivedReportsIdSet,
+            archivedReportsIDSet,
             currentUserPersonalDetails,
             iouReportNextStep,
             isBetaEnabled,

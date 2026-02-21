@@ -20,7 +20,7 @@ import type {
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
-import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
+import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -267,8 +267,8 @@ function Search({
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const {markReportIDAsMultiTransactionExpense, unmarkReportIDAsMultiTransactionExpense} = useWideRHPActions();
 
-    const archivedReportsIdSet = useArchivedReportsIdSet();
-    const isReportArchived = useCallback((reportID?: string) => !!reportID && archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`), [archivedReportsIdSet]);
+    const archivedReportsIDSet = useArchivedReportsIDSet();
+    const isReportArchived = useCallback((reportID?: string) => !!reportID && archivedReportsIDSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`), [archivedReportsIDSet]);
 
     const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         canEvict: false,
@@ -438,7 +438,7 @@ function Search({
             groupBy: validGroupBy,
             reportActions: exportReportActions,
             currentSearch: searchKey,
-            archivedReportsIDList: archivedReportsIdSet,
+            archivedReportsIDList: archivedReportsIDSet,
             queryJSON,
             isActionLoadingSet,
             cardFeeds,
@@ -457,7 +457,7 @@ function Search({
         isDataLoaded,
         searchResults,
         type,
-        archivedReportsIdSet,
+        archivedReportsIDSet,
         translate,
         formatPhoneNumber,
         accountID,

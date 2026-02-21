@@ -8,7 +8,7 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
-import useArchivedReportsIdSet from './useArchivedReportsIdSet';
+import useArchivedReportsIDSet from './useArchivedReportsIDSet';
 import useOnyx from './useOnyx';
 
 /**
@@ -26,8 +26,8 @@ const useShowNotFoundPageInIOUStep = (action: IOUAction, iouType: IOUType, repor
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`, {canBeMissing: true});
-    const archivedReportsIdSet = useArchivedReportsIdSet();
-    const isReportArchived = useCallback((reportID?: string) => !!reportID && archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`), [archivedReportsIdSet]);
+    const archivedReportsIDSet = useArchivedReportsIDSet();
+    const isReportArchived = useCallback((reportID?: string) => !!reportID && archivedReportsIDSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`), [archivedReportsIDSet]);
 
     const reportActionsReportID = useMemo(() => {
         let actionsReportID;

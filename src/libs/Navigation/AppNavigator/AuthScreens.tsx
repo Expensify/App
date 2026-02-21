@@ -19,7 +19,7 @@ import {useSearchRouterActions} from '@components/Search/SearchRouter/SearchRout
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
 import SupportalPermissionDeniedModalProvider from '@components/SupportalPermissionDeniedModalProvider';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
-import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
+import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
 import useAutoUpdateTimezone from '@hooks/useAutoUpdateTimezone';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
@@ -161,7 +161,7 @@ function AuthScreens() {
     const {initialURL, isAuthenticatedAtStartup} = useInitialURLState();
     const {setIsAuthenticatedAtStartup} = useInitialURLActions();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
-    const archivedReportsIdSet = useArchivedReportsIdSet();
+    const archivedReportsIDSet = useArchivedReportsIDSet();
     const {shouldRenderSecondaryOverlayForWideRHP, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForRHPOnSuperWideRHP, shouldRenderTertiaryOverlay} =
         useWideRHPState();
 
@@ -339,7 +339,7 @@ function AuthScreens() {
 
         const unsubscribeMarkAllMessagesAsReadShortcut = KeyboardShortcut.subscribe(
             markAllMessagesAsReadShortcutConfig.shortcutKey,
-            () => markAllMessagesAsRead(archivedReportsIdSet),
+            () => markAllMessagesAsRead(archivedReportsIDSet),
             markAllMessagesAsReadShortcutConfig.descriptionKey,
             markAllMessagesAsReadShortcutConfig.modifiers,
             true,

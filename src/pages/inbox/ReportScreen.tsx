@@ -24,7 +24,7 @@ import useShowWideRHPVersion from '@components/WideRHPContextProvider/useShowWid
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useActionListContextValue from '@hooks/useActionListContextValue';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
-import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
+import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
@@ -186,7 +186,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
 
-    const archivedReportsIdSet = useArchivedReportsIdSet();
+    const archivedReportsIDSet = useArchivedReportsIDSet();
 
     const parentReportAction = useParentReportAction(reportOnyx);
 
@@ -214,7 +214,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                 !isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                 'openOnAdminRoom' in route.params && !!route.params.openOnAdminRoom,
                 undefined,
-                archivedReportsIdSet,
+                archivedReportsIDSet,
             )?.reportID;
 
             // It's possible that reports aren't fully loaded yet
@@ -226,7 +226,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                 Log.info(`[ReportScreen] no reportID found in params, setting it to lastAccessedReportID: ${lastAccessedReportID}`);
                 navigation.setParams({reportID: lastAccessedReportID});
             });
-        }, [archivedReportsIdSet, isBetaEnabled, navigation, route.params]),
+        }, [archivedReportsIDSet, isBetaEnabled, navigation, route.params]),
     );
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
