@@ -278,7 +278,7 @@ function IOURequestStepDistanceManual({
 
         // Validation: Check that distance * rate doesn't exceed the backend's safe amount limit
         if (!DistanceRequestUtils.isDistanceAmountWithinLimit(parseFloat(value), rate)) {
-            setFormError(translate('iou.error.distanceAmountTooLarge'));
+            setFormError(translate('iou.error.distanceAmountTooLargeReduceDistance'));
             return;
         }
 

@@ -118,7 +118,7 @@ function IOURequestStepDistanceRate({
         const distanceInUnits = DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit);
         if (!DistanceRequestUtils.isDistanceAmountWithinLimit(distanceInUnits, newRate)) {
             setPendingRateID(customUnitRateID);
-            setFormError(translate('iou.error.distanceAmountTooLarge'));
+            setFormError(translate('iou.error.distanceAmountTooLargeReduceRate'));
             return;
         }
 
