@@ -10,8 +10,18 @@ type PopoverPosition = {
 };
 
 type UsePopoverEditStateOptions = {
+    /** Height of the popover content (used for overflow detection). Defaults to CONST.POPOVER_DATE_MAX_HEIGHT */
+    popoverHeight?: number;
+
     /** Padding between the anchor and the popover */
     padding?: number;
+
+    /**
+     * Which horizontal edge of the anchor to use as the popover's x-origin.
+     * 'right' (default) = x + width (right edge of anchor)
+     * 'left' = x (left edge of anchor)
+     */
+    anchorEdge?: 'left' | 'right';
 };
 
 /**
@@ -24,8 +34,7 @@ type UsePopoverEditStateOptions = {
  *   - Auto-open after layout via InteractionManager
  *   - isEditing + isPopoverVisible toggling
  */
-function usePopoverEditState({padding = 8}: UsePopoverEditStateOptions = {}) {
-    const popoverHeight = CONST.POPOVER_DATE_MAX_HEIGHT;
+function usePopoverEditState({popoverHeight = CONST.POPOVER_DATE_MAX_HEIGHT, padding = 8, anchorEdge = 'right'}: UsePopoverEditStateOptions = {}) {
     const {windowHeight} = useWindowDimensions();
     const anchorRef = useRef<View>(null);
     const [isEditing, setIsEditing] = useState(false);
@@ -38,12 +47,12 @@ function usePopoverEditState({padding = 8}: UsePopoverEditStateOptions = {}) {
             const wouldExceedBottom = y + popoverHeight + padding > windowHeight;
             setIsInverted(wouldExceedBottom);
             setPopoverPosition({
-                horizontal: x + width,
+                horizontal: anchorEdge === 'left' ? x : x + width,
                 vertical: y + (wouldExceedBottom ? 0 : height + padding),
             });
             setIsPopoverVisible(true);
         });
-    }, [windowHeight, popoverHeight, padding]);
+    }, [windowHeight, popoverHeight, padding, anchorEdge]);
 
     const startEditing = useCallback(() => {
         setIsEditing(true);

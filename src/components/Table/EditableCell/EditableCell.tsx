@@ -3,6 +3,7 @@ import type {ReactNode, RefObject} from 'react';
 import {View} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 
 type EditableCellProps = {
     /** Content to display when not editing */
@@ -69,6 +70,7 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
             <PressableWithFeedback
                 accessibilityRole="button"
                 accessibilityLabel="Edit cell"
+                sentryLabel={CONST.SENTRY_LABEL.TABLE.EDITABLE_CELL}
                 onPress={onStartEditing}
                 style={[styles.flex1]}
                 hoverStyle={[styles.border]}

@@ -21,6 +21,14 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {handleActionButtonPress as handleActionButtonPressUtil} from '@libs/actions/Search';
+import {
+    editTransactionAmountOnSearch,
+    editTransactionCategoryOnSearch,
+    editTransactionDateOnSearch,
+    editTransactionDescriptionOnSearch,
+    editTransactionMerchantOnSearch,
+    getSearchTransactionEditPermissions,
+} from '@libs/actions/SearchInlineEdit';
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isInvoiceReport} from '@libs/ReportUtils';
@@ -56,7 +64,7 @@ function TransactionListItem<TItem extends ListItem>({
     const theme = useTheme();
 
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const {currentSearchHash, currentSearchKey, currentSearchResults} = useSearchContext();
+    const {currentSearchHash, currentSearchKey, currentSearchQueryJSON, currentSearchResults} = useSearchContext();
     const snapshotReport = (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] ?? {}) as Report;
 
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`, {canBeMissing: true, selector: isActionLoadingSelector});
@@ -155,6 +163,32 @@ function TransactionListItem<TItem extends ListItem>({
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
+    // Inline edit
+    const transactionThreadReportID = transactionItem.reportAction?.childReportID;
+    const transactionID = transactionItem.transactionID ?? '';
+
+    const {canEditDate, canEditMerchant, canEditDescription, canEditCategory, canEditAmount} = getSearchTransactionEditPermissions(transactionID, parentReportAction, currentSearchQueryJSON);
+
+    const handleEditDate = (newDate: string) => {
+        editTransactionDateOnSearch(currentSearchHash, transactionID, transactionThreadReportID, newDate);
+    };
+
+    const handleEditMerchant = (newMerchant: string) => {
+        editTransactionMerchantOnSearch(currentSearchHash, transactionID, transactionThreadReportID, newMerchant);
+    };
+
+    const handleEditDescription = (newDescription: string) => {
+        editTransactionDescriptionOnSearch(currentSearchHash, transactionID, transactionThreadReportID, newDescription);
+    };
+
+    const handleEditCategory = (newCategory: string) => {
+        editTransactionCategoryOnSearch(currentSearchHash, transactionID, transactionThreadReportID, newCategory);
+    };
+
+    const handleEditAmount = (newAmount: number) => {
+        editTransactionAmountOnSearch(currentSearchHash, transactionID, transactionThreadReportID, newAmount);
+    };
+
     const handleActionButtonPress = () => {
         handleActionButtonPressUtil({
             hash: currentSearchHash,
@@ -236,6 +270,11 @@ function TransactionListItem<TItem extends ListItem>({
                             isHover={hovered}
                             customCardNames={customCardNames}
                             reportActions={exportedReportActions}
+                            onEditDate={canEditDate ? handleEditDate : undefined}
+                            onEditMerchant={canEditMerchant ? handleEditMerchant : undefined}
+                            onEditDescription={canEditDescription ? handleEditDescription : undefined}
+                            onEditCategory={canEditCategory ? handleEditCategory : undefined}
+                            onEditAmount={canEditAmount ? handleEditAmount : undefined}
                         />
                     </>
                 )}

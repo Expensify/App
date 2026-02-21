@@ -34,6 +34,7 @@ function DatePickerModal({
     onSelected,
     shouldCloseWhenBrowserNavigationChanged = false,
     shouldPositionFromTop = false,
+    anchorAlignment = DEFAULT_ANCHOR_ORIGIN,
     forwardedFSClass,
 }: DatePickerProps) {
     const [selectedDate, setSelectedDate] = useState(value ?? defaultValue ?? undefined);
@@ -69,7 +70,7 @@ function DatePickerModal({
             popoverDimensions={popoverDimensions}
             shouldCloseWhenBrowserNavigationChanged={shouldCloseWhenBrowserNavigationChanged}
             innerContainerStyle={isSmallScreenWidth ? styles.w100 : {width: CONST.POPOVER_DATE_WIDTH}}
-            anchorAlignment={DEFAULT_ANCHOR_ORIGIN}
+            anchorAlignment={anchorAlignment}
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
             shouldSwitchPositionIfOverflow
             shouldEnableNewFocusManagement

@@ -8382,6 +8382,9 @@ const CONST = {
             GROUP_SELECT_ALL_CHECKBOX: 'Search-GroupSelectAllCheckbox',
             SORTABLE_HEADER: 'Search-SortableHeader',
         },
+        TABLE: {
+            EDITABLE_CELL: 'Table-EditableCell',
+        },
         REPORT: {
             FLOATING_MESSAGE_COUNTER: 'Report-FloatingMessageCounter',
             LIST_BOUNDARY_LOADER_RETRY: 'Report-ListBoundaryLoaderRetry',

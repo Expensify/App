@@ -1,11 +1,12 @@
 import React, {useCallback} from 'react';
-import CategoryPickerPopover from '@components/CategoryPicker/CategoryPickerPopover';
+import type {ListItem} from '@components/SelectionList/types';
 import TextWithIconCell from '@components/SelectionListWithSections/Search/TextWithIconCell';
 import {EditableCell, usePopoverEditState} from '@components/Table/EditableCell';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
+import CategoryPickerModal from '@components/CategoryPicker/CategoryPickerModal';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
 type CategoryCellProps = TransactionDataCellProps & {
@@ -17,13 +18,17 @@ type CategoryCellProps = TransactionDataCellProps & {
 function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem, canEdit, onSave, policyID}: CategoryCellProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Folder']);
     const styles = useThemeStyles();
-    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, closePopover} = usePopoverEditState();
+    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, closePopover} = usePopoverEditState({
+        anchorEdge: 'left',
+    });
 
     const categoryForDisplay = isCategoryMissing(transactionItem?.category) ? '' : getDecodedCategoryName(transactionItem?.category ?? '');
 
     const handleCategorySelected = useCallback(
-        (category: string) => {
-            onSave?.(category);
+        (item: ListItem) => {
+            if (item.keyForList) {
+                onSave?.(String(item.keyForList));
+            }
             closePopover();
         },
         [onSave, closePopover],
@@ -51,15 +56,14 @@ function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem
             onStartEditing={startEditing}
             anchorRef={anchorRef}
             popoverContent={
-                <CategoryPickerPopover
+                <CategoryPickerModal
                     policyID={policyID}
                     selectedCategory={transactionItem?.category ?? ''}
                     isVisible={isPopoverVisible}
                     onClose={closePopover}
-                    anchorRef={anchorRef}
                     anchorPosition={popoverPosition}
                     shouldPositionFromTop={!isInverted}
-                    onCategorySelected={handleCategorySelected}
+                    onSelected={handleCategorySelected}
                 />
             }
         >
