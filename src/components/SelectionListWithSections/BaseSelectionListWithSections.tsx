@@ -824,7 +824,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     );
 
     useEffect(() => {
-        if (Platform.OS !== 'web' || !shouldShowTextInput || !isTextInputFocused || isLoadingNewOptions || flattenedSections.allOptions.length === 0) {
+        if (Platform.OS !== 'web' || !isTextInputFocused || isLoadingNewOptions || flattenedSections.allOptions.length === 0) {
             lastAnnouncementKeyRef.current = '';
             return;
         }
@@ -839,7 +839,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             id: prev.id + 1,
             text: translate('search.suggestionsAvailable', {count: flattenedSections.allOptions.length}),
         }));
-    }, [flattenedSections.allOptions.length, isLoadingNewOptions, isTextInputFocused, shouldShowTextInput, textInputValue, translate]);
+    }, [flattenedSections.allOptions.length, isLoadingNewOptions, isTextInputFocused, textInputValue, translate]);
 
     const updateAndScrollToFocusedIndex = useCallback(
         (newFocusedIndex: number, shouldSkipWhenIndexNonZero = false) => {
@@ -983,9 +983,9 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
      *
      * @param isTextInputFocused - Is external TextInput focused.
      */
-    const updateExternalTextInputFocus = useCallback((textInputFocused: boolean) => {
-        isTextInputFocusedRef.current = textInputFocused;
-        setIsTextInputFocused(textInputFocused);
+    const updateExternalTextInputFocus = useCallback((isInputFocused: boolean) => {
+        isTextInputFocusedRef.current = isInputFocused;
+        setIsTextInputFocused(isInputFocused);
     }, []);
 
     useImperativeHandle(

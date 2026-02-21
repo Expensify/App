@@ -1,9 +1,9 @@
 import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
 import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
-import React, {useImperativeHandle, useRef} from 'react';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {TextInputKeyPressEvent} from 'react-native';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import Footer from '@components/SelectionList/components/Footer';
@@ -20,6 +20,7 @@ import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useDebounce from '@hooks/useDebounce';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
+import useLocalize from '@hooks/useLocalize';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -70,13 +71,17 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     shouldPreventDefaultFocusOnSelectRow = false,
 }: SelectionListWithSectionsProps<TItem>) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const isScreenFocused = useIsFocused();
     const scrollEnabled = useScrollEnabled();
     const {singleExecution} = useSingleExecution();
     const listRef = useRef<FlashListRef<FlattenedItem<TItem>> | null>(null);
     const innerTextInputRef = useRef<BaseTextInputRef | null>(null);
     const isTextInputFocusedRef = useRef<boolean>(false);
+    const [isTextInputFocused, setIsTextInputFocused] = useState(false);
     const hasKeyBeenPressed = useRef(false);
+    const [suggestionsAnnouncement, setSuggestionsAnnouncement] = useState({id: 0, text: ''});
+    const lastAnnouncementKeyRef = useRef('');
     const activeElementRole = useActiveElementRole();
     const {isKeyboardShown} = useKeyboardState();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
@@ -184,8 +189,9 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     /**
      * Handles isTextInputFocusedRef value when using external TextInput, so external TextInput does not lose focus when typing in it.
      */
-    const updateExternalTextInputFocus = (isTextInputFocused: boolean) => {
-        isTextInputFocusedRef.current = isTextInputFocused;
+    const updateExternalTextInputFocus = (isInputFocused: boolean) => {
+        isTextInputFocusedRef.current = isInputFocused;
+        setIsTextInputFocused(isInputFocused);
     };
 
     useImperativeHandle(ref, () => ({
@@ -250,6 +256,25 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         firstFocusableIndex,
     });
 
+    useEffect(() => {
+        if (Platform.OS !== 'web' || !isTextInputFocused || isLoadingNewOptions || itemsCount === 0) {
+            lastAnnouncementKeyRef.current = '';
+            return;
+        }
+
+        const announcementKey = `${textInputOptions?.value ?? ''}-${itemsCount}`;
+        if (lastAnnouncementKeyRef.current === announcementKey) {
+            return;
+        }
+
+        lastAnnouncementKeyRef.current = announcementKey;
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setSuggestionsAnnouncement((prev) => ({
+            id: prev.id + 1,
+            text: translate('search.suggestionsAvailable', {count: itemsCount}),
+        }));
+    }, [isLoadingNewOptions, isTextInputFocused, itemsCount, textInputOptions?.value, translate]);
+
     const textInputComponent = () => {
         if (!shouldShowTextInput) {
             return null;
@@ -265,7 +290,10 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 onSubmit={selectFocusedItem}
                 dataLength={flattenedData.length}
                 isLoading={isLoadingNewOptions}
-                onFocusChange={(v: boolean) => (isTextInputFocusedRef.current = v)}
+                onFocusChange={(v: boolean) => {
+                    isTextInputFocusedRef.current = v;
+                    setIsTextInputFocused(v);
+                }}
                 showLoadingPlaceholder={showLoadingPlaceholder}
                 isLoadingNewOptions={isLoadingNewOptions}
             />
@@ -338,6 +366,16 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             onLayout={onLayout}
         >
             {textInputComponent()}
+            {Platform.OS === 'web' && !!suggestionsAnnouncement.text && (
+                <Text
+                    // Changing the key ensures the live region re-announces the same text.
+                    key={suggestionsAnnouncement.id}
+                    role={CONST.ROLE.STATUS}
+                    style={styles.hiddenElementOutsideOfWindow}
+                >
+                    {suggestionsAnnouncement.text}
+                </Text>
+            )}
             {itemsCount === 0 && (showLoadingPlaceholder || showListEmptyContent) ? (
                 renderListEmptyContent()
             ) : (

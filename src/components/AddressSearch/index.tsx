@@ -121,14 +121,11 @@ function AddressSearch({
         }
 
         lastAnnouncementKeyRef.current = announcementKey;
-        const timeoutID = setTimeout(() => {
-            setSuggestionsAnnouncement((prev) => ({
-                id: prev.id + 1,
-                text: translate('search.suggestionsAvailable'),
-            }));
-        }, 0);
-
-        return () => clearTimeout(timeoutID);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setSuggestionsAnnouncement((prev) => ({
+            id: prev.id + 1,
+            text: translate('search.suggestionsAvailable'),
+        }));
     }, [displayListViewBorder, isFocused, searchValue, translate]);
 
     const saveLocationDetails = (autocompleteData: GooglePlaceData, details: GooglePlaceDetail | null) => {
