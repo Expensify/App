@@ -1038,6 +1038,10 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.badgeDangerBG,
         },
 
+        badgeDefaultActive: {
+            backgroundColor: theme.hoverComponentBG,
+        },
+
         badgeBordered: {
             borderWidth: 1,
             borderRadius: variables.buttonBorderRadius,
@@ -1088,11 +1092,11 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         badgeSuccessText: {
-            color: theme.success,
+            color: theme.badgeSuccessText,
         },
 
         badgeDangerText: {
-            color: theme.danger,
+            color: theme.badgeDangerText,
         },
 
         condensedBadgeText: {
@@ -1102,7 +1106,7 @@ const staticStyles = (theme: ThemeColors) =>
         badgeText: {
             color: theme.text,
             fontSize: variables.fontSizeSmall,
-            ...lineHeightBadge,
+            lineHeight: variables.lineHeightSmall,
             ...whiteSpace.noWrap,
         },
 

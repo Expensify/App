@@ -1497,10 +1497,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             return theme.white;
         }
         if (isSuccess) {
-            return theme.iconSuccessFill;
+            return theme.badgeSuccessText;
         }
         if (isError) {
-            return theme.iconDangerFill;
+            return theme.badgeDangerText;
         }
         return theme.icon;
     },
