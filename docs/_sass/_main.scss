@@ -1182,7 +1182,8 @@ button {
             display: block;
         }
 
-        .ai-copy-icon-dark {
+        .ai-copy-icon-dark,
+        .ai-checkmark-icon {
             display: none;
         }
 
@@ -1193,6 +1194,30 @@ button {
 
             .ai-copy-icon-dark {
                 display: block;
+            }
+        }
+
+        &.copied {
+            .ai-copy-icon {
+                display: none;
+            }
+
+            .ai-checkmark-icon-light {
+                display: block;
+            }
+
+            .ai-checkmark-icon-dark {
+                display: none;
+            }
+
+            @media (prefers-color-scheme: dark) {
+                .ai-checkmark-icon-light {
+                    display: none;
+                }
+
+                .ai-checkmark-icon-dark {
+                    display: block;
+                }
             }
         }
     }
