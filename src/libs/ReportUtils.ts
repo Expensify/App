@@ -6370,7 +6370,6 @@ function buildConciergeGreetingReportAction(reportID: string, greetingText: stri
         message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: greetingText, text: greetingText}],
         originalMessage: {html: greetingText, whisperedTo: []},
         shouldShow: true,
-        isOptimisticAction: true,
     } as ReportAction;
 }
 
