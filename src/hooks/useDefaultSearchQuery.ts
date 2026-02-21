@@ -1,7 +1,7 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {isEligibleForApproveSuggestion} from '@libs/SearchUIUtils';
 import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
+import {isEligibleForApproveSuggestion} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Session} from '@src/types/onyx';

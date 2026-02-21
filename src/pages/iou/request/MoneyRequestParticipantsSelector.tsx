@@ -1,4 +1,3 @@
-import useTransactionDraftValues from '@hooks/useTransactionDraftValues';
 import {deepEqual} from 'fast-equals';
 import lodashPick from 'lodash/pick';
 import React, {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
@@ -29,6 +28,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionDraftValues from '@hooks/useTransactionDraftValues';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getPlatform from '@libs/getPlatform';
 import goToSettings from '@libs/goToSettings';

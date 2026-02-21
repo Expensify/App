@@ -131,6 +131,7 @@ import type {
     ZipCodeExampleFormatParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
+
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -1377,12 +1378,7 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Niektóre z tych duplikatów zostały już zatwierdzone lub opłacone.',
         reviewDuplicates: 'Przejrzyj duplikaty',
         keepAll: 'Zachowaj wszystko',
-        confirmApprove: 'Potwierdź kwotę zatwierdzenia',
-        confirmApprovalAmount: 'Zatwierdź tylko zgodne wydatki lub zatwierdź cały raport.',
-        confirmApprovalAllHoldAmount: () => ({
-            one: 'Ten wydatek jest wstrzymany. Czy mimo to chcesz go zatwierdzić?',
-            other: 'Te wydatki są wstrzymane. Czy mimo to chcesz je zatwierdzić?',
-        }),
+        confirmApprovalWithHeldAmount: 'Raport zawiera wstrzymane wydatki. Zatwierdzić tylko zgodne wydatki, czy zatwierdzić cały raport?',
         confirmPay: 'Potwierdź kwotę płatności',
         confirmPayAmount: 'Zapłać to, co nie jest wstrzymane, lub zapłać cały raport.',
         confirmPayAllHoldAmount: () => ({
