@@ -9,13 +9,9 @@ import type {ACHAccount} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 function resetNonUSDBankAccount(policyID: string | undefined, achAccount: OnyxEntry<ACHAccount>, bankAccountID?: number, lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType) {
-    if (!policyID) {
-        throw new Error('Missing policy when attempting to reset');
-    }
-
     // If there's no bankAccountID, we reset locally without making an API call
     if (!bankAccountID) {
-        const updateData = [
+        const updateData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT | typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT>> = [
             {
                 onyxMethod: Onyx.METHOD.SET,
                 key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
@@ -34,7 +30,7 @@ function resetNonUSDBankAccount(policyID: string | undefined, achAccount: OnyxEn
                 value: CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA,
             },
         ];
-        Onyx.update(updateData as OnyxUpdate[]);
+        Onyx.update(updateData);
         return;
     }
 
@@ -53,13 +49,6 @@ function resetNonUSDBankAccount(policyID: string | undefined, achAccount: OnyxEn
                     isLoading: true,
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     achData: null,
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    achAccount: null,
                 },
             },
         ],
@@ -81,17 +70,28 @@ function resetNonUSDBankAccount(policyID: string | undefined, achAccount: OnyxEn
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {isLoading: false, pendingAction: null},
             },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    achAccount,
-                },
-            },
         ],
     };
 
-    if (isLastUsedPaymentMethodVBBA) {
+    if (policyID) {
+        onyxData.optimisticData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                achAccount: null,
+            },
+        });
+
+        onyxData.failureData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                achAccount,
+            },
+        });
+    }
+
+    if (isLastUsedPaymentMethodVBBA && policyID) {
         onyxData.successData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,

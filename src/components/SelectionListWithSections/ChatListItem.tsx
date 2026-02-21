@@ -3,7 +3,7 @@ import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import FS from '@libs/Fullstory';
-import ReportActionItem from '@pages/home/report/ReportActionItem';
+import ReportActionItem from '@pages/inbox/report/ReportActionItem';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import BaseListItem from './BaseListItem';
@@ -76,7 +76,6 @@ function ChatListItem<TItem extends ListItem>({
                 allReports={allReports}
                 action={reportActionItem}
                 report={report}
-                reportActions={[]}
                 onPress={() => onSelectRow(item)}
                 parentReportAction={undefined}
                 displayAsGroup={false}

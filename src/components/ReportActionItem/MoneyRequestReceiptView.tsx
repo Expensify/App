@@ -3,12 +3,15 @@ import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import ConfirmModal from '@components/ConfirmModal';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
+import type {ValueOf} from 'type-fest';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReceiptAudit, {ReceiptAuditMessages} from '@components/ReceiptAudit';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import useActiveRoute from '@hooks/useActiveRoute';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
+import useConfirmModal from '@hooks/useConfirmModal';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
@@ -21,6 +24,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from '@libs/E
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {isMarkAsCashActionForTransaction} from '@libs/ReportPrimaryActionUtils';
 import {
     canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
@@ -30,13 +34,15 @@ import {
     isPaidGroupPolicy,
     isTrackExpenseReportNew,
 } from '@libs/ReportUtils';
+import trackExpenseCreationError from '@libs/telemetry/trackExpenseCreationError';
 import {
     didReceiptScanSucceed as didReceiptScanSucceedTransactionUtils,
     hasReceipt as hasReceiptTransactionUtils,
     isDistanceRequest as isDistanceRequestTransactionUtils,
+    isManualDistanceRequest,
     isScanning,
 } from '@libs/TransactionUtils';
-import ViolationsUtils from '@libs/Violations/ViolationsUtils';
+import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
 import Navigation from '@navigation/Navigation';
 import {cleanUpMoneyRequest} from '@userActions/IOU';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
@@ -48,6 +54,9 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import useOriginalReportID from '@hooks/useOriginalReportID';
+import useCardFeedErrors from '@hooks/useCardFeedErrors';
+import {getBrokenConnectionUrlToFixPersonalCard} from '@libs/CardUtils';
 import ReportActionItemImage from './ReportActionItemImage';
 
 type MoneyRequestReceiptViewProps = {
@@ -75,6 +84,7 @@ type MoneyRequestReceiptViewProps = {
 
 const receiptImageViolationNames = new Set<OnyxTypes.ViolationName>([
     CONST.VIOLATIONS.RECEIPT_REQUIRED,
+    CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED,
     CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED,
     CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT,
     CONST.VIOLATIONS.SMARTSCAN_FAILED,
@@ -105,9 +115,11 @@ function MoneyRequestReceiptView({
         canEvict: false,
         canBeMissing: true,
     });
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
 
     const [isLoading, setIsLoading] = useState(true);
     const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
+    const originalReportID = useOriginalReportID(report?.reportID, parentReportAction);
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(parentReportAction);
     const isTrackExpense = !mergeTransactionID && isTrackExpenseReportNew(report, parentReport, parentReportAction);
     const moneyRequestReport = parentReport;
@@ -121,6 +133,7 @@ function MoneyRequestReceiptView({
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(linkedTransactionID)}`, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`, {canBeMissing: true});
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const isReportArchivedByID = (reportID?: string) => !!reportID && archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
@@ -131,16 +144,16 @@ function MoneyRequestReceiptView({
     const didReceiptScanSucceed = hasReceipt && didReceiptScanSucceedTransactionUtils(transaction);
     const isInvoice = isInvoiceReport(moneyRequestReport);
     const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
+    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
     // Flags for allowing or disallowing editing an expense
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isEditable = !!canUserPerformWriteActionReportUtils(report, isReportArchived) && !readonly;
-    const canEdit =
-        isMoneyRequestAction(parentReportAction) &&
-        canEditMoneyRequest(parentReportAction, isChatReportArchived, moneyRequestReport, policy, transaction, isReportArchivedByID) &&
-        isEditable;
+    const canEdit = isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, isChatReportArchived, moneyRequestReport, policy, transaction) && isEditable;
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
+    const {personalCardsWithBrokenConnection} = useCardFeedErrors();
+    const connectionLink = getBrokenConnectionUrlToFixPersonalCard(personalCardsWithBrokenConnection, environmentURL);
 
     const canEditReceipt =
         isEditable &&
@@ -179,32 +192,41 @@ function MoneyRequestReceiptView({
     const doesTransactionHaveReceipt = !!transactionToCheck?.receipt && !isEmptyObject(transactionToCheck?.receipt);
     // Empty state for invoices should be displayed only in WideRHP
     const shouldShowReceiptEmptyState = (isDisplayedInWideRHP || !isInvoice) && !hasReceipt && !!transactionToCheck && !doesTransactionHaveReceipt;
+    const isMarkAsCash = parentReport && currentUserLogin ? isMarkAsCashActionForTransaction(currentUserLogin, parentReport, transactionViolations, policy) : false;
 
     const [receiptImageViolations, receiptViolations] = useMemo(() => {
         const imageViolations = [];
         const allViolations = [];
+        const filteredViolations = filterReceiptViolations(transactionViolations ?? []);
 
-        for (const violation of transactionViolations ?? []) {
+        for (const violation of filteredViolations) {
             const isReceiptFieldViolation = receiptFieldViolationNames.has(violation.name);
             const isReceiptImageViolation = receiptImageViolationNames.has(violation.name);
-            if (isReceiptFieldViolation || isReceiptImageViolation) {
-                const violationMessage = ViolationsUtils.getViolationTranslation(violation, translate, canEdit, undefined, companyCardPageURL);
+            const isRTERViolation = violation.name === CONST.VIOLATIONS.RTER;
+            if (isReceiptFieldViolation || isReceiptImageViolation || isRTERViolation) {
+                const cardID = violation.data?.cardID;
+                const card = cardID ? cardList?.[cardID] : undefined;
+                const violationMessage = ViolationsUtils.getViolationTranslation(violation, translate, canEdit, undefined, companyCardPageURL, connectionLink, card, isMarkAsCash);
                 allViolations.push(violationMessage);
-                if (isReceiptImageViolation) {
+                if (isReceiptImageViolation || isRTERViolation) {
                     imageViolations.push(violationMessage);
                 }
             }
         }
         return [imageViolations, allViolations];
-    }, [transactionViolations, translate, canEdit, companyCardPageURL]);
+    }, [transactionViolations, translate, canEdit, companyCardPageURL, connectionLink, cardList, isMarkAsCash]);
 
     const receiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
+    const itemizedReceiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
     const customRulesViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_RULES);
 
     // Whether to show receipt audit result (e.g.`Verified`, `Issue Found`) and messages (e.g. `Receipt not verified. Please confirm accuracy.`)
     // `!!(receiptViolations.length || didReceiptScanSucceed)` is for not showing `Verified` when `receiptViolations` is empty and `didReceiptScanSucceed` is false.
     const shouldShowAuditMessage =
-        !isTransactionScanning && (hasReceipt || !!receiptRequiredViolation || !!customRulesViolation) && !!(receiptViolations.length || didReceiptScanSucceed) && isPaidGroupPolicy(report);
+        !isTransactionScanning &&
+        (hasReceipt || !!receiptRequiredViolation || !!itemizedReceiptRequiredViolation || !!customRulesViolation) &&
+        !!(receiptViolations.length || didReceiptScanSucceed) &&
+        isPaidGroupPolicy(report);
     const shouldShowReceiptAudit = !isInvoice && (shouldShowReceiptEmptyState || hasReceipt);
 
     const errorsWithoutReportCreation = useMemo(
@@ -218,7 +240,7 @@ function MoneyRequestReceiptView({
     const errors = useMemo(() => ({...errorsWithoutReportCreation, ...reportCreationError}), [errorsWithoutReportCreation, reportCreationError]);
     const showReceiptErrorWithEmptyState = shouldShowReceiptEmptyState && !hasReceipt && !isEmptyObject(errors);
 
-    const [showConfirmDismissReceiptError, setShowConfirmDismissReceiptError] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
 
     const transactionAndReportActionErrors = useMemo(
         () => ({
@@ -232,22 +254,67 @@ function MoneyRequestReceiptView({
         if (!report?.reportID) {
             return;
         }
+
+        // Track expense creation errors to Sentry when the user dismisses them
+        if (!isEmptyObject(errors)) {
+            let errorType: ValueOf<typeof CONST.TELEMETRY.EXPENSE_ERROR_TYPE>;
+            let errorSource: ValueOf<typeof CONST.TELEMETRY.EXPENSE_ERROR_SOURCE>;
+
+            if (!isEmptyObject(reportCreationError)) {
+                errorType = CONST.TELEMETRY.EXPENSE_ERROR_TYPE.REPORT_CREATION_FAILED;
+                errorSource = CONST.TELEMETRY.EXPENSE_ERROR_SOURCE.REPORT_CREATION;
+            } else if (parentReportAction?.errors && !isEmptyObject(parentReportAction.errors)) {
+                errorType = CONST.TELEMETRY.EXPENSE_ERROR_TYPE.TRANSACTION_MISSING;
+                errorSource = CONST.TELEMETRY.EXPENSE_ERROR_SOURCE.REPORT_ACTION;
+            } else {
+                errorType = CONST.TELEMETRY.EXPENSE_ERROR_TYPE.TRANSACTION_MISSING;
+                errorSource = CONST.TELEMETRY.EXPENSE_ERROR_SOURCE.TRANSACTION;
+            }
+
+            const errorValue = Object.values(errors).at(0);
+            const errorMessage = typeof errorValue === 'string' ? errorValue : JSON.stringify(errorValue);
+            const isRequestPending = transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+            const isTransactionMissing = !transaction?.transactionID && !!linkedTransactionID;
+
+            trackExpenseCreationError(null, {
+                errorType,
+                errorSource,
+                reportID: report.reportID,
+                transactionID: linkedTransactionID,
+                hasReceipt,
+                pendingAction: transaction?.pendingAction,
+                iouType,
+                errorMessage,
+                isRequestPending,
+                isTransactionMissing,
+            });
+        }
         if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             if (chatReport?.reportID && getCreationReportErrors(chatReport)) {
-                navigateToConciergeChatAndDeleteReport(chatReport.reportID, true, true);
+                navigateToConciergeChatAndDeleteReport(chatReport.reportID, conciergeReportID, true, true);
                 return;
             }
             if (parentReportAction) {
-                cleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, report.reportID, iouReport, chatIOUReport, isChatIOUReportArchived, true);
+                cleanUpMoneyRequest(
+                    transaction?.transactionID ?? linkedTransactionID,
+                    parentReportAction,
+                    report.reportID,
+                    iouReport,
+                    chatIOUReport,
+                    isChatIOUReportArchived,
+                    originalReportID,
+                    true,
+                );
                 return;
             }
         }
+
         if (!transaction?.transactionID) {
             if (!linkedTransactionID) {
                 return;
             }
             clearError(linkedTransactionID);
-            clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
+            clearAllRelatedReportActionErrors(report.reportID, parentReportAction, originalReportID);
             return;
         }
         if (!isEmptyObject(transactionAndReportActionErrors)) {
@@ -255,13 +322,13 @@ function MoneyRequestReceiptView({
         }
         if (!isEmptyObject(errorsWithoutReportCreation)) {
             clearError(transaction.transactionID);
-            clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
+            clearAllRelatedReportActionErrors(report.reportID, parentReportAction, originalReportID);
         }
         if (!isEmptyObject(reportCreationError)) {
             if (isInNarrowPaneModal) {
                 Navigation.goBack();
             }
-            navigateToConciergeChatAndDeleteReport(report.reportID, true, true);
+            navigateToConciergeChatAndDeleteReport(report.reportID, conciergeReportID, true, true);
         }
     };
 
@@ -276,6 +343,8 @@ function MoneyRequestReceiptView({
     }
 
     const showBorderlessLoading = isLoading && fillSpace;
+
+    const isMapDistanceRequest = !!transaction && isDistanceRequest && !isManualDistanceRequest(transaction);
 
     const receiptAuditMessagesRow = (
         <View style={[styles.mt3, isEmptyObject(errors) && isDisplayedInWideRHP && styles.mb3]}>
@@ -314,6 +383,7 @@ function MoneyRequestReceiptView({
                         isThumbnail={!canEditReceipt}
                         isInMoneyRequestView
                         style={receiptStyle}
+                        isDisplayedInWideRHP={isDisplayedInWideRHP}
                     />
                 </OfflineWithFeedback>
             )}
@@ -331,18 +401,38 @@ function MoneyRequestReceiptView({
                         const errorMessages = mapValues(Object.fromEntries(errorEntries), (error) => error);
                         const hasReceiptError = Object.values(errorMessages).some((error) => isReceiptError(error));
 
-                        if (hasReceiptError) {
-                            setShowConfirmDismissReceiptError(true);
-                        } else {
+                        if (!hasReceiptError) {
                             dismissReceiptError();
+                            return;
                         }
+
+                        showConfirmModal({
+                            title: translate('iou.dismissReceiptError'),
+                            prompt: translate('iou.dismissReceiptErrorConfirmation'),
+                            confirmText: translate('common.dismiss'),
+                            cancelText: translate('common.cancel'),
+                            shouldShowCancelButton: true,
+                            danger: true,
+                        }).then((result) => {
+                            if (result.action !== ModalActions.CONFIRM) {
+                                return;
+                            }
+                            dismissReceiptError();
+                        });
                     }}
                     dismissError={dismissReceiptError}
                     style={[shouldShowAuditMessage ? styles.mt3 : styles.mv3, !showReceiptErrorWithEmptyState && styles.flex1]}
                     contentContainerStyle={styles.flex1}
                 >
                     {hasReceipt && (
-                        <View style={[styles.getMoneyRequestViewImage(showBorderlessLoading), receiptStyle, showBorderlessLoading && styles.flex1]}>
+                        <View
+                            style={[
+                                styles.getMoneyRequestViewImage(showBorderlessLoading),
+                                receiptStyle,
+                                showBorderlessLoading && styles.flex1,
+                                fillSpace && !shouldShowReceiptEmptyState && isMapDistanceRequest && styles.flex1,
+                            ]}
+                        >
                             <ReportActionItemImage
                                 shouldUseThumbnailImage={!fillSpace}
                                 shouldUseFullHeight={fillSpace}
@@ -369,22 +459,6 @@ function MoneyRequestReceiptView({
             )}
             {!shouldShowReceiptEmptyState && !hasReceipt && <View style={{marginVertical: 6}} />}
             {!!shouldShowAuditMessage && !hasReceipt && receiptAuditMessagesRow}
-            <ConfirmModal
-                isVisible={showConfirmDismissReceiptError}
-                onConfirm={() => {
-                    dismissReceiptError();
-                    setShowConfirmDismissReceiptError(false);
-                }}
-                onCancel={() => {
-                    setShowConfirmDismissReceiptError(false);
-                }}
-                title={translate('iou.dismissReceiptError')}
-                prompt={translate('iou.dismissReceiptErrorConfirmation')}
-                confirmText={translate('common.dismiss')}
-                cancelText={translate('common.cancel')}
-                shouldShowCancelButton
-                danger
-            />
         </View>
     );
 }

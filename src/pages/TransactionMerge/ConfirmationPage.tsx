@@ -15,6 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMergeTransactions from '@hooks/useMergeTransactions';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useSelfDMReport from '@hooks/useSelfDMReport';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {mergeTransactionRequest} from '@libs/actions/MergeTransaction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -41,15 +42,14 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
-    const {targetTransaction, sourceTransaction, targetTransactionReport} = useMergeTransactions({mergeTransaction});
+    const {targetTransaction, sourceTransaction, targetTransactionReport, targetTransactionPolicy} = useMergeTransactions({mergeTransaction});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
         canBeMissing: false,
     });
 
-    const policyID = targetTransactionReport?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(targetTransactionPolicy?.id)}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(targetTransactionPolicy?.id)}`, {canBeMissing: true});
+
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
@@ -62,6 +62,8 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     const [targetTransactionThreadParentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(targetTransactionThreadReport?.parentReportID)}`, {
         canBeMissing: true,
     });
+
+    const selfDMReport = useSelfDMReport();
 
     // Build the merged transaction data for display
     const mergedTransactionData = buildMergedTransactionData(targetTransaction, mergeTransaction);
@@ -82,12 +84,13 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
             targetTransactionThreadParentReport,
             targetTransactionThreadParentReportNextStep,
             allTransactionViolations,
-            policy,
+            policy: targetTransactionPolicy,
             policyTags,
             policyCategories,
             currentUserAccountIDParam,
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
+            selfDMReport,
         });
 
         const reportIDToDismiss = reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? reportID : undefined;
@@ -134,7 +137,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
                     </View>
                     <MoneyRequestView
                         allReports={allReports}
-                        expensePolicy={policy}
+                        expensePolicy={targetTransactionPolicy}
                         parentReportID={targetTransactionReport?.reportID}
                         shouldShowAnimatedBackground={false}
                         readonly

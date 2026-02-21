@@ -4,15 +4,11 @@
  */
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, BetaConfiguration, Policy, Report, ReportNameValuePairs} from '@src/types/onyx';
-import Permissions from './Permissions';
+import type {Policy, Report, ReportNameValuePairs} from '@src/types/onyx';
 import {getTitleReportField, isChatReport} from './ReportUtils';
 
 let allReportNameValuePairs: Record<string, ReportNameValuePairs> = {};
-let betas: Beta[] = [];
-let betaConfiguration: BetaConfiguration = {};
 
 /**
  * We use Onyx.connectWithoutView because we do not use this in React components and this logic is not tied directly to the UI.
@@ -24,18 +20,6 @@ Onyx.connectWithoutView({
     waitForCollectionCallback: true,
     callback: (val) => {
         allReportNameValuePairs = (val as Record<string, ReportNameValuePairs>) ?? {};
-    },
-});
-Onyx.connectWithoutView({
-    key: ONYXKEYS.BETAS,
-    callback: (val) => {
-        betas = val ?? [];
-    },
-});
-Onyx.connectWithoutView({
-    key: ONYXKEYS.BETA_CONFIGURATION,
-    callback: (val) => {
-        betaConfiguration = val ?? {};
     },
 });
 
@@ -52,10 +36,7 @@ function getTitleFieldFromRNVP(reportID: string) {
  * Update title field in report's rNVP to match the policy's title field configuration
  * This is the JavaScript equivalent of the backend updateTitleFieldToMatchPolicy function
  */
-function updateTitleFieldToMatchPolicy(reportID: string, policy?: Policy): OnyxUpdate[] {
-    if (!Permissions.isBetaEnabled(CONST.BETAS.CUSTOM_REPORT_NAMES, betas, betaConfiguration)) {
-        return [];
-    }
+function updateTitleFieldToMatchPolicy(reportID: string, policy?: Policy): Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS>> {
     if (!reportID || !policy) {
         return [];
     }
@@ -86,10 +67,7 @@ function updateTitleFieldToMatchPolicy(reportID: string, policy?: Policy): OnyxU
 /**
  * Remove title field from report's rNVP when report is manually renamed to indicate that the manual name should be preserved, and the custom report name formula should no longer update the name.
  */
-function removeTitleFieldFromReport(reportID: string): OnyxUpdate[] {
-    if (!Permissions.isBetaEnabled(CONST.BETAS.CUSTOM_REPORT_NAMES, betas, betaConfiguration)) {
-        return [];
-    }
+function removeTitleFieldFromReport(reportID: string): Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS>> {
     if (!reportID) {
         return [];
     }

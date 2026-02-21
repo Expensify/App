@@ -172,11 +172,29 @@ Key GitHub Actions workflows:
 
 ## Development Practices
 
+### React Native Best Practices
+Use the `/react-native-best-practices` skill when working on performance-sensitive code, native modules, or release preparation. This ensures code respects established best practices from the start, resulting in more consistent code, fewer review iterations, and better resilience against regressions.
+
+The skill provides guidance on:
+- **Performance**: FPS optimization, virtualized lists (FlashList), memoization, atomic state, animations
+- **Bundle & App Size**: Barrel imports, tree shaking, bundle analysis, R8 shrinking
+- **Startup (TTI)**: Hermes bytecode optimization, native navigation, deferred work
+- **Native Modules**: Turbo Module development, threading model, Swift/Kotlin/C++ patterns
+- **Memory**: JS and native memory leak detection and patterns
+- **Build Compliance**: Android 16KB page alignment (Google Play requirement)
+- **Platform Tooling**: Xcode/Android Studio profiling and debugging setup
+
 ### Code Quality
 - **TypeScript**: Strict mode enabled
 - **ESLint**: Linter
-- **Prettier**: Automatic formatting
+- **Prettier**: Code formatting - run `npm run prettier` after making changes
 - **Patch Management**: patch-package for dependency fixes
+
+### Post-Edit Checklist (IMPORTANT)
+**ALWAYS run these steps after making code changes, before committing:**
+1. **Prettier**: Run `npx prettier --write <changed files>` on every file you modified. This is mandatory - CI will reject unformatted code.
+2. **ESLint**: Run `npx eslint <changed files> --max-warnings=0` to catch lint errors early.
+3. **TypeScript**: Run `npm run typecheck` if you changed types, interfaces, or function signatures.
 
 ### Testing
 - **Unit Tests**: Jest with React Native Testing Library
@@ -223,6 +241,9 @@ npm run typecheck
 
 # Linting
 npm run lint
+
+# Format code with Prettier
+npm run prettier
 
 # Testing
 npm run test

@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
+import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import AutoEmailLink from '@components/AutoEmailLink';
@@ -108,7 +108,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         const emailParts = userEmail.split('@');
         const domain = emailParts.at(1) ?? '';
 
-        if ((PUBLIC_DOMAINS_SET.has(domain.toLowerCase()) || !Str.isValidEmail(userEmail)) && !isOffline) {
+        if (!Str.isValidEmail(userEmail) && !isOffline) {
             Log.hmmm('User is trying to add an invalid work email', {userEmail, domain});
             addErrorMessage(errors, INPUT_IDS.ONBOARDING_WORK_EMAIL, translate('onboarding.workEmailValidationError.publicEmail'));
         }
@@ -188,6 +188,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
 
                                     setOnboardingMergeAccountStepValue(true, true);
                                 }}
+                                sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.SKIP}
                             />
                         </OfflineWithFeedback>
                     }
@@ -196,7 +197,12 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                 >
                     <View>
                         <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb3]}>
-                            <Text style={styles.textHeadlineH1}>{translate('onboarding.workEmail.title')}</Text>
+                            <Text
+                                style={styles.textHeadlineH1}
+                                accessibilityRole={CONST.ROLE.HEADER}
+                            >
+                                {translate('onboarding.workEmail.title')}
+                            </Text>
                         </View>
                         <View style={styles.mb2}>
                             <Text style={[styles.textNormal, styles.colorMuted]}>{translate('onboarding.workEmail.subtitle')}</Text>
@@ -246,6 +252,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                             shouldSaveDraft
                             maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                             spellCheck={false}
+                            autoComplete="email"
                         />
                     </View>
                 </FormProvider>

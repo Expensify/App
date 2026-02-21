@@ -1,34 +1,45 @@
 import type {OnyxCollection, OnyxEntry, ResultMetadata} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
-import {getCompanyCardFeed, getCompanyFeeds, getPlaidInstitutionId, getSelectedFeed} from '@libs/CardUtils';
-import type CONST from '@src/CONST';
+import {getCompanyCardFeed, getCompanyFeeds, getSelectedFeed, normalizeCardName} from '@libs/CardUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardList} from '@src/types/onyx';
+import type Card from '@src/types/onyx/Card';
 import type {AssignableCardsList, WorkspaceCardsList} from '@src/types/onyx/Card';
-import type {CompanyCardFeed, CompanyCardFeedWithDomainID, CompanyFeeds} from '@src/types/onyx/CardFeeds';
+import type {CardFeedsStatusByDomainID, CombinedCardFeeds, CompanyCardFeedWithDomainID, CompanyCardFeedWithNumber, CompanyFeeds} from '@src/types/onyx/CardFeeds';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import useCardFeeds from './useCardFeeds';
-import type {CombinedCardFeed, CombinedCardFeeds} from './useCardFeeds';
+import type {CombinedCardFeed} from './useCardFeeds';
 import useCardsList from './useCardsList';
 import useOnyx from './useOnyx';
 
-type CardFeedType = ValueOf<typeof CONST.COMPANY_CARDS.FEED_TYPE>;
+type CompanyCardEntry = {
+    cardName: string;
+    encryptedCardNumber: string;
+    isAssigned: boolean;
+    assignedCard?: Card;
+};
 
 type UseCompanyCardsProps = {
     policyID: string | undefined;
     feedName?: CompanyCardFeedWithDomainID;
 };
 
-type UsCompanyCardsResult = Partial<{
-    cardFeedType: CardFeedType;
-    bankName: CompanyCardFeed;
+type UseCompanyCardsResult = Partial<{
+    bankName: CompanyCardFeedWithNumber;
     feedName: CompanyCardFeedWithDomainID;
     cardList: AssignableCardsList;
     assignedCards: CardList;
-    cardNames: string[];
+    companyCardEntries: CompanyCardEntry[];
+    workspaceCardFeedsStatus: CardFeedsStatusByDomainID;
     allCardFeeds: CombinedCardFeeds;
     companyCardFeeds: CompanyFeeds;
     selectedFeed: CombinedCardFeed;
 }> & {
+    isInitiallyLoadingFeeds: boolean;
+    isNoFeed: boolean;
+    isFeedPending: boolean;
+    isFeedAdded: boolean;
+
     onyxMetadata: {
         cardListMetadata: ResultMetadata<WorkspaceCardsList>;
         allCardFeedsMetadata: ResultMetadata<OnyxCollection<CardFeeds>>;
@@ -36,9 +47,56 @@ type UsCompanyCardsResult = Partial<{
     };
 };
 
-function useCompanyCards({policyID, feedName: feedNameProp}: UseCompanyCardsProps): UsCompanyCardsResult {
-    const [lastSelectedFeed, lastSelectedFeedMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
-    const [allCardFeeds, allCardFeedsMetadata] = useCardFeeds(policyID);
+/**
+ * Builds a list of card entries by starting from assignedCards (source of truth for assignments),
+ * then filling in remaining unassigned cards from accountList/cardList.
+ */
+function buildCompanyCardEntries(accountList: string[] | undefined, cardList: AssignableCardsList | undefined, assignedCards: CardList): CompanyCardEntry[] {
+    const entries: CompanyCardEntry[] = [];
+    const coveredNames = new Set<string>();
+    const coveredEncrypted = new Set<string>();
+
+    // Phase 1: Assigned cards first — these are the source of truth.
+    for (const card of Object.values(assignedCards)) {
+        if (!card?.cardName) {
+            continue;
+        }
+        const encryptedCardNumber = card.encryptedCardNumber ?? card.cardName;
+        entries.push({cardName: card.cardName, encryptedCardNumber, isAssigned: true, assignedCard: card});
+        coveredNames.add(normalizeCardName(card.cardName));
+        if (card.encryptedCardNumber) {
+            coveredEncrypted.add(card.encryptedCardNumber);
+        }
+    }
+
+    // Phase 2: Add remaining unassigned cards. cardList first so its encryptedCardNumber takes precedence.
+    for (const [name, encryptedCardNumber] of Object.entries(cardList ?? {})) {
+        if (coveredNames.has(normalizeCardName(name)) || coveredEncrypted.has(encryptedCardNumber)) {
+            continue;
+        }
+        entries.push({cardName: name, encryptedCardNumber, isAssigned: false});
+        coveredNames.add(normalizeCardName(name));
+        coveredEncrypted.add(encryptedCardNumber);
+    }
+
+    for (const name of accountList ?? []) {
+        if (coveredNames.has(normalizeCardName(name))) {
+            continue;
+        }
+        entries.push({cardName: name, encryptedCardNumber: name, isAssigned: false});
+        coveredNames.add(normalizeCardName(name));
+    }
+
+    return entries;
+}
+
+function useCompanyCards({policyID, feedName: feedNameProp}: UseCompanyCardsProps): UseCompanyCardsResult {
+    // If an empty string is passed, we need to use an invalid key to avoid fetching the whole collection.
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const policyIDKey = policyID || CONST.DEFAULT_MISSING_ID;
+
+    const [lastSelectedFeed, lastSelectedFeedMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyIDKey}`, {canBeMissing: true});
+    const [allCardFeeds, allCardFeedsMetadata, , workspaceCardFeedsStatus] = useCardFeeds(policyID);
 
     const feedName = feedNameProp ?? getSelectedFeed(lastSelectedFeed, allCardFeeds);
     const bankName = feedName ? getCompanyCardFeed(feedName) : undefined;
@@ -47,17 +105,9 @@ function useCompanyCards({policyID, feedName: feedNameProp}: UseCompanyCardsProp
 
     const companyCardFeeds = getCompanyFeeds(allCardFeeds);
     const selectedFeed = feedName && companyCardFeeds[feedName];
-    const isPlaidCardFeed = !!getPlaidInstitutionId(feedName);
-
-    // Direct feeds include Plaid feeds and OAuth feeds (like oauth.chase.com) that have accountList
-    const isDirectFeed = isPlaidCardFeed || !!selectedFeed?.accountList;
-    let cardFeedType: CardFeedType = 'customFeed';
-    if (isDirectFeed) {
-        cardFeedType = 'directFeed';
-    }
 
     const {cardList, ...assignedCards} = cardsList ?? {};
-    const cardNames = cardFeedType === 'directFeed' ? (selectedFeed?.accountList ?? []) : Object.keys(cardList ?? {});
+    const companyCardEntries = buildCompanyCardEntries(selectedFeed?.accountList, cardList, assignedCards);
 
     const onyxMetadata = {
         cardListMetadata,
@@ -65,11 +115,32 @@ function useCompanyCards({policyID, feedName: feedNameProp}: UseCompanyCardsProp
         lastSelectedFeedMetadata,
     };
 
+    const isInitiallyLoadingFeeds = isLoadingOnyxValue(allCardFeedsMetadata);
+    const isNoFeed = !selectedFeed && !isInitiallyLoadingFeeds;
+    const isFeedPending = !!selectedFeed?.pending;
+    const isFeedAdded = !isInitiallyLoadingFeeds && !isFeedPending && !isNoFeed;
+
     if (!policyID) {
-        return {onyxMetadata};
+        return {onyxMetadata, isInitiallyLoadingFeeds, isNoFeed, isFeedPending, isFeedAdded};
     }
 
-    return {allCardFeeds, feedName, companyCardFeeds, cardList, assignedCards, cardNames, selectedFeed, bankName, cardFeedType, onyxMetadata};
+    return {
+        allCardFeeds,
+        feedName,
+        companyCardFeeds,
+        cardList,
+        assignedCards,
+        companyCardEntries,
+        workspaceCardFeedsStatus,
+        selectedFeed,
+        bankName,
+        onyxMetadata,
+        isInitiallyLoadingFeeds,
+        isNoFeed,
+        isFeedPending,
+        isFeedAdded,
+    };
 }
 
 export default useCompanyCards;
+export type {CompanyCardEntry, UseCompanyCardsResult};

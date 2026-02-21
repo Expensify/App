@@ -4,7 +4,7 @@ import type {ForwardedRef, ReactNode, RefObject} from 'react';
 import React, {createRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {StyleProp, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
-import {useInputBlurContext} from '@components/InputBlurContext';
+import {useInputBlurActions} from '@components/InputBlurContext';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import useDebounceNonReactive from '@hooks/useDebounceNonReactive';
 import useLocalize from '@hooks/useLocalize';
@@ -139,7 +139,7 @@ function FormProvider({
     }, [isLoadingDraftValues, draftValues, prevIsLoadingDraftValues]);
     const [errors, setErrors] = useState<GenericFormInputErrors>({});
     const hasServerError = useMemo(() => !!formState && !isEmptyObject(formState?.errors), [formState]);
-    const {setIsBlurred} = useInputBlurContext();
+    const {setIsBlurred} = useInputBlurActions();
 
     const onValidate = useCallback(
         (values: FormOnyxValues, shouldClearServerError = true) => {

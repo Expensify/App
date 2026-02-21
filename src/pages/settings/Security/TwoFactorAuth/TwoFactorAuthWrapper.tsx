@@ -2,6 +2,7 @@ import React, {useMemo} from 'react';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import {useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -32,6 +33,9 @@ type TwoFactorAuthWrapperProps = ChildrenProps & {
 
     /** Flag to indicate if the viewport offset top should be enabled */
     shouldEnableViewportOffsetTop?: boolean;
+
+    /** Flag to indicate if max height should be enabled */
+    shouldEnableMaxHeight?: boolean;
 };
 
 function TwoFactorAuthWrapper({
@@ -41,9 +45,11 @@ function TwoFactorAuthWrapper({
     onBackButtonPress,
     shouldEnableKeyboardAvoidingView = true,
     shouldEnableViewportOffsetTop = false,
+    shouldEnableMaxHeight = true,
     children,
 }: TwoFactorAuthWrapperProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFound = useMemo(() => {
@@ -71,30 +77,40 @@ function TwoFactorAuthWrapper({
 
     const viewportOffsetTop = useViewportOffsetTop();
 
+    if (isDelegateAccessRestricted) {
+        return (
+            <ScreenWrapper
+                testID="TwoFactorAuthWrapper"
+                includeSafeAreaPaddingBottom={false}
+                shouldEnablePickerAvoiding={false}
+            >
+                <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]} />
+            </ScreenWrapper>
+        );
+    }
+
     const defaultGoBack = () => quitAndNavigateBack(ROUTES.SETTINGS_SECURITY);
 
     return (
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
             shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
-            shouldEnableMaxHeight
+            shouldEnableMaxHeight={shouldEnableMaxHeight}
             testID={stepName}
             style={shouldEnableViewportOffsetTop ? {marginTop: viewportOffsetTop} : undefined}
         >
-            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
-                <FullPageNotFoundView
-                    shouldShow={shouldShowNotFound}
-                    linkTranslationKey="securityPage.goToSecurity"
-                    onLinkPress={defaultGoBack}
-                >
-                    <HeaderWithBackButton
-                        title={title}
-                        stepCounter={stepCounter}
-                        onBackButtonPress={onBackButtonPress ?? defaultGoBack}
-                    />
-                    <FullPageOfflineBlockingView>{children}</FullPageOfflineBlockingView>
-                </FullPageNotFoundView>
-            </DelegateNoAccessWrapper>
+            <FullPageNotFoundView
+                shouldShow={shouldShowNotFound}
+                linkTranslationKey="securityPage.goToSecurity"
+                onLinkPress={defaultGoBack}
+            >
+                <HeaderWithBackButton
+                    title={title}
+                    stepCounter={stepCounter}
+                    onBackButtonPress={onBackButtonPress ?? defaultGoBack}
+                />
+                <FullPageOfflineBlockingView>{children}</FullPageOfflineBlockingView>
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }

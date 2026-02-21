@@ -24,12 +24,13 @@ function Finish() {
     const illustrations = useMemoizedLazyIllustrations(['ConciergeBubble', 'ShieldYellow']);
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
     const policyID = reimbursementAccount?.achData?.policyID;
 
     const handleBackButtonPress = () => {
         Navigation.goBack();
     };
-    const handleNavigateToConciergeChat = () => navigateToConciergeChat(true);
+    const handleNavigateToConciergeChat = () => navigateToConciergeChat(conciergeReportID, true);
 
     return (
         <ScreenWrapper
@@ -67,7 +68,7 @@ function Finish() {
                         {
                             title: translate('finishStep.secure'),
                             onPress: () => {
-                                Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID)));
+                                Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID})));
                             },
                             icon: icons.Shield,
                             shouldShowRightIcon: true,

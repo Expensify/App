@@ -7,6 +7,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -14,7 +15,6 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {togglePlatformMute, updateNewsletterSubscription} from '@libs/actions/User';
-import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import getPlatform from '@libs/getPlatform';
 import type Platform from '@libs/getPlatform/types';
 import Navigation from '@libs/Navigation/Navigation';
@@ -27,6 +27,7 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import usePreferencesSectionIllustration from './usePreferencesSectionIllustration';
 
 function PreferencesPage() {
+    const {getCurrencySymbol} = useCurrencyListActions();
     const illustrations = useMemoizedLazyIllustrations(['Gears']);
     const preferencesIllustration = usePreferencesSectionIllustration();
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {canBeMissing: true});
@@ -60,7 +61,7 @@ function PreferencesPage() {
                 shouldUseHeadlineHeader
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
-                onBackButtonPress={Navigation.popToSidebar}
+                onBackButtonPress={Navigation.goBack}
             />
             <ScrollView contentContainerStyle={styles.pt3}>
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
@@ -104,6 +105,7 @@ function PreferencesPage() {
                                 description={translate('priorityModePage.priorityMode')}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_PRIORITY_MODE)}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
+                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.PRIORITY_MODE}
                             />
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
@@ -112,6 +114,7 @@ function PreferencesPage() {
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
                                 hintText={!preferredLocale || !isFullySupportedLocale(preferredLocale) ? translate('languagePage.aiGenerated') : ''}
+                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.LANGUAGE}
                             />
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
@@ -119,6 +122,7 @@ function PreferencesPage() {
                                 description={translate('billingCurrency.paymentCurrency')}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENT_CURRENCY)}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
+                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.PAYMENT_CURRENCY}
                             />
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
@@ -126,6 +130,7 @@ function PreferencesPage() {
                                 description={translate('themePage.theme')}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_THEME)}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
+                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.THEME}
                             />
                         </View>
                     </Section>

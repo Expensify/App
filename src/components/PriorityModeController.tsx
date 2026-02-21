@@ -77,7 +77,7 @@ export default function PriorityModeController() {
 
         // We wait for the user to navigate back to the home screen before triggering this switch
         const isNarrowLayout = getIsNarrowLayout();
-        if ((isNarrowLayout && currentRouteName !== SCREENS.HOME) || (!isNarrowLayout && currentRouteName !== SCREENS.REPORT)) {
+        if ((isNarrowLayout && currentRouteName !== SCREENS.INBOX) || (!isNarrowLayout && currentRouteName !== SCREENS.REPORT)) {
             Log.info("[PriorityModeController] Not switching user to focus mode as they aren't on the home screen", false, {validReportCount, currentRouteName});
             return;
         }

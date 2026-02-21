@@ -39,10 +39,10 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID, {canBeMissing: true});
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, {canBeMissing: true});
+    const [conciergeChatReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
     const archivedReportsIdSet = useArchivedReportsIdSet();
-    const isReportArchived = useCallback((reportID?: string) => !!reportID && archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`), [archivedReportsIdSet]);
-    const [conciergeChatReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
     const {onboardingMessages} = useOnboardingMessages();
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
     // When we merge public email with work email, we now want to navigate to the
     // concierge chat report of the new work email and not the last accessed report.
@@ -88,13 +88,22 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
             lastName: currentUserPersonalDetails.lastName,
             adminsChatReportID: onboardingAdminsChatReportID,
             onboardingPolicyID,
-            shouldSkipTestDriveModal: !!onboardingPolicyID && !onboardingAdminsChatReportID,
+            shouldSkipTestDriveModal: (!!onboardingPolicyID && !onboardingAdminsChatReportID) || onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
+            introSelected,
         });
 
         setOnboardingAdminsChatReportID();
         setOnboardingPolicyID();
 
-        navigateAfterOnboardingWithMicrotaskQueue(isSmallScreenWidth, isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), onboardingPolicyID, mergedAccountConciergeReportID, false, isReportArchived);
+        navigateAfterOnboardingWithMicrotaskQueue(
+            isSmallScreenWidth,
+            isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+            conciergeChatReportID,
+            archivedReportsIdSet,
+            onboardingPolicyID,
+            mergedAccountConciergeReportID,
+            false,
+        );
     }, [
         onboardingPurposeSelected,
         currentUserPersonalDetails.firstName,
@@ -102,10 +111,12 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
         onboardingAdminsChatReportID,
         onboardingMessages,
         onboardingPolicyID,
-        isReportArchived,
+        archivedReportsIdSet,
         isSmallScreenWidth,
         isBetaEnabled,
         mergedAccountConciergeReportID,
+        introSelected,
+        conciergeChatReportID,
     ]);
 
     return (
@@ -120,7 +131,12 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
             />
             <View style={[styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
                 <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb3]}>
-                    <Text style={styles.textHeadlineH1}>{translate('onboarding.workspace.title')}</Text>
+                    <Text
+                        style={styles.textHeadlineH1}
+                        accessibilityRole={CONST.ROLE.HEADER}
+                    >
+                        {translate('onboarding.workspace.title')}
+                    </Text>
                 </View>
                 <View style={styles.mb2}>
                     <Text style={[styles.textNormal, styles.colorMuted]}>{translate('onboarding.workspace.subtitle')}</Text>
@@ -157,6 +173,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
                         large
                         text={translate('common.skip')}
                         onPress={() => completeOnboarding()}
+                        sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.SKIP}
                     />
                 </View>
                 {!isRestrictedPolicyCreation && (
@@ -169,6 +186,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
                                 setOnboardingErrorMessage(null);
                                 Navigation.navigate(ROUTES.ONBOARDING_WORKSPACE_CONFIRMATION.getRoute());
                             }}
+                            sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CREATE_WORKSPACE}
                         />
                     </View>
                 )}

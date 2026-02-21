@@ -1,10 +1,11 @@
 import type {ImageContentFit} from 'expo-image';
 import type {ReactElement, ReactNode, Ref} from 'react';
 import React, {useContext, useMemo, useRef} from 'react';
-import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, Role, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -18,8 +19,8 @@ import getButtonState from '@libs/getButtonState';
 import mergeRefs from '@libs/mergeRefs';
 import Parser from '@libs/Parser';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
-import TextWithEmojiFragment from '@pages/home/report/comment/TextWithEmojiFragment';
-import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
+import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -36,7 +37,6 @@ import type {DisplayNameWithTooltip} from './DisplayNames/types';
 import FormHelpMessage from './FormHelpMessage';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import {MenuItemGroupContext} from './MenuItemGroup';
 import PlaidCardFeedIcon from './PlaidCardFeedIcon';
 import type {PressableRef} from './Pressable/GenericPressable/types';
@@ -165,6 +165,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Component to be displayed on the right */
         rightComponent?: ReactNode;
 
+        /** Component to be displayed on the left */
+        leftComponent?: ReactNode;
+
         /** A description text to show under the title */
         description?: string;
 
@@ -211,6 +214,12 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** Text to display for the item */
         title?: string;
+
+        /** Accessibility label for the menu item */
+        accessibilityLabel?: string;
+
+        /** Optional accessibility role for the title. Only set when the title is a section heading (e.g. CONST.ROLE.HEADER); omit for regular menu items. */
+        titleAccessibilityRole?: typeof CONST.ROLE.HEADER;
 
         /** Component to display as the title */
         titleComponent?: ReactElement;
@@ -401,6 +410,12 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Whether the screen containing the item is focused */
         isFocused?: boolean;
 
+        /** Additional styles for the root wrapper View */
+        rootWrapperStyle?: StyleProp<ViewStyle>;
+
+        /** The accessibility role to use for this menu item */
+        role?: Role;
+
         /** Whether to show the badge in a separate row */
         shouldShowBadgeInSeparateRow?: boolean;
 
@@ -412,6 +427,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** Whether item should be focusable with keyboard */
         tabIndex?: 0 | -1;
+
+        /** Additional styles for the right icon wrapper */
+        rightIconWrapperStyle?: StyleProp<ViewStyle>;
     };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -479,6 +497,7 @@ function MenuItem({
     focused = false,
     disabled = false,
     title,
+    accessibilityLabel,
     titleComponent,
     titleContainerStyle,
     subtitle,
@@ -494,6 +513,7 @@ function MenuItem({
     shouldShowDescriptionOnTop = false,
     shouldShowRightComponent = false,
     rightComponent,
+    leftComponent,
     rightIconReportID,
     avatarSize = CONST.AVATAR_SIZE.DEFAULT,
     isSmallAvatarSubscriptMenu = false,
@@ -544,10 +564,15 @@ function MenuItem({
     ref,
     isFocused,
     sentryLabel,
+    rootWrapperStyle,
+    role = CONST.ROLE.MENUITEM,
     shouldBeAccessible = true,
     tabIndex = 0,
+    rightIconWrapperStyle,
+    titleAccessibilityRole,
 }: MenuItemProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar', 'DotIndicator', 'Checkmark']);
+    const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -560,6 +585,7 @@ function MenuItem({
     const isCompact = viewMode === CONST.OPTION_MODE.COMPACT;
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedbackDeleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
+    const defaultAccessibilityLabel = (shouldShowDescriptionOnTop ? [description, title] : [title, description]).filter(Boolean).join(', ');
 
     const combinedTitleTextStyle = StyleUtils.combineStyles<TextStyle>(
         [
@@ -697,7 +723,10 @@ function MenuItem({
     const isIDPassed = !!iconReportID || !!iconAccountID || iconAccountID === CONST.DEFAULT_NUMBER_ID;
 
     return (
-        <View onBlur={onBlur}>
+        <View
+            style={rootWrapperStyle}
+            onBlur={onBlur}
+        >
             {!!label && !isLabelHoverable && (
                 <View style={[styles.ph5, labelStyle]}>
                     <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre])}>{label}</Text>
@@ -743,8 +772,8 @@ function MenuItem({
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
                                 disabled={disabled || isExecuting}
                                 ref={mergeRefs(ref, popoverAnchor)}
-                                role={CONST.ROLE.MENUITEM}
-                                accessibilityLabel={title ? title.toString() : ''}
+                                role={role}
+                                accessibilityLabel={`${accessibilityLabel ?? defaultAccessibilityLabel}${brickRoadIndicator ? `. ${translate('common.yourReviewIsRequired')}` : ''}`}
                                 accessible={shouldBeAccessible}
                                 tabIndex={tabIndex}
                                 onFocus={onFocus}
@@ -763,6 +792,7 @@ function MenuItem({
                                                     </View>
                                                 )}
                                                 <View style={[styles.flexRow, styles.pointerEventsAuto, disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled]}>
+                                                    {!!leftComponent && <View style={[styles.mr3]}>{leftComponent}</View>}
                                                     {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
                                                     {isIDPassed && (
                                                         <ReportActionAvatars
@@ -892,6 +922,7 @@ function MenuItem({
                                                                         style={combinedTitleTextStyle}
                                                                         numberOfLines={numberOfLinesTitle || undefined}
                                                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: interactive && disabled}}
+                                                                        accessibilityRole={titleAccessibilityRole}
                                                                     >
                                                                         {renderTitleContent()}
                                                                     </Text>
@@ -988,7 +1019,7 @@ function MenuItem({
                                                 {!!brickRoadIndicator && (
                                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1]}>
                                                         <Icon
-                                                            src={Expensicons.DotIndicator}
+                                                            src={icons.DotIndicator}
                                                             fill={brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.success}
                                                         />
                                                     </View>
@@ -1006,6 +1037,7 @@ function MenuItem({
                                                             disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled,
                                                             hasSubMenuItems && styles.opacitySemiTransparent,
                                                             hasSubMenuItems && styles.pl6,
+                                                            rightIconWrapperStyle,
                                                         ]}
                                                     >
                                                         <Icon
@@ -1020,7 +1052,7 @@ function MenuItem({
                                                 {shouldShowSelectedState && <SelectCircle isChecked={isSelected} />}
                                                 {shouldShowSelectedItemCheck && isSelected && (
                                                     <Icon
-                                                        src={Expensicons.Checkmark}
+                                                        src={icons.Checkmark}
                                                         fill={theme.iconSuccessFill}
                                                         additionalStyles={styles.alignSelfCenter}
                                                     />

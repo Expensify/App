@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useImperativeHandle, useMemo, useRef} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -66,6 +66,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, {canBeMissing: true});
     const [personalDetailsForm] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {canBeMissing: true});
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const paddingHorizontal = onboardingIsMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5;
 
     const [customChoices = getEmptyArray<OnboardingPurpose>()] = useOnyx(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, {canBeMissing: true});
@@ -84,6 +85,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
             iconStyles: [styles.mh3],
             wrapperStyle: [styles.purposeMenuItem],
             numberOfLinesTitle: 0,
+            sentryLabel: CONST.SENTRY_LABEL.ONBOARDING.PURPOSE_ITEM,
             onPress: () => {
                 setOnboardingPurposeSelected(choice);
                 setOnboardingErrorMessage(null);
@@ -105,11 +107,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                         adminsChatReportID: onboardingAdminsChatReportID ?? undefined,
                         onboardingPolicyID,
                         companySize: onboardingCompanySize,
-                    });
-
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    InteractionManager.runAfterInteractions(() => {
-                        Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
+                        introSelected,
                     });
 
                     return;
@@ -149,7 +147,12 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
             <ScrollView style={[styles.flex1, styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, paddingHorizontal]}>
                 <View style={styles.flex1}>
                     <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
-                        <Text style={styles.textHeadlineH1}>{translate('onboarding.purpose.title')} </Text>
+                        <Text
+                            style={styles.textHeadlineH1}
+                            accessibilityRole={CONST.ROLE.HEADER}
+                        >
+                            {translate('onboarding.purpose.title')}
+                        </Text>
                     </View>
                     <MenuItemList
                         menuItems={menuItems}

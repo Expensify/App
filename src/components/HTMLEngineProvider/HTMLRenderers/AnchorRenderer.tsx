@@ -7,6 +7,7 @@ import AnchorForAttachmentsOnly from '@components/AnchorForAttachmentsOnly';
 import AnchorForCommentsOnly from '@components/AnchorForCommentsOnly';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import useHover from '@hooks/useHover';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -55,7 +56,6 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     if (!HTMLEngineUtils.isChildOfComment(tnode) && !isChildOfTaskTitle) {
         // This is not a comment from a chat, the AnchorForCommentsOnly uses a Pressable to create a context menu on right click.
         // We don't have this behaviour in other links in NewDot
-        // TODO: We should use TextLink, but I'm leaving it as Text for now because TextLink breaks the alignment in Android.
 
         // Define link style based on context
         let linkStyle: StyleProp<TextStyle> = styles.link;
@@ -102,13 +102,13 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
         }
 
         return (
-            <Text
+            <TextLink
                 style={linkStyle}
                 onPress={() => openLink(attrHref, environmentURL, isAttachment)}
-                suppressHighlighting
+                suppressDefaultStyle
             >
                 <TNodeChildrenRenderer tnode={tnode} />
-            </Text>
+            </TextLink>
         );
     }
 

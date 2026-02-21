@@ -1,5 +1,4 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -7,6 +6,7 @@ import AttachmentPreview from '@components/AttachmentPreview';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -18,6 +18,8 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addAttachmentWithComment, addComment, openReport} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -51,8 +53,10 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS, {canBeMissing: true});
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE, {canBeMissing: true});
     const [validatedFile] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
 
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
+    const reportAttributesDerived = useReportAttributes();
+    const personalDetails = usePersonalDetails();
     const personalDetail = useCurrentUserPersonalDetails();
     const isTextShared = currentAttachment?.mimeType === CONST.SHARE_FILE_MIMETYPE.TXT;
     const shouldUsePreValidatedFile = shouldValidateFile(currentAttachment);
@@ -61,8 +65,13 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
     const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID);
+    const privateIsArchivedMap = usePrivateIsArchivedMap();
+    const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
     const ancestors = useAncestors(report);
-    const displayReport = useMemo(() => getReportDisplayOption(report, unknownUserDetails, reportAttributesDerived), [report, unknownUserDetails, reportAttributesDerived]);
+    const displayReport = useMemo(
+        () => getReportDisplayOption(report, unknownUserDetails, personalDetail.accountID, personalDetails, privateIsArchived, reportAttributesDerived),
+        [report, unknownUserDetails, personalDetails, privateIsArchived, reportAttributesDerived, personalDetail.accountID],
+    );
 
     const shouldShowAttachment = !isTextShared;
     const fileSource = shouldUsePreValidatedFile ? (validatedFile?.uri ?? '') : (currentAttachment?.content ?? '');
@@ -125,7 +134,14 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
         }
 
         if (isTextShared) {
-            addComment(report, report.reportID, ancestors, message, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
+            addComment({
+                report,
+                notifyReportID: report.reportID,
+                ancestors,
+                text: message,
+                timezoneParam: personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE,
+                currentUserAccountID: personalDetail.accountID,
+            });
             const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
             Navigation.navigate(routeToNavigate, {forceReplace: true});
             return;
@@ -138,6 +154,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                 if (isDraft) {
                     openReport(
                         report.reportID,
+                        introSelected,
                         '',
                         displayReport.participantsList?.filter((u) => u.accountID !== personalDetail.accountID).map((u) => u.login ?? '') ?? [],
                         report,
@@ -147,7 +164,15 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                     );
                 }
                 if (report.reportID) {
-                    addAttachmentWithComment(report, report.reportID, ancestors, file, message, personalDetail.timezone);
+                    addAttachmentWithComment({
+                        report,
+                        notifyReportID: report.reportID,
+                        ancestors,
+                        attachments: file,
+                        currentUserAccountID: personalDetail.accountID,
+                        text: message,
+                        timezone: personalDetail.timezone,
+                    });
                 }
 
                 const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
@@ -171,6 +196,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                         KeyboardUtils.dismiss();
                     }}
                     accessible={false}
+                    sentryLabel={CONST.SENTRY_LABEL.SHARE_DETAIL.DISMISS_KEYBOARD_BUTTON}
                 >
                     <HeaderWithBackButton
                         title={translate('share.shareToExpensify')}
@@ -216,6 +242,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                             KeyboardUtils.dismiss();
                         }}
                         accessible={false}
+                        sentryLabel={CONST.SENTRY_LABEL.SHARE_DETAIL.DISMISS_KEYBOARD_BUTTON}
                     >
                         {shouldShowAttachment && (
                             <>

@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Button from '@components/Button';
@@ -10,7 +10,9 @@ import type {AutoCompleteVariant, MagicCodeInputHandle} from '@components/MagicC
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
-import {WideRHPContext} from '@components/WideRHPContextProvider';
+import ValidateCodeCountdown from '@components/ValidateCodeCountdown';
+import type {ValidateCodeCountdownHandle} from '@components/ValidateCodeCountdown/types';
+import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -20,8 +22,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
 import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
 import {isValidValidateCode} from '@libs/ValidationUtils';
-import ValidateCodeCountdown from '@pages/signin/ValidateCodeCountdown';
-import type {ValidateCodeCountdownHandle} from '@pages/signin/ValidateCodeCountdown/types';
 import {clearValidateCodeActionError} from '@userActions/User';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -95,7 +95,7 @@ type ValidateCodeFormProps = {
 };
 
 function BaseValidateCodeForm({
-    autoComplete = 'one-time-code',
+    autoComplete = CONST.AUTO_COMPLETE_VARIANTS.ONE_TIME_CODE,
     ref = () => {},
     hasMagicCodeBeenSent,
     validateCodeActionErrorField,
@@ -114,7 +114,7 @@ function BaseValidateCodeForm({
 }: ValidateCodeFormProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {wideRHPRouteKeys} = useContext(WideRHPContext);
+    const {wideRHPRouteKeys} = useWideRHPState();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -324,6 +324,7 @@ function BaseValidateCodeForm({
                             pressDimmingValue={0.2}
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('validateCodeForm.magicCodeNotReceived')}
+                            sentryLabel={CONST.SENTRY_LABEL.VALIDATE_CODE.RESEND_CODE}
                         >
                             <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>{translate('validateCodeForm.magicCodeNotReceived')}</Text>
                         </PressableWithFeedback>
@@ -360,6 +361,7 @@ function BaseValidateCodeForm({
                         style={[styles.mt4]}
                         success={false}
                         large
+                        sentryLabel={CONST.SENTRY_LABEL.VALIDATE_CODE.SKIP}
                     />
                 )}
                 {!hideSubmitButton && (
@@ -372,6 +374,7 @@ function BaseValidateCodeForm({
                         large
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isLoading={account?.isLoading || isLoading}
+                        sentryLabel={CONST.SENTRY_LABEL.VALIDATE_CODE.VERIFY}
                     />
                 )}
             </OfflineWithFeedback>

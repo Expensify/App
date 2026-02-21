@@ -1,12 +1,15 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import SaveResponseInOnyx from '@libs/Middleware/SaveResponseInOnyx';
+// This import is needed to initialize the Onyx connections that call replaceOptimisticReportWithActualReport
+import '@src/libs/actions/replaceOptimisticReportWithActualReport';
 import HttpUtils from '@src/libs/HttpUtils';
 import handleUnusedOptimisticID from '@src/libs/Middleware/HandleUnusedOptimisticID';
 import * as MainQueue from '@src/libs/Network/MainQueue';
 import * as NetworkStore from '@src/libs/Network/NetworkStore';
 import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import * as Request from '@src/libs/Request';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report as OnyxReport, PersonalDetailsList} from '@src/types/onyx';
 import * as TestHelper from '../utils/TestHelper';
@@ -24,6 +27,8 @@ beforeAll(() => {
 });
 
 beforeEach(async () => {
+    await Onyx.clear();
+    await waitForBatchedUpdates();
     SequentialQueue.pause();
     MainQueue.clear();
     HttpUtils.cancelPendingRequests();
@@ -36,7 +41,7 @@ beforeEach(async () => {
 describe('Middleware', () => {
     describe('HandleUnusedOptimisticID', () => {
         test('Normal request', async () => {
-            Request.addMiddleware(handleUnusedOptimisticID);
+            Request.addMiddleware(handleUnusedOptimisticID, CONST.TELEMETRY.MIDDLEWARE_HANDLE_UNUSED_OPTIMISTIC_ID);
             const requests = [
                 {
                     command: 'OpenReport',
@@ -71,7 +76,7 @@ describe('Middleware', () => {
         });
 
         test('Request with preexistingReportID', async () => {
-            Request.addMiddleware(handleUnusedOptimisticID);
+            Request.addMiddleware(handleUnusedOptimisticID, CONST.TELEMETRY.MIDDLEWARE_HANDLE_UNUSED_OPTIMISTIC_ID);
             const requests = [
                 {
                     command: 'OpenReport',
@@ -120,7 +125,7 @@ describe('Middleware', () => {
         });
 
         test('Request with preexistingReportID and no reportID in params', async () => {
-            Request.addMiddleware(handleUnusedOptimisticID);
+            Request.addMiddleware(handleUnusedOptimisticID, CONST.TELEMETRY.MIDDLEWARE_HANDLE_UNUSED_OPTIMISTIC_ID);
             const requests = [
                 {
                     command: 'RequestMoney',
@@ -184,7 +189,7 @@ describe('Middleware', () => {
         });
 
         test('Request with preexistingReportID and optimisticReportID param', async () => {
-            Request.addMiddleware(handleUnusedOptimisticID);
+            Request.addMiddleware(handleUnusedOptimisticID, CONST.TELEMETRY.MIDDLEWARE_HANDLE_UNUSED_OPTIMISTIC_ID);
             const requests = [
                 {
                     command: 'MoveIOUReportToExistingPolicy',
@@ -239,8 +244,8 @@ describe('Middleware', () => {
                 },
             });
 
-            Request.addMiddleware(handleUnusedOptimisticID);
-            Request.addMiddleware(SaveResponseInOnyx);
+            Request.addMiddleware(handleUnusedOptimisticID, CONST.TELEMETRY.MIDDLEWARE_HANDLE_UNUSED_OPTIMISTIC_ID);
+            Request.addMiddleware(SaveResponseInOnyx, 'SaveResponseInOnyx');
 
             const requests = [
                 {
@@ -359,8 +364,8 @@ describe('Middleware', () => {
                 },
             });
 
-            Request.addMiddleware(handleUnusedOptimisticID);
-            Request.addMiddleware(SaveResponseInOnyx);
+            Request.addMiddleware(handleUnusedOptimisticID, CONST.TELEMETRY.MIDDLEWARE_HANDLE_UNUSED_OPTIMISTIC_ID);
+            Request.addMiddleware(SaveResponseInOnyx, 'SaveResponseInOnyx');
 
             const requests = [
                 {

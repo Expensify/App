@@ -56,6 +56,8 @@ If the company uses the Expensify Card, make sure the new admin is listed as the
 2. Ensure the correct bank account is set as the reimbursement account.
 3. If the previous admin is listed as the **Default Reimburser**, assign the new reimburser.
 
+![Change the default reimburser]({{site.url}}/assets/images/ExpensifyHelp-AdminOffboardingChecklist_01.png){:width="100%"}
+
 ## Reconnect Accounting Integrations & Set a New Technical Contact
 
 Head to **Settings > Workspace > [Workspace Name] > Accounting**:
@@ -73,6 +75,8 @@ Head to **Settings > Workspace > [Workspace Name] > Accounting**:
      3. Click the **Domain Members** tab.
      4. Check the box next to their name and click **Close Accounts**.
      5. Confirm by clicking **Close**.
+    
+![Close account on the domain]({{site.url}}/assets/images/ExpensifyHelp-AdminOffboardingChecklist_02.png){:width="100%"}
 
 ---
 

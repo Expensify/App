@@ -11651,13 +11651,18 @@ async function run() {
         let didFindDuplicate = false;
         let originalProposal;
         for (const previousProposal of commentsResponse) {
-            const isProposal = !!previousProposal.body?.includes(CONST_1.default.PROPOSAL_KEYWORD);
+            const body = previousProposal.body ?? '';
+            const lowerCaseBody = body.toLowerCase() ?? '';
+            const isProposal = !!body.includes(CONST_1.default.PROPOSAL_KEYWORD) && !!lowerCaseBody.includes(CONST_1.default.PROPOSAL_HEADER_A) && !!lowerCaseBody.includes(CONST_1.default.PROPOSAL_HEADER_B);
             const previousProposalCreatedAt = new Date(previousProposal.created_at).getTime();
             // Early continue if not a proposal or previous comment is newer than current one
             if (!isProposal || previousProposalCreatedAt >= newProposalCreatedAt) {
                 continue;
             }
-            const isAuthorBot = previousProposal.user?.login === CONST_1.default.COMMENT.NAME_GITHUB_ACTIONS || previousProposal.user?.type === CONST_1.default.COMMENT.TYPE_BOT;
+            const isAuthorBot = previousProposal.user?.login === CONST_1.default.COMMENT.NAME_MELVIN ||
+                previousProposal.user?.login === CONST_1.default.COMMENT.NAME_CODEX ||
+                previousProposal.user?.login === CONST_1.default.COMMENT.NAME_GITHUB_ACTIONS ||
+                previousProposal.user?.type === CONST_1.default.COMMENT.TYPE_BOT;
             // Skip prompting if comment author is the GH bot
             if (isAuthorBot) {
                 continue;
@@ -11665,6 +11670,7 @@ async function run() {
             const duplicateCheckPrompt = proposalPolice_1.default.getPromptForNewProposalDuplicateCheck(previousProposal.body, newProposalBody);
             const duplicateCheckResponse = await openAI.promptAssistant(assistantID, duplicateCheckPrompt);
             let similarityPercentage = 0;
+            // eslint-disable-next-line @typescript-eslint/no-deprecated -- TODO: refactor `parseAssistantResponse` to use `promptResponses` instead
             const parsedDuplicateCheckResponse = openAI.parseAssistantResponse(duplicateCheckResponse);
             core.startGroup('Parsed Duplicate Check Response');
             console.log('parsedDuplicateCheckResponse: ', parsedDuplicateCheckResponse);
@@ -11702,6 +11708,7 @@ async function run() {
         ? proposalPolice_1.default.getPromptForNewProposalTemplateCheck(payload.comment?.body)
         : proposalPolice_1.default.getPromptForEditedProposal(payload.changes.body?.from, payload.comment?.body);
     const assistantResponse = await openAI.promptAssistant(assistantID, prompt);
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- TODO: refactor `parseAssistantResponse` to use `promptResponses` instead
     const parsedAssistantResponse = openAI.parseAssistantResponse(assistantResponse);
     core.startGroup('Parsed Assistant Response');
     console.log('parsedAssistantResponse: ', parsedAssistantResponse);
@@ -11864,6 +11871,8 @@ const CONST = {
     },
     COMMENT: {
         TYPE_BOT: 'Bot',
+        NAME_MELVIN: 'melvin-bot',
+        NAME_CODEX: 'chatgpt-codex-connector',
         NAME_GITHUB_ACTIONS: 'github-actions',
     },
     ACTIONS: {
@@ -11889,6 +11898,8 @@ const CONST = {
     TEST_WORKFLOW_NAME: 'Jest Unit Tests',
     TEST_WORKFLOW_PATH: '.github/workflows/test.yml',
     PROPOSAL_KEYWORD: 'Proposal',
+    PROPOSAL_HEADER_A: 'what is the root cause of that problem?',
+    PROPOSAL_HEADER_B: 'what changes do you think we should make in order to solve the problem?',
     DATE_FORMAT_STRING: 'yyyy-MM-dd',
     PULL_REQUEST_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`),
     ISSUE_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/issues/([0-9]+).*`),
@@ -12159,7 +12170,7 @@ class GithubUtils {
     /**
      * Generate the issue body and assignees for a StagingDeployCash.
      */
-    static generateStagingDeployCashBodyAndAssignees(tag, PRList, PRListMobileExpensify, verifiedPRList = [], verifiedPRListMobileExpensify = [], deployBlockers = [], resolvedDeployBlockers = [], resolvedInternalQAPRs = [], isFirebaseChecked = false, isGHStatusChecked = false) {
+    static generateStagingDeployCashBodyAndAssignees({ tag, PRList, PRListMobileExpensify = [], verifiedPRList = [], verifiedPRListMobileExpensify = [], deployBlockers = [], resolvedDeployBlockers = [], resolvedInternalQAPRs = [], isFirebaseChecked = false, isGHStatusChecked = false, chronologicalSection = '', }) {
         return this.fetchAllPullRequests(PRList.map((pr) => this.getPullRequestNumberFromURL(pr)))
             .then((data) => {
             const internalQAPRs = Array.isArray(data) ? data.filter((pr) => !(0, isEmptyObject_1.isEmptyObject)(pr.labels.find((item) => item.name === CONST_1.default.LABELS.INTERNAL_QA))) : [];
@@ -12228,6 +12239,10 @@ class GithubUtils {
                         issueBody += URL;
                         issueBody += '\r\n';
                     }
+                    issueBody += '\r\n\r\n';
+                }
+                if (chronologicalSection) {
+                    issueBody += chronologicalSection;
                     issueBody += '\r\n\r\n';
                 }
                 issueBody += '**Deployer verifications:**';
@@ -12344,6 +12359,26 @@ class GithubUtils {
             per_page: options.per_page ?? 50,
             ...(options.status && { status: options.status }),
         });
+    }
+    /**
+     * Get the workflow run URL for a specific commit SHA and workflow file.
+     * Returns the HTML URL of the matching run, or undefined if not found.
+     */
+    static async getWorkflowRunURLForCommit(commitSha, workflowFile) {
+        try {
+            const response = await this.octokit.actions.listWorkflowRuns({
+                owner: CONST_1.default.GITHUB_OWNER,
+                repo: CONST_1.default.APP_REPO,
+                workflow_id: workflowFile,
+                head_sha: commitSha,
+                per_page: 1,
+            });
+            return response.data.workflow_runs.at(0)?.html_url;
+        }
+        catch (error) {
+            console.warn(`Failed to find workflow run for commit ${commitSha}:`, error);
+            return undefined;
+        }
     }
     /**
      * Generate the URL of an New Expensify pull request given the PR number.
@@ -12502,6 +12537,7 @@ class GithubUtils {
                 commit: commit.sha,
                 subject: commit.commit.message,
                 authorName: commit.commit.author?.name ?? 'Unknown',
+                date: commit.commit.committer?.date ?? '',
             }));
         }
         catch (error) {
@@ -12697,24 +12733,26 @@ class OpenAIUtils {
         this.client = new openai_1.default({ apiKey });
     }
     /**
-     * Prompt the Chat Completions API.
+     * Prompt the Responses API with optional prompt caching.
      */
-    async promptChatCompletions({ userPrompt, systemPrompt = '', model = 'gpt-5.1' }) {
-        const messages = [{ role: 'user', content: userPrompt }];
-        if (systemPrompt) {
-            messages.unshift({ role: 'system', content: systemPrompt });
-        }
-        const response = await (0, retryWithBackoff_1.default)(() => this.client.chat.completions.create({
+    async promptResponses({ input, instructions, promptCacheKey, model = 'gpt-5.1', }) {
+        const response = await (0, retryWithBackoff_1.default)(() => this.client.responses.create({
             model,
-            messages,
+            input,
+            instructions,
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            reasoning_effort: 'low',
+            prompt_cache_key: promptCacheKey,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            prompt_cache_retention: '24h',
         }), { isRetryable: (err) => OpenAIUtils.isRetryableError(err) });
-        const result = response.choices.at(0)?.message?.content?.trim();
+        const result = response.output_text?.trim();
         if (!result) {
-            throw new Error('Error getting chat completion response from OpenAI');
+            throw new Error('Error getting response from OpenAI Responses API');
         }
-        return result;
+        return {
+            text: result,
+            responseID: response.id,
+        };
     }
     /**
      * Prompt a pre-defined assistant.
@@ -12769,9 +12807,17 @@ class OpenAIUtils {
     static isRetryableError(error) {
         // Handle known/predictable API errors
         if (error instanceof openai_1.default.APIError) {
-            // Only retry 429 (rate limit) or 5xx errors
             const status = error.status;
-            return !!status && (status === 429 || status >= 500);
+            // Retry 429 (rate limit) or 5xx errors
+            if (status === 429 || status >= 500) {
+                return true;
+            }
+            // Retry conversation_locked errors (another process is still operating on this conversation)
+            // This can happen when a previous request is still being processed by OpenAI
+            if ('code' in error && error.code === 'conversation_locked') {
+                return true;
+            }
+            return false;
         }
         // Handle random/unpredictable network errors
         if (error instanceof Error) {
@@ -12790,6 +12836,9 @@ class OpenAIUtils {
         }
         return false;
     }
+    /**
+     * @deprecated Use promptResponses instead. This method exists only for backwards compatibility with proposalPoliceComment.
+     */
     parseAssistantResponse(response) {
         const sanitized = (0, sanitizeJSONStringValues_1.default)(response);
         let parsed;
@@ -23063,6 +23112,19 @@ class Responses extends resource_1.APIResource {
     cancel(responseID, options) {
         return this._client.post((0, path_1.path) `/responses/${responseID}/cancel`, options);
     }
+    /**
+     * Compact conversation
+     *
+     * @example
+     * ```ts
+     * const compactedResponse = await client.responses.compact({
+     *   model: 'gpt-5.2',
+     * });
+     * ```
+     */
+    compact(body, options) {
+        return this._client.post('/responses/compact', { body, ...options });
+    }
 }
 exports.Responses = Responses;
 Responses.InputItems = input_items_1.InputItems;
@@ -23758,7 +23820,7 @@ tslib_1.__exportStar(__nccwpck_require__(11364), exports);
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.VERSION = void 0;
-exports.VERSION = '6.9.1'; // x-release-please-version
+exports.VERSION = '6.16.0'; // x-release-please-version
 //# sourceMappingURL=version.js.map
 
 /***/ }),

@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import reportsSelector from '@selectors/Attributes';
 import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
 import {FlashList} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
@@ -13,11 +12,13 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import TextBlock from '@components/TextBlock';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import useReportAttributes from '@hooks/useReportAttributes';
 import usePrevious from '@hooks/usePrevious';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
@@ -59,7 +60,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportsSelector, canBeMissing: true});
+    const reportAttributes = useReportAttributes();
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const [reportMetadataCollection] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA, {canBeMissing: true});
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: false});
@@ -70,7 +71,9 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: false});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
     const [isFullscreenVisible] = useOnyx(ONYXKEYS.FULLSCREEN_VISIBILITY, {canBeMissing: true});
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
 
     const theme = useTheme();
@@ -228,6 +231,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const movedToReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastReportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
             const itemReportMetadata = reportMetadataCollection?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`];
             const lastMessageTextFromReport = getLastMessageTextForReport({
+                translate,
                 report: item,
                 lastActorDetails,
                 movedFromReport,
@@ -236,6 +240,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 isReportArchived: !!itemReportNameValuePairs?.private_isArchived,
                 policyForMovingExpensesID,
                 reportMetadata: itemReportMetadata,
+                reportAttributesDerived: reportAttributes,
             });
 
             const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
@@ -263,6 +268,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     reportID={reportID}
                     fullReport={item}
                     reportAttributes={itemReportAttributes}
+                    reportAttributesDerived={reportAttributes}
                     oneTransactionThreadReport={itemOneTransactionThreadReport}
                     reportNameValuePairs={itemReportNameValuePairs}
                     reportActions={itemReportActions}
@@ -285,6 +291,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     shouldShowRBRorGBRTooltip={shouldShowRBRorGBRTooltip}
                     activePolicyID={activePolicyID}
                     onboardingPurpose={introSelected?.choice}
+                    onboarding={onboarding}
                     isFullscreenVisible={isFullscreenVisible}
                     isReportsSplitNavigatorLast={isReportsSplitNavigatorLast}
                     isScreenFocused={isScreenFocused}
@@ -294,6 +301,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     isReportArchived={isReportArchived}
                     lastAction={lastAction}
                     lastActionReport={lastActionReport}
+                    currentUserAccountID={currentUserAccountID}
                 />
             );
         },
@@ -318,11 +326,13 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             onLayoutItem,
             activePolicyID,
             introSelected?.choice,
+            onboarding,
             isFullscreenVisible,
             isReportsSplitNavigatorLast,
             isScreenFocused,
             localeCompare,
             translate,
+            currentUserAccountID,
         ],
     );
 
@@ -451,7 +461,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     onScroll={onScroll}
                     initialScrollIndex={isWeb ? getScrollIndex(route) : undefined}
                     maintainVisibleContentPosition={{disabled: true}}
-                    drawDistance={1000}
+                    drawDistance={250}
                     removeClippedSubviews
                 />
             )}
