@@ -20,6 +20,9 @@ type BaseEmojiPickerMenuProps = {
     /** Array of header emojis */
     headerEmojis: HeaderIndices[];
 
+    /** Selected header index */
+    selectedHeaderIndex?: number | null;
+
     /** Function to scroll to a specific header in the emoji list */
     scrollToHeader: (headerIndex: number) => void;
 
@@ -40,6 +43,9 @@ type BaseEmojiPickerMenuProps = {
 
     /** Whether the list should always bounce vertically */
     alwaysBounceVertical?: boolean;
+
+    /** Callback for momentum scroll end */
+    onMomentumScrollEnd?: () => void;
 
     /** Reference to the outer element */
     ref?: ForwardedRef<FlashListRef<EmojiPickerListItem>>;
@@ -82,6 +88,7 @@ function ListEmptyComponent() {
 
 function BaseEmojiPickerMenu({
     headerEmojis,
+    selectedHeaderIndex = null,
     scrollToHeader,
     isFiltered,
     listWrapperStyle = [],
@@ -90,6 +97,7 @@ function BaseEmojiPickerMenu({
     stickyHeaderIndices = [],
     extraData = [],
     alwaysBounceVertical = false,
+    onMomentumScrollEnd,
     ref,
 }: BaseEmojiPickerMenuProps) {
     const styles = useThemeStyles();
@@ -98,6 +106,7 @@ function BaseEmojiPickerMenu({
             {!isFiltered && (
                 <CategoryShortcutBar
                     headerEmojis={headerEmojis}
+                    selectedIndex={selectedHeaderIndex}
                     onPress={scrollToHeader}
                 />
             )}
@@ -113,6 +122,7 @@ function BaseEmojiPickerMenu({
                     stickyHeaderIndices={stickyHeaderIndices}
                     ListEmptyComponent={ListEmptyComponent}
                     alwaysBounceVertical={alwaysBounceVertical}
+                    onMomentumScrollEnd={onMomentumScrollEnd}
                     contentContainerStyle={styles.ph4}
                     extraData={extraData}
                     getItemType={getItemType}
