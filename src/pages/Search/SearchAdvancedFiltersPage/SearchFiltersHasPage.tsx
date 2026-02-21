@@ -80,7 +80,7 @@ function SearchFiltersHasPage() {
             shouldEnableMaxHeight
         >
             <EducationalTooltip
-                shouldRender={true}
+                shouldRender={shouldShowProductTrainingTooltip}
                 renderTooltipContent={renderProductTrainingTooltip}
                 anchorAlignment={{
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
