@@ -7641,7 +7641,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 // Tracked expenses in the CREATE flow are unreported and not tied to a policy
                 policyID: undefined,
                 receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
-                receiptState: trackedReceipt?.state,
+                receiptState: isFileUploadable(trackedReceipt) ? trackedReceipt?.state : undefined,
                 reimbursable,
                 category,
                 tag,
