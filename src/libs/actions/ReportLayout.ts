@@ -51,7 +51,7 @@ function getReportLayoutGroupBy(storedValue: string | null | undefined): ReportL
 function setReportDetailsColumns(columns: SearchCustomColumnIds[], previousValue?: string[] | null) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS>> = [
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS,
             value: columns,
         },
@@ -59,7 +59,7 @@ function setReportDetailsColumns(columns: SearchCustomColumnIds[], previousValue
 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS>> = [
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS,
             value: previousValue ?? null,
         },
