@@ -1304,6 +1304,8 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidReadings: '開始値と終了値の両方を入力してください',
             negativeDistanceNotAllowed: '終了値は開始値より大きくなければなりません',
             distanceAmountTooLarge: '合計金額が大きすぎます。距離を減らすか、レートを下げてください。',
+            distanceAmountTooLargeReduceDistance: '合計金額が大きすぎます。距離を減らしてください。',
+            distanceAmountTooLargeReduceRate: '合計金額が大きすぎます。レートを下げてください。',
             invalidIntegerAmount: '続行する前にドルの整数金額を入力してください',
             invalidTaxAmount: (amount: string) => `最大税額は${amount}です`,
             invalidSplit: '分割した金額の合計は合計金額と一致している必要があります',

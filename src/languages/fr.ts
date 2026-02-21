@@ -1317,6 +1317,8 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidReadings: 'Veuillez saisir les relevés de début et de fin',
             negativeDistanceNotAllowed: 'Le relevé de fin doit être supérieur au relevé de début',
             distanceAmountTooLarge: 'Le montant total est trop élevé. Réduisez la distance ou diminuez le taux.',
+            distanceAmountTooLargeReduceDistance: 'Le montant total est trop élevé. Réduisez la distance.',
+            distanceAmountTooLargeReduceRate: 'Le montant total est trop élevé. Diminuez le taux.',
             invalidIntegerAmount: 'Veuillez saisir un montant entier en dollars avant de continuer',
             invalidTaxAmount: (amount: string) => `Le montant maximal de taxe est de ${amount}`,
             invalidSplit: 'La somme des répartitions doit être égale au montant total',

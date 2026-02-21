@@ -1283,6 +1283,8 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidReadings: '请输入起始读数和结束读数',
             negativeDistanceNotAllowed: '结束读数必须大于开始读数',
             distanceAmountTooLarge: '总金额过大。请减少距离或降低费率。',
+            distanceAmountTooLargeReduceDistance: '总金额过大。请减少距离。',
+            distanceAmountTooLargeReduceRate: '总金额过大。请降低费率。',
             invalidIntegerAmount: '请在继续之前输入一个整数美元金额',
             invalidTaxAmount: (amount: string) => `最高税额为 ${amount}`,
             invalidSplit: '拆分金额之和必须等于总金额',
