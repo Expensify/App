@@ -289,19 +289,18 @@ function IOURequestEditReportCommon({
                 }}
                 shouldSingleExecuteRowSelect
                 initiallyFocusedItemKey={selectedReportID}
+                shouldScrollToFocusedIndexOnMount={!createReportOption}
                 ListItem={InviteMemberListItem}
+                customListHeaderContent={createReportOption}
                 listFooterContent={
-                    <>
-                        {shouldShowRemoveFromReport && (
-                            <MenuItem
-                                onPress={removeFromReport}
-                                title={translate('iou.removeFromReport')}
-                                description={translate('iou.moveToPersonalSpace')}
-                                icon={icons.Close}
-                            />
-                        )}
-                        {createReportOption}
-                    </>
+                    shouldShowRemoveFromReport ? (
+                        <MenuItem
+                            onPress={removeFromReport}
+                            title={translate('iou.removeFromReport')}
+                            description={translate('iou.moveToPersonalSpace')}
+                            icon={icons.Close}
+                        />
+                    ) : undefined
                 }
                 listEmptyContent={createReportOption}
             />

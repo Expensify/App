@@ -1,4 +1,4 @@
-import {useIsFocused} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
@@ -30,9 +30,14 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
     currentReportIDRef.current = currentReportID;
     const isActiveReport = useCallback((reportID: string): boolean => currentReportIDRef.current === reportID, []);
 
-    const onLayout = useCallback(() => {
-        endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB);
-    }, []);
+    // IMPORTANT: Always end the telemetry navigation span for the Inbox tab when the screen gains focus.
+    // This must handle both the initial mount and all subsequent Inbox tab visits,
+    // as onLayout does not fire when navigating back to an already-mounted screen.
+    useFocusEffect(
+        useCallback(() => {
+            endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB);
+        }, []),
+    );
 
     return (
         <View
@@ -40,7 +45,6 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
             collapsable={false}
             accessibilityLabel={translate('sidebarScreen.listOfChats')}
             style={[styles.flex1, styles.h100]}
-            onLayout={onLayout}
         >
             <SidebarLinks
                 // Forwarded props:
