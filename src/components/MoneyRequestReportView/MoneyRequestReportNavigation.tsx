@@ -2,6 +2,7 @@ import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import PrevNextButtons from '@components/PrevNextButtons';
 import Text from '@components/Text';
+import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -14,7 +15,6 @@ import {saveLastSearchParams} from '@userActions/ReportNavigation';
 import {search} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {isActionLoadingSetSelector} from '@src/selectors/ReportMetaData';
 
 type MoneyRequestReportNavigationProps = {
     reportID?: string;
@@ -26,7 +26,7 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`, {canBeMissing: true});
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {localeCompare, formatPhoneNumber, translate} = useLocalize();
-    const [isActionLoadingSet = CONST.EMPTY_SET] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
+    const isActionLoadingSet = useActionLoadingReportIDs();
 
     const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         canEvict: false,
