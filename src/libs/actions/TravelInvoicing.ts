@@ -2,7 +2,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
-import type {OpenPolicyTravelPageParams, SetTravelInvoicingSettlementAccountParams, UpdateTravelInvoicingSettlementFrequencyParams} from '@libs/API/parameters';
+import type {OpenPolicyTravelPageParams, SetTravelInvoicingSettlementAccountParams, ToggleTravelInvoicingParams, UpdateTravelInvoicingSettlementFrequencyParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import {getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
@@ -161,12 +161,7 @@ function clearTravelInvoicingSettlementAccountErrors(workspaceAccountID: number,
  * Optimistically updates the monthlySettlementDate based on the selected frequency.
  * Supports offline behavior - changes are queued and synced when back online.
  */
-function updateTravelInvoiceSettlementFrequency(
-    policyID: string,
-    workspaceAccountID: number,
-    frequency: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>,
-    currentMonthlySettlementDate?: Date,
-) {
+function updateTravelInvoiceSettlementFrequency(workspaceAccountID: number, frequency: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>, currentMonthlySettlementDate?: Date) {
     const cardSettingsKey = getTravelInvoicingCardSettingsKey(workspaceAccountID);
 
     // If Monthly, set date (optimistically today). If Daily, set null.
@@ -224,8 +219,7 @@ function updateTravelInvoiceSettlementFrequency(
     ];
 
     const params: UpdateTravelInvoicingSettlementFrequencyParams = {
-        policyID,
-        workspaceAccountID,
+        domainAccountID: workspaceAccountID,
         settlementFrequency: frequency,
     };
 
@@ -248,10 +242,81 @@ function clearTravelInvoicingSettlementFrequencyErrors(workspaceAccountID: numbe
     });
 }
 
+/**
+ * Toggles Travel Invoicing on or off for a workspace.
+ * Sets isEnabled flag optimistically, backend confirms via onyx data.
+ */
+function toggleTravelInvoicing(policyID: string, workspaceAccountID: number, enabled: boolean) {
+    const cardSettingsKey = getTravelInvoicingCardSettingsKey(workspaceAccountID);
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: cardSettingsKey,
+            value: {
+                isEnabled: enabled,
+                [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {
+                    isEnabled: enabled,
+                },
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                errors: null,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: cardSettingsKey,
+            value: {
+                pendingAction: null,
+                [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {
+                    isEnabled: enabled,
+                },
+            },
+        },
+    ];
+
+    // On failure: revert isEnabled and show error
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: cardSettingsKey,
+            value: {
+                isEnabled: !enabled,
+                [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {
+                    isEnabled: !enabled,
+                },
+                pendingAction: null,
+                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+            },
+        },
+    ];
+
+    const params: ToggleTravelInvoicingParams = {
+        policyID,
+        enabled,
+    };
+
+    API.write(WRITE_COMMANDS.TOGGLE_TRAVEL_INVOICING, params, {optimisticData, successData, failureData});
+}
+
+/**
+ * Clears any errors from the Travel Invoicing toggle action.
+ */
+function clearToggleTravelInvoicingErrors(workspaceAccountID: number) {
+    Onyx.merge(getTravelInvoicingCardSettingsKey(workspaceAccountID), {
+        errors: null,
+        pendingAction: null,
+    });
+}
+
 export {
     openPolicyTravelPage,
     setTravelInvoicingSettlementAccount,
     clearTravelInvoicingSettlementAccountErrors,
     clearTravelInvoicingSettlementFrequencyErrors,
     updateTravelInvoiceSettlementFrequency,
+    toggleTravelInvoicing,
+    clearToggleTravelInvoicingErrors,
 };
