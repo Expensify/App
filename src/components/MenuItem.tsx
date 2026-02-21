@@ -974,7 +974,7 @@ function MenuItem({
                                                             <Badge
                                                                 text={badgeText}
                                                                 icon={badgeIcon}
-                                                                badgeStyles={[badgeStyle, styles.alignSelfStart, styles.ml3, styles.mt2]}
+                                                                badgeStyles={[badgeStyle, styles.alignSelfStart, styles.ml3, styles.mt2, (isHovered || focused) && styles.badgeDefaultActive]}
                                                                 success={badgeSuccess}
                                                                 isStrong={badgeStrong}
                                                                 onPress={onBadgePress}
@@ -991,7 +991,7 @@ function MenuItem({
                                                     <Badge
                                                         text={badgeText}
                                                         icon={badgeIcon}
-                                                        badgeStyles={badgeStyle}
+                                                        badgeStyles={[badgeStyle, (isHovered || focused) && styles.badgeDefaultActive]}
                                                         success={badgeSuccess}
                                                         isStrong={badgeStrong}
                                                         onPress={onBadgePress}
@@ -1082,7 +1082,7 @@ function MenuItem({
                                             <Badge
                                                 text={badgeText}
                                                 icon={badgeIcon}
-                                                badgeStyles={[badgeStyle, styles.alignSelfStart, styles.ml13, styles.mt2]}
+                                                badgeStyles={[badgeStyle, styles.alignSelfStart, styles.ml13, styles.mt2, (isHovered || focused) && styles.badgeDefaultActive]}
                                                 success={badgeSuccess}
                                                 isStrong={badgeStrong}
                                                 onPress={onBadgePress}
