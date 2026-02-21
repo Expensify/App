@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import DecisionModal from '@components/DecisionModal';
 import useAssignCard from '@hooks/useAssignCard';
 import useCompanyCards from '@hooks/useCompanyCards';
@@ -43,15 +43,22 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
 
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeed);
 
+    // Use a ref so that changes to the employee list (e.g. after inviting a member) don't
+    // recreate the callback and trigger an unnecessary re-fetch that flashes a skeleton loader.
+    const employeeListRef = useRef(policy?.employeeList);
+    useEffect(() => {
+        employeeListRef.current = policy?.employeeList;
+    }, [policy?.employeeList]);
+
     const loadPolicyCompanyCardsPage = useCallback(() => {
         // Skip the API call when workspaceAccountID is 0 -- Onyx discards writes to collection keys with member ID '0'.
         if (domainOrWorkspaceAccountID === CONST.DEFAULT_NUMBER_ID) {
             return;
         }
 
-        const emailList = Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList));
+        const emailList = Object.keys(getMemberAccountIDsForWorkspace(employeeListRef.current));
         openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID, emailList, translate);
-    }, [domainOrWorkspaceAccountID, policyID, policy?.employeeList, translate]);
+    }, [domainOrWorkspaceAccountID, policyID, translate]);
 
     const {isOffline} = useNetwork({
         onReconnect: loadPolicyCompanyCardsPage,
