@@ -83,6 +83,14 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
     );
     const badgeProps = getSettlementStatusBadgeProps(withdrawalIDItem.state, translate, theme);
     const settlementStatus = getSettlementStatus(withdrawalIDItem.state);
+    const statusBadge = !!badgeProps && (
+        <Badge
+            text={badgeProps.text}
+            isCondensed
+            badgeStyles={[styles.ml0, styles.borderNone, badgeProps.badgeStyles]}
+            textStyles={[badgeProps.textStyles]}
+        />
+    );
     const withdrawalInfoText = translate('settlement.withdrawalInfo', {date: formattedWithdrawalDate, withdrawalID: withdrawalIDItem.entryID});
 
     const failedErrorHTML =
@@ -114,6 +122,14 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                     text={formattedWithdrawalDate}
                     style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre]}
                 />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS]: (
+            <View
+                key={CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS)}
+            >
+                {statusBadge}
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID]: (

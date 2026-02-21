@@ -3,6 +3,7 @@ import React, {useMemo} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {Linking, View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import EnvironmentBadge from './EnvironmentBadge';
 import Text from './Text';
 import TextLink from './TextLink';
@@ -77,6 +78,8 @@ function Header({title = '', subtitle = '', textStyles = [], style, containerSty
                           <Text
                               numberOfLines={numberOfTitleLines}
                               style={[styles.headerText, styles.textLarge, styles.lineHeightXLarge, textStyles]}
+                              accessibilityRole={CONST.ROLE.HEADER}
+                              accessibilityLabel={title}
                           >
                               {title}
                           </Text>

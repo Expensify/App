@@ -1,4 +1,3 @@
-import {feedKeysWithAssignedCardsSelector} from '@selectors/Card';
 import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -20,6 +19,7 @@ import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import useDeleteSavedSearch from './useDeleteSavedSearch';
+import useFeedKeysWithAssignedCards from './useFeedKeysWithAssignedCards';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
@@ -69,7 +69,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
 
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
-    const [feedKeysWithCards] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {selector: feedKeysWithAssignedCardsSelector, canBeMissing: true});
+    const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const flattenedMenuItems = useMemo(() => typeMenuSections.flatMap((section) => section.menuItems), [typeMenuSections]);
 
     useSuggestedSearchDefaultNavigation({

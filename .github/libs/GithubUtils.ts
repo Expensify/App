@@ -29,6 +29,7 @@ type CommitType = {
     commit: string;
     subject: string;
     authorName: string;
+    date: string;
 };
 
 type StagingDeployCashPR = {
@@ -46,6 +47,20 @@ type StagingDeployCashBlocker = {
 type StagingDeployCashBody = {
     issueBody: string;
     issueAssignees: Array<string | undefined>;
+};
+
+type StagingDeployCashParams = {
+    tag: string;
+    PRList: string[];
+    PRListMobileExpensify?: string[];
+    verifiedPRList?: string[];
+    verifiedPRListMobileExpensify?: string[];
+    deployBlockers?: string[];
+    resolvedDeployBlockers?: string[];
+    resolvedInternalQAPRs?: string[];
+    isFirebaseChecked?: boolean;
+    isGHStatusChecked?: boolean;
+    chronologicalSection?: string;
 };
 
 type OctokitArtifact = OctokitComponents['schemas']['artifact'];
@@ -305,18 +320,19 @@ class GithubUtils {
     /**
      * Generate the issue body and assignees for a StagingDeployCash.
      */
-    static generateStagingDeployCashBodyAndAssignees(
-        tag: string,
-        PRList: string[],
-        PRListMobileExpensify: string[],
-        verifiedPRList: string[] = [],
-        verifiedPRListMobileExpensify: string[] = [],
-        deployBlockers: string[] = [],
-        resolvedDeployBlockers: string[] = [],
-        resolvedInternalQAPRs: string[] = [],
+    static generateStagingDeployCashBodyAndAssignees({
+        tag,
+        PRList,
+        PRListMobileExpensify = [],
+        verifiedPRList = [],
+        verifiedPRListMobileExpensify = [],
+        deployBlockers = [],
+        resolvedDeployBlockers = [],
+        resolvedInternalQAPRs = [],
         isFirebaseChecked = false,
         isGHStatusChecked = false,
-    ): Promise<void | StagingDeployCashBody> {
+        chronologicalSection = '',
+    }: StagingDeployCashParams): Promise<void | StagingDeployCashBody> {
         return this.fetchAllPullRequests(PRList.map((pr) => this.getPullRequestNumberFromURL(pr)))
             .then((data) => {
                 const internalQAPRs = Array.isArray(data) ? data.filter((pr) => !isEmptyObject(pr.labels.find((item) => item.name === CONST.LABELS.INTERNAL_QA))) : [];
@@ -400,6 +416,11 @@ class GithubUtils {
                             issueBody += URL;
                             issueBody += '\r\n';
                         }
+                        issueBody += '\r\n\r\n';
+                    }
+
+                    if (chronologicalSection) {
+                        issueBody += chronologicalSection;
                         issueBody += '\r\n\r\n';
                     }
 
@@ -565,6 +586,26 @@ class GithubUtils {
             per_page: options.per_page ?? 50,
             ...(options.status && {status: options.status}),
         });
+    }
+
+    /**
+     * Get the workflow run URL for a specific commit SHA and workflow file.
+     * Returns the HTML URL of the matching run, or undefined if not found.
+     */
+    static async getWorkflowRunURLForCommit(commitSha: string, workflowFile: string): Promise<string | undefined> {
+        try {
+            const response = await this.octokit.actions.listWorkflowRuns({
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
+                workflow_id: workflowFile,
+                head_sha: commitSha,
+                per_page: 1,
+            });
+            return response.data.workflow_runs.at(0)?.html_url;
+        } catch (error) {
+            console.warn(`Failed to find workflow run for commit ${commitSha}:`, error);
+            return undefined;
+        }
     }
 
     /**
@@ -744,6 +785,7 @@ class GithubUtils {
                     commit: commit.sha,
                     subject: commit.commit.message,
                     authorName: commit.commit.author?.name ?? 'Unknown',
+                    date: commit.commit.committer?.date ?? '',
                 }),
             );
         } catch (error) {

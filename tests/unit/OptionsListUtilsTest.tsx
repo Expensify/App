@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import type {PrivateIsArchivedMap} from '@selectors/ReportNameValuePairs';
+import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 import {act, render, renderHook} from '@testing-library/react-native';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
