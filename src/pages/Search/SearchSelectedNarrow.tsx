@@ -34,6 +34,7 @@ type SearchSelectedNarrowProps = {
 
 function SearchSelectedNarrow({options, itemsLength, currentSelectedPolicyID, currentSelectedReportID, confirmPayment, latestBankItems}: SearchSelectedNarrowProps) {
     const styles = useThemeStyles();
+    const [userBillingGraceEndPeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [selectedIouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentSelectedReportID}`, {canBeMissing: true});
     const {translate, localeCompare} = useLocalize();
@@ -95,6 +96,7 @@ function SearchSelectedNarrow({options, itemsLength, currentSelectedPolicyID, cu
                                 activeAdminPolicies,
                                 isUserValidated,
                                 isDelegateAccessRestricted,
+                                userBillingGraceEndPeriodCollection,
                                 showDelegateNoAccessModal,
                                 confirmPayment,
                             })
