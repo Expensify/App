@@ -169,7 +169,7 @@ Examples:
 
 ## How can an Admin take these actions for another member?
 
-Admins can create reports on behalf of members by moving expenses to a new report (see "How Admins can create reports on behalf of members" above). However, Admins cannot directly submit or retract reports for others. If you need to submit or manage someone else's reports, ask them to add you as a [Copilot](https://help.expensify.com/articles/new-expensify/settings/Copilot-Access).
+Workspace Admins can create reports on behalf of members by moving expenses to a new report. Workspace Admins can also submit and reject reports for members within their Workspace. If you are not a Workspace Admin and need to submit or manage someone else's reports, ask them to add you as a [Copilot](https://help.expensify.com/articles/new-expensify/settings/Copilot-Access).
 
 ## What happens if I forget to submit a report?
 
