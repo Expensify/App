@@ -79,6 +79,9 @@ function IOURequestStepDistanceRate({
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const [formError, setFormError] = useState('');
+    // Track the rate the user last selected visually, even if it failed validation.
+    // This keeps the problematic rate shown as selected so the user understands what they need to change.
+    const [pendingRateID, setPendingRateID] = useState<string | undefined>();
 
     const rates = DistanceRequestUtils.getMileageRates(policy, false, currentRateID);
     const sortedRates = useMemo(() => Object.values(rates).sort((a, b) => localeCompare(a.name ?? '', b.name ?? '')), [rates, localeCompare]);
@@ -89,7 +92,8 @@ function IOURequestStepDistanceRate({
 
     const options = sortedRates.map((rate) => {
         const unit = transaction?.comment?.customUnit?.customUnitRateID === rate.customUnitRateID ? DistanceRequestUtils.getDistanceUnit(transaction, rate) : rate.unit;
-        const isSelected = currentRateID ? currentRateID === rate.customUnitRateID : DistanceRequestUtils.getDefaultMileageRate(policy)?.customUnitRateID === rate.customUnitRateID;
+        const effectiveRateID = pendingRateID ?? currentRateID;
+        const isSelected = effectiveRateID ? effectiveRateID === rate.customUnitRateID : DistanceRequestUtils.getDefaultMileageRate(policy)?.customUnitRateID === rate.customUnitRateID;
         const rateForDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate.rate, isSelected ? transactionCurrency : rate.currency, translate, toLocaleDigit, getCurrencySymbol);
         return {
             text: rate.name ?? rateForDisplay,
@@ -106,6 +110,18 @@ function IOURequestStepDistanceRate({
     const initiallyFocusedOption = options.find((item) => item.isSelected)?.keyForList;
 
     function selectDistanceRate(customUnitRateID: string) {
+        // Validate that the new rate combined with the existing distance doesn't exceed the backend limit.
+        // This check runs before any state updates so that an invalid rate doesn't modify tax or rate state.
+        const newRate = rates[customUnitRateID]?.rate ?? 0;
+        const unit = DistanceRequestUtils.getDistanceUnit(transaction, rates[customUnitRateID]);
+        const distanceInMeters = getDistanceInMeters(transaction, unit);
+        const distanceInUnits = DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit);
+        if (!DistanceRequestUtils.isDistanceAmountWithinLimit(distanceInUnits, newRate)) {
+            setPendingRateID(customUnitRateID);
+            setFormError(translate('iou.error.distanceAmountTooLarge'));
+            return;
+        }
+
         let taxAmount;
         let taxRateExternalID;
         if (shouldShowTax) {
@@ -113,22 +129,11 @@ function IOURequestStepDistanceRate({
             const defaultTaxCode = getDefaultTaxCode(policy, transaction) ?? '';
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             taxRateExternalID = policyCustomUnitRate?.attributes?.taxRateExternalID || defaultTaxCode;
-            const unit = DistanceRequestUtils.getDistanceUnit(transaction, rates[customUnitRateID]);
             const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, getDistanceInMeters(transaction, unit));
             const taxPercentage = taxRateExternalID ? getTaxValue(policy, transaction, taxRateExternalID) : undefined;
             taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, taxableAmount, getCurrencyDecimals(rates[customUnitRateID].currency)));
             setMoneyRequestTaxAmount(transactionID, taxAmount, shouldUseTransactionDraft(action));
             setMoneyRequestTaxRate(transactionID, taxRateExternalID ?? null, shouldUseTransactionDraft(action));
-        }
-
-        // Validate that the new rate combined with the existing distance doesn't exceed the backend limit
-        const newRate = rates[customUnitRateID]?.rate ?? 0;
-        const unit = DistanceRequestUtils.getDistanceUnit(transaction, rates[customUnitRateID]);
-        const distanceInMeters = getDistanceInMeters(transaction, unit);
-        const distanceInUnits = DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit);
-        if (!DistanceRequestUtils.isDistanceAmountWithinLimit(distanceInUnits, newRate)) {
-            setFormError(translate('iou.error.distanceAmountTooLarge'));
-            return;
         }
 
         if (currentRateID !== customUnitRateID) {
@@ -153,6 +158,7 @@ function IOURequestStepDistanceRate({
             }
         }
 
+        setPendingRateID(undefined);
         setFormError('');
         navigateBack();
     }
