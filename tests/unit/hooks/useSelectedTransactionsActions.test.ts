@@ -619,6 +619,8 @@ describe('useSelectedTransactionsActions', () => {
             originalTransaction: transaction,
         });
 
+        jest.spyOn(require('@libs/ReportSecondaryActionUtils'), 'isSplitAction').mockReturnValue(true);
+
         const {result} = renderHook(() =>
             useSelectedTransactionsActions({
                 report,
@@ -689,6 +691,6 @@ describe('useSelectedTransactionsActions', () => {
 
         mergeOption?.onSelected?.();
 
-        expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith(transaction.transactionID, [transaction], mockLocalCompare, [], false, false);
+        expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith(transaction.transactionID, [transaction], mockLocalCompare, [], false, false, undefined);
     });
 });

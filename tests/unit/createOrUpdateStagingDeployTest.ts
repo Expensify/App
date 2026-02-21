@@ -36,7 +36,8 @@ type Arguments = {
 const PATH_TO_PACKAGE_JSON = path.resolve(__dirname, '../../package.json');
 
 const mockListIssues = jest.fn();
-const mockGetPullRequestsDeployedBetween = jest.fn();
+const mockGetMergedPRsDeployedBetween = jest.fn() as jest.MockedFunction<typeof GitUtils.getMergedPRsDeployedBetween>;
+const mockGetWorkflowRunURLForCommit = jest.fn().mockResolvedValue(undefined);
 
 beforeAll(() => {
     // Mock octokit module
@@ -74,7 +75,8 @@ beforeAll(() => {
     GithubUtils.internalOctokit = mockOctokit;
 
     // Mock GitUtils
-    GitUtils.getPullRequestsDeployedBetween = mockGetPullRequestsDeployedBetween;
+    GitUtils.getMergedPRsDeployedBetween = mockGetMergedPRsDeployedBetween;
+    GithubUtils.getWorkflowRunURLForCommit = mockGetWorkflowRunURLForCommit;
     mockGetInput.mockImplementation((arg) => (arg === 'GITHUB_TOKEN' ? 'fake_token' : ''));
 
     vol.reset();
@@ -86,7 +88,8 @@ beforeAll(() => {
 afterEach(() => {
     mockGetInput.mockClear();
     mockListIssues.mockClear();
-    mockGetPullRequestsDeployedBetween.mockClear();
+    mockGetMergedPRsDeployedBetween.mockClear();
+    mockGetWorkflowRunURLForCommit.mockClear();
 });
 
 afterAll(() => {
@@ -145,11 +148,11 @@ const openCheckbox = '- [ ] ';
 const closedCheckbox = '- [x] ';
 const deployerVerificationsHeader = '**Deployer verifications:**';
 // eslint-disable-next-line max-len
-const firebaseVerificationCurrentRelease =
-    'I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-mobile-app/crashlytics/app/ios:com.expensify.expensifylite/issues?state=open&time=last-seven-days&types=crash&tag=all&sort=eventCount) for **this release version** and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).';
+const sentryVerificationCurrentRelease = (version: string) =>
+    `I checked [Sentry](https://expensify.sentry.io/releases/new.expensify%40${version}/?project=app&environment=staging) for **this release version** and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
 // eslint-disable-next-line max-len
-const firebaseVerificationPreviousRelease =
-    'I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-mobile-app/crashlytics/app/android:org.me.mobiexpensifyg/issues?state=open&time=last-seven-days&types=crash&tag=all&sort=eventCount) for **the previous release version** and verified that the release did not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).';
+const sentryVerificationPreviousRelease = (version: string) =>
+    `I checked [Sentry](https://expensify.sentry.io/releases/new.expensify%40${version}/?project=app&environment=production) for **the previous release version** and verified that the release did not introduce any new crashes. Because mobile deploys use a phased rollout, completing this checklist will deploy the previous release version to 100% of users. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
 // eslint-disable-next-line max-len
 const ghVerification = 'I checked [GitHub Status](https://www.githubstatus.com/) and verified there is no reported incident with Actions.';
 const ccApplauseLeads = `cc @Expensify/applauseleads\r\n`;
@@ -179,6 +182,59 @@ describe('createOrUpdateStagingDeployCash', () => {
 
     const baseNewPullRequests = [6, 7, 8];
 
+    function toMergedPRs(prNumbers: number[]) {
+        return {
+            mergedPRs: prNumbers.map((num, index) => ({
+                prNumber: num,
+                date: `2024-01-${String(index + 1).padStart(2, '0')}T00:00:00Z`,
+            })),
+            submoduleUpdates: [],
+        };
+    }
+
+    type ChronologicalEntry = {type: 'pr'; prNumber: number} | {type: 'submodule'; version: string; buildLink?: string; commit?: string; mobileExpensifyPRs?: number[]};
+
+    function buildChronologicalSection(entries: number[] | ChronologicalEntry[], pendingMobileExpensifyPRs: number[] = []): string {
+        let normalizedEntries: ChronologicalEntry[];
+        if (entries.length === 0) {
+            normalizedEntries = [];
+        } else if (typeof entries[0] === 'number') {
+            normalizedEntries = (entries as number[]).map((n): ChronologicalEntry => ({type: 'pr', prNumber: n}));
+        } else {
+            normalizedEntries = entries as ChronologicalEntry[];
+        }
+
+        if (normalizedEntries.length === 0) {
+            return '';
+        }
+
+        let section = '<details>\r\n<summary><b>Chronologically ordered merged PRs (oldest first)</b></summary>\r\n\r\n';
+        let prIndex = 0;
+        for (const entry of normalizedEntries) {
+            if (entry.type === 'submodule') {
+                prIndex++;
+                const buildLink = entry.buildLink ? ` — [Adhoc Build](${entry.buildLink})` : ` — ${(entry.commit ?? '').substring(0, 7)}`;
+                section += `${prIndex}. Mobile-Expensify submodule update to \`${entry.version}\`${buildLink}\r\n`;
+                if (entry.mobileExpensifyPRs) {
+                    for (const mobileExpensifyPR of entry.mobileExpensifyPRs) {
+                        section += `   ↳ https://github.com/${CONST.GITHUB_OWNER}/${CONST.MOBILE_EXPENSIFY_REPO}/pull/${mobileExpensifyPR}\r\n`;
+                    }
+                }
+            } else {
+                prIndex++;
+                section += `${prIndex}. https://github.com/${process.env.GITHUB_REPOSITORY}/pull/${entry.prNumber}\r\n`;
+            }
+        }
+        if (pendingMobileExpensifyPRs.length > 0) {
+            section += `\r\n--- PRs waiting for Mobile-Expensify submodule update\r\n`;
+            for (const mobileExpensifyPR of pendingMobileExpensifyPRs) {
+                section += `https://github.com/${CONST.GITHUB_OWNER}/${CONST.MOBILE_EXPENSIFY_REPO}/pull/${mobileExpensifyPR}\r\n`;
+            }
+        }
+        section += '\r\n</details>';
+        return section;
+    }
+
     test('creates new issue when there is none open', async () => {
         vol.reset();
         vol.fromJSON({
@@ -186,14 +242,14 @@ describe('createOrUpdateStagingDeployCash', () => {
         });
 
         // cspell:disable-next-line
-        mockGetPullRequestsDeployedBetween.mockImplementation((fromRef, toRef, repositoryName) => {
+        mockGetMergedPRsDeployedBetween.mockImplementation(async (fromRef, toRef, repositoryName) => {
             if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-1-staging') {
                 if (repositoryName === CONST.MOBILE_EXPENSIFY_REPO) {
-                    return [20, 21, 22]; // Mobile-Expensify PRs
+                    return toMergedPRs([20, 21, 22]); // Mobile-Expensify PRs
                 }
-                return [...baseNewPullRequests]; // App PRs
+                return toMergedPRs(baseNewPullRequests); // App PRs
             }
-            return [];
+            return {mergedPRs: [], submoduleUpdates: []};
         });
 
         mockListIssues.mockImplementation((args: Arguments) => {
@@ -221,9 +277,10 @@ describe('createOrUpdateStagingDeployCash', () => {
                 `${lineBreak}${openCheckbox}${baseMobileExpensifyPRList.at(0)}` +
                 `${lineBreak}${openCheckbox}${baseMobileExpensifyPRList.at(1)}` +
                 `${lineBreak}${openCheckbox}${baseMobileExpensifyPRList.at(2)}${lineBreak}` +
+                `${lineBreakDouble}${buildChronologicalSection(baseNewPullRequests, [20, 21, 22])}` +
                 `${lineBreakDouble}${deployerVerificationsHeader}` +
-                `${lineBreak}${openCheckbox}${firebaseVerificationCurrentRelease}` +
-                `${lineBreak}${openCheckbox}${firebaseVerificationPreviousRelease}` +
+                `${lineBreak}${openCheckbox}${sentryVerificationCurrentRelease('1.0.2-1')}` +
+                `${lineBreak}${openCheckbox}${sentryVerificationPreviousRelease('1.0.1-0')}` +
                 `${lineBreak}${openCheckbox}${ghVerification}` +
                 `${lineBreakDouble}${ccApplauseLeads}`,
         });
@@ -236,14 +293,14 @@ describe('createOrUpdateStagingDeployCash', () => {
         });
 
         // Mock: No Mobile-Expensify PRs found for this release
-        mockGetPullRequestsDeployedBetween.mockImplementation((fromRef, toRef, repositoryName) => {
+        mockGetMergedPRsDeployedBetween.mockImplementation(async (fromRef, toRef, repositoryName) => {
             if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-1-staging') {
                 if (repositoryName === CONST.MOBILE_EXPENSIFY_REPO) {
-                    return []; // No Mobile-Expensify PRs
+                    return {mergedPRs: [], submoduleUpdates: []}; // No Mobile-Expensify PRs
                 }
-                return [...baseNewPullRequests]; // App PRs
+                return toMergedPRs(baseNewPullRequests); // App PRs
             }
-            return [];
+            return {mergedPRs: [], submoduleUpdates: []};
         });
 
         mockListIssues.mockImplementation((args: Arguments) => {
@@ -268,9 +325,10 @@ describe('createOrUpdateStagingDeployCash', () => {
                 `${lineBreak}${openCheckbox}${basePRList.at(6)}` +
                 `${lineBreak}${openCheckbox}${basePRList.at(7)}${lineBreak}` +
                 // Note: No Mobile-Expensify PRs section since there are none
+                `${lineBreakDouble}${buildChronologicalSection(baseNewPullRequests)}` +
                 `${lineBreakDouble}${deployerVerificationsHeader}` +
-                `${lineBreak}${openCheckbox}${firebaseVerificationCurrentRelease}` +
-                `${lineBreak}${openCheckbox}${firebaseVerificationPreviousRelease}` +
+                `${lineBreak}${openCheckbox}${sentryVerificationCurrentRelease('1.0.2-1')}` +
+                `${lineBreak}${openCheckbox}${sentryVerificationPreviousRelease('1.0.1-0')}` +
                 `${lineBreak}${openCheckbox}${ghVerification}` +
                 `${lineBreakDouble}${ccApplauseLeads}`,
         });
@@ -293,8 +351,8 @@ describe('createOrUpdateStagingDeployCash', () => {
                 `${lineBreak}${openCheckbox}${basePRList.at(8)}` +
                 `${lineBreak}${closedCheckbox}${basePRList.at(9)}${lineBreak}` +
                 `${lineBreakDouble}${deployerVerificationsHeader}` +
-                `${lineBreak}${closedCheckbox}${firebaseVerificationCurrentRelease}` +
-                `${lineBreak}${closedCheckbox}${firebaseVerificationPreviousRelease}` +
+                `${lineBreak}${closedCheckbox}${sentryVerificationCurrentRelease('1.0.2-1')}` +
+                `${lineBreak}${closedCheckbox}${sentryVerificationPreviousRelease('1.0.1-0')}` +
                 `${lineBreak}${closedCheckbox}${ghVerification}` +
                 `${lineBreakDouble}${ccApplauseLeads}`,
             state: 'open',
@@ -329,15 +387,14 @@ describe('createOrUpdateStagingDeployCash', () => {
 
             // New pull requests to add to open StagingDeployCash
             const newPullRequests = [9, 10];
-            // cspell:disable-next-line
-            mockGetPullRequestsDeployedBetween.mockImplementation((fromRef, toRef, repositoryName) => {
+            mockGetMergedPRsDeployedBetween.mockImplementation(async (fromRef, toRef, repositoryName) => {
                 if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-2-staging') {
                     if (repositoryName === CONST.MOBILE_EXPENSIFY_REPO) {
-                        return [20, 21, 22, 23, 24]; // Mobile-Expensify PRs
+                        return toMergedPRs([20, 21, 22, 23, 24]); // Mobile-Expensify PRs
                     }
-                    return [...baseNewPullRequests, ...newPullRequests];
+                    return toMergedPRs([...baseNewPullRequests, ...newPullRequests]);
                 }
-                return [];
+                return {mergedPRs: [], submoduleUpdates: []};
             });
 
             mockListIssues.mockImplementation((args: Arguments) => {
@@ -395,10 +452,10 @@ describe('createOrUpdateStagingDeployCash', () => {
                     `${lineBreak}${closedCheckbox}${basePRList.at(9)}` +
                     `${lineBreak}${openCheckbox}${baseIssueList.at(0)}` +
                     `${lineBreak}${openCheckbox}${baseIssueList.at(1)}${lineBreak}` +
+                    `${lineBreakDouble}${buildChronologicalSection([...baseNewPullRequests, ...newPullRequests], [20, 21, 22, 23, 24])}` +
                     `${lineBreakDouble}${deployerVerificationsHeader}` +
-                    // Note: these will be unchecked with a new app version, and that's intentional
-                    `${lineBreak}${openCheckbox}${firebaseVerificationCurrentRelease}` +
-                    `${lineBreak}${openCheckbox}${firebaseVerificationPreviousRelease}` +
+                    `${lineBreak}${openCheckbox}${sentryVerificationCurrentRelease('1.0.2-2')}` +
+                    `${lineBreak}${openCheckbox}${sentryVerificationPreviousRelease('1.0.1-0')}` +
                     `${lineBreak}${openCheckbox}${ghVerification}` +
                     `${lineBreakDouble}${ccApplauseLeads}`,
             });
@@ -410,14 +467,14 @@ describe('createOrUpdateStagingDeployCash', () => {
                 [PATH_TO_PACKAGE_JSON]: JSON.stringify({version: '1.0.2-1'}),
             });
             // cspell:disable-next-line
-            mockGetPullRequestsDeployedBetween.mockImplementation((fromRef, toRef, repositoryName) => {
+            mockGetMergedPRsDeployedBetween.mockImplementation(async (fromRef, toRef, repositoryName) => {
                 if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-1-staging') {
                     if (repositoryName === CONST.MOBILE_EXPENSIFY_REPO) {
-                        return [20, 21, 22]; // Mobile-Expensify PRs
+                        return toMergedPRs([20, 21, 22]); // Mobile-Expensify PRs
                     }
-                    return [...baseNewPullRequests];
+                    return toMergedPRs(baseNewPullRequests);
                 }
-                return [];
+                return {mergedPRs: [], submoduleUpdates: []};
             });
             mockListIssues.mockImplementation((args: Arguments) => {
                 if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
@@ -471,9 +528,10 @@ describe('createOrUpdateStagingDeployCash', () => {
                     `${lineBreak}${closedCheckbox}${basePRList.at(9)}` +
                     `${lineBreak}${openCheckbox}${baseIssueList.at(0)}` +
                     `${lineBreak}${openCheckbox}${baseIssueList.at(1)}${lineBreak}` +
+                    `${lineBreakDouble}${buildChronologicalSection(baseNewPullRequests, [20, 21, 22])}` +
                     `${lineBreakDouble}${deployerVerificationsHeader}` +
-                    `${lineBreak}${closedCheckbox}${firebaseVerificationCurrentRelease}` +
-                    `${lineBreak}${closedCheckbox}${firebaseVerificationPreviousRelease}` +
+                    `${lineBreak}${closedCheckbox}${sentryVerificationCurrentRelease('1.0.2-1')}` +
+                    `${lineBreak}${closedCheckbox}${sentryVerificationPreviousRelease('1.0.1-0')}` +
                     `${lineBreak}${closedCheckbox}${ghVerification}` +
                     `${lineBreakDouble}${ccApplauseLeads}`,
             });
@@ -486,14 +544,14 @@ describe('createOrUpdateStagingDeployCash', () => {
             });
 
             // Mock: No Mobile-Expensify PRs found for this release
-            mockGetPullRequestsDeployedBetween.mockImplementation((fromRef, toRef, repositoryName) => {
+            mockGetMergedPRsDeployedBetween.mockImplementation(async (fromRef, toRef, repositoryName) => {
                 if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-1-staging') {
                     if (repositoryName === CONST.MOBILE_EXPENSIFY_REPO) {
-                        return []; // No Mobile-Expensify PRs
+                        return {mergedPRs: [], submoduleUpdates: []}; // No Mobile-Expensify PRs
                     }
-                    return [...baseNewPullRequests];
+                    return toMergedPRs(baseNewPullRequests);
                 }
-                return [];
+                return {mergedPRs: [], submoduleUpdates: []};
             });
             mockListIssues.mockImplementation((args: Arguments) => {
                 if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
@@ -525,9 +583,10 @@ describe('createOrUpdateStagingDeployCash', () => {
                     `${lineBreak}${openCheckbox}${basePRList.at(5)}` +
                     `${lineBreak}${openCheckbox}${basePRList.at(8)}` +
                     `${lineBreak}${closedCheckbox}${basePRList.at(9)}${lineBreak}` +
+                    `${lineBreakDouble}${buildChronologicalSection(baseNewPullRequests)}` +
                     `${lineBreakDouble}${deployerVerificationsHeader}` +
-                    `${lineBreak}${closedCheckbox}${firebaseVerificationCurrentRelease}` +
-                    `${lineBreak}${closedCheckbox}${firebaseVerificationPreviousRelease}` +
+                    `${lineBreak}${closedCheckbox}${sentryVerificationCurrentRelease('1.0.2-1')}` +
+                    `${lineBreak}${closedCheckbox}${sentryVerificationPreviousRelease('1.0.1-0')}` +
                     `${lineBreak}${closedCheckbox}${ghVerification}` +
                     `${lineBreakDouble}${ccApplauseLeads}`,
             });
@@ -543,14 +602,14 @@ describe('createOrUpdateStagingDeployCash', () => {
 
             mockGetInput.mockImplementation((arg) => (arg === 'GITHUB_TOKEN' ? 'fake_token' : ''));
             // cspell:disable-next-line
-            mockGetPullRequestsDeployedBetween.mockImplementation((fromRef, toRef, repositoryName) => {
+            mockGetMergedPRsDeployedBetween.mockImplementation(async (fromRef, toRef, repositoryName) => {
                 if (fromRef === '1.0.2-1-staging' && toRef === '1.0.3-0-staging') {
                     if (repositoryName === CONST.MOBILE_EXPENSIFY_REPO) {
-                        return [20, 22, 24, 25]; // Mobile-Expensify PRs
+                        return toMergedPRs([20, 22, 24, 25]); // Mobile-Expensify PRs
                     }
-                    return [6, 8, 10, 11]; // App PRs
+                    return toMergedPRs([6, 8, 10, 11]); // App PRs
                 }
-                return [];
+                return {mergedPRs: [], submoduleUpdates: []};
             });
 
             // Mock previous checklist containing PRs 6,8
@@ -571,7 +630,7 @@ describe('createOrUpdateStagingDeployCash', () => {
                 deployBlockers: [],
                 internalQAPRList: [],
                 isTimingDashboardChecked: true,
-                isFirebaseChecked: true,
+                isSentryChecked: true,
                 isGHStatusChecked: true,
                 version: '1.0.2-1',
                 tag: '1.0.2-1-staging',
@@ -612,14 +671,14 @@ describe('createOrUpdateStagingDeployCash', () => {
 
             mockGetInput.mockImplementation((arg) => (arg === 'GITHUB_TOKEN' ? 'fake_token' : ''));
             // Mock: no Mobile-Expensify PRs found
-            mockGetPullRequestsDeployedBetween.mockImplementation((fromRef, toRef, repositoryName) => {
+            mockGetMergedPRsDeployedBetween.mockImplementation(async (fromRef, toRef, repositoryName) => {
                 if (fromRef === '1.0.2-1-staging' && toRef === '1.0.3-0-staging') {
                     if (repositoryName === CONST.MOBILE_EXPENSIFY_REPO) {
-                        return []; // No Mobile-Expensify PRs
+                        return {mergedPRs: [], submoduleUpdates: []}; // No Mobile-Expensify PRs
                     }
-                    return [6, 8, 10, 11]; // App PRs
+                    return toMergedPRs([6, 8, 10, 11]); // App PRs
                 }
-                return [];
+                return {mergedPRs: [], submoduleUpdates: []};
             });
 
             // Mock previous checklist containing PRs 6,8 but no Mobile-Expensify PRs
@@ -637,7 +696,7 @@ describe('createOrUpdateStagingDeployCash', () => {
                 deployBlockers: [],
                 internalQAPRList: [],
                 isTimingDashboardChecked: true,
-                isFirebaseChecked: true,
+                isSentryChecked: true,
                 isGHStatusChecked: true,
                 tag: '1.0.2-1-staging',
                 version: '1.0.2-1',
@@ -671,6 +730,314 @@ describe('createOrUpdateStagingDeployCash', () => {
             expect(result?.body).not.toContain('Mobile-Expensify/pull/');
 
             mockGetStagingDeployCashData.mockRestore();
+        });
+    });
+
+    describe('chronological section with submodule updates', () => {
+        test('interleaves submodule markers with PRs, groups Mobile-Expensify PRs, and renders build links', async () => {
+            vol.reset();
+            vol.fromJSON({
+                [PATH_TO_PACKAGE_JSON]: JSON.stringify({version: '1.0.2-1'}),
+            });
+
+            const workflowRunURL = 'https://github.com/Expensify/App/actions/runs/12345';
+
+            mockGetMergedPRsDeployedBetween.mockImplementation(async (fromRef, toRef, repositoryName) => {
+                if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-1-staging') {
+                    if (repositoryName === CONST.MOBILE_EXPENSIFY_REPO) {
+                        return {
+                            mergedPRs: [
+                                {prNumber: 20, date: '2024-01-01T12:00:00Z'},
+                                {prNumber: 21, date: '2024-01-02T12:00:00Z'},
+                                {prNumber: 22, date: '2024-01-03T12:00:00Z'},
+                            ],
+                            submoduleUpdates: [],
+                        };
+                    }
+                    return {
+                        mergedPRs: [
+                            {prNumber: 6, date: '2024-01-01T00:00:00Z'},
+                            {prNumber: 7, date: '2024-01-03T00:00:00Z'},
+                            {prNumber: 8, date: '2024-01-05T00:00:00Z'},
+                        ],
+                        submoduleUpdates: [
+                            {version: '9.3.21-0', date: '2024-01-02T00:00:00Z', commit: 'abc1234567890'},
+                            {version: '9f18fca', date: '2024-01-04T00:00:00Z', commit: 'def4567890123'},
+                        ],
+                    };
+                }
+                return {mergedPRs: [], submoduleUpdates: []};
+            });
+
+            mockGetWorkflowRunURLForCommit.mockImplementation(async (commit: string) => {
+                if (commit === 'abc1234567890') {
+                    return workflowRunURL;
+                }
+                return undefined;
+            });
+
+            mockListIssues.mockImplementation((args: Arguments) => {
+                if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
+                    return Promise.resolve({data: [closedStagingDeployCash]});
+                }
+                return Promise.resolve({data: []});
+            });
+
+            const result = await run();
+            const body = result?.body ?? '';
+
+            const expectedChronologicalSection = buildChronologicalSection([
+                {type: 'pr', prNumber: 6},
+                {type: 'submodule', version: '9.3.21-0', buildLink: workflowRunURL, mobileExpensifyPRs: [20]},
+                {type: 'pr', prNumber: 7},
+                {type: 'submodule', version: '9f18fca', commit: 'def4567890123', mobileExpensifyPRs: [21, 22]},
+                {type: 'pr', prNumber: 8},
+            ]);
+            expect(body).toContain(expectedChronologicalSection);
+        });
+
+        test('Mobile-Expensify PRs after the last submodule update are listed as pending at the bottom', async () => {
+            vol.reset();
+            vol.fromJSON({
+                [PATH_TO_PACKAGE_JSON]: JSON.stringify({version: '1.0.2-1'}),
+            });
+
+            mockGetWorkflowRunURLForCommit.mockResolvedValue(undefined);
+            mockGetMergedPRsDeployedBetween.mockImplementation(async (fromRef, toRef, repositoryName) => {
+                if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-1-staging') {
+                    if (repositoryName === CONST.MOBILE_EXPENSIFY_REPO) {
+                        return {
+                            mergedPRs: [
+                                {prNumber: 30, date: '2024-01-05T00:00:00Z'},
+                                {prNumber: 31, date: '2024-01-06T00:00:00Z'},
+                            ],
+                            submoduleUpdates: [],
+                        };
+                    }
+                    return {
+                        mergedPRs: [{prNumber: 6, date: '2024-01-01T00:00:00Z'}],
+                        submoduleUpdates: [{version: '9.3.21-0', date: '2024-01-02T00:00:00Z', commit: 'abc1234567890'}],
+                    };
+                }
+                return {mergedPRs: [], submoduleUpdates: []};
+            });
+
+            mockListIssues.mockImplementation((args: Arguments) => {
+                if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
+                    return Promise.resolve({data: [closedStagingDeployCash]});
+                }
+                return Promise.resolve({data: []});
+            });
+
+            const result = await run();
+            const body = result?.body ?? '';
+
+            const expectedChronologicalSection = buildChronologicalSection(
+                [
+                    {type: 'pr', prNumber: 6},
+                    {type: 'submodule', version: '9.3.21-0', commit: 'abc1234567890'},
+                ],
+                [30, 31],
+            );
+            expect(body).toContain(expectedChronologicalSection);
+        });
+
+        test('update existing checklist with submodule interleaving preserves verified state', async () => {
+            vol.reset();
+            vol.fromJSON({
+                [PATH_TO_PACKAGE_JSON]: JSON.stringify({version: '1.0.2-2'}),
+            });
+
+            const workflowRunURL = 'https://github.com/Expensify/App/actions/runs/99999';
+
+            mockGetMergedPRsDeployedBetween.mockImplementation(async (fromRef, toRef, repositoryName) => {
+                if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-2-staging') {
+                    if (repositoryName === CONST.MOBILE_EXPENSIFY_REPO) {
+                        return {
+                            mergedPRs: [
+                                {prNumber: 20, date: '2024-01-01T12:00:00Z'},
+                                {prNumber: 21, date: '2024-01-03T12:00:00Z'},
+                            ],
+                            submoduleUpdates: [],
+                        };
+                    }
+                    return {
+                        mergedPRs: [
+                            {prNumber: 6, date: '2024-01-01T00:00:00Z'},
+                            {prNumber: 7, date: '2024-01-03T00:00:00Z'},
+                            {prNumber: 8, date: '2024-01-05T00:00:00Z'},
+                        ],
+                        submoduleUpdates: [{version: '9.3.21-0', date: '2024-01-02T00:00:00Z', commit: 'abc1234567890'}],
+                    };
+                }
+                return {mergedPRs: [], submoduleUpdates: []};
+            });
+
+            mockGetWorkflowRunURLForCommit.mockImplementation(async () => workflowRunURL);
+
+            const openStagingDeployCashWithSubmodule = {
+                url: `https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/issues/29`,
+                title: 'Test StagingDeployCash',
+                number: 29,
+                labels: [LABELS.STAGING_DEPLOY_CASH],
+                body:
+                    `${baseExpectedOutput()}` +
+                    `${openCheckbox}${basePRList.at(5)}` +
+                    `${lineBreak}${closedCheckbox}${basePRList.at(6)}` +
+                    `${lineBreak}${openCheckbox}${basePRList.at(7)}${lineBreak}` +
+                    `${lineBreakDouble}${deployerVerificationsHeader}` +
+                    `${lineBreak}${closedCheckbox}${sentryVerificationCurrentRelease('1.0.2-1')}` +
+                    `${lineBreak}${closedCheckbox}${sentryVerificationPreviousRelease('1.0.1-0')}` +
+                    `${lineBreak}${closedCheckbox}${ghVerification}` +
+                    `${lineBreakDouble}${ccApplauseLeads}`,
+                state: 'open',
+            };
+
+            mockListIssues.mockImplementation((args: Arguments) => {
+                if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
+                    return Promise.resolve({data: [openStagingDeployCashWithSubmodule, closedStagingDeployCash]});
+                }
+                if (args.labels === CONST.LABELS.DEPLOY_BLOCKER) {
+                    return Promise.resolve({data: []});
+                }
+                return Promise.resolve({data: []});
+            });
+
+            const result = await run();
+            const body = result?.body ?? '';
+
+            // Verify the chronological section contains submodule interleaving.
+            // Mobile-Expensify PR 21 (Jan 3 12:00) is after the only submodule bump (Jan 2), so it's pending.
+            const expectedChronologicalSection = buildChronologicalSection(
+                [
+                    {type: 'pr', prNumber: 6},
+                    {type: 'submodule', version: '9.3.21-0', buildLink: workflowRunURL, mobileExpensifyPRs: [20]},
+                    {type: 'pr', prNumber: 7},
+                    {type: 'pr', prNumber: 8},
+                ],
+                [21],
+            );
+            expect(body).toContain(expectedChronologicalSection);
+
+            // Verify the existing verified state is preserved (PR 7 was verified in previous checklist)
+            expect(body).toContain(`${closedCheckbox}${basePRList.at(6)}`);
+
+            // Verify this is an update (not a create) by checking the issue_number
+            expect(result).toHaveProperty('issue_number', 29);
+        });
+
+        test('each Mobile-Expensify PR appears under exactly one submodule update, not duplicated across multiple', async () => {
+            vol.reset();
+            vol.fromJSON({
+                [PATH_TO_PACKAGE_JSON]: JSON.stringify({version: '1.0.2-1'}),
+            });
+
+            mockGetWorkflowRunURLForCommit.mockResolvedValue(undefined);
+
+            // Simulate many submodule updates with only 2 Mobile-Expensify PRs merged between them.
+            // Mobile-Expensify PR #20 merged at 13:45 → should match submodule 9.3.21-2 (14:00), the first with date >= 13:45
+            // Mobile-Expensify PR #21 merged at 15:30 → should match submodule 9.3.21-4 (16:00), the first with date >= 15:30
+            // All other submodule updates should have NO Mobile-Expensify PRs underneath.
+            mockGetMergedPRsDeployedBetween.mockImplementation(async (fromRef, toRef, repositoryName) => {
+                if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-1-staging') {
+                    if (repositoryName === CONST.MOBILE_EXPENSIFY_REPO) {
+                        return {
+                            mergedPRs: [
+                                {prNumber: 20, date: '2024-01-01T13:45:00Z'},
+                                {prNumber: 21, date: '2024-01-01T15:30:00Z'},
+                            ],
+                            submoduleUpdates: [],
+                        };
+                    }
+                    return {
+                        mergedPRs: [
+                            {prNumber: 6, date: '2024-01-01T10:00:00Z'},
+                            {prNumber: 7, date: '2024-01-01T17:00:00Z'},
+                        ],
+                        // cspell:disable
+                        submoduleUpdates: [
+                            {version: '9.3.21-0', date: '2024-01-01T11:00:00Z', commit: 'aabbccddee'},
+                            {version: '9.3.21-1', date: '2024-01-01T12:00:00Z', commit: 'bbccddeeaa'},
+                            {version: '9.3.21-2', date: '2024-01-01T14:00:00Z', commit: 'ccddeeffbb'},
+                            {version: '9.3.21-3', date: '2024-01-01T15:00:00Z', commit: 'ddeeffaacc'},
+                            {version: '9.3.21-4', date: '2024-01-01T16:00:00Z', commit: 'eeffaabbdd'},
+                            {version: '9.3.21-5', date: '2024-01-01T18:00:00Z', commit: 'ffaabbccee'},
+                        ],
+                        // cspell:enable
+                    };
+                }
+                return {mergedPRs: [], submoduleUpdates: []};
+            });
+
+            mockListIssues.mockImplementation((args: Arguments) => {
+                if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
+                    return Promise.resolve({data: [closedStagingDeployCash]});
+                }
+                return Promise.resolve({data: []});
+            });
+
+            const result = await run();
+            const body = result?.body ?? '';
+
+            // Mobile-Expensify PR #20 should ONLY appear under 9.3.21-2, and PR #21 ONLY under 9.3.21-4
+            // cspell:disable
+            const expectedChronologicalSection = buildChronologicalSection([
+                {type: 'pr', prNumber: 6},
+                {type: 'submodule', version: '9.3.21-0', commit: 'aabbccddee'},
+                {type: 'submodule', version: '9.3.21-1', commit: 'bbccddeeaa'},
+                {type: 'submodule', version: '9.3.21-2', commit: 'ccddeeffbb', mobileExpensifyPRs: [20]},
+                {type: 'submodule', version: '9.3.21-3', commit: 'ddeeffaacc'},
+                {type: 'submodule', version: '9.3.21-4', commit: 'eeffaabbdd', mobileExpensifyPRs: [21]},
+                {type: 'pr', prNumber: 7},
+                {type: 'submodule', version: '9.3.21-5', commit: 'ffaabbccee'},
+            ]);
+            // cspell:enable
+            expect(body).toContain(expectedChronologicalSection);
+
+            // Verify no duplication: each Mobile-Expensify PR URL should appear exactly once in the chronological section
+            const chronologicalMatch = body.match(/<details>[\s\S]*?<\/details>/);
+            expect(chronologicalMatch).not.toBeNull();
+            const chronologicalContent = chronologicalMatch?.[0] ?? '';
+            expect(chronologicalContent.match(/Mobile-Expensify\/pull\/20/g)).toHaveLength(1);
+            expect(chronologicalContent.match(/Mobile-Expensify\/pull\/21/g)).toHaveLength(1);
+        });
+
+        test('chronological section without submodule updates shows only PRs', async () => {
+            vol.reset();
+            vol.fromJSON({
+                [PATH_TO_PACKAGE_JSON]: JSON.stringify({version: '1.0.2-1'}),
+            });
+
+            mockGetMergedPRsDeployedBetween.mockImplementation(async (fromRef, toRef, repositoryName) => {
+                if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-1-staging') {
+                    if (repositoryName === CONST.MOBILE_EXPENSIFY_REPO) {
+                        return {mergedPRs: [], submoduleUpdates: []};
+                    }
+                    return {
+                        mergedPRs: [
+                            {prNumber: 6, date: '2024-01-01T00:00:00Z'},
+                            {prNumber: 7, date: '2024-01-02T00:00:00Z'},
+                        ],
+                        submoduleUpdates: [],
+                    };
+                }
+                return {mergedPRs: [], submoduleUpdates: []};
+            });
+
+            mockListIssues.mockImplementation((args: Arguments) => {
+                if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
+                    return Promise.resolve({data: [closedStagingDeployCash]});
+                }
+                return Promise.resolve({data: []});
+            });
+
+            const result = await run();
+            const body = result?.body ?? '';
+
+            const expectedChronologicalSection = buildChronologicalSection([6, 7]);
+            expect(body).toContain(expectedChronologicalSection);
+            expect(body).not.toContain('submodule update');
+            expect(body).not.toContain('Adhoc Build');
         });
     });
 });

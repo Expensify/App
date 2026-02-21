@@ -187,6 +187,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         shouldShowTooltip={showTooltip}
                         shouldUseNarrowLayout={!isLargeScreenWidth}
                         shouldShowCheckbox={!!canSelectMultiple}
+                        checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPANDED_TRANSACTION_ROW_CHECKBOX}
                         onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
                         columns={currentColumns}
                         onButtonPress={() => {
@@ -217,6 +218,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                                 hoverStyle={[!transaction.isDisabled && styles.hoveredComponentBG]}
                                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                                 id={transaction.transactionID}
+                                sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPANDED_TRANSACTION_ROW}
                             >
                                 {transactionRow}
                             </PressableWithFeedback>
