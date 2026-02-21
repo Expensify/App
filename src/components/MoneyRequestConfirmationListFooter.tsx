@@ -7,7 +7,6 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';

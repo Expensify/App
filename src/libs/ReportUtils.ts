@@ -2259,11 +2259,14 @@ function findLastAccessedReport(
     archivedReportsIDSetOrCallback?: ArchivedReportsIDSet | IsReportArchived,
 ): OnyxEntry<Report> {
     const isUsingOldArgs = archivedReportsIDSetOrCallback !== undefined || typeof excludeReportIDOrArchivedReportsIDSetOrCallback === 'string';
-    const excludeReportID = isUsingOldArgs
-        ? typeof excludeReportIDOrArchivedReportsIDSetOrCallback === 'string'
-            ? excludeReportIDOrArchivedReportsIDSetOrCallback
-            : undefined
-        : policyIDOrExcludeReportID;
+    let excludeReportID: string | undefined;
+    if (isUsingOldArgs) {
+        if (typeof excludeReportIDOrArchivedReportsIDSetOrCallback === 'string') {
+            excludeReportID = excludeReportIDOrArchivedReportsIDSetOrCallback;
+        }
+    } else {
+        excludeReportID = policyIDOrExcludeReportID;
+    }
     const archivedReportsArg = isUsingOldArgs
         ? (archivedReportsIDSetOrCallback ?? (typeof excludeReportIDOrArchivedReportsIDSetOrCallback === 'string' ? undefined : excludeReportIDOrArchivedReportsIDSetOrCallback))
         : excludeReportIDOrArchivedReportsIDSetOrCallback;

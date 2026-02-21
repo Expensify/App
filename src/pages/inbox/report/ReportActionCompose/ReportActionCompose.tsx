@@ -222,7 +222,7 @@ function ReportActionCompose({
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const archivedReportsIDSet = useArchivedReportsIDSet();
-    const isReportArchivedByID = (reportID?: string) => !!reportID && archivedReportsIDSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
+    const isReportArchivedByID = (targetReportID?: string) => !!targetReportID && archivedReportsIDSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${targetReportID}`);
     const isConciergeChat = useMemo(() => isConciergeChatReport(report), [report]);
     const isAdminsRoom = useMemo(() => isAdminRoom(report), [report]);
 
