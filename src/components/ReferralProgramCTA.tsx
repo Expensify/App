@@ -47,6 +47,7 @@ function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralPro
     return (
         <View style={[styles.br2, styles.highlightBG, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, {gap: 10, padding: 10}, styles.pl5, style]}>
             <PressableWithoutFeedback
+                sentryLabel={CONST.SENTRY_LABEL.REFERRAL_CTA.NAVIGATE}
                 onPress={() => {
                     Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(referralContentType, Navigation.getActiveRouteWithoutParams()));
                 }}
@@ -58,6 +59,7 @@ function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralPro
             </PressableWithoutFeedback>
             <Tooltip text={translate('common.close')}>
                 <PressableWithoutFeedback
+                    sentryLabel={CONST.SENTRY_LABEL.REFERRAL_CTA.CLOSE}
                     onPress={handleDismissCallToAction}
                     onMouseDown={(e) => {
                         e.preventDefault();
