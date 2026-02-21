@@ -10,7 +10,7 @@ import useOnyx from './useOnyx';
 /**
  * Function that creates a Set of archived report IDs from report name value pairs
  */
-const getArchivedReportsIdSet = (reportNameValuePairs: OnyxCollection<ReportNameValuePairs>): ArchivedReportsIDSet | undefined => {
+const getArchivedReportsIDSet = (reportNameValuePairs: OnyxCollection<ReportNameValuePairs>): ArchivedReportsIDSet | undefined => {
     if (!reportNameValuePairs) {
         return undefined;
     }
@@ -31,7 +31,7 @@ function useArchivedReportsIDSet(): ArchivedReportsIDSet {
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
         canBeMissing: true,
     });
-    const archivedReportsIDSet = getArchivedReportsIdSet(reportNameValuePairs) ?? CONST.EMPTY_SET;
+    const archivedReportsIDSet = getArchivedReportsIDSet(reportNameValuePairs) ?? CONST.EMPTY_SET;
 
     // useDeepCompareRef is used here to prevent unnecessary re-renders by maintaining referential equality
     // when the Set contents are the same, even if it's a new Set instance. This is important for performance

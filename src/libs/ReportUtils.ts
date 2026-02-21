@@ -2255,18 +2255,18 @@ function findLastAccessedReport(
     ignoreDomainRooms: boolean,
     openOnAdminRoom = false,
     policyIDOrExcludeReportID?: string,
-    excludeReportIDOrArchivedReportsIdSetOrCallback?: string | ArchivedReportsIDSet | IsReportArchived,
-    archivedReportsIdSetOrCallback?: ArchivedReportsIDSet | IsReportArchived,
+    excludeReportIDOrArchivedReportsIDSetOrCallback?: string | ArchivedReportsIDSet | IsReportArchived,
+    archivedReportsIDSetOrCallback?: ArchivedReportsIDSet | IsReportArchived,
 ): OnyxEntry<Report> {
-    const isUsingOldArgs = archivedReportsIdSetOrCallback !== undefined || typeof excludeReportIDOrArchivedReportsIdSetOrCallback === 'string';
+    const isUsingOldArgs = archivedReportsIDSetOrCallback !== undefined || typeof excludeReportIDOrArchivedReportsIDSetOrCallback === 'string';
     const excludeReportID = isUsingOldArgs
-        ? typeof excludeReportIDOrArchivedReportsIdSetOrCallback === 'string'
-            ? excludeReportIDOrArchivedReportsIdSetOrCallback
+        ? typeof excludeReportIDOrArchivedReportsIDSetOrCallback === 'string'
+            ? excludeReportIDOrArchivedReportsIDSetOrCallback
             : undefined
         : policyIDOrExcludeReportID;
     const archivedReportsArg = isUsingOldArgs
-        ? (archivedReportsIdSetOrCallback ?? (typeof excludeReportIDOrArchivedReportsIdSetOrCallback === 'string' ? undefined : excludeReportIDOrArchivedReportsIdSetOrCallback))
-        : excludeReportIDOrArchivedReportsIdSetOrCallback;
+        ? (archivedReportsIDSetOrCallback ?? (typeof excludeReportIDOrArchivedReportsIDSetOrCallback === 'string' ? undefined : excludeReportIDOrArchivedReportsIDSetOrCallback))
+        : excludeReportIDOrArchivedReportsIDSetOrCallback;
 
     let reportsValues = Object.values(allReports ?? {});
 
