@@ -197,10 +197,10 @@ if (typeof TurndownService !== 'undefined') {
 function copyAIResponseToClipboard(button, content) {
     const text = turndownService ? turndownService.turndown(content.innerHTML) : content.innerText;
     navigator.clipboard.writeText(text).then(() => {
-        button.style.opacity = '0.5';
+        button.classList.add('copied');
         setTimeout(() => {
-            button.style.opacity = '1';
-        }, 150);
+            button.classList.remove('copied');
+        }, 1500);
     });
 }
 
