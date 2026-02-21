@@ -55,7 +55,14 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
         }
 
         setIsDownloading(true);
-        if (walletStatement?.[yearMonth] && currentUserLogin) {
+        if (walletStatement?.[yearMonth]) {
+            // Avoid re-triggering generation when we already have a cached statement URL.
+            // `session.email` can be temporarily undefined during hydration.
+            if (!currentUserLogin) {
+                setIsDownloading(false);
+                return;
+            }
+
             // We already have a file URL for this statement, so we can download it immediately.
             // Auth token and email are required so the hybrid app's native download manager can authenticate with the secure endpoint.
             const downloadFileName = `Expensify_Statement_${yearMonth}.pdf`;
