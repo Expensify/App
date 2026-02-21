@@ -310,8 +310,7 @@ function MoneyRequestReportTransactionList({
         );
     }, [transactions, currentUserDetails?.accountID, report, policy, reportDetailsColumns]);
 
-    // Horizontal scrolling logic - same as Search page
-    const {windowWidth} = useWindowDimensions();
+    const {windowWidth, windowHeight} = useWindowDimensions();
     const minTableWidth = getTableMinWidth(columnsToShow);
     const shouldScrollHorizontally = !shouldUseNarrowLayout && minTableWidth > windowWidth;
     const horizontalScrollViewRef = useRef<RNScrollView>(null);
@@ -531,7 +530,7 @@ function MoneyRequestReportTransactionList({
 
     const groupByPopoverComponent = useCallback(
         (props: {closeOverlay: () => void}) => (
-            <View style={[styles.pv2]}>
+            <View style={[styles.pv2, styles.getSelectionListPopoverHeight(groupByOptions.length || 1, windowHeight, false)]}>
                 <SelectionList
                     data={groupByOptions}
                     shouldSingleExecuteRowSelect
@@ -547,7 +546,7 @@ function MoneyRequestReportTransactionList({
                 />
             </View>
         ),
-        [groupByOptions, reportLayoutGroupBy, styles.pv2],
+        [groupByOptions, reportLayoutGroupBy, styles, windowHeight],
     );
 
     if (isEmptyTransactions) {
@@ -571,15 +570,15 @@ function MoneyRequestReportTransactionList({
 
     return (
         <>
-            {!shouldUseNarrowLayout && (
-                <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.ph5, styles.pb2]}>
-                    {shouldShowGroupedTransactions && (
-                        <DropdownButton
-                            label={translate('search.groupBy')}
-                            value={selectedGroupByItem?.text ?? ''}
-                            PopoverComponent={groupByPopoverComponent}
-                        />
-                    )}
+            <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.ph5, styles.pb2]}>
+                {shouldShowGroupedTransactions && (
+                    <DropdownButton
+                        label={translate('search.groupBy')}
+                        value={selectedGroupByItem?.text ?? ''}
+                        PopoverComponent={groupByPopoverComponent}
+                    />
+                )}
+                {!shouldUseNarrowLayout && (
                     <Button
                         link
                         small
@@ -591,8 +590,8 @@ function MoneyRequestReportTransactionList({
                         textStyles={[styles.textMicroBold]}
                         onPress={openColumnsPage}
                     />
-                </View>
-            )}
+                )}
+            </View>
             {!shouldUseNarrowLayout && !shouldScrollHorizontally && (
                 <OfflineWithFeedback pendingAction={reportPendingAction}>
                     <View style={[styles.dFlex, styles.flexRow, styles.pl5, styles.pr16, styles.alignItemsCenter]}>
