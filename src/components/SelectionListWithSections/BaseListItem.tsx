@@ -49,6 +49,7 @@ function BaseListItem<TItem extends ListItem>({
     shouldDisableHoverStyle,
     shouldStopMouseLeavePropagation = true,
     accessibilityRole = getButtonRole(true),
+    accessible,
 }: BaseListItemProps<TItem>) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const theme = useTheme();
@@ -118,6 +119,7 @@ function BaseListItem<TItem extends ListItem>({
                 accessibilityLabel={accessibilityLabel}
                 accessibilityState={accessibilityState}
                 role={accessibilityRole}
+                accessible={accessible}
                 isNested
                 hoverDimmingValue={1}
                 pressDimmingValue={item.isInteractive === false ? 1 : variables.pressDimValue}
