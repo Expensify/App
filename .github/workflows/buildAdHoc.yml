@@ -35,6 +35,10 @@ on:
         description: GitHub username who triggered the build
         type: string
         required: true
+      FORCE_NATIVE_BUILD:
+        description: Force a full native build, bypassing Rock remote cache
+        type: string
+        default: 'false'
 
 jobs:
   postGitHubCommentBuildStarted:
@@ -153,6 +157,10 @@ jobs:
         with:
           IS_HYBRID_BUILD: 'true'
 
+      - name: Setup Gradle
+        # v4
+        uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244
+
       - name: Run grunt build
         run: |
             cd Mobile-Expensify
@@ -209,6 +217,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           IS_HYBRID_APP: true
+          FORCE_NATIVE_BUILD: ${{ inputs.FORCE_NATIVE_BUILD == 'true' && github.run_id || '' }}
         with:
           variant: 'Adhoc'
           sign: true
@@ -341,6 +350,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           IS_HYBRID_APP: true
+          FORCE_NATIVE_BUILD: ${{ inputs.FORCE_NATIVE_BUILD == 'true' && github.run_id || '' }}
         with:
           destination: device
           re-sign: true
