@@ -11,6 +11,8 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useThemePreference from '@hooks/useThemePreference';
+import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import * as Browser from '@libs/Browser';
 import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
 import fileDownload from '@libs/fileDownload';
 import Navigation from '@libs/Navigation/Navigation';
@@ -18,6 +20,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import addTrailingForwardSlash from '@libs/UrlUtils';
 import type {WalletStatementNavigatorParamList} from '@navigation/types';
 import {generateStatementPDF} from '@userActions/User';
+import {emailSelector} from '@selectors/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -26,6 +29,7 @@ type WalletStatementPageProps = PlatformStackScreenProps<WalletStatementNavigato
 
 function WalletStatementPage({route}: WalletStatementPageProps) {
     const [walletStatement] = useOnyx(ONYXKEYS.WALLET_STATEMENT, {canBeMissing: true});
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const themePreference = useThemePreference();
     const yearMonth = route.params.yearMonth ?? null;
     const isWalletStatementGenerating = walletStatement?.isGenerating ?? false;
@@ -51,17 +55,21 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
         }
 
         setIsDownloading(true);
-        if (walletStatement?.[yearMonth]) {
-            // We already have a file URL for this statement, so we can download it immediately
+        if (walletStatement?.[yearMonth] && currentUserLogin) {
+            // We already have a file URL for this statement, so we can download it immediately.
+            // Auth token and email are required so the hybrid app's native download manager can authenticate with the secure endpoint.
             const downloadFileName = `Expensify_Statement_${yearMonth}.pdf`;
             const fileName = walletStatement[yearMonth];
-            const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${fileName}&downloadName=${downloadFileName}`;
-            fileDownload(translate, pdfURL, downloadFileName).finally(() => setIsDownloading(false));
+            const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${encodeURIComponent(fileName)}&downloadName=${encodeURIComponent(downloadFileName)}&email=${encodeURIComponent(
+                currentUserLogin,
+            )}`;
+            const pdfURLWithAuth = addEncryptedAuthTokenToURL(pdfURL, true);
+            fileDownload(translate, pdfURLWithAuth, downloadFileName, '', Browser.isMobileSafari()).finally(() => setIsDownloading(false));
             return;
         }
 
         generateStatementPDF(yearMonth);
-    }, [baseURL, isWalletStatementGenerating, translate, walletStatement, yearMonth]);
+    }, [baseURL, currentUserLogin, isWalletStatementGenerating, translate, walletStatement, yearMonth]);
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
