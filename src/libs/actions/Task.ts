@@ -26,6 +26,7 @@ import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getMostRecentReportID, navigateToConciergeChatAndDeleteReport, notifyNewAction, optimisticReportLastData} from './Report';
 import {setSelfTourViewed} from './Welcome';
 
@@ -125,26 +126,32 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
         hasOutstandingChildTask: assigneeAccountID === currentUserAccountID ? true : parentReport?.hasOutstandingChildTask,
     };
 
+    const completeOptimisticTaskReport = {
+        ...optimisticTaskReport,
+        pendingFields: {
+            createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        },
+    };
+
     // We're only setting onyx data for the task report here because it's possible for the parent report to not exist yet (if you're assigning a task to someone you haven't chatted with before)
     // So we don't want to set the parent report data until we've successfully created that chat report
     // FOR TASK REPORT
     const optimisticData: Array<
         OnyxUpdate<
-            typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
         >
     > = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTaskReport.reportID}`,
-            value: {
-                ...optimisticTaskReport,
-                pendingFields: {
-                    createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
-            },
+            value: completeOptimisticTaskReport,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -159,6 +166,13 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
             value: {[optimisticTaskCreatedAction.reportActionID]: optimisticTaskCreatedAction as OnyxTypes.ReportAction},
         },
     ];
+
+    // We need the personal details of the task creator and assignee so that the "From" and "Assignee" columns wil be rendered in "Reports > Task" while offline.
+    const personalDetailsList = PersonalDetailsUtils.createPersonalDetailsLookupByAccountID(
+        PersonalDetailsUtils.getPersonalDetailsByIDs({
+            accountIDs: [currentUserAccountID, assigneeAccountID],
+        }),
+    );
 
     // FOR TASK REPORT
     const successData: Array<
@@ -238,6 +252,38 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
             value: {[optimisticAddCommentReport.reportAction.reportActionID]: optimisticAddCommentReport.reportAction as OnyxTypes.ReportAction},
         },
     );
+
+    const searchDataTypes = [CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.DATA_TYPES.TASK];
+
+    // We push the optimistic task data into chat and task snapshot hashes so it appears immediately in "Reports > Chats" and "Reports > Task" while offline.
+    for (const type of searchDataTypes) {
+        const searchQuery = buildCannedSearchQuery({type});
+        const searchQueryJSON = buildSearchQueryJSON(searchQuery);
+
+        if (searchQueryJSON) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchQueryJSON.hash}`,
+                value: {
+                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+                    data: {
+                        [`${ONYXKEYS.COLLECTION.REPORT}${optimisticTaskReport.reportID}`]: {
+                            ...completeOptimisticTaskReport,
+                            accountID: currentUserAccountID,
+                        },
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTaskReport.reportID}`]: {
+                            [optimisticTaskCreatedAction.reportActionID]: optimisticTaskCreatedAction as OnyxTypes.ReportAction,
+                        },
+                        [`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`]: optimisticParentReport,
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`]: {
+                            [optimisticAddCommentReport.reportAction.reportActionID]: optimisticAddCommentReport.reportAction as OnyxTypes.ReportAction,
+                        },
+                        [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetailsList,
+                    },
+                },
+            });
+        }
+    }
 
     const shouldUpdateNotificationPreference = !isEmptyObject(parentReport) && ReportUtils.isHiddenForCurrentUser(parentReport);
     if (shouldUpdateNotificationPreference) {
