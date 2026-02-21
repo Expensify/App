@@ -1,4 +1,4 @@
-import React, {useCallback, useContext, useMemo, useRef} from 'react';
+import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import type WindowDimensions from '@hooks/useWindowDimensions/types';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -11,7 +11,7 @@ type ResponsiveLayoutProperties = WindowDimensions & {
 };
 
 function FullScreenContextProvider({children}: ChildrenProps) {
-    const isFullScreenRef = useRef(false);
+    const [isFullScreen, setIsFullScreen] = useState(false);
     const lockedWindowDimensionsRef = useRef<ResponsiveLayoutProperties | null>(null);
 
     const lockWindowDimensions = useCallback((newResponsiveLayoutProperties: ResponsiveLayoutProperties) => {
@@ -22,7 +22,10 @@ function FullScreenContextProvider({children}: ChildrenProps) {
         lockedWindowDimensionsRef.current = null;
     }, []);
 
-    const contextValue = useMemo(() => ({isFullScreenRef, lockedWindowDimensionsRef, lockWindowDimensions, unlockWindowDimensions}), [lockWindowDimensions, unlockWindowDimensions]);
+    const contextValue = useMemo(
+        () => ({isFullScreen, setIsFullScreen, lockedWindowDimensionsRef, lockWindowDimensions, unlockWindowDimensions}),
+        [isFullScreen, lockWindowDimensions, unlockWindowDimensions],
+    );
     return <Context.Provider value={contextValue}>{children}</Context.Provider>;
 }
 
