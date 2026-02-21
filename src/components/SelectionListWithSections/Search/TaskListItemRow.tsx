@@ -69,7 +69,6 @@ function DescriptionCell({taskItem, showTooltip, isLargeScreenWidth}: TaskCellPr
 }
 
 function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const session = useSession();
