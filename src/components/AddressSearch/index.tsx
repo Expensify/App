@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {Keyboard, LogBox, StyleSheet, View} from 'react-native';
+import {Keyboard, LogBox, Platform, StyleSheet, View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import type {GooglePlaceData, GooglePlaceDetail} from 'react-native-google-places-autocomplete';
@@ -326,10 +326,21 @@ function AddressSearch({
         return predefinedPlaces?.filter((predefinedPlace) => isPlaceMatchForSearch(searchValue, predefinedPlace)) ?? [];
     }, [predefinedPlaces, searchValue, shouldHidePredefinedPlaces]);
 
-    const listEmptyComponent = useMemo(
-        () => (!isTyping ? undefined : <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{translate('common.noResultsFound')}</Text>),
-        [isTyping, styles, translate],
-    );
+    const noResultsFoundText = translate('common.noResultsFound');
+    const listEmptyComponent = useMemo(() => {
+        if (!isTyping) {
+            return undefined;
+        }
+        return (
+            <Text
+                style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}
+                accessibilityLiveRegion={Platform.OS === CONST.PLATFORM.WEB ? 'polite' : undefined}
+                role={Platform.OS === CONST.PLATFORM.WEB ? 'status' : undefined}
+            >
+                {noResultsFoundText}
+            </Text>
+        );
+    }, [isTyping, noResultsFoundText, styles]);
 
     const listLoader = useMemo(
         () => (

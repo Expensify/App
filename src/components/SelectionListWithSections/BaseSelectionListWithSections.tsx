@@ -3,7 +3,7 @@ import lodashDebounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, SectionList as RNSectionList, TextInput as RNTextInput, SectionListData, SectionListRenderItemInfo, TextInputKeyPressEvent} from 'react-native';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
 import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
 import FixedFooter from '@components/FixedFooter';
@@ -1002,11 +1002,18 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         },
     );
 
+    const noResultsFoundText = translate('common.noResultsFound');
     const headerMessageContent = () =>
-        (!isLoadingNewOptions || headerMessage !== translate('common.noResultsFound') || (flattenedSections.allOptions.length === 0 && !showLoadingPlaceholder)) &&
+        (!isLoadingNewOptions || headerMessage !== noResultsFoundText || (flattenedSections.allOptions.length === 0 && !showLoadingPlaceholder)) &&
         !!headerMessage && (
             <View style={headerMessageStyle ?? [styles.ph5, styles.pb5]}>
-                <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
+                <Text
+                    style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}
+                    accessibilityLiveRegion={Platform.OS === CONST.PLATFORM.WEB && headerMessage === noResultsFoundText ? 'polite' : undefined}
+                    role={Platform.OS === CONST.PLATFORM.WEB && headerMessage === noResultsFoundText ? 'status' : undefined}
+                >
+                    {headerMessage}
+                </Text>
             </View>
         );
 

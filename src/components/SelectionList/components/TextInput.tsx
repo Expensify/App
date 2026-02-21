@@ -1,7 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef} from 'react';
 import type {TextInputKeyPressEvent} from 'react-native';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
 import type {TextInputOptions} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import BaseTextInput from '@components/TextInput';
@@ -66,7 +66,8 @@ function TextInput({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {label, value, onChangeText, errorText, headerMessage, hint, disableAutoFocus, placeholder, maxLength, inputMode, ref: optionsRef, style, disableAutoCorrect} = options ?? {};
-    const resultsFound = headerMessage !== translate('common.noResultsFound');
+    const noResultsFoundText = translate('common.noResultsFound');
+    const resultsFound = headerMessage !== noResultsFoundText;
     const noData = dataLength === 0 && !showLoadingPlaceholder;
     const shouldShowHeaderMessage = !!headerMessage && (!isLoadingNewOptions || resultsFound || noData);
 
@@ -140,7 +141,13 @@ function TextInput({
             </View>
             {shouldShowHeaderMessage && (
                 <View style={[styles.ph5, styles.pb5, style?.headerMessageStyle]}>
-                    <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
+                    <Text
+                        style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}
+                        accessibilityLiveRegion={Platform.OS === CONST.PLATFORM.WEB && headerMessage === noResultsFoundText ? 'polite' : undefined}
+                        role={Platform.OS === CONST.PLATFORM.WEB && headerMessage === noResultsFoundText ? 'status' : undefined}
+                    >
+                        {headerMessage}
+                    </Text>
                 </View>
             )}
         </>
