@@ -1,7 +1,7 @@
 import isEmpty from 'lodash/isEmpty';
 import React, {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -54,6 +54,7 @@ function FormHelpMessage({message = '', children, isError = true, style, shouldS
     }, [isError, message, shouldRenderMessageAsHTML]);
 
     const errorIconLabel = isError && shouldShowRedDotIndicator ? CONST.ACCESSIBILITY_LABELS.ERROR : undefined;
+    const shouldAnnounceError = isError && (!isEmpty(message) || !isEmpty(children));
 
     if (isEmpty(message) && isEmpty(children)) {
         return null;
@@ -81,7 +82,10 @@ function FormHelpMessage({message = '', children, isError = true, style, shouldS
                     additionalStyles={[styles.mr1]}
                 />
             )}
-            <View style={[styles.flex1, isError && shouldShowRedDotIndicator ? styles.ml2 : {}]}>
+            <View
+                style={[styles.flex1, isError && shouldShowRedDotIndicator ? styles.ml2 : {}]}
+                role={Platform.OS === CONST.PLATFORM.WEB && shouldAnnounceError ? CONST.ROLE.ALERT : undefined}
+            >
                 {children ?? (shouldRenderMessageAsHTML ? <RenderHTML html={HTMLMessage} /> : <Text style={[isError ? styles.formError : styles.formHelp, styles.mb0]}>{message}</Text>)}
             </View>
         </View>
