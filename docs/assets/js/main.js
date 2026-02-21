@@ -75,8 +75,8 @@ function injectFooterCopyright() {
     footer.innerHTML = `&copy;2008-${new Date().getFullYear()} Expensify, Inc.`;
 }
 
-const SEARCH_API_URL = 'https://www.expensify.com/api/SearchHelpsite';
-const ASK_AI_API_URL = 'https://www.expensify.com/api/AskHelpsiteAI';
+const SEARCH_API_URL = 'http://localhost:8010/proxy/api/SearchHelpsite';
+const ASK_AI_API_URL = 'http://localhost:8010/proxy/api/AskHelpsiteAI';
 
 let allowedDomains = [];
 
