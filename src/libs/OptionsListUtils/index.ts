@@ -8,6 +8,7 @@ import Onyx from 'react-native-onyx';
 import type {SetNonNullable} from 'type-fest';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
 import filterArrayByMatch from '@libs/filterArrayByMatch';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
@@ -149,7 +150,6 @@ import {isScanning} from '@libs/TransactionUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 import type {
     Beta,
     DismissedProductTraining,

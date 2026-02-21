@@ -126,6 +126,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [billingDisputePending] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING, {canBeMissing: true});
     const [retryBillingFailed] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED, {canBeMissing: true});
     const [billingStatus] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_STATUS, {canBeMissing: true});
+    const [amountOwed = 0] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, {canBeMissing: true});
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, {canBeMissing: true});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const network = useNetwork();
@@ -278,7 +279,16 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             screenName: SCREENS.SETTINGS.SUBSCRIPTION.ROOT,
             brickRoadIndicator:
                 !!privateSubscription?.errors ||
-                hasSubscriptionRedDotError(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus, ownerBillingGraceEndPeriod)
+                hasSubscriptionRedDotError(
+                    stripeCustomerId,
+                    retryBillingSuccessful,
+                    billingDisputePending,
+                    retryBillingFailed,
+                    fundList,
+                    billingStatus,
+                    amountOwed,
+                    ownerBillingGraceEndPeriod,
+                )
                     ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                     : undefined,
             badgeText: freeTrialText,

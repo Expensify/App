@@ -20,6 +20,7 @@ import {deletePolicyCodingRule, setPolicyCodingRule} from '@libs/actions/Policy/
 import {clearDraftMerchantRule, setDraftMerchantRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getCleanedTagName, getTagLists} from '@libs/PolicyUtils';
 import {getEnabledTags} from '@libs/TagsOptionsListUtils';
@@ -34,7 +35,6 @@ import type {MerchantRuleForm} from '@src/types/form';
 import type {PolicyTagLists} from '@src/types/onyx';
 import type {CodingRule} from '@src/types/onyx/Policy';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
-import {hasEnabledOptions} from '@libs/OptionsListUtils';
 
 type MerchantRulePageBaseProps = {
     policyID: string;

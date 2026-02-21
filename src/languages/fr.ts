@@ -131,6 +131,7 @@ import type {
     ZipCodeExampleFormatParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
+
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -964,6 +965,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Portefeuille > Cartes assignées',
             },
         },
+        assignedCards: 'Cartes assignées',
+        assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} restant`,
         announcements: 'Annonces',
         discoverSection: {
             title: 'Découvrir',
@@ -1385,12 +1388,7 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Certains de ces doublons ont déjà été approuvés ou payés.',
         reviewDuplicates: 'Examiner les doublons',
         keepAll: 'Tout garder',
-        confirmApprove: 'Confirmer le montant approuvé',
-        confirmApprovalAmount: 'Approuvez uniquement les dépenses conformes, ou approuvez l’intégralité de la note de frais.',
-        confirmApprovalAllHoldAmount: () => ({
-            one: 'Cette dépense est en attente. Voulez-vous l’approuver quand même ?',
-            other: 'Ces dépenses sont en attente. Voulez-vous tout de même approuver ?',
-        }),
+        confirmApprovalWithHeldAmount: "Le rapport contient des dépenses en attente. Approuver uniquement les dépenses conformes, ou approuver l'ensemble du rapport ?",
         confirmPay: 'Confirmer le montant du paiement',
         confirmPayAmount: 'Payez ce qui n’est pas en attente, ou payez l’intégralité de la note de frais.',
         confirmPayAllHoldAmount: () => ({
@@ -6424,7 +6422,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 matchTypeContains: 'Contient',
                 matchTypeExact: 'Correspond exactement',
                 duplicateRuleTitle: 'Une règle de commerçant similaire existe déjà',
-                duplicateRulePrompt: (merchantName: string) => `Voulez-vous enregistrer une nouvelle règle pour « ${merchantName} » même si vous en avez déjà une ?`,
+                duplicateRulePrompt: (merchantName: string) => `Votre règle existante pour « ${merchantName} » aura la priorité sur celle-ci. Enregistrer quand même ?`,
                 saveAnyway: 'Enregistrer quand même',
                 applyToExistingUnsubmittedExpenses: 'Appliquer aux dépenses non soumises existantes',
             },

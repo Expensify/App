@@ -1,20 +1,20 @@
+import {vacationDelegateSelector} from '@selectors/Domain';
+import {personalDetailsSelector} from '@selectors/PersonalDetails';
 import React from 'react';
 import BaseVacationDelegateSelectionComponent from '@components/BaseVacationDelegateSelectionComponent';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 import {deleteDomainVacationDelegate, setDomainVacationDelegate} from '@userActions/Domain';
 import {getCurrentUserEmail} from '@userActions/IOU';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Participant} from '@src/types/onyx/IOU';
-import useOnyx from '@hooks/useOnyx';
-import ONYXKEYS from '@src/ONYXKEYS';
-import {personalDetailsSelector} from '@selectors/PersonalDetails';
-import {vacationDelegateSelector} from '@selectors/Domain';
 
 type DomainMemberVacationDelegatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.VACATION_DELEGATE>;
 

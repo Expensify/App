@@ -75,8 +75,6 @@ project.ext.envConfigFiles = [
     adhocRelease: ".env.adhoc",
     developmentRelease: ".env",
     developmentDebug: ".env",
-    e2eRelease: "tests/e2e/.env.e2e",
-    e2edeltaRelease: "tests/e2e/.env.e2edelta"
 ]
 
 /**
@@ -113,8 +111,8 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         multiDexEnabled rootProject.ext.multiDexEnabled
-        versionCode 1009032303
-        versionName "9.3.23-3"
+        versionCode 1009032401
+        versionName "9.3.24-1"
         // Supported language variants must be declared here to avoid from being removed during the compilation.
         // This also helps us to not include unnecessary language variants in the APK.
         resConfigs "en", "es"
@@ -124,20 +122,6 @@ android {
     productFlavors {
         // we need to define a production flavor but since it has default config, we can leave it empty
         production
-        e2e {
-            // If  are building a version that won't be uploaded to the play store, we don't have to use production keys
-            // applies all non-production flavors
-            applicationIdSuffix ".e2e"
-            signingConfig signingConfigs.debug
-            resValue "string", "build_config_package", "com.expensify.chat"
-        }
-        e2edelta {
-            // If  are building a version that won't be uploaded to the play store, we don't have to use production keys
-            // applies all non-production flavors
-            applicationIdSuffix ".e2edelta"
-            signingConfig signingConfigs.debug
-            resValue "string", "build_config_package", "com.expensify.chat"
-        }
         adhoc {
             applicationIdSuffix ".adhoc"
             signingConfig signingConfigs.debug
@@ -174,23 +158,18 @@ android {
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
 
-            signingConfig null
             // buildTypes take precedence over productFlavors when it comes to the signing configuration,
-            // thus we need to manually set the signing config, so that the e2e uses the debug config again.
-            // In other words, the signingConfig setting above will be ignored when we build the flavor in release mode.
+            // so we need to manually set the signing config per flavor in release mode.
+            signingConfig null
             productFlavors.all { flavor ->
-                // All release builds should be signed with the release config ...
                 flavor.signingConfig signingConfigs.release
             }
-            // ... except for the e2e flavor, which we maybe want to build locally:
-            productFlavors.e2e.signingConfig signingConfigs.debug
-            productFlavors.e2edelta.signingConfig signingConfigs.debug
         }
     }
 
-    // since we don't need variants adhocDebug and e2eDebug, we can force gradle to ignore them
+    // Filter out unnecessary build variants
     variantFilter { variant ->
-        if (variant.name == "adhocDebug" || variant.name == "e2eDebug" || variant.name == "e2edeltaDebug") {
+        if (variant.name == "adhocDebug") {
             setIgnore(true)
         }
     }
@@ -244,7 +223,6 @@ dependencies {
 
     // Firebase libraries (using the Firebase BoM for consistency - see https://firebase.google.com/docs/android/learn-more#bom)
     implementation platform("com.google.firebase:firebase-bom:29.0.3")
-    implementation "com.google.firebase:firebase-crashlytics"
 
     // GIF support
     implementation 'com.facebook.fresco:fresco:3.4.0'
@@ -270,4 +248,3 @@ dependencies {
 }
 
 apply plugin: 'com.google.gms.google-services'  // Google Play services Gradle plugin
-apply plugin: 'com.google.firebase.crashlytics'

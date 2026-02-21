@@ -131,6 +131,7 @@ import type {
     ZipCodeExampleFormatParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
+
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -955,6 +956,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'ウォレット > 割り当てられたカード',
             },
         },
+        assignedCards: '割り当て済みカード',
+        assignedCardsRemaining: ({amount}: {amount: string}) => `残額：${amount}`,
         announcements: 'お知らせ',
         discoverSection: {
             title: '発見',
@@ -1371,12 +1374,7 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'これらの重複のうち、いくつかはすでに承認または支払い済みです。',
         reviewDuplicates: '重複を確認',
         keepAll: 'すべて保持',
-        confirmApprove: '承認金額を確認',
-        confirmApprovalAmount: '準拠している経費のみを承認するか、レポート全体を承認します。',
-        confirmApprovalAllHoldAmount: () => ({
-            one: 'この経費は保留中です。それでも承認しますか？',
-            other: 'これらの経費は保留中です。それでも承認しますか？',
-        }),
+        confirmApprovalWithHeldAmount: 'レポートには保留中の経費が含まれています。準拠している経費のみを承認しますか、それともレポート全体を承認しますか？',
         confirmPay: '支払金額を確認',
         confirmPayAmount: '保留されていない金額のみ支払うか、レポート全額を支払ってください。',
         confirmPayAllHoldAmount: () => ({
@@ -6328,7 +6326,7 @@ ${reportName}
                 matchTypeContains: '含む',
                 matchTypeExact: '完全一致',
                 duplicateRuleTitle: '同様のマーチャントルールが既に存在します',
-                duplicateRulePrompt: (merchantName: string) => `既にルールが存在しますが、「${merchantName}」用に新しいルールを保存しますか？`,
+                duplicateRulePrompt: (merchantName: string) => `「${merchantName}」に対する既存のルールが、このルールよりも優先されます。保存しますか？`,
                 saveAnyway: 'とにかく保存',
                 applyToExistingUnsubmittedExpenses: '既存の未提出経費に適用',
             },

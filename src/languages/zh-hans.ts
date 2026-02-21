@@ -131,6 +131,7 @@ import type {
     ZipCodeExampleFormatParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
+
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -942,6 +943,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会计`,
             },
         },
+        assignedCards: '已分配的卡片',
+        assignedCardsRemaining: ({amount}: {amount: string}) => `剩余 ${amount}`,
         announcements: '公告',
         discoverSection: {
             title: '发现',
@@ -1348,12 +1351,7 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: '其中有些重复项已经被批准或支付。',
         reviewDuplicates: '查看重复项',
         keepAll: '全部保留',
-        confirmApprove: '确认批准金额',
-        confirmApprovalAmount: '仅批准合规报销，或批准整份报销报告。',
-        confirmApprovalAllHoldAmount: () => ({
-            one: '此报销已被搁置。仍要批准吗？',
-            other: '这些报销当前被搁置。你仍然想要批准吗？',
-        }),
+        confirmApprovalWithHeldAmount: '报告包含暂停的费用。仅批准合规的费用，还是批准整个报告？',
         confirmPay: '确认付款金额',
         confirmPayAmount: '支付未冻结的部分，或支付整份报告。',
         confirmPayAllHoldAmount: () => ({
@@ -6228,7 +6226,7 @@ ${reportName}
                 matchTypeContains: '包含',
                 matchTypeExact: '完全匹配',
                 duplicateRuleTitle: '已存在类似的商家规则',
-                duplicateRulePrompt: (merchantName: string) => `即使已经有一条适用于“${merchantName}”的规则，是否仍要保存新规则？`,
+                duplicateRulePrompt: (merchantName: string) => `您现有针对“${merchantName}”的规则将优先于此规则。仍要保存吗？`,
                 saveAnyway: '仍然保存',
                 applyToExistingUnsubmittedExpenses: '应用到现有未提交的报销费用',
             },
