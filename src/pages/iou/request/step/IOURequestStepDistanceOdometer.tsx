@@ -485,6 +485,7 @@ function IOURequestStepDistanceOdometer({
                                 onChangeText={handleStartReadingChange}
                                 keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
                                 inputMode={CONST.INPUT_MODE.DECIMAL}
+                                maxLength={CONST.IOU.ODOMETER_MAX_LENGTH}
                             />
                         </View>
                         {!isEditing && (
@@ -533,6 +534,7 @@ function IOURequestStepDistanceOdometer({
                                 onChangeText={handleEndReadingChange}
                                 keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
                                 inputMode={CONST.INPUT_MODE.DECIMAL}
+                                maxLength={CONST.IOU.ODOMETER_MAX_LENGTH}
                             />
                         </View>
                         {!isEditing && (
