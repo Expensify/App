@@ -23,16 +23,24 @@ const useScreenReaderStatus = (): boolean => {
  * This is used to disable animations for users who are sensitive to motion.
  * Works on iOS, Android, and Web (via react-native-web which uses prefers-reduced-motion media query).
  */
+// Module-level cache so new hook instances start with the last known value
+// instead of defaulting to false (which causes a race condition on remount)
+let cachedReduceMotionValue = false;
+
 const useReducedMotion = (): boolean => {
-    const [isReduceMotionEnabled, setIsReduceMotionEnabled] = useState(false);
+    const [isReduceMotionEnabled, setIsReduceMotionEnabled] = useState(cachedReduceMotionValue);
 
     useEffect(() => {
         let isMounted = true;
 
-        const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', setIsReduceMotionEnabled);
+        const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', (enabled) => {
+            cachedReduceMotionValue = enabled;
+            setIsReduceMotionEnabled(enabled);
+        });
 
         AccessibilityInfo.isReduceMotionEnabled()
             .then((enabled) => {
+                cachedReduceMotionValue = enabled;
                 if (!isMounted) {
                     return;
                 }

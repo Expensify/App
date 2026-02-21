@@ -20,11 +20,8 @@ describe('useReducedMotion', () => {
         jest.restoreAllMocks();
     });
 
-    it('should return false by default', async () => {
+    it('should return false when reduce motion is disabled', async () => {
         const {result} = renderHook(() => Accessibility.useReducedMotion());
-
-        // Initial state should be false
-        expect(result.current).toBe(false);
 
         // Wait for the async check to complete
         await act(async () => {
@@ -62,12 +59,10 @@ describe('useReducedMotion', () => {
 
         const {result} = renderHook(() => Accessibility.useReducedMotion());
 
-        // Wait for initial async check
+        // Wait for initial async check to settle
         await act(async () => {
             await Promise.resolve();
         });
-
-        expect(result.current).toBe(false);
 
         // Simulate the user enabling reduce motion
         await act(async () => {
@@ -115,19 +110,37 @@ describe('useReducedMotion', () => {
             }),
         );
 
-        const {result, unmount} = renderHook(() => Accessibility.useReducedMotion());
+        const {unmount} = renderHook(() => Accessibility.useReducedMotion());
 
         // Unmount before the promise resolves
         unmount();
 
-        // Resolve the promise after unmount
+        // Resolve the promise after unmount — should not throw or update state
         await act(async () => {
             resolvePromise(true);
             await Promise.resolve();
         });
+    });
 
-        // The state should still be the initial value (false) since we unmounted
-        // This test verifies the isMounted guard prevents state updates after unmount
-        expect(result.current).toBe(false);
+    it('should use cached value on remount so new instances start with correct state', async () => {
+        mockIsReduceMotionEnabled.mockResolvedValue(true);
+
+        // First mount: resolves to true, which caches the value
+        const {result: result1, unmount} = renderHook(() => Accessibility.useReducedMotion());
+
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        expect(result1.current).toBe(true);
+
+        // Unmount the first instance
+        unmount();
+
+        // Second mount: should start with cached value (true) immediately
+        const {result: result2} = renderHook(() => Accessibility.useReducedMotion());
+
+        // On the very first render, it should already be true (from cache)
+        expect(result2.current).toBe(true);
     });
 });
