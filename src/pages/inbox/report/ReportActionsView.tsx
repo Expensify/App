@@ -3,6 +3,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
+import useConciergeSidePanelReportActions from '@hooks/useConciergeSidePanelReportActions';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLoadReportActions from '@hooks/useLoadReportActions';
@@ -100,16 +101,6 @@ function ReportActionsView({
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isReportArchived = useReportIsArchived(report?.reportID);
     const canPerformWriteAction = useMemo(() => canUserPerformWriteAction(report, isReportArchived), [report, isReportArchived]);
-
-    const [showFullHistory, setShowFullHistory] = useState(false);
-
-    const prevHasUserSentMessage = usePrevious(hasUserSentMessage);
-    useEffect(() => {
-        if (!prevHasUserSentMessage || hasUserSentMessage) {
-            return;
-        }
-        setShowFullHistory(false);
-    }, [prevHasUserSentMessage, hasUserSentMessage]);
 
     const getTransactionThreadReportActions = useCallback(
         (reportActions: OnyxEntry<OnyxTypes.ReportActions>): OnyxTypes.ReportAction[] => {
@@ -253,92 +244,6 @@ function ReportActionsView({
         [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs],
     );
 
-    const hasPreviousMessages = useMemo(() => {
-        if (!isConciergeSidePanel || !sessionStartActionIDs) {
-            return false;
-        }
-        return visibleReportActions.some((action) => !isCreatedAction(action) && sessionStartActionIDs.has(action.reportActionID));
-    }, [isConciergeSidePanel, visibleReportActions, sessionStartActionIDs]);
-
-    const showConciergeSidePanelWelcome = isConciergeSidePanel && !hasUserSentMessage && !showFullHistory;
-    const showConciergeGreeting = isConciergeSidePanel && !showFullHistory;
-
-    const conciergeGreetingAction = useMemo(() => {
-        if (!showConciergeGreeting) {
-            return undefined;
-        }
-        const greetingText = translate('common.concierge.sidePanelGreeting');
-        return {
-            reportActionID: CONST.CONCIERGE_GREETING_ACTION_ID,
-            reportID: report.reportID,
-            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-            actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
-            person: [{style: 'strong', text: CONST.CONCIERGE_DISPLAY_NAME, type: 'TEXT'}],
-            created: report.lastReadTime ?? DateUtils.getDBTime(),
-            message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: greetingText, text: greetingText}],
-            originalMessage: {html: greetingText, whisperedTo: []},
-            shouldShow: true,
-            isOptimisticAction: true,
-        } as OnyxTypes.ReportAction;
-    }, [showConciergeGreeting, report.reportID, report.lastReadTime, translate]);
-
-    // Find the earliest `created` timestamp among messages the user sent in this session.
-    // Used as a cutoff so automated Concierge replies that arrived between panel-open
-    // and the user's first message are also hidden.
-    const firstUserMessageCreated = useMemo(() => {
-        if (showConciergeSidePanelWelcome || !isConciergeSidePanel || !hasUserSentMessage || !sessionStartActionIDs) {
-            return undefined;
-        }
-        return reportActions.reduce<string | undefined>((earliest, action) => {
-            if (isCreatedAction(action) || sessionStartActionIDs.has(action.reportActionID) || action.actorAccountID !== currentUserAccountID) {
-                return earliest;
-            }
-            return !earliest || action.created < earliest ? action.created : earliest;
-        }, undefined);
-    }, [showConciergeSidePanelWelcome, isConciergeSidePanel, hasUserSentMessage, sessionStartActionIDs, reportActions, currentUserAccountID]);
-
-    const isCurrentSessionAction = useCallback(
-        (action: OnyxTypes.ReportAction): boolean => {
-            if (!firstUserMessageCreated) {
-                return false;
-            }
-            return isCreatedAction(action) || (!sessionStartActionIDs?.has(action.reportActionID) && action.created >= firstUserMessageCreated);
-        },
-        [firstUserMessageCreated, sessionStartActionIDs],
-    );
-
-    const conciergeSidePanelFilteredVisibleActions = useMemo(() => {
-        if (showConciergeSidePanelWelcome && conciergeGreetingAction) {
-            const createdAction = visibleReportActions.find(isCreatedAction);
-            return createdAction ? [conciergeGreetingAction, createdAction] : [conciergeGreetingAction];
-        }
-        if (!isConciergeSidePanel || showFullHistory) {
-            return visibleReportActions;
-        }
-        const filtered = visibleReportActions.filter(isCurrentSessionAction);
-        if (conciergeGreetingAction) {
-            const createdIndex = filtered.findIndex(isCreatedAction);
-            filtered.splice(createdIndex === -1 ? filtered.length : createdIndex, 0, conciergeGreetingAction);
-        }
-        return filtered;
-    }, [showConciergeSidePanelWelcome, conciergeGreetingAction, isConciergeSidePanel, showFullHistory, visibleReportActions, isCurrentSessionAction]);
-
-    const conciergeSidePanelFilteredReportActions = useMemo(() => {
-        if (showConciergeSidePanelWelcome && conciergeGreetingAction) {
-            const createdAction = reportActions.find(isCreatedAction);
-            return createdAction ? [conciergeGreetingAction, createdAction] : [conciergeGreetingAction];
-        }
-        if (!isConciergeSidePanel || showFullHistory) {
-            return reportActions;
-        }
-        const filtered = reportActions.filter(isCurrentSessionAction);
-        if (conciergeGreetingAction) {
-            const createdIndex = filtered.findIndex(isCreatedAction);
-            filtered.splice(createdIndex === -1 ? filtered.length : createdIndex, 0, conciergeGreetingAction);
-        }
-        return filtered;
-    }, [showConciergeSidePanelWelcome, conciergeGreetingAction, isConciergeSidePanel, showFullHistory, reportActions, isCurrentSessionAction]);
-
     const newestReportAction = useMemo(() => reportActions?.at(0), [reportActions]);
     const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);
     const lastActionCreated = visibleReportActions.at(0)?.created;
@@ -371,10 +276,24 @@ function ReportActionsView({
         hasNewerActions,
     });
 
-    const handleShowPreviousMessages = useCallback(() => {
-        setShowFullHistory(true);
-        loadOlderChats(true);
-    }, [loadOlderChats]);
+    const {
+        filteredVisibleActions: conciergeSidePanelFilteredVisibleActions,
+        filteredReportActions: conciergeSidePanelFilteredReportActions,
+        showConciergeSidePanelWelcome,
+        showFullHistory,
+        hasPreviousMessages,
+        handleShowPreviousMessages,
+    } = useConciergeSidePanelReportActions({
+        report,
+        reportActions,
+        visibleReportActions,
+        isConciergeSidePanel,
+        hasUserSentMessage,
+        sessionStartActionIDs,
+        currentUserAccountID,
+        greetingText: translate('common.concierge.sidePanelGreeting'),
+        loadOlderChats,
+    });
 
     /**
      * Runs when the FlatList finishes laying out
