@@ -1551,6 +1551,14 @@ function getQueryWithUpdatedValues(query: string, shouldSkipAmountConversion = f
 
     const computeNodeValue = (left: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>, right: string | string[]) => getUpdatedFilterValue(left, right, shouldSkipAmountConversion);
     const standardizedQuery = traverseAndUpdatedQuery(queryJSON, computeNodeValue);
+    const normalizedQuery = query.toLowerCase();
+    const hasInFilter = normalizedQuery.includes(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN.toLowerCase()}:`);
+    const hasExplicitType = normalizedQuery.includes(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE.toLowerCase()}:`);
+
+    if (hasInFilter && !hasExplicitType) {
+        standardizedQuery.type = CONST.SEARCH.DATA_TYPES.CHAT;
+    }
+
     return buildSearchQueryString(standardizedQuery);
 }
 
