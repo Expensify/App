@@ -49,9 +49,6 @@ type BadgeProps = {
 
     /** Additional styles from OfflineWithFeedback applied to the row */
     style?: StyleProp<ViewStyle>;
-
-    /** Whether to use XXSmall icon size */
-    shouldUseXXSmallIcon?: boolean;
 };
 
 function Badge({
@@ -68,7 +65,6 @@ function Badge({
     icon,
     iconStyles = [],
     style,
-    shouldUseXXSmallIcon = false,
 }: BadgeProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -78,8 +74,7 @@ function Badge({
 
     const iconColor = StyleUtils.getIconColorStyle(success, error, isStrong);
 
-    // Determine icon size: condensed = 8px, regular = 12px (unless overridden by shouldUseXXSmallIcon)
-    const iconSize = isCondensed || shouldUseXXSmallIcon ? variables.iconSizeXXSmall : variables.iconSizeExtraSmall;
+    const iconSize = isCondensed ? variables.iconSizeXXSmall : variables.iconSizeExtraSmall;
 
     const wrapperStyles: (state: PressableStateCallbackType) => StyleProp<ViewStyle> = useCallback(
         ({pressed}) => [

@@ -191,14 +191,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                                     style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
                                 />
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-                                    {!!badgeProps && (
-                                        <Badge
-                                            text={badgeProps.text}
-                                            isCondensed
-                                            badgeStyles={[styles.ml0, styles.borderNone, badgeProps.badgeStyles]}
-                                            textStyles={[badgeProps.textStyles]}
-                                        />
-                                    )}
+                                    {statusBadge}
                                     <TextWithTooltip
                                         text={withdrawalInfoText}
                                         style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
