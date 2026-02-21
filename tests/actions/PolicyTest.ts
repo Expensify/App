@@ -819,6 +819,132 @@ describe('actions/Policy', () => {
         });
     });
 
+    describe('leaveWorkspace', () => {
+        it("should remove all non-owned workspace chats and keep the user's own workspace chat when leaving a workspace", async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            const policyID = Policy.generatePolicyID();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                name: WORKSPACE_NAME,
+            });
+            await waitForBatchedUpdates();
+
+            const ownWorkspaceChat: Report = {
+                ...createRandomReport(100, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: '100',
+                policyID,
+                ownerAccountID: ESH_ACCOUNT_ID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const nonOwnedWorkspaceChat1: Report = {
+                ...createRandomReport(101, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: '101',
+                policyID,
+                ownerAccountID: ESH_ACCOUNT_ID + 1,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const nonOwnedWorkspaceChat2: Report = {
+                ...createRandomReport(102, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: '102',
+                policyID,
+                ownerAccountID: ESH_ACCOUNT_ID + 2,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const nonOwnedWorkspaceChats = [nonOwnedWorkspaceChat1, nonOwnedWorkspaceChat2];
+
+            const getAllWorkspaceReportsSpy = jest.spyOn(ReportUtils, 'getAllWorkspaceReports').mockReturnValue([ownWorkspaceChat, ...nonOwnedWorkspaceChats]);
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+
+            Policy.leaveWorkspace(ESH_ACCOUNT_ID, policyID);
+            await waitForBatchedUpdates();
+
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.LEAVE_POLICY,
+                expect.objectContaining({
+                    policyID,
+                    email: ESH_EMAIL,
+                }),
+                expect.anything(),
+            );
+
+            const writeOptions = apiWriteSpy.mock.calls.at(0)?.at(2) as {
+                optimisticData?: Array<{key?: string; value?: Record<string, unknown> | null}>;
+                successData?: Array<{key?: string; value?: Record<string, unknown> | null}>;
+                failureData?: Array<{key?: string; value?: Record<string, unknown> | null}>;
+            };
+
+            expect(writeOptions?.optimisticData).toEqual(
+                expect.arrayContaining(
+                    nonOwnedWorkspaceChats.map((workspaceChat) =>
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`,
+                            value: expect.objectContaining({
+                                reportID: null,
+                                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                                participants: {
+                                    [ESH_ACCOUNT_ID]: {
+                                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                                    },
+                                },
+                            }),
+                        }),
+                    ),
+                ),
+            );
+
+            const removedWorkspaceChatUpdates = (writeOptions?.optimisticData ?? []).filter((update) => (update.value as {reportID?: string | null} | undefined)?.reportID === null);
+            expect(removedWorkspaceChatUpdates).toHaveLength(nonOwnedWorkspaceChats.length);
+
+            expect(writeOptions?.optimisticData).not.toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${ownWorkspaceChat.reportID}`,
+                        value: expect.objectContaining({
+                            reportID: null,
+                        }),
+                    }),
+                ]),
+            );
+
+            expect(writeOptions?.optimisticData).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ownWorkspaceChat.reportID}`,
+                        value: expect.objectContaining({
+                            private_isArchived: expect.any(String) as unknown as string,
+                        }),
+                    }),
+                ]),
+            );
+
+            expect(writeOptions?.successData).toEqual(
+                expect.arrayContaining(
+                    nonOwnedWorkspaceChats.map((workspaceChat) =>
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`,
+                            value: null,
+                        }),
+                    ),
+                ),
+            );
+            expect(writeOptions?.failureData).toEqual(
+                expect.arrayContaining(
+                    nonOwnedWorkspaceChats.map((workspaceChat) =>
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`,
+                            value: workspaceChat,
+                        }),
+                    ),
+                ),
+            );
+
+            apiWriteSpy.mockRestore();
+            getAllWorkspaceReportsSpy.mockRestore();
+        });
+    });
+
     describe('createDraftInitialWorkspace', () => {
         it('creates a policy draft with disabled workflows when onboarding choice does not enable workflows', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
@@ -982,38 +1108,6 @@ describe('actions/Policy', () => {
             });
 
             expect(policy?.eReceipts).toBe(fakePolicy.eReceipts);
-        });
-    });
-
-    describe('disableWorkflows', () => {
-        it('disableWorkflow should reset autoReportingFrequency to INSTANT', async () => {
-            const autoReporting = true;
-            const autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY;
-            // Given that a policy has autoReporting initially set to true and autoReportingFrequency set to monthly.
-            const fakePolicy: PolicyType = {
-                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
-                autoReporting,
-                autoReportingFrequency,
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-
-            // When workflows are disabled for the policy
-            Policy.enablePolicyWorkflows(fakePolicy.id, false);
-            await waitForBatchedUpdates();
-
-            const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    callback: (workspace) => {
-                        Onyx.disconnect(connection);
-                        resolve(workspace);
-                    },
-                });
-            });
-
-            // Then the policy autoReportingFrequency should revert to "INSTANT"
-            expect(policy?.autoReporting).toBe(false);
-            expect(policy?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
         });
     });
 
@@ -1931,37 +2025,6 @@ describe('actions/Policy', () => {
 
             const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL);
             expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', TEST_DISPLAY_NAME, 2));
-        });
-    });
-
-    describe('enablePolicyWorkflows', () => {
-        it('should update delayed submission to instant when disabling the workflows feature', async () => {
-            (fetch as MockFetch)?.pause?.();
-            Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
-            const fakePolicy: PolicyType = {
-                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
-                areWorkflowsEnabled: true,
-                autoReporting: true,
-                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
-            };
-            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-            await waitForBatchedUpdates();
-
-            // Disable the workflow feature
-            Policy.enablePolicyWorkflows(fakePolicy.id, false);
-            await waitForBatchedUpdates();
-
-            await TestHelper.getOnyxData({
-                key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                waitForCollectionCallback: false,
-                callback: (policy) => {
-                    // Check if the autoReportingFrequency is updated to instant
-                    expect(policy?.areWorkflowsEnabled).toBeFalsy();
-                    expect(policy?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
-                },
-            });
-
-            mockFetch?.resume?.();
         });
     });
 

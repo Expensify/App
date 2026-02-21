@@ -10,6 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {normalizeLogin} from '@libs/LoginUtils';
 import {beginSignIn, clearSignInData, resetSMSDeliveryFailureStatus} from '@userActions/Session';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import Terms from './Terms';
@@ -72,6 +73,7 @@ function SMSDeliveryFailurePage() {
                         onPress={() => clearSignInData()}
                         pressOnEnter
                         style={styles.w100}
+                        sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.CONFIRM}
                     />
                 </View>
                 <View style={[styles.mt3, styles.mb2]}>
@@ -100,6 +102,7 @@ function SMSDeliveryFailurePage() {
                         message={errorText}
                         isAlertVisible={shouldShowError}
                         containerStyles={[styles.w100, styles.mh0]}
+                        sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.SEND}
                     />
                 </View>
                 <View style={[styles.mt3, styles.mb2]}>
@@ -130,6 +133,7 @@ function SMSDeliveryFailurePage() {
                     message={errorText}
                     isAlertVisible={shouldShowError}
                     containerStyles={[styles.w100, styles.mh0]}
+                    sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.VALIDATE}
                 />
             </View>
             <View style={[styles.mt3, styles.mb2]}>
