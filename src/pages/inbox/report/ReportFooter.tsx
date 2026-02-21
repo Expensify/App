@@ -191,7 +191,7 @@ function ReportFooter({
     const targetReportAncestors = useAncestors(targetReport);
 
     const onSubmitComment = useCallback(
-        (text: string) => {
+        (text: string, reportActionID?: string) => {
             const isTaskCreated = handleCreateTask(text);
             if (isTaskCreated) {
                 return;
@@ -207,6 +207,7 @@ function ReportFooter({
                 currentUserAccountID: personalDetail.accountID,
                 shouldPlaySound: true,
                 isInSidePanel,
+                reportActionID,
             });
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
