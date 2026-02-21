@@ -354,7 +354,7 @@ describe('ReportActionsView', () => {
             });
         };
 
-        it('should show ReportActionItemCreated when opened in side panel with no user messages', () => {
+        it('should show only greeting and created action when opened in side panel with no user messages', () => {
             setupConciergeMocks();
 
             const sessionStartIDs = new Set(oldReportActions.map((a) => a.reportActionID));
@@ -366,8 +366,10 @@ describe('ReportActionsView', () => {
                 sessionStartActionIDs: sessionStartIDs,
             });
 
-            expect(mockReportActionItemCreated).toHaveBeenCalled();
-            expect(mockReportActionsList).not.toHaveBeenCalled();
+            expect(mockReportActionsList).toHaveBeenCalled();
+            const passedActions = (mockReportActionsList.mock.calls.at(0) as [{sortedVisibleReportActions: OnyxTypes.ReportAction[]}]).at(0)?.sortedVisibleReportActions;
+            expect(passedActions?.length).toBeGreaterThanOrEqual(1);
+            expect(passedActions?.at(0)?.reportActionID).toBe(CONST.CONCIERGE_GREETING_ACTION_ID);
         });
 
         it('should not show welcome state when not in side panel', () => {
