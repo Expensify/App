@@ -15,7 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearTravelInvoiceStatementState, exportTravelInvoiceStatementCSV, getTravelInvoiceStatementPDF} from '@libs/actions/TravelInvoicing';
+import {exportTravelInvoiceStatementCSV, getTravelInvoiceStatementPDF} from '@libs/actions/TravelInvoicing';
 import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -51,7 +51,6 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
     const presets: SearchDatePreset[] = [CONST.SEARCH.DATE_PRESETS.THIS_MONTH, CONST.SEARCH.DATE_PRESETS.LAST_MONTH];
 
     const getDefaultDateValues = (): SearchDateValues => ({
-        // Default to This month
         [CONST.SEARCH.DATE_MODIFIERS.ON]: CONST.SEARCH.DATE_PRESETS.THIS_MONTH,
         [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: undefined,
         [CONST.SEARCH.DATE_MODIFIERS.AFTER]: undefined,
@@ -97,7 +96,7 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
      */
     const processDownload = useCallback(() => {
         if (isGenerating) {
-            clearTravelInvoiceStatementState();
+            return;
         }
 
         const {startDate, endDate} = getDateRange();
@@ -116,17 +115,18 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
         getTravelInvoiceStatementPDF(policyID, startDate, endDate);
     }, [baseURL, isGenerating, getDateRange, translate, travelInvoiceStatement, policyID]);
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
-        // If the statement generation is complete, download it automatically.
-        if (prevIsGenerating && !isGenerating) {
-            const {startDate, endDate} = getDateRange();
-            const cacheKey = `${policyID}_${startDate}_${endDate}`;
-            if (travelInvoiceStatement?.[cacheKey]) {
-                processDownload();
-            } else {
-                setIsDownloading(false);
-            }
+        if (!prevIsGenerating || isGenerating) {
+            return;
+        }
+
+        // If the statement generation is complete, download it automatically
+        const {startDate, endDate} = getDateRange();
+        const cacheKey = `${policyID}_${startDate}_${endDate}`;
+        if (travelInvoiceStatement?.[cacheKey]) {
+            processDownload();
+        } else {
+            setIsDownloading(false);
         }
     }, [prevIsGenerating, isGenerating, processDownload, travelInvoiceStatement, policyID, getDateRange]);
 
@@ -199,7 +199,6 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
                     />
                 </ScrollView>
                 <View style={[styles.ph5, styles.pb5]}>
-                    {/* When date modifier is set (On, After and Before) show Reset / Save buttons, otherwise show Export buttons */}
                     {!selectedDateModifier ? (
                         <>
                             <Button

@@ -317,16 +317,6 @@ function clearToggleTravelInvoicingErrors(workspaceAccountID: number) {
 }
 
 /**
- * Clears the travel invoice statement state.
- * Useful for recovering from stuck states.
- */
-function clearTravelInvoiceStatementState() {
-    Onyx.merge(ONYXKEYS.TRAVEL_INVOICE_STATEMENT, {
-        isGenerating: false,
-    });
-}
-
-/**
  * Generates the Travel Invoice Statement PDF for a policy and date range.
  * Uses Onyx to track generation state and cache the filename.
  */
@@ -408,6 +398,5 @@ export {
     toggleTravelInvoicing,
     clearToggleTravelInvoicingErrors,
     getTravelInvoiceStatementPDF,
-    clearTravelInvoiceStatementState,
     exportTravelInvoiceStatementCSV,
 };
