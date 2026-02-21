@@ -252,6 +252,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                             shouldSaveDraft
                             maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                             spellCheck={false}
+                            autoComplete="email"
                         />
                     </View>
                 </FormProvider>

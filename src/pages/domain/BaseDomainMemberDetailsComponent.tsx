@@ -102,6 +102,7 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children,
                                 icon={icons.Info}
                                 onPress={() => Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()))}
                                 shouldShowRightIcon
+                                containerStyle={styles.pr2}
                             />
                         </View>
                     </View>
