@@ -2552,7 +2552,7 @@ describe('actions/IOU', () => {
                         () =>
                             new Promise<void>((resolve) => {
                                 if (iouReportID) {
-                                    clearAllRelatedReportActionErrors(iouReportID, iouAction ?? null);
+                                    clearAllRelatedReportActionErrors(iouReportID, iouAction ?? null, iouReportID);
                                 }
                                 resolve();
                             }),

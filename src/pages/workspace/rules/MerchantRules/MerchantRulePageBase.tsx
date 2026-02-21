@@ -20,6 +20,7 @@ import {deletePolicyCodingRule, setPolicyCodingRule} from '@libs/actions/Policy/
 import {clearDraftMerchantRule, setDraftMerchantRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getCleanedTagName, getTagLists} from '@libs/PolicyUtils';
 import {getEnabledTags} from '@libs/TagsOptionsListUtils';
@@ -136,7 +137,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
         if (!policy?.areCategoriesEnabled) {
             return false;
         }
-        return Object.keys(policyCategories ?? {}).length > 0;
+        return !!form?.category || hasEnabledOptions(policyCategories ?? {});
     };
 
     const hasTags = () => {

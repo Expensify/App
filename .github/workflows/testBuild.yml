@@ -30,6 +30,10 @@ on:
         description: Should build android app?
         type: boolean
         default: true
+      FORCE_NATIVE_BUILD:
+        description: Force a full native build, bypassing Rock remote cache
+        type: boolean
+        default: false
 
 jobs:
   prep:
@@ -158,4 +162,5 @@ jobs:
       BUILD_IOS: ${{ inputs.IOS && 'true' || 'false' }}
       BUILD_ANDROID: ${{ inputs.ANDROID && 'true' || 'false' }}
       TRIGGER_ACTOR: ${{ github.actor }}
+      FORCE_NATIVE_BUILD: ${{ inputs.FORCE_NATIVE_BUILD && 'true' || 'false' }}
     secrets: inherit

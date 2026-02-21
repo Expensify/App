@@ -54,6 +54,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {cleanUpMoneyRequest} from '@libs/actions/IOU';
 import {resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
+import {isPersonalCardBrokenConnection} from '@libs/CardUtils';
 import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -242,7 +243,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution, OriginalMessageMovedTransaction, OriginalMessageUnreportedTransaction} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
-import {isPersonalCardBrokenConnection} from '@libs/CardUtils';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import type {ContextMenuAnchor} from './ContextMenu/ReportActionContextMenu';
@@ -442,7 +442,13 @@ type PureReportActionItemProps = {
     clearError?: (transactionID: string) => void;
 
     /** Function to clear all errors from a report action */
-    clearAllRelatedReportActionErrors?: (reportID: string | undefined, reportAction: OnyxTypes.ReportAction | null | undefined, ignore?: IgnoreDirection, keys?: string[]) => void;
+    clearAllRelatedReportActionErrors?: (
+        reportID: string | undefined,
+        reportAction: OnyxTypes.ReportAction | null | undefined,
+        originalReportID: string | undefined,
+        ignore?: IgnoreDirection,
+        keys?: string[],
+    ) => void;
 
     /** Function to dismiss the actionable whisper for tracking expenses */
     dismissTrackExpenseActionableWhisper?: (reportID: string | undefined, reportAction: OnyxEntry<OnyxTypes.ReportAction>) => void;
@@ -621,14 +627,14 @@ function PureReportActionItem({
         const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
         if (isSendingMoney && transactionID && reportID) {
             const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
-            cleanUpMoneyRequest(transactionID, action, reportID, report, chatReport, undefined, true);
+            cleanUpMoneyRequest(transactionID, action, reportID, report, chatReport, undefined, originalReportID, true);
             return;
         }
         if (transactionID) {
             clearError(transactionID);
         }
-        clearAllRelatedReportActionErrors(reportID, action);
-    }, [action, isSendingMoney, clearAllRelatedReportActionErrors, reportID, allReports, report, clearError]);
+        clearAllRelatedReportActionErrors(reportID, action, originalReportID);
+    }, [action, isSendingMoney, clearAllRelatedReportActionErrors, reportID, allReports, report, clearError, originalReportID]);
 
     const showDismissReceiptErrorModal = useCallback(async () => {
         const result = await showConfirmModal({
@@ -1656,12 +1662,14 @@ function PureReportActionItem({
                 />
             );
         } else if (isCardBrokenConnectionAction(action)) {
-            const cardID = getOriginalMessage(action)?.cardID;
+            const message = getOriginalMessage(action);
+            const cardID = message?.cardID;
+            const cardName = message?.cardName;
             const card = cardID ? cardList?.[cardID] : undefined;
             const connectionLink = cardID && isPersonalCardBrokenConnection(card) ? `${environmentURL}/${ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(String(cardID))}` : undefined;
             children = (
                 <ReportActionItemBasicMessage message="">
-                    <RenderHTML html={`<comment>${getCardConnectionBrokenMessage(card, translate, connectionLink)}</comment>`} />
+                    <RenderHTML html={`<comment>${getCardConnectionBrokenMessage(card, cardName, translate, connectionLink)}</comment>`} />
                 </ReportActionItemBasicMessage>
             );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
