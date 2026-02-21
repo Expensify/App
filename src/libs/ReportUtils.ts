@@ -160,6 +160,7 @@ import {
     getRuleApprovers,
     getSubmitToAccountID,
     hasDependentTags as hasDependentTagsPolicyUtils,
+    hasDynamicExternalWorkflow,
     isExpensifyTeam,
     isInstantSubmitEnabled,
     isPaidGroupPolicy as isPaidGroupPolicyPolicyUtils,
@@ -201,6 +202,8 @@ import {
     getReportActionMessageText,
     getReportActionText,
     getSortedReportActions,
+    hasPendingDEWApprove,
+    hasPendingDEWSubmit,
     isActionableCardFraudAlert,
     isActionableJoinRequestPending,
     isActionableTrackExpense,
@@ -11365,6 +11368,28 @@ function hasForwardedAction(reportID: string): boolean {
     return Object.values(reportActions).some((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED);
 }
 
+/**
+ * Fallback for when forwarded actions are unavailable in local Onyx.
+ * A processing report is considered forwarded when managerID no longer matches the first approver.
+ */
+function hasForwardedByManagerChange(iouReport: OnyxInputOrEntry<Report>): boolean {
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`];
+    const reportMetadata = getReportMetadata(iouReport?.reportID);
+
+    if (!iouReport || !policy || !reportMetadata || !isProcessingReport(iouReport) || !isNumber(iouReport.managerID)) {
+        return false;
+    }
+
+    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+    const isDEWPending = hasPendingDEWApprove(reportMetadata, isDEWPolicy) || hasPendingDEWSubmit(reportMetadata, isDEWPolicy);
+
+    if (isDEWPending) {
+        return false;
+    }
+
+    return getSubmitToAccountID(policy, iouReport) !== iouReport.managerID;
+}
+
 function isReportOutstanding(
     iouReport: OnyxInputOrEntry<Report>,
     policyID: string | undefined,
@@ -11378,7 +11403,8 @@ function isReportOutstanding(
         iouReport?.stateNum === undefined ||
         iouReport?.statusNum === undefined ||
         iouReport?.policyID !== policyID ||
-        hasForwardedAction(iouReport.reportID)
+        hasForwardedAction(iouReport.reportID) ||
+        hasForwardedByManagerChange(iouReport)
     ) {
         return false;
     }
