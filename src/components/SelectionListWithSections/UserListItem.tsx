@@ -71,6 +71,12 @@ function UserListItem<TItem extends ListItem>({
     const shouldUseIconPolicyID = !item.reportID && !item.accountID && !item.policyID;
     const policyID = isThereOnlyWorkspaceIcon && shouldUseIconPolicyID ? String(item.icons?.at(0)?.id) : item.policyID;
 
+    // When rightHandSideComponent exists (e.g., "Add to group" button), disable tile-level
+    // accessible grouping so VoiceOver can focus the button independently. On iOS, accessible={true}
+    // on PressableWithFeedback absorbs all children into one element.
+    const shouldDisableAccessibleGrouping = !!rightHandSideComponent && !canSelectMultiple;
+    const contactAccessibilityLabel = item.text === item.alternateText ? (item.text ?? '') : [item.text, item.alternateText].filter(Boolean).join(', ');
+
     return (
         <BaseListItem
             item={item}
@@ -94,9 +100,15 @@ function UserListItem<TItem extends ListItem>({
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
+            accessible={shouldDisableAccessibleGrouping ? false : undefined}
         >
             {(hovered?: boolean) => (
-                <>
+                <View
+                    accessible={shouldDisableAccessibleGrouping || undefined}
+                    accessibilityLabel={shouldDisableAccessibleGrouping ? contactAccessibilityLabel : undefined}
+                    role={shouldDisableAccessibleGrouping ? CONST.ROLE.BUTTON : undefined}
+                    style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                >
                     {!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple && (
                         <PressableWithFeedback
                             accessibilityLabel={item.text ?? ''}
@@ -186,7 +198,7 @@ function UserListItem<TItem extends ListItem>({
                             </View>
                         </PressableWithFeedback>
                     )}
-                </>
+                </View>
             )}
         </BaseListItem>
     );
