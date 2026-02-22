@@ -102,11 +102,10 @@ function buildOnyxDataForQuickbooksConfiguration<TSettingName extends keyof Conn
     settingValue: Partial<Connections['quickbooksOnline']['config'][TSettingName]>,
     oldSettingValue?: Partial<Connections['quickbooksOnline']['config'][TSettingName]>,
 ) {
-    const exporterOptimisticData = settingName === CONST.QUICKBOOKS_CONFIG.EXPORT ? {exporter: settingValue} : {};
-    const exporterErrorData = settingName === CONST.QUICKBOOKS_CONFIG.EXPORT ? {exporter: oldSettingValue} : {};
+    const exporterOptimisticData = settingName === CONST.QUICKBOOKS_CONFIG.EXPORT ? {exporter: settingValue as unknown as string} : {};
+    const exporterErrorData = settingName === CONST.QUICKBOOKS_CONFIG.EXPORT ? {exporter: oldSettingValue  as unknown as string} : {};
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -130,7 +129,6 @@ function buildOnyxDataForQuickbooksConfiguration<TSettingName extends keyof Conn
     ];
 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,

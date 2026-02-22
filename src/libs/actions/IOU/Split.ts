@@ -92,6 +92,7 @@ import {
     mergePolicyRecentlyUsedCurrencies,
 } from './index';
 import type {BuildOnyxDataForMoneyRequestKeys, MoneyRequestInformationParams, OneOnOneIOUReport, StartSplitBilActionParams, UpdateMoneyRequestDataKeys} from './index';
+import Transaction from '@src/types/onyx/Transaction';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -1428,14 +1429,13 @@ function updateSplitTransactions({
             },
         });
 
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         onyxData.failureData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext?.currentSearchHash}`,
             value: {
                 data: {
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: originalTransaction,
-                },
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}` as const]: originalTransaction,
+                } as Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`, Transaction>,
             },
         });
     } else {

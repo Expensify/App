@@ -11147,9 +11147,8 @@ describe('actions/IOU', () => {
 
             // Given a snapshot of the transaction
             await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${unapprovedCashHash}`, {
-                // @ts-expect-error: Allow partial record in snapshot update
                 data: {
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const]: transaction,
                 },
             });
             await waitForBatchedUpdates();
@@ -11204,9 +11203,8 @@ describe('actions/IOU', () => {
 
             // Given a snapshot of the transaction
             await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${unapprovedCashHash}`, {
-                // @ts-expect-error: Allow partial record in snapshot update
                 data: {
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const]: transaction,
                 },
             });
             await waitForBatchedUpdates();

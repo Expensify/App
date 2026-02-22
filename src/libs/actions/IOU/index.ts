@@ -1,6 +1,7 @@
 /* eslint-disable max-lines */
 import {format} from 'date-fns';
 import {fastMerge} from 'expensify-common';
+import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import cloneDeep from 'lodash/cloneDeep';
 // eslint-disable-next-line you-dont-need-lodash-underscore/union-by
 import lodashUnionBy from 'lodash/unionBy';
@@ -262,6 +263,7 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -4911,24 +4913,22 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             value: currentTransactionViolations,
         });
         if (hash) {
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
                 value: {
                     data: {
                         [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]: violationsOnyxData.value,
-                    },
+                    } as Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${string}`, OnyxTypes.TransactionViolation[]>,
                 },
             });
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
                 value: {
                     data: {
                         [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]: currentTransactionViolations,
-                    },
+                    } as Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${string}`, OnyxTypes.TransactionViolation[]>,
                 },
             });
         }
@@ -8948,19 +8948,21 @@ function cleanUpMoneyRequest(
             value: updatedReportAction,
         });
     }
-    onyxUpdates.push(
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-        {
+    if (updatedIOUReport && iouReport?.reportID) {
+        onyxUpdates.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: updatedIOUReport,
-        },
-        {
+        });
+    }
+
+    if (chatReport?.reportID) {
+        onyxUpdates.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: getOutstandingChildRequest(updatedIOUReport),
-        },
-    );
+        });
+    }
 
     if (!shouldDeleteIOUReport && updatedReportPreviewAction.childMoneyRequestCount === 0) {
         onyxUpdates.push({
@@ -9249,11 +9251,10 @@ function deleteMoneyRequest({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
             value: updatedReportAction,
         },
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-            value: updatedIOUReport,
+            value: updatedIOUReport ?? null,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -9399,17 +9400,16 @@ function deleteMoneyRequest({
                 },
             },
         },
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         shouldDeleteIOUReport
             ? {
                   onyxMethod: Onyx.METHOD.SET,
                   key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-                  value: iouReport,
+                  value: iouReport ?? null,
               }
             : {
                   onyxMethod: Onyx.METHOD.MERGE,
                   key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-                  value: iouReport,
+                  value: iouReport ?? null,
               },
     );
 
@@ -11178,15 +11178,11 @@ function retractReport(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
-                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                 stateNum: expenseReport.stateNum,
-                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                statusNum: expenseReport.stateNum,
-                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+                statusNum: expenseReport.statusNum,
                 hasReportBeenRetracted: false,
                 nextStep: expenseReport.nextStep ?? null,
                 pendingFields: {
-                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                     partial: null,
                     nextStep: null,
                 },
@@ -12245,26 +12241,24 @@ function replaceReceipt({transactionID, file, source, transactionPolicy, transac
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`,
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             value: {
                 data: {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
                         receipt: receiptOptimistic,
                     },
-                },
+                } as PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, OnyxTypes.Transaction>,
             },
         });
 
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`,
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             value: {
                 data: {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
                         receipt: !isEmptyObject(oldReceipt) ? oldReceipt : null,
                     },
-                },
+                } as PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, OnyxTypes.Transaction>,
             },
         });
     }
@@ -12538,38 +12532,49 @@ function getSearchOnyxUpdate({
                     },
                 });
             }
+
+            // Building this object sequentially resolves TypeScript type inference issues
+            const optimisticDataSnapshotValueData = {} as SearchResultDataType;
+
+            optimisticDataSnapshotValueData[ONYXKEYS.PERSONAL_DETAILS_LIST] = {
+                [toAccountID]: {
+                    accountID: toAccountID,
+                    displayName: participant?.displayName,
+                    login: participant?.login,
+                },
+                [fromAccountID]: {
+                    accountID: fromAccountID,
+                    avatar: deprecatedCurrentUserPersonalDetails?.avatar,
+                    displayName: deprecatedCurrentUserPersonalDetails?.displayName,
+                    login: deprecatedCurrentUserPersonalDetails?.login,
+                },
+            };
+
+            optimisticDataSnapshotValueData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
+                ...(transactionThreadReportID && {transactionThreadReportID}),
+                ...(isFromOneTransactionReport && {isFromOneTransactionReport}),
+                ...transaction,
+            };
+
+            if (policy) {
+                optimisticDataSnapshotValueData[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`] = policy;
+            }
+
+            if (iouReport) {
+                optimisticDataSnapshotValueData[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`] = iouReport;
+            }
+
+            if (iouReport && iouAction) {
+                optimisticDataSnapshotValueData[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`] = {[iouAction.reportActionID]: iouAction};
+            }
+
             return {
                 optimisticData: [
                     {
                         onyxMethod: Onyx.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
                         value: {
-                            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                            data: {
-                                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
-                                    [toAccountID]: {
-                                        accountID: toAccountID,
-                                        displayName: participant?.displayName,
-                                        login: participant?.login,
-                                    },
-                                    [fromAccountID]: {
-                                        accountID: fromAccountID,
-                                        avatar: deprecatedCurrentUserPersonalDetails?.avatar,
-                                        displayName: deprecatedCurrentUserPersonalDetails?.displayName,
-                                        login: deprecatedCurrentUserPersonalDetails?.login,
-                                    },
-                                },
-                                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: {
-                                    accountID: fromAccountID,
-                                    managerID: toAccountID,
-                                    ...(transactionThreadReportID && {transactionThreadReportID}),
-                                    ...(isFromOneTransactionReport && {isFromOneTransactionReport}),
-                                    ...transaction,
-                                },
-                                ...(policy && {[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy}),
-                                ...(iouReport && {[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport}),
-                                ...(iouReport && iouAction && {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: {[iouAction.reportActionID]: iouAction}}),
-                            },
+                            data: optimisticDataSnapshotValueData,
                         },
                     },
                 ],
