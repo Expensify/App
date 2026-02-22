@@ -163,7 +163,31 @@ index 9fedd7e..b3c4d5e 100644
    const _getRowLoader = () => {
      return <ActivityIndicator animating={true} size='small' />;
    };
-@@ -1078,11 +1082,6 @@
+@@ -1010,16 +1014,18 @@
+      return `item_${index}`;
+    };
+
+-    // Show list if:
+-    // 1. Platform is supported
+-    // 2. There's data to show (dataSource has items)
+-    // 3. listViewDisplayed is true OR we're in 'auto' mode (auto-shows when data exists)
++    // Show list when the user is actively searching, has predefined places, or
++    // uses current location.  We check stateText instead of dataSource.length so
++    // that the FlatList mounts while results are still loading — this lets
++    // ListEmptyComponent render the loading spinner.
+     const isAutoMode =
+       listViewDisplayedProp === 'auto' || listViewDisplayedProp === undefined;
+     const shouldShowList =
+       supportedPlatform() &&
+-      dataSource.length > 0 &&
++      (stateText !== '' ||
++        predefinedPlaces.length > 0 ||
++        currentLocation === true) &&
+       (listViewDisplayed === true || (isAutoMode && !listWasDismissed));
+
+     if (shouldShowList) {
+       return (
+@@ -1078,11 +1084,6 @@
    // Keep requestRef updated
    requestRef.current = _request;
 

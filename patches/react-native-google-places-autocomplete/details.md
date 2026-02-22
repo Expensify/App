@@ -38,6 +38,16 @@
        The `hideListView(true)` calls in the `isCurrentLocation` and
        predefined-place branches are left intact since those don't need
        to show a row-level loading indicator.
+
+    5. v2.6.4 changed the `_getFlatList` visibility condition from
+       `stateText !== ''` (v2.5.6) to `dataSource.length > 0`. This
+       prevents the FlatList from mounting when the user is typing but
+       results haven't arrived yet, so the `ListEmptyComponent` loading
+       spinner is never shown during in-flight requests. Fix: replace
+       `dataSource.length > 0` with the v2.5.6-style condition
+       `(stateText !== '' || predefinedPlaces.length > 0 || currentLocation === true)`
+       so the FlatList renders while results are loading and the
+       `ListEmptyComponent` spinner is visible.
     ```
 
 - Upstream PR/issue: 🛑, library is unmaintained (https://github.com/FaridSafi/react-native-google-places-autocomplete/issues/978)
