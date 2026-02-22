@@ -1,4 +1,4 @@
-import {useEffect, useRef} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import {MULTIFACTOR_AUTHENTICATION_PROMPT_UI} from '@components/MultifactorAuthentication/config';
@@ -8,6 +8,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account} from '@src/types/onyx';
 import {useMultifactorAuthenticationState} from './State';
+import useNativeBiometrics from './useNativeBiometrics';
 
 type PromptContent = {
     animation: DotLottieAnimation;
@@ -36,10 +37,28 @@ function serverHasRegisteredCredentials(data: OnyxEntry<Account>) {
  * timing issues with optimistic updates.
  */
 function usePromptContent(promptType: MultifactorAuthenticationPromptType): PromptContent {
-    const {state} = useMultifactorAuthenticationState();
-    const [serverHasCredentials = false] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true, selector: serverHasRegisteredCredentials});
+    const state = useMultifactorAuthenticationState();
+    const {areLocalCredentialsKnownToServer} = useNativeBiometrics();
+    const [serverHasCredentials, setServerHasCredentials] = useState(false);
     const [deviceBiometricsState] = useOnyx(ONYXKEYS.DEVICE_BIOMETRICS, {canBeMissing: true});
     const hasEverAcceptedSoftPrompt = deviceBiometricsState?.hasAcceptedSoftPrompt ?? false;
+
+    // We need to know if server has this device's credentials specifically
+    useEffect(() => {
+        let ignore = false;
+        async function checkCredentials() {
+            const localCredentialsKnown = await areLocalCredentialsKnownToServer();
+            if (ignore) {
+                return;
+            }
+            setServerHasCredentials(localCredentialsKnown);
+        }
+        checkCredentials();
+        return () => {
+            // Guard against race condition in case where multifactorAuthenticationPublicKeyIDs gets updated in onyx while a KeyStore.get call is in-flight
+            ignore = true;
+        };
+    }, [areLocalCredentialsKnownToServer]);
 
     // This one's a real doozy. There's an edge case with the MFA flows where the user's keys were revoked
     // server-side, but the client missed the Onyx update to clear them locally. When the client launches the MFA

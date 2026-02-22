@@ -1,100 +1,155 @@
 ---
 title: Navigating New Expensify
-description: A guide to navigating New Expensify using the navigation tabs, workspace filters, and mobile layout.
-keywords: [New Expensify, navigation, LHB, navigation tabs, workspace filter, mobile tabs, UI layout, reports tab, account page]
+description: Learn how to move around New Expensify using the navigation tabs, including Home, Inbox, Reports, Workspaces, and Account on web and mobile.
+keywords: [New Expensify, navigation tabs, navigation, Home tab, Inbox tab, Reports tab, Workspaces tab, Account tab, Receipt button, Create button, workspace filter]
+internalScope: Audience is all Expensify members. Covers how to navigate Expensify using the navigation tabs and primary action buttons. Does not explain the detailed behavior of the Home tab sections.
 ---
 
-New Expensify features an intuitive, cross-platform navigation experience that makes it easy to access key tools like Inbox, Reports, Workspaces, and Account settings. This article outlines how to navigate New Expensify on both desktop and mobile.
+# Navigating New Expensify 
 
----
+New Expensify uses a consistent navigation layout across web and mobile so you can quickly move between Home, Inbox, Reports, Workspaces, and Account settings.
 
-# Navigation tabs
-
-The **navigation tabs** (on the left on web, and at the bottom on mobile) are primary orientation hubs in your account. They includes:
-
-- The **Expensify logo**, which acts as a **Home** button and takes you to your Inbox
-- Top-level tabs:
-  - **Inbox**
-  - **Reports**
-  - **Workspaces**
-  - **Account**
-- The green **Camera/Receipt** button to easily create expenses 
-- The grey **Global Create** button for additional actions like creating reports, tracking distance, sending invoices, and more.
+This guide explains where to find each tab and what it’s used for.
 
 ---
 
-# Inbox
+# Where to find navigation tabs
 
-The **Inbox** is your New Expensify homepage. It shows:
+The **navigation tabs** are your main way to move through the app.
 
-- Smart reminders to submit, approve, or reconcile expenses
-- Real-time updates on recent actions, flagged reports, or incomplete tasks
-- The list of chats you've started with other employees in your organization
+- **Web:** Navigation tabs appear on the left side of the screen.
+- **Mobile:** Navigation tabs appear on the bottom of the screen.
 
-Inbox items are dynamic and personalized based on your role and activity. Clicking an item opens the relevant screen or starts a suggested action.
+Tabs include:
 
----
-
-# Reports Tab
-
-The **Reports** tab consolidates all filtering and reporting tools:
-
-- A **Workspace filter** is located inside the **Filters** menu
-  - You can select a single workspace to refine the report list
-  - Filters and queries update automatically to match your selections
-
-**Note:** This Workspace filter replaces the older workspace switcher.
+- **Home**
+- **Inbox**
+- **Reports**
+- **Workspaces**
+- **Account**
 
 ---
 
-# Workspaces Page
+# What the Home tab is used for
 
-The **Workspaces** tab shows you a clean list of all your workspaces and allows you to manage everything related to your company or personal workspaces. This section is your main hub for workspace management.
+The **Home** tab is the first screen you see when you sign in.
 
-From the **Workspaces** tab, you can:
+Use Home to get oriented and see whether anything needs attention. From the Home tab, you can navigate to Inbox, Reports, or Workspaces as needed.
 
-- **Create a new workspace** – Start a new personal or company workspace using the **New workspace** button.
-- **Access workspace settings** – Click on a workspace to manage its name, default currency, and icon.
-- **Manage members** – Invite or remove members, set roles, and transfer billing ownership under the **People** section.
-- **Enable features** – Turn on or off modules like Company Cards, Workflows, Tags, Distance tracking, and more via the **More features** menu.
-- **Set up accounting connections** – Integrate tools like QuickBooks or NetSuite under **Accounting**.
-- **Edit categories and tags** – Create or disable expense categories and tags to organize expenses.
-
-**Tip:** All workspace-specific settings live under this tab, while account-level settings (including billing and subscription management) live under the **Account** tab.
+For a full breakdown of what appears on Home, see the **Expensify Home Overview** article.
 
 ---
 
-# Account Settings
+# What the Inbox tab is used for
 
-The **Account** tab includes all personal and account-level settings. Here’s what you’ll find:
+The **Inbox** tab is where conversations and action-related items are managed.
 
-- **Profile** – Update your display name, time zone, and profile picture.
-- **Wallet** – Add or manage personal payment methods (e.g., cards or bank accounts).
-- **Preferences** – Choose your default payment currency, language, and notification preferences.
-- **Security** – Set up two-factor authentication and manage device access.
-- **Subscription** – Manage your billing, view subscription details, and track usage.
-- **Help** – Access Expensify Help docs and reach out to Concierge.
-- **Switch to Expensify Classic** – Return to the classic layout if needed.
-- **About** – View app version details and system information.
-- **Troubleshoot** – Access logs and run basic diagnostics to help resolve technical issues.
-- **Save the world** – Donate to the Expensify.org fund and support social impact campaigns.
-- **Sign out** – Log out of your Expensify account.
+Use Inbox to:
 
-**Tip:** In your web account, you can hover over your profile icon to switch accounts via **Copilot access**.
+- Respond to approval requests
+- Comment on reports
+- Review notifications
+- Communicate with other members
+
+---
+
+# What the Reports tab is used for
+
+**Reports** is where you view and filter expense reports.
+
+From Reports, you can:
+
+- View all reports you have access to
+- Apply filters
+- Narrow results using the **Workspace filter** inside **Filters**
+
+---
+
+# What the Workspaces tab is used for
+
+The **Workspaces** tab displays all workspaces you are a member of. 
+
+Workspace Admins can open a workspace to manage workspace-level settings.
+
+From **Workspaces**, Workspace Admins can:
+
+- Create a new workspace
+- Manage members under **People**
+- Enable features under **More features**
+- Configure workflows
+- Connect accounting integrations under **Accounting**
+- Manage categories and tags
+
+Use **Workspaces** for company and team configuration.
+
+---
+
+# What the Account tab is used for
+
+The **Account** tab contains personal and account-level settings.
+
+From Account, you can manage:
+
+ - **Profile** to update your personal details
+ - **Subscription** to manage your Expensify subscription
+ - **Wallet** to manage bank accounts and linked credit cards
+ - **Expense rules** to create and edit personal expense rules
+ - **Preferences** to update app settings
+ - **Security** to manage security options and Copilot delegated access
+
+You can also access: 
+ - **Help** to browse Expensify's help site
+ - **What's new** to view product updates
+ - **About** to see app details
+ - **Troubleshoot** to run diagnostics or switch to Expensify Classic
+ - **Save the world** to explore Expensify.org campaigns
+ - **Sign out** to log out of your account
+
+Use Account for personal settings and billing. 
+
+---
+
+# Using the Receipt and Create buttons
+
+In addition to the navigation tabs, you’ll see two primary action buttons:
+
+- The green **Receipt** button  to scan or manually add an expense.
+- The grey **➕ Create** button to start actions like creating a report, sending money, requesting money, or tracking distance.
+
+The Receipt and Create buttons are available from all screens so you can quickly take action.
+
+---
+
+# How to navigate Expensify quickly
+
+If you’re not sure where to go:
+
+- Use **Home** to see what needs attention.
+- Use **Inbox** to manage conversations and approvals.
+- Use **Reports** to view or filter expense reports.
+- Use **Workspaces** to manage workspace settings.
+- Use **Account** to update personal settings or subscription details.
 
 ---
 
 # FAQ
 
-## What does the Expensify logo do in the navigation tabs?
+## Where are navigation tabs located in Expensify?
 
-Clicking the logo takes you to your **Inbox**, which serves as the homepage of New Expensify. It’s where you’ll find action items, system suggestions, and task reminders.
+On web, navigation tabs appear on the left. On mobile, navigation tabs appear on the bottom.
 
-## Where can I filter reports by workspace?
+## Where do I manage workspace settings?
 
-Use the **Workspace filter** inside the Filters menu under the **Reports** tab to narrow down results by workspace.
+Open the **Workspaces** tab from the navigation tabs.
 
-## Is navigation the same on desktop and mobile?
+## Where do I update my personal profile or billing information?
 
-Yes. New Expensify offers a consistent experience across web and mobile, using the same tab layout and filtering tools.
+Open the **Account** tab from the navigation tabs.
 
+## What does the green Receipt button do?
+
+The green **Receipt** button lets you scan or manually add an expense.
+
+## What does the ➕ Create button do?
+
+The **➕ Create** button starts actions such as creating a report, sending money, requesting money, or tracking distance.

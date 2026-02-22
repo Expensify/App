@@ -106,6 +106,8 @@ function Header({title = '', subtitle = '', textStyles = [], style, containerSty
                               style={[styles.headerText, styles.textLarge, styles.lineHeightXLarge, textStyles]}
                               nativeID={isInsideDialog ? CONST.RHP_DIALOG_TITLE_NATIVE_ID : undefined}
                               tabIndex={isInsideDialog ? -1 : undefined}
+                              accessibilityRole={CONST.ROLE.HEADER}
+                              accessibilityLabel={title}
                           >
                               {title}
                           </Text>
