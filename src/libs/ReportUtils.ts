@@ -2263,6 +2263,8 @@ function findLastAccessedReport(
     if (isUsingOldArgs) {
         if (typeof excludeReportIDOrArchivedReportsIDSetOrCallback === 'string') {
             excludeReportID = excludeReportIDOrArchivedReportsIDSetOrCallback;
+        } else if (archivedReportsIDSetOrCallback !== undefined) {
+            excludeReportID = policyIDOrExcludeReportID;
         }
     } else {
         excludeReportID = policyIDOrExcludeReportID;
