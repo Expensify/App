@@ -77,8 +77,8 @@ function IOURequestStepDistanceRate({
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-
     const [formError, setFormError] = useState('');
+
     // Track the rate the user last selected visually, even if it failed validation.
     // This keeps the problematic rate shown as selected so the user understands what they need to change.
     const [pendingRateID, setPendingRateID] = useState<string | undefined>();
