@@ -29,6 +29,10 @@ function useMultiListFocusManager({flatItems, firstListLength, reorderDep}: UseM
         const targetIndex = pendingFocusIndexRef.current;
         pendingFocusIndexRef.current = null;
 
+        if (targetIndex < 0) {
+            return;
+        }
+
         const maxIndex = flatItems.length - 1;
         const clampedIndex = Math.min(targetIndex, maxIndex);
 
