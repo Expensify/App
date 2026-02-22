@@ -22,6 +22,7 @@ function OptionRowLHNData({
     isOptionFocused = false,
     fullReport,
     reportAttributes,
+    reportAttributesDerived,
     oneTransactionThreadReport,
     reportNameValuePairs,
     reportActions,
@@ -51,6 +52,7 @@ function OptionRowLHNData({
 
     const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.FROM)}`, {canBeMissing: true});
     const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}`, {canBeMissing: true});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
     // Check the report errors equality to avoid re-rendering when there are no changes
     const prevReportErrors = usePrevious(reportAttributes?.reportErrors);
     const areReportErrorsEqual = useMemo(() => deepEqual(prevReportErrors, reportAttributes?.reportErrors), [prevReportErrors, reportAttributes?.reportErrors]);
@@ -67,6 +69,7 @@ function OptionRowLHNData({
             personalDetails,
             policy,
             parentReportAction,
+            conciergeReportID,
             lastMessageTextFromReport,
             invoiceReceiverPolicy,
             card,
@@ -78,6 +81,7 @@ function OptionRowLHNData({
             movedFromReport,
             movedToReport,
             currentUserAccountID,
+            reportAttributesDerived,
         });
         if (deepEqual(item, optionItemRef.current)) {
             return optionItemRef.current;
@@ -102,6 +106,7 @@ function OptionRowLHNData({
         preferredLocale,
         policy,
         parentReportAction,
+        conciergeReportID,
         iouReportReportActions,
         transaction,
         receiptTransactions,
@@ -114,6 +119,7 @@ function OptionRowLHNData({
         movedFromReport,
         movedToReport,
         currentUserAccountID,
+        reportAttributesDerived,
     ]);
 
     return (

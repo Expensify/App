@@ -10,6 +10,7 @@ import {getActivePolicies} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Session, TryNewDot} from '@src/types/onyx';
+import {cleanupMemoryTracking, initializeMemoryTracking} from './sendMemoryContext';
 
 /**
  * Connect to Onyx to retrieve information about the user's active policies.
@@ -61,6 +62,16 @@ Onyx.connectWithoutView({
             return;
         }
         sendReportsCountTag(Object.keys(value).length);
+    },
+});
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        sendPersonalDetailsCountTag(Object.keys(value).length);
     },
 });
 
@@ -130,9 +141,22 @@ function sendPoliciesContext() {
         return;
     }
     const activePolicies = getActivePolicies(policies, session.email).map((policy) => policy.id);
+
+    let userRole: string = CONST.POLICY.ROLE.USER;
+    for (const policy of Object.values(policies)) {
+        if (policy?.role === CONST.POLICY.ROLE.ADMIN) {
+            userRole = CONST.POLICY.ROLE.ADMIN;
+            break;
+        }
+        if (policy?.role === CONST.POLICY.ROLE.AUDITOR) {
+            userRole = CONST.POLICY.ROLE.AUDITOR;
+        }
+    }
+
     const policiesCountBucket = bucketPolicyCount(activePolicies.length);
     Sentry.setTag(CONST.TELEMETRY.TAG_ACTIVE_POLICY, activePolicyID);
     Sentry.setTag(CONST.TELEMETRY.TAG_POLICIES_COUNT, policiesCountBucket);
+    Sentry.setTag(CONST.TELEMETRY.TAG_USER_ROLE, userRole);
     Sentry.setContext(CONST.TELEMETRY.CONTEXT_POLICIES, {activePolicyID, activePolicies});
 }
 
@@ -148,3 +172,10 @@ function sendReportsCountTag(reportsCount: number) {
     const reportsCountBucket = bucketReportCount(reportsCount);
     Sentry.setTag(CONST.TELEMETRY.TAG_REPORTS_COUNT, reportsCountBucket);
 }
+
+function sendPersonalDetailsCountTag(personalDetailsCount: number) {
+    const personalDetailsCountBucket = bucketReportCount(personalDetailsCount);
+    Sentry.setTag(CONST.TELEMETRY.TAG_PERSONAL_DETAILS_COUNT, personalDetailsCountBucket);
+}
+
+export {initializeMemoryTracking as initializeMemoryTrackingTelemetry, cleanupMemoryTracking as cleanupMemoryTrackingTelemetry};

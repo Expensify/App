@@ -213,6 +213,7 @@ function IOURequestStepWaypoint({
                                     goBack();
                                 }}
                                 large
+                                sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.WAYPOINT_REMOVE_BUTTON}
                             />
                         )
                     }

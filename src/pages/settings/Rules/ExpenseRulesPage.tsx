@@ -195,6 +195,7 @@ function ExpenseRulesPage() {
                 icon={icons.Plus}
                 text={translate('expenseRulesPage.newRule')}
                 style={[shouldUseNarrowLayout && styles.flex1]}
+                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_RULES.NEW_RULE}
             />
         </View>
     );
@@ -244,7 +245,7 @@ function ExpenseRulesPage() {
                         return;
                     }
 
-                    Navigation.popToSidebar();
+                    Navigation.goBack();
                 }}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldUseHeadlineHeader={!selectionModeHeader}
@@ -293,7 +294,6 @@ function ExpenseRulesPage() {
                     shouldUseDefaultRightHandSideCheckmark={false}
                     showListEmptyContent={false}
                     showScrollIndicator={false}
-                    style={{listHeaderWrapperStyle: [styles.ph9, styles.pv3, styles.pb5]}}
                     turnOnSelectionModeOnLongPress={shouldUseNarrowLayout}
                 />
             )}

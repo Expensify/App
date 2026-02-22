@@ -3,7 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
-import useCurrencyList from '@hooks/useCurrencyList';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -63,7 +63,7 @@ function IOURequestStepDistanceRate({
 
     const styles = useThemeStyles();
     const {translate, toLocaleDigit, localeCompare} = useLocalize();
-    const {getCurrencySymbol} = useCurrencyList();
+    const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const isPolicyExpenseChat = isReportInGroupPolicy(report);
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest);
@@ -113,7 +113,7 @@ function IOURequestStepDistanceRate({
             const unit = DistanceRequestUtils.getDistanceUnit(transaction, rates[customUnitRateID]);
             const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, getDistanceInMeters(transaction, unit));
             const taxPercentage = taxRateExternalID ? getTaxValue(policy, transaction, taxRateExternalID) : undefined;
-            taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, taxableAmount, rates[customUnitRateID].currency ?? CONST.CURRENCY.USD));
+            taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, taxableAmount, getCurrencyDecimals(rates[customUnitRateID].currency)));
             setMoneyRequestTaxAmount(transactionID, taxAmount, shouldUseTransactionDraft(action));
             setMoneyRequestTaxRate(transactionID, taxRateExternalID ?? null, shouldUseTransactionDraft(action));
         }

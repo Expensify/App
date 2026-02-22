@@ -4,8 +4,8 @@ import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {SelectedTransactions} from '@components/Search/types';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
-import {initSplitExpense} from '@libs/actions/IOU';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
+import {initSplitExpense} from '@libs/actions/IOU/Split';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {exportReportToCSV} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
@@ -29,7 +29,7 @@ jest.mock('@libs/actions/Search', () => ({
     getExportTemplates: jest.fn(() => []),
 }));
 
-jest.mock('@libs/actions/IOU', () => ({
+jest.mock('@libs/actions/IOU/Split', () => ({
     initSplitExpense: jest.fn(),
 }));
 
@@ -619,6 +619,8 @@ describe('useSelectedTransactionsActions', () => {
             originalTransaction: transaction,
         });
 
+        jest.spyOn(require('@libs/ReportSecondaryActionUtils'), 'isSplitAction').mockReturnValue(true);
+
         const {result} = renderHook(() =>
             useSelectedTransactionsActions({
                 report,
@@ -689,6 +691,6 @@ describe('useSelectedTransactionsActions', () => {
 
         mergeOption?.onSelected?.();
 
-        expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith(transaction.transactionID, [transaction], mockLocalCompare, [], false, false);
+        expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith(transaction.transactionID, [transaction], mockLocalCompare, [], false, false, undefined);
     });
 });

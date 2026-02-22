@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import {renderHook} from '@testing-library/react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -33,6 +34,7 @@ import {setOptimisticDataForTransactionThreadPreview} from '@userActions/Search'
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
+import DateUtils from '@src/libs/DateUtils';
 import {getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -1560,7 +1562,7 @@ const transactionCardGroupListItems: TransactionCardGroupListItemType[] = [
         count: 4,
         currency: 'USD',
         displayName: 'Zara',
-        formattedCardName: ' - 1234',
+        formattedCardName: ' • 1234',
         formattedFeedName: 'chase',
         groupedBy: 'card',
         lastFourPAN: '1234',
@@ -1578,7 +1580,7 @@ const transactionCardGroupListItems: TransactionCardGroupListItemType[] = [
         count: 6,
         currency: 'USD',
         displayName: 'Andrew',
-        formattedCardName: ' - 1234',
+        formattedCardName: ' • 1234',
         formattedFeedName: 'americanexpress',
         groupedBy: 'card',
         lastFourPAN: '1234',
@@ -1599,7 +1601,7 @@ const transactionCardGroupListItemsSorted: TransactionCardGroupListItemType[] = 
         count: 4,
         currency: 'USD',
         displayName: 'Zara',
-        formattedCardName: ' - 1234',
+        formattedCardName: ' • 1234',
         formattedFeedName: 'chase',
         groupedBy: 'card',
         lastFourPAN: '1234',
@@ -1617,7 +1619,7 @@ const transactionCardGroupListItemsSorted: TransactionCardGroupListItemType[] = 
         count: 6,
         currency: 'USD',
         displayName: 'Andrew',
-        formattedCardName: ' - 1234',
+        formattedCardName: ' • 1234',
         formattedFeedName: 'americanexpress',
         groupedBy: 'card',
         lastFourPAN: '1234',
@@ -1848,6 +1850,21 @@ const transactionTagGroupListItems: TransactionTagGroupListItemType[] = [
         transactionsQueryJSON: undefined,
     },
 ];
+
+const cardListMock = {
+    [cardID]: {
+        state: 1,
+        bank: 'vcf',
+        fundID: '5555',
+        lastFourPAN: '1234',
+    },
+    [cardID2]: {
+        state: 1,
+        bank: CONST.EXPENSIFY_CARD.BANK,
+        fundID: '5555',
+        lastFourPAN: '1234',
+    },
+} as unknown as OnyxTypes.CardList;
 
 const transactionMerchantGroupListItemsSorted: TransactionMerchantGroupListItemType[] = [
     {
@@ -2602,6 +2619,7 @@ describe('SearchUIUtils', () => {
                     bankAccountList: {},
                     groupBy: CONST.SEARCH.GROUP_BY.CARD,
                     cardFeeds: mockCardFeeds,
+                    cardList: cardListMock,
                     allReportMetadata: {},
                 })[0],
             ).toStrictEqual(transactionCardGroupListItems);
@@ -2950,6 +2968,300 @@ describe('SearchUIUtils', () => {
             };
 
             expect(SearchUIUtils.isTransactionYearGroupListItemType(yearItem)).toBe(true);
+        });
+
+        it('should apply date filter when expanding year group', () => {
+            // Test that adjustTimeRangeToDateFilters correctly applies a date filter
+            // when expanding a year group (e.g., date >= 2025-12-01)
+            const yearDateRange = DateUtils.getYearDateRange(2025);
+            const dateFilter = {
+                key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                filters: [
+                    {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO,
+                        value: '2025-12-01',
+                    },
+                ],
+            };
+
+            const result = SearchUIUtils.adjustTimeRangeToDateFilters(yearDateRange, [dateFilter]);
+
+            // The start date should be adjusted to 2025-12-01 (the filter limit)
+            // instead of 2025-01-01 (the year start)
+            expect(result.start).toBe('2025-12-01');
+            // The end date should remain 2025-12-31 (the year end)
+            expect(result.end).toBe('2025-12-31');
+        });
+
+        it('should apply date filter with both start and end limits when expanding year group', () => {
+            // Test that adjustTimeRangeToDateFilters correctly applies both start and end date filters
+            const yearDateRange = DateUtils.getYearDateRange(2025);
+            const dateFilter = {
+                key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                filters: [
+                    {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO,
+                        value: '2025-06-15',
+                    },
+                    {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO,
+                        value: '2025-09-30',
+                    },
+                ],
+            };
+
+            const result = SearchUIUtils.adjustTimeRangeToDateFilters(yearDateRange, [dateFilter]);
+
+            // The start date should be adjusted to 2025-06-15 (the filter limit)
+            expect(result.start).toBe('2025-06-15');
+            // The end date should be adjusted to 2025-09-30 (the filter limit)
+            expect(result.end).toBe('2025-09-30');
+        });
+
+        it('should return original time range when no date filter is provided', () => {
+            const yearDateRange = DateUtils.getYearDateRange(2025);
+
+            const result = SearchUIUtils.adjustTimeRangeToDateFilters(yearDateRange, undefined);
+
+            // Should return the original year date range unchanged
+            expect(result.start).toBe('2025-01-01');
+            expect(result.end).toBe('2025-12-31');
+        });
+
+        it('should apply date filter when expanding month group', () => {
+            // Test that adjustTimeRangeToDateFilters correctly applies a date filter
+            // when expanding a month group (e.g., date >= 2025-12-15)
+            const monthDateRange = DateUtils.getMonthDateRange(2025, 12);
+            const dateFilter = {
+                key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                filters: [
+                    {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO,
+                        value: '2025-12-15',
+                    },
+                ],
+            };
+
+            const result = SearchUIUtils.adjustTimeRangeToDateFilters(monthDateRange, [dateFilter]);
+
+            // The start date should be adjusted to 2025-12-15 (the filter limit)
+            // instead of 2025-12-01 (the month start)
+            expect(result.start).toBe('2025-12-15');
+            // The end date should remain 2025-12-31 (the month end)
+            expect(result.end).toBe('2025-12-31');
+        });
+
+        it('should apply date filter with both start and end limits when expanding month group', () => {
+            // Test that adjustTimeRangeToDateFilters correctly applies both start and end date filters
+            const monthDateRange = DateUtils.getMonthDateRange(2025, 6);
+            const dateFilter = {
+                key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                filters: [
+                    {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO,
+                        value: '2025-06-10',
+                    },
+                    {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO,
+                        value: '2025-06-20',
+                    },
+                ],
+            };
+
+            const result = SearchUIUtils.adjustTimeRangeToDateFilters(monthDateRange, [dateFilter]);
+
+            // The start date should be adjusted to 2025-06-10 (the filter limit)
+            expect(result.start).toBe('2025-06-10');
+            // The end date should be adjusted to 2025-06-20 (the filter limit)
+            expect(result.end).toBe('2025-06-20');
+        });
+
+        it('should apply date filter when expanding quarter group', () => {
+            // Test that adjustTimeRangeToDateFilters correctly applies a date filter
+            // when expanding a quarter group (e.g., date >= 2025-09-15)
+            const quarterDateRange = DateUtils.getQuarterDateRange(2025, 3);
+            const dateFilter = {
+                key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                filters: [
+                    {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO,
+                        value: '2025-09-15',
+                    },
+                ],
+            };
+
+            const result = SearchUIUtils.adjustTimeRangeToDateFilters(quarterDateRange, [dateFilter]);
+
+            // The start date should be adjusted to 2025-09-15 (the filter limit)
+            // instead of 2025-07-01 (the quarter start)
+            expect(result.start).toBe('2025-09-15');
+            // The end date should remain 2025-09-30 (the quarter end)
+            expect(result.end).toBe('2025-09-30');
+        });
+
+        it('should apply date filter with both start and end limits when expanding quarter group', () => {
+            // Test that adjustTimeRangeToDateFilters correctly applies both start and end date filters
+            const quarterDateRange = DateUtils.getQuarterDateRange(2025, 2);
+            const dateFilter = {
+                key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                filters: [
+                    {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO,
+                        value: '2025-05-10',
+                    },
+                    {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO,
+                        value: '2025-06-20',
+                    },
+                ],
+            };
+
+            const result = SearchUIUtils.adjustTimeRangeToDateFilters(quarterDateRange, [dateFilter]);
+
+            // The start date should be adjusted to 2025-05-10 (the filter limit)
+            expect(result.start).toBe('2025-05-10');
+            // The end date should be adjusted to 2025-06-20 (the filter limit)
+            expect(result.end).toBe('2025-06-20');
+        });
+
+        it('should intersect date preset with additional constraints instead of overwriting', () => {
+            // Test that when combining a date preset (EQUAL_TO) with additional constraints,
+            // we intersect the ranges (take max for start, min for end) rather than overwriting
+            const yearDateRange = DateUtils.getYearDateRange(2026);
+            const dateFilter = {
+                key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                filters: [
+                    {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                        value: CONST.SEARCH.DATE_PRESETS.LAST_MONTH, // e.g., January 2026: 2026-01-01 to 2026-01-31
+                    },
+                    {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO,
+                        value: '2025-04-01', // Earlier than preset start
+                    },
+                ],
+            };
+
+            const result = SearchUIUtils.adjustTimeRangeToDateFilters(yearDateRange, [dateFilter]);
+
+            // Should intersect: max(preset start, constraint start) = max(2026-01-01, 2025-04-01) = 2026-01-01
+            // The preset start should be preserved, not overwritten by the earlier constraint
+            expect(result.start).toBe('2026-01-01');
+            // End should remain the preset end (2026-01-31)
+            expect(result.end).toBe('2026-01-31');
+        });
+
+        it('should intersect date preset end limit with additional constraints', () => {
+            // Test that when combining a date preset with an end constraint,
+            // we take the minimum (earliest) end date to intersect ranges
+            const yearDateRange = DateUtils.getYearDateRange(2026);
+            const dateFilter = {
+                key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                filters: [
+                    {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                        value: CONST.SEARCH.DATE_PRESETS.LAST_MONTH, // e.g., January 2026: 2026-01-01 to 2026-01-31
+                    },
+                    {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO,
+                        value: '2026-01-15', // Earlier than preset end
+                    },
+                ],
+            };
+
+            const result = SearchUIUtils.adjustTimeRangeToDateFilters(yearDateRange, [dateFilter]);
+
+            // Start should remain the preset start (2026-01-01)
+            expect(result.start).toBe('2026-01-01');
+            // Should intersect: min(preset end, constraint end) = min(2026-01-31, 2026-01-15) = 2026-01-15
+            // The constraint end should be used (earlier date)
+            expect(result.end).toBe('2026-01-15');
+        });
+
+        it('should correctly intersect multiple date filters (GREATER_THAN and LOWER_THAN) when expanding quarter groups', () => {
+            // This verifies that both date filters are respected when expanding quarter groups
+            const quarterDateRange = DateUtils.getQuarterDateRange(2026, 1);
+            const dateFilter = {
+                key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                filters: [
+                    {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN,
+                        value: '2025-12-02',
+                    },
+                    {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN,
+                        value: '2026-02-02',
+                    },
+                ],
+            };
+
+            const result = SearchUIUtils.adjustTimeRangeToDateFilters(quarterDateRange, [dateFilter]);
+
+            // The start date should be adjusted to 2025-12-03 (GREATER_THAN 2025-12-02 means >= 2025-12-03)
+            // But since quarter starts at 2026-01-01, we take the max: max(2026-01-01, 2025-12-03) = 2026-01-01
+            expect(result.start).toBe('2026-01-01');
+            // The end date should be adjusted to 2026-02-01 (LOWER_THAN 2026-02-02 means <= 2026-02-01)
+            // And we take the min: min(2026-03-31, 2026-02-01) = 2026-02-01
+            expect(result.end).toBe('2026-02-01');
+        });
+
+        it('should correctly intersect GREATER_THAN and LOWER_THAN filters that narrow the range', () => {
+            // Test case where both filters narrow down a quarter range
+            const quarterDateRange = DateUtils.getQuarterDateRange(2025, 4);
+            const dateFilter = {
+                key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                filters: [
+                    {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN,
+                        value: '2025-12-02',
+                    },
+                    {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN,
+                        value: '2026-02-02',
+                    },
+                ],
+            };
+
+            const result = SearchUIUtils.adjustTimeRangeToDateFilters(quarterDateRange, [dateFilter]);
+
+            // The start date should be adjusted to 2025-12-03 (GREATER_THAN 2025-12-02 means >= 2025-12-03)
+            expect(result.start).toBe('2025-12-03');
+            // The end date should be adjusted to 2025-12-31 (quarter end, since 2026-02-01 is outside the quarter)
+            // We take min(2025-12-31, 2026-02-01) = 2025-12-31
+            expect(result.end).toBe('2025-12-31');
+        });
+
+        it('should handle multiple date filter objects when multiple date filters exist in flatFilters', () => {
+            // Test that adjustTimeRangeToDateFilters correctly merges and processes multiple date filter objects
+            // This simulates the scenario where date>2025-12-02 and date<2026-02-02 are stored as separate filter objects
+            const quarterDateRange = DateUtils.getQuarterDateRange(2026, 1); // Q1 2026: 2026-01-01 to 2026-03-31
+            const flatFilters = [
+                {
+                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                    filters: [
+                        {
+                            operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN,
+                            value: '2025-12-02',
+                        },
+                    ],
+                },
+                {
+                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                    filters: [
+                        {
+                            operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN,
+                            value: '2026-02-02',
+                        },
+                    ],
+                },
+            ];
+
+            const result = SearchUIUtils.adjustTimeRangeToDateFilters(quarterDateRange, flatFilters);
+
+            // The start date should be adjusted to 2026-01-01 (quarter start, since 2025-12-03 is before the quarter)
+            expect(result.start).toBe('2026-01-01');
+            // The end date should be adjusted to 2026-02-01 (LOWER_THAN 2026-02-02 means <= 2026-02-01)
+            expect(result.end).toBe('2026-02-01');
         });
 
         it('should return getQuarterSections result when type is EXPENSE and groupBy is quarter', () => {
@@ -3958,7 +4270,7 @@ describe('SearchUIUtils', () => {
             );
         });
 
-        it('should return getSortedMemberData result when type is EXPENSE and groupBy is member', () => {
+        it('should sort member group data when type is EXPENSE and groupBy is member', () => {
             expect(
                 SearchUIUtils.getSortedSections(
                     CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -3973,13 +4285,13 @@ describe('SearchUIUtils', () => {
             ).toStrictEqual(transactionMemberGroupListItemsSorted);
         });
 
-        it('should return getSortedCardData result when type is EXPENSE and groupBy is card', () => {
+        it('should sort card group data when type is EXPENSE and groupBy is card', () => {
             expect(
                 SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, '', transactionCardGroupListItems, localeCompare, translateLocal, 'date', 'asc', CONST.SEARCH.GROUP_BY.CARD),
             ).toStrictEqual(transactionCardGroupListItemsSorted);
         });
 
-        it('should return getSortedWithdrawalIDData result when type is EXPENSE and groupBy is withdrawal-id', () => {
+        it('should sort withdrawal-id group data when type is EXPENSE and groupBy is withdrawal-id', () => {
             expect(
                 SearchUIUtils.getSortedSections(
                     CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -3994,7 +4306,7 @@ describe('SearchUIUtils', () => {
             ).toStrictEqual(transactionWithdrawalIDGroupListItemsSorted);
         });
 
-        it('should return getSortedCategoryData result when type is EXPENSE and groupBy is category', () => {
+        it('should sort category group data when type is EXPENSE and groupBy is category', () => {
             expect(
                 SearchUIUtils.getSortedSections(
                     CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -4097,7 +4409,7 @@ describe('SearchUIUtils', () => {
         });
 
         // Merchant sorting tests
-        it('should return getSortedMerchantData result when type is EXPENSE and groupBy is merchant', () => {
+        it('should sort merchant group data when type is EXPENSE and groupBy is merchant', () => {
             expect(
                 SearchUIUtils.getSortedSections(
                     CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -4252,7 +4564,7 @@ describe('SearchUIUtils', () => {
         });
 
         // Tag sorting tests
-        it('should return getSortedTagData result when type is EXPENSE and groupBy is tag', () => {
+        it('should sort tag group data when type is EXPENSE and groupBy is tag', () => {
             expect(
                 SearchUIUtils.getSortedSections(
                     CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -4381,17 +4693,48 @@ describe('SearchUIUtils', () => {
         });
     });
 
-    describe('Test createTypeMenuItems', () => {
-        const reportCounts = {
-            [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: 0,
-            [CONST.SEARCH.SEARCH_KEYS.APPROVE]: 0,
-            [CONST.SEARCH.SEARCH_KEYS.PAY]: 0,
-            [CONST.SEARCH.SEARCH_KEYS.EXPORT]: 0,
-        };
+    describe('formatBadgeText', () => {
+        it('should return empty string for 0', () => {
+            expect(SearchUIUtils.formatBadgeText(0)).toBe('');
+        });
 
+        it('should return count as string for values between 1 and max', () => {
+            expect(SearchUIUtils.formatBadgeText(1)).toBe('1');
+            expect(SearchUIUtils.formatBadgeText(25)).toBe('25');
+            expect(SearchUIUtils.formatBadgeText(50)).toBe('50');
+        });
+
+        it('should return max+ for values above max count', () => {
+            expect(SearchUIUtils.formatBadgeText(51)).toBe('50+');
+            expect(SearchUIUtils.formatBadgeText(100)).toBe('50+');
+        });
+    });
+
+    describe('getItemBadgeText', () => {
+        const reportCounts = {submit: 5, approve: 0, pay: 51, export: 1};
+
+        it('should return formatted badge text for a matching key', () => {
+            expect(SearchUIUtils.getItemBadgeText('submit', reportCounts)).toBe('5');
+            expect(SearchUIUtils.getItemBadgeText('export', reportCounts)).toBe('1');
+        });
+
+        it('should return empty string when count is 0', () => {
+            expect(SearchUIUtils.getItemBadgeText('approve', reportCounts)).toBe('');
+        });
+
+        it('should return max+ when count exceeds max', () => {
+            expect(SearchUIUtils.getItemBadgeText('pay', reportCounts)).toBe('50+');
+        });
+
+        it('should return undefined for non-matching key', () => {
+            expect(SearchUIUtils.getItemBadgeText('unknown', reportCounts)).toBeUndefined();
+        });
+    });
+
+    describe('Test createTypeMenuItems', () => {
         it('should return the default menu items', () => {
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
-            const menuItems = SearchUIUtils.createTypeMenuSections(icons.current, undefined, undefined, {}, undefined, {}, {}, false, undefined, false, {}, reportCounts)
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
+            const menuItems = SearchUIUtils.createTypeMenuSections(icons.current, undefined, undefined, {}, undefined, {}, {}, false, undefined, false)
                 .map((section) => section.menuItems)
                 .flat();
 
@@ -4469,7 +4812,7 @@ describe('SearchUIUtils', () => {
 
             const mockSavedSearches = {};
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections(
                 icons.current,
                 adminEmail,
@@ -4481,8 +4824,6 @@ describe('SearchUIUtils', () => {
                 false,
                 undefined,
                 false,
-                {},
-                reportCounts,
             );
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
@@ -4533,7 +4874,7 @@ describe('SearchUIUtils', () => {
 
             const mockSavedSearches = {};
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections(
                 icons.current,
                 adminEmail,
@@ -4545,8 +4886,6 @@ describe('SearchUIUtils', () => {
                 false,
                 undefined,
                 false,
-                {},
-                reportCounts,
             );
 
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
@@ -4576,8 +4915,8 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, {}, mockSavedSearches, false, undefined, false, {}, reportCounts);
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
+            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, {}, mockSavedSearches, false, undefined, false);
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
             expect(savedSection).toBeDefined();
@@ -4586,8 +4925,8 @@ describe('SearchUIUtils', () => {
         it('should not show saved section when there are no saved searches', () => {
             const mockSavedSearches = {};
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, {}, mockSavedSearches, false, undefined, false, {}, reportCounts);
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
+            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, {}, mockSavedSearches, false, undefined, false);
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
             expect(savedSection).toBeUndefined();
@@ -4603,7 +4942,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections(
                 icons.current,
                 adminEmail,
@@ -4615,8 +4954,6 @@ describe('SearchUIUtils', () => {
                 false, // not offline
                 undefined,
                 false,
-                {},
-                reportCounts,
             );
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -4633,7 +4970,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections(
                 icons.current,
                 adminEmail,
@@ -4645,8 +4982,6 @@ describe('SearchUIUtils', () => {
                 true, // offline
                 undefined,
                 false,
-                {},
-                reportCounts,
             );
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -4667,8 +5002,8 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false, undefined, false, {}, reportCounts);
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
+            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false, undefined, false);
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
             expect(todoSection).toBeUndefined();
@@ -4688,7 +5023,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections(
                 icons.current,
                 adminEmail,
@@ -4700,8 +5035,6 @@ describe('SearchUIUtils', () => {
                 false,
                 undefined,
                 false,
-                {},
-                reportCounts,
             );
 
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
@@ -4732,8 +5065,8 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false, undefined, false, {}, reportCounts);
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
+            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false, undefined, false);
 
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
             expect(accountingSection).toBeDefined();
@@ -4758,21 +5091,8 @@ describe('SearchUIUtils', () => {
             };
 
             const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {};
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(
-                icons.current,
-                adminEmail,
-                adminAccountID,
-                mockCardFeedsByPolicy,
-                undefined,
-                mockPolicies,
-                {},
-                false,
-                undefined,
-                false,
-                {},
-                reportCounts,
-            );
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
+            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, {}, false, undefined, false);
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
 
             expect(accountingSection).toBeDefined();
@@ -4781,8 +5101,8 @@ describe('SearchUIUtils', () => {
         });
 
         it('should generate correct routes', () => {
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
-            const menuItems = SearchUIUtils.createTypeMenuSections(icons.current, undefined, undefined, {}, undefined, {}, {}, false, undefined, false, {}, reportCounts)
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
+            const menuItems = SearchUIUtils.createTypeMenuSections(icons.current, undefined, undefined, {}, undefined, {}, {}, false, undefined, false)
                 .map((section) => section.menuItems)
                 .flat();
 
@@ -4844,21 +5164,8 @@ describe('SearchUIUtils', () => {
                 ],
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(
-                icons.current,
-                adminEmail,
-                adminAccountID,
-                mockCardFeedsByPolicy,
-                undefined,
-                mockPolicies,
-                {},
-                false,
-                undefined,
-                false,
-                {},
-                reportCounts,
-            );
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
+            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, {}, false, undefined, false);
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
             expect(todoSection).toBeDefined();
 
@@ -4867,10 +5174,10 @@ describe('SearchUIUtils', () => {
             const payItem = todoSection?.menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.PAY);
             const exportItem = todoSection?.menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.EXPORT);
 
-            expect(submitItem?.badgeText).toBe('');
-            expect(approveItem?.badgeText).toBe('');
-            expect(payItem?.badgeText).toBe('');
-            expect(exportItem?.badgeText).toBe('');
+            expect(submitItem).toBeDefined();
+            expect(approveItem).toBeDefined();
+            expect(payItem).toBeDefined();
+            expect(exportItem).toBeDefined();
         });
     });
 
@@ -5117,7 +5424,7 @@ describe('SearchUIUtils', () => {
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
-            expect(response.export).toBe(false);
+            expect(response.visibility.export).toBe(false);
 
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             policies[policyKey]!.connections![CONST.POLICY.CONNECTIONS.NAME.NETSUITE].lastSync = {
@@ -5131,7 +5438,7 @@ describe('SearchUIUtils', () => {
             };
 
             const response2 = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
-            expect(response2.export).toBe(true);
+            expect(response2.visibility.export).toBe(true);
         });
 
         test('Should show Top Categories when areCategoriesEnabled is true', () => {
@@ -5147,7 +5454,7 @@ describe('SearchUIUtils', () => {
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
-            expect(response.topCategories).toBe(true);
+            expect(response.visibility.topCategories).toBe(true);
         });
 
         test('Should hide Top Categories when areCategoriesEnabled is false', () => {
@@ -5163,7 +5470,7 @@ describe('SearchUIUtils', () => {
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
-            expect(response.topCategories).toBe(false);
+            expect(response.visibility.topCategories).toBe(false);
         });
 
         test('Should not show Top Categories when areCategoriesEnabled is undefined', () => {
@@ -5179,7 +5486,7 @@ describe('SearchUIUtils', () => {
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
-            expect(response.topCategories).toBe(false);
+            expect(response.visibility.topCategories).toBe(false);
         });
 
         test('Should not show Top Categories for free policies even if categories are enabled', () => {
@@ -5195,7 +5502,7 @@ describe('SearchUIUtils', () => {
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
-            expect(response.topCategories).toBe(false);
+            expect(response.visibility.topCategories).toBe(false);
         });
 
         test('Should show Top Categories if at least one policy has categories enabled', () => {
@@ -5215,7 +5522,7 @@ describe('SearchUIUtils', () => {
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
-            expect(response.topCategories).toBe(true);
+            expect(response.visibility.topCategories).toBe(true);
         });
 
         test('Should hide Top Categories if all policies have categories disabled', () => {
@@ -5235,7 +5542,169 @@ describe('SearchUIUtils', () => {
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
-            expect(response.topCategories).toBe(false);
+            expect(response.visibility.topCategories).toBe(false);
+        });
+
+        test('Should show Spend Over Time for Admin role in paid policy', () => {
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+            expect(response.visibility.spendOverTime).toBe(true);
+        });
+
+        test('Should show Spend Over Time for Auditor role in paid policy', () => {
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.AUDITOR,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility('auditor@policy.com', {}, policies, undefined);
+            expect(response.visibility.spendOverTime).toBe(true);
+        });
+
+        test('Should show Spend Over Time for Approver role in paid policy', () => {
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    approver: approverEmail,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(approverEmail, {}, policies, undefined);
+            expect(response.visibility.spendOverTime).toBe(true);
+        });
+
+        test('Should hide Spend Over Time for User role in paid policy', () => {
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.USER,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility('user@policy.com', {}, policies, undefined);
+            expect(response.visibility.spendOverTime).toBe(false);
+        });
+
+        test('Should hide Spend Over Time for free policies even with Admin role', () => {
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.PERSONAL,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+            expect(response.visibility.spendOverTime).toBe(false);
+        });
+
+        test('Should show Spend Over Time if at least one policy has Admin/Auditor/Approver role', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                policyOne: {
+                    id: 'policyOne',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.USER,
+                } as OnyxTypes.Policy,
+                policyTwo: {
+                    id: 'policyTwo',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+            expect(response.visibility.spendOverTime).toBe(true);
+        });
+
+        test('Should hide Spend Over Time if all policies have User role', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                policyOne: {
+                    id: 'policyOne',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.USER,
+                } as OnyxTypes.Policy,
+                policyTwo: {
+                    id: 'policyTwo',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.USER,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility('user@policy.com', {}, policies, undefined);
+            expect(response.visibility.spendOverTime).toBe(false);
+        });
+
+        test('Should return Spend Over Time search with correct properties', () => {
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined, undefined);
+            const spendOverTimeSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME];
+
+            expect(spendOverTimeSearch).toBeDefined();
+            expect(spendOverTimeSearch.key).toBe(CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME);
+            expect(spendOverTimeSearch.translationPath).toBe('search.spendOverTime');
+            expect(spendOverTimeSearch.type).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
+            expect(spendOverTimeSearch.icon).toBe('CalendarSolid');
+        });
+
+        test('Should return Spend Over Time search query with correct parameters', () => {
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined, undefined);
+            const spendOverTimeSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME];
+            const searchQueryJSON = spendOverTimeSearch.searchQueryJSON;
+
+            expect(searchQueryJSON).toBeDefined();
+            expect(searchQueryJSON?.type).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
+            expect(searchQueryJSON?.groupBy).toBe(CONST.SEARCH.GROUP_BY.MONTH);
+
+            // Check that date filter with year-to-date preset exists in flatFilters
+            const dateFilter = searchQueryJSON?.flatFilters?.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
+            expect(dateFilter).toBeDefined();
+            expect(dateFilter?.filters?.some((f) => f.value === CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE)).toBe(true);
+
+            expect(searchQueryJSON?.view).toBe(CONST.SEARCH.VIEW.LINE);
+            expect(searchQueryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH);
+            expect(searchQueryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.ASC);
+        });
+
+        test('Should return Spend Over Time search with valid hash', () => {
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined, undefined);
+            const spendOverTimeSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME];
+
+            expect(spendOverTimeSearch.hash).toBeGreaterThan(0);
+            expect(spendOverTimeSearch.similarSearchHash).toBeGreaterThan(0);
+        });
+
+        test('Should return Spend Over Time search query string with correct format', () => {
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined, undefined);
+            const spendOverTimeSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME];
+            const searchQuery = spendOverTimeSearch.searchQuery;
+
+            expect(searchQuery).toContain(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE}`);
+            expect(searchQuery).toContain(`groupBy:${CONST.SEARCH.GROUP_BY.MONTH}`);
+            expect(searchQuery).toContain(`date:${CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE}`);
+            expect(searchQuery).toContain(`view:${CONST.SEARCH.VIEW.LINE}`);
+            expect(searchQuery).toContain(`sortBy:${CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH}`);
+            expect(searchQuery).toContain(`sortOrder:${CONST.SEARCH.SORT_ORDER.ASC}`);
         });
     });
 
@@ -5862,7 +6331,7 @@ describe('SearchUIUtils', () => {
 
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID});
 
-            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, false)).toBe(true);
+            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults)).toBe(true);
         });
 
         it('should show delete option for unreported expense which can be deleted', async () => {
@@ -6118,7 +6587,7 @@ describe('SearchUIUtils', () => {
 
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID});
 
-            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, false)).toBe(true);
+            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults)).toBe(true);
         });
     });
     describe('getToFieldValueForTransaction', () => {
@@ -6349,6 +6818,22 @@ describe('SearchUIUtils', () => {
             // All view values should be mapped (they may be the same or different)
             expect(userFriendlyValues).toHaveLength(3);
             expect(userFriendlyValues.every((value) => typeof value === 'string')).toBe(true);
+        });
+    });
+
+    describe('filterValidHasValues', () => {
+        test('should return undefined when hasValues or type is undefined', () => {
+            expect(SearchUIUtils.filterValidHasValues(undefined, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal)).toBeUndefined();
+            expect(SearchUIUtils.filterValidHasValues(['receipt'], undefined, translateLocal)).toBeUndefined();
+        });
+
+        test('should filter and return only valid hasValues', () => {
+            // Valid values for EXPENSE: receipt, attachment, tag, category
+            // Invalid value: link (only valid for CHAT)
+            const hasValues = [CONST.SEARCH.HAS_VALUES.RECEIPT, CONST.SEARCH.HAS_VALUES.TAG, CONST.SEARCH.HAS_VALUES.LINK];
+            const result = SearchUIUtils.filterValidHasValues(hasValues, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal);
+
+            expect(result).toEqual([CONST.SEARCH.HAS_VALUES.RECEIPT, CONST.SEARCH.HAS_VALUES.TAG]);
         });
     });
 });

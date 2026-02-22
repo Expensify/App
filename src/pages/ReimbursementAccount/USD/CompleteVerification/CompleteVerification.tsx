@@ -31,10 +31,6 @@ function CompleteVerification({onBackButtonPress}: CompleteVerificationProps) {
     const policyID = reimbursementAccount?.achData?.policyID;
 
     const submit = useCallback(() => {
-        if (!policyID) {
-            return;
-        }
-
         acceptACHContractForBankAccount(
             Number(reimbursementAccount?.achData?.bankAccountID),
             {
@@ -43,10 +39,11 @@ function CompleteVerification({onBackButtonPress}: CompleteVerificationProps) {
                 acceptTermsAndConditions: values.acceptTermsAndConditions,
             },
             policyID,
-            lastPaymentMethod?.[policyID],
+            policyID ? lastPaymentMethod?.[policyID] : undefined,
         );
     }, [reimbursementAccount?.achData?.bankAccountID, values.isAuthorizedToUseBankAccount, values.certifyTrueInformation, values.acceptTermsAndConditions, policyID, lastPaymentMethod]);
 
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo, goToTheLastStep} = useSubStep({bodyContent, startFrom: 0, onFinished: submit});
 
     const handleBackButtonPress = () => {
