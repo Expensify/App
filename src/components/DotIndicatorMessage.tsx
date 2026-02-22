@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isReceiptError, isTranslationKeyError} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import handleRetryPress from '@libs/ReceiptUploadRetryHandler';
+import CONST from '@src/CONST';
 import type {TranslationKeyError} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import ConfirmModal from './ConfirmModal';
@@ -65,7 +66,6 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
 
     const isErrorMessage = type === 'error';
     const receiptError = uniqueMessages.find(isReceiptError);
-
     const handleLinkPress = (href: string) => {
         if (!receiptError) {
             return;
@@ -118,7 +118,12 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
 
     return (
         <View style={[styles.dotIndicatorMessage, style]}>
-            <View style={styles.offlineFeedbackErrorDot}>
+            <View
+                style={styles.offlineFeedbackErrorDot}
+                accessible={isErrorMessage}
+                role={isErrorMessage ? CONST.ROLE.IMG : undefined}
+                accessibilityLabel={isErrorMessage ? (CONST.ACCESSIBILITY_LABELS.ERROR as string) : undefined}
+            >
                 <Icon
                     src={expensifyIcons.DotIndicator}
                     fill={isErrorMessage ? theme.danger : theme.success}

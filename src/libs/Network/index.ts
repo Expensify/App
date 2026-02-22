@@ -1,3 +1,4 @@
+import type {OnyxKey} from 'react-native-onyx';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import CONST from '@src/CONST';
 import type {Request} from '@src/types/onyx';
@@ -31,7 +32,7 @@ function clearProcessQueueInterval() {
 /**
  * Perform a queued post request
  */
-function post(command: string, data: Record<string, unknown> = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = false): Promise<Response> {
+function post<TKey extends OnyxKey>(command: string, data: Record<string, unknown> = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = false): Promise<Response<TKey>> {
     return new Promise((resolve, reject) => {
         const request: Request<never> = {
             command,

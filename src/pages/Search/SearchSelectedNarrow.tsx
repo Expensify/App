@@ -3,7 +3,7 @@ import React, {useContext, useRef} from 'react';
 import {View} from 'react-native';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {PaymentMethodType} from '@components/KYCWall/types';
@@ -46,7 +46,8 @@ function SearchSelectedNarrow({options, itemsLength, currentSelectedPolicyID, cu
     const selectedOptionRef = useRef<DropdownOption<SearchHeaderOptionValue> | null>(null);
     const {accountID} = useCurrentUserPersonalDetails();
     const activeAdminPolicies = getActiveAdminWorkspaces(allPolicies, accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
-    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
     const handleOnMenuItemPress = (option: DropdownOption<SearchHeaderOptionValue>) => {
         if (option?.shouldCloseModalOnSelect) {
@@ -62,7 +63,14 @@ function SearchSelectedNarrow({options, itemsLength, currentSelectedPolicyID, cu
             chatReportID={currentSelectedReportID}
             iouReport={selectedIouReport}
             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-            addBankAccountRoute={isCurrentSelectedExpenseReport ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(currentSelectedPolicyID, undefined, Navigation.getActiveRoute()) : undefined}
+            addBankAccountRoute={
+                isCurrentSelectedExpenseReport
+                    ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({
+                          policyID: currentSelectedPolicyID,
+                          backTo: Navigation.getActiveRoute(),
+                      })
+                    : undefined
+            }
             onSuccessfulKYC={(paymentType) => confirmPayment?.(paymentType)}
         >
             {(triggerKYCFlow, buttonRef) => (
@@ -99,6 +107,7 @@ function SearchSelectedNarrow({options, itemsLength, currentSelectedPolicyID, cu
                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                         }}
                         shouldUseModalPaddingStyle
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.NARROW_BULK_ACTIONS_DROPDOWN}
                     />
                 </View>
             )}

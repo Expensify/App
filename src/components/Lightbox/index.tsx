@@ -1,10 +1,10 @@
-import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import {PixelRatio, StyleSheet, View} from 'react-native';
 import {useSharedValue} from 'react-native-reanimated';
 import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
-import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+import {useAttachmentCarouselPagerActions, useAttachmentCarouselPagerState} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import type {Attachment} from '@components/Attachments/types';
 import Image from '@components/Image';
 import type {ImageOnLoadEvent} from '@components/Image/types';
@@ -58,7 +58,8 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
     const isScrollingEnabledFallback = useSharedValue(false);
     const {isOffline} = useNetwork();
 
-    const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
+    const state = useAttachmentCarouselPagerState();
+    const actions = useAttachmentCarouselPagerActions();
     const {
         isUsedInCarousel,
         isSingleCarouselItem,
@@ -72,7 +73,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
         isScrollEnabled,
         externalGestureHandler,
     } = useMemo(() => {
-        if (attachmentCarouselPagerContext === null) {
+        if (state === null || actions === null) {
             return {
                 isUsedInCarousel: false,
                 isSingleCarouselItem: true,
@@ -88,14 +89,15 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
             };
         }
 
-        const foundPage = attachmentCarouselPagerContext.pagerItems.findIndex((item) => item.attachmentID === attachmentID);
+        const foundPage = state.pagerItems.findIndex((item) => item.attachmentID === attachmentID);
         return {
-            ...attachmentCarouselPagerContext,
-            isUsedInCarousel: !!attachmentCarouselPagerContext.pagerRef,
-            isSingleCarouselItem: attachmentCarouselPagerContext.pagerItems.length === 1,
+            ...state,
+            ...actions,
+            isUsedInCarousel: !!state.pagerRef,
+            isSingleCarouselItem: state.pagerItems.length === 1,
             page: foundPage,
         };
-    }, [attachmentID, attachmentCarouselPagerContext, isPagerScrollingFallback, isScrollingEnabledFallback]);
+    }, [attachmentID, state, actions, isPagerScrollingFallback, isScrollingEnabledFallback]);
 
     /** Whether the Lightbox is used within an attachment carousel and there are more than one page in the carousel */
     const hasSiblingCarouselItems = isUsedInCarousel && !isSingleCarouselItem;

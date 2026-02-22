@@ -5,6 +5,7 @@ import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
+import useFeedKeysWithAssignedCards from './useFeedKeysWithAssignedCards';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 
@@ -20,13 +21,14 @@ const eligiblePoliciesSelector = (policies: OnyxCollection<Policy>): string[] =>
 const useCardFeedsForDisplay = () => {
     const {localeCompare, translate} = useLocalize();
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
+    const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [eligiblePoliciesIDsArray] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: eligiblePoliciesSelector,
         canBeMissing: true,
     });
 
-    const cardFeedsByPolicy = getCardFeedsForDisplayPerPolicy(allFeeds, translate);
+    const cardFeedsByPolicy = getCardFeedsForDisplayPerPolicy(allFeeds, translate, feedKeysWithCards);
     const eligiblePoliciesIDs = new Set(eligiblePoliciesIDsArray);
 
     let defaultCardFeed;

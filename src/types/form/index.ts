@@ -68,6 +68,7 @@ export type {WalletAdditionalDetailsForm} from './WalletAdditionalDetailsForm';
 export type {NewChatNameForm} from './NewChatNameForm';
 export type {SageIntacctDimensionForm} from './SageIntacctDimensionsForm';
 export type {SubscriptionSizeForm} from './SubscriptionSizeForm';
+export type {SubscriptionExpensifyCodeForm} from './SubscriptionExpensifyCodeForm';
 export type {WorkspaceReportFieldForm} from './WorkspaceReportFieldForm';
 export type {SageIntactCredentialsForm} from './SageIntactCredentialsForm';
 export type {NetSuiteCustomFieldForm} from './NetSuiteCustomFieldForm';
