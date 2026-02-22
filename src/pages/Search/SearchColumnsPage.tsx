@@ -184,6 +184,7 @@ function SearchColumnsPage() {
 
             return prevColumns.map((col) => (col.columnId === updatedColumnId ? {...col, isSelected: false} : col));
         });
+        setFocusedIndex(-1);
     };
 
     const selectFocusedItem = () => {
