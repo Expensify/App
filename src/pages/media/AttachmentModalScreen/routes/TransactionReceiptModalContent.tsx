@@ -4,7 +4,7 @@ import ConfirmModal from '@components/ConfirmModal';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import useAllTransactions from '@hooks/useAllTransactions';
-import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
+import {useIsReportArchivedByID} from '@hooks/useArchivedReportsIDSet';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -49,8 +49,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
-    const archivedReportsIDSet = useArchivedReportsIDSet();
-    const isReportArchived = (reportId?: string) => !!reportId && archivedReportsIDSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportId}`);
+    const isReportArchived = useIsReportArchivedByID();
 
     // If we have a merge transaction, we need to use the receipt from the merge transaction
     const [mergeTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(mergeTransactionID)}`, {canBeMissing: true});

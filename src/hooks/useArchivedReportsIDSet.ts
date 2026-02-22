@@ -1,5 +1,6 @@
+import {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
-import {isArchivedReport} from '@libs/ReportUtils';
+import {isArchivedReport, isReportArchivedByID} from '@libs/ReportUtils';
 import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,4 +41,11 @@ function useArchivedReportsIDSet(): ArchivedReportsIDSet {
     return useDeepCompareRef(archivedReportsIDSet) ?? new Set<string>();
 }
 
+function useIsReportArchivedByID() {
+    const archivedReportsIDSet = useArchivedReportsIDSet();
+
+    return useCallback((reportID?: string) => isReportArchivedByID(archivedReportsIDSet, reportID), [archivedReportsIDSet]);
+}
+
 export default useArchivedReportsIDSet;
+export {useIsReportArchivedByID};

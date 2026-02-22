@@ -154,6 +154,7 @@ import {
     isIOUReportUsingReport,
     isOpenExpenseReport,
     isProcessingReport,
+    isReportArchivedByID,
     isReportManuallyReimbursed,
     isSelfDM,
     isValidReportIDFromPath,
@@ -3782,7 +3783,7 @@ function doneCheckingPublicRoom() {
 }
 
 function navigateToMostRecentReport(currentReport: OnyxEntry<Report>, conciergeReportID: string | undefined, archivedReportsIDSet: ArchivedReportsIDSet) {
-    const isReportArchived = (reportID?: string) => !!reportID && archivedReportsIDSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
+    const isReportArchived = (reportID?: string) => isReportArchivedByID(archivedReportsIDSet, reportID);
     const lastAccessedReportID = findLastAccessedReport(false, false, currentReport?.reportID, undefined, isReportArchived)?.reportID;
 
     if (lastAccessedReportID) {
@@ -3808,7 +3809,7 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>, conciergeR
 }
 
 function getMostRecentReportID(currentReport: OnyxEntry<Report>, archivedReportsIDSet: ArchivedReportsIDSet) {
-    const isReportArchived = (reportID?: string) => !!reportID && archivedReportsIDSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
+    const isReportArchived = (reportID?: string) => isReportArchivedByID(archivedReportsIDSet, reportID);
     const lastAccessedReportID = findLastAccessedReport(false, false, currentReport?.reportID, undefined, isReportArchived)?.reportID;
     return lastAccessedReportID ?? conciergeReportIDOnyxConnect;
 }

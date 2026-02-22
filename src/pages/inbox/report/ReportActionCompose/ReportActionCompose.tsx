@@ -19,7 +19,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
 import useAncestors from '@hooks/useAncestors';
-import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
+import {useIsReportArchivedByID} from '@hooks/useArchivedReportsIDSet';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useHandleExceedMaxTaskTitleLength from '@hooks/useHandleExceedMaxTaskTitleLength';
@@ -221,8 +221,7 @@ function ReportActionCompose({
     const userBlockedFromConcierge = useMemo(() => isBlockedFromConciergeUserAction(blockedFromConcierge), [blockedFromConcierge]);
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const archivedReportsIDSet = useArchivedReportsIDSet();
-    const isReportArchivedByID = (targetReportID?: string) => !!targetReportID && archivedReportsIDSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${targetReportID}`);
+    const isReportArchivedByID = useIsReportArchivedByID();
     const isConciergeChat = useMemo(() => isConciergeChatReport(report), [report]);
     const isAdminsRoom = useMemo(() => isAdminRoom(report), [report]);
 

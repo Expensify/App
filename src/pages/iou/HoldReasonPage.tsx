@@ -2,7 +2,7 @@ import React, {useCallback, useEffect} from 'react';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import useAncestors from '@hooks/useAncestors';
-import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
+import {useIsReportArchivedByID} from '@hooks/useArchivedReportsIDSet';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {putOnHold} from '@libs/actions/IOU/Hold';
@@ -30,8 +30,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const ancestors = useAncestors(report);
-    const archivedReportsIDSet = useArchivedReportsIDSet();
-    const isReportArchived = (reportId?: string) => !!reportId && archivedReportsIDSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportId}`);
+    const isReportArchived = useIsReportArchivedByID();
 
     // We first check if the report is part of a policy - if not, then it's a personal request (1:1 request)
     // For personal requests, we need to allow both users to put the request on hold

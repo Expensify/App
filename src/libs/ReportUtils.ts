@@ -2377,6 +2377,17 @@ function isArchivedReport(reportNameValuePairs?: OnyxInputOrEntry<ReportNameValu
 }
 
 /**
+ * Whether the report with the provided reportID is archived based on report name value pairs keys
+ */
+function isReportArchivedByID(archivedReportsIDSet: ReadonlySet<string>, reportID?: string): boolean {
+    if (!reportID) {
+        return false;
+    }
+
+    return archivedReportsIDSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
+}
+
+/**
  * Whether the report was created during harvesting
  */
 function isHarvestCreatedExpenseReport(origin?: string, originalID?: string): boolean {
@@ -13274,6 +13285,7 @@ export {
     getReportForHeader,
     isReportOpenOrUnsubmitted,
     getIconsForExpenseReport,
+    isReportArchivedByID,
 };
 
 export type {
