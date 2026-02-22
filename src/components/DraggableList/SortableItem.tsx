@@ -11,10 +11,10 @@ function SortableItem({id, children, disabled = false, isFocused = false}: Sorta
         if (!isFocused || !itemRef.current) {
             return;
         }
-        if (itemRef.current.contains(document.activeElement)) {
-            return;
+        if (!itemRef.current.contains(document.activeElement)) {
+            itemRef.current.focus();
         }
-        itemRef.current.focus();
+        itemRef.current.scrollIntoView({block: 'nearest'});
     }, [isFocused]);
 
     const style = {
