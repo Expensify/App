@@ -1,20 +1,20 @@
 diff --git a/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js b/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
-index 9fedd7e..9a0a80a 100644
+index 9fedd7e..8eebd49 100644
 --- a/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
 +++ b/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
 @@ -158,7 +158,7 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
    const prevQueryStringRef = useRef(JSON.stringify(query));
-
+ 
    // Store latest _request function - ensures debounced function always calls current version with latest closures
 -  const requestRef = useRef(_request);
 +  const requestRef = useRef(null);
    const queryString = useMemo(() => JSON.stringify(query), [query]);
-
+ 
    const [stateText, setStateText] = useState('');
 @@ -347,6 +347,16 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
      return rowData;
    };
-
+ 
 +  const _disableRowLoaders = useCallback(() => {
 +    for (let i = 0; i < resultsRef.current.length; i++) {
 +      if (resultsRef.current[i].isLoading === true) {
@@ -28,10 +28,36 @@ index 9fedd7e..9a0a80a 100644
    // ==========================================================================
    // API REQUEST FUNCTIONS
    // ==========================================================================
-@@ -650,15 +660,51 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+@@ -367,7 +377,10 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+         request.ontimeout = onTimeout;
+         request.onreadystatechange = () => {
+           if (request.readyState !== 4) {
+-            setListLoaderDisplayed(true);
++            // Only show the loading spinner when there are no prior results.
++            if (resultsRef.current.length === 0) {
++              setListLoaderDisplayed(true);
++            }
+             return;
+           }
+ 
+@@ -478,7 +491,12 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+       request.ontimeout = onTimeout;
+       request.onreadystatechange = () => {
+         if (request.readyState !== 4) {
+-          setListLoaderDisplayed(true);
++          // Only show the loading spinner when there are no prior results.
++          // When prior results exist they stay visible while the new request
++          // is in-flight, matching v2.5.6 production behavior.
++          if (resultsRef.current.length === 0) {
++            setListLoaderDisplayed(true);
++          }
+           return;
+         }
+ 
+@@ -650,15 +668,51 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
      }
    };
-
+ 
 -  const _disableRowLoaders = useCallback(() => {
 -    for (let i = 0; i < resultsRef.current.length; i++) {
 -      if (resultsRef.current[i].isLoading === true) {
@@ -66,7 +92,7 @@ index 9fedd7e..9a0a80a 100644
 +      if (node.id === 'result-list-id') return true;
 +      node = node.parentNode;
      }
-
+ 
 -    setDataSource(buildRowsFromResults(resultsRef.current));
 -  }, [buildRowsFromResults]);
 +    return false;
@@ -83,21 +109,21 @@ index 9fedd7e..9a0a80a 100644
 +    setListWasDismissed(false);
 +    setListViewDisplayed(true);
 +  };
-
+ 
    const _onPress = (rowData) => {
      if (rowData.isPredefinedPlace !== true && fetchDetails === true) {
-@@ -667,7 +713,6 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+@@ -667,7 +721,6 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
          return;
        }
-
+ 
 -      hideListView(true);
        Keyboard.dismiss();
-
+ 
        _abortRequests();
-@@ -776,6 +821,11 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+@@ -776,6 +829,11 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
      }
    };
-
+ 
 +  // Debounce setup
 +  const debounceData = useMemo(() => {
 +    return debounce((text) => requestRef.current(text), debounceMs);
@@ -106,10 +132,10 @@ index 9fedd7e..9a0a80a 100644
    const _onChangeText = (text) => {
      setListWasDismissed(false);
      setStateText(text);
-@@ -792,56 +842,10 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+@@ -792,56 +850,10 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
      }
    };
-
+ 
 -  const hideListView = useCallback(
 -    (force = false) => {
 -      if (!keepResultsAfterBlur || force) {
@@ -151,7 +177,7 @@ index 9fedd7e..9a0a80a 100644
    // ==========================================================================
    // RENDER FUNCTIONS
    // ==========================================================================
-
+ 
 -  const _renderDescription = (rowData) => {
 -    if (props.renderDescription) {
 -      return props.renderDescription(rowData);
@@ -163,10 +189,10 @@ index 9fedd7e..9a0a80a 100644
    const _getRowLoader = () => {
      return <ActivityIndicator animating={true} size='small' />;
    };
-@@ -1010,15 +1014,17 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+@@ -1010,15 +1022,17 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
        return `item_${index}`;
      };
-
+ 
 -    // Show list if:
 -    // 1. Platform is supported
 -    // 2. There's data to show (dataSource has items)
@@ -184,12 +210,12 @@ index 9fedd7e..9a0a80a 100644
 +        predefinedPlaces.length > 0 ||
 +        currentLocation === true) &&
        (listViewDisplayed === true || (isAutoMode && !listWasDismissed));
-
+ 
      if (shouldShowList) {
-@@ -1078,11 +1084,6 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+@@ -1078,11 +1092,6 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
    // Keep requestRef updated
    requestRef.current = _request;
-
+ 
 -  // Debounce setup
 -  const debounceData = useMemo(() => {
 -    return debounce((text) => requestRef.current(text), debounceMs);
@@ -198,7 +224,7 @@ index 9fedd7e..9a0a80a 100644
    useEffect(() => {
      return () => {
        // Cleanup debounced function on unmount
-@@ -1106,7 +1107,13 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+@@ -1106,7 +1115,13 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
      return () => {
        _abortRequests();
      };
@@ -210,6 +236,6 @@ index 9fedd7e..9a0a80a 100644
 +    // flash repeatedly.
 +    // eslint-disable-next-line react-hooks/exhaustive-deps
 +  }, [queryString, debounceData, minLength, _abortRequests]);
-
+ 
    // Auto-show list when dataSource has items in 'auto' mode
    useEffect(() => {

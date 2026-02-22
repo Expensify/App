@@ -63,6 +63,20 @@
        requests are already handled by `_onChangeText` → `debounceData`,
        and `_request` itself calls `_abortRequests()` at the top, so old
        requests are properly aborted when a new one fires.
+
+    7. In v2.6.4, `requestsRef` is a `useRef` that persists across renders
+       (unlike v2.5.6 where `_requests` was a plain `let` re-initialized
+       every render). This means `_abortRequests()` inside `_request` now
+       actually aborts the previous in-flight XHR. When the user types
+       faster than the API responds, each keystroke aborts the prior XHR
+       before it populates `dataSource`, keeping `dataSource` empty and
+       causing `ListEmptyComponent` to show the loading spinner on every
+       keystroke. Fix: only call `setListLoaderDisplayed(true)` in the
+       `onreadystatechange` handler when `resultsRef.current.length === 0`
+       (i.e., no prior results exist). When prior results already exist
+       they remain visible in the FlatList while the new request is
+       in-flight, matching v2.5.6 production behavior. Applied to both
+       `_request` and `_requestNearby`.
     ```
 
 - Upstream PR/issue: 🛑, library is unmaintained (https://github.com/FaridSafi/react-native-google-places-autocomplete/issues/978)
