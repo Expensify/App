@@ -302,6 +302,7 @@ function MoneyRequestReportPreviewContent({
             activePolicy,
             policy,
             betas,
+            userBillingGraceEndPeriodCollection,
         ],
     );
 
