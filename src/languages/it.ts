@@ -1312,7 +1312,7 @@ const translations: TranslationDeepObject<typeof en> = {
             distanceAmountTooLarge: "L'importo totale è troppo alto. Riduci la distanza o abbassa la tariffa.",
             distanceAmountTooLargeReduceDistance: "L'importo totale è troppo alto. Riduci la distanza.",
             distanceAmountTooLargeReduceRate: "L'importo totale è troppo alto. Abbassa la tariffa.",
-            odometerReadingTooLarge: 'Le letture del contachilometri non possono superare 999.999.',
+            odometerReadingTooLarge: 'Le letture del contachilometri non possono superare 9.999.999.',
             invalidIntegerAmount: 'Inserisci un importo in dollari intero prima di continuare',
             invalidTaxAmount: (amount: string) => `L’importo massimo dell’imposta è ${amount}`,
             invalidSplit: 'La somma delle suddivisioni deve essere uguale all’importo totale',
