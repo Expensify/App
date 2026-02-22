@@ -126,9 +126,14 @@ function Expensify() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
     const archivedReportsIDSet = useArchivedReportsIDSet();
+    const archivedReportsIDSetRef = useRef(archivedReportsIDSet);
 
     useDebugShortcut();
     usePriorityMode();
+
+    useEffect(() => {
+        archivedReportsIDSetRef.current = archivedReportsIDSet;
+    }, [archivedReportsIDSet]);
 
     useEffect(() => {
         initializeMemoryTrackingTelemetry();
@@ -346,7 +351,7 @@ function Expensify() {
                 if (introSelected === undefined) {
                     Log.info('[Deep link] introSelected is undefined when processing initial URL', false, {url});
                 }
-                openReportFromDeepLink(url, allReports, isAuthenticated, conciergeReportID, introSelected, archivedReportsIDSet);
+                openReportFromDeepLink(url, allReports, isAuthenticated, conciergeReportID, introSelected, archivedReportsIDSetRef.current);
             } else {
                 Report.doneCheckingPublicRoom();
             }
@@ -363,14 +368,14 @@ function Expensify() {
                 Log.info('[Deep link] introSelected is undefined when processing URL change', false, {url: state.url});
             }
             const isCurrentlyAuthenticated = hasAuthToken();
-            openReportFromDeepLink(state.url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected, archivedReportsIDSet);
+            openReportFromDeepLink(state.url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected, archivedReportsIDSetRef.current);
         });
 
         return () => {
             linkingChangeListener.current?.remove();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want this effect to re-run when conciergeReportID changes
-    }, [sessionMetadata?.status, conciergeReportID, introSelected, archivedReportsIDSet]);
+    }, [sessionMetadata?.status, conciergeReportID, introSelected]);
 
     useLayoutEffect(() => {
         if (!isNavigationReady || !lastRoute) {
