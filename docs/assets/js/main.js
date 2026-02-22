@@ -196,13 +196,15 @@ if (typeof TurndownService !== 'undefined') {
 
 function copyAIResponseToClipboard(button, content) {
     const text = turndownService ? turndownService.turndown(content.innerHTML) : content.innerText;
-    navigator.clipboard.writeText(text).then(() => {
-        button.classList.add('copied');
-        setTimeout(() => {
-            button.classList.remove('copied');
-        }, 1500);
-    })
-    .catch(() => {});
+    navigator.clipboard
+        .writeText(text)
+        .then(() => {
+            button.classList.add('copied');
+            setTimeout(() => {
+                button.classList.remove('copied');
+            }, 1500);
+        })
+        .catch(() => {});
 }
 
 function askHelpsiteAI(query) {
