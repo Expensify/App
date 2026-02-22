@@ -214,8 +214,8 @@ function IOURequestStepDistanceOdometer({
 
     // Calculate total distance - updated live after every input change
     const totalDistance = (() => {
-        const start = parseFloat(startReading.replaceAll(',', ''));
-        const end = parseFloat(endReading.replaceAll(',', ''));
+        const start = parseOdometerReading(startReading);
+        const end = parseOdometerReading(endReading);
         if (Number.isNaN(start) || Number.isNaN(end) || !startReading || !endReading) {
             return null;
         }
@@ -274,51 +274,23 @@ function IOURequestStepDistanceOdometer({
         return shouldShowSave ? translate('common.save') : translate('common.next');
     })();
 
-    const stripToNumeric = (text: string): string => {
-        let cleaned = replaceAllDigits(text, fromLocaleDigit);
-        cleaned = cleaned.replaceAll(/[^0-9.,]/g, '');
-        cleaned = cleaned.replaceAll(',', '');
-        const parts = cleaned.split('.');
-        if (parts.length > 2) {
-            cleaned = `${parts.at(0) ?? ''}.${parts.slice(1).join('')}`;
-        }
-        if (parts.length === 2 && (parts.at(1) ?? '').length > 1) {
-            cleaned = `${parts.at(0) ?? ''}.${(parts.at(1) ?? '').slice(0, 1)}`;
-        }
-        if (cleaned.startsWith('.')) {
-            cleaned = `0${cleaned}`;
-        }
-        return cleaned;
-    };
-
-    const formatWithCommas = (numericStr: string): string => {
-        if (!numericStr) {
-            return '';
-        }
-        const parts = numericStr.split('.');
-        const intPart = parts.at(0) ?? '';
-        const decPart = parts.at(1);
-        const formatted = intPart.replaceAll(/\B(?=(\d{3})+(?!\d))/g, ',');
-        return decPart !== undefined ? `${formatted}.${decPart}` : formatted;
-    };
-
-    const cleanOdometerReading = (text: string): string => {
-        return formatWithCommas(stripToNumeric(text));
+    const parseOdometerReading = (text: string): number => {
+        const standardized = replaceAllDigits(text, fromLocaleDigit);
+        const stripped = standardized.replaceAll(',', '');
+        return parseFloat(stripped);
     };
 
     const handleStartReadingChange = (text: string) => {
-        const cleaned = cleanOdometerReading(text);
-        setStartReading(cleaned);
-        startReadingRef.current = cleaned;
+        setStartReading(text);
+        startReadingRef.current = text;
         if (formError) {
             setFormError('');
         }
     };
 
     const handleEndReadingChange = (text: string) => {
-        const cleaned = cleanOdometerReading(text);
-        setEndReading(cleaned);
-        endReadingRef.current = cleaned;
+        setEndReading(text);
+        endReadingRef.current = text;
         if (formError) {
             setFormError('');
         }
@@ -353,8 +325,8 @@ function IOURequestStepDistanceOdometer({
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     // Navigate to next page following Manual tab pattern
     const navigateToNextPage = () => {
-        const start = parseFloat(startReading.replaceAll(',', ''));
-        const end = parseFloat(endReading.replaceAll(',', ''));
+        const start = parseOdometerReading(startReading);
+        const end = parseOdometerReading(endReading);
 
         // Store odometer readings in transaction.comment.odometerStart/odometerEnd
         setMoneyRequestOdometerReading(transactionID, start, end, isTransactionDraft);
@@ -452,8 +424,8 @@ function IOURequestStepDistanceOdometer({
             return;
         }
 
-        const start = parseFloat(startReading.replaceAll(',', ''));
-        const end = parseFloat(endReading.replaceAll(',', ''));
+        const start = parseOdometerReading(startReading);
+        const end = parseOdometerReading(endReading);
 
         if (Number.isNaN(start) || Number.isNaN(end)) {
             setFormError(translate('iou.error.invalidReadings'));
@@ -504,7 +476,6 @@ function IOURequestStepDistanceOdometer({
                                 onChangeText={handleStartReadingChange}
                                 keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
                                 inputMode={CONST.INPUT_MODE.DECIMAL}
-                                maxLength={CONST.IOU.ODOMETER_MAX_LENGTH}
                             />
                         </View>
                         {!isEditing && (
@@ -553,7 +524,6 @@ function IOURequestStepDistanceOdometer({
                                 onChangeText={handleEndReadingChange}
                                 keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
                                 inputMode={CONST.INPUT_MODE.DECIMAL}
-                                maxLength={CONST.IOU.ODOMETER_MAX_LENGTH}
                             />
                         </View>
                         {!isEditing && (
