@@ -667,6 +667,7 @@ function Search({
                             transactionItem,
                             transactionItem.report,
                             transactionItem.policy,
+                            isReportArchived,
                         ),
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID]?.isSelected || isExpenseReportType,
@@ -723,6 +724,7 @@ function Search({
                         transactionItem,
                         transactionItem.report,
                         transactionItem.policy,
+                        isReportArchived,
                     ),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID].isSelected,
@@ -749,7 +751,7 @@ function Search({
 
         isRefreshingSelection.current = true;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filteredData, setSelectedTransactions, areAllMatchingItemsSelected, isFocused, outstandingReportsByPolicyID, isExpenseReportType]);
+    }, [filteredData, setSelectedTransactions, areAllMatchingItemsSelected, isFocused, outstandingReportsByPolicyID, isExpenseReportType, isReportArchived]);
 
     useEffect(() => {
         if (!isSearchResultsEmpty || prevIsSearchResultEmpty) {

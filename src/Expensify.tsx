@@ -16,6 +16,7 @@ import SplashScreenHider from './components/SplashScreenHider';
 import UpdateAppModal from './components/UpdateAppModal';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
+import useArchivedReportsIDSet from './hooks/useArchivedReportsIDSet';
 import useDebugShortcut from './hooks/useDebugShortcut';
 import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useLocalize from './hooks/useLocalize';
@@ -124,6 +125,7 @@ function Expensify() {
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+    const archivedReportsIDSet = useArchivedReportsIDSet();
 
     useDebugShortcut();
     usePriorityMode();
@@ -344,7 +346,7 @@ function Expensify() {
                 if (introSelected === undefined) {
                     Log.info('[Deep link] introSelected is undefined when processing initial URL', false, {url});
                 }
-                openReportFromDeepLink(url, allReports, isAuthenticated, conciergeReportID, introSelected);
+                openReportFromDeepLink(url, allReports, isAuthenticated, conciergeReportID, introSelected, archivedReportsIDSet);
             } else {
                 Report.doneCheckingPublicRoom();
             }
@@ -361,14 +363,14 @@ function Expensify() {
                 Log.info('[Deep link] introSelected is undefined when processing URL change', false, {url: state.url});
             }
             const isCurrentlyAuthenticated = hasAuthToken();
-            openReportFromDeepLink(state.url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected);
+            openReportFromDeepLink(state.url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected, archivedReportsIDSet);
         });
 
         return () => {
             linkingChangeListener.current?.remove();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want this effect to re-run when conciergeReportID changes
-    }, [sessionMetadata?.status, conciergeReportID, introSelected]);
+    }, [sessionMetadata?.status, conciergeReportID, introSelected, archivedReportsIDSet]);
 
     useLayoutEffect(() => {
         if (!isNavigationReady || !lastRoute) {
