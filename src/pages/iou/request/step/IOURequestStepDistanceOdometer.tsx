@@ -280,7 +280,30 @@ function IOURequestStepDistanceOdometer({
         return shouldShowSave ? translate('common.save') : translate('common.next');
     })();
 
+    const isOdometerInputValid = (text: string): boolean => {
+        if (!text) {
+            return true;
+        }
+        const standardized = replaceAllDigits(text, fromLocaleDigit);
+        const stripped = standardized.replaceAll(/[^0-9.]/g, '');
+        const parts = stripped.split('.');
+        if (parts.length > 2) {
+            return false;
+        }
+        if (parts.length === 2 && (parts.at(1) ?? '').length > 1) {
+            return false;
+        }
+        const value = parseFloat(stripped);
+        if (!Number.isNaN(value) && value > CONST.IOU.ODOMETER_MAX_VALUE) {
+            return false;
+        }
+        return true;
+    };
+
     const handleStartReadingChange = (text: string) => {
+        if (!isOdometerInputValid(text)) {
+            return;
+        }
         setStartReading(text);
         startReadingRef.current = text;
         if (formError) {
@@ -289,6 +312,9 @@ function IOURequestStepDistanceOdometer({
     };
 
     const handleEndReadingChange = (text: string) => {
+        if (!isOdometerInputValid(text)) {
+            return;
+        }
         setEndReading(text);
         endReadingRef.current = text;
         if (formError) {
