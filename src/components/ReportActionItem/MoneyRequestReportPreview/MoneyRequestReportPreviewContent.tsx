@@ -328,7 +328,18 @@ function MoneyRequestReportPreviewContent({
             showDelegateNoAccessModal();
         } else if (!hasHeldExpensesReportUtils(iouReport?.reportID)) {
             startApprovedAnimation();
-            approveMoneyRequest(iouReport, activePolicy, currentUserAccountID, currentUserEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, betas, userBillingGraceEndPeriodCollection, true);
+            approveMoneyRequest(
+                iouReport,
+                activePolicy,
+                currentUserAccountID,
+                currentUserEmail,
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                iouReportNextStep,
+                betas,
+                userBillingGraceEndPeriodCollection,
+                true,
+            );
         }
     };
 
