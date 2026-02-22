@@ -119,6 +119,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                         onPress={() => {
                             handleJoinWorkspace(policyInfo);
                         }}
+                        sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.JOIN_WORKSPACE}
                     />
                 ),
                 icons: [
@@ -204,6 +205,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                         testID="onboardingWorkSpaceSkipButton"
                         onPress={skipJoiningWorkspaces}
                         style={[styles.mt5]}
+                        sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.SKIP}
                     />
                 }
             />
