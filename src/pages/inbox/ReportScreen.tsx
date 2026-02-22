@@ -86,6 +86,7 @@ import {
     isPolicyExpenseChat,
     isReportTransactionThread,
     isTaskReport,
+    isReportArchivedByID as isReportArchivedByIDUtil,
     isValidReportIDFromPath,
 } from '@libs/ReportUtils';
 import {cancelSpan, cancelSpansByPrefix} from '@libs/telemetry/activeSpans';
@@ -187,6 +188,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
 
     const archivedReportsIDSet = useArchivedReportsIDSet();
+    const isReportArchivedByID = useCallback((reportID?: string) => isReportArchivedByIDUtil(archivedReportsIDSet, reportID), [archivedReportsIDSet]);
 
     const parentReportAction = useParentReportAction(reportOnyx);
 
@@ -877,7 +879,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         };
     }, [report?.reportID, didSubscribeToReportLeavingEvents, reportIDFromRoute, report?.pendingFields, currentUserAccountID]);
 
-    const actionListValue = useActionListContextValue();
+    const actionListValue = useActionListContextValue(isReportArchivedByID);
 
     // This helps in tracking from the moment 'route' triggers useMemo until isLoadingInitialReportActions becomes true. It prevents blinking when loading reportActions from cache.
     useEffect(() => {
@@ -1060,6 +1062,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                                     report={transactionThreadReport ?? report}
                                                     fillSpace
                                                     isDisplayedInWideRHP
+                                                    isReportArchivedByID={isReportArchivedByID}
                                                 />
                                             </ScrollView>
                                         </Animated.View>

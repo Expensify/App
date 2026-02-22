@@ -9,7 +9,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReceiptAudit, {ReceiptAuditMessages} from '@components/ReceiptAudit';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import useActiveRoute from '@hooks/useActiveRoute';
-import {useIsReportArchivedByID} from '@hooks/useArchivedReportsIDSet';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -75,6 +74,9 @@ type MoneyRequestReceiptViewProps = {
     /** Merge transaction ID to show in merge transaction flow */
     mergeTransactionID?: string;
 
+    /** Whether a report with provided reportID is archived */
+    isReportArchivedByID: (reportID?: string) => boolean;
+
     /** Whether the receipt view should fill the given space */
     fillSpace?: boolean;
 
@@ -101,6 +103,7 @@ function MoneyRequestReceiptView({
     updatedTransaction,
     fillSpace = false,
     mergeTransactionID,
+    isReportArchivedByID,
     isDisplayedInWideRHP = false,
 }: MoneyRequestReceiptViewProps) {
     const styles = useThemeStyles();
@@ -135,7 +138,6 @@ function MoneyRequestReceiptView({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`, {canBeMissing: true});
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
-    const isReportArchivedByID = useIsReportArchivedByID();
 
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const hasReceipt = hasReceiptTransactionUtils(updatedTransaction ?? transaction);

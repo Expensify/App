@@ -15,7 +15,6 @@ import Text from '@components/Text';
 import ViolationMessages from '@components/ViolationMessages';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useActiveRoute from '@hooks/useActiveRoute';
-import {useIsReportArchivedByID} from '@hooks/useArchivedReportsIDSet';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -147,6 +146,9 @@ type MoneyRequestViewProps = {
 
     /** Merge transaction ID to show in merge transaction flow */
     mergeTransactionID?: string;
+
+    /** Whether a report with provided reportID is archived */
+    isReportArchivedByID: (reportID?: string) => boolean;
 };
 
 const perDiemPoliciesSelector = (policies: OnyxCollection<OnyxTypes.Policy>) => {
@@ -170,6 +172,7 @@ function MoneyRequestView({
     updatedTransaction,
     isFromReviewDuplicates = false,
     mergeTransactionID,
+    isReportArchivedByID,
 }: MoneyRequestViewProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Checkmark', 'Suitcase']);
     const styles = useThemeStyles();
@@ -327,7 +330,6 @@ function MoneyRequestView({
     const isSettled = isSettledReportUtils(moneyRequestReport);
     const isCancelled = moneyRequestReport && moneyRequestReport?.isCancelledIOU;
     const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
-    const isReportArchivedByID = useIsReportArchivedByID();
     const pendingAction = transaction?.pendingAction;
     const shouldShowPaid = isSettled && transactionReimbursable && !pendingAction;
 
@@ -893,6 +895,7 @@ function MoneyRequestView({
                         readonly={readonly}
                         updatedTransaction={updatedTransaction}
                         mergeTransactionID={mergeTransactionID}
+                        isReportArchivedByID={isReportArchivedByID}
                     />
                 )}
                 {isCustomUnitOutOfPolicy && isPerDiemRequest && (

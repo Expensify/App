@@ -1,4 +1,4 @@
-import React, {memo, useMemo} from 'react';
+import React, {memo, useContext, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -23,6 +23,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import ReportActionItemCreated from './ReportActionItemCreated';
 import ReportActionItemSingle from './ReportActionItemSingle';
@@ -61,6 +62,7 @@ function ReportActionItemContentCreated({
 }: ReportActionItemContentCreatedProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isReportArchivedByID} = useContext(ActionListContext);
     const {report, action, transactionThreadReport} = contextValue;
     const policy = usePolicy(report?.policyID === CONST.POLICY.OWNER_EMAIL_FAKE ? undefined : report?.policyID);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
@@ -124,6 +126,7 @@ function ReportActionItemContentCreated({
                             parentReportID={report?.parentReportID}
                             expensePolicy={policy}
                             shouldShowAnimatedBackground
+                            isReportArchivedByID={isReportArchivedByID}
                         />
                         {renderThreadDivider}
                     </View>
@@ -187,6 +190,7 @@ function ReportActionItemContentCreated({
                                     parentReportID={transactionThreadReport?.parentReportID}
                                     expensePolicy={policy}
                                     shouldShowAnimatedBackground={false}
+                                    isReportArchivedByID={isReportArchivedByID}
                                 />
                                 {renderThreadDivider}
                             </View>

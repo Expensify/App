@@ -14,6 +14,7 @@ import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useIsReportArchivedByID} from '@hooks/useArchivedReportsIDSet';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
@@ -39,6 +40,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 function Confirmation() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const isReportArchivedByID = useIsReportArchivedByID();
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [reviewDuplicates, reviewDuplicatesResult] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES, {canBeMissing: true});
@@ -157,6 +159,7 @@ function Confirmation() {
                                 readonly
                                 updatedTransaction={newTransaction as OnyxEntry<Transaction>}
                                 isFromReviewDuplicates
+                                isReportArchivedByID={isReportArchivedByID}
                             />
                         </ShowContextMenuContext.Provider>
                     </ScrollView>

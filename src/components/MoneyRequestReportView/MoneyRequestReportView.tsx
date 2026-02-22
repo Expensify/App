@@ -1,5 +1,5 @@
 import {PortalHost} from '@gorhom/portal';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo} from 'react';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
@@ -29,6 +29,7 @@ import {canEditReportAction, getReportOfflinePendingActionAndErrors, isReportTra
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 import Navigation from '@navigation/Navigation';
+import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import ReportActionsView from '@pages/inbox/report/ReportActionsView';
 import ReportFooter from '@pages/inbox/report/ReportFooter';
 import CONST from '@src/CONST';
@@ -97,6 +98,7 @@ function InitialLoadingSkeleton({styles}: {styles: ThemeStyles}) {
 
 function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter, backToRoute}: MoneyRequestReportViewProps) {
     const styles = useThemeStyles();
+    const {isReportArchivedByID} = useContext(ActionListContext);
     const {isOffline} = useNetwork();
 
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -254,6 +256,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                                     report={transactionThreadReport}
                                     fillSpace
                                     isDisplayedInWideRHP
+                                    isReportArchivedByID={isReportArchivedByID}
                                 />
                             </ScrollView>
                         </Animated.View>

@@ -21,10 +21,16 @@ type ActionListContextType = {
     flatListRef: FlatListRefType;
     scrollPositionRef: RefObject<ScrollPosition>;
     scrollOffsetRef: RefObject<number>;
+    isReportArchivedByID: (reportID?: string) => boolean;
 };
 type ReactionListContextType = RefObject<ReactionListRef | null> | null;
 
-const ActionListContext = createContext<ActionListContextType>({flatListRef: null, scrollPositionRef: {current: {}}, scrollOffsetRef: {current: 0}});
+const ActionListContext = createContext<ActionListContextType>({
+    flatListRef: null,
+    scrollPositionRef: {current: {}},
+    scrollOffsetRef: {current: 0},
+    isReportArchivedByID: () => false,
+});
 const ReactionListContext = createContext<ReactionListContextType>(null);
 
 export {ActionListContext, ReactionListContext};
