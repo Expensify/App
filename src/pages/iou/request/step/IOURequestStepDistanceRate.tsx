@@ -113,9 +113,10 @@ function IOURequestStepDistanceRate({
         // Validate that the new rate combined with the existing distance doesn't exceed the backend limit.
         // This check runs before any state updates so that an invalid rate doesn't modify tax or rate state.
         const newRate = rates[customUnitRateID]?.rate ?? 0;
-        const unit = DistanceRequestUtils.getDistanceUnit(transaction, rates[customUnitRateID]);
-        const distanceInMeters = getDistanceInMeters(transaction, unit);
-        const distanceInUnits = DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit);
+        const selectedRateUnit = rates[customUnitRateID]?.unit ?? DistanceRequestUtils.getDistanceUnit(transaction, rates[customUnitRateID]);
+        const transactionUnit = DistanceRequestUtils.getDistanceUnit(transaction, rates[customUnitRateID]);
+        const distanceInMeters = getDistanceInMeters(transaction, transactionUnit);
+        const distanceInUnits = DistanceRequestUtils.convertDistanceUnit(distanceInMeters, selectedRateUnit);
         if (!DistanceRequestUtils.isDistanceAmountWithinLimit(distanceInUnits, newRate)) {
             setPendingRateID(customUnitRateID);
             setFormError(translate('iou.error.distanceAmountTooLargeReduceRate'));
@@ -129,7 +130,7 @@ function IOURequestStepDistanceRate({
             const defaultTaxCode = getDefaultTaxCode(policy, transaction) ?? '';
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             taxRateExternalID = policyCustomUnitRate?.attributes?.taxRateExternalID || defaultTaxCode;
-            const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, getDistanceInMeters(transaction, unit));
+            const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, getDistanceInMeters(transaction, transactionUnit));
             const taxPercentage = taxRateExternalID ? getTaxValue(policy, transaction, taxRateExternalID) : undefined;
             taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, taxableAmount, getCurrencyDecimals(rates[customUnitRateID].currency)));
             setMoneyRequestTaxAmount(transactionID, taxAmount, shouldUseTransactionDraft(action));
