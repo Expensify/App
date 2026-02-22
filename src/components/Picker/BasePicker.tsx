@@ -164,6 +164,19 @@ function BasePicker<TPickerValue>({
     // Disable Tab focus on mobile to prevent soft keyboard navigation jumping to picker (#25759)
     const pickerTabIndex = isMobile() ? -1 : 0;
 
+    const selectedItem = items.find((item) => item.value === value);
+    const selectedLabel = selectedItem?.label ?? '';
+    const enhancedAccessibilityLabel = useMemo(() => {
+        const defaultAccessibilityLabel = accessibilityLabel ?? label;
+        if (!defaultAccessibilityLabel) {
+            return selectedLabel || '';
+        }
+        if (selectedLabel) {
+            return `${defaultAccessibilityLabel}, ${selectedLabel}`;
+        }
+        return defaultAccessibilityLabel;
+    }, [accessibilityLabel, label, selectedLabel]);
+
     if (isDisabled && shouldShowOnlyTextWhenDisabled) {
         return (
             <View>
@@ -210,7 +223,7 @@ function BasePicker<TPickerValue>({
                     textInputProps={{
                         allowFontScaling: false,
                         accessibilityRole: CONST.ROLE.COMBOBOX,
-                        accessibilityLabel,
+                        accessibilityLabel: enhancedAccessibilityLabel,
                     }}
                     pickerProps={{
                         ref: picker,
@@ -220,7 +233,7 @@ function BasePicker<TPickerValue>({
                             disableHighlight();
                             onBlur();
                         },
-                        accessibilityLabel,
+                        accessibilityLabel: enhancedAccessibilityLabel,
                         accessibilityRole: CONST.ROLE.COMBOBOX,
                         ...additionalPickerEvents(enableHighlight, (inputValue, index) => {
                             onValueChange(inputValue, index);
