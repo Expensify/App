@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js b/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
-index 9fedd7e..b3c4d5e 100644
+index 9fedd7e..027072d 100644
 --- a/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
 +++ b/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
-@@ -158,7 +158,7 @@
+@@ -158,7 +158,7 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
    const prevQueryStringRef = useRef(JSON.stringify(query));
 
    // Store latest _request function - ensures debounced function always calls current version with latest closures
@@ -11,7 +11,7 @@ index 9fedd7e..b3c4d5e 100644
    const queryString = useMemo(() => JSON.stringify(query), [query]);
 
    const [stateText, setStateText] = useState('');
-@@ -347,6 +347,16 @@
+@@ -347,6 +347,16 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
      return rowData;
    };
 
@@ -28,7 +28,7 @@ index 9fedd7e..b3c4d5e 100644
    // ==========================================================================
    // API REQUEST FUNCTIONS
    // ==========================================================================
-@@ -650,15 +660,51 @@
+@@ -650,15 +660,51 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
      }
    };
 
@@ -86,7 +86,7 @@ index 9fedd7e..b3c4d5e 100644
 
    const _onPress = (rowData) => {
      if (rowData.isPredefinedPlace !== true && fetchDetails === true) {
-@@ -670,7 +716,6 @@
+@@ -667,7 +713,6 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
          return;
        }
 
@@ -94,7 +94,7 @@ index 9fedd7e..b3c4d5e 100644
        Keyboard.dismiss();
 
        _abortRequests();
-@@ -776,6 +821,11 @@
+@@ -776,6 +821,11 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
      }
    };
 
@@ -106,7 +106,7 @@ index 9fedd7e..b3c4d5e 100644
    const _onChangeText = (text) => {
      setListWasDismissed(false);
      setStateText(text);
-@@ -792,56 +842,10 @@
+@@ -792,56 +842,10 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
      }
    };
 
@@ -163,9 +163,9 @@ index 9fedd7e..b3c4d5e 100644
    const _getRowLoader = () => {
      return <ActivityIndicator animating={true} size='small' />;
    };
-@@ -1010,16 +1014,18 @@
-      return `item_${index}`;
-    };
+@@ -1010,15 +1014,17 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+       return `item_${index}`;
+     };
 
 -    // Show list if:
 -    // 1. Platform is supported
@@ -186,8 +186,7 @@ index 9fedd7e..b3c4d5e 100644
        (listViewDisplayed === true || (isAutoMode && !listWasDismissed));
 
      if (shouldShowList) {
-       return (
-@@ -1078,11 +1084,6 @@
+@@ -1078,11 +1084,6 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
    // Keep requestRef updated
    requestRef.current = _request;
 
