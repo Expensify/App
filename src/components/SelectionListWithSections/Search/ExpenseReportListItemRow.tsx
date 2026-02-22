@@ -249,8 +249,7 @@ function ExpenseReportListItemRow({
         const subtitleLabel = translate('threads.parentNavigationSummary', parentNavigationSubtitleData);
         const statusLabel = getReportStatusTranslation({stateNum: item.stateNum, statusNum: item.statusNum, translate});
         const amountLabel = convertToDisplayString(totalDisplaySpend, currency);
-        const userName = item.formattedFrom ?? item?.from?.displayName ?? '';
-        const groupAccessibilityLabel = [userName, item.reportName, subtitleLabel, statusLabel, amountLabel].filter(Boolean).join(', ');
+        const groupAccessibilityLabel = [participantFromDisplayName, item.reportName, subtitleLabel, statusLabel, amountLabel].filter(Boolean).join(', ');
 
         return (
             <View style={styles.pRelative}>
