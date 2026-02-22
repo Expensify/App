@@ -64,9 +64,6 @@ type MoneyRequestReportPreviewProps = {
     /** Whether  context menu should be shown on press */
     shouldDisplayContextMenu?: boolean;
 
-    /** Whether the report is an invoice preview */
-    isInvoice?: boolean;
-
     /** Whether to show a border to separate Reports Chat Item and Money Request Report Preview */
     shouldShowBorder?: boolean;
 };

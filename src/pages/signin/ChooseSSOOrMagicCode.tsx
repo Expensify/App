@@ -55,6 +55,7 @@ function ChooseSSOOrMagicCode({setIsUsingMagicCode}: ChooseSSOOrMagicCodeProps) 
                     onPress={() => {
                         Navigation.navigate(ROUTES.SAML_SIGN_IN);
                     }}
+                    sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.SSO}
                 />
 
                 <View style={[styles.mt5]}>
@@ -73,6 +74,7 @@ function ChooseSSOOrMagicCode({setIsUsingMagicCode}: ChooseSSOOrMagicCodeProps) 
                         resendValidateCode(credentials?.login);
                         setIsUsingMagicCode(true);
                     }}
+                    sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.MAGIC_CODE}
                 />
                 {!!account && !isEmptyObject(account.errors) && <FormHelpMessage message={getLatestErrorMessage(account)} />}
                 <ChangeExpensifyLoginLink onPress={() => clearSignInData()} />

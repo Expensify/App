@@ -164,10 +164,11 @@ function SearchAutocompleteInput({
         });
     }, [tagSharedValue, tagAutocompleteList]);
 
+    const currentUserDisplayName = currentUserPersonalDetails.displayName ?? '';
     const parser = (input: string) => {
         'worklet';
 
-        return parseForLiveMarkdown(input, currentUserPersonalDetails.displayName ?? '', substitutionMap, emailListSharedValue, currencySharedValue, categorySharedValue, tagSharedValue);
+        return parseForLiveMarkdown(input, currentUserDisplayName, substitutionMap, emailListSharedValue, currencySharedValue, categorySharedValue, tagSharedValue);
     };
 
     const clearInput = () => {

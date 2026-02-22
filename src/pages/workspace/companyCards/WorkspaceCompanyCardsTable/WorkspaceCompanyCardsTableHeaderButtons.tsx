@@ -161,6 +161,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                                     options={secondaryActions}
                                     isSplitButton={false}
                                     wrapperStyle={shouldShowNarrowLayout ? styles.flex1 : styles.flexGrow0}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.MORE_DROPDOWN}
                                 />
                             </>
                         )}
