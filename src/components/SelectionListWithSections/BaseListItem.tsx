@@ -116,7 +116,7 @@ function BaseListItem<TItem extends ListItem>({
                 }}
                 disabled={isDisabled && !item.isSelected}
                 interactive={item.isInteractive}
-                accessibilityLabel={accessibilityLabel}
+                accessibilityLabel={accessible === false ? undefined : accessibilityLabel}
                 accessibilityState={accessibilityState}
                 role={accessibilityRole}
                 accessible={accessible}
