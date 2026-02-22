@@ -201,7 +201,8 @@ function copyAIResponseToClipboard(button, content) {
         setTimeout(() => {
             button.classList.remove('copied');
         }, 1500);
-    });
+    })
+    .catch(() => {});
 }
 
 function askHelpsiteAI(query) {
