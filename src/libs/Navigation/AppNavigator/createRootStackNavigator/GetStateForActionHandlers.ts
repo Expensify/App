@@ -5,6 +5,7 @@ import SCREENS_WITH_NAVIGATION_TAB_BAR from '@components/Navigation/TopLevelNavi
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {isSplitNavigatorName} from '@libs/Navigation/helpers/isNavigatorName';
+import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
 import {SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -123,14 +124,23 @@ function handlePushFullscreenAction(
     const targetScreen = action.payload?.params && 'screen' in action.payload.params ? (action.payload?.params?.screen as string) : undefined;
     const navigatorName = action.payload.name;
 
+    const lastRoute = state.routes.at(-1);
+
+    // If a side modal (RHP) is on top, strip it before pushing the fullscreen screen.
+    // This mirrors handleNavigatingToModalFromModal's pattern — one atomic state change
+    // instead of separate dismissModal + navigate, which causes browser history issues on web.
+    const stateWithoutModal = isSideModalNavigator(lastRoute?.name) ? {...state, routes: state.routes.slice(0, -1), index: state.index !== 0 ? state.index - 1 : 0} : state;
+
     // If we navigate to the central screen of the split navigator, we need to filter this navigator from preloadedRoutes to remove a sidebar screen from the state
     const shouldFilterPreloadedRoutes =
         getIsNarrowLayout() &&
         isSplitNavigatorName(navigatorName) &&
         targetScreen !== SPLIT_TO_SIDEBAR[navigatorName] &&
-        state.preloadedRoutes?.some((preloadedRoute) => preloadedRoute.name === navigatorName);
+        stateWithoutModal.preloadedRoutes?.some((preloadedRoute) => preloadedRoute.name === navigatorName);
 
-    const adjustedState = shouldFilterPreloadedRoutes ? {...state, preloadedRoutes: state.preloadedRoutes.filter((preloadedRoute) => preloadedRoute.name !== navigatorName)} : state;
+    const adjustedState = shouldFilterPreloadedRoutes
+        ? {...stateWithoutModal, preloadedRoutes: stateWithoutModal.preloadedRoutes.filter((preloadedRoute) => preloadedRoute.name !== navigatorName)}
+        : stateWithoutModal;
     const stateWithNavigator = stackRouter.getStateForAction(adjustedState, action, configOptions);
 
     if (!stateWithNavigator) {

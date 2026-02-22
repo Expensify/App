@@ -52,15 +52,7 @@ function EmptyWorkspaceView() {
                 success
                 large
                 text={translate('footer.learnMore')}
-                onPress={() => {
-                    const activeRoute = Navigation.getActiveRoute();
-                    const targetRoute = ROUTES.WORKSPACES_LIST.getRoute(activeRoute);
-                    Navigation.dismissModal({
-                        callback: () => {
-                            Navigation.navigate(targetRoute);
-                        },
-                    });
-                }}
+                onPress={() => Navigation.navigate(ROUTES.WORKSPACES_LIST.getRoute(Navigation.getActiveRoute()))}
                 style={[styles.mh5, bottomSafeAreaPaddingStyle]}
             />
         </>
