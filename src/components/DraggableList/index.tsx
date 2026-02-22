@@ -105,9 +105,8 @@ function DraggableList<T>({
             getIndex: () => index,
             isActive: false,
             drag: () => {},
+            isFocused,
         });
-
-        const itemWithFocus = React.isValidElement(renderedItem) ? React.cloneElement(renderedItem, {isFocused} as React.Attributes) : renderedItem;
 
         return (
             <SortableItem
@@ -116,7 +115,7 @@ function DraggableList<T>({
                 disabled={isDragDisabled}
                 isFocused={isFocused}
             >
-                {itemWithFocus}
+                {renderedItem}
             </SortableItem>
         );
     });

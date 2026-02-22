@@ -1,6 +1,10 @@
 import type React from 'react';
 import type {RenderItemParams} from 'react-native-draggable-flatlist';
 
+type DraggableListRenderItemParams<T> = RenderItemParams<T> & {
+    isFocused?: boolean;
+};
+
 type DraggableListData<T> = {
     data: T[];
 };
@@ -14,7 +18,7 @@ type DraggableListProps<T> = {
     keyExtractor: (item: T, index: number) => string;
 
     /** Render each item. Call `drag` when the row should become active. */
-    renderItem: (params: RenderItemParams<T>) => React.ReactNode;
+    renderItem: (params: DraggableListRenderItemParams<T>) => React.ReactNode;
 
     /** Called after the animation has been completed. Returns updated ordering of data  */
     onDragEnd?: (params: DraggableListData<T>) => void;
@@ -45,4 +49,4 @@ type SortableItemProps = {
 };
 
 export default DraggableListProps;
-export type {SortableItemProps};
+export type {DraggableListRenderItemParams, SortableItemProps};

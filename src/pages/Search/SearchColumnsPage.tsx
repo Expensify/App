@@ -11,12 +11,11 @@ import type {ListItem} from '@components/SelectionList/types';
 import MultiSelectListItem from '@components/SelectionListWithSections/MultiSelectListItem';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useMultiListFocusManager from '@hooks/useMultiListFocusManager';
 import useOnyx from '@hooks/useOnyx';
-import useResetFocusOnBlur from '@hooks/useResetFocusOnBlur';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -135,21 +134,20 @@ function SearchColumnsPage() {
     const groupColumnsList = allColumnsList.filter((column) => allGroupCustomColumns.includes(column.keyForList));
 
     const flatItems = groupBy ? [...groupColumnsList, ...typeColumnsList] : typeColumnsList;
-    const disabledIndexes = flatItems.flatMap((item, index) => (item.isDisabled ? [index] : []));
-
-    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
-        initialFocusedIndex: -1,
-        maxIndex: flatItems.length - 1,
-        disabledIndexes,
-        isActive: true,
-        disableCyclicTraversal: true,
-    });
-
-    const listContainerRef = useResetFocusOnBlur(setFocusedIndex);
-
     const groupLength = groupBy ? groupColumnsList.length : 0;
-    const groupFocusedIndex = focusedIndex >= 0 && focusedIndex < groupLength ? focusedIndex : -1;
-    const typeFocusedIndex = focusedIndex >= groupLength ? focusedIndex - groupLength : -1;
+
+    const {
+        focusedIndex,
+        setFocusedIndex,
+        firstListFocusedIndex: groupFocusedIndex,
+        secondListFocusedIndex: typeFocusedIndex,
+        listContainerRef,
+        scheduleRefocus,
+    } = useMultiListFocusManager({
+        flatItems,
+        firstListLength: groupLength,
+        reorderDep: columns,
+    });
 
     const isDefaultState =
         columns.length === defaultColumns.length &&
@@ -184,7 +182,8 @@ function SearchColumnsPage() {
 
             return prevColumns.map((col) => (col.columnId === updatedColumnId ? {...col, isSelected: false} : col));
         });
-        setFocusedIndex(-1);
+
+        scheduleRefocus();
     };
 
     const selectFocusedItem = () => {
@@ -233,10 +232,11 @@ function SearchColumnsPage() {
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
     };
 
-    const renderItem = ({item}: {item: ListItem}) => {
+    const renderItem = ({item, isFocused}: {item: ListItem; isFocused?: boolean}) => {
         return (
             <MultiSelectListItem
                 item={item}
+                isFocused={isFocused}
                 showTooltip={false}
                 onSelectRow={onSelectItem}
                 isDisabled={item.isDisabled}
