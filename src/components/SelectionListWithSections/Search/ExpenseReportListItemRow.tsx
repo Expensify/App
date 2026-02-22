@@ -257,6 +257,7 @@ function ExpenseReportListItemRow({
                 <View
                     accessible
                     accessibilityLabel={groupAccessibilityLabel}
+                    role={CONST.ROLE.BUTTON}
                     style={{marginRight: variables.w72}}
                 >
                     <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mb2]}>
