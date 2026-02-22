@@ -298,7 +298,7 @@ function IOURequestStepDistanceOdometer({
         const parts = numericStr.split('.');
         const intPart = parts.at(0) ?? '';
         const decPart = parts.at(1);
-        const formatted = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        const formatted = intPart.replaceAll(/\B(?=(\d{3})+(?!\d))/g, ',');
         return decPart !== undefined ? `${formatted}.${decPart}` : formatted;
     };
 
