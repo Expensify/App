@@ -90,7 +90,10 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
     };
 
     return (
-        <Tooltip text={translate('common.create')}>
+        <Tooltip
+            text={translate('common.create')}
+            shouldRender={!isActive}
+        >
             <PressableWithoutFeedback
                 ref={(el) => {
                     fabPressable.current = el ?? null;
