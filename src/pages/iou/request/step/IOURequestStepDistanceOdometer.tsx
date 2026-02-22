@@ -289,6 +289,11 @@ function IOURequestStepDistanceOdometer({
         return shouldShowSave ? translate('common.save') : translate('common.next');
     })();
 
+    // Per-keystroke validation: enforce format constraints and cap the max value.
+    // The max-value check allows edits that *reduce* the value (e.g. backspacing
+    // a legacy over-max reading) but rejects keystrokes that would increase
+    // beyond ODOMETER_MAX_VALUE.  Submit-time validation in handleNext is the
+    // final safety net.
     const isOdometerInputValid = (text: string, previousText: string): boolean => {
         if (!text) {
             return true;

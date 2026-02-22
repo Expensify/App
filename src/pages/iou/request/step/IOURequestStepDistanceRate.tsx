@@ -113,9 +113,16 @@ function IOURequestStepDistanceRate({
         // Validate that the new rate combined with the existing distance doesn't exceed the backend limit.
         // This check runs before any state updates so that an invalid rate doesn't modify tax or rate state.
         const newRate = rates[customUnitRateID]?.rate ?? 0;
-        const selectedRateUnit = rates[customUnitRateID]?.unit ?? DistanceRequestUtils.getDistanceUnit(transaction, rates[customUnitRateID]);
-        const transactionUnit = DistanceRequestUtils.getDistanceUnit(transaction, rates[customUnitRateID]);
-        const distanceInMeters = getDistanceInMeters(transaction, transactionUnit);
+        // Use the newly selected rate's unit directly rather than getDistanceUnit(), which
+        // prefers the transaction's stored unit.  When a user switches from a miles-based
+        // rate to a km-based rate, validation must use the *new* rate's unit so the
+        // distance-to-amount calculation is correct.
+        const selectedRateUnit = rates[customUnitRateID]?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+        // Read distance in meters using the *transaction's current* unit (so the raw
+        // quantity stored on the transaction is interpreted correctly), then convert to
+        // the selected rate's unit for the limit check.
+        const currentUnit = DistanceRequestUtils.getDistanceUnit(transaction, rates[customUnitRateID]);
+        const distanceInMeters = getDistanceInMeters(transaction, currentUnit);
         const distanceInUnits = DistanceRequestUtils.convertDistanceUnit(distanceInMeters, selectedRateUnit);
         if (!DistanceRequestUtils.isDistanceAmountWithinLimit(distanceInUnits, newRate)) {
             setPendingRateID(customUnitRateID);
@@ -130,7 +137,7 @@ function IOURequestStepDistanceRate({
             const defaultTaxCode = getDefaultTaxCode(policy, transaction) ?? '';
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             taxRateExternalID = policyCustomUnitRate?.attributes?.taxRateExternalID || defaultTaxCode;
-            const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, getDistanceInMeters(transaction, transactionUnit));
+            const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, getDistanceInMeters(transaction, currentUnit));
             const taxPercentage = taxRateExternalID ? getTaxValue(policy, transaction, taxRateExternalID) : undefined;
             taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, taxableAmount, getCurrencyDecimals(rates[customUnitRateID].currency)));
             setMoneyRequestTaxAmount(transactionID, taxAmount, shouldUseTransactionDraft(action));
