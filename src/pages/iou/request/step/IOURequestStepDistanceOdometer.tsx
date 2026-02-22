@@ -289,12 +289,12 @@ function IOURequestStepDistanceOdometer({
         return shouldShowSave ? translate('common.save') : translate('common.next');
     })();
 
-    // Per-keystroke validation: only enforce *format* constraints (number of
-    // decimal places, single decimal point, etc.).  The max-value limit is
-    // intentionally NOT checked here so that legacy transactions pre-populated
-    // with a value above ODOMETER_MAX_VALUE can still be edited down via
-    // backspace.  The max-value check is enforced at submit time in handleNext.
-    const isOdometerInputValid = (text: string): boolean => {
+    // Per-keystroke validation: enforce format constraints and cap the max value.
+    // The max-value check allows edits that *reduce* the value (e.g. backspacing
+    // a legacy over-max reading) but rejects keystrokes that would increase
+    // beyond ODOMETER_MAX_VALUE.  Submit-time validation in handleNext is the
+    // final safety net.
+    const isOdometerInputValid = (text: string, previousText: string): boolean => {
         if (!text) {
             return true;
         }
@@ -306,11 +306,20 @@ function IOURequestStepDistanceOdometer({
         if (parts.length === 2 && (parts.at(1) ?? '').length > 1) {
             return false;
         }
+        const value = parseFloat(stripped);
+        // Allow edits that reduce the value (e.g. backspacing a legacy over-max reading),
+        // but reject keystrokes that would increase beyond the max.
+        if (!Number.isNaN(value) && value > CONST.IOU.ODOMETER_MAX_VALUE) {
+            const previousValue = parseFloat(normalizeOdometerText(previousText));
+            if (Number.isNaN(previousValue) || value >= previousValue) {
+                return false;
+            }
+        }
         return true;
     };
 
     const handleStartReadingChange = (text: string) => {
-        if (!isOdometerInputValid(text)) {
+        if (!isOdometerInputValid(text, startReading)) {
             return;
         }
         setStartReading(text);
@@ -321,7 +330,7 @@ function IOURequestStepDistanceOdometer({
     };
 
     const handleEndReadingChange = (text: string) => {
-        if (!isOdometerInputValid(text)) {
+        if (!isOdometerInputValid(text, endReading)) {
             return;
         }
         setEndReading(text);
