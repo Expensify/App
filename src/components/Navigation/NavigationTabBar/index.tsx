@@ -251,6 +251,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                         <NavigationTabBarAvatar
                             style={styles.leftNavigationTabBarItem}
                             isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
+                            isWideLayout
                             onPress={navigateToSettings}
                         />
                     </View>
@@ -352,6 +353,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                 <NavigationTabBarAvatar
                     style={styles.navigationTabBarItem}
                     isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
+                    isWideLayout={false}
                     onPress={navigateToSettings}
                 />
             </View>

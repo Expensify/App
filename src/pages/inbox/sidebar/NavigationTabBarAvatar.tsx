@@ -20,11 +20,14 @@ type NavigationTabBarAvatarProps = {
     /** Function to call when the avatar is pressed */
     onPress: () => void;
 
+    /** Whether we're rendering on wide layout (hover styles enabled) */
+    isWideLayout?: boolean;
+
     /** Additional styles to add to the button */
     style?: StyleProp<ViewStyle>;
 };
 
-function NavigationTabBarAvatar({onPress, isSelected = false, style}: NavigationTabBarAvatarProps) {
+function NavigationTabBarAvatar({onPress, isSelected = false, isWideLayout = false, style}: NavigationTabBarAvatarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
@@ -76,12 +79,12 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
             wrapperStyle={styles.flex1}
             accessibilityState={accountAccessibilityState}
             aria-selected={accountAccessibilityState.selected}
-            style={({hovered}) => [style, hovered && styles.navigationTabBarItemHovered]}
+            style={({hovered}) => [style, isWideLayout && hovered && styles.navigationTabBarItemHovered]}
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.ACCOUNT}
         >
             {({hovered}) => (
                 <>
-                    {renderAvatar(isSelected || hovered)}
+                    {renderAvatar(isSelected || (isWideLayout && hovered))}
                     <Text style={[styles.textSmall, styles.textAlignCenter, isSelected ? styles.textBold : styles.textSupporting, styles.mt0Half, styles.navigationTabBarLabel]}>
                         {translate('initialSettingsPage.account')}
                     </Text>
