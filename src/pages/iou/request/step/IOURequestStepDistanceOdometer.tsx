@@ -220,7 +220,15 @@ function IOURequestStepDistanceOdometer({
      */
     const normalizeOdometerText = (text: string): string => {
         const standardized = replaceAllDigits(text, fromLocaleDigit);
-        return standardized.replaceAll(/[^0-9.]/g, '');
+        const stripped = standardized.replaceAll(/[^0-9.,]/g, '');
+        // After locale conversion '.' is decimal and ',' is group separator.
+        // When no dot is present, treat comma as decimal fallback — handles
+        // users on web keyboards typing '.' in comma-decimal locales, where
+        // fromLocaleDigit converts the dot to a comma.
+        if (!stripped.includes('.') && stripped.includes(',')) {
+            return stripped.replaceAll(',', '.');
+        }
+        return stripped.replaceAll(',', '');
     };
 
     const parseOdometerReading = (text: string): number => {
