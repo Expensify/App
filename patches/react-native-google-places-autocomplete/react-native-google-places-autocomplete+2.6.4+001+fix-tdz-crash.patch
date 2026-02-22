@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js b/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
-index 9fedd7e..5b2adab 100644
+index 9fedd7e..0552e67 100644
 --- a/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
 +++ b/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
 @@ -158,7 +158,7 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
@@ -28,7 +28,7 @@ index 9fedd7e..5b2adab 100644
    // ==========================================================================
    // API REQUEST FUNCTIONS
    // ==========================================================================
-@@ -367,7 +377,10 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+@@ -367,7 +377,13 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
          request.ontimeout = onTimeout;
          request.onreadystatechange = () => {
            if (request.readyState !== 4) {
@@ -36,11 +36,14 @@ index 9fedd7e..5b2adab 100644
 +            // Only show the loading spinner when there are no prior results.
 +            if (resultsRef.current.length === 0) {
 +              setListLoaderDisplayed(true);
++              // Clear dataSource so FlatList's ListEmptyComponent can render
++              // the loading spinner (it only renders when data is empty).
++              setDataSource([]);
 +            }
              return;
            }
  
-@@ -478,7 +491,12 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+@@ -478,7 +494,15 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
        request.ontimeout = onTimeout;
        request.onreadystatechange = () => {
          if (request.readyState !== 4) {
@@ -50,11 +53,14 @@ index 9fedd7e..5b2adab 100644
 +          // is in-flight, matching v2.5.6 production behavior.
 +          if (resultsRef.current.length === 0) {
 +            setListLoaderDisplayed(true);
++            // Clear dataSource so FlatList's ListEmptyComponent can render
++            // the loading spinner (it only renders when data is empty).
++            setDataSource([]);
 +          }
            return;
          }
  
-@@ -650,15 +668,51 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+@@ -650,15 +674,51 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
      }
    };
  
@@ -112,7 +118,7 @@ index 9fedd7e..5b2adab 100644
  
    const _onPress = (rowData) => {
      if (rowData.isPredefinedPlace !== true && fetchDetails === true) {
-@@ -667,7 +721,6 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+@@ -667,7 +727,6 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
          return;
        }
  
@@ -120,7 +126,7 @@ index 9fedd7e..5b2adab 100644
        Keyboard.dismiss();
  
        _abortRequests();
-@@ -776,7 +829,21 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+@@ -776,7 +835,21 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
      }
    };
  
@@ -142,7 +148,7 @@ index 9fedd7e..5b2adab 100644
      setListWasDismissed(false);
      setStateText(text);
      debounceData(text);
-@@ -792,56 +859,10 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+@@ -792,56 +865,10 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
      }
    };
  
@@ -199,7 +205,7 @@ index 9fedd7e..5b2adab 100644
    const _getRowLoader = () => {
      return <ActivityIndicator animating={true} size='small' />;
    };
-@@ -1010,15 +1031,17 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+@@ -1010,15 +1037,17 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
        return `item_${index}`;
      };
  
@@ -222,7 +228,7 @@ index 9fedd7e..5b2adab 100644
        (listViewDisplayed === true || (isAutoMode && !listWasDismissed));
  
      if (shouldShowList) {
-@@ -1078,11 +1101,6 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+@@ -1078,11 +1107,6 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
    // Keep requestRef updated
    requestRef.current = _request;
  
@@ -234,7 +240,7 @@ index 9fedd7e..5b2adab 100644
    useEffect(() => {
      return () => {
        // Cleanup debounced function on unmount
-@@ -1106,7 +1124,13 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+@@ -1106,7 +1130,13 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
      return () => {
        _abortRequests();
      };

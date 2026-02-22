@@ -77,6 +77,17 @@
        they remain visible in the FlatList while the new request is
        in-flight, matching v2.5.6 production behavior. Applied to both
        `_request` and `_requestNearby`.
+
+    8. When `resultsRef.current.length === 0` and the loading spinner is
+       enabled, `dataSource` may still contain predefined places (populated
+       by `buildRowsFromResults([])` when the user cleared the input).
+       Since `ListEmptyComponent` only renders when `data` is empty,
+       the loading spinner was invisible even though `listLoaderDisplayed`
+       was true. Fix: call `setDataSource([])` alongside
+       `setListLoaderDisplayed(true)` to clear stale predefined places
+       from the FlatList data, allowing `ListEmptyComponent` to render
+       the loading spinner. Applied to both `_request` and
+       `_requestNearby`.
     ```
 
 - Upstream PR/issue: 🛑, library is unmaintained (https://github.com/FaridSafi/react-native-google-places-autocomplete/issues/978)
