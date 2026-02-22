@@ -188,6 +188,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
 
                                     setOnboardingMergeAccountStepValue(true, true);
                                 }}
+                                sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.SKIP}
                             />
                         </OfflineWithFeedback>
                     }
@@ -196,7 +197,12 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                 >
                     <View>
                         <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb3]}>
-                            <Text style={styles.textHeadlineH1}>{translate('onboarding.workEmail.title')}</Text>
+                            <Text
+                                style={styles.textHeadlineH1}
+                                accessibilityRole={CONST.ROLE.HEADER}
+                            >
+                                {translate('onboarding.workEmail.title')}
+                            </Text>
                         </View>
                         <View style={styles.mb2}>
                             <Text style={[styles.textNormal, styles.colorMuted]}>{translate('onboarding.workEmail.subtitle')}</Text>
@@ -246,6 +252,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                             shouldSaveDraft
                             maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                             spellCheck={false}
+                            autoComplete="email"
                         />
                     </View>
                 </FormProvider>

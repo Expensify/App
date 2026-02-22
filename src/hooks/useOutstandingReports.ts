@@ -4,8 +4,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import useOnyx from './useOnyx';
 import useMappedPolicies from './useMappedPolicies';
+import useOnyx from './useOnyx';
 
 const policyIdMapper = (policy: OnyxEntry<Policy>) => policy?.id;
 
