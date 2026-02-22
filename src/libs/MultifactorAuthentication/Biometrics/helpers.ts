@@ -7,7 +7,8 @@ import VALUES from './VALUES';
 
 type ParseHTTPSource = ValueOf<MultifactorAuthenticationResponseMap>;
 
-const httpCodeIsDefined = (source: ParseHTTPSource, httpCode: number): httpCode is keyof ParseHTTPSource => Object.keys(source).some((key) => Number(key) === httpCode);
+const httpStatusCodeIsDefined = (source: ParseHTTPSource, httpStatusCode: number): httpStatusCode is keyof ParseHTTPSource =>
+    Object.keys(source).some((key) => Number(key) === httpStatusCode);
 
 const findMessageInSource = (source: ParseHTTPSource[keyof ParseHTTPSource], message: string | undefined): MultifactorAuthenticationReason => {
     if (!message) {
@@ -27,30 +28,34 @@ function parseHttpRequest(
     source: ParseHTTPSource,
     message: string | undefined,
 ): {
-    httpCode: number;
+    httpStatusCode: number;
     reason: MultifactorAuthenticationReason;
+    message: string | undefined;
 } {
-    const httpCode = Number(jsonCode ?? 0);
+    const httpStatusCode = Number(jsonCode ?? 0);
 
-    if (!httpCodeIsDefined(source, httpCode)) {
+    if (!httpStatusCodeIsDefined(source, httpStatusCode)) {
         return {
-            httpCode,
+            httpStatusCode,
             reason: VALUES.REASON.BACKEND.UNKNOWN_RESPONSE,
+            message,
         };
     }
 
-    if (httpCode === 200) {
+    if (httpStatusCode === 200) {
         return {
-            httpCode,
+            httpStatusCode,
             reason: source[200],
+            message,
         };
     }
 
-    const codes = source[httpCode];
+    const codes = source[httpStatusCode];
 
     return {
-        httpCode,
+        httpStatusCode,
         reason: findMessageInSource(codes, message),
+        message,
     };
 }
 

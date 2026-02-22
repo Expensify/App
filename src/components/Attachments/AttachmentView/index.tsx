@@ -1,9 +1,9 @@
 import {Str} from 'expensify-common';
-import React, {memo, useContext, useEffect, useState} from 'react';
+import React, {memo, useEffect, useState} from 'react';
 import type {GestureResponderEvent, ImageURISource, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+import {useAttachmentCarouselPagerActions} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import Button from '@components/Button';
 import DistanceEReceipt from '@components/DistanceEReceipt';
@@ -26,7 +26,7 @@ import {add as addCachedPDFPaths} from '@libs/actions/CachedPDFPaths';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {getFileResolution, isHighResolutionImage} from '@libs/fileDownload/FileUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {hasEReceipt, hasReceiptSource, isDistanceRequest, isManualDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
+import {hasEReceipt, hasReceiptSource, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
 import type {ColorValue} from '@styles/utils/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -138,8 +138,8 @@ function AttachmentView({
     const {currentlyPlayingURL} = usePlaybackStateContext();
     const {updateCurrentURLAndReportID, playVideo} = usePlaybackActionsContext();
 
-    const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
-    const {onAttachmentError, onTap} = attachmentCarouselPagerContext ?? {};
+    const actions = useAttachmentCarouselPagerActions();
+    const {onAttachmentError, onTap} = actions ?? {};
     const theme = useTheme();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const styles = useThemeStyles();
@@ -257,7 +257,7 @@ function AttachmentView({
         );
     }
 
-    if (isDistanceRequest(transaction) && !isManualDistanceRequest(transaction) && transaction) {
+    if (isDistanceRequest(transaction) && !isManualDistanceRequest(transaction) && !isOdometerDistanceRequest(transaction) && transaction) {
         // Distance eReceipts are now generated as a PDF, but to keep it backwards compatible we still show the old eReceipt view for image receipts
         const isImageReceiptSource = checkIsFileImage(source, file?.name);
         if (!hasReceiptSource(transaction) || isImageReceiptSource) {
@@ -329,6 +329,10 @@ function AttachmentView({
             <>
                 <View style={styles.imageModalImageCenterContainer}>
                     <AttachmentViewImage
+                        // Forces remount of high resolution images when transitioning from blob URL (uploading) to server URL (uploaded).
+                        // Prevents stale Image cache that causes "Attachment not found" errors.
+                        // See: https://github.com/Expensify/App/issues/76193
+                        key={attachmentID ? `${attachmentID}-${isHighResolution && isUploaded ? 'preview' : 'full'}` : undefined}
                         attachmentID={attachmentID}
                         url={imageSource}
                         file={file}

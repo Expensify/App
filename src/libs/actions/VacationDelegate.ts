@@ -72,6 +72,7 @@ function deleteVacationDelegate(vacationDelegate?: VacationDelegate) {
                 creator: null,
                 delegate: null,
                 errors: null,
+                previousDelegate: vacationDelegate?.delegate,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             },
         },

@@ -1,6 +1,6 @@
 import lodashDebounce from 'lodash/debounce';
 import noop from 'lodash/noop';
-import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {BlurEvent, MeasureInWindowOnSuccessCallback, TextInputSelectionChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -38,6 +38,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
 import FS from '@libs/Fullstory';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {rand64} from '@libs/NumberUtils';
 import Performance from '@libs/Performance';
 import {getLinkedTransactionID, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
@@ -64,6 +65,7 @@ import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutsi
 import AgentZeroProcessingRequestIndicator from '@pages/inbox/report/AgentZeroProcessingRequestIndicator';
 import ParticipantLocalTime from '@pages/inbox/report/ParticipantLocalTime';
 import ReportTypingIndicator from '@pages/inbox/report/ReportTypingIndicator';
+import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import {hideEmojiPicker, isActive as isActiveEmojiPickerAction, isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
 import {addAttachmentWithComment, setIsComposerFullSize} from '@userActions/Report';
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
@@ -91,7 +93,7 @@ type SuggestionsRef = {
 
 type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 'isComposerFullSize' | 'lastReportAction'> & {
     /** A method to call when the form is submitted */
-    onSubmit: (newComment: string) => void;
+    onSubmit: (newComment: string, reportActionID?: string) => void;
 
     /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
@@ -158,6 +160,7 @@ function ReportActionCompose({
     const [initialModalState] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
     const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, {canBeMissing: true});
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
 
     const shouldFocusComposerOnScreenFocus = shouldFocusInputOnScreenFocus || !!draftComment;
 
@@ -165,6 +168,8 @@ function ReportActionCompose({
         canBeMissing: true,
     });
     const ancestors = useAncestors(transactionThreadReport ?? report);
+    const {scrollOffsetRef} = useContext(ActionListContext);
+
     /**
      * Updates the Highlight state of the composer
      */
@@ -197,7 +202,7 @@ function ReportActionCompose({
     const icons = useMemoizedLazyExpensifyIcons(['MessageInABottle']);
 
     const suggestionsRef = useRef<SuggestionsRef>(null);
-    const composerRef = useRef<ComposerRef | undefined>(undefined);
+    const composerRef = useRef<ComposerRef | null>(null);
     const reportParticipantIDs = useMemo(
         () =>
             Object.keys(report?.participants ?? {})
@@ -249,11 +254,11 @@ function ReportActionCompose({
     const shouldDisplayDualDropZone = useMemo(() => {
         const parentReport = getParentReport(report);
         const isSettledOrApproved = isSettled(report) || isSettled(parentReport) || isReportApproved({report}) || isReportApproved({report: parentReport});
-        const hasMoneyRequestOptions = !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs, isReportArchived, isRestrictedToPreferredPolicy).length;
+        const hasMoneyRequestOptions = !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs, betas, isReportArchived, isRestrictedToPreferredPolicy).length;
         const canModifyReceipt = shouldAddOrReplaceReceipt && !isSettledOrApproved;
         const isRoomOrGroupChat = isChatRoom(report) || isGroupChat(report);
         return !isRoomOrGroupChat && (canModifyReceipt || hasMoneyRequestOptions) && !isInvoiceReport(report);
-    }, [shouldAddOrReplaceReceipt, report, reportParticipantIDs, policy, isReportArchived, isRestrictedToPreferredPolicy]);
+    }, [shouldAddOrReplaceReceipt, report, reportParticipantIDs, policy, isReportArchived, isRestrictedToPreferredPolicy, betas]);
 
     // Placeholder to display in the chat input.
     const inputPlaceholder = useMemo(() => {
@@ -310,12 +315,14 @@ function ReportActionCompose({
 
     const addAttachment = useCallback((file: FileObject | FileObject[]) => {
         attachmentFileRef.current = file;
-        const clear = composerRef.current?.clear;
-        if (!clear) {
-            throw new Error('The composerRef.clear function is not set yet. This should never happen, and indicates a developer error.');
+
+        const clearWorklet = composerRef.current?.clearWorklet;
+
+        if (!clearWorklet) {
+            throw new Error('The composerRef.clearWorklet function is not set yet. This should never happen, and indicates a developer error.');
         }
 
-        scheduleOnUI(clear);
+        scheduleOnUI(clearWorklet);
     }, []);
 
     /**
@@ -353,19 +360,38 @@ function ReportActionCompose({
                 });
                 attachmentFileRef.current = null;
             } else {
-                Performance.markStart(CONST.TIMING.SEND_MESSAGE, {message: newCommentTrimmed});
-                startSpan(CONST.TELEMETRY.SPAN_SEND_MESSAGE, {
-                    name: 'send-message',
-                    op: CONST.TELEMETRY.SPAN_SEND_MESSAGE,
-                    attributes: {
-                        [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
-                        [CONST.TELEMETRY.ATTRIBUTE_MESSAGE_LENGTH]: newCommentTrimmed.length,
-                    },
-                });
-                onSubmit(newCommentTrimmed);
+                // Pre-generate the reportActionID so we can correlate the Sentry send-message span with the exact message
+                const optimisticReportActionID = rand64();
+
+                // The list is inverted, so an offset near 0 means the user is at the bottom (newest messages visible).
+                const isScrolledToBottom = scrollOffsetRef.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
+                if (isScrolledToBottom) {
+                    Performance.markStart(CONST.TIMING.SEND_MESSAGE, {message: newCommentTrimmed});
+                    startSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE}_${optimisticReportActionID}`, {
+                        name: 'send-message',
+                        op: CONST.TELEMETRY.SPAN_SEND_MESSAGE,
+                        attributes: {
+                            [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
+                            [CONST.TELEMETRY.ATTRIBUTE_MESSAGE_LENGTH]: newCommentTrimmed.length,
+                        },
+                    });
+                }
+                onSubmit(newCommentTrimmed, optimisticReportActionID);
             }
         },
-        [isConciergeChat, kickoffWaitingIndicator, transactionThreadReport, report, reportID, ancestors, personalDetail.timezone, onSubmit, isInSidePanel],
+        [
+            isConciergeChat,
+            kickoffWaitingIndicator,
+            transactionThreadReport,
+            report,
+            reportID,
+            ancestors,
+            currentUserPersonalDetails.accountID,
+            personalDetail.timezone,
+            isInSidePanel,
+            onSubmit,
+            scrollOffsetRef,
+        ],
     );
 
     const onTriggerAttachmentPicker = useCallback(() => {
@@ -443,28 +469,28 @@ function ReportActionCompose({
 
     // Note: using JS refs is not well supported in reanimated, thus we need to store the function in a shared value
     // useSharedValue on web doesn't support functions, so we need to wrap it in an object.
-    const composerRefShared = useSharedValue<{
-        clear: (() => void) | undefined;
-    }>({clear: undefined});
+    const composerRefShared = useSharedValue<Partial<ComposerRef>>({});
 
     const handleSendMessage = useCallback(() => {
         if (isSendDisabled || !debouncedValidate.flush()) {
             return;
         }
 
+        composerRef.current?.resetHeight();
+        if (isComposerFullSize) {
+            setIsComposerFullSize(reportID, false);
+        }
+
         scheduleOnUI(() => {
-            'worklet';
+            const {clearWorklet} = composerRefShared.get();
 
-            const {clear: clearComposer} = composerRefShared.get();
-
-            if (!clearComposer) {
-                throw new Error('The composerRefShared.clear function is not set yet. This should never happen, and indicates a developer error.');
+            if (!clearWorklet) {
+                throw new Error('The composerRef.clearWorklet function is not set yet. This should never happen, and indicates a developer error.');
             }
 
-            // This will cause onCleared to be triggered where we actually send the message
-            clearComposer?.();
+            clearWorklet?.();
         });
-    }, [isSendDisabled, debouncedValidate, composerRefShared]);
+    }, [isSendDisabled, debouncedValidate, isComposerFullSize, reportID, composerRefShared]);
 
     onSubmitAction = handleSendMessage;
 
@@ -575,9 +601,9 @@ function ReportActionCompose({
                         />
                         <ComposerWithSuggestions
                             ref={(ref) => {
-                                composerRef.current = ref ?? undefined;
+                                composerRef.current = ref;
                                 composerRefShared.set({
-                                    clear: ref?.clear,
+                                    clearWorklet: ref?.clearWorklet,
                                 });
                             }}
                             suggestionsRef={suggestionsRef}
@@ -594,10 +620,10 @@ function ReportActionCompose({
                             isComposerFullSize={isComposerFullSize}
                             setIsFullComposerAvailable={setIsFullComposerAvailable}
                             onPasteFile={(files) => validateAttachments({files})}
-                            onCleared={submitForm}
+                            onClear={submitForm}
                             disabled={isBlockedFromConcierge || isEmojiPickerVisible()}
                             setIsCommentEmpty={setIsCommentEmpty}
-                            handleSendMessage={handleSendMessage}
+                            onEnterKeyPress={handleSendMessage}
                             shouldShowComposeInput={shouldShowComposeInput}
                             onFocus={onFocus}
                             onBlur={onBlur}

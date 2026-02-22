@@ -1,4 +1,4 @@
-import type {Comment, WaypointCollection} from '@src/types/onyx/Transaction';
+import type {Comment} from '@src/types/onyx/Transaction';
 
 type SplitTransactionSplitParam = {
     transactionID: string;
@@ -14,11 +14,6 @@ type SplitTransactionSplitParam = {
     reimbursable?: boolean;
     billable?: boolean;
     reportID?: string;
-    quantity?: number;
-    customUnitRateID?: string;
-    odometerStart?: number;
-    odometerEnd?: number;
-    waypoints?: WaypointCollection;
 };
 
 type SplitTransactionSplitsParam = SplitTransactionSplitParam[];

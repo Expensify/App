@@ -223,6 +223,9 @@ type CardFeeds = {
 
         /** Whether to use the technical contact's billing card */
         useTechnicalContactBillingCard?: boolean;
+
+        /** Whether 2FA is required for all members */
+        twoFactorAuthRequired?: boolean;
     };
 } & CardFeedsStatus &
     DomainSettings;

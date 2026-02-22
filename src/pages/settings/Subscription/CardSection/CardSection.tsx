@@ -72,6 +72,7 @@ function CardSection() {
     const [billingDisputePending] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING, {canBeMissing: true});
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
     const [billingStatusOnyx] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_STATUS, {canBeMissing: true});
+    const [amountOwed = 0] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, {canBeMissing: true});
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, {canBeMissing: true});
     const requestRefund = useCallback(() => {
         requestRefundByUser();
@@ -102,6 +103,7 @@ function CardSection() {
             billingStatus: billingStatusOnyx,
             creditCardEyesIcon: illustrations.CreditCardEyes,
             fundList,
+            amountOwed,
             ownerBillingGraceEndPeriod,
         }),
     );
@@ -127,6 +129,7 @@ function CardSection() {
                 billingStatus: billingStatusOnyx,
                 creditCardEyesIcon: illustrations.CreditCardEyes,
                 fundList,
+                amountOwed,
                 ownerBillingGraceEndPeriod,
             }),
         );
@@ -142,6 +145,7 @@ function CardSection() {
         billingStatusOnyx,
         illustrations.CreditCardEyes,
         fundList,
+        amountOwed,
         ownerBillingGraceEndPeriod,
     ]);
 
@@ -232,9 +236,10 @@ function CardSection() {
                         onPress={handleRetryPayment}
                         style={[styles.w100, styles.mb3]}
                         large
+                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.RETRY_PAYMENT}
                     />
                 )}
-                {hasCardAuthenticatedError(privateStripeCustomerID) && (
+                {hasCardAuthenticatedError(privateStripeCustomerID, amountOwed) && (
                     <CardSectionButton
                         text={translate('subscription.cardSection.authenticatePayment')}
                         isDisabled={isOffline || !billingStatus?.isAuthenticationRequired}
@@ -242,6 +247,7 @@ function CardSection() {
                         onPress={handleAuthenticatePayment}
                         style={[styles.w100, styles.mt5]}
                         large
+                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.AUTHENTICATE_PAYMENT}
                     />
                 )}
 
@@ -253,6 +259,7 @@ function CardSection() {
                         title={translate('subscription.cardSection.viewPaymentHistory')}
                         titleStyle={styles.textStrong}
                         onPress={viewPurchases}
+                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.VIEW_PAYMENT_HISTORY}
                     />
                 )}
 
@@ -265,6 +272,7 @@ function CardSection() {
                         titleStyle={styles.textStrong}
                         disabled={isOffline}
                         onPress={() => setIsRequestRefundModalVisible(true)}
+                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.REQUEST_REFUND}
                     />
                 )}
 

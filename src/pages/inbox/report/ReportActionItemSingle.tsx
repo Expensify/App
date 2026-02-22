@@ -228,10 +228,11 @@ function ReportActionItemSingle({
                 {!!delegateAccountID && <Text style={[styles.chatDelegateMessage]}>{translate('delegate.onBehalfOfMessage', accountOwnerDetails?.displayName ?? '')}</Text>}
                 {!!vacationer && !!submittedTo && (
                     <Text style={[styles.chatDelegateMessage]}>
-                        {translate('statusPage.toAsVacationDelegate', {
-                            submittedToName: submittedToDetails?.displayName ?? submittedTo ?? '',
-                            vacationDelegateName: vacationDelegateDetailsForSubmit?.displayName ?? vacationer ?? '',
-                        })}
+                        {translate(
+                            'statusPage.toAsVacationDelegate',
+                            submittedToDetails?.displayName ?? submittedTo ?? '',
+                            vacationDelegateDetailsForSubmit?.displayName ?? vacationer ?? '',
+                        )}
                     </Text>
                 )}
                 {!!managerOnVacation && !isAutomaticAction && (

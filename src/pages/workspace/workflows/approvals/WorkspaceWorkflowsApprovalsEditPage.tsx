@@ -178,6 +178,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                                 buttonText={translate('common.save')}
                                 containerStyles={submitButtonContainerStyles}
                                 enabledWhenOffline
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVALS_EDIT_SAVE}
                             />
                         </>
                     )}
