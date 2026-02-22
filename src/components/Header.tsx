@@ -42,7 +42,7 @@ function Header({title = '', subtitle = '', textStyles = [], style, containerSty
     const labelIdRef = useRef<number | undefined>(undefined);
     const titleRef = useRef<React.ComponentRef<typeof Text>>(null);
 
-    // Register/update label in dialog context
+    // Register/update label in dialog context (non-string titles are skipped).
     useEffect(() => {
         if (!isInsideDialog || typeof title !== 'string' || !title) {
             return;
