@@ -1285,7 +1285,7 @@ const translations: TranslationDeepObject<typeof en> = {
             distanceAmountTooLarge: '总金额过大。请减少距离或降低费率。',
             distanceAmountTooLargeReduceDistance: '总金额过大。请减少距离。',
             distanceAmountTooLargeReduceRate: '总金额过大。请降低费率。',
-            odometerReadingTooLarge: '里程表读数不能超过9,999,999.9。',
+            odometerReadingTooLarge: (formattedMax: string) => `里程表读数不能超过${formattedMax}。`,
             invalidIntegerAmount: '请在继续之前输入一个整数美元金额',
             invalidTaxAmount: (amount: string) => `最高税额为 ${amount}`,
             invalidSplit: '拆分金额之和必须等于总金额',

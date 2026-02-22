@@ -1310,7 +1310,7 @@ const translations: TranslationDeepObject<typeof en> = {
             distanceAmountTooLarge: 'Łączna kwota jest zbyt wysoka. Zmniejsz dystans lub obniż stawkę.',
             distanceAmountTooLargeReduceDistance: 'Łączna kwota jest zbyt wysoka. Zmniejsz dystans.',
             distanceAmountTooLargeReduceRate: 'Łączna kwota jest zbyt wysoka. Obniż stawkę.',
-            odometerReadingTooLarge: 'Odczyty licznika nie mogą przekraczać 9 999 999,9.',
+            odometerReadingTooLarge: (formattedMax: string) => `Odczyty licznika nie mogą przekraczać ${formattedMax}.`,
             invalidIntegerAmount: 'Przed kontynuowaniem wprowadź kwotę w pełnych dolarach',
             invalidTaxAmount: (amount: string) => `Maksymalna kwota podatku to ${amount}`,
             invalidSplit: 'Suma podziałów musi być równa całkowitej kwocie',

@@ -64,7 +64,7 @@ function IOURequestStepDistanceOdometer({
     transaction,
     currentUserPersonalDetails,
 }: IOURequestStepDistanceOdometerProps) {
-    const {translate, fromLocaleDigit} = useLocalize();
+    const {translate, fromLocaleDigit, numberFormat} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -459,7 +459,7 @@ function IOURequestStepDistanceOdometer({
         }
 
         if (start > CONST.IOU.ODOMETER_MAX_VALUE || end > CONST.IOU.ODOMETER_MAX_VALUE) {
-            setFormError(translate('iou.error.odometerReadingTooLarge'));
+            setFormError(translate('iou.error.odometerReadingTooLarge', numberFormat(CONST.IOU.ODOMETER_MAX_VALUE, {maximumFractionDigits: 1})));
             return;
         }
 
