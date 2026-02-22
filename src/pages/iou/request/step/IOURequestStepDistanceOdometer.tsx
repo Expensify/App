@@ -289,7 +289,7 @@ function IOURequestStepDistanceOdometer({
         return shouldShowSave ? translate('common.save') : translate('common.next');
     })();
 
-    const isOdometerInputValid = (text: string): boolean => {
+    const isOdometerInputValid = (text: string, previousText: string): boolean => {
         if (!text) {
             return true;
         }
@@ -302,14 +302,19 @@ function IOURequestStepDistanceOdometer({
             return false;
         }
         const value = parseFloat(stripped);
+        // Allow edits that reduce the value (e.g. backspacing a legacy over-max reading),
+        // but reject keystrokes that would increase beyond the max.
         if (!Number.isNaN(value) && value > CONST.IOU.ODOMETER_MAX_VALUE) {
-            return false;
+            const previousValue = parseFloat(normalizeOdometerText(previousText));
+            if (Number.isNaN(previousValue) || value >= previousValue) {
+                return false;
+            }
         }
         return true;
     };
 
     const handleStartReadingChange = (text: string) => {
-        if (!isOdometerInputValid(text)) {
+        if (!isOdometerInputValid(text, startReading)) {
             return;
         }
         setStartReading(text);
@@ -320,7 +325,7 @@ function IOURequestStepDistanceOdometer({
     };
 
     const handleEndReadingChange = (text: string) => {
-        if (!isOdometerInputValid(text)) {
+        if (!isOdometerInputValid(text, endReading)) {
             return;
         }
         setEndReading(text);
