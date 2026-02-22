@@ -289,6 +289,11 @@ function IOURequestStepDistanceOdometer({
         return shouldShowSave ? translate('common.save') : translate('common.next');
     })();
 
+    // Per-keystroke validation: only enforce *format* constraints (number of
+    // decimal places, single decimal point, etc.).  The max-value limit is
+    // intentionally NOT checked here so that legacy transactions pre-populated
+    // with a value above ODOMETER_MAX_VALUE can still be edited down via
+    // backspace.  The max-value check is enforced at submit time in handleNext.
     const isOdometerInputValid = (text: string): boolean => {
         if (!text) {
             return true;
@@ -299,10 +304,6 @@ function IOURequestStepDistanceOdometer({
             return false;
         }
         if (parts.length === 2 && (parts.at(1) ?? '').length > 1) {
-            return false;
-        }
-        const value = parseFloat(stripped);
-        if (!Number.isNaN(value) && value > CONST.IOU.ODOMETER_MAX_VALUE) {
             return false;
         }
         return true;
