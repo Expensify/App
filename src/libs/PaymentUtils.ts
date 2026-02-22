@@ -199,7 +199,18 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         if (confirmApproval) {
             confirmApproval();
         } else {
-            approveMoneyRequest(iouReport, policy, currentAccountID, currentEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, betas, userBillingGraceEndPeriodCollection, true);
+            approveMoneyRequest(
+                iouReport,
+                policy,
+                currentAccountID,
+                currentEmail,
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                iouReportNextStep,
+                betas,
+                userBillingGraceEndPeriodCollection,
+                true,
+            );
         }
         return;
     }
