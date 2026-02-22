@@ -1311,7 +1311,7 @@ const translations: TranslationDeepObject<typeof en> = {
             distanceAmountTooLarge: 'Het totale bedrag is te hoog. Verlaag de afstand of verlaag het tarief.',
             distanceAmountTooLargeReduceDistance: 'Het totale bedrag is te hoog. Verlaag de afstand.',
             distanceAmountTooLargeReduceRate: 'Het totale bedrag is te hoog. Verlaag het tarief.',
-            odometerReadingTooLarge: 'Kilometertellerstanden mogen niet hoger zijn dan 9.999.999,9.',
+            odometerReadingTooLarge: (formattedMax: string) => `Kilometertellerstanden mogen niet hoger zijn dan ${formattedMax}.`,
             invalidIntegerAmount: 'Voer een volledig dollarbedrag in voordat je doorgaat',
             invalidTaxAmount: (amount: string) => `Maximale belastingbedrag is ${amount}`,
             invalidSplit: 'De som van de splitsingen moet gelijk zijn aan het totale bedrag',
