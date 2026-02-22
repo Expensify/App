@@ -601,7 +601,7 @@ function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy
     }
 
     const reportPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-    return hasAvailablePolicies && canEditReportPolicy(report, reportPolicy) && !isExportedUtils(reportActions);
+    return hasAvailablePolicies && canEditReportPolicy(report, reportPolicy) && !isExportedUtils(reportActions, report);
 }
 
 function isDeleteAction(report: Report, reportTransactions: Transaction[], reportActions: ReportAction[]): boolean {
@@ -800,8 +800,13 @@ function isDuplicateAction(report: Report, reportTransactions: Transaction[]): b
 
     const reportTransaction = reportTransactions.at(0);
 
-    // Per diem and distance requests will be handled separately in a follow-up
-    if (isPerDiemRequestTransactionUtils(reportTransaction) || isDistanceRequestTransactionUtils(reportTransaction)) {
+    if (isDistanceRequestTransactionUtils(reportTransaction)) {
+        return false;
+    }
+
+    // We can't duplicate per diem expenses that don't have start & end dates.
+    const dates = reportTransaction?.comment?.customUnit?.attributes?.dates;
+    if (isPerDiemRequestTransactionUtils(reportTransaction) && (!dates?.start || !dates?.end)) {
         return false;
     }
 
@@ -854,7 +859,7 @@ function getSecondaryReportActions({
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
-    const isExported = isExportedUtils(reportActions);
+    const isExported = isExportedUtils(reportActions, report);
     const hasExportError = hasExportErrorUtils(reportActions, report);
     const didExportFail = !isExported && hasExportError;
 
@@ -930,7 +935,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     }
 
-    if (canRejectReportAction(currentUserLogin, report, policy)) {
+    if (canRejectReportAction(currentUserLogin, report)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REJECT);
     }
 
@@ -1019,7 +1024,7 @@ function getSecondaryTransactionThreadActions(
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REMOVE_HOLD);
     }
 
-    if (canRejectReportAction(currentUserLogin, parentReport, policy)) {
+    if (canRejectReportAction(currentUserLogin, parentReport)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
     }
 

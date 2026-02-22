@@ -95,7 +95,7 @@ type ValidateCodeFormProps = {
 };
 
 function BaseValidateCodeForm({
-    autoComplete = 'one-time-code',
+    autoComplete = CONST.AUTO_COMPLETE_VARIANTS.ONE_TIME_CODE,
     ref = () => {},
     hasMagicCodeBeenSent,
     validateCodeActionErrorField,
@@ -324,6 +324,7 @@ function BaseValidateCodeForm({
                             pressDimmingValue={0.2}
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('validateCodeForm.magicCodeNotReceived')}
+                            sentryLabel={CONST.SENTRY_LABEL.VALIDATE_CODE.RESEND_CODE}
                         >
                             <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>{translate('validateCodeForm.magicCodeNotReceived')}</Text>
                         </PressableWithFeedback>
@@ -360,6 +361,7 @@ function BaseValidateCodeForm({
                         style={[styles.mt4]}
                         success={false}
                         large
+                        sentryLabel={CONST.SENTRY_LABEL.VALIDATE_CODE.SKIP}
                     />
                 )}
                 {!hideSubmitButton && (
@@ -372,6 +374,7 @@ function BaseValidateCodeForm({
                         large
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isLoading={account?.isLoading || isLoading}
+                        sentryLabel={CONST.SENTRY_LABEL.VALIDATE_CODE.VERIFY}
                     />
                 )}
             </OfflineWithFeedback>

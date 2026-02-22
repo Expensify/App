@@ -246,6 +246,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
         isUberConnected,
         calculateAndSetThreeDotsMenuPosition,
         policy?.receiptPartners?.uber,
+        policy?.isLoadingReceiptPartners,
         isOffline,
         startIntegrationFlow,
     ]);
@@ -271,7 +272,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                         shouldShowBackButton={shouldUseNarrowLayout}
                         icon={ReceiptPartners}
                         shouldUseHeadlineHeader
-                        onBackButtonPress={Navigation.popToSidebar}
+                        onBackButtonPress={Navigation.goBack}
                     />
                     <ScrollView
                         contentContainerStyle={styles.pt3}

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useBlockedFromConcierge} from '@components/OnyxListItemProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -7,8 +7,9 @@ import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import {getForReportAction, getMovedReportID} from '@libs/ModifiedExpenseMessage';
-import {getIOUReportIDFromReportActionPreview, getOriginalMessage} from '@libs/ReportActionsUtils';
+import useReportTransactions from '@hooks/useReportTransactions';
+import {getForReportActionTemp, getMovedReportID} from '@libs/ModifiedExpenseMessage';
+import {getIOUReportIDFromReportActionPreview, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     chatIncludesChronosWithID,
     createDraftTransactionAndNavigateToParticipantSelector,
@@ -32,7 +33,6 @@ import {clearError} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActionReactions, Transaction} from '@src/types/onyx';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {PureReportActionItemProps} from './PureReportActionItem';
 import PureReportActionItem from './PureReportActionItem';
 
@@ -49,9 +49,6 @@ type ReportActionItemProps = Omit<
     /** Whether to show the draft message or not */
     shouldShowDraftMessage?: boolean;
 
-    /** All the data of the transaction collection */
-    transactions?: Array<OnyxEntry<Transaction>>;
-
     /** Draft message for the report action */
     draftMessage?: string;
 
@@ -60,9 +57,6 @@ type ReportActionItemProps = Omit<
 
     /** User wallet tierName */
     userWalletTierName: string | undefined;
-
-    /** Linked transaction route error */
-    linkedTransactionRouteError?: OnyxEntry<Errors>;
 
     /** Whether the user is validated */
     isUserValidated: boolean | undefined;
@@ -82,14 +76,13 @@ function ReportActionItem({
     policies,
     action,
     report,
-    transactions,
     draftMessage,
     emojiReactions,
     userWalletTierName,
     isUserValidated,
     personalDetails,
-    linkedTransactionRouteError,
     userBillingFundID,
+    linkedTransactionRouteError: linkedTransactionRouteErrorProp,
     isTryNewDotNVPDismissed,
     ...props
 }: ReportActionItemProps) {
@@ -99,7 +92,14 @@ function ReportActionItem({
     const originalReportID = useOriginalReportID(reportID, action);
     const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const {accountID: currentUserAccountID, email: currentUserEmail} = useCurrentUserPersonalDetails();
+    const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
+    // When an expense is moved from a self-DM to a workspace, the report's policyID is temporarily
+    // set to a fake placeholder (CONST.POLICY.OWNER_EMAIL_FAKE). Looking up POLICY_TAGS with that
+    // fake ID would return nothing, so we fall back to policyForMovingExpensesID (the actual
+    // destination workspace) to fetch the correct tag list for display.
+    const policyIDForTags = report?.policyID === CONST.POLICY.OWNER_EMAIL_FAKE && policyForMovingExpensesID ? policyForMovingExpensesID : report?.policyID;
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyIDForTags}`, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {canBeMissing: true});
@@ -107,9 +107,21 @@ function ReportActionItem({
     const movedFromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(action, CONST.REPORT.MOVE_TYPE.FROM)}`];
     const movedToReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(action, CONST.REPORT.MOVE_TYPE.TO)}`];
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
-    const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
+    const transactionsOnIOUReport = useReportTransactions(iouReport?.reportID);
+    const transactionID = isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID;
+
+    const getLinkedTransactionRouteError = useCallback(
+        (transaction: OnyxEntry<Transaction>) => {
+            return linkedTransactionRouteErrorProp ?? transaction?.errorFields?.route;
+        },
+        [linkedTransactionRouteErrorProp],
+    );
+
+    const [linkedTransactionRouteError] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true, selector: getLinkedTransactionRouteError});
+
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID || undefined}`];
@@ -137,6 +149,7 @@ function ReportActionItem({
             draftMessage={draftMessage}
             iouReport={iouReport}
             taskReport={taskReport}
+            cardList={cardList}
             linkedReport={linkedReport}
             iouReportOfLinkedReport={iouReportOfLinkedReport}
             emojiReactions={emojiReactions}
@@ -154,7 +167,7 @@ function ReportActionItem({
             createDraftTransactionAndNavigateToParticipantSelector={createDraftTransactionAndNavigateToParticipantSelector}
             resolveActionableReportMentionWhisper={resolveActionableReportMentionWhisper}
             resolveActionableMentionWhisper={resolveActionableMentionWhisper}
-            isClosedExpenseReportWithNoExpenses={isClosedExpenseReportWithNoExpenses(iouReport, transactions)}
+            isClosedExpenseReportWithNoExpenses={isClosedExpenseReportWithNoExpenses(iouReport, transactionsOnIOUReport)}
             isCurrentUserTheOnlyParticipant={isCurrentUserTheOnlyParticipant}
             missingPaymentMethod={missingPaymentMethod}
             reimbursementDeQueuedOrCanceledActionMessage={getReimbursementDeQueuedOrCanceledActionMessage(
@@ -162,12 +175,14 @@ function ReportActionItem({
                 action as OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED | typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED>>,
                 report,
             )}
-            modifiedExpenseMessage={getForReportAction({
+            modifiedExpenseMessage={getForReportActionTemp({
+                translate,
                 reportAction: action,
-                policyID: report?.policyID,
+                policy,
                 movedFromReport,
                 movedToReport,
-                policyForMovingExpensesID,
+                policyTags: policyTags ?? CONST.POLICY.DEFAULT_TAG_LIST,
+                currentUserLogin: currentUserEmail ?? '',
             })}
             getTransactionsWithReceipts={getTransactionsWithReceipts}
             clearError={clearError}

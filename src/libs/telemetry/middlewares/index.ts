@@ -1,12 +1,12 @@
 import type {EventHint, TransactionEvent} from '@sentry/core';
 import copyTagsToChildSpans from './copyTagsToChildSpans';
 import emailDomainFilter from './emailDomainFilter';
-import firebasePerformanceFilter from './firebasePerformanceFilter';
+import httpClientCancelledFilter from './httpClientCancelledFilter';
 import minDurationFilter from './minDurationFilter';
 
 type TelemetryBeforeSend = (event: TransactionEvent, hint: EventHint) => TransactionEvent | null | Promise<TransactionEvent | null>;
 
-const middlewares: TelemetryBeforeSend[] = [emailDomainFilter, firebasePerformanceFilter, minDurationFilter, copyTagsToChildSpans];
+const middlewares: TelemetryBeforeSend[] = [emailDomainFilter, minDurationFilter, httpClientCancelledFilter, copyTagsToChildSpans];
 
 function processBeforeSendTransactions(event: TransactionEvent, hint: EventHint): Promise<TransactionEvent | null> {
     return middlewares.reduce(
