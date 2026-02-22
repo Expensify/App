@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js b/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
-index 9fedd7e..0552e67 100644
+index 9fedd7e..ffc4d83 100644
 --- a/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
 +++ b/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
 @@ -158,7 +158,7 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
@@ -205,7 +205,15 @@ index 9fedd7e..0552e67 100644
    const _getRowLoader = () => {
      return <ActivityIndicator animating={true} size='small' />;
    };
-@@ -1010,15 +1037,17 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+@@ -906,7 +933,6 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+             },
+           ]}
+           onPress={() => _onPress(rowData)}
+-          onBlur={_onBlur}
+         >
+           <View
+             style={[
+@@ -1010,15 +1036,17 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
        return `item_${index}`;
      };
  
@@ -228,7 +236,7 @@ index 9fedd7e..0552e67 100644
        (listViewDisplayed === true || (isAutoMode && !listWasDismissed));
  
      if (shouldShowList) {
-@@ -1078,11 +1107,6 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+@@ -1078,11 +1106,6 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
    // Keep requestRef updated
    requestRef.current = _request;
  
@@ -240,7 +248,7 @@ index 9fedd7e..0552e67 100644
    useEffect(() => {
      return () => {
        // Cleanup debounced function on unmount
-@@ -1106,7 +1130,13 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+@@ -1106,7 +1129,13 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
      return () => {
        _abortRequests();
      };

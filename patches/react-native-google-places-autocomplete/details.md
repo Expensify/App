@@ -88,6 +88,21 @@
        from the FlatList data, allowing `ListEmptyComponent` to render
        the loading spinner. Applied to both `_request` and
        `_requestNearby`.
+
+    9. v2.6.4 replaced `TouchableHighlight` with `Pressable` for suggestion
+       rows AND added `onBlur={_onBlur}` to the Pressable. On iOS, when
+       `_onPress` calls `Keyboard.dismiss()`, the keyboard dismissal triggers
+       a blur event on the Pressable. This fires `_onBlur` which calls
+       `hideListView()` (setting `listViewDisplayed=false`) and
+       `inputRef.current.blur()` (blurring the TextInput). The TextInput blur
+       cascades to AddressSearch's `onBlur` handler which sets `isFocused=false`,
+       collapsing the list to zero height via `styles.h0`. This prevents the
+       place details XHR callback from completing navigation because the
+       component tree has been disrupted before the response arrives.
+       v2.5.6's `TouchableHighlight` did NOT have an `onBlur` handler.
+       Fix: remove `onBlur={_onBlur}` from the Pressable row. Blur-based
+       list hiding is already handled by the TextInput's own `onBlur`
+       handler and AddressSearch's focus management.
     ```
 
 - Upstream PR/issue: 🛑, library is unmaintained (https://github.com/FaridSafi/react-native-google-places-autocomplete/issues/978)
