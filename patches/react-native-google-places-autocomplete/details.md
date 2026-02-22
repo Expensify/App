@@ -46,17 +46,11 @@
        spinner is never shown during in-flight requests. Fix: replace
        `dataSource.length > 0` with the v2.5.6-style condition
        `(stateText !== '' || predefinedPlaces.length > 0 || currentLocation === true)`
-       so the FlatList renders while results are loading and the
-       `ListEmptyComponent` spinner is visible.
-
-    6. `_request` never clears `dataSource` before sending a new XHR.
-       After the first search, stale results remain in `dataSource`,
-       preventing `ListEmptyComponent` (the loading spinner) from
-       rendering on subsequent searches — FlatList only renders
-       `ListEmptyComponent` when its `data` prop is empty. Fix: clear
-       `resultsRef.current` and reset `dataSource` to `[]` at the start
-       of `_request`, before the XHR is sent, so the loading spinner
-       shows consistently on every search.
+       so the FlatList renders while results are loading. This matches
+       v2.5.6 production behavior where existing results stay visible
+       while new results load — `_request` does NOT clear `dataSource`
+       before sending the XHR, so previous results remain visible until
+       the new response arrives.
     ```
 
 - Upstream PR/issue: 🛑, library is unmaintained (https://github.com/FaridSafi/react-native-google-places-autocomplete/issues/978)
