@@ -208,7 +208,13 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
 
     // FOR TASK REPORT
     const failureData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE>
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+            | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+        >
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -335,6 +341,20 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
             hasOutstandingChildTask: parentReport?.hasOutstandingChildTask,
         },
     });
+
+    const snapshotDataToClear = {
+        [`${ONYXKEYS.COLLECTION.REPORT}${optimisticTaskReport.reportID}`]: null,
+        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTaskReport.reportID}`]: null,
+        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`]: null,
+    };
+
+    // We are clearing out the snapshot data for task snapshot on API failure so that there won't be any ghost task on "Reports > Task".
+    for (const type of searchDataTypes) {
+        const failureSnapshotUpdate = buildOptimisticSnapshotData(type, snapshotDataToClear);
+        if (failureSnapshotUpdate) {
+            failureData.push(failureSnapshotUpdate);
+        }
+    }
 
     const parameters: CreateTaskParams = {
         parentReportActionID: optimisticAddCommentReport.reportAction.reportActionID,
