@@ -28,11 +28,12 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, shouldSkipSuggestedSearchNavigation as shouldSkipSuggestedSearchNavigationForQuery} from '@libs/SearchQueryUtils';
 import type {SavedSearchMenuItem} from '@libs/SearchUIUtils';
-import {createBaseSavedSearchMenuItem, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
+import {createBaseSavedSearchMenuItem, getItemBadgeText, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import todosReportCountsSelector from '@src/selectors/Todos';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
 import SuggestedSearchSkeleton from './SuggestedSearchSkeleton';
@@ -84,6 +85,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const taxRates = getAllTaxRates(allPolicies);
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
     const {clearSelectedTransactions} = useSearchContext();
+    const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {canBeMissing: true, selector: todosReportCountsSelector});
 
     const flattenedMenuItems = useMemo(() => typeMenuSections.flatMap((section) => section.menuItems), [typeMenuSections]);
 
@@ -289,7 +291,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                                     iconWidth={variables.iconSizeNormal}
                                                     iconHeight={variables.iconSizeNormal}
                                                     wrapperStyle={styles.sectionMenuItem}
-                                                    badgeText={item.badgeText}
+                                                    badgeText={getItemBadgeText(item.key, reportCounts)}
                                                     focused={focused}
                                                     onPress={onPress}
                                                     shouldIconUseAutoWidthStyle

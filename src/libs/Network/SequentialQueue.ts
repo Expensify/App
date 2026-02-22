@@ -1,3 +1,5 @@
+import type {Span} from '@sentry/core';
+import * as Sentry from '@sentry/react-native';
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {setIsOpenAppFailureModalOpen} from '@libs/actions/isOpenAppFailureModalOpen';
@@ -55,6 +57,13 @@ let currentRequestPromise: Promise<void> | null = null;
 let isQueuePaused = false;
 const sequentialQueueRequestThrottle = new RequestThrottle('SequentialQueue');
 
+let currentFlushSpan: Span | undefined;
+let currentProcessSpan: Span | undefined;
+
+function getFlushSpan(): Span | undefined {
+    return currentFlushSpan;
+}
+
 /**
  * Puts the queue into a paused state so that no requests will be processed
  */
@@ -78,7 +87,22 @@ function flushOnyxUpdatesQueue() {
         Log.info('[SequentialQueue] Queue already paused');
         return;
     }
-    return flushQueue();
+    const span = Sentry.startInactiveSpan({
+        name: CONST.TELEMETRY.SPAN_FLUSH_ONYX_UPDATES_QUEUE,
+        op: CONST.TELEMETRY.SPAN_FLUSH_ONYX_UPDATES_QUEUE,
+        parentSpan: currentFlushSpan,
+    });
+    return flushQueue()
+        ?.then((result) => {
+            span.setStatus({code: 1});
+            span.end();
+            return result;
+        })
+        .catch((error: unknown) => {
+            span.setStatus({code: 2, message: error instanceof Error ? error.message : undefined});
+            span.end();
+            throw error;
+        });
 }
 
 let queueFlushedDataToStore: AnyOnyxUpdate[] = [];
@@ -156,6 +180,15 @@ function process(): Promise<void> {
         persistWhenOngoing: requestToProcess.persistWhenOngoing ?? false,
     });
 
+    currentProcessSpan = Sentry.startInactiveSpan({
+        name: CONST.TELEMETRY.SPAN_SEQUENTIAL_QUEUE_PROCESS,
+        op: CONST.TELEMETRY.SPAN_SEQUENTIAL_QUEUE_PROCESS,
+        parentSpan: currentFlushSpan,
+        attributes: {
+            [CONST.TELEMETRY.ATTRIBUTE_COMMAND]: requestToProcess.command,
+        },
+    });
+
     // Set the current request to a promise awaiting its processing so that getCurrentRequest can be used to take some action after the current request has processed.
     currentRequestPromise = processWithMiddleware(requestToProcess, true)
         .then((response) => {
@@ -187,10 +220,17 @@ function process(): Promise<void> {
             }
 
             sequentialQueueRequestThrottle.clear();
+            currentProcessSpan?.setStatus({code: 1});
+            currentProcessSpan?.end();
+            currentProcessSpan = undefined;
             Log.info('[SequentialQueue] Continuing to process next request');
             return process();
         })
         .catch((error: RequestError) => {
+            currentProcessSpan?.setStatus({code: 2, message: error.message});
+            currentProcessSpan?.end();
+            currentProcessSpan = undefined;
+
             Log.info('[SequentialQueue] Request failed with error', false, {
                 command: requestToProcess.command,
                 errorName: error.name ?? 'unknown',
@@ -315,6 +355,14 @@ function flush(shouldResetPromise = true) {
         persistedCommands: getCommands(currentPersistedRequests),
     });
 
+    currentFlushSpan = Sentry.startInactiveSpan({
+        name: CONST.TELEMETRY.SPAN_SEQUENTIAL_QUEUE_FLUSH,
+        op: CONST.TELEMETRY.SPAN_SEQUENTIAL_QUEUE_FLUSH,
+        attributes: {
+            [CONST.TELEMETRY.ATTRIBUTE_QUEUE_LENGTH]: persistedRequestsLength,
+        },
+    });
+
     isSequentialQueueRunning = true;
 
     if (shouldResetPromise) {
@@ -353,10 +401,21 @@ function flush(shouldResetPromise = true) {
                 }
                 currentRequestPromise = null;
 
+                const endFlushSpanOk = () => {
+                    currentFlushSpan?.setStatus({code: 1});
+                    currentFlushSpan?.end();
+                    currentFlushSpan = undefined;
+                };
+                const endFlushSpanErr = (error: unknown) => {
+                    currentFlushSpan?.setStatus({code: 2, message: error instanceof Error ? error.message : undefined});
+                    currentFlushSpan?.end();
+                    currentFlushSpan = undefined;
+                };
+
                 // The queue can be paused when we sync the data with backend so we should only update the Onyx data when the queue is empty
                 if (remainingRequests === 0) {
                     Log.info('[SequentialQueue] Queue is empty, flushing Onyx updates');
-                    flushOnyxUpdatesQueue()?.then(() => {
+                    const flushPromise = flushOnyxUpdatesQueue()?.then(() => {
                         const queueFlushedData = getQueueFlushedData();
                         if (queueFlushedData.length === 0) {
                             Log.info('[SequentialQueue] No queueFlushedData to apply');
@@ -365,17 +424,23 @@ function flush(shouldResetPromise = true) {
                         Log.info('[SequentialQueue] Applying queueFlushedData', false, {
                             queueFlushedDataLength: queueFlushedData.length,
                         });
-                        Onyx.update(queueFlushedData).then(() => {
+                        return Onyx.update(queueFlushedData).then(() => {
                             Log.info('[SequentialQueue] QueueFlushedData has been applied and stored', false, {
                                 queueFlushedDataLength: queueFlushedData.length,
                             });
                             clearQueueFlushedData();
                         });
                     });
+                    if (flushPromise) {
+                        flushPromise.then(endFlushSpanOk).catch(endFlushSpanErr);
+                    } else {
+                        endFlushSpanOk();
+                    }
                 } else {
                     Log.info('[SequentialQueue] Queue still has requests, NOT flushing Onyx updates', false, {
                         remainingRequests,
                     });
+                    endFlushSpanOk();
                 }
             });
         },
@@ -576,9 +641,15 @@ function resetQueue(): void {
     resolveIsReadyPromise?.();
 }
 
+function getProcessSpan(): Span | undefined {
+    return currentProcessSpan;
+}
+
 export {
     flush,
     getCurrentRequest,
+    getFlushSpan,
+    getProcessSpan,
     getShouldFailAllRequests,
     isPaused,
     isRunning,

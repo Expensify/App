@@ -1,9 +1,15 @@
 import type {AnyDeferredUpdatesDictionary, AnyDetectGapAndSplitResult} from '@libs/actions/OnyxUpdateManager/types';
 import createProxyForObject from '@src/utils/createProxyForObject';
-import type * as OnyxUpdateManagerUtilsImport from '..';
+import type {applyUpdates as applyUpdatesType, detectGapsAndSplit as detectGapsAndSplitType, validateAndApplyDeferredUpdates as validateAndApplyDeferredUpdatesType} from '..';
 import {applyUpdates} from './applyUpdates';
 
-const UtilsImplementation = jest.requireActual<typeof OnyxUpdateManagerUtilsImport>('@libs/actions/OnyxUpdateManager/utils');
+type OnyxUpdateManagerUtilsModule = {
+    applyUpdates: typeof applyUpdatesType;
+    detectGapsAndSplit: typeof detectGapsAndSplitType;
+    validateAndApplyDeferredUpdates: typeof validateAndApplyDeferredUpdatesType;
+};
+
+const UtilsImplementation = jest.requireActual<OnyxUpdateManagerUtilsModule>('@libs/actions/OnyxUpdateManager/utils');
 
 type OnyxUpdateManagerUtilsMockValues = {
     beforeValidateAndApplyDeferredUpdates: ((clientLastUpdateID?: number) => Promise<void>) | undefined;

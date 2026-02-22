@@ -194,7 +194,7 @@ import {
     updateOptimisticParentReportAction,
     updateReportPreview,
 } from '@libs/ReportUtils';
-import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getSuggestedSearches} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -1146,6 +1146,13 @@ function handleNavigateAfterExpenseCreate({
     if (!shouldHandleNavigation) {
         return;
     }
+
+    Performance.markStart(CONST.TIMING.NAVIGATE_AFTER_EXPENSE_CREATE);
+    startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE, {
+        name: 'navigate-after-expense-create',
+        op: CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE,
+    });
+
     const queryString = buildCannedSearchQuery({type});
     Navigation.isNavigationReady().then(() => {
         if (getIsNarrowLayout()) {
@@ -8852,6 +8859,7 @@ function cleanUpMoneyRequest(
     iouReport: OnyxEntry<OnyxTypes.Report>,
     chatReport: OnyxEntry<OnyxTypes.Report>,
     isChatIOUReportArchived: boolean | undefined,
+    originalReportID: string | undefined,
     isSingleTransactionView = false,
 ) {
     const {shouldDeleteTransactionThread, shouldDeleteIOUReport, updatedReportAction, updatedIOUReport, updatedReportPreviewAction, transactionThreadID, reportPreviewAction} =
@@ -9011,7 +9019,7 @@ function cleanUpMoneyRequest(
     }
 
     if (!shouldDeleteIOUReport) {
-        clearAllRelatedReportActionErrors(reportID, reportAction);
+        clearAllRelatedReportActionErrors(reportID, reportAction, originalReportID);
     }
 
     // First, update the reportActions to ensure related actions are not displayed.
@@ -9020,7 +9028,7 @@ function cleanUpMoneyRequest(
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             if (shouldDeleteIOUReport) {
-                clearAllRelatedReportActionErrors(reportID, reportAction);
+                clearAllRelatedReportActionErrors(reportID, reportAction, originalReportID);
             }
             // After navigation, update the remaining data.
             Onyx.update(onyxUpdates);
@@ -12532,7 +12540,6 @@ function getSearchOnyxUpdate({
                     },
                 });
             }
-
             // Building this object sequentially resolves TypeScript type inference issues
             const optimisticDataSnapshotValueData = {} as SearchResultDataType;
 
@@ -12568,16 +12575,52 @@ function getSearchOnyxUpdate({
                 optimisticDataSnapshotValueData[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`] = {[iouAction.reportActionID]: iouAction};
             }
 
-            return {
-                optimisticData: [
-                    {
+            const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
+                    value: {
+                        data: optimisticDataSnapshotValueData,
+                    },
+                },
+            ];
+
+            if (currentSearchQueryJSON.groupBy === CONST.SEARCH.GROUP_BY.FROM) {
+                const newFlatFilters = currentSearchQueryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM);
+                newFlatFilters.push({
+                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                    filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: fromAccountID}],
+                });
+
+                const groupTransactionsQueryJSON = buildSearchQueryJSON(
+                    buildSearchQueryString({
+                        ...currentSearchQueryJSON,
+                        groupBy: undefined,
+                        flatFilters: newFlatFilters,
+                    }),
+                );
+
+                if (groupTransactionsQueryJSON?.hash) {
+                    optimisticData.push({
                         onyxMethod: Onyx.METHOD.MERGE,
-                        key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
+                        key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${groupTransactionsQueryJSON.hash}` as const,
                         value: {
+                            search: {
+                                type: groupTransactionsQueryJSON.type,
+                                status: groupTransactionsQueryJSON.status,
+                                offset: 0,
+                                hasMoreResults: false,
+                                hasResults: true,
+                                isLoading: false,
+                            },
                             data: optimisticDataSnapshotValueData,
                         },
-                    },
-                ],
+                    });
+                }
+            }
+
+            return {
+                optimisticData,
                 successData,
             };
         }
