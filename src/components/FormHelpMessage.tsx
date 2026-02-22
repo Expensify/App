@@ -32,7 +32,7 @@ type FormHelpMessageProps = {
     /** Whether to show information icon */
     isInfo?: boolean;
 
-    /** Native ID used to associate help/error text with an input */
+    /** ID of the message element */
     messageID?: string;
 };
 
