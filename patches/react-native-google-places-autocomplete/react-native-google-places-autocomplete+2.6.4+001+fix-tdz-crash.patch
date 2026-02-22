@@ -34,7 +34,7 @@ index 9fedd7e..6fef3b3 100644
      _abortRequests();
 -
 +    // Clear stale results so ListEmptyComponent can render the loading spinner
-+    _results = [];
++    resultsRef.current = [];
 +    setDataSource(buildRowsFromResults([]));
      if (!url) {
        return;

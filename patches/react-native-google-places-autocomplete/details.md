@@ -54,8 +54,8 @@
        preventing `ListEmptyComponent` (the loading spinner) from
        rendering on subsequent searches — FlatList only renders
        `ListEmptyComponent` when its `data` prop is empty. Fix: clear
-       `_results` and reset `dataSource` to `[]` at the start of
-       `_request`, before the XHR is sent, so the loading spinner
+       `resultsRef.current` and reset `dataSource` to `[]` at the start
+       of `_request`, before the XHR is sent, so the loading spinner
        shows consistently on every search.
     ```
 
