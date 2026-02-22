@@ -283,6 +283,7 @@ function MoneyRequestReportPreviewContent({
                         activePolicy,
                         policy,
                         betas,
+                        userBillingGraceEndPeriodCollection,
                     });
                 }
             }
@@ -327,7 +328,7 @@ function MoneyRequestReportPreviewContent({
             showDelegateNoAccessModal();
         } else if (!hasHeldExpensesReportUtils(iouReport?.reportID)) {
             startApprovedAnimation();
-            approveMoneyRequest(iouReport, activePolicy, currentUserAccountID, currentUserEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, betas, true);
+            approveMoneyRequest(iouReport, activePolicy, currentUserAccountID, currentUserEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, betas, userBillingGraceEndPeriodCollection, true);
         }
     };
 
@@ -628,7 +629,7 @@ function MoneyRequestReportPreviewContent({
                         return;
                     }
                     startSubmittingAnimation();
-                    submitReport(iouReport, policy, currentUserAccountID, currentUserEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep);
+                    submitReport(iouReport, policy, currentUserAccountID, currentUserEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, userBillingGraceEndPeriodCollection);
                 }}
                 isSubmittingAnimationRunning={isSubmittingAnimationRunning}
                 onAnimationFinish={stopAnimation}
@@ -658,6 +659,7 @@ function MoneyRequestReportPreviewContent({
                         isASAPSubmitBetaEnabled,
                         iouReportNextStep,
                         betas,
+                        userBillingGraceEndPeriodCollection,
                         isFullApproval,
                     );
                 }}

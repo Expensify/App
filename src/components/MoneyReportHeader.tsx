@@ -615,6 +615,7 @@ function MoneyReportHeader({
                     activePolicy,
                     policy,
                     betas,
+                    userBillingGraceEndPeriodCollection,
                 });
                 if (currentSearchQueryJSON && !isOffline) {
                     search({
@@ -649,6 +650,7 @@ function MoneyReportHeader({
             shouldCalculateTotals,
             currentSearchResults?.search?.isLoading,
             betas,
+            userBillingGraceEndPeriodCollection,
         ],
     );
 
@@ -674,7 +676,7 @@ function MoneyReportHeader({
             showDelegateNoAccessModal();
         } else if (!isAnyTransactionOnHold) {
             startApprovedAnimation();
-            approveMoneyRequest(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, betas, true);
+            approveMoneyRequest(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, betas, userBillingGraceEndPeriodCollection, true);
         }
     };
 
@@ -1024,7 +1026,7 @@ function MoneyReportHeader({
             return;
         }
         startApprovedAnimation();
-        approveMoneyRequest(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, betas, isFullApproval);
+        approveMoneyRequest(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, betas, userBillingGraceEndPeriodCollection, isFullApproval);
         if (currentSearchQueryJSON) {
             search({
                 searchKey: currentSearchKey,
@@ -1050,7 +1052,7 @@ function MoneyReportHeader({
                         return;
                     }
                     startSubmittingAnimation();
-                    submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
+                    submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, userBillingGraceEndPeriodCollection);
                     if (currentSearchQueryJSON && !isOffline) {
                         search({
                             searchKey: currentSearchKey,
@@ -1322,7 +1324,7 @@ function MoneyReportHeader({
                     showDWEModal();
                     return;
                 }
-                submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
+                submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, userBillingGraceEndPeriodCollection);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.APPROVE]: {
