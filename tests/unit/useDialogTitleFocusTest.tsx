@@ -1,4 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
+import type {RefObject} from 'react';
+import type Text from '@components/Text';
 import useDialogTitleFocus from '@hooks/useDialogTitleFocus';
 
 // Capture the callback passed to useFocusEffect so we can invoke it manually
@@ -34,7 +36,7 @@ describe('useDialogTitleFocus (web)', () => {
 
     it('focuses the title ref after ANIMATED_TRANSITION delay when isInsideDialog is true', () => {
         const mockFocus = jest.fn();
-        const titleRef = {current: {focus: mockFocus} as unknown as HTMLElement};
+        const titleRef = {current: {focus: mockFocus}} as unknown as RefObject<React.ComponentRef<typeof Text> | null>;
 
         renderHook(() => useDialogTitleFocus(titleRef, true));
 
@@ -52,7 +54,7 @@ describe('useDialogTitleFocus (web)', () => {
 
     it('only focuses once (hasInitiallyFocusedRef prevents repeated focus)', () => {
         const mockFocus = jest.fn();
-        const titleRef = {current: {focus: mockFocus} as unknown as HTMLElement};
+        const titleRef = {current: {focus: mockFocus}} as unknown as RefObject<React.ComponentRef<typeof Text> | null>;
 
         renderHook(() => useDialogTitleFocus(titleRef, true));
 
@@ -70,7 +72,7 @@ describe('useDialogTitleFocus (web)', () => {
 
     it('returns a cleanup function that clears the timeout', () => {
         const mockFocus = jest.fn();
-        const titleRef = {current: {focus: mockFocus} as unknown as HTMLElement};
+        const titleRef = {current: {focus: mockFocus}} as unknown as RefObject<React.ComponentRef<typeof Text> | null>;
 
         renderHook(() => useDialogTitleFocus(titleRef, true));
 

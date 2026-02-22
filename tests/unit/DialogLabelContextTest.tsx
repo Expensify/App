@@ -171,9 +171,9 @@ describe('DialogLabelContext', () => {
         it('assigns unique IDs to each pushed label', () => {
             const {result} = renderHook(() => useDialogLabelActions(), {wrapper});
 
-            let idA: number;
-            let idB: number;
-            let idC: number;
+            let idA = 0;
+            let idB = 0;
+            let idC = 0;
 
             act(() => {
                 idA = result.current.pushLabel('A');
