@@ -213,19 +213,18 @@ function IOURequestStepDistanceOdometer({
     }, [transaction?.comment?.odometerStart, transaction?.comment?.odometerEnd, isEditing]);
 
     /**
-     * Converts locale-specific odometer text to a plain numeric string by
-     * standardizing digits and stripping every character that isn't a digit or
-     * decimal point. This is the single source of truth used by both input
-     * validation (`isOdometerInputValid`) and numeric parsing
-     * (`parseOdometerReading`) so the two can never diverge.
+     * Normalize odometer text by standardizing locale digits and stripping all
+     * non-numeric characters except the decimal point.  This single function is
+     * used by both validation and parsing so the two paths always agree on the
+     * numeric interpretation of the input.
      */
-    const stripOdometerText = (text: string): string => {
+    const normalizeOdometerText = (text: string): string => {
         const standardized = replaceAllDigits(text, fromLocaleDigit);
         return standardized.replaceAll(/[^0-9.]/g, '');
     };
 
     const parseOdometerReading = (text: string): number => {
-        return parseFloat(stripOdometerText(text));
+        return parseFloat(normalizeOdometerText(text));
     };
 
     // Calculate total distance - updated live after every input change
@@ -294,7 +293,7 @@ function IOURequestStepDistanceOdometer({
         if (!text) {
             return true;
         }
-        const stripped = stripOdometerText(text);
+        const stripped = normalizeOdometerText(text);
         const parts = stripped.split('.');
         if (parts.length > 2) {
             return false;
