@@ -427,7 +427,9 @@ function getRateByCustomUnitRateID({customUnitRateID, policy}: {customUnitRateID
  * @returns true if the amount is within limits, false if it would exceed the backend limit
  */
 function isDistanceAmountWithinLimit(distance: number, rate: number): boolean {
-    const amount = Math.abs(Math.round(distance * rate));
+    // Round distance to 2 decimals before multiplying, matching getDistanceRequestAmount()
+    const roundedDistance = parseFloat(Math.abs(distance).toFixed(2));
+    const amount = Math.round(roundedDistance * rate);
     return amount <= CONST.IOU.MAX_SAFE_AMOUNT;
 }
 
