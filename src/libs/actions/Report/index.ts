@@ -159,7 +159,7 @@ import {
     isValidReportIDFromPath,
     prepareOnboardingOnyxData,
 } from '@libs/ReportUtils';
-import {getCurrentSearchQueryJSON, buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {getCurrentSearchQueryJSON, buildOptimisticSnapshotData} from '@libs/SearchQueryUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {getAmount, getCurrency, hasValidModifiedAmount, isOnHold, shouldClearConvertedAmount} from '@libs/TransactionUtils';
 import addTrailingForwardSlash from '@libs/UrlUtils';
@@ -738,22 +738,15 @@ function addActions({
         },
     ];
 
-    // We are pushing the optimistic report and report actions into the chat snapshot so that the newly sent message appears immediately in "Reports > Chats" while offline.
-    const chatSearchQuery = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT});
-    const chatSearchQueryJSON = buildSearchQueryJSON(chatSearchQuery);
+    const snapshotDataToStore = {
+        [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: optimisticReport,
+        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: optimisticReportActions,
+    };
+    const optimisticSnapshotUpdate = buildOptimisticSnapshotData(CONST.SEARCH.DATA_TYPES.CHAT, snapshotDataToStore);
 
-    if (chatSearchQueryJSON) {
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${chatSearchQueryJSON.hash}`,
-            value: {
-                data: {
-                    [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: optimisticReport,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: optimisticReportActions,
-                },
-            },
-        });
+    // We are pushing the optimistic report and report actions into the chat snapshot so that the newly sent message appears immediately in "Reports > Chats" while offline.
+    if (optimisticSnapshotUpdate) {
+        optimisticData.push(optimisticSnapshotUpdate);
     }
 
     optimisticData.push(...getOptimisticDataForAncestors(ancestors, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD));

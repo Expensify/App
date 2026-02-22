@@ -26,7 +26,7 @@ import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {buildOptimisticSnapshotData} from '@libs/SearchQueryUtils';
 import {getMostRecentReportID, navigateToConciergeChatAndDeleteReport, notifyNewAction, optimisticReportLastData} from './Report';
 import {setSelfTourViewed} from './Welcome';
 
@@ -255,33 +255,26 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
 
     const searchDataTypes = [CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.DATA_TYPES.TASK];
 
+    const snapshotDataToStore = {
+        [`${ONYXKEYS.COLLECTION.REPORT}${optimisticTaskReport.reportID}`]: {
+            ...completeOptimisticTaskReport,
+            accountID: currentUserAccountID,
+        },
+        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTaskReport.reportID}`]: {
+            [optimisticTaskCreatedAction.reportActionID]: optimisticTaskCreatedAction as OnyxTypes.ReportAction,
+        },
+        [`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`]: optimisticParentReport,
+        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`]: {
+            [optimisticAddCommentReport.reportAction.reportActionID]: optimisticAddCommentReport.reportAction as OnyxTypes.ReportAction,
+        },
+        [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetailsList,
+    };
+
     // We push the optimistic task data into chat and task snapshot hashes so it appears immediately in "Reports > Chats" and "Reports > Task" while offline.
     for (const type of searchDataTypes) {
-        const searchQuery = buildCannedSearchQuery({type});
-        const searchQueryJSON = buildSearchQueryJSON(searchQuery);
-
-        if (searchQueryJSON) {
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchQueryJSON.hash}`,
-                value: {
-                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                    data: {
-                        [`${ONYXKEYS.COLLECTION.REPORT}${optimisticTaskReport.reportID}`]: {
-                            ...completeOptimisticTaskReport,
-                            accountID: currentUserAccountID,
-                        },
-                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTaskReport.reportID}`]: {
-                            [optimisticTaskCreatedAction.reportActionID]: optimisticTaskCreatedAction as OnyxTypes.ReportAction,
-                        },
-                        [`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`]: optimisticParentReport,
-                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`]: {
-                            [optimisticAddCommentReport.reportAction.reportActionID]: optimisticAddCommentReport.reportAction as OnyxTypes.ReportAction,
-                        },
-                        [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetailsList,
-                    },
-                },
-            });
+        const optimisticSnapshotUpdate = buildOptimisticSnapshotData(type, snapshotDataToStore);
+        if (optimisticSnapshotUpdate) {
+            optimisticData.push(optimisticSnapshotUpdate);
         }
     }
 
