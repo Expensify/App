@@ -2,7 +2,7 @@ import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/Vir
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
 import {tierNameSelector} from '@selectors/UserWallet';
-import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -59,7 +59,6 @@ import {
 } from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
-import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import variables from '@styles/variables';
 import {openReport, readNewestAction, subscribeToNewActionEvent} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -208,6 +207,7 @@ function ReportActionsList({
         return unsubscribe;
     }, []);
 
+    const scrollingVerticalOffset = useRef(0);
     const readActionSkipped = useRef(false);
     const hasHeaderRendered = useRef(false);
     const linkedReportActionID = route?.params?.reportActionID;
@@ -286,7 +286,7 @@ function ReportActionsList({
                     currentUserAccountID,
                     prevSortedVisibleReportActionsObjects,
                     unreadMarkerTime,
-                    scrollingVerticalOffset: scrollOffsetRef.current,
+                    scrollingVerticalOffset: scrollingVerticalOffset.current,
                     prevUnreadMarkerReportActionID: prevUnreadMarkerReportActionID.current,
                 });
             if (shouldDisplayNewMarker) {
@@ -295,7 +295,7 @@ function ReportActionsList({
         }
 
         return [null, -1];
-    }, [currentUserAccountID, isAnonymousUser, earliestReceivedOfflineMessageIndex, prevSortedVisibleReportActionsObjects, scrollOffsetRef, sortedVisibleReportActions, unreadMarkerTime]);
+    }, [currentUserAccountID, isAnonymousUser, earliestReceivedOfflineMessageIndex, prevSortedVisibleReportActionsObjects, sortedVisibleReportActions, unreadMarkerTime]);
     prevUnreadMarkerReportActionID.current = unreadMarkerReportActionID;
 
     /**
@@ -352,12 +352,12 @@ function ReportActionsList({
 
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
         reportID: report.reportID,
-        currentVerticalScrollingOffsetRef: scrollOffsetRef,
+        currentVerticalScrollingOffsetRef: scrollingVerticalOffset,
         readActionSkippedRef: readActionSkipped,
         unreadMarkerReportActionIndex,
         isInverted: false,
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-            scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
+            scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
             onScroll?.(event);
             if (shouldScrollToEndAfterLayout && (!hasCreatedActionAdded || isOffline)) {
                 setShouldScrollToEndAfterLayout(false);
@@ -367,7 +367,7 @@ function ReportActionsList({
 
     useEffect(() => {
         if (
-            scrollOffsetRef.current < AUTOSCROLL_TO_TOP_THRESHOLD &&
+            scrollingVerticalOffset.current < AUTOSCROLL_TO_TOP_THRESHOLD &&
             previousLastIndex.current !== lastActionIndex &&
             reportActionSize.current !== sortedVisibleReportActions.length &&
             hasNewestReportAction
@@ -377,7 +377,7 @@ function ReportActionsList({
         }
         previousLastIndex.current = lastActionIndex;
         reportActionSize.current = sortedVisibleReportActions.length;
-    }, [lastActionIndex, sortedVisibleReportActions.length, reportScrollManager, hasNewestReportAction, linkedReportActionID, setIsFloatingMessageCounterVisible, scrollOffsetRef]);
+    }, [lastActionIndex, sortedVisibleReportActions.length, reportScrollManager, hasNewestReportAction, linkedReportActionID, setIsFloatingMessageCounterVisible]);
 
     useEffect(() => {
         const shouldTriggerScroll = shouldFocusToTopOnMount && prevHasCreatedActionAdded && !hasCreatedActionAdded;
@@ -407,7 +407,7 @@ function ReportActionsList({
             // Currently, there's no programmatic way to dismiss the notification center panel.
             // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
             const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
-            if ((isVisible || isFromNotification) && scrollOffsetRef.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD) {
+            if ((isVisible || isFromNotification) && scrollingVerticalOffset.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD) {
                 readNewestAction(report.reportID);
                 if (isFromNotification) {
                     Navigation.setParams({referrer: undefined});
@@ -438,7 +438,7 @@ function ReportActionsList({
         lastMessageTime.current = null;
 
         const isArchivedReport = isArchivedNonExpenseReport(report, isReportArchived);
-        const hasNewMessagesInView = scrollOffsetRef.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
+        const hasNewMessagesInView = scrollingVerticalOffset.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
         const hasUnreadReportAction = sortedVisibleReportActions.some(
             (reportAction) =>
                 newMessageTimeReference &&

@@ -1,4 +1,4 @@
-import {useContext} from 'react';
+import {useCallback, useContext} from 'react';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import type ReportScrollManagerData from './types';
 
@@ -19,7 +19,7 @@ function useReportScrollManager(isInverted = true): ReportScrollManagerData {
     /**
      * Scroll to the visual bottom of the list.
      */
-    const scrollToBottom = () => {
+    const scrollToBottom = useCallback(() => {
         if (!flatListRef?.current) {
             return;
         }

@@ -1,4 +1,4 @@
-import {useContext} from 'react';
+import {useCallback, useContext} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView} from 'react-native';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
@@ -10,17 +10,21 @@ function useReportScrollManager(isInverted = true): ReportScrollManagerData {
     /**
      * Scroll to the provided index.
      */
-    const scrollToIndex = (index: number) => {
-        if (!flatListRef?.current) {
-            return;
-        }
-        flatListRef.current.scrollToIndex({index});
-    };
+    const scrollToIndex = useCallback(
+        (index: number) => {
+            if (!flatListRef?.current) {
+                return;
+            }
+
+            flatListRef.current.scrollToIndex({index});
+        },
+        [flatListRef],
+    );
 
     /**
      * Scroll to the visual bottom of the list.
      */
-    const scrollToBottom = () => {
+    const scrollToBottom = useCallback(() => {
         if (!flatListRef?.current) {
             return;
         }
@@ -37,7 +41,7 @@ function useReportScrollManager(isInverted = true): ReportScrollManagerData {
     /**
      * Scroll to the end of the FlatList.
      */
-    const scrollToEnd = () => {
+    const scrollToEnd = useCallback(() => {
         if (!flatListRef?.current) {
             return;
         }
@@ -50,14 +54,18 @@ function useReportScrollManager(isInverted = true): ReportScrollManagerData {
         }
 
         flatListRef.current.scrollToEnd({animated: false});
-    };
+    }, [flatListRef]);
 
-    const scrollToOffset = (offset: number) => {
-        if (!flatListRef?.current) {
-            return;
-        }
-        flatListRef.current.scrollToOffset({offset, animated: false});
-    };
+    const scrollToOffset = useCallback(
+        (offset: number) => {
+            if (!flatListRef?.current) {
+                return;
+            }
+
+            flatListRef.current.scrollToOffset({offset, animated: false});
+        },
+        [flatListRef],
+    );
 
     return {ref: flatListRef, scrollToIndex, scrollToBottom, scrollToEnd, scrollToOffset};
 }
