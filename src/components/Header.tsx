@@ -1,7 +1,6 @@
 import type {ReactNode} from 'react';
 import React, {useEffect, useMemo, useRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {Text as RNText, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {Linking, View} from 'react-native';
 import useDialogTitleFocus from '@hooks/useDialogTitleFocus';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -41,7 +40,7 @@ function Header({title = '', subtitle = '', textStyles = [], style, containerSty
     const styles = useThemeStyles();
     const {isInsideDialog, pushLabel, popLabel, updateLabel} = useDialogLabelActions();
     const labelIdRef = useRef<number | undefined>(undefined);
-    const titleRef = useRef<RNText>(null);
+    const titleRef = useRef<React.ComponentRef<typeof Text>>(null);
 
     // Register/update label in dialog context
     useEffect(() => {
@@ -115,8 +114,7 @@ function Header({title = '', subtitle = '', textStyles = [], style, containerSty
                               style={[styles.headerText, styles.textLarge, styles.lineHeightXLarge, textStyles]}
                               accessibilityRole={CONST.ROLE.HEADER}
                               accessibilityLabel={title}
-                              // eslint-disable-next-line react/jsx-props-no-spreading
-                              {...(isInsideDialog ? {tabIndex: -1} : {})}
+                              tabIndex={isInsideDialog ? -1 : undefined}
                           >
                               {title}
                           </Text>

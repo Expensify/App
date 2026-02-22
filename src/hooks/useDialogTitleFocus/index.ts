@@ -1,15 +1,14 @@
 import {useFocusEffect} from '@react-navigation/native';
 import type {RefObject} from 'react';
 import {useCallback, useRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {Text as RNText} from 'react-native';
+import type Text from '@components/Text';
 import CONST from '@src/CONST';
 
 /**
  * Focuses the dialog title element after the RHP transition completes (web only).
  * Mirrors the useDelayedAutoFocus pattern: useFocusEffect + ANIMATED_TRANSITION delay.
  */
-function useDialogTitleFocus(titleRef: RefObject<RNText | null>, isInsideDialog: boolean) {
+function useDialogTitleFocus(titleRef: RefObject<React.ComponentRef<typeof Text> | null>, isInsideDialog: boolean) {
     const hasInitiallyFocusedRef = useRef(false);
 
     useFocusEffect(
