@@ -13,6 +13,7 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useLocalize from '@hooks/useLocalize';
+import {replaceAllDigits} from '@libs/MoneyRequestUtils';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
@@ -63,7 +64,7 @@ function IOURequestStepDistanceOdometer({
     transaction,
     currentUserPersonalDetails,
 }: IOURequestStepDistanceOdometerProps) {
-    const {translate} = useLocalize();
+    const {translate, fromLocaleDigit} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -274,16 +275,16 @@ function IOURequestStepDistanceOdometer({
     })();
 
     const cleanOdometerReading = (text: string): string => {
-        let cleaned = text.replaceAll(/[^0-9.,]/g, '');
-        // Strip commas (thousand separators) for the stored value
+        // Convert locale-specific digits/separators to standard format (e.g., European "1.234,5" → "1,234.5")
+        let cleaned = replaceAllDigits(text, fromLocaleDigit);
+        cleaned = cleaned.replaceAll(/[^0-9.,]/g, '');
+        // Strip group separators (commas in standard format)
         cleaned = cleaned.replaceAll(',', '');
-        // Allow only one decimal point
         const parts = cleaned.split('.');
         if (parts.length > 2) {
             cleaned = `${parts.at(0) ?? ''}.${parts.slice(1).join('')}`;
         }
-        // Limit to 1 decimal place
-        if (parts.length === 2 && parts.at(1) && (parts.at(1) ?? '').length > 1) {
+        if (parts.length === 2 && (parts.at(1) ?? '').length > 1) {
             cleaned = `${parts.at(0) ?? ''}.${(parts.at(1) ?? '').slice(0, 1)}`;
         }
         if (cleaned.startsWith('.')) {
