@@ -116,10 +116,9 @@ function BaseListItem<TItem extends ListItem>({
                 }}
                 disabled={isDisabled && !item.isSelected}
                 interactive={item.isInteractive}
-                accessibilityLabel={accessible === false ? undefined : accessibilityLabel}
+                {...(accessible === false ? {accessible: false as const} : {accessibilityLabel})}
                 accessibilityState={accessibilityState}
                 role={accessibilityRole}
-                accessible={accessible}
                 isNested
                 hoverDimmingValue={1}
                 pressDimmingValue={item.isInteractive === false ? 1 : variables.pressDimValue}
