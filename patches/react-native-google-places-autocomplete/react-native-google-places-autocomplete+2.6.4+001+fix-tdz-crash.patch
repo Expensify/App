@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js b/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
-index 9fedd7e..8eebd49 100644
+index 9fedd7e..5b2adab 100644
 --- a/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
 +++ b/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
 @@ -158,7 +158,7 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
@@ -120,7 +120,7 @@ index 9fedd7e..8eebd49 100644
        Keyboard.dismiss();
  
        _abortRequests();
-@@ -776,6 +829,11 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+@@ -776,7 +829,21 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
      }
    };
  
@@ -130,9 +130,19 @@ index 9fedd7e..8eebd49 100644
 +  }, [debounceMs]);
 +
    const _onChangeText = (text) => {
++    // When the search text is cleared, immediately clear stale results so
++    // that the next search shows the loading spinner.  We cannot rely on
++    // _request("") via debounce because a fast follow-up keystroke cancels
++    // the pending debounce call.
++    if (!text) {
++      resultsRef.current = [];
++      setDataSource(buildRowsFromResults([]));
++    }
++
      setListWasDismissed(false);
      setStateText(text);
-@@ -792,56 +850,10 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+     debounceData(text);
+@@ -792,56 +859,10 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
      }
    };
  
@@ -189,7 +199,7 @@ index 9fedd7e..8eebd49 100644
    const _getRowLoader = () => {
      return <ActivityIndicator animating={true} size='small' />;
    };
-@@ -1010,15 +1022,17 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+@@ -1010,15 +1031,17 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
        return `item_${index}`;
      };
  
@@ -212,7 +222,7 @@ index 9fedd7e..8eebd49 100644
        (listViewDisplayed === true || (isAutoMode && !listWasDismissed));
  
      if (shouldShowList) {
-@@ -1078,11 +1092,6 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+@@ -1078,11 +1101,6 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
    // Keep requestRef updated
    requestRef.current = _request;
  
@@ -224,7 +234,7 @@ index 9fedd7e..8eebd49 100644
    useEffect(() => {
      return () => {
        // Cleanup debounced function on unmount
-@@ -1106,7 +1115,13 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+@@ -1106,7 +1124,13 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
      return () => {
        _abortRequests();
      };
