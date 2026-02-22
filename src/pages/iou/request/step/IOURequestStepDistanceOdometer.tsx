@@ -274,17 +274,18 @@ function IOURequestStepDistanceOdometer({
     })();
 
     const cleanOdometerReading = (text: string): string => {
-        // Allow digits and one decimal point or comma
-        // Remove all characters except digits, dots, and commas
         let cleaned = text.replaceAll(/[^0-9.,]/g, '');
-        // Replace comma with dot for consistency
-        cleaned = cleaned.replaceAll(',', '.');
+        // Strip commas (thousand separators) for the stored value
+        cleaned = cleaned.replaceAll(',', '');
         // Allow only one decimal point
         const parts = cleaned.split('.');
         if (parts.length > 2) {
             cleaned = `${parts.at(0) ?? ''}.${parts.slice(1).join('')}`;
         }
-        // Don't allow decimal point at the start
+        // Limit to 1 decimal place
+        if (parts.length === 2 && parts.at(1) && (parts.at(1) ?? '').length > 1) {
+            cleaned = `${parts.at(0) ?? ''}.${(parts.at(1) ?? '').slice(0, 1)}`;
+        }
         if (cleaned.startsWith('.')) {
             cleaned = `0${cleaned}`;
         }
