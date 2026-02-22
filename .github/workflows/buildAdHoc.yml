@@ -35,6 +35,10 @@ on:
         description: GitHub username who triggered the build
         type: string
         required: true
+      FORCE_NATIVE_BUILD:
+        description: Force a full native build, bypassing Rock remote cache
+        type: string
+        default: 'false'
 
 jobs:
   postGitHubCommentBuildStarted:
@@ -137,6 +141,13 @@ jobs:
           git checkout ${{ inputs.MOBILE_EXPENSIFY_REF }}
           echo "Building from https://github.com/Expensify/Mobile-Expensify/pull/${{ inputs.MOBILE_EXPENSIFY_PR }}"
 
+      - name: Compute custom build identifier
+        id: computeIdentifier
+        run: |
+          APP_SHORT_SHA=$(git rev-parse --short HEAD)
+          MOBILE_EXPENSIFY_SHORT_SHA=$(cd Mobile-Expensify && git rev-parse --short HEAD)
+          echo "IDENTIFIER=${APP_SHORT_SHA}-${MOBILE_EXPENSIFY_SHORT_SHA}" >> "$GITHUB_OUTPUT"
+
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
@@ -145,6 +156,10 @@ jobs:
         uses: ./.github/actions/composite/setupNode
         with:
           IS_HYBRID_BUILD: 'true'
+
+      - name: Setup Gradle
+        # v4
+        uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244
 
       - name: Run grunt build
         run: |
@@ -197,11 +212,12 @@ jobs:
 
       - name: Rock Remote Build - Android
         id: rock-remote-build-android
-        uses: callstackincubator/android@2177ac62cabe662aa49a2bc6f3154070705dd8f5
+        uses: callstackincubator/android@4cedf4d9b5c167452c96fe67233577e0fde9a025
         env:
           GITHUB_TOKEN: ${{ github.token }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           IS_HYBRID_APP: true
+          FORCE_NATIVE_BUILD: ${{ inputs.FORCE_NATIVE_BUILD == 'true' && github.run_id || '' }}
         with:
           variant: 'Adhoc'
           sign: true
@@ -216,7 +232,8 @@ jobs:
           keystore-path: '../tools/buildtools/upload-key.keystore'
           comment-bot: false
           rock-build-extra-params: '--extra-params "-PreactNativeArchitectures=arm64-v8a,x86_64 --profile"'
-          custom-ref: ${{ inputs.APP_REF }}
+          custom-identifier: ${{ steps.computeIdentifier.outputs.IDENTIFIER }}
+          validate-elf-alignment: false
 
       - name: Upload Gradle profile report
         if: always()
@@ -256,6 +273,13 @@ jobs:
           git fetch origin ${{ inputs.MOBILE_EXPENSIFY_REF }}
           git checkout ${{ inputs.MOBILE_EXPENSIFY_REF }}
           echo "Building from https://github.com/Expensify/Mobile-Expensify/pull/${{ inputs.MOBILE_EXPENSIFY_PR }}"
+
+      - name: Compute custom build identifier
+        id: computeIdentifier
+        run: |
+          APP_SHORT_SHA=$(git rev-parse --short HEAD)
+          MOBILE_EXPENSIFY_SHORT_SHA=$(cd Mobile-Expensify && git rev-parse --short HEAD)
+          echo "IDENTIFIER=${APP_SHORT_SHA}-${MOBILE_EXPENSIFY_SHORT_SHA}" >> "$GITHUB_OUTPUT"
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
@@ -321,11 +345,12 @@ jobs:
 
       - name: Rock Remote Build - iOS
         id: rock-remote-build-ios
-        uses: callstackincubator/ios@d638bd25c764655baeeced3232c692f1698cf72b
+        uses: callstackincubator/ios@dd30f7e53eee2ea6a59509793d0a30fbb5c91216
         env:
           GITHUB_TOKEN: ${{ github.token }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           IS_HYBRID_APP: true
+          FORCE_NATIVE_BUILD: ${{ inputs.FORCE_NATIVE_BUILD == 'true' && github.run_id || '' }}
         with:
           destination: device
           re-sign: true
@@ -349,7 +374,7 @@ jobs:
               }
             ]
           comment-bot: false
-          custom-ref: ${{ inputs.APP_REF }}
+          custom-identifier: ${{ steps.computeIdentifier.outputs.IDENTIFIER }}
 
       - name: Set artifact URL output
         id: set-artifact-url

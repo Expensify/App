@@ -91,6 +91,41 @@ In this example:
 - Effects could be extracted to focused hooks: `useTelemetrySpans`, `useDeepLinking`, `useAudioMode`, etc.
 - Entry points don't get special treatment — extracting effects into named hooks improves clarity and makes it possible to understand what each effect does and how to safely modify it
 
+#### Incorrect (internal render helper functions)
+
+- Internal `render*` functions signal the component owns multiple rendering responsibilities that should be separate components
+- They close over the entire component scope — the React Compiler cannot independently memoize them
+- They hide the component's render tree — the return statement doesn't show what actually renders
+- The fix is to extract each helper into its own component with explicit props
+
+```tsx
+function ForYouSection() {
+    const theme = useTheme();
+    const {translate} = useLocalize();
+    const {submitCount, approveCount} = useTodos();
+
+    // ❌ Internal render helper — closes over everything, hides structure
+    const renderTodoItems = () => (
+        <View style={styles.todoContainer}>
+            {todoItems.map(({key, icon, ...rest}) => (
+                <BaseWidgetItem key={key} icon={icon} {...rest} />
+            ))}
+        </View>
+    );
+
+    // ❌ Another render helper — branching logic buried in a function
+    const renderContent = () => {
+        if (isLoadingApp) {
+            return <ActivityIndicator size="large" />;
+        }
+        return hasAnyTodos ? renderTodoItems() : <EmptyState />;
+    };
+
+    // The return statement hides the actual render tree
+    return <WidgetContainer>{renderContent()}</WidgetContainer>;
+}
+```
+
 ### Correct
 
 #### Correct (separated concerns)
@@ -154,6 +189,9 @@ Flag when a component, hook, or utility aggregates multiple unrelated responsibi
 - Unrelated state variables are interdependent or updated together
 - Logic mixes data fetching, navigation, UI state, and lifecycle behavior in one place
 - Removing one piece of functionality requires careful untangling from others
+- Component defines internal `render*` functions or arrow functions that return JSX and calls them in its return statement (e.g., `const renderContent = () => ...`, `{renderContent()}`)
+- These functions close over the component's entire scope, preventing the React Compiler from independently memoizing them
+- The component's return statement calls these helpers instead of showing the render tree directly
 
 **What counts as "unrelated":**
 - Group by responsibility (what the code does), NOT by timing (when it runs)
@@ -163,7 +201,11 @@ Flag when a component, hook, or utility aggregates multiple unrelated responsibi
 **DO NOT flag if:**
 - Component is a thin orchestration layer that ONLY composes child components (no business logic, no effects beyond rendering)
 - Effects are extracted into focused custom hooks with single responsibilities (e.g., `useDebugShortcut`, `usePriorityMode`) — inline `useEffect` calls are a code smell and should be named hooks
+- The internal function is a **callback or event handler** (e.g., `handlePress`, `onSubmit`), not a render helper — only functions that return JSX qualify
+- The internal function is a **single early return** for a guard clause (e.g., `if (!data) return <EmptyState />;` at the top of the component) — simple guards in the component body are not render helpers
 
 **Search Patterns** (hints for reviewers):
 - `useEffect`
 - `useOnyx`
+- `const render\w+\s*=` or `function render\w+` inside a component body (internal render helpers)
+- `{render\w+\(\)}` in JSX return statements (helper invocations)
