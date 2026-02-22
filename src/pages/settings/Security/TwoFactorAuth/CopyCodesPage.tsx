@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -47,7 +47,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
     const isUserValidated = account?.validated ?? false;
     const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
     const announceStatus = (message: string) => {
-        setStatusAnnouncement((previousStatus) => ({id: previousStatus.id + 1, text: message}));
+        setStatusAnnouncement((previousStatusAnnouncement) => ({id: previousStatusAnnouncement.id + 1, text: message}));
     };
 
     useEffect(() => {
@@ -160,8 +160,10 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                     {!!statusAnnouncement.text && (
                         <Text
                             key={statusAnnouncement.id}
-                            accessibilityRole={CONST.ROLE.ALERT}
                             style={styles.hiddenElementOutsideOfWindow}
+                            role={Platform.OS === CONST.PLATFORM.WEB ? CONST.ROLE.ALERT : undefined}
+                            accessibilityRole={Platform.OS !== CONST.PLATFORM.WEB ? CONST.ROLE.ALERT : undefined}
+                            accessibilityLiveRegion={Platform.OS !== CONST.PLATFORM.WEB ? 'assertive' : undefined}
                         >
                             {statusAnnouncement.text}
                         </Text>
