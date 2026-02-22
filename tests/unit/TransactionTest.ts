@@ -124,7 +124,6 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
-                allSnapshots: {},
                 newReport: report,
                 allTransactions,
             });
@@ -173,7 +172,6 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
                 newReport: report,
-                allSnapshots: {},
                 allTransactions,
             });
             await waitForBatchedUpdates();
@@ -235,7 +233,6 @@ describe('Transaction', () => {
                 email: 'test@example.com',
                 newReport: report,
                 policy: undefined,
-                allSnapshots: {},
                 reportNextStep: mockReportNextStep,
                 allTransactions,
             });
@@ -300,7 +297,6 @@ describe('Transaction', () => {
                 email: 'test@example.com',
                 newReport: report,
                 policy: undefined,
-                allSnapshots: {},
                 reportNextStep: mockReportNextStep,
                 allTransactions,
             });
@@ -353,7 +349,6 @@ describe('Transaction', () => {
                 email: 'test@example.com',
                 newReport: report,
                 policy: undefined,
-                allSnapshots: {},
                 reportNextStep: undefined,
                 allTransactions,
             });
@@ -417,7 +412,6 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
-                allSnapshots: {},
                 newReport: report,
                 allTransactions,
             });
@@ -474,7 +468,6 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
                 newReport: report,
-                allSnapshots: {},
                 allTransactions,
             });
             await waitForBatchedUpdates();
@@ -526,7 +519,6 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: customAccountID,
                 email: customEmail,
-                allSnapshots: {},
                 newReport: report,
                 allTransactions,
             });
@@ -586,7 +578,6 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
                 newReport: expenseReport,
-                allSnapshots: {},
                 allTransactions,
             });
             await waitForBatchedUpdates();
@@ -644,7 +635,6 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
-                allSnapshots: {},
                 newReport: expenseReport,
                 allTransactions,
             });
@@ -710,7 +700,6 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
-                allSnapshots: {},
                 newReport: newExpenseReport,
                 allTransactions,
             });
@@ -776,7 +765,6 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
                 newReport: newExpenseReport,
-                allSnapshots: {},
                 allTransactions,
             });
             await waitForBatchedUpdates();
@@ -833,7 +821,6 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
-                allSnapshots: {},
                 newReport: fakeReport,
                 allTransactions,
             });
@@ -893,7 +880,6 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
-                allSnapshots: {},
                 newReport: fakeReport,
                 allTransactions,
             });
@@ -946,7 +932,6 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@gmail.com',
                 newReport: newOpenReport,
-                allSnapshots: {},
                 policy,
                 reportNextStep: undefined,
                 policyCategories,

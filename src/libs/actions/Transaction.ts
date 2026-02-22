@@ -33,7 +33,6 @@ import {
     hasViolations as hasViolationsReportUtils,
     shouldEnableNegative,
 } from '@libs/ReportUtils';
-import {getSnapshotKeys} from '@libs/SearchUIUtils';
 import {isManagedCardTransaction, isOnHold, shouldClearConvertedAmount, waypointHasValidAddress} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
@@ -47,7 +46,6 @@ import type {
     ReportAction,
     ReportNextStepDeprecated,
     ReviewDuplicates,
-    SearchResults,
     Transaction,
     TransactionViolation,
     TransactionViolations,
@@ -759,7 +757,6 @@ type ChangeTransactionsReportProps = {
     isASAPSubmitBetaEnabled: boolean;
     accountID: number;
     email: string;
-    allSnapshots: OnyxCollection<SearchResults>;
     newReport?: OnyxEntry<Report>;
     policy?: OnyxEntry<Policy>;
     reportNextStep?: OnyxEntry<ReportNextStepDeprecated>;
@@ -774,7 +771,6 @@ function changeTransactionsReport({
     email,
     newReport,
     policy,
-    allSnapshots,
     reportNextStep,
     policyCategories,
     allTransactions,
@@ -1152,54 +1148,6 @@ function changeTransactionsReport({
                         },
                     },
                 });
-
-                const allSnapshotKeys = getSnapshotKeys(allSnapshots);
-
-                if (allSnapshotKeys?.length && allSnapshotKeys.length > 0) {
-                    for (const key of allSnapshotKeys) {
-                        optimisticData.push({
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key,
-                            value: {
-                                data: {
-                                    [`${ONYXKEYS.COLLECTION.REPORT}${oldReport.reportID}`]: {
-                                        pendingFields: {
-                                            total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                        },
-                                    },
-                                },
-                            } as Partial<Report>,
-                        });
-
-                        failureData.push({
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key,
-                            value: {
-                                data: {
-                                    [`${ONYXKEYS.COLLECTION.REPORT}${oldReport.reportID}`]: {
-                                        pendingFields: {
-                                            total: null,
-                                        },
-                                    },
-                                },
-                            } as Partial<Report>,
-                        });
-
-                        successData.push({
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key,
-                            value: {
-                                data: {
-                                    [`${ONYXKEYS.COLLECTION.REPORT}${oldReport.reportID}`]: {
-                                        pendingFields: {
-                                            total: null,
-                                        },
-                                    },
-                                },
-                            } as Partial<Report>,
-                        });
-                    }
-                }
             }
         }
 
@@ -1263,54 +1211,6 @@ function changeTransactionsReport({
                         },
                     },
                 });
-
-                const allSnapshotKeys = getSnapshotKeys(allSnapshots);
-
-                if (allSnapshotKeys?.length && allSnapshotKeys.length > 0) {
-                    for (const key of allSnapshotKeys) {
-                        optimisticData.push({
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key,
-                            value: {
-                                data: {
-                                    [`${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`]: {
-                                        pendingFields: {
-                                            total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                        },
-                                    },
-                                },
-                            } as Partial<Report>,
-                        });
-
-                        failureData.push({
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key,
-                            value: {
-                                data: {
-                                    [`${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`]: {
-                                        pendingFields: {
-                                            total: null,
-                                        },
-                                    },
-                                },
-                            } as Partial<Report>,
-                        });
-
-                        successData.push({
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key,
-                            value: {
-                                data: {
-                                    [`${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`]: {
-                                        pendingFields: {
-                                            total: null,
-                                        },
-                                    },
-                                },
-                            } as Partial<Report>,
-                        });
-                    }
-                }
             }
         }
 

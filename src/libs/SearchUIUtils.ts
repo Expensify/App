@@ -4303,16 +4303,6 @@ function getTableMinWidth(columns: SearchColumnType[]) {
     return minWidth;
 }
 
-type OnyxSnapshotKey = `${typeof ONYXKEYS.COLLECTION.SNAPSHOT}${string}`;
-
-function getSnapshotKeys(allSnapshots: OnyxCollection<OnyxTypes.SearchResults>) {
-    if (!allSnapshots) {
-        return [];
-    }
-
-    return Object.keys(allSnapshots || {}) as OnyxSnapshotKey[];
-}
-
 function filterValidHasValues(hasValues: string[] | undefined, type: SearchDataTypes | undefined, translate: LocalizedTranslate): string[] | undefined {
     if (!hasValues || !type) {
         return undefined;
@@ -4433,7 +4423,6 @@ export {
     getSettlementStatus,
     getSettlementStatusBadgeProps,
     getTransactionFromTransactionListItem,
-    getSnapshotKeys,
     getSearchColumnTranslationKey,
     getTableMinWidth,
     getCustomColumns,
