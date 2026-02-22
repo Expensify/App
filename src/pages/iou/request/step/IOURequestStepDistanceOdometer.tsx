@@ -212,6 +212,12 @@ function IOURequestStepDistanceOdometer({
         }
     }, [transaction?.comment?.odometerStart, transaction?.comment?.odometerEnd, isEditing]);
 
+    const parseOdometerReading = (text: string): number => {
+        const standardized = replaceAllDigits(text, fromLocaleDigit);
+        const stripped = standardized.replaceAll(',', '');
+        return parseFloat(stripped);
+    };
+
     // Calculate total distance - updated live after every input change
     const totalDistance = (() => {
         const start = parseOdometerReading(startReading);
@@ -273,12 +279,6 @@ function IOURequestStepDistanceOdometer({
         const shouldShowSave = isEditing || isEditingConfirmation;
         return shouldShowSave ? translate('common.save') : translate('common.next');
     })();
-
-    const parseOdometerReading = (text: string): number => {
-        const standardized = replaceAllDigits(text, fromLocaleDigit);
-        const stripped = standardized.replaceAll(',', '');
-        return parseFloat(stripped);
-    };
 
     const handleStartReadingChange = (text: string) => {
         setStartReading(text);
