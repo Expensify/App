@@ -51,6 +51,18 @@
        while new results load — `_request` does NOT clear `dataSource`
        before sending the XHR, so previous results remain visible until
        the new response arrives.
+
+    6. v2.6.4 added `stateText` to the dependency array of the
+       query-change `useEffect` (the effect that reloads search when
+       `props.query` changes). This causes the cleanup function
+       (`_abortRequests`) to fire on every keystroke, aborting in-flight
+       XHRs before results can arrive. When the user types fast, results
+       from previous keystrokes never complete, `dataSource` stays empty,
+       and the `ListEmptyComponent` loading spinner flashes on every key.
+       Fix: remove `stateText` from the dependency array. Per-keystroke
+       requests are already handled by `_onChangeText` → `debounceData`,
+       and `_request` itself calls `_abortRequests()` at the top, so old
+       requests are properly aborted when a new one fires.
     ```
 
 - Upstream PR/issue: 🛑, library is unmaintained (https://github.com/FaridSafi/react-native-google-places-autocomplete/issues/978)

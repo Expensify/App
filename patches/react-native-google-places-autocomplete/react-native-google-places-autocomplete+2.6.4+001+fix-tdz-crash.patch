@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js b/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
-index 9fedd7e..6fef3b3 100644
+index 9fedd7e..9a0a80a 100644
 --- a/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
 +++ b/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
 @@ -158,7 +158,7 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
@@ -198,3 +198,18 @@ index 9fedd7e..6fef3b3 100644
    useEffect(() => {
      return () => {
        // Cleanup debounced function on unmount
+@@ -1106,7 +1107,13 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+     return () => {
+       _abortRequests();
+     };
+-  }, [queryString, debounceData, stateText, minLength, _abortRequests]);
++    // Note: stateText is intentionally excluded — per-keystroke requests are
++    // handled by _onChangeText → debounceData.  Including stateText here
++    // causes the cleanup (_abortRequests) to fire on every keystroke, aborting
++    // in-flight XHRs before results arrive and making the loading spinner
++    // flash repeatedly.
++    // eslint-disable-next-line react-hooks/exhaustive-deps
++  }, [queryString, debounceData, minLength, _abortRequests]);
+
+   // Auto-show list when dataSource has items in 'auto' mode
+   useEffect(() => {

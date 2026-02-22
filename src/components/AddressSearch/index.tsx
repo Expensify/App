@@ -447,6 +447,7 @@ function AddressSearch({
                             description: [styles.googleSearchText],
                             separator: [styles.googleSearchSeparator, styles.overflowAuto],
                             container: [styles.mh100],
+                            loader: [styles.dNone],
                         }}
                         numberOfLines={2}
                         isRowScrollable={false}
