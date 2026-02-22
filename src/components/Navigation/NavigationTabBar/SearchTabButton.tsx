@@ -4,17 +4,16 @@ import type {ValueOf} from 'type-fest';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
+import useDefaultSearchQuery from '@hooks/useDefaultSearchQuery';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
-import {getDefaultActionableSearchMenuItem} from '@libs/SearchUIUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import navigationRef from '@navigation/navigationRef';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
@@ -38,7 +37,7 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch']);
-    const {typeMenuSections} = useSearchTypeMenuSections();
+    const defaultSearchQuery = useDefaultSearchQuery();
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY, {canBeMissing: true});
 
@@ -80,15 +79,11 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
                 }
             }
 
-            const flattenedMenuItems = typeMenuSections.flatMap((section) => section.menuItems);
-            const defaultActionableSearchQuery =
-                getDefaultActionableSearchMenuItem(flattenedMenuItems)?.searchQuery ?? flattenedMenuItems.at(0)?.searchQuery ?? typeMenuSections.at(0)?.menuItems.at(0)?.searchQuery;
-
             const savedSearchQuery = Object.values(savedSearches ?? {}).at(0)?.query;
             const lastQueryFromOnyx = lastQueryJSON ? buildSearchQueryString(lastQueryJSON) : undefined;
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: lastQueryFromOnyx ?? defaultActionableSearchQuery ?? savedSearchQuery ?? buildCannedSearchQuery()}));
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: lastQueryFromOnyx ?? defaultSearchQuery ?? savedSearchQuery ?? buildCannedSearchQuery()}));
         });
-    }, [selectedTab, typeMenuSections, savedSearches, lastQueryJSON]);
+    }, [selectedTab, defaultSearchQuery, savedSearches, lastQueryJSON]);
 
     if (isWideLayout) {
         return (
