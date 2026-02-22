@@ -4183,7 +4183,7 @@ function inviteToGroupChat(report: Report, inviteeEmailsToAccountIDs: InvitedEma
     inviteToRoom(report, inviteeEmailsToAccountIDs, formatPhoneNumber);
 }
 
-/** Removes people from a room.
+/** Removes people from a room
  *  Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
  */
 function removeFromRoom(report: Report, targetAccountIDs: number[]) {
