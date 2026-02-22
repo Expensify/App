@@ -20,14 +20,14 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {deleteReportFields} from '@userActions/Policy/ReportField';
 import CONST from '@src/CONST';
 import type {Route as Routes} from '@src/ROUTES';
-import type {Policy, PolicyReportField} from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 
 type FieldsSettingsPageProps = {
     policy: OnyxEntry<Policy>;
     policyID: string;
     reportFieldID: string;
     featureName: ValueOf<typeof CONST.POLICY.MORE_FEATURES>;
-    expectedTarget?: PolicyReportField['target'];
+    expectedTarget?: ValueOf<typeof CONST.REPORT_FIELD_TARGETS>;
     getListValuesRoute: (policyID: string, reportFieldID: string) => Routes;
     getInitialValueRoute: (policyID: string, reportFieldID: string) => Routes;
     deleteTitleKey?: 'workspace.reportFields.delete' | 'workspace.invoiceFields.delete';
@@ -55,7 +55,7 @@ function FieldsSettingsPage({
     const reportFieldKey = getReportFieldKey(reportFieldID);
     const reportField = policy?.fieldList?.[reportFieldKey] ?? null;
 
-    if (!isReportFieldTargetValid(reportField, expectedTarget)) {
+    if (!reportField || !isReportFieldTargetValid(reportField, expectedTarget)) {
         return <NotFoundPage />;
     }
 
