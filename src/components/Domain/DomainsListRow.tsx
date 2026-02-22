@@ -45,7 +45,7 @@ function DomainsListRow({title, isHovered, badgeText, brickRoadIndicator, menuIt
                 <TextWithTooltip
                     text={title}
                     shouldShowTooltip
-                    style={styles.textStrong}
+                    style={[styles.textStrong, styles.flexShrink1]}
                 />
 
                 {!!badgeText && (
