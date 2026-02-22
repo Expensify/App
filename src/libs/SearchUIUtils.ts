@@ -3728,6 +3728,40 @@ function getGroupByOptions(translate: LocalizedTranslate) {
     return Object.values(CONST.SEARCH.GROUP_BY).map<SingleSelectItem<SearchGroupBy>>((value) => ({text: translate(`search.filters.groupBy.${value}`), value}));
 }
 
+type GroupBySection = {
+    title: string;
+    options: Array<SingleSelectItem<SearchGroupBy>>;
+};
+
+function getGroupBySections(translate: LocalizedTranslate): GroupBySection[] {
+    const groupByOptions = getGroupByOptions(translate);
+    const optionsByValue = new Map(groupByOptions.map((option) => [option.value, option]));
+    const getOption = (groupBy: SearchGroupBy): SingleSelectItem<SearchGroupBy> =>
+        optionsByValue.get(groupBy) ?? {
+            text: translate(`search.filters.groupBy.${groupBy}`),
+            value: groupBy,
+        };
+
+    return [
+        {
+            title: translate('common.member'),
+            options: [getOption(CONST.SEARCH.GROUP_BY.FROM)],
+        },
+        {
+            title: `${translate('common.expense')} ${translate('common.details')}`,
+            options: [getOption(CONST.SEARCH.GROUP_BY.CARD), getOption(CONST.SEARCH.GROUP_BY.MERCHANT), getOption(CONST.SEARCH.GROUP_BY.CATEGORY), getOption(CONST.SEARCH.GROUP_BY.TAG)],
+        },
+        {
+            title: translate('common.date'),
+            options: [getOption(CONST.SEARCH.GROUP_BY.WEEK), getOption(CONST.SEARCH.GROUP_BY.MONTH), getOption(CONST.SEARCH.GROUP_BY.QUARTER), getOption(CONST.SEARCH.GROUP_BY.YEAR)],
+        },
+        {
+            title: translate('search.reconciliation'),
+            options: [getOption(CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID)],
+        },
+    ];
+}
+
 function getViewOptions(translate: LocalizedTranslate) {
     return Object.values(CONST.SEARCH.VIEW).map<SingleSelectItem<SearchView>>((value) => ({text: translate(`search.view.${value}`), value}));
 }
@@ -4408,6 +4442,7 @@ export {
     getStatusOptions,
     getTypeOptions,
     getGroupByOptions,
+    getGroupBySections,
     getViewOptions,
     getGroupCurrencyOptions,
     getFeedOptions,

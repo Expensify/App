@@ -48,6 +48,7 @@ import {
     getDatePresets,
     getFeedOptions,
     getGroupByOptions,
+    getGroupBySections,
     getGroupCurrencyOptions,
     getHasOptions,
     getStatusOptions,
@@ -229,6 +230,11 @@ function SearchFiltersBar({
     })();
 
     const groupByOptions = getGroupByOptions(translate);
+    const groupBySections = getGroupBySections(translate).map((section, sectionIndex) => ({
+        title: section.title,
+        sectionIndex,
+        data: section.options,
+    }));
     const groupBy = groupByOptions.find((option) => option.value === unsafeGroupBy) ?? null;
 
     const viewOptions = getViewOptions(translate);
@@ -358,6 +364,7 @@ function SearchFiltersBar({
         <SingleSelectPopup
             label={translate('search.groupBy')}
             items={groupByOptions}
+            sections={groupBySections}
             value={groupBy}
             closeOverlay={closeOverlay}
             onChange={(item) => {
