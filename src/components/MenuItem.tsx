@@ -2,7 +2,7 @@ import type {ImageContentFit} from 'expo-image';
 import type {ReactElement, ReactNode, Ref} from 'react';
 import React, {useContext, useMemo, useRef} from 'react';
 import type {GestureResponderEvent, Role, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -590,6 +590,10 @@ function MenuItem({
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedbackDeleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
     const defaultAccessibilityLabel = (shouldShowDescriptionOnTop ? [description, title] : [title, description]).filter(Boolean).join(', ');
+    const contextMenuAccessibilityLabel = Platform.OS === 'web' && !!onSecondaryInteraction ? 'Context menu available, press SHIFT F10 to activate' : '';
+    const combinedAccessibilityLabel = [accessibilityLabel ?? defaultAccessibilityLabel, brickRoadIndicator ? translate('common.yourReviewIsRequired') : '', contextMenuAccessibilityLabel]
+        .filter(Boolean)
+        .join('. ');
 
     const combinedTitleTextStyle = StyleUtils.combineStyles<TextStyle>(
         [
@@ -777,7 +781,7 @@ function MenuItem({
                                 disabled={disabled || isExecuting}
                                 ref={mergeRefs(ref, popoverAnchor)}
                                 role={role}
-                                accessibilityLabel={`${accessibilityLabel ?? defaultAccessibilityLabel}${brickRoadIndicator ? `. ${translate('common.yourReviewIsRequired')}` : ''}`}
+                                accessibilityLabel={combinedAccessibilityLabel}
                                 accessibilityHint={accessibilityHint}
                                 accessible={shouldBeAccessible}
                                 tabIndex={tabIndex}

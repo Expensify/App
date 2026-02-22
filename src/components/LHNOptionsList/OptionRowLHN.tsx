@@ -1,6 +1,6 @@
 import React, {useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, ViewStyle} from 'react-native';
-import {StyleSheet, View} from 'react-native';
+import {Platform, StyleSheet, View} from 'react-native';
 import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
@@ -189,6 +189,8 @@ function OptionRowLHN({
         hideProductTrainingTooltip();
         onSelectRow(optionItem, popoverAnchor);
     };
+    const contextMenuAccessibilityLabel = Platform.OS === 'web' ? '. Context menu available, press SHIFT F10 to activate' : '';
+
     return (
         <OfflineWithFeedback
             pendingAction={optionItem.pendingAction}
@@ -247,7 +249,7 @@ function OptionRowLHN({
                                     (hovered || isContextMenuActive) && !isOptionFocused ? styles.sidebarLinkHover : null,
                                 ]}
                                 role={CONST.ROLE.BUTTON}
-                                accessibilityLabel={`${translate('accessibilityHints.navigatesToChat')} ${optionItem.text}. ${optionItem.isUnread ? `${translate('common.unread')}.` : ''} ${optionItem.alternateText}${brickRoadIndicator ? `. ${translate('common.yourReviewIsRequired')}` : ''}`}
+                                accessibilityLabel={`${translate('accessibilityHints.navigatesToChat')} ${optionItem.text}. ${optionItem.isUnread ? `${translate('common.unread')}.` : ''} ${optionItem.alternateText}${brickRoadIndicator ? `. ${translate('common.yourReviewIsRequired')}` : ''}${contextMenuAccessibilityLabel}`}
                                 onLayout={onLayout}
                                 needsOffscreenAlphaCompositing={(optionItem?.icons?.length ?? 0) >= 2}
                                 sentryLabel={CONST.SENTRY_LABEL.LHN.OPTION_ROW}
