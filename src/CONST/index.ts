@@ -5991,7 +5991,6 @@ const CONST = {
 
     BACK_BUTTON_NATIVE_ID: 'backButton',
     EMOJI_PICKER_BUTTON_NATIVE_ID: 'emojiPickerButton',
-    RHP_DIALOG_TITLE_NATIVE_ID: 'rhp-dialog-title',
 
     /**
      * The maximum count of items per page for SelectionList.

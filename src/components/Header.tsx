@@ -1,10 +1,12 @@
 import type {ReactNode} from 'react';
 import React, {useEffect, useMemo, useRef} from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import type {Text as RNText, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {Linking, View} from 'react-native';
+import useDialogTitleFocus from '@hooks/useDialogTitleFocus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import {useDialogLabel} from './DialogLabelContext';
+import {useDialogLabelActions} from './DialogLabelContext';
 import EnvironmentBadge from './EnvironmentBadge';
 import Text from './Text';
 import TextLink from './TextLink';
@@ -37,9 +39,11 @@ type HeaderProps = {
 
 function Header({title = '', subtitle = '', textStyles = [], style, containerStyles = [], shouldShowEnvironmentBadge = false, subTitleLink = '', numberOfTitleLines = 2}: HeaderProps) {
     const styles = useThemeStyles();
-    const {isInsideDialog, pushLabel, popLabel, updateLabel} = useDialogLabel();
+    const {isInsideDialog, pushLabel, popLabel, updateLabel} = useDialogLabelActions();
     const labelIdRef = useRef<number | undefined>(undefined);
+    const titleRef = useRef<RNText>(null);
 
+    // Register/update label in dialog context
     useEffect(() => {
         if (!isInsideDialog || typeof title !== 'string' || !title) {
             return;
@@ -51,6 +55,10 @@ function Header({title = '', subtitle = '', textStyles = [], style, containerSty
         }
     }, [isInsideDialog, title, pushLabel, updateLabel]);
 
+    // Focus title after RHP transition completes (web only, no-op on native)
+    useDialogTitleFocus(titleRef, isInsideDialog);
+
+    // Cleanup label on unmount
     useEffect(
         () => () => {
             if (labelIdRef.current === undefined) {
@@ -102,12 +110,13 @@ function Header({title = '', subtitle = '', textStyles = [], style, containerSty
                 {typeof title === 'string'
                     ? !!title && (
                           <Text
+                              ref={isInsideDialog ? titleRef : undefined}
                               numberOfLines={numberOfTitleLines}
                               style={[styles.headerText, styles.textLarge, styles.lineHeightXLarge, textStyles]}
-                              nativeID={isInsideDialog ? CONST.RHP_DIALOG_TITLE_NATIVE_ID : undefined}
-                              tabIndex={isInsideDialog ? -1 : undefined}
                               accessibilityRole={CONST.ROLE.HEADER}
                               accessibilityLabel={title}
+                              // eslint-disable-next-line react/jsx-props-no-spreading
+                              {...(isInsideDialog ? {tabIndex: -1} : {})}
                           >
                               {title}
                           </Text>

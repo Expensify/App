@@ -3,7 +3,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, DeviceEventEmitter, InteractionManager, View} from 'react-native';
-import {DialogLabelProvider, useDialogLabel} from '@components/DialogLabelContext';
+import {DialogLabelProvider, useDialogLabelValue} from '@components/DialogLabelContext';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import {MultifactorAuthenticationContextProviders} from '@components/MultifactorAuthentication/Context';
 import {
@@ -43,22 +43,6 @@ import {NarrowPaneContextProvider} from './NarrowPaneContext';
 import Overlay from './Overlay';
 
 type RightModalNavigatorProps = PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>;
-
-/** Provides dialog semantics (role, aria-modal, aria-label) for the RHP container. */
-function RHPDialogContainer({children}: {children: React.ReactNode}) {
-    const styles = useThemeStyles();
-    const {labelText} = useDialogLabel();
-    return (
-        <View
-            role={labelText ? CONST.ROLE.DIALOG : undefined}
-            aria-modal={labelText ? true : undefined}
-            accessibilityLabel={labelText}
-            style={styles.flex1}
-        >
-            {children}
-        </View>
-    );
-}
 
 const Stack = createPlatformStackNavigator<RightModalNavigatorParamList, string>();
 
@@ -104,6 +88,21 @@ function SecondaryOverlay() {
 
 const loadRHPReportScreen = () => require<ReactComponentModule>('../../../../pages/inbox/RHPReportScreen').default;
 const loadSearchMoneyRequestReportPage = () => require<ReactComponentModule>('../../../../pages/Search/SearchMoneyRequestReportPage').default;
+
+function RHPDialogContainer({children}: {children: React.ReactNode}) {
+    const styles = useThemeStyles();
+    const {labelText} = useDialogLabelValue();
+    return (
+        <View
+            role={labelText ? CONST.ROLE.DIALOG : undefined}
+            aria-modal={labelText ? true : undefined}
+            accessibilityLabel={labelText}
+            style={styles.flex1}
+        >
+            {children}
+        </View>
+    );
+}
 
 function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth

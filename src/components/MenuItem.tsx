@@ -690,6 +690,10 @@ function MenuItem({
             return;
         }
 
+        if (event?.type === 'click') {
+            (event.currentTarget as HTMLElement).blur();
+        }
+
         if (onPress && event) {
             if (!singleExecution || !waitForNavigate) {
                 onPress(event);
