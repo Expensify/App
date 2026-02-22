@@ -330,7 +330,7 @@ function openReportFromDeepLink(
                                 return;
                             }
 
-                            const navigateHandler = async (reportParam?: OnyxEntry<Report>) => {
+                            const navigateHandler = (reportParam?: OnyxEntry<Report>) => {
                                 // Check if the report exists in the collection
                                 const report = reportParam ?? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
                                 // If the report does not exist, navigate to the last accessed report or Concierge chat
