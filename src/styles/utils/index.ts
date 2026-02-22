@@ -1481,13 +1481,13 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             if (isStrong) {
                 return isPressed ? styles.badgeSuccessStrongPressed : styles.badgeSuccessStrong;
             }
-            return isPressed ? styles.badgeSuccessPressed : styles.badgeSuccess;
+            return styles.badgeSuccess;
         }
         if (isError) {
             if (isStrong) {
                 return isPressed ? styles.badgeDangerStrongPressed : styles.badgeDangerStrong;
             }
-            return isPressed ? styles.badgeDangerPressed : styles.badgeDanger;
+            return styles.badgeDanger;
         }
         return {};
     },

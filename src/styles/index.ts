@@ -1010,11 +1010,6 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.success,
         },
 
-        badgeSuccessPressed: {
-            backgroundColor: theme.badgeSuccessBG,
-            borderColor: theme.badgeSuccessBG,
-        },
-
         badgeAdHocSuccess: {
             backgroundColor: theme.badgeAdHoc,
             minWidth: 28,
@@ -1033,20 +1028,8 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.danger,
         },
 
-        badgeDangerPressed: {
-            backgroundColor: theme.badgeDangerBG,
-            borderColor: theme.badgeDangerBG,
-        },
-
         badgeDefaultActive: {
             backgroundColor: theme.hoverComponentBG,
-        },
-
-        badgeBordered: {
-            borderWidth: 1,
-            borderRadius: variables.buttonBorderRadius,
-            paddingHorizontal: 12,
-            minHeight: 28,
         },
 
         badgeNewFeature: {

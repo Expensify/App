@@ -53,7 +53,7 @@ function DomainsListRow({title, isHovered, badgeText, brickRoadIndicator, menuIt
                         <Badge
                             text={badgeText}
                             textStyles={styles.textStrong}
-                            badgeStyles={[styles.alignSelfCenter, styles.badgeBordered]}
+                            badgeStyles={styles.alignSelfCenter}
                         />
                     </View>
                 )}
