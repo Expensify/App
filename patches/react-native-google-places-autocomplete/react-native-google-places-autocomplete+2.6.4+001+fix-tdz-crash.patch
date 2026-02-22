@@ -28,7 +28,17 @@ index 9fedd7e..027072d 100644
    // ==========================================================================
    // API REQUEST FUNCTIONS
    // ==========================================================================
-@@ -650,15 +660,51 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+@@ -556,6 +566,9 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+
+   const _request = (text) => {
+     _abortRequests();
++    // Clear stale results so ListEmptyComponent can render the loading spinner
++    _results = [];
++    setDataSource(buildRowsFromResults([]));
+     if (!url) {
+       return;
+     }
+@@ -650,15 +663,51 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
      }
    };
 
@@ -86,7 +96,7 @@ index 9fedd7e..027072d 100644
 
    const _onPress = (rowData) => {
      if (rowData.isPredefinedPlace !== true && fetchDetails === true) {
-@@ -667,7 +713,6 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+@@ -667,7 +716,6 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
          return;
        }
 
@@ -94,7 +104,7 @@ index 9fedd7e..027072d 100644
        Keyboard.dismiss();
 
        _abortRequests();
-@@ -776,6 +821,11 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+@@ -776,6 +824,11 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
      }
    };
 
@@ -106,7 +116,7 @@ index 9fedd7e..027072d 100644
    const _onChangeText = (text) => {
      setListWasDismissed(false);
      setStateText(text);
-@@ -792,56 +842,10 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+@@ -792,56 +845,10 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
      }
    };
 
@@ -163,7 +173,7 @@ index 9fedd7e..027072d 100644
    const _getRowLoader = () => {
      return <ActivityIndicator animating={true} size='small' />;
    };
-@@ -1010,15 +1014,17 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+@@ -1010,15 +1017,17 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
        return `item_${index}`;
      };
 
@@ -186,7 +196,7 @@ index 9fedd7e..027072d 100644
        (listViewDisplayed === true || (isAutoMode && !listWasDismissed));
 
      if (shouldShowList) {
-@@ -1078,11 +1084,6 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+@@ -1078,11 +1087,6 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
    // Keep requestRef updated
    requestRef.current = _request;
 
