@@ -1,5 +1,5 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {Platform, View} from 'react-native';
+import React, {useState} from 'react';
+import {View} from 'react-native';
 import Button from '@components/Button';
 import DraggableList from '@components/DraggableList';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -16,6 +16,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useResetFocusOnBlur from '@hooks/useResetFocusOnBlur';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -144,25 +145,7 @@ function SearchColumnsPage() {
         disableCyclicTraversal: true,
     });
 
-    const listContainerRef = useRef<View>(null);
-
-    useEffect(() => {
-        if (Platform.OS !== 'web') {
-            return;
-        }
-        const container = listContainerRef.current as unknown as HTMLElement | null;
-        if (!container) {
-            return;
-        }
-        const handleFocusOut = (event: FocusEvent) => {
-            if (event.relatedTarget instanceof Node && container.contains(event.relatedTarget)) {
-                return;
-            }
-            setFocusedIndex(-1);
-        };
-        container.addEventListener('focusout', handleFocusOut);
-        return () => container.removeEventListener('focusout', handleFocusOut);
-    }, [setFocusedIndex]);
+    const listContainerRef = useResetFocusOnBlur(setFocusedIndex);
 
     const groupLength = groupBy ? groupColumnsList.length : 0;
     const groupFocusedIndex = focusedIndex >= 0 && focusedIndex < groupLength ? focusedIndex : -1;

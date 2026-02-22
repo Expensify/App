@@ -12,7 +12,22 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import SortableItem from './SortableItem';
 import type DraggableListProps from './types';
-import {getDraggableItemState} from './types';
+
+type DraggableItemState = {
+    isDragDisabled: boolean;
+    isDisabled: boolean;
+};
+
+function getDraggableItemState(item: unknown): DraggableItemState {
+    if (!item || typeof item !== 'object') {
+        return {isDragDisabled: false, isDisabled: false};
+    }
+
+    return {
+        isDragDisabled: 'isDragDisabled' in item && !!item.isDragDisabled,
+        isDisabled: 'isDisabled' in item && !!item.isDisabled,
+    };
+}
 
 const minimumActivationDistance = 5; // pointer must move at least this much before starting to drag
 
