@@ -19,6 +19,7 @@ import ActivateCard from './items/ActivateCard';
 import AddShippingAddress from './items/AddShippingAddress';
 import FixAccountingConnection from './items/FixAccountingConnection';
 import FixCompanyCardConnection from './items/FixCompanyCardConnection';
+import FixPersonalCardConnection from './items/FixPersonalCardConnection';
 import Offer25off from './items/Offer25off';
 import Offer50off from './items/Offer50off';
 import ReviewCardFraud from './items/ReviewCardFraud';
@@ -41,6 +42,11 @@ type BrokenCompanyCardConnection = {
     /** The policy name associated with this connection */
     policyName: string;
 
+    /** The card ID associated with this connection */
+    cardID: string;
+};
+
+type BrokenPersonalCardConnection = {
     /** The card ID associated with this connection */
     cardID: string;
 };
@@ -111,7 +117,19 @@ function TimeSensitiveSection() {
         }
     }
 
+    // Get personal cards with broken connections
+    const brokenPersonalCardConnections: BrokenPersonalCardConnection[] = [];
+    const personalCardsWithBrokenConnection = cardFeedErrors.personalCardsWithBrokenConnection;
+    if (personalCardsWithBrokenConnection) {
+        for (const card of Object.values(personalCardsWithBrokenConnection)) {
+            brokenPersonalCardConnections.push({
+                cardID: String(card.cardID),
+            });
+        }
+    }
+
     const hasBrokenCompanyCards = brokenCompanyCardConnections.length > 0;
+    const hasBrokenPersonalCards = brokenPersonalCardConnections.length > 0;
     const hasBrokenAccountingConnections = brokenAccountingConnections.length > 0;
     // This guard must exactly match the conditions used to render each widget below.
     // If a widget has additional conditions in the render (e.g. && !!discountInfo), those
@@ -121,6 +139,7 @@ function TimeSensitiveSection() {
         shouldShow50off ||
         (shouldShow25off && !!discountInfo) ||
         hasBrokenCompanyCards ||
+        hasBrokenPersonalCards ||
         hasBrokenAccountingConnections ||
         shouldShowAddShippingAddress ||
         shouldShowActivateCard;
@@ -132,10 +151,11 @@ function TimeSensitiveSection() {
     // Priority order:
     // 1. Potential card fraud
     // 2. Broken bank connections (company cards)
-    // 3. Broken accounting connections
-    // 4. Early adoption discount (50% or 25%)
-    // 5. Expensify card shipping
-    // 6. Expensify card activation
+    // 3. Broken bank connections (personal cards)
+    // 4. Broken accounting connections
+    // 5. Early adoption discount (50% or 25%)
+    // 6. Expensify card shipping
+    // 7. Expensify card activation
     return (
         <WidgetContainer title={translate('homePage.timeSensitiveSection.title')}>
             <View style={styles.getForYouSectionContainerStyle(shouldUseNarrowLayout)}>
@@ -169,7 +189,21 @@ function TimeSensitiveSection() {
                     );
                 })}
 
-                {/* Priority 3: Broken accounting connections */}
+                {/* Priority 3: Broken personal card connections */}
+                {brokenPersonalCardConnections.map((connection) => {
+                    const card = cardFeedErrors.personalCardsWithBrokenConnection[connection.cardID];
+                    if (!card) {
+                        return null;
+                    }
+                    return (
+                        <FixPersonalCardConnection
+                            key={`card-${connection.cardID}`}
+                            card={card}
+                        />
+                    );
+                })}
+
+                {/* Priority 4: Broken accounting connections */}
                 {brokenAccountingConnections.map((connection) => (
                     <FixAccountingConnection
                         key={`accounting-${connection.policyID}-${connection.connectionName}`}
@@ -179,11 +213,11 @@ function TimeSensitiveSection() {
                     />
                 ))}
 
-                {/* Priority 4: Early adoption discount offers */}
+                {/* Priority 5: Early adoption discount offers */}
                 {shouldShow50off && <Offer50off firstDayFreeTrial={firstDayFreeTrial} />}
                 {shouldShow25off && !!discountInfo && <Offer25off days={discountInfo.days} />}
 
-                {/* Priority 5: Expensify card shipping */}
+                {/* Priority 6: Expensify card shipping */}
                 {shouldShowAddShippingAddress &&
                     cardsNeedingShippingAddress.map((card) => (
                         <AddShippingAddress
@@ -192,7 +226,7 @@ function TimeSensitiveSection() {
                         />
                     ))}
 
-                {/* Priority 6: Expensify card activation */}
+                {/* Priority 7: Expensify card activation */}
                 {shouldShowActivateCard &&
                     cardsNeedingActivation.map((card) => (
                         <ActivateCard

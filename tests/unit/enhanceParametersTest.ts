@@ -6,6 +6,12 @@ import enhanceParameters from '../../src/libs/Network/enhanceParameters';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+beforeAll(() => {
+    Onyx.init({
+        keys: ONYXKEYS,
+    });
+});
+
 beforeEach(() => Onyx.clear());
 
 test('Enhance parameters adds correct parameters for Log command with no authToken', () => {

@@ -195,6 +195,7 @@ function ExpenseRulesPage() {
                 icon={icons.Plus}
                 text={translate('expenseRulesPage.newRule')}
                 style={[shouldUseNarrowLayout && styles.flex1]}
+                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_RULES.NEW_RULE}
             />
         </View>
     );

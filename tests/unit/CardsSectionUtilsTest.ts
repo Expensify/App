@@ -105,6 +105,7 @@ describe('CardSectionUtils', () => {
                 creditCardEyesIcon,
                 fundList: undefined,
                 billingStatus: undefined,
+                amountOwed: AMOUNT_OWED,
                 ownerBillingGraceEndPeriod: undefined,
             }),
         ).toBeUndefined();
@@ -125,6 +126,7 @@ describe('CardSectionUtils', () => {
                 creditCardEyesIcon,
                 fundList: undefined,
                 billingStatus: undefined,
+                amountOwed: AMOUNT_OWED,
                 ownerBillingGraceEndPeriod: GRACE_PERIOD_DATE,
             }),
         ).toEqual({
@@ -163,6 +165,7 @@ describe('CardSectionUtils', () => {
                 creditCardEyesIcon,
                 fundList: undefined,
                 billingStatus: undefined,
+                amountOwed: AMOUNT_OWED,
                 ownerBillingGraceEndPeriod: GRACE_PERIOD_DATE,
             }),
         ).toEqual({
@@ -189,6 +192,7 @@ describe('CardSectionUtils', () => {
                 creditCardEyesIcon,
                 fundList: undefined,
                 billingStatus: undefined,
+                amountOwed: AMOUNT_OWED,
                 ownerBillingGraceEndPeriod: GRACE_PERIOD_DATE,
             }),
         ).toEqual({
@@ -215,6 +219,7 @@ describe('CardSectionUtils', () => {
                 creditCardEyesIcon,
                 fundList: undefined,
                 billingStatus: undefined,
+                amountOwed: AMOUNT_OWED,
                 ownerBillingGraceEndPeriod: GRACE_PERIOD_DATE,
             }),
         ).toEqual({
@@ -241,6 +246,7 @@ describe('CardSectionUtils', () => {
                 creditCardEyesIcon,
                 fundList: undefined,
                 billingStatus: undefined,
+                amountOwed: AMOUNT_OWED,
                 ownerBillingGraceEndPeriod: GRACE_PERIOD_DATE,
             }),
         ).toEqual({
@@ -267,6 +273,7 @@ describe('CardSectionUtils', () => {
                 creditCardEyesIcon,
                 fundList: undefined,
                 billingStatus: undefined,
+                amountOwed: AMOUNT_OWED,
                 ownerBillingGraceEndPeriod: GRACE_PERIOD_DATE,
             }),
         ).toEqual({
@@ -293,6 +300,7 @@ describe('CardSectionUtils', () => {
                 creditCardEyesIcon,
                 fundList: undefined,
                 billingStatus: undefined,
+                amountOwed: AMOUNT_OWED,
                 ownerBillingGraceEndPeriod: GRACE_PERIOD_DATE,
             }),
         ).toEqual({
@@ -319,6 +327,7 @@ describe('CardSectionUtils', () => {
                 creditCardEyesIcon,
                 fundList: undefined,
                 billingStatus: undefined,
+                amountOwed: AMOUNT_OWED,
                 ownerBillingGraceEndPeriod: GRACE_PERIOD_DATE,
             }),
         ).toEqual({
@@ -345,6 +354,7 @@ describe('CardSectionUtils', () => {
                 creditCardEyesIcon,
                 fundList: undefined,
                 billingStatus: undefined,
+                amountOwed: AMOUNT_OWED,
                 ownerBillingGraceEndPeriod: GRACE_PERIOD_DATE,
             }),
         ).toEqual({
@@ -365,6 +375,7 @@ describe('CardSectionUtils', () => {
                 creditCardEyesIcon,
                 fundList: undefined,
                 billingStatus: undefined,
+                amountOwed: AMOUNT_OWED,
                 ownerBillingGraceEndPeriod: GRACE_PERIOD_DATE,
             }),
         ).toEqual({
@@ -391,6 +402,7 @@ describe('CardSectionUtils', () => {
                 creditCardEyesIcon,
                 fundList: undefined,
                 billingStatus: undefined,
+                amountOwed: AMOUNT_OWED,
                 ownerBillingGraceEndPeriod: GRACE_PERIOD_DATE,
             }),
         ).toEqual({
@@ -417,6 +429,7 @@ describe('CardSectionUtils', () => {
                 creditCardEyesIcon,
                 fundList: undefined,
                 billingStatus: undefined,
+                amountOwed: AMOUNT_OWED,
                 ownerBillingGraceEndPeriod: GRACE_PERIOD_DATE,
             }),
         ).toEqual({
@@ -443,6 +456,7 @@ describe('CardSectionUtils', () => {
                 creditCardEyesIcon,
                 fundList: undefined,
                 billingStatus: undefined,
+                amountOwed: AMOUNT_OWED,
                 ownerBillingGraceEndPeriod: GRACE_PERIOD_DATE,
             }),
         ).toEqual({
