@@ -7,7 +7,7 @@ import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'r
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
-import InvertedFlatList from '@components/InvertedFlatList';
+import FlatList from '@components/FlatList';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -171,7 +171,7 @@ function ReportActionsList({
     const {getLocalDateFromDatetime} = useLocalize();
     const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
-    const reportScrollManager = useReportScrollManager();
+    const reportScrollManager = useReportScrollManager(false);
     const userActiveSince = useRef<string>(DateUtils.getDBTime());
     const lastMessageTime = useRef<string | null>(null);
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
@@ -362,7 +362,7 @@ function ReportActionsList({
         currentVerticalScrollingOffsetRef: scrollingVerticalOffset,
         readActionSkippedRef: readActionSkipped,
         unreadMarkerReportActionIndex,
-        isInverted: true,
+        isInverted: false,
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
             onScroll?.(event);
@@ -813,6 +813,7 @@ function ReportActionsList({
     // While reportActions are loading, use the last reportAction as a fallback
     // since it’s available before the rest finish loading.
     const reportActionsToRender = useMemo(() => (shouldShowSkeleton ? sortedVisibleReportActions.slice(0, 1) : sortedVisibleReportActions), [shouldShowSkeleton, sortedVisibleReportActions]);
+    const flatListData = useMemo(() => [...reportActionsToRender].reverse(), [reportActionsToRender]);
 
     const listFooterComponent = useMemo(() => {
         if (!shouldShowSkeleton) {
@@ -838,17 +839,25 @@ function ReportActionsList({
 
     const onStartReached = useCallback(() => {
         if (!isSearchTopmostFullScreenRoute()) {
-            loadNewerChats(false);
+            loadOlderChats(false);
             return;
         }
 
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => requestAnimationFrame(() => loadNewerChats(false)));
-    }, [loadNewerChats]);
+        InteractionManager.runAfterInteractions(() => requestAnimationFrame(() => loadOlderChats(false)));
+    }, [loadOlderChats]);
 
     const onEndReached = useCallback(() => {
-        loadOlderChats(false);
-    }, [loadOlderChats]);
+        loadNewerChats(false);
+    }, [loadNewerChats]);
+
+    const renderFlatListItem = useCallback(
+        ({item}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
+            const originalIndex = sortedVisibleReportActions.findIndex((action) => action.reportActionID === item.reportActionID);
+            return renderItem({item, index: originalIndex >= 0 ? originalIndex : 0} as ListRenderItemInfo<OnyxTypes.ReportAction>);
+        },
+        [renderItem, sortedVisibleReportActions],
+    );
 
     return (
         <>
@@ -862,15 +871,15 @@ function ReportActionsList({
                 fsClass={reportActionsListFSClass}
             >
                 {shouldScrollToEndAfterLayout && topReportAction ? renderTopReportActions() : undefined}
-                <InvertedFlatList
+                <FlatList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                     ref={reportScrollManager.ref}
                     testID="report-actions-list"
                     style={styles.overscrollBehaviorContain}
-                    data={reportActionsToRender}
-                    renderItem={renderItem}
+                    data={flatListData}
+                    renderItem={renderFlatListItem}
                     renderScrollComponent={renderActionSheetAwareScrollView}
-                    contentContainerStyle={[styles.chatContentScrollView, shouldFocusToTopOnMount ? styles.justifyContentEnd : undefined]}
+                    contentContainerStyle={styles.chatContentScrollView}
                     shouldHideContent={shouldScrollToEndAfterLayout}
                     shouldDisableVisibleContentPosition={shouldScrollToEndAfterLayout}
                     showsVerticalScrollIndicator={!shouldScrollToEndAfterLayout}
@@ -889,8 +898,6 @@ function ReportActionsList({
                     onScrollToIndexFailed={onScrollToIndexFailed}
                     extraData={extraData}
                     key={listID}
-                    shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScrollToTopThreshold}
-                    initialScrollKey={reportActionID}
                     onContentSizeChange={() => {
                         trackVerticalScrolling(undefined);
                     }}

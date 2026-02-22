@@ -4,7 +4,7 @@ import type {ScrollView} from 'react-native';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import type ReportScrollManagerData from './types';
 
-function useReportScrollManager(): ReportScrollManagerData {
+function useReportScrollManager(isInverted = true): ReportScrollManagerData {
     const {flatListRef, setScrollPosition} = useContext(ActionListContext);
 
     /**
@@ -22,18 +22,21 @@ function useReportScrollManager(): ReportScrollManagerData {
     );
 
     /**
-     * Scroll to the bottom of the inverted FlatList.
-     * When FlatList is inverted it's "bottom" is really it's top
+     * Scroll to the visual bottom of the list.
      */
     const scrollToBottom = useCallback(() => {
         if (!flatListRef?.current) {
             return;
         }
 
-        setScrollPosition({offset: 0});
+        if (isInverted) {
+            setScrollPosition({offset: 0});
+            flatListRef.current.scrollToOffset({animated: false, offset: 0});
+            return;
+        }
 
-        flatListRef.current?.scrollToOffset({animated: false, offset: 0});
-    }, [flatListRef, setScrollPosition]);
+        flatListRef.current.scrollToEnd({animated: false});
+    }, [flatListRef, isInverted, setScrollPosition]);
 
     /**
      * Scroll to the end of the FlatList.
