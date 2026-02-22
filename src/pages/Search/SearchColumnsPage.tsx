@@ -33,6 +33,7 @@ type ColumnItem = {
     isSelected: boolean;
     isDisabled: boolean;
     isDragDisabled: boolean;
+    tabIndex?: 0 | -1;
     leftElement: React.JSX.Element;
 };
 
