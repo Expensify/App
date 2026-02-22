@@ -71,10 +71,9 @@ function UserListItem<TItem extends ListItem>({
     const shouldUseIconPolicyID = !item.reportID && !item.accountID && !item.policyID;
     const policyID = isThereOnlyWorkspaceIcon && shouldUseIconPolicyID ? String(item.icons?.at(0)?.id) : item.policyID;
 
-    // When rightHandSideComponent exists (e.g., "Add to group" button), disable tile-level
-    // accessible grouping so VoiceOver can focus the button independently. On iOS, accessible={true}
-    // on PressableWithFeedback absorbs all children into one element.
-    const shouldDisableAccessibleGrouping = !!rightHandSideComponent && !canSelectMultiple;
+    // Disable accessible grouping when a right-side button is visible, so VoiceOver can focus it independently.
+    const renderedRightComponent = typeof rightHandSideComponent === 'function' ? rightHandSideComponent(item, isFocused) : rightHandSideComponent;
+    const shouldDisableAccessibleGrouping = !!renderedRightComponent && !canSelectMultiple;
     const contactAccessibilityLabel = item.text === item.alternateText ? (item.text ?? '') : [item.text, item.alternateText].filter(Boolean).join(', ');
 
     return (
@@ -88,7 +87,7 @@ function UserListItem<TItem extends ListItem>({
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
-            rightHandSideComponent={rightHandSideComponent}
+            rightHandSideComponent={renderedRightComponent}
             errors={item.errors}
             pendingAction={item.pendingAction}
             pressableStyle={pressableStyle}
