@@ -42,6 +42,7 @@ type SelectPaymentTypeParams = {
     iouReport?: OnyxEntry<Report>;
     iouReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
     betas: OnyxEntry<Beta[]>;
+    userBillingGraceEndPeriodCollection: OnyxCollection<BillingGraceEndPeriod>;
 };
 
 /**
@@ -178,8 +179,9 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         iouReport,
         iouReportNextStep,
         betas,
+        userBillingGraceEndPeriodCollection,
     } = params;
-    if (policy && shouldRestrictUserBillableActions(policy.id)) {
+    if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriodCollection)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
         return;
     }
@@ -197,7 +199,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         if (confirmApproval) {
             confirmApproval();
         } else {
-            approveMoneyRequest(iouReport, policy, currentAccountID, currentEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, betas, true);
+            approveMoneyRequest(iouReport, policy, currentAccountID, currentEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, betas, userBillingGraceEndPeriodCollection, true);
         }
         return;
     }

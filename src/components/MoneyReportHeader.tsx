@@ -1825,6 +1825,7 @@ function MoneyReportHeader({
             iouReport: moneyRequestReport,
             iouReportNextStep: nextStep,
             betas,
+            userBillingGraceEndPeriodCollection,
         });
 
     const showNextStepBar = shouldShowNextStep && !!(optimisticNextStep?.message?.length ?? (optimisticNextStep && 'messageKey' in optimisticNextStep));
