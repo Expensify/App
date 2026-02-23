@@ -1058,8 +1058,8 @@ function deleteTask(
     currentUserAccountID: number,
     hasOutstandingChildTask: boolean,
     parentReportAction: OnyxEntry<ReportAction>,
-    ancestors: ReportUtils.Ancestor[] = [],
     conciergeReportID: string | undefined,
+    ancestors: ReportUtils.Ancestor[] = [],
 ) {
     if (!report) {
         return;

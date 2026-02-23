@@ -946,7 +946,7 @@ describe('actions/Task', () => {
         });
 
         it('should return early when report is undefined', () => {
-            deleteTask(undefined, undefined, false, mockCurrentUserAccountID, false, undefined, [], 'concierge_123');
+            deleteTask(undefined, undefined, false, mockCurrentUserAccountID, false, undefined, 'concierge_123');
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             expect(API.write).not.toHaveBeenCalled();
         });
@@ -986,7 +986,7 @@ describe('actions/Task', () => {
 
             doesReportHaveVisibleActionsSpy.mockReturnValue(true);
 
-            deleteTask(taskReport, parentReport, false, mockCurrentUserAccountID, false, parentReportAction, [], 'concierge_123');
+            deleteTask(taskReport, parentReport, false, mockCurrentUserAccountID, false, parentReportAction, 'concierge_123');
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             expect(API.write).toHaveBeenCalledWith(
@@ -1030,7 +1030,7 @@ describe('actions/Task', () => {
             // No visible actions means the task report should be deleted
             doesReportHaveVisibleActionsSpy.mockReturnValue(false);
 
-            const result = deleteTask(taskReport, parentReport, false, mockCurrentUserAccountID, false, undefined, [], 'concierge_123');
+            const result = deleteTask(taskReport, parentReport, false, mockCurrentUserAccountID, false, undefined, 'concierge_123');
 
             expect(result).toBe(`r/${parentReportID}`);
             expect(Navigation.goBack).toHaveBeenCalled();
@@ -1058,7 +1058,7 @@ describe('actions/Task', () => {
             doesReportHaveVisibleActionsSpy.mockReturnValue(false);
             getMostRecentReportIDSpy.mockReturnValue(conciergeReportID);
 
-            const result = deleteTask(taskReport, undefined, false, mockCurrentUserAccountID, false, undefined, [], conciergeReportID);
+            const result = deleteTask(taskReport, undefined, false, mockCurrentUserAccountID, false, undefined, conciergeReportID);
 
             expect(result).toBe(`r/${conciergeReportID}`);
             expect(getMostRecentReportIDSpy).toHaveBeenCalledWith(taskReport, conciergeReportID);
@@ -1093,7 +1093,7 @@ describe('actions/Task', () => {
             // Has visible actions, so should not navigate away
             doesReportHaveVisibleActionsSpy.mockReturnValue(true);
 
-            const result = deleteTask(taskReport, parentReport, false, mockCurrentUserAccountID, false, undefined, [], 'concierge_123');
+            const result = deleteTask(taskReport, parentReport, false, mockCurrentUserAccountID, false, undefined, 'concierge_123');
 
             expect(result).toBeUndefined();
             expect(Navigation.goBack).not.toHaveBeenCalled();
@@ -1120,7 +1120,7 @@ describe('actions/Task', () => {
             doesReportHaveVisibleActionsSpy.mockReturnValue(false);
             getMostRecentReportIDSpy.mockReturnValue(undefined);
 
-            const result = deleteTask(taskReport, undefined, false, mockCurrentUserAccountID, false, undefined, [], undefined);
+            const result = deleteTask(taskReport, undefined, false, mockCurrentUserAccountID, false, undefined, undefined);
 
             // API.write should still be called
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
