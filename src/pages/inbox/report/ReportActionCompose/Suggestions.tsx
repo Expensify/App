@@ -1,10 +1,10 @@
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useContext, useEffect, useImperativeHandle, useRef} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useRef} from 'react';
 import type {TextInputSelectionChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
 import type {TextSelection} from '@components/Composer/types';
-import {DragAndDropContext} from '@components/DragAndDrop/Provider';
+import {useDragAndDropState} from '@components/DragAndDrop/Provider';
 import usePrevious from '@hooks/usePrevious';
 import type {SuggestionsRef} from './ReportActionCompose';
 import SuggestionEmoji from './SuggestionEmoji';
@@ -68,7 +68,7 @@ function Suggestions({
 }: SuggestionProps) {
     const suggestionEmojiRef = useRef<SuggestionsRef>(null);
     const suggestionMentionRef = useRef<SuggestionsRef>(null);
-    const {isDraggingOver} = useContext(DragAndDropContext);
+    const {isDraggingOver} = useDragAndDropState();
     const prevIsDraggingOver = usePrevious(isDraggingOver);
 
     const getSuggestions = useCallback(() => {

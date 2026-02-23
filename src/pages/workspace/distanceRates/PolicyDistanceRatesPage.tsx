@@ -412,6 +412,7 @@ function PolicyDistanceRatesPage({
                     <Button
                         text={translate('workspace.distanceRates.addRate')}
                         onPress={addRate}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.ADD_BUTTON}
                         style={[shouldUseNarrowLayout && styles.flex1]}
                         icon={Expensicons.Plus}
                         success
@@ -421,6 +422,7 @@ function PolicyDistanceRatesPage({
                         onPress={() => {}}
                         shouldUseOptionIcon
                         customText={translate('common.more')}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.MORE_DROPDOWN}
                         options={secondaryActions}
                         isSplitButton={false}
                         wrapperStyle={styles.flexGrow0}
@@ -438,6 +440,7 @@ function PolicyDistanceRatesPage({
                     wrapperStyle={styles.w100}
                     isSplitButton={false}
                     isDisabled={!selectedDistanceRates.length}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.BULK_ACTIONS_DROPDOWN}
                 />
             )}
         </View>

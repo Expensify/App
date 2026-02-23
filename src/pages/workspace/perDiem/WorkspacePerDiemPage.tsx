@@ -351,6 +351,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     isSplitButton={false}
                     style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
                     isDisabled={!selectedPerDiem.length}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.PER_DIEM.BULK_ACTIONS_DROPDOWN}
                 />
             );
         }
@@ -365,6 +366,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     options={secondaryActions}
                     isSplitButton={false}
                     wrapperStyle={styles.flexGrow1}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.PER_DIEM.MORE_DROPDOWN}
                 />
             </View>
         );

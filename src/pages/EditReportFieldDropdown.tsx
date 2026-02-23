@@ -1,7 +1,7 @@
 import React from 'react';
 import Icon from '@components/Icon';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
-import SelectionList from '@components/SelectionList/SelectionListWithSections';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {ListItem} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -73,7 +73,7 @@ function EditReportFieldDropdown({onSubmit, fieldKey, fieldValue, fieldOptions}:
     };
 
     return (
-        <SelectionList
+        <SelectionListWithSections
             sections={sections ?? []}
             ListItem={RadioListItem}
             shouldShowTextInput
@@ -81,7 +81,6 @@ function EditReportFieldDropdown({onSubmit, fieldKey, fieldValue, fieldOptions}:
             onSelectRow={(option) => onSubmit({[fieldKey]: !option?.text || fieldValue === option.text ? '' : option.text})}
             initiallyFocusedItemKey={selectedOptionKey}
             rightHandSideComponent={itemRightSideComponent}
-            disableMaintainingScrollPosition
         />
     );
 }
