@@ -16,6 +16,7 @@ type LHNAvatarProps = {
     subscriptAvatarBorderColor?: ColorValue;
     useMidSubscriptSize?: boolean;
     shouldShowTooltip?: boolean;
+    delegateAccountID?: number;
 };
 
 /**
@@ -31,6 +32,7 @@ function LHNAvatar({
     subscriptAvatarBorderColor,
     useMidSubscriptSize,
     shouldShowTooltip = false,
+    delegateAccountID,
 }: LHNAvatarProps) {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -52,6 +54,7 @@ function LHNAvatar({
                 size={size}
                 containerStyles={singleAvatarContainerStyle}
                 fallbackIcon={primaryIcon.fallbackIcon}
+                delegateAccountID={delegateAccountID}
             />
         );
     }

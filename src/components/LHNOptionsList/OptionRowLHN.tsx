@@ -5,7 +5,7 @@ import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {useSession} from '@components/OnyxListItemProvider';
+import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import Text from '@components/Text';
@@ -26,6 +26,7 @@ import FS from '@libs/Fullstory';
 import {shouldOptionShowTooltip, shouldUseBoldText} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import {getDelegateAccountIDFromReportAction} from '@libs/ReportActionsUtils';
 import {isAdminRoom, isChatUsedForOnboarding as isChatUsedForOnboardingReportUtils, isConciergeChatReport, isGroupChat, isOneOnOneChat, isSystemChat} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
@@ -34,6 +35,7 @@ import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Icon as OnyxIcon} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import LHNAvatar from './LHNAvatar';
 import type {OptionRowLHNProps} from './types';
@@ -87,6 +89,7 @@ function OptionRowLHN({
     const {translate} = useLocalize();
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const personalDetails = usePersonalDetails();
 
     const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
     const sidebarInnerRowStyle = StyleSheet.flatten<ViewStyle>(
@@ -99,6 +102,32 @@ function OptionRowLHN({
         () => containsCustomEmojiUtils(optionItem?.alternateText) && !containsOnlyCustomEmoji(optionItem?.alternateText),
         [optionItem?.alternateText],
     );
+
+    const delegateAccountID = useMemo(
+        () => getDelegateAccountIDFromReportAction(optionItem?.parentReportAction),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [optionItem?.parentReportAction],
+    );
+
+    const icons = useMemo<OnyxIcon[]>(() => {
+        const baseIcons = optionItem?.icons ?? [];
+        if (!delegateAccountID) {
+            return baseIcons;
+        }
+        const delegateDetails = personalDetails?.[delegateAccountID];
+        if (!delegateDetails) {
+            return baseIcons;
+        }
+        const delegateIcon: OnyxIcon = {
+            source: delegateDetails.avatar ?? '',
+            name: delegateDetails.displayName,
+            id: delegateDetails.accountID,
+            type: CONST.ICON_TYPE_AVATAR,
+            fill: undefined,
+            fallbackIcon: baseIcons.at(0)?.fallbackIcon,
+        };
+        return [delegateIcon, ...baseIcons.slice(1)];
+    }, [delegateAccountID, optionItem?.icons, personalDetails]);
 
     const singleAvatarContainerStyle = [styles.actionAvatar, styles.mr3];
 
@@ -266,7 +295,7 @@ function OptionRowLHN({
                                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                             {!!optionItem.icons?.length && !!firstIcon && (
                                                 <LHNAvatar
-                                                    icons={optionItem.icons ?? []}
+                                                    icons={icons}
                                                     shouldShowSubscript={!!optionItem.shouldShowSubscript}
                                                     size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                                     subscriptAvatarBorderColor={hovered && !isOptionFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
@@ -274,6 +303,7 @@ function OptionRowLHN({
                                                     secondaryAvatarBackgroundColor={secondaryAvatarBgColor}
                                                     singleAvatarContainerStyle={singleAvatarContainerStyle}
                                                     shouldShowTooltip={shouldOptionShowTooltip(optionItem)}
+                                                    delegateAccountID={delegateAccountID}
                                                 />
                                             )}
                                             <View style={contentContainerStyles}>

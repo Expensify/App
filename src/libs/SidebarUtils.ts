@@ -764,10 +764,9 @@ function getOptionData({
     result.isPolicyExpenseChat = isPolicyExpenseChat(report);
     result.isExpenseRequest = isExpenseRequest(report);
     result.isMoneyRequestReport = isMoneyRequestReport(report);
-    // Chat threads (non-expense-request) should not show subscript in LHN even if shouldReportShowSubscript
+    // Chat threads and workspace tasks should not show subscript in LHN even if shouldReportShowSubscript
     // returns true — the workspace icon is suppressed to show only the actor avatar.
-    result.shouldShowSubscript =
-        shouldReportShowSubscript(report, isReportArchived) && !(isChatThread(report) && !isTripRoom(report) && !isExpenseRequest(report)) && !isWorkspaceTaskReport(report);
+    result.shouldShowSubscript = shouldReportShowSubscript(report, isReportArchived) && !(isChatThread(report) && !isTripRoom(report)) && !isWorkspaceTaskReport(report);
     result.pendingAction = report.pendingFields?.addWorkspaceRoom ?? report.pendingFields?.createChat;
     result.brickRoadIndicator = reportAttributes?.brickRoadStatus;
     result.ownerAccountID = report.ownerAccountID;
@@ -1155,13 +1154,14 @@ function getOptionData({
         isReportArchived,
     );
 
-    // When subscript is not shown and icons are a mixed person+workspace pair,
-    // trim to a single icon (e.g. workspace chat threads show only the actor avatar, not actor+workspace).
-    // Same-type pairs (person+person or workspace+workspace) are kept for diagonal rendering.
+    // When subscript is not shown, trim to a single icon in two cases:
+    //  1. Mixed-type pair (person+workspace) — e.g. workspace chat thread shows only the actor avatar.
+    //  2. More than 2 icons — diagonal rendering only applies to exactly 2 same-type icons (IOU or
+    //     B2B invoice). Multi-participant chats may return many AVATAR icons; those must show as single.
     if (!result.shouldShowSubscript && result.icons.length > 1) {
         const primaryIcon = result.icons.at(0);
         const secondaryIcon = result.icons.at(1);
-        if (primaryIcon?.type !== secondaryIcon?.type) {
+        if (primaryIcon?.type !== secondaryIcon?.type || result.icons.length > 2) {
             result.icons = result.icons.slice(0, 1);
         }
     }
