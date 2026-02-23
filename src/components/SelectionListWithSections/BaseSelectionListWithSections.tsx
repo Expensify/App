@@ -621,7 +621,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
                         <Checkbox
                             testID="selection-list-select-all-checkbox"
-                            accessibilityLabel={translate('workspace.people.selectAll')}
+                            accessibilityLabel={translate('accessibilityHints.selectAllItems')}
                             isChecked={flattenedSections.allSelected}
                             isIndeterminate={flattenedSections.someSelected}
                             onPress={selectAllRow}
@@ -631,7 +631,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                             <PressableWithFeedback
                                 style={[styles.userSelectNone, styles.flexRow, styles.alignItemsCenter]}
                                 onPress={selectAllRow}
-                                accessibilityLabel={translate('workspace.people.selectAll')}
+                                accessibilityLabel={translate('accessibilityHints.selectAllItems')}
                                 sentryLabel={CONST.SENTRY_LABEL.SELECTION_LIST_WITH_SECTIONS.SELECT_ALL}
                                 role="button"
                                 accessibilityState={{checked: flattenedSections.allSelected}}

@@ -45,9 +45,9 @@ function WorkspaceResetBankAccountModal({
 }: WorkspaceResetBankAccountModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const policyID = reimbursementAccount?.achData?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const achData = reimbursementAccount?.achData;
     const isInOpenState = achData?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
     const bankAccountID = achData?.bankAccountID;
@@ -60,7 +60,6 @@ function WorkspaceResetBankAccountModal({
     const [lastPaymentMethod] = useOnyx(
         ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
         {
-            canBeMissing: true,
             selector: lastPaymentMethodSelector,
         },
         [lastPaymentMethodSelector],
