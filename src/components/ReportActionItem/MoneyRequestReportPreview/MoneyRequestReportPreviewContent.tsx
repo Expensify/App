@@ -11,6 +11,7 @@ import Button from '@components/Button';
 import {getButtonRole} from '@components/Button/utils';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import ExpenseHeaderApprovalButton from '@components/ExpenseHeaderApprovalButton';
 import Icon from '@components/Icon';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -18,7 +19,6 @@ import MoneyReportHeaderStatusBarSkeleton from '@components/MoneyReportHeaderSta
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
 import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
 import ExportWithDropdownMenu from '@components/ReportActionItem/ExportWithDropdownMenu';
 import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
@@ -171,7 +171,6 @@ function MoneyRequestReportPreviewContent({
         usePaymentAnimations();
     const {showConfirmModal} = useConfirmModal();
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
-    const [requestType, setRequestType] = useState<ActionHandledType>();
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const isIouReportArchived = useReportIsArchived(iouReportID);
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
@@ -246,7 +245,6 @@ function MoneyRequestReportPreviewContent({
                 return;
             }
             setPaymentType(type);
-            setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
             if (isDelegateAccessRestricted) {
                 showDelegateNoAccessModal();
             } else if (hasHeldExpensesReportUtils(iouReport?.reportID)) {
@@ -320,12 +318,9 @@ function MoneyRequestReportPreviewContent({
             showDEWModal();
             return;
         }
-        setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
-        } else if (hasHeldExpensesReportUtils(iouReport?.reportID)) {
-            setIsHoldMenuVisible(true);
-        } else {
+        } else if (!hasHeldExpensesReportUtils(iouReport?.reportID)) {
             startApprovedAnimation();
             approveMoneyRequest(iouReport, activePolicy, currentUserAccountID, currentUserEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, betas, true);
         }
@@ -636,11 +631,31 @@ function MoneyRequestReportPreviewContent({
             />
         ),
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE]: (
-            <Button
-                text={translate('iou.approve')}
-                success
-                onPress={() => confirmApproval()}
-                sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.APPROVE_BUTTON}
+            <ExpenseHeaderApprovalButton
+                isAnyTransactionOnHold={hasHeldExpensesReportUtils(iouReport?.reportID)}
+                isDelegateAccessRestricted={isDelegateAccessRestricted}
+                hasOnlyHeldExpenses={hasOnlyHeldExpenses}
+                hasValidNonHeldAmount={hasValidNonHeldAmount}
+                nonHeldAmount={nonHeldAmount}
+                fullAmount={fullAmount}
+                onApprove={(isFullApproval) => {
+                    if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
+                        showDEWModal();
+                        return;
+                    }
+                    startApprovedAnimation();
+                    approveMoneyRequest(
+                        iouReport,
+                        activePolicy,
+                        currentUserDetails.accountID,
+                        currentUserDetails.email ?? '',
+                        hasViolations,
+                        isASAPSubmitBetaEnabled,
+                        iouReportNextStep,
+                        betas,
+                        isFullApproval,
+                    );
+                }}
             />
         ),
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY]: (
@@ -930,28 +945,21 @@ function MoneyRequestReportPreviewContent({
                         </View>
                     </PressableWithoutFeedback>
                 </View>
-                {isHoldMenuVisible && !!iouReport && !!requestType && (
-                    <ProcessMoneyReportHoldMenu
-                        nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
-                        requestType={requestType}
-                        fullAmount={fullAmount}
-                        onClose={() => setIsHoldMenuVisible(false)}
-                        isVisible={isHoldMenuVisible}
-                        paymentType={paymentType}
-                        chatReport={chatReport}
-                        moneyRequestReport={iouReport}
-                        transactionCount={numberOfRequests}
-                        hasNonHeldExpenses={!hasOnlyHeldExpenses}
-                        startAnimation={() => {
-                            if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
-                                startApprovedAnimation();
-                            } else {
-                                startAnimation();
-                            }
-                        }}
-                    />
-                )}
             </OfflineWithFeedback>
+            {isHoldMenuVisible && !!iouReport && (
+                <ProcessMoneyReportHoldMenu
+                    nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
+                    fullAmount={fullAmount}
+                    onClose={() => setIsHoldMenuVisible(false)}
+                    isVisible={isHoldMenuVisible}
+                    paymentType={paymentType}
+                    chatReport={chatReport}
+                    moneyRequestReport={iouReport}
+                    transactionCount={numberOfRequests}
+                    startAnimation={startAnimation}
+                    hasNonHeldExpenses={!hasOnlyHeldExpenses}
+                />
+            )}
         </View>
     );
 }

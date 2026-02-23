@@ -45,7 +45,6 @@ import PushNotification from './libs/Notification/PushNotification';
 import './libs/Notification/PushNotification/subscribeToPushNotifications';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 import './libs/registerPaginationConfig';
-import setCrashlyticsUserId from './libs/setCrashlyticsUserId';
 import {endSpan, getSpan, startSpan} from './libs/telemetry/activeSpans';
 import {cleanupMemoryTrackingTelemetry, initializeMemoryTrackingTelemetry} from './libs/telemetry/TelemetrySynchronizer';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
@@ -380,13 +379,6 @@ function Expensify() {
         // Disabling this rule because we only want it to run on the first render.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isNavigationReady]);
-
-    useEffect(() => {
-        if (!isAuthenticated) {
-            return;
-        }
-        setCrashlyticsUserId(session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
-    }, [isAuthenticated, session?.accountID]);
 
     useEffect(() => {
         if (!account?.delegatedAccess?.delegate) {
