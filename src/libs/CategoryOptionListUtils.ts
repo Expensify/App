@@ -124,7 +124,7 @@ function getCategoryListSections({
     }
 
     if (numberOfEnabledCategories === 0 && selectedOptions.length > 0) {
-        const data = getCategoryOptionTree(selectedOptionsWithDisabledState, true);
+        const data = getCategoryOptionTree(selectedOptionsWithDisabledState, false);
         categorySections.push({
             // "Selected" section
             title: '',
@@ -143,7 +143,7 @@ function getCategoryListSections({
             isSelected: selectedOptions.some((selectedOption) => selectedOption.name === category.name),
         }));
 
-        const data = getCategoryOptionTree(searchCategories, true);
+        const data = getCategoryOptionTree(searchCategories, false);
         categorySections.push({
             // "Search" section
             title: '',
@@ -155,7 +155,7 @@ function getCategoryListSections({
     }
 
     if (selectedOptions.length > 0) {
-        const data = getCategoryOptionTree(selectedOptionsWithDisabledState, true);
+        const data = getCategoryOptionTree(selectedOptionsWithDisabledState, false);
         categorySections.push({
             // "Selected" section
             title: '',
@@ -192,7 +192,7 @@ function getCategoryListSections({
     if (filteredRecentlyUsedCategories.length > 0) {
         const cutRecentlyUsedCategories = filteredRecentlyUsedCategories.slice(0, maxRecentReportsToShow);
 
-        const data = getCategoryOptionTree(cutRecentlyUsedCategories, true);
+        const data = getCategoryOptionTree(cutRecentlyUsedCategories, false);
         categorySections.push({
             // "Recent" section
             title: translate('common.recent'),
