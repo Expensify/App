@@ -254,7 +254,7 @@ function clearTravelInvoicingSettlementFrequencyErrors(workspaceAccountID: numbe
 function toggleTravelInvoicing(policyID: string, workspaceAccountID: number, enabled: boolean) {
     const cardSettingsKey = getTravelInvoicingCardSettingsKey(workspaceAccountID);
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: cardSettingsKey,
@@ -269,7 +269,7 @@ function toggleTravelInvoicing(policyID: string, workspaceAccountID: number, ena
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: cardSettingsKey,
@@ -283,7 +283,7 @@ function toggleTravelInvoicing(policyID: string, workspaceAccountID: number, ena
     ];
 
     // On failure: revert isEnabled and show error
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: cardSettingsKey,
@@ -293,7 +293,6 @@ function toggleTravelInvoicing(policyID: string, workspaceAccountID: number, ena
                     isEnabled: !enabled,
                 },
                 pendingAction: null,
-                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
         },
     ];
