@@ -179,7 +179,6 @@ jobs:
         if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
         continue-on-error: true
         timeout-minutes: 5
-        # TODO: Remove --log-level debug before merging
         run: npx sentry-cli build upload ${{ env.aabPath }} --org expensify --project app --build-configuration Release --log-level debug
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
@@ -406,7 +405,6 @@ jobs:
         if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
         continue-on-error: true
         timeout-minutes: 5
-        # TODO: Remove --log-level debug before merging
         run: npx sentry-cli build upload ${{ env.ipaPath }} --org expensify --project app --build-configuration Release --log-level debug
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
