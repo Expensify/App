@@ -5,6 +5,7 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';
+import CONST from '@src/CONST';
 
 type GetStartedTravelProps = {
     policyID: string;
@@ -33,6 +34,7 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
                     text={translate('workspace.moreFeatures.travel.getStarted.ctaText')}
                     activePolicyID={policyID}
                     shouldShowVerifyAccountModal={false}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.GET_STARTED_BUTTON}
                 />
             }
         />

@@ -8,7 +8,6 @@ import type {Policy, Report, ReportNextStepDeprecated} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import type {Message} from '@src/types/onyx/ReportNextStepDeprecated';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import DateUtils from './DateUtils';
 import EmailUtils from './EmailUtils';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
@@ -42,7 +41,8 @@ type BuildNextStepNewParams = {
 };
 
 function buildNextStepMessage(nextStep: ReportNextStep, translate: LocaleContextProps['translate'], currentUserAccountID: number): string {
-    const actor = getDisplayNameForParticipant({accountID: nextStep.actorAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils});
+    // Escape actor name to prevent HTML injection since this will be rendered as HTML
+    const actor = Str.safeEscape(getDisplayNameForParticipant({accountID: nextStep.actorAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '');
     let actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>;
     if (nextStep.actorAccountID === currentUserAccountID) {
         actorType = CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER;
@@ -58,7 +58,8 @@ function buildNextStepMessage(nextStep: ReportNextStep, translate: LocaleContext
         eta = translate(`nextStep.eta.${nextStep.eta.etaKey}`);
         etaType = CONST.NEXT_STEP.ETA_TYPE.KEY;
     } else if (nextStep.eta?.dateTime) {
-        eta = DateUtils.formatToLongDateWithWeekday(nextStep.eta.dateTime);
+        const formatString = nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT ? CONST.DATE.ORDINAL_DAY_OF_MONTH : CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY;
+        eta = format(new Date(nextStep.eta.dateTime), formatString);
         etaType = CONST.NEXT_STEP.ETA_TYPE.DATE_TIME;
     }
 

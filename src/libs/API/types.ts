@@ -474,6 +474,7 @@ const WRITE_COMMANDS = {
     DELETE_SAVED_SEARCH: 'DeleteSavedSearch',
     UPDATE_CARD_SETTLEMENT_FREQUENCY: 'UpdateCardSettlementFrequency',
     UPDATE_CARD_SETTLEMENT_ACCOUNT: 'UpdateCardSettlementAccount',
+    TOGGLE_TRAVEL_INVOICING: 'ToggleTravelInvoicing',
     SET_TRAVEL_INVOICING_SETTLEMENT_ACCOUNT: 'SetTravelInvoicingSettlementAccount',
     UPDATE_TRAVEL_INVOICE_SETTLEMENT_FREQUENCY: 'UpdateTravelInvoiceSettlementFrequency',
     UPDATE_XERO_IMPORT_TRACKING_CATEGORIES: 'UpdateXeroImportTrackingCategories',
@@ -951,7 +952,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.RETRACT_REPORT]: Parameters.RetractReportParams;
     [WRITE_COMMANDS.COMPLETE_CONCIERGE_CALL]: Parameters.CompleteConciergeCallParams;
     [WRITE_COMMANDS.FINISH_CORPAY_BANK_ACCOUNT_ONBOARDING]: Parameters.FinishCorpayBankAccountOnboardingParams;
-    [WRITE_COMMANDS.DELETE_VACATION_DELEGATE]: null;
+    [WRITE_COMMANDS.DELETE_VACATION_DELEGATE]: Parameters.DeleteVacationDelegateParams | null;
     [WRITE_COMMANDS.ENABLE_GLOBAL_REIMBURSEMENTS_FOR_USD_BANK_ACCOUNT]: Parameters.EnableGlobalReimbursementsForUSDBankAccountParams;
     [WRITE_COMMANDS.REOPEN_REPORT]: Parameters.ReopenReportParams;
     [WRITE_COMMANDS.SEND_SCHEDULE_CALL_NUDGE]: Parameters.SendScheduleCallNudgeParams;
@@ -1067,6 +1068,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.DELETE_SAVED_SEARCH]: Parameters.DeleteSavedSearchParams;
     [WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_FREQUENCY]: Parameters.UpdateCardSettlementFrequencyParams;
     [WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_ACCOUNT]: Parameters.UpdateCardSettlementAccountParams;
+    [WRITE_COMMANDS.TOGGLE_TRAVEL_INVOICING]: Parameters.ToggleTravelInvoicingParams;
     [WRITE_COMMANDS.SET_TRAVEL_INVOICING_SETTLEMENT_ACCOUNT]: Parameters.SetTravelInvoicingSettlementAccountParams;
     [WRITE_COMMANDS.UPDATE_TRAVEL_INVOICE_SETTLEMENT_FREQUENCY]: Parameters.UpdateTravelInvoicingSettlementFrequencyParams;
     [WRITE_COMMANDS.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS]: Parameters.SetPersonalDetailsAndShipExpensifyCardsParams;

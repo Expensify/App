@@ -6,15 +6,15 @@ import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import useCurrencyList from '@hooks/useCurrencyList';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOutstandingReports from '@hooks/useOutstandingReports';
-import useReportAttributes from '@hooks/useReportAttributes';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -290,7 +290,7 @@ function MoneyRequestConfirmationListFooter({
     const icons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'CalendarSolid']);
     const styles = useThemeStyles();
     const {translate, toLocaleDigit, localeCompare} = useLocalize();
-    const {getCurrencySymbol} = useCurrencyList();
+    const {getCurrencySymbol} = useCurrencyListActions();
     const {isOffline} = useNetwork();
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});

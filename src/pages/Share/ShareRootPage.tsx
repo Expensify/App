@@ -16,6 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
 import ShareActionHandler from '@libs/ShareActionHandlerModule';
+import {close as closeModal} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -148,6 +149,10 @@ function ShareRootPage() {
         clearShareData();
         handleProcessFiles();
         // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
+        closeModal();
     }, []);
 
     const shareTabInputRef = useRef<AnimatedTextInputRef | null>(null);

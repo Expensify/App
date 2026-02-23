@@ -48,6 +48,40 @@ type UseCompanyCardsResult = Partial<{
 };
 
 /**
+ * Resolves an assigned card to its corresponding cardList entry using a cascading lookup:
+ * 1. encryptedCardNumber — exact match against cardList values
+ * 2. cardName — normalized name match against cardList keys
+ * 3. lastFourPAN — last-4-digit suffix match (only when exactly 1 cardList entry matches)
+ *
+ * Only the lastFourPAN path enriches the card; the other two confirm the card is already linked.
+ */
+function resolveCardListEntry(card: Card, cardListEntries: Array<[string, string]>): Card {
+    if (!card.lastFourPAN) {
+        return card;
+    }
+
+    const {cardName, encryptedCardNumber, lastFourPAN} = card;
+
+    const isLinkedByEncrypted = encryptedCardNumber && cardListEntries.some(([, entryEncryptedCardNumber]) => entryEncryptedCardNumber === encryptedCardNumber);
+    const normalizedCardName = cardName ? normalizeCardName(cardName) : undefined;
+    const isLinkedByName = normalizedCardName && cardListEntries.some(([name]) => normalizeCardName(name) === normalizedCardName);
+
+    if (isLinkedByEncrypted || isLinkedByName) {
+        return card;
+    }
+
+    const [matchedCard, ...otherMatchedCards] = cardListEntries.filter(([name]) => name.endsWith(lastFourPAN)).slice(0, 2);
+
+    // If there are other matched cards, return the original card.
+    if (otherMatchedCards.length > 0) {
+        return card;
+    }
+
+    const [name = cardName, encrypted = encryptedCardNumber] = matchedCard ?? [];
+    return {...card, cardName: name, encryptedCardNumber: encrypted};
+}
+
+/**
  * Builds a list of card entries by starting from assignedCards (source of truth for assignments),
  * then filling in remaining unassigned cards from accountList/cardList.
  */
@@ -56,21 +90,26 @@ function buildCompanyCardEntries(accountList: string[] | undefined, cardList: As
     const coveredNames = new Set<string>();
     const coveredEncrypted = new Set<string>();
 
+    const cardListEntries = Object.entries(cardList ?? {});
+
     // Phase 1: Assigned cards first — these are the source of truth.
     for (const card of Object.values(assignedCards)) {
         if (!card?.cardName) {
             continue;
         }
-        const encryptedCardNumber = card.encryptedCardNumber ?? card.cardName;
-        entries.push({cardName: card.cardName, encryptedCardNumber, isAssigned: true, assignedCard: card});
-        coveredNames.add(normalizeCardName(card.cardName));
-        if (card.encryptedCardNumber) {
-            coveredEncrypted.add(card.encryptedCardNumber);
+
+        const resolved = resolveCardListEntry(card, cardListEntries);
+        const {cardName = card.cardName, encryptedCardNumber = card.cardName} = resolved;
+
+        entries.push({cardName, encryptedCardNumber, isAssigned: true, assignedCard: card});
+        coveredNames.add(normalizeCardName(cardName));
+        if (encryptedCardNumber !== cardName) {
+            coveredEncrypted.add(encryptedCardNumber);
         }
     }
 
     // Phase 2: Add remaining unassigned cards. cardList first so its encryptedCardNumber takes precedence.
-    for (const [name, encryptedCardNumber] of Object.entries(cardList ?? {})) {
+    for (const [name, encryptedCardNumber] of cardListEntries) {
         if (coveredNames.has(normalizeCardName(name)) || coveredEncrypted.has(encryptedCardNumber)) {
             continue;
         }

@@ -44,6 +44,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID, {canBeMissing: true});
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, {canBeMissing: true});
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const policy = usePolicy(onboardingPolicyID);
     const {onboardingMessages} = useOnboardingMessages();
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
@@ -126,6 +127,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
             shouldSkipTestDriveModal: !!onboardingPolicyID && !onboardingAdminsChatReportID,
             isInvitedAccountant,
             onboardingPurposeSelected,
+            introSelected,
         });
 
         setOnboardingAdminsChatReportID();
@@ -187,6 +189,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
                     large
                     text={translate('common.skip')}
                     onPress={() => completeOnboarding(false)}
+                    sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.SKIP}
                 />
             </View>
             <View>
@@ -196,6 +199,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
                     text={translate('common.continue')}
                     onPress={() => inviteUser()}
                     isDisabled={selectedOptions.length <= 0}
+                    sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CONTINUE}
                 />
             </View>
         </View>
@@ -229,7 +233,12 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
                 shouldDisplayHelpButton={false}
             />
             <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5, onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb3]}>
-                <Text style={styles.textHeadlineH1}>{translate('onboarding.inviteMembers.title')}</Text>
+                <Text
+                    style={styles.textHeadlineH1}
+                    accessibilityRole={CONST.ROLE.HEADER}
+                >
+                    {translate('onboarding.inviteMembers.title')}
+                </Text>
             </View>
             <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5, onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
                 <Text style={[styles.textNormal, styles.colorMuted]}>{translate('onboarding.inviteMembers.subtitle')}</Text>

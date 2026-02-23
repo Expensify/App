@@ -5,7 +5,7 @@ import Animated from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import DecisionModal from '@components/DecisionModal';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
@@ -101,7 +101,8 @@ function SearchPage({route}: SearchPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
-    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {
         selectedTransactions,
         clearSelectedTransactions,
@@ -362,7 +363,7 @@ function SearchPage({route}: SearchPageProps) {
             {
                 query: status,
                 jsonQuery: JSON.stringify(queryJSON),
-                reportIDList: selectedReports?.map((report) => report?.reportID).filter((reportID) => reportID !== undefined) ?? [],
+                reportIDList: selectedReports.length > 0 ? selectedReportIDs : selectedTransactionReportIDs,
                 transactionIDList: selectedTransactionsKeys,
             },
             () => {
@@ -686,6 +687,12 @@ function SearchPage({route}: SearchPageProps) {
         ],
     );
 
+    const onBulkPaySelectedRef = useRef(onBulkPaySelected);
+    onBulkPaySelectedRef.current = onBulkPaySelected;
+    const stableOnBulkPaySelected = useCallback((paymentMethod?: PaymentMethodType, additionalData?: Record<string, unknown>) => {
+        onBulkPaySelectedRef.current?.(paymentMethod, additionalData);
+    }, []);
+
     const [isSorting, setIsSorting] = useState(false);
     let searchResults: SearchResults | undefined;
     if (currentSearchResults?.data) {
@@ -968,7 +975,7 @@ function SearchPage({route}: SearchPageProps) {
                         text: translate('common.merge'),
                         icon: expensifyIcons.ArrowCollapse,
                         value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE,
-                        onSelected: () => setupMergeTransactionDataAndNavigate(transactionID, searchedTransactions, localeCompare, reports, false, true),
+                        onSelected: () => setupMergeTransactionDataAndNavigate(transactionID, searchedTransactions, localeCompare, reports, false, true, transactionPolicies),
                     });
                 }
             }
@@ -1241,7 +1248,7 @@ function SearchPage({route}: SearchPageProps) {
                             footerData={footerData}
                             currentSelectedPolicyID={selectedPolicyIDs?.at(0)}
                             currentSelectedReportID={selectedTransactionReportIDs?.at(0) ?? selectedReportIDs?.at(0)}
-                            confirmPayment={onBulkPaySelected}
+                            confirmPayment={stableOnBulkPaySelected}
                             latestBankItems={latestBankItems}
                             shouldShowFooter={shouldShowFooter}
                         />
@@ -1269,7 +1276,7 @@ function SearchPage({route}: SearchPageProps) {
                         selectedTransactionReportIDs={selectedTransactionReportIDs}
                         selectedReportIDs={selectedReportIDs}
                         latestBankItems={latestBankItems}
-                        onBulkPaySelected={onBulkPaySelected}
+                        onBulkPaySelected={stableOnBulkPaySelected}
                         handleSearchAction={handleSearchAction}
                         onSortPressedCallback={onSortPressedCallback}
                         scrollHandler={scrollHandler}

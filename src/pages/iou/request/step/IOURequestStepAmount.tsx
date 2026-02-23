@@ -4,17 +4,17 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
-import useCurrencyList from '@hooks/useCurrencyList';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import useReportAttributes from '@hooks/useReportAttributes';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
@@ -76,7 +76,7 @@ function IOURequestStepAmount({
     shouldKeepUserInput = false,
 }: IOURequestStepAmountProps) {
     const {translate} = useLocalize();
-    const {getCurrencyDecimals} = useCurrencyList();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);

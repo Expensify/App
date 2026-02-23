@@ -1447,6 +1447,61 @@ function updateSplitTransactions({
                 errors: null,
             },
         });
+        const isLastTransactionInReport = Object.values(allTransactionsList ?? {}).filter((itemTransaction) => itemTransaction?.reportID === expenseReportID).length === 1;
+        if (isLastTransactionInReport) {
+            onyxData.optimisticData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${transactionData.reportID}`,
+                value: {
+                    reportID: null,
+                    pendingFields: {
+                        preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                },
+            });
+            onyxData.successData?.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${transactionData.reportID}`,
+                value: null,
+            });
+            onyxData.failureData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${transactionData.reportID}`,
+                value: {
+                    reportID: transactionData.reportID,
+                    pendingFields: null,
+                },
+            });
+            if (expenseReport?.parentReportID && expenseReport?.parentReportActionID) {
+                onyxData.optimisticData?.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.parentReportID}`,
+                    value: {
+                        [expenseReport?.parentReportActionID]: {
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                        },
+                    },
+                });
+                onyxData.successData?.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.parentReportID}`,
+                    value: {
+                        [expenseReport?.parentReportActionID]: {
+                            pendingAction: null,
+                        },
+                    },
+                });
+                onyxData.failureData?.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.parentReportID}`,
+                    value: {
+                        [expenseReport?.parentReportActionID]: {
+                            pendingAction: null,
+                        },
+                    },
+                });
+            }
+        }
     }
 
     if (isReverseSplitOperation) {
