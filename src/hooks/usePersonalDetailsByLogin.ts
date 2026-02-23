@@ -8,7 +8,7 @@ import useOnyx from './useOnyx';
  * Enables case-insensitive lookups.
  */
 function usePersonalDetailsByLogin(): Record<string, PersonalDetails> {
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     return useMemo(() => {
         if (!personalDetails) {

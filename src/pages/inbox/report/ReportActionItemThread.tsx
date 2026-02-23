@@ -44,7 +44,7 @@ function ReportActionItemThread({numberOfReplies, accountIDs, mostRecentReply, r
     const styles = useThemeStyles();
 
     const {translate, datetimeToCalendarTime} = useLocalize();
-    const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`, {canBeMissing: true});
+    const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`);
 
     const numberOfRepliesText = numberOfReplies > CONST.MAX_THREAD_REPLIES_PREVIEW ? `${CONST.MAX_THREAD_REPLIES_PREVIEW}+` : `${numberOfReplies}`;
     const replyText = numberOfReplies === 1 ? translate('threads.reply') : translate('threads.replies');

@@ -127,6 +127,9 @@ const ONYXKEYS = {
     /** Store the information of magic code */
     VALIDATE_ACTION_CODE: 'validateActionCode',
 
+    /** Stores 2FA code validation errors in domain 2FA settings */
+    VALIDATE_DOMAIN_TWO_FACTOR_CODE: 'validateDomainTwoFactorCode',
+
     /** A list of policies that a user can join */
     JOINABLE_POLICIES: 'joinablePolicies',
 
@@ -1248,6 +1251,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.LOGIN_LIST]: OnyxTypes.LoginList;
     [ONYXKEYS.PENDING_CONTACT_ACTION]: OnyxTypes.PendingContactAction;
     [ONYXKEYS.VALIDATE_ACTION_CODE]: OnyxTypes.ValidateMagicCodeAction;
+    [ONYXKEYS.VALIDATE_DOMAIN_TWO_FACTOR_CODE]: OnyxTypes.ValidateDomainTwoFactorCode;
     [ONYXKEYS.JOINABLE_POLICIES]: OnyxTypes.JoinablePolicies;
     [ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES]: OnyxTypes.ValidateUserAndGetAccessiblePolicies;
     [ONYXKEYS.SESSION]: OnyxTypes.Session;

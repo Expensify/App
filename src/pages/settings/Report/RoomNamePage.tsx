@@ -38,7 +38,7 @@ function RoomNamePage({report}: RoomNamePageProps) {
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
     const reportID = report?.reportID;
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const isReportArchived = useReportIsArchived(report?.reportID);
 
     const goBack = useCallback(() => {

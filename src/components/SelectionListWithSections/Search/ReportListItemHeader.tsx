@@ -113,7 +113,7 @@ function HeaderFirstRow<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const theme = useTheme();
-    const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`, {canBeMissing: true, selector: isActionLoadingSelector});
+    const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`, {selector: isActionLoadingSelector});
 
     let total = reportItem.total ?? 0;
     if (total) {
@@ -214,8 +214,8 @@ function ReportListItemHeader<TItem extends ListItem>({
     const theme = useTheme();
     const {currentSearchHash, currentSearchKey, currentSearchResults: snapshot} = useSearchContext();
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
-    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
+    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const thereIsFromAndTo = !!reportItem?.from && !!reportItem?.to;
     const showUserInfo = (reportItem.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo) || (reportItem.type === CONST.REPORT.TYPE.EXPENSE && !!reportItem?.from);
     const snapshotReport = useMemo(() => {

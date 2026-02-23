@@ -1387,6 +1387,75 @@ function getSortedReportActionsForDisplay(
 }
 
 /**
+ * Returns true if action `a` is newer than action `b`,
+ * matching getSortedReportActions order (descending by timestamp, with CREATED always oldest).
+ */
+function isNewerReportAction(a: ReportAction, b: ReportAction): boolean {
+    if (a.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+        return false;
+    }
+    if (b.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+        return true;
+    }
+
+    // Undefined created is treated as oldest (mirrors getSortedReportActions which places undefined first in ascending order)
+    if (a.created === undefined && b.created !== undefined) {
+        return false;
+    }
+    if (a.created !== undefined && b.created === undefined) {
+        return true;
+    }
+
+    if (a.created !== b.created) {
+        return a.created > b.created;
+    }
+
+    if (a.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && b.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+        return true;
+    }
+    if (b.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && a.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+        return false;
+    }
+
+    return a.reportActionID > b.reportActionID;
+}
+
+/**
+ * Finds the newest report action matching each of two filter criteria in a single pass.
+ * Returns:
+ * - lastVisibleAction: newest visible action
+ * - lastActionForDisplay: newest displayable action (not CREATED)
+ */
+function findLastReportActions(reportActions: OnyxEntry<ReportActions>, canUserPerformWriteAction?: boolean) {
+    if (!reportActions) {
+        return {lastVisibleAction: undefined, lastActionForDisplay: undefined};
+    }
+
+    let lastVisibleAction: ReportAction | undefined;
+    let lastActionForDisplay: ReportAction | undefined;
+
+    for (const [key, action] of Object.entries(reportActions)) {
+        if (!action) {
+            continue;
+        }
+
+        if (shouldReportActionBeVisible(action, key, canUserPerformWriteAction)) {
+            if (!lastVisibleAction || isNewerReportAction(action, lastVisibleAction)) {
+                lastVisibleAction = action;
+            }
+        }
+
+        if (shouldReportActionBeVisibleAsLastAction(action, canUserPerformWriteAction) && action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
+            if (!lastActionForDisplay || isNewerReportAction(action, lastActionForDisplay)) {
+                lastActionForDisplay = action;
+            }
+        }
+    }
+
+    return {lastVisibleAction, lastActionForDisplay};
+}
+
+/**
  * The first visible action is the second last action in sortedReportActions which satisfy following conditions:
  * 1. That is not pending deletion as pending deletion actions are kept in sortedReportActions in memory.
  * 2. That has at least one visible child action.
@@ -4188,6 +4257,7 @@ export {
     isAddCommentAction,
     isApprovedOrSubmittedReportAction,
     isIOURequestReportAction,
+    isNewerReportAction,
     isChronosOOOListAction,
     isClosedAction,
     isConsecutiveActionMadeByPreviousActor,
@@ -4273,6 +4343,7 @@ export {
     getCardIssuedMessage,
     getRemovedConnectionMessage,
     getActionableJoinRequestPendingReportAction,
+    findLastReportActions,
     getFilteredReportActionsForReportView,
     wasMessageReceivedWhileOffline,
     shouldShowAddMissingDetails,
