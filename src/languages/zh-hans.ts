@@ -65,8 +65,11 @@ import type {
     UpdatedPolicyBudgetNotificationParams,
     UpdatedPolicyCategoriesParams,
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
+    UpdatedPolicyCurrencyDefaultTaxParams,
+    UpdatedPolicyCustomTaxNameParams,
     UpdatedPolicyCustomUnitSubRateParams,
     UpdatedPolicyDefaultTitleParams,
+    UpdatedPolicyForeignCurrencyDefaultTaxParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyOwnershipParams,
     UpdatedPolicyPreventSelfApprovalParams,
@@ -131,6 +134,7 @@ import type {
     ZipCodeExampleFormatParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
+
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -942,6 +946,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会计`,
             },
         },
+        assignedCards: '已分配的卡片',
+        assignedCardsRemaining: ({amount}: {amount: string}) => `剩余 ${amount}`,
         announcements: '公告',
         discoverSection: {
             title: '发现',
@@ -1348,12 +1354,7 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: '其中有些重复项已经被批准或支付。',
         reviewDuplicates: '查看重复项',
         keepAll: '全部保留',
-        confirmApprove: '确认批准金额',
-        confirmApprovalAmount: '仅批准合规报销，或批准整份报销报告。',
-        confirmApprovalAllHoldAmount: () => ({
-            one: '此报销已被搁置。仍要批准吗？',
-            other: '这些报销当前被搁置。你仍然想要批准吗？',
-        }),
+        confirmApprovalWithHeldAmount: '报告包含暂停的费用。仅批准合规的费用，还是批准整个报告？',
         confirmPay: '确认付款金额',
         confirmPayAmount: '支付未冻结的部分，或支付整份报告。',
         confirmPayAllHoldAmount: () => ({
@@ -6228,7 +6229,7 @@ ${reportName}
                 matchTypeContains: '包含',
                 matchTypeExact: '完全匹配',
                 duplicateRuleTitle: '已存在类似的商家规则',
-                duplicateRulePrompt: (merchantName: string) => `即使已经有一条适用于“${merchantName}”的规则，是否仍要保存新规则？`,
+                duplicateRulePrompt: (merchantName: string) => `您现有针对“${merchantName}”的规则将优先于此规则。仍要保存吗？`,
                 saveAnyway: '仍然保存',
                 applyToExistingUnsubmittedExpenses: '应用到现有未提交的报销费用',
             },
@@ -6621,7 +6622,10 @@ ${reportName}
         changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>
             previousReimburser ? `将授权付款人更改为“${newReimburser}”（之前为“${previousReimburser}”）` : `已将授权付款人更改为“${newReimburser}”`,
         updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? '已启用' : '已禁用'} 笔报销`,
-        addTax: ({taxName}: UpdatedPolicyTaxParams) => `已添加税费“${taxName}”`,
+        updateCustomTaxName: ({oldName, newName}: UpdatedPolicyCustomTaxNameParams) => `将自定义税种名称更改为"${newName}"（之前为"${oldName}"）`,
+        updateCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyCurrencyDefaultTaxParams) => `将工作区货币的默认税率更改为"${newName}"（之前为"${oldName}"）`,
+        updateForeignCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyForeignCurrencyDefaultTaxParams) => `将外币默认税率更改为"${newName}"（之前为"${oldName}"）`,
+        addTax: ({taxName}: UpdatedPolicyTaxParams) => `已添加税费"${taxName}"`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `已移除税费“${taxName}”`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
             if (!updatedField) {
@@ -8248,5 +8252,6 @@ ${reportName}
         common: {settings: '设置'},
         groups: {title: '群组', memberCount: () => ({one: '1 名成员', other: (count: number) => `${count} 名成员`})},
     },
+    proactiveAppReview: {title: '喜欢全新的 Expensify 吗？', description: '请告诉我们，这样我们就能帮助您让报销体验变得更好。', positiveButton: '太棒了！', negativeButton: '不太是'},
 };
 export default translations;

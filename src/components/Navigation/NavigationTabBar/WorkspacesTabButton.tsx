@@ -15,11 +15,11 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
 import navigateToWorkspacesPage, {getWorkspaceNavigationRouteState} from '@libs/Navigation/helpers/navigateToWorkspacesPage';
+import type {DomainSplitNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {DomainSplitNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import type SCREENS from '@src/SCREENS';
 import type {Domain, Policy} from '@src/types/onyx';
 import getTabIconFill from './getTabIconFill';
@@ -62,7 +62,6 @@ function WorkspacesTabButton({selectedTab, isWideLayout}: WorkspacesTabButtonPro
     const [lastViewedPolicy] = useOnyx(
         ONYXKEYS.COLLECTION.POLICY,
         {
-            canBeMissing: true,
             selector: lastViewedPolicySelector,
         },
         [navigationState],
@@ -82,7 +81,6 @@ function WorkspacesTabButton({selectedTab, isWideLayout}: WorkspacesTabButtonPro
     const [lastViewedDomain] = useOnyx(
         ONYXKEYS.COLLECTION.DOMAIN,
         {
-            canBeMissing: true,
             selector: lastViewedDomainSelector,
         },
         [navigationState],

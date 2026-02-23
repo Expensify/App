@@ -12,7 +12,7 @@ function TripStatusIndicatorWrapper({children}: React.PropsWithChildren) {
 }
 
 function TripStatusIndicator() {
-    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
+    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const {translate} = useLocalize();
 
     const isTrackingInProgress = !!gpsDraftDetails?.isTracking;

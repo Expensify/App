@@ -4190,7 +4190,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // Verify the followup-list was marked as selected
-            let reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const);
+            const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const);
             const updatedHtml = (reportActions?.[REPORT_ACTION_ID]?.message as Message[])?.at(0)?.html;
             expect(updatedHtml).toContain('<followup-list selected>');
 
@@ -4198,18 +4198,15 @@ describe('actions/Report', () => {
             // With pre-generated response, the API call should include the optimistic Concierge response params
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 1);
 
-            // Wait for the delayed Concierge response (1500ms delay in SuggestedFollowup.ts)
-            await new Promise((resolve) => {
-                setTimeout(resolve, CONCIERGE_RESPONSE_DELAY_MS + 100);
-            });
-            await waitForBatchedUpdates();
+            // Verify the pending concierge response was written to Onyx (the hook will process it)
+            const pendingResponse = await getOnyxValue(`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${REPORT_ID}` as const);
+            expect(pendingResponse).not.toBeNull();
+            expect(pendingResponse?.reportAction.actorAccountID).toBe(CONST.ACCOUNT_ID.CONCIERGE);
+            expect(pendingResponse?.displayAfter).toBeGreaterThan(Date.now() - CONCIERGE_RESPONSE_DELAY_MS);
 
-            // Verify an optimistic Concierge report action was created
-            reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const);
-            const allReportActions = Object.values(reportActions ?? {});
-            const conciergeActions = allReportActions.filter((action) => action?.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE);
-            // Should have 2 Concierge actions: the original one and the optimistic response
-            expect(conciergeActions.length).toBe(2);
+            // Verify the typing indicator was set
+            const typingStatus = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${REPORT_ID}` as const);
+            expect(typingStatus?.[CONST.ACCOUNT_ID.CONCIERGE]).toBe(true);
         });
     });
 

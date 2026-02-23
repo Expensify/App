@@ -28,6 +28,33 @@ function isCommentEditedEvent(payload: IssueCommentEvent): payload is IssueComme
     return payload.action === CONST.ACTIONS.EDITED;
 }
 
+/**
+ * Checks if a comment body matches the criteria for a Proposal.
+ */
+function getIsProposal(body: string | null | undefined): boolean {
+    if (!body) {
+        return false;
+    }
+    const lowerCaseBody = body.toLowerCase();
+    return body.includes(CONST.PROPOSAL_KEYWORD) && lowerCaseBody.includes(CONST.PROPOSAL_HEADER_A) && lowerCaseBody.includes(CONST.PROPOSAL_HEADER_B);
+}
+
+/**
+ * Determines if a comment author is a known bot or a bot-type account.
+ */
+function getIsBotAuthor(user: {login?: string; type?: string} | null | undefined): boolean {
+    if (!user) {
+        return false;
+    }
+
+    const knownBotLogins: string[] = [CONST.COMMENT.NAME_MELVIN_BOT, CONST.COMMENT.NAME_MELVIN_USER, CONST.COMMENT.NAME_CODEX, CONST.COMMENT.NAME_GITHUB_ACTIONS];
+
+    const isBotType = user.type === CONST.COMMENT.TYPE_BOT;
+    const isKnownLogin = knownBotLogins.includes(user.login ?? '');
+
+    return isBotType || isKnownLogin;
+}
+
 // Main function to process the workflow event
 async function run() {
     // Capture the timestamp immediately at the start of the run
@@ -93,22 +120,24 @@ async function run() {
 
         let didFindDuplicate = false;
         let originalProposal: TupleToUnion<typeof commentsResponse> | undefined;
+
+        const isNewCommentAProposal = getIsProposal(newProposalBody);
+        if (!isNewCommentAProposal) {
+            console.log('New comment is not a proposal. Skipping duplicate check.');
+            return;
+        }
+
         for (const previousProposal of commentsResponse) {
             const body = previousProposal.body ?? '';
-            const lowerCaseBody = body.toLowerCase() ?? '';
-            const isProposal = !!body.includes(CONST.PROPOSAL_KEYWORD) && !!lowerCaseBody.includes(CONST.PROPOSAL_HEADER_A) && !!lowerCaseBody.includes(CONST.PROPOSAL_HEADER_B);
+            const isProposal = getIsProposal(body);
             const previousProposalCreatedAt = new Date(previousProposal.created_at).getTime();
             // Early continue if not a proposal or previous comment is newer than current one
             if (!isProposal || previousProposalCreatedAt >= newProposalCreatedAt) {
                 continue;
             }
-            const isAuthorBot =
-                previousProposal.user?.login === CONST.COMMENT.NAME_MELVIN ||
-                previousProposal.user?.login === CONST.COMMENT.NAME_CODEX ||
-                previousProposal.user?.login === CONST.COMMENT.NAME_GITHUB_ACTIONS ||
-                previousProposal.user?.type === CONST.COMMENT.TYPE_BOT;
+            const isBotAuthor = getIsBotAuthor(previousProposal.user);
             // Skip prompting if comment author is the GH bot
-            if (isAuthorBot) {
+            if (isBotAuthor) {
                 continue;
             }
 

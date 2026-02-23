@@ -69,10 +69,10 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
     // eslint-disable-next-line rulesdir/no-negated-variables
     function WithWritableReportOrNotFound(props: Omit<TProps, keyof WithWritableReportOrNotFoundOnyxProps>) {
         const {route} = props;
-        const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`, {canBeMissing: true});
-        const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
-        const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${route.params.reportID}`, {canBeMissing: true});
-        const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+        const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`);
+        const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+        const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${route.params.reportID}`);
+        const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
         const isReportArchived = useReportIsArchived(report?.reportID);
 
         const iouTypeParamIsInvalid = !Object.values(CONST.IOU.TYPE)

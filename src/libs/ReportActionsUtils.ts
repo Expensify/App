@@ -416,9 +416,8 @@ function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputO
     return reportAction.originalMessage;
 }
 
-function getCardConnectionBrokenMessage(card: Card | undefined, translate: LocaleContextProps['translate'], connectionLink?: string) {
-    const cardName = card?.cardName;
-    const personalCardName = cardName ?? getBankName(card?.bank as CompanyCardFeed);
+function getCardConnectionBrokenMessage(card: Card | undefined, originalCardName: string | undefined, translate: LocaleContextProps['translate'], connectionLink?: string) {
+    const personalCardName = originalCardName ?? card?.cardName ?? getBankName(card?.bank as CompanyCardFeed);
     return translate('personalCard.conciergeBrokenConnection', {cardName: personalCardName, connectionLink});
 }
 
@@ -2702,6 +2701,36 @@ function getWorkspaceTaxUpdateMessage(translate: LocalizedTranslate, action: Rep
     return getReportActionText(action);
 }
 
+function getCustomTaxNameUpdateMessage(translate: LocalizedTranslate, action: ReportAction): string {
+    const {oldName = '', newName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_TAX_NAME>) ?? {};
+
+    if (newName) {
+        return translate('workspaceActions.updateCustomTaxName', {oldName, newName});
+    }
+
+    return getReportActionText(action);
+}
+
+function getCurrencyDefaultTaxUpdateMessage(translate: LocalizedTranslate, action: ReportAction): string {
+    const {oldName = '', newName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY_DEFAULT_TAX>) ?? {};
+
+    if (newName) {
+        return translate('workspaceActions.updateCurrencyDefaultTax', {oldName, newName});
+    }
+
+    return getReportActionText(action);
+}
+
+function getForeignCurrencyDefaultTaxUpdateMessage(translate: LocalizedTranslate, action: ReportAction): string {
+    const {oldName = '', newName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX>) ?? {};
+
+    if (newName) {
+        return translate('workspaceActions.updateForeignCurrencyDefaultTax', {oldName, newName});
+    }
+
+    return getReportActionText(action);
+}
+
 function getWorkspaceTagUpdateMessage(translate: LocalizedTranslate, action: ReportAction | undefined): string {
     const {tagListName, tagName, enabled, newName, newValue, oldName, oldValue, updatedField, count} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
@@ -4267,6 +4296,9 @@ export {
     getUpdateACHAccountMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceTaxUpdateMessage,
+    getCustomTaxNameUpdateMessage,
+    getCurrencyDefaultTaxUpdateMessage,
+    getForeignCurrencyDefaultTaxUpdateMessage,
     getWorkspaceFrequencyUpdateMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
