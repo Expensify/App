@@ -29,7 +29,7 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
     const styles = useThemeStyles();
     const isEditing = ruleID !== ROUTES.NEW;
 
-    const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, {canBeMissing: true});
+    const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
     const {inputCallbackRef} = useAutoFocusInput();
 
     const currentValue = form?.merchantToMatch ?? '';

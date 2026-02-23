@@ -46,6 +46,9 @@ function ProgressBar({duration, position, seekPosition}: ProgressBarProps) {
 
     const pan = Gesture.Pan()
         .runOnJS(true)
+        // Reduce gesture threshold so quick taps trigger onFinalize on iOS.
+        .minDistance(0)
+        .activateAfterLongPress(0)
         .onBegin((event) => {
             setIsSliderPressed(true);
             checkIfVideoIsPlaying(onCheckIfVideoIsPlaying);
